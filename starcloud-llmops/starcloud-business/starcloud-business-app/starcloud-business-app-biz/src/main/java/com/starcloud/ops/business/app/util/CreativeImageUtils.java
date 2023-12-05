@@ -125,10 +125,14 @@ public class CreativeImageUtils {
     private static List<VariableItemDTO> transformParams(CreativeImageTemplateDTO template, List<String> useImageList) {
         List<VariableItemDTO> params = Lists.newArrayList();
         // 图片集合，用于替换图片。
+        List<String> imageList = Lists.newArrayList();
         List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(template.getVariables());
+        List<VariableItemDTO> imageVariableItemList = CollectionUtil.emptyIfNull(variableItemList.stream().filter(item -> "IMAGE".equalsIgnoreCase(item.getStyle())).collect(Collectors.toList()));
         for (VariableItemDTO variableItem : variableItemList) {
             VariableItemDTO item = SerializationUtils.clone(variableItem);
-            if (!"IMAGE".equalsIgnoreCase(item.getStyle())) {
+            if ("IMAGE".equalsIgnoreCase(item.getStyle())) {
+                item.setValue(randomImageList(imageList, useImageList, imageVariableItemList.size()));
+            } else {
                 if (Objects.nonNull(variableItem.getValue())) {
                     item.setValue(variableItem.getValue());
                 }
@@ -156,12 +160,7 @@ public class CreativeImageUtils {
         for (VariableItemDTO variableItem : variableItemList) {
             if (force && "IMAGE".equalsIgnoreCase(variableItem.getStyle())) {
                 // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
-                if (imageVariableItemList.size() > useImageList.size()) {
-                    params.put(variableItem.getField(), useImageList.get(RandomUtil.randomInt(useImageList.size())));
-                } else {
-                    // 如果变量图片数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复。
-                    params.put(variableItem.getField(), randomImageList(imageList, useImageList));
-                }
+                params.put(variableItem.getField(), randomImageList(imageList, useImageList, imageVariableItemList.size()));
             } else {
                 if (Objects.isNull(variableItem.getValue())) {
                     // 只有主图才会替换标题和副标题
@@ -191,7 +190,15 @@ public class CreativeImageUtils {
      * @param useImageList 使用的图片
      * @return 随机图片
      */
-    public static String randomImageList(List<String> imageList, List<String> useImageList) {
+    public static String randomImageList(List<String> imageList, List<String> useImageList, Integer imageTypeNumber) {
+        if (CollectionUtil.isEmpty(useImageList)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
+        }
+        // 如果图片类型数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
+        if (imageTypeNumber > useImageList.size()) {
+            return useImageList.get(RandomUtil.randomInt(useImageList.size()));
+        }
+        // 如果图片类型数量小于使用的图片数量，说明图片够用，随机获取图片，但是不重复。
         int randomInt = RandomUtil.randomInt(useImageList.size());
         String image = useImageList.get(randomInt);
         // 如果图片不在图片集合中，说明图片没有被使用过。记录图片并返回
@@ -200,7 +207,7 @@ public class CreativeImageUtils {
             return image;
         }
         // 如果图片在图片集合中，说明图片已经被使用过，递归获取
-        return randomImageList(imageList, useImageList);
+        return randomImageList(imageList, useImageList, imageTypeNumber);
     }
 
     /**
