@@ -281,6 +281,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void settlement(SingleMissionRespVO singleMissionRespVO) {
         try {
             XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
@@ -329,6 +330,14 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             Collection<String> subtract = CollUtil.subtract(uidList, singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
             throw exception(NOT_EXIST_UID, subtract.toString());
         }
+        boolean unStayClaim = singleMissionDOList.stream().anyMatch(mission -> {
+            return !SingleMissionStatusEnum.stay_claim.getCode().equals(mission.getStatus());
+        });
+
+        if (unStayClaim) {
+            throw exception(ONLY_STAY_CLAIM);
+        }
+
         Map<String, Long> doMap = singleMissionDOList.stream().collect(Collectors.toMap(SingleMissionDO::getUid, SingleMissionDO::getId));
         List<SingleMissionDO> updateList = new ArrayList<>(importVOList.size());
         String userId = WebFrameworkUtils.getLoginUserId().toString();
