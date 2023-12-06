@@ -109,10 +109,25 @@ public class CreativeImageManager {
                     // 获取模板列表
                     List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(item.getList()).stream()
                             .map(templateItem -> {
+                                List<PosterParam> params = CollectionUtil.emptyIfNull(templateItem.getParams());
+                                int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
+                                List<VariableItemDTO> variables = params.stream()
+                                        .map(param -> {
+                                            if ("image".equals(param.getType())) {
+                                                return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
+                                            } else if ("text".equals(param.getType())) {
+                                                return CreativeAppUtils.ofInputVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
+                                            } else {
+                                                return null;
+                                            }
+                                        }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemDTO::getOrder)).collect(Collectors.toList());
+
                                 CreativeImageTemplateDTO template = new CreativeImageTemplateDTO();
                                 template.setId(templateItem.getId());
                                 template.setName(templateItem.getLabel());
                                 template.setExample(templateItem.getTempUrl());
+                                template.setVariables(variables);
+                                template.setImageNumber(imageNumber);
                                 return template;
                             }).collect(Collectors.toList());
                     // 组装模板类型

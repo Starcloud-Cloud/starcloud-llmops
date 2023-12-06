@@ -63,10 +63,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -400,30 +398,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     variableItem.setValue(CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageStyleRequestParams.size()));
                 }
             }
-
-            // 将首图图片模板参数替换到首图模板参数列表中, 合并替换
-            Map<String, VariableItemDTO> imageStyleParamsMap = mainImageStyleRequestParams.stream().collect(Collectors.toMap(VariableItemDTO::getField, Function.identity()));
-            for (VariableItemDTO mainImageRequestParam : mainImageRequestParams) {
-                if (imageStyleParamsMap.containsKey(mainImageRequestParam.getField())) {
-                    VariableItemDTO variableItem = imageStyleParamsMap.get(mainImageRequestParam.getField());
-                    if (Objects.nonNull(variableItem)) {
-                        mainImageRequestParam.setValue(variableItem.getValue());
-                    }
-                }
-            }
-            // 将首图模板参数列表替换到首图模板参数中
-            mainImageRequest.setParams(mainImageRequestParams);
-
-            // 将首图模板替换到图片模板列表中
-            imageRequests = imageRequests.stream().map(item -> {
-                if (item.getIsMain()) {
-                    return mainImageRequest;
-                }
-                return item;
-            }).collect(Collectors.toList());
-            // 将图片模板列表替换到图片执行参数中
-            imageStyleExecuteRequest.setImageRequests(imageRequests);
-
 
             String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getId).collect(Collectors.joining(","));
             imageCreateRequest.setPlanUid(plan.getUid());

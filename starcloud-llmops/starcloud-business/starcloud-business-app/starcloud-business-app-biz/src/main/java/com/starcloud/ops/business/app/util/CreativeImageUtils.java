@@ -47,7 +47,10 @@ public class CreativeImageUtils {
      * @param copyWriting 文案的内容
      * @return 执行参数
      */
-    public static XhsImageStyleExecuteRequest getImageStyleExecuteRequest(CreativeContentDO content, CopyWritingContentDTO copyWriting, Boolean force) {
+    public static XhsImageStyleExecuteRequest getImageStyleExecuteRequest(CreativeContentDO content,
+                                                                          CopyWritingContentDTO copyWriting,
+                                                                          Map<String, CreativeImageTemplateDTO> posterTemplateMap,
+                                                                          Boolean force) {
         // 获取使用图片
         List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
         // 获取执行参数
@@ -61,6 +64,11 @@ public class CreativeImageUtils {
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
             XhsImageExecuteRequest request = new XhsImageExecuteRequest();
+            // 如果强制执行，则使用最新的模板参数
+            if (force && posterTemplateMap.containsKey(imageRequest.getId())) {
+                CreativeImageTemplateDTO imageTemplate = posterTemplateMap.get(imageRequest.getId());
+                imageRequest.setParams(imageTemplate.getVariables());
+            }
             request.setId(imageRequest.getId());
             request.setName(imageRequest.getName());
             request.setIndex(imageRequest.getIndex());
@@ -199,7 +207,7 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 非图片类型变量
      */
-    private static List<VariableItemDTO> otherStyleVariableList(List<VariableItemDTO> variableItemList) {
+    public static List<VariableItemDTO> otherStyleVariableList(List<VariableItemDTO> variableItemList) {
         return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> !"IMAGE".equalsIgnoreCase(item.getStyle())).collect(Collectors.toList());
     }
 

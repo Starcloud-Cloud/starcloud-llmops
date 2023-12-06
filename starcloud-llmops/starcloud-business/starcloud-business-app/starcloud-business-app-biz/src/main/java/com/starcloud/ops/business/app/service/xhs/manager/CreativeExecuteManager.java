@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRespon
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
@@ -204,11 +205,13 @@ public class CreativeExecuteManager {
             log.warn("创作中心：小红书图片生成执行：参数为空！图片生成结束");
             return Collections.emptyMap();
         }
+
+        Map<String, CreativeImageTemplateDTO> posterTemplateMap = creativeImageManager.mapTemplate();
         // 获取异步Future
         ThreadPoolExecutor executor = creativeImageCreativeThreadPoolHolder.executor();
         List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
         for (CreativeContentDO content : contentList) {
-            CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(content, force), executor);
+            CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(content, posterTemplateMap, force), executor);
             imageFutureList.add(future);
         }
         // 合并任务
@@ -242,7 +245,7 @@ public class CreativeExecuteManager {
      * @param content 创作内容
      * @return 创作结果
      */
-    public XhsImageCreativeExecuteResponse imageExecute(CreativeContentDO content, Boolean force) {
+    public XhsImageCreativeExecuteResponse imageExecute(CreativeContentDO content, Map<String, CreativeImageTemplateDTO> posterTemplateMap, Boolean force) {
         // 获取锁
         String lockKey = "xhs-creative-content-image-" + content.getId();
         RLock lock = redissonClient.getLock(lockKey);
@@ -267,7 +270,7 @@ public class CreativeExecuteManager {
             request.setPlanUid(latestContent.getPlanUid());
             request.setSchemeUid(latestContent.getSchemeUid());
             request.setBusinessUid(latestContent.getBusinessUid());
-            request.setImageStyleRequest(CreativeImageUtils.getImageStyleExecuteRequest(latestContent, copyWriting, force));
+            request.setImageStyleRequest(CreativeImageUtils.getImageStyleExecuteRequest(latestContent, copyWriting, posterTemplateMap, force));
             // 执行请求
             XhsImageCreativeExecuteResponse response = creativeImageManager.creativeExecute(request);
 
