@@ -3,10 +3,14 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
@@ -64,6 +68,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Resource
     private XhsNoteDetailService noteDetailService;
+
+    @Resource
+    private DictDataService dictDataService;
 
 
     @Override
@@ -258,14 +265,18 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     public List<SingleMissionExportVO> exportSettlement(SinglePageQueryReqVO reqVO) {
-        List<SingleMissionDO> missionList = singleMissionMapper.export(reqVO);
-        if (CollectionUtils.isEmpty(missionList)) {
-            return Collections.emptyList();
-        }
-        return SingleMissionConvert.INSTANCE.convert(missionList);
+        List<SingleMissionExportVO> exportVOList = singleMissionMapper.export(reqVO);
+        DictDataDO dictDataDO = dictDataService.parseDictData("notification_config", "claim_url");
+        exportVOList.forEach(exportVo -> {
+            exportVo.setStatus(SingleMissionStatusEnum.valueOfCode(exportVo.getStatus()).getDesc());
+            exportVo.setClaimUrl(dictDataDO.getValue() + exportVo.getUid());
+            exportVo.setContentPicture(pictureConvert(exportVo.getContentPicture()));
+        });
+        return exportVOList;
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void refreshNote(String uid) {
         SingleMissionDO missionDO = getByUid(uid);
 
@@ -277,17 +288,14 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
         XhsDetailConstants.validNoteUrl(missionDO.getPublishUrl());
-        settlement(SingleMissionConvert.INSTANCE.convert(missionDO));
+        preSettlement(SingleMissionConvert.INSTANCE.convert(missionDO));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void settlement(SingleMissionRespVO singleMissionRespVO) {
         try {
-            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
-            // 校验note内容
-            validPostingContent(singleMissionRespVO.getContent(), noteDetail);
-            updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
+            preSettlement(singleMissionRespVO);
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
@@ -356,6 +364,28 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             updateList.add(missionDO);
         }
         singleMissionMapper.updateBatch(updateList, updateList.size());
+    }
+
+    private String pictureConvert(String str) {
+        if (StringUtils.isBlank(str)) {
+            return StringUtils.EMPTY;
+        }
+        List<CreativeImageDTO> list = JSONUtil.parseArray(str).toList(CreativeImageDTO.class);
+        if (CollectionUtils.isEmpty(list)) {
+            return StringUtils.EMPTY;
+        }
+        StringJoiner sj = new StringJoiner(StringUtils.LF);
+        for (CreativeImageDTO creativeImageDTO : list) {
+            sj.add(creativeImageDTO.getUrl());
+        }
+        return sj.toString();
+    }
+
+    private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
+        XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
+        // 校验note内容
+        validPostingContent(singleMissionRespVO.getContent(), noteDetail);
+        updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
     }
 
     private void updateSingleMission(String uid, BigDecimal amount, Long noteDetailId) {

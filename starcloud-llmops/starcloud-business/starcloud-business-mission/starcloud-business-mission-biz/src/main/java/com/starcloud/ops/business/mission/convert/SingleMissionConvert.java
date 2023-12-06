@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.convert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
@@ -16,6 +17,7 @@ import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
 import com.starcloud.ops.business.mission.task.XhsTaskContentParams;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -23,6 +25,7 @@ import org.mapstruct.factory.Mappers;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
@@ -47,7 +50,7 @@ public interface SingleMissionConvert {
 
     SingleMissionQueryReqVO convert(XhsTaskContentParams params);
 
-    default SingleMissionPostingPriceDTO convert(NotificationCenterDO notificationCenterDO){
+    default SingleMissionPostingPriceDTO convert(NotificationCenterDO notificationCenterDO) {
         PostingUnitPriceDTO price = NotificationCenterConvert.INSTANCE.toPrice(notificationCenterDO.getUnitPrice());
         SingleMissionPostingPriceDTO priceDTO = new SingleMissionPostingPriceDTO();
         priceDTO.setSingleBudget(notificationCenterDO.getSingleBudget());
@@ -66,6 +69,7 @@ public interface SingleMissionConvert {
         singleMissionDO.setUid(IdUtil.fastSimpleUUID());
         singleMissionDO.setNotificationUid(notificationCenterDO.getUid());
         singleMissionDO.setCreativeUid(creativeContentResp.getBusinessUid());
+        singleMissionDO.setCreativePlanUid(creativeContentResp.getPlanUid());
         singleMissionDO.setType(notificationCenterDO.getType());
         PostingContentDTO postingContentDTO = new PostingContentDTO();
         postingContentDTO.setTitle(creativeContentResp.getCopyWritingTitle());
@@ -99,4 +103,5 @@ public interface SingleMissionConvert {
     default PostingContentDTO toPostingContent(String string) {
         return JSONUtil.toBean(string, PostingContentDTO.class);
     }
+
 }

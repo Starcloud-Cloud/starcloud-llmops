@@ -28,9 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -63,6 +65,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
         validName(reqVO.getName());
+        if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+            throw exception(BUDGET_ERROR);
+        }
         NotificationCenterDO createDo = NotificationCenterConvert.INSTANCE.convert(reqVO);
         createDo.setUid(IdUtil.fastSimpleUUID());
         createDo.setStatus(NotificationCenterStatusEnum.init.getCode());
