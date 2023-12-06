@@ -488,10 +488,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             for (int j = 0; j < templateList.size(); j++) {
                 // 根据模板ID获取海报模板以及参数信息
                 CreativeImageTemplateDTO template = templateList.get(j);
-                if (!posterMap.containsKey(template.getId())) {
-                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST);
-                }
-                CreativeImageTemplateDTO posterTemplate = posterMap.get(template.getId());
+                CreativeImageTemplateDTO posterTemplate = CreativeImageUtils.mergeTemplate(template, posterMap);
 
                 // 海报模板参数构建
                 List<VariableItemDTO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariables());
