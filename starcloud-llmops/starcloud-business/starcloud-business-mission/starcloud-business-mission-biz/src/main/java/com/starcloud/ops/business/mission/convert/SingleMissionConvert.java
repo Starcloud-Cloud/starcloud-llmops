@@ -104,18 +104,4 @@ public interface SingleMissionConvert {
         return JSONUtil.toBean(string, PostingContentDTO.class);
     }
 
-    default String pictureConvert(String str) {
-        if (StringUtils.isBlank(str)) {
-            return StringUtils.EMPTY;
-        }
-        List<CreativeImageDTO> list = JSONUtil.parseArray(str).toList(CreativeImageDTO.class);
-        if (CollectionUtils.isEmpty(list)) {
-            return StringUtils.EMPTY;
-        }
-        StringJoiner sj = new StringJoiner(StringUtils.LF);
-        for (CreativeImageDTO creativeImageDTO : list) {
-            sj.add(creativeImageDTO.getUrl());
-        }
-        return sj.toString();
-    }
 }
