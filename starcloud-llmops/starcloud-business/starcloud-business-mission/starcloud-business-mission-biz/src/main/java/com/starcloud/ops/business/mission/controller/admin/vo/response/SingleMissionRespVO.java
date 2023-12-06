@@ -81,6 +81,9 @@ public class SingleMissionRespVO {
     @Schema(description = "评论数")
     private Integer commentCount;
 
+    @Schema(description = "创作计划")
+    private String planName;
+
     @Schema(description = "价格明细")
     private SingleMissionPostingPriceDTO unitPrice;
 

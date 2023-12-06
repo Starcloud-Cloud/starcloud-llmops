@@ -66,6 +66,7 @@ public interface SingleMissionConvert {
         singleMissionDO.setUid(IdUtil.fastSimpleUUID());
         singleMissionDO.setNotificationUid(notificationCenterDO.getUid());
         singleMissionDO.setCreativeUid(creativeContentResp.getBusinessUid());
+        singleMissionDO.setCreativePlanUid(creativeContentResp.getPlanUid());
         singleMissionDO.setType(notificationCenterDO.getType());
         PostingContentDTO postingContentDTO = new PostingContentDTO();
         postingContentDTO.setTitle(creativeContentResp.getCopyWritingTitle());

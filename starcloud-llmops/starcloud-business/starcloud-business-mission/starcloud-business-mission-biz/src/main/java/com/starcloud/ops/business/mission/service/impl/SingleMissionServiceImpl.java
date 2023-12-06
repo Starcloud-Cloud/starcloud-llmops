@@ -281,6 +281,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void settlement(SingleMissionRespVO singleMissionRespVO) {
         try {
             XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
