@@ -385,7 +385,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 获取首图模板参数
             List<VariableItemDTO> mainImageRequestParams = mainImageRequest.getParams();
             // 获取首图模板参数中的图片类型参数
-            List<VariableItemDTO> mainImageStyleRequestParams = CreativeImageUtils.imageStyleVariableList(mainImageRequestParams);
+            List<VariableItemDTO> mainImageStyleRequestParams = CreativeImageUtils.imageTypeVariableList(mainImageRequestParams);
             // 首图图片参数素材图片替换
             List<String> imageParamList = Lists.newArrayList();
             for (int j = 0; j < mainImageStyleRequestParams.size(); j++) {

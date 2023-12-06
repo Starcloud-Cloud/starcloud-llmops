@@ -152,7 +152,7 @@ public class CreativeImageUtils {
     public static List<VariableItemDTO> mergeVariables(List<VariableItemDTO> variableList, List<VariableItemDTO> posterVariableList) {
         Map<String, VariableItemDTO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemDTO::getField, Function.identity()));
         for (VariableItemDTO variableItem : posterVariableList) {
-            if (!IMAGE.equalsIgnoreCase(variableItem.getStyle()) && variableMap.containsKey(variableItem.getField())) {
+            if (!IMAGE.equalsIgnoreCase(variableItem.getType()) && variableMap.containsKey(variableItem.getField())) {
                 VariableItemDTO variable = variableMap.get(variableItem.getField());
                 if (Objects.nonNull(variable.getValue())) {
                     variableItem.setValue(variable.getValue());
@@ -174,10 +174,10 @@ public class CreativeImageUtils {
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
         List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(template.getVariables());
-        List<VariableItemDTO> imageVariableItemList = imageStyleVariableList(variableItemList);
+        List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemDTO variableItem : variableItemList) {
             VariableItemDTO item = SerializationUtils.clone(variableItem);
-            if (IMAGE.equalsIgnoreCase(item.getStyle())) {
+            if (IMAGE.equalsIgnoreCase(item.getType())) {
                 item.setValue(randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
                 if (Objects.nonNull(variableItem.getValue())) {
@@ -203,13 +203,14 @@ public class CreativeImageUtils {
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
         List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
-        List<VariableItemDTO> imageVariableItemList = imageStyleVariableList(variableItemList);
+        List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemDTO variableItem : variableItemList) {
-            if (force && IMAGE.equalsIgnoreCase(variableItem.getStyle())) {
+            if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
                 // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                 params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
-                if (Objects.isNull(variableItem.getValue())) {
+                if (Objects.isNull(variableItem.getValue()) ||
+                        ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
                     // 只有主图才会替换标题和副标题
                     if (imageRequest.getIsMain()) {
                         if (TITLE.equalsIgnoreCase(variableItem.getField())) {
@@ -236,8 +237,8 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 图片类型变量
      */
-    public static List<VariableItemDTO> imageStyleVariableList(List<VariableItemDTO> variableItemList) {
-        return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> IMAGE.equalsIgnoreCase(item.getStyle())).collect(Collectors.toList());
+    public static List<VariableItemDTO> imageTypeVariableList(List<VariableItemDTO> variableItemList) {
+        return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> IMAGE.equalsIgnoreCase(item.getType())).collect(Collectors.toList());
     }
 
     /**
@@ -246,8 +247,8 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 非图片类型变量
      */
-    public static List<VariableItemDTO> otherStyleVariableList(List<VariableItemDTO> variableItemList) {
-        return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> !IMAGE.equalsIgnoreCase(item.getStyle())).collect(Collectors.toList());
+    public static List<VariableItemDTO> otherTypeVariableList(List<VariableItemDTO> variableItemList) {
+        return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> !IMAGE.equalsIgnoreCase(item.getType())).collect(Collectors.toList());
     }
 
     /**

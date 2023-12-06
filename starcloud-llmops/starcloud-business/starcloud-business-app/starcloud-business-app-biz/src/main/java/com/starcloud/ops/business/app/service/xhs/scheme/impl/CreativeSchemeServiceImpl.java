@@ -496,7 +496,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                 List<String> imageParamList = Lists.newArrayList();
                 // 获取第主图模板的参数
                 if (j == 0) {
-                    List<VariableItemDTO> mainImageVariableList = CreativeImageUtils.imageStyleVariableList(variables);
+                    List<VariableItemDTO> mainImageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
                     for (int k = 0; k < mainImageVariableList.size(); k++) {
                         VariableItemDTO variableItem = mainImageVariableList.get(k);
                         if (k == 0) {
@@ -507,13 +507,18 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageVariableList.size()));
                         }
                     }
-                    List<VariableItemDTO> mainOtherVariableList = CreativeImageUtils.otherStyleVariableList(variables);
+                    List<VariableItemDTO> mainOtherVariableList = CreativeImageUtils.otherTypeVariableList(variables);
                     for (VariableItemDTO variableItem : mainOtherVariableList) {
-                        if ("TEXT".equals(variableItem.getStyle())) {
-                            if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
-                                params.put(variableItem.getField(), copyWriting.getImgTitle());
-                            } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
-                                params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                        if ("TEXT".equals(variableItem.getType())) {
+                            if (Objects.isNull(variableItem.getValue()) ||
+                                    ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
+                                if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), copyWriting.getImgTitle());
+                                } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                                } else {
+                                    params.put(variableItem.getField(), StringUtils.EMPTY);
+                                }
                             } else {
                                 params.put(variableItem.getField(), variableItem.getValue());
                             }
@@ -522,9 +527,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         }
                     }
                 } else {
-                    List<VariableItemDTO> imageVariableList = CreativeImageUtils.imageStyleVariableList(variables);
+                    List<VariableItemDTO> imageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
                     for (VariableItemDTO variableItem : variables) {
-                        if ("IMAGE".equals(variableItem.getStyle())) {
+                        if ("IMAGE".equals(variableItem.getType())) {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, imageVariableList.size()));
                         } else {
                             params.put(variableItem.getField(), variableItem.getValue());
