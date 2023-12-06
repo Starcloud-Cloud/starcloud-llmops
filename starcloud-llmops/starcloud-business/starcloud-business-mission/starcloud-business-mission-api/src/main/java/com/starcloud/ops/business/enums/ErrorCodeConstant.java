@@ -31,4 +31,6 @@ public interface ErrorCodeConstant {
     ErrorCode  NOT_EXIST_UID =  new ErrorCode(700010014, "导入的uid不存在 {}");
 
     ErrorCode  CONTENT_INCONSISTENT =  new ErrorCode(700010015, "任务内容和用户发布内容不一致");
+
+    ErrorCode  ONLY_STAY_CLAIM =  new ErrorCode(700010016, "只有待认领状态可以导入");
 }
