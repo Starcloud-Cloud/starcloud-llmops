@@ -410,18 +410,18 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
 
     private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
-        if (notificationBudget == null
-                || notificationBudget.equals(BigDecimal.ZERO)) {
-            throw exception(NOTIFICATION_BUDGET_ERROR);
-        }
-        if (singleBudget == null
-                || singleBudget.equals(BigDecimal.ZERO)) {
-            throw exception(MISSION_BUDGET_ERROR);
-        }
-        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget);
-        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
-            throw exception(TOO_MANY_MISSION);
-        }
+//        if (notificationBudget == null
+//                || notificationBudget.equals(BigDecimal.ZERO)) {
+//            throw exception(NOTIFICATION_BUDGET_ERROR);
+//        }
+//        if (singleBudget == null
+//                || singleBudget.equals(BigDecimal.ZERO)) {
+//            throw exception(MISSION_BUDGET_ERROR);
+//        }
+//        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget);
+//        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
+//            throw exception(TOO_MANY_MISSION);
+//        }
     }
 
     private SingleMissionDO getByUid(String uid) {
