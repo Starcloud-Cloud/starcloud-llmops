@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,6 +10,7 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -40,4 +43,19 @@ public class CreativeSchemeConfigDTO implements java.io.Serializable {
     @Schema(description = "图片模板")
     private CreativeSchemeImageTemplateDTO imageTemplate;
 
+    /**
+     * 校验
+     *
+     * @param name 方案名称
+     */
+    public void validate(String name) {
+        if (Objects.isNull(copyWritingTemplate)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, name);
+        }
+        if (Objects.isNull(imageTemplate)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_NOT_NULL, name);
+        }
+        copyWritingTemplate.validate(name);
+        imageTemplate.validate(name);
+    }
 }

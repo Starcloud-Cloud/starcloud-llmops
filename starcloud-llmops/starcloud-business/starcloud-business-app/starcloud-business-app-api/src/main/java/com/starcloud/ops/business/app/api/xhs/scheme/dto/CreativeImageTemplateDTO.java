@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.xhs;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
@@ -24,8 +24,8 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "XhsImageTemplateDTO", description = "小红书图片模板")
-public class XhsImageTemplateDTO implements java.io.Serializable {
+@Schema(name = "CreativeImageTemplateDTO", description = "创作中心图片模板对象")
+public class CreativeImageTemplateDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 20366484377479364L;
 
@@ -59,7 +59,7 @@ public class XhsImageTemplateDTO implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    @NotEmpty(message = "图片模板变量不能为空！")
+//    @NotEmpty(message = "图片模板变量不能为空！")
     private List<VariableItemDTO> variables;
 
 }

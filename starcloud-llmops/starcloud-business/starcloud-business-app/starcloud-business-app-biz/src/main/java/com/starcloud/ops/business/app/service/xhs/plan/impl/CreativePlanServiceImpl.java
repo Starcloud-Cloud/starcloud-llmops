@@ -21,33 +21,32 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModify
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeImageTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.XhsImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentBusinessPO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.XhsCreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
-import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.XhsService;
-import com.starcloud.ops.business.app.util.CreativeUtil;
+import com.starcloud.ops.business.app.util.CreativeAppUtils;
+import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.util.XhsImageUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -78,16 +78,19 @@ import java.util.stream.Collectors;
 public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
+    private CreativeSchemeService creativeSchemeService;
+
+    @Resource
+    private CreativeContentService creativeContentService;
+
+    @Resource
     private CreativePlanMapper creativePlanMapper;
 
     @Resource
-    private CreativeContentService xhsCreativeContentService;
+    private CreativeAppManager creativeAppManager;
 
     @Resource
-    private XhsService xhsService;
-
-    @Resource
-    private CreativeSchemeService creativeSchemeService;
+    private CreativeImageManager creativeImageManager;
 
     @Resource
     private RedissonClient redissonClient;
@@ -100,29 +103,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public CreativePlanRespVO get(String uid) {
-        AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
+        AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanDO creativePlan = creativePlanMapper.get(uid);
-        AppValidate.notNull(creativePlan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, uid);
+        AppValidate.notNull(creativePlan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, uid);
         return CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
-    }
-
-    /**
-     * 获取模板列表
-     *
-     * @return 模板列表
-     */
-    @Override
-    public List<CreativePlanRespVO> listTemplates() {
-        CreativePlanConfigDTO config = new CreativePlanConfigDTO();
-        CreativePlanRespVO redBookResponse = new CreativePlanRespVO();
-        redBookResponse.setUid("red-book");
-        redBookResponse.setName("小红书模板");
-        redBookResponse.setType(CreativeTypeEnum.XHS.name());
-        redBookResponse.setConfig(config);
-        redBookResponse.setRandomType(CreativeRandomTypeEnum.RANDOM.name());
-        redBookResponse.setTotal(5);
-        redBookResponse.setDescription("小红书模板");
-        return Collections.singletonList(redBookResponse);
     }
 
     /**
@@ -142,8 +126,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             return PageResp.of(Collections.emptyList(), page.getTotal(), page.getCurrent(), page.getSize());
         }
         List<String> planUidList = records.stream().map(CreativePlanPO::getUid).collect(Collectors.toList());
-        List<XhsCreativeContentBusinessPO> businessList = xhsCreativeContentService.listGroupByBusinessUid(planUidList);
-        Map<String, List<XhsCreativeContentBusinessPO>> businessMap = businessList.stream().collect(Collectors.groupingBy(XhsCreativeContentBusinessPO::getPlanUid));
+        List<CreativeContentBusinessPO> businessList = creativeContentService.listGroupByBusinessUid(planUidList);
+        Map<String, List<CreativeContentBusinessPO>> businessMap = businessList.stream().collect(Collectors.groupingBy(CreativeContentBusinessPO::getPlanUid));
 
         // 用户创建者ID列表。
         List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).distinct().collect(Collectors.toList());
@@ -154,12 +138,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanRespVO response = CreativePlanConvert.INSTANCE.convertResponse(item);
             response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
             // 总数
-            List<XhsCreativeContentBusinessPO> businessItemList = CollectionUtil.emptyIfNull(businessMap.get(item.getUid()));
+            List<CreativeContentBusinessPO> businessItemList = CollectionUtil.emptyIfNull(businessMap.get(item.getUid()));
             // 全部成功才算成功
-            List<XhsCreativeContentBusinessPO> successList = businessItemList.stream()
+            List<CreativeContentBusinessPO> successList = businessItemList.stream()
                     .filter(businessItem -> businessItem.getSuccessCount() == XhsCreativeContentTypeEnums.values().length).collect(Collectors.toList());
             // 全部失败才算失败
-            List<XhsCreativeContentBusinessPO> failureList = businessItemList.stream()
+            List<CreativeContentBusinessPO> failureList = businessItemList.stream()
                     .filter(businessItem -> businessItem.getFailureCount() != 0).collect(Collectors.toList());
             response.setTotal(businessItemList.size());
             response.setSuccessCount(successList.size());
@@ -179,7 +163,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public String create(CreativePlanReqVO request) {
         handlerAndValidate(request);
         if (creativePlanMapper.distinctName(request.getName())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_NAME_EXIST, request.getName());
         }
         CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
         creativePlanMapper.insert(plan);
@@ -193,9 +177,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public String copy(UidRequest request) {
-        AppValidate.notBlank(request.getUid(), ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
+        AppValidate.notBlank(request.getUid(), CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, request.getUid());
+        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
         CreativePlanDO copyPlan = new CreativePlanDO();
         copyPlan.setUid(IdUtil.fastSimpleUUID());
@@ -223,16 +207,16 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public String modify(CreativePlanModifyReqVO request) {
-        AppValidate.notBlank(request.getUid(), ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
+        AppValidate.notBlank(request.getUid(), CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         handlerAndValidate(request);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, request.getUid());
+        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
         if (!CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
         }
         // 名称做了修改，且修改之后的名称已经存在
         if (!plan.getName().equals(request.getName()) && creativePlanMapper.distinctName(request.getName())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_NAME_EXIST, request.getName());
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_NAME_EXIST, request.getName());
         }
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
@@ -248,15 +232,15 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public void updateStatus(String uid, String status) {
-        AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
-        AppValidate.notBlank(status, ErrorCodeConstants.CREATIVE_PLAN_STATUS_REQUIRED);
+        AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
+        AppValidate.notBlank(status, CreativeErrorCodeConstants.PLAN_STATUS_REQUIRED);
 
         if (!CreativePlanStatusEnum.contains(status) || CreativePlanStatusEnum.PENDING.name().equals(status)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_STATUS_NOT_SUPPORT_MODIFY);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
         }
 
         CreativePlanDO plan = creativePlanMapper.get(uid);
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, uid);
+        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, uid);
 
         // 更新
         LocalDateTime now = LocalDateTime.now();
@@ -283,27 +267,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
                 return;
             }
-            List<XhsCreativeContentDO> contentList = xhsCreativeContentService.listByPlanUid(planUid);
+            List<CreativeContentDO> contentList = creativeContentService.listByPlanUid(planUid);
 
-            boolean fail = contentList.stream().anyMatch(contentDO -> {
-                return contentDO.getRetryCount() != null && contentDO.getRetryCount() >= 3 && XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(contentDO.getStatus());
-            });
+            boolean fail = contentList.stream().anyMatch(contentDO -> contentDO.getRetryCount() != null && contentDO.getRetryCount() >= 3 && XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(contentDO.getStatus()));
             if (fail) {
-                updateStatus(planUid,  CreativePlanStatusEnum.FAILURE.name());
+                updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
             }
 
-            boolean running = contentList.stream().anyMatch(contentDO -> {
-                return contentDO.getRetryCount() == null || contentDO.getRetryCount() < 3;
-            });
+            boolean running = contentList.stream().anyMatch(contentDO -> contentDO.getRetryCount() == null || contentDO.getRetryCount() < 3);
             if (running) {
-                updateStatus(planUid,  CreativePlanStatusEnum.RUNNING.name());
+                updateStatus(planUid, CreativePlanStatusEnum.RUNNING.name());
             }
 
-            boolean complete = contentList.stream().allMatch(contentDO -> {
-                return XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus());
-            });
+            boolean complete = contentList.stream().allMatch(contentDO -> XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus()));
             if (complete) {
-                updateStatus(planUid,  CreativePlanStatusEnum.COMPLETE.name());
+                updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
             }
         } catch (Exception e) {
             log.warn("更新计划失败", e);
@@ -320,13 +298,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
-        AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
+        AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanDO plan = creativePlanMapper.get(uid);
-        AppValidate.notNull(plan, ErrorCodeConstants.CREATIVE_PLAN_NOT_EXIST, uid);
+        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, uid);
         // 删除创作计划
         creativePlanMapper.deleteById(plan.getId());
         // 删除创作计划下的创作内容
-        xhsCreativeContentService.deleteByPlanUid(uid);
+        creativeContentService.deleteByPlanUid(uid);
     }
 
     /**
@@ -338,11 +316,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Transactional(rollbackFor = Exception.class)
     public void execute(String uid) {
         // 基本校验
-        AppValidate.notBlank(uid, ErrorCodeConstants.CREATIVE_PLAN_UID_REQUIRED);
+        AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO plan = this.get(uid);
         // 目前只支持随机执行
         if (!CreativeRandomTypeEnum.RANDOM.name().equals(plan.getRandomType())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_RANDOM_TYPE_NOT_SUPPORTED, plan.getRandomType());
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_RANDOM_TYPE_NOT_SUPPORTED, plan.getRandomType());
         }
         // 批量执行随机任务
         this.bathRandomTask(plan);
@@ -365,12 +343,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigDTO config = plan.getConfig();
         // 图片素材列表
         List<String> imageUrlList = config.getImageUrlList();
-
+        // 随机打散图片素材列表
+        List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, total);
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(plan);
-        // 随机打散图片素材列表
-        List<String> disperseImageUrlList = disperseImageUrlList(imageUrlList, total);
-        // 插入任务
+
+        // 循环处理创作内容
         List<CreativeContentCreateReqVO> xhsCreativeContentCreateReqList = new ArrayList<>(total * 2);
         for (int i = 0; i < total; i++) {
             String businessUid = IdUtil.fastSimpleUUID();
@@ -390,12 +368,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             // 图片执行任务
             CreativeContentCreateReqVO imageCreateRequest = new CreativeContentCreateReqVO();
-
             CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
             List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
             Optional<CreativePlanImageExecuteDTO> mainImageOptional = imageRequests.stream().filter(CreativePlanImageExecuteDTO::getIsMain).findFirst();
+            // 首图不存在，直接跳过先
             if (!mainImageOptional.isPresent()) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_IMAGE_STYLE_EMPTY);
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_IMAGE_MAIN_NOT_EXIST, imageStyleExecuteRequest.getName());
             }
             CreativePlanImageExecuteDTO mainImageRequest = mainImageOptional.get();
             List<VariableItemDTO> mainImageRequestParams = mainImageRequest.getParams();
@@ -410,11 +388,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     variableItem.setValue(imageUrl);
                     imageParamList.add(imageUrl);
                 } else {
-                    variableItem.setValue(XhsImageUtils.randomImageList(imageParamList, imageUrlList));
+                    variableItem.setValue(CreativeImageUtils.randomImageList(imageParamList, imageUrlList, mainImageTypeRequestParams.size()));
                 }
             }
 
-            String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getImageTemplate).collect(Collectors.joining(","));
+            String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getId).collect(Collectors.joining(","));
             imageCreateRequest.setPlanUid(plan.getUid());
             imageCreateRequest.setSchemeUid(executeParam.getSchemeUid());
             imageCreateRequest.setBusinessUid(businessUid);
@@ -425,29 +403,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             xhsCreativeContentCreateReqList.add(imageCreateRequest);
         }
         // 批量插入任务
-        xhsCreativeContentService.create(xhsCreativeContentCreateReqList);
-    }
-
-    /**
-     * 打散图片素材列表
-     *
-     * @param imageUrlList 图片素材列表
-     * @param total        任务数量
-     * @return 打散后的图片素材列表
-     */
-    private List<String> disperseImageUrlList(List<String> imageUrlList, Integer total) {
-        List<String> disperseImageUrlList = SerializationUtils.clone((ArrayList<String>) imageUrlList);
-        Collections.shuffle(disperseImageUrlList);
-        // 如果图片素材数量大于等于任务数量，直接返回打撒后的图片素材列表
-        if (imageUrlList.size() >= total) {
-            return disperseImageUrlList;
-        }
-        // 如果图片素材数量小于任务数量，需要循环使用图片素材
-        List<String> dilatationDisperseImageUrlList = Lists.newArrayList();
-        for (int i = 0; i < total; i++) {
-            dilatationDisperseImageUrlList.add(disperseImageUrlList.get(i % disperseImageUrlList.size()));
-        }
-        return dilatationDisperseImageUrlList;
+        creativeContentService.create(xhsCreativeContentCreateReqList);
     }
 
     /**
@@ -457,28 +413,32 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @return 创作内容执行参数
      */
     private List<CreativePlanExecuteDTO> handlerCreativeContentExecuteParams(CreativePlanRespVO plan) {
-        // 校验配置信息
-        validateCreativePlanConfig(plan);
         // 配置信息
         CreativePlanConfigDTO planConfig = plan.getConfig();
+        planConfig.validate();
         // 查询并且校验创作方案是否存在
         List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
         // 查询并且校验应用是否存在
-        AppMarketRespVO app = xhsService.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppMarketRespVO app = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
+        // 查询Poster模板列表，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
+        List<CreativeImageTemplateDTO> posterTemplateList = creativeImageManager.templates();
+        // Poster模板Map
+        Map<String, CreativeImageTemplateDTO> posterMap = CollectionUtil.emptyIfNull(posterTemplateList).stream()
+                .collect(Collectors.toMap(CreativeImageTemplateDTO::getId, Function.identity()));
+
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
-            // 校验创作配置方案
-            validateCreativeSchemeConfig(scheme);
             CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
+            configuration.validate(scheme.getName());
             CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
             // 获取应用执行参数
-            CreativePlanAppExecuteDTO appExecute = CreativeUtil.getXhsAppExecuteRequest(scheme, planConfig, app.getUid());
-            for (XhsImageStyleDTO style : imageTemplate.getStyleList()) {
-                List<XhsImageTemplateDTO> templateList = style.getTemplateList();
-                AppValidate.notEmpty(templateList, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
+            CreativePlanAppExecuteDTO appExecute = CreativeAppUtils.getXhsAppExecuteRequest(scheme, planConfig, app.getUid());
+            for (CreativeImageStyleDTO style : imageTemplate.getStyleList()) {
+                List<CreativeImageTemplateDTO> templateList = style.getTemplateList();
+                AppValidate.notEmpty(templateList, CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
                 // 图片执行参数
-                CreativePlanImageStyleExecuteDTO styleExecute = XhsImageUtils.getImageStyleExecuteRequest(style, planConfig.getImageUrlList());
+                CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getImageStyleExecuteRequest(scheme.getName(), style, planConfig.getImageUrlList(), posterMap);
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                 planExecute.setSchemeUid(scheme.getUid());
                 planExecute.setAppExecuteRequest(appExecute);
@@ -497,7 +457,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     private List<CreativeSchemeRespVO> getSchemeList(List<String> schemeUidList) {
         List<CreativeSchemeRespVO> schemeList = creativeSchemeService.list(schemeUidList);
-        AppValidate.notEmpty(schemeList, ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EXIST);
+        AppValidate.notEmpty(schemeList, CreativeErrorCodeConstants.PLAN_SCHEME_NOT_EXIST);
         return schemeList;
     }
 
@@ -522,52 +482,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     private void handlerAndValidate(CreativePlanReqVO request) {
         if (!CreativeTypeEnum.contains(request.getType())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_TYPE_NOT_SUPPORTED, request.getType());
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_TYPE_NOT_SUPPORTED, request.getType());
         }
         CreativePlanConfigDTO config = request.getConfig();
-        AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL, request.getName());
+        AppValidate.notNull(config, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
         config.validate();
-    }
-
-    /**
-     * 校验创作计划配置
-     *
-     * @param plan 创作计划
-     */
-    private void validateCreativePlanConfig(CreativePlanRespVO plan) {
-        // 校验配置信息
-        CreativePlanConfigDTO config = plan.getConfig();
-        AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL, plan.getName());
-        // 图片素材列表
-        AppValidate.notEmpty(config.getImageUrlList(), ErrorCodeConstants.CREATIVE_PLAN_UPLOAD_IMAGE_EMPTY);
-        // 校验创作方案
-        AppValidate.notEmpty(config.getSchemeUidList(), ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EMPTY);
-        // 创作计划变量校验
-        if (CollectionUtil.isEmpty(config.getParamMap())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_PARAM_MAP_NOT_EMPTY);
-        }
-    }
-
-    /**
-     * 校验创作方案配置
-     *
-     * @param scheme 创作方案
-     */
-    private void validateCreativeSchemeConfig(CreativeSchemeRespVO scheme) {
-        // 获取创作方案的参考账号信息
-        List<CreativeSchemeReferenceDTO> refers = scheme.getRefers();
-        AppValidate.notEmpty(refers, ErrorCodeConstants.CREATIVE_SCHEME_REFERS_NOT_EMPTY, scheme.getName());
-
-        CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
-        AppValidate.notNull(configuration, ErrorCodeConstants.CREATIVE_SCHEME_CONFIGURATION_NOT_NULL, scheme.getName());
-
-        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-        AppValidate.notNull(copyWritingTemplate, ErrorCodeConstants.CREATIVE_SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, scheme.getName());
-
-        CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
-        AppValidate.notNull(imageTemplate, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_NOT_NULL, scheme.getName());
-
-        List<XhsImageStyleDTO> styleList = imageTemplate.getStyleList();
-        AppValidate.notEmpty(styleList, ErrorCodeConstants.CREATIVE_SCHEME_IMAGE_TEMPLATE_STYLE_LIST_NOT_EMPTY, scheme.getName());
     }
 }

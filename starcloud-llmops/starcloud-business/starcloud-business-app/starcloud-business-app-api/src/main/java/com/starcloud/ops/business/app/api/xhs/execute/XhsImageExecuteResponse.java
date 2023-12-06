@@ -30,7 +30,7 @@ public class XhsImageExecuteResponse implements java.io.Serializable {
      * 应用UID
      */
     @Schema(description = "图片UID")
-    private String imageTemplate;
+    private String id;
 
     /**
      * 应用UID

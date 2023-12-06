@@ -15,7 +15,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(description = "文案内容DTO")
+@Schema(description = "文案内容对象")
 public class CopyWritingContentDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -8566370798934412863L;
