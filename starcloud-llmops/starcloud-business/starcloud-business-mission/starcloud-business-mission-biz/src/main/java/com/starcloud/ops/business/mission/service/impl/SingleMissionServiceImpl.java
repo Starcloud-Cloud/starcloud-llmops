@@ -273,6 +273,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void refreshNote(String uid) {
         SingleMissionDO missionDO = getByUid(uid);
 
@@ -284,17 +285,14 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
         XhsDetailConstants.validNoteUrl(missionDO.getPublishUrl());
-        settlement(SingleMissionConvert.INSTANCE.convert(missionDO));
+        preSettlement(SingleMissionConvert.INSTANCE.convert(missionDO));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void settlement(SingleMissionRespVO singleMissionRespVO) {
         try {
-            XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
-            // 校验note内容
-            validPostingContent(singleMissionRespVO.getContent(), noteDetail);
-            updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
+            preSettlement(singleMissionRespVO);
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
@@ -363,6 +361,13 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             updateList.add(missionDO);
         }
         singleMissionMapper.updateBatch(updateList, updateList.size());
+    }
+
+    private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
+        XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
+        // 校验note内容
+        validPostingContent(singleMissionRespVO.getContent(), noteDetail);
+        updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
     }
 
     private void updateSingleMission(String uid, BigDecimal amount, Long noteDetailId) {
