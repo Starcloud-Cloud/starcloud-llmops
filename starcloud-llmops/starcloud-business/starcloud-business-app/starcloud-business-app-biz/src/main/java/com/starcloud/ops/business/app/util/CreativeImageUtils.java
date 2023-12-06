@@ -180,9 +180,7 @@ public class CreativeImageUtils {
             if (IMAGE.equalsIgnoreCase(item.getType())) {
                 item.setValue(randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
-                if (Objects.nonNull(variableItem.getValue())) {
-                    item.setValue(variableItem.getValue());
-                }
+                item.setValue(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
             }
             params.add(item);
         }
@@ -224,7 +222,7 @@ public class CreativeImageUtils {
                         params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                     }
                 } else {
-                    params.put(variableItem.getField(), variableItem.getValue());
+                    params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
                 }
             }
         }

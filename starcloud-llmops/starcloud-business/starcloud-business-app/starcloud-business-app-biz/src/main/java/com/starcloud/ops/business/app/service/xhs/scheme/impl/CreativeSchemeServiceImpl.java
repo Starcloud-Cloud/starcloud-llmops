@@ -513,17 +513,17 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                             if (Objects.isNull(variableItem.getValue()) ||
                                     ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
                                 if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), copyWriting.getImgTitle());
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                                 } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), copyWriting.getImgSubTitle());
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
                                 } else {
                                     params.put(variableItem.getField(), StringUtils.EMPTY);
                                 }
                             } else {
-                                params.put(variableItem.getField(), variableItem.getValue());
+                                params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
                             }
                         } else {
-                            params.put(variableItem.getField(), variableItem.getValue());
+                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
                         }
                     }
                 } else {
@@ -532,7 +532,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         if ("IMAGE".equals(variableItem.getType())) {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, imageVariableList.size()));
                         } else {
-                            params.put(variableItem.getField(), variableItem.getValue());
+                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
                         }
                     }
                 }
