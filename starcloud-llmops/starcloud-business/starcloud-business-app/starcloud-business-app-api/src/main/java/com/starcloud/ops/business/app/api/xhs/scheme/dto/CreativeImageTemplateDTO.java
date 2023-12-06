@@ -10,7 +10,6 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -59,7 +58,6 @@ public class CreativeImageTemplateDTO implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-//    @NotEmpty(message = "图片模板变量不能为空！")
     private List<VariableItemDTO> variables;
 
 }

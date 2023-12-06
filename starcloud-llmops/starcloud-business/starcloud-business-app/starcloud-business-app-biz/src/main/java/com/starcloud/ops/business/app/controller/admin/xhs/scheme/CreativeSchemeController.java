@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeL
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +48,9 @@ public class CreativeSchemeController {
     @Resource
     private CreativeSchemeService creativeSchemeService;
 
+    @Resource
+    private CreativeImageManager creativeImageManager;
+
     @GetMapping("/metadata")
     @Operation(summary = "获取创作方案元数据", description = "获取创作方案元数据")
     @ApiOperationSupport(order = 20, author = "nacoyer")
@@ -54,11 +58,11 @@ public class CreativeSchemeController {
         return CommonResult.success(creativeSchemeService.metadata());
     }
 
-    @GetMapping("/templates")
+    @GetMapping("/templateGroupByType")
     @Operation(summary = "获取图片模板列表", description = "获取图片模板列表")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<CreativeImageTemplateDTO>> templates() {
-        return CommonResult.success(creativeSchemeService.templates());
+    public CommonResult<List<CreativeImageTemplateTypeDTO>> templateGroupByType() {
+        return CommonResult.success(creativeImageManager.templateGroupByType());
     }
 
     @GetMapping("/get/{uid}")
