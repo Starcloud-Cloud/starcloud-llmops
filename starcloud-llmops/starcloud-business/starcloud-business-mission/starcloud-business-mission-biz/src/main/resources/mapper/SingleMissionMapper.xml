@@ -60,9 +60,9 @@
             resultType="com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO">
         select m.uid as uid,
         n.name as notificationName,
-        JSON_EXTRACT(m.content, '$.title') as contentTitle,
-        JSON_EXTRACT(m.content, '$.text') as contentText,
-        JSON_EXTRACT(m.content, '$.picture') as contentPicture,
+        json_unquote(JSON_EXTRACT(m.content, '$.title')) as contentTitle,
+        json_unquote(JSON_EXTRACT(m.content, '$.text')) as contentText,
+        json_unquote(JSON_EXTRACT(m.content, '$.picture')) as contentPicture,
         m.status as status,
         m.claim_username as claimUsername,
         m.claim_time as claimTime,
