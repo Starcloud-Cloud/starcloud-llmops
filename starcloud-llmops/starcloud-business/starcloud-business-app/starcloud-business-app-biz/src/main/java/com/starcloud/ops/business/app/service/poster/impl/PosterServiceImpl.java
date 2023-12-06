@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
 import com.starcloud.ops.business.app.service.poster.PosterService;
@@ -44,6 +45,22 @@ public class PosterServiceImpl implements PosterService {
             return Collections.emptyList();
         }
         return templates;
+    }
+
+    /**
+     * 根据类型分组获取模板列表
+     *
+     * @return 模板列表
+     */
+    @Override
+    public List<PosterTemplateTypeDTO> templateGroupByType() {
+        PosterResponse<List<PosterTemplateTypeDTO>> response = posterImageClient.templateGroupByType();
+        validateResponse(response, "获取海报模板类型列表失败");
+        List<PosterTemplateTypeDTO> templateTypes = response.getData();
+        if (CollectionUtil.isEmpty(templateTypes)) {
+            return Collections.emptyList();
+        }
+        return templateTypes;
     }
 
     /**

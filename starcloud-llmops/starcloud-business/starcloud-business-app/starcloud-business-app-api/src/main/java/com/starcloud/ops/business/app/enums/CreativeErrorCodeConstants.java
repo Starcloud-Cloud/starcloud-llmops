@@ -169,7 +169,7 @@ public interface CreativeErrorCodeConstants {
     /**
      * 图片模板不存在
      */
-    ErrorCode POSTER_IMAGE_TEMPLATE_NOT_EXIST = new ErrorCode(750100113, "图片模板不存在(方案名称：{}，风格名称：{})！");
+    ErrorCode POSTER_IMAGE_TEMPLATE_NOT_EXIST = new ErrorCode(750100113, "图片模板不存在(模板名称：{}！");
 
     /**
      * 海报错误：返回结果不存在！

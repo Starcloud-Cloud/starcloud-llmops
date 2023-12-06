@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -347,15 +346,15 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, total);
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(plan);
-
         // 循环处理创作内容
-        List<CreativeContentCreateReqVO> xhsCreativeContentCreateReqList = new ArrayList<>(total * 2);
+        List<CreativeContentCreateReqVO> creativeContentCreateRequestList = new ArrayList<>(total * 2);
         for (int i = 0; i < total; i++) {
+            // 业务UID
             String businessUid = IdUtil.fastSimpleUUID();
-            int randomInt = RandomUtil.randomInt(executeParamsList.size());
-            CreativePlanExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(randomInt));
+            // 随机获取执行参数
+            CreativePlanExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(RandomUtil.randomInt(executeParamsList.size())));
 
-            // 应用执行任务
+            // 1. 添加一条文案内容执行任务
             CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
             CreativePlanAppExecuteDTO appExecuteRequest = executeParam.getAppExecuteRequest();
             appCreateRequest.setPlanUid(plan.getUid());
@@ -364,31 +363,39 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
             appCreateRequest.setTempUid(appExecuteRequest.getUid());
             appCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofApp(appExecuteRequest));
-            xhsCreativeContentCreateReqList.add(appCreateRequest);
+            creativeContentCreateRequestList.add(appCreateRequest);
 
-            // 图片执行任务
+            // 添加一条图片执行任务
             CreativeContentCreateReqVO imageCreateRequest = new CreativeContentCreateReqVO();
+
+            /*
+             * 首图的第一张图片进行处理，防止每一条首图出现重复情况
+             */
+            // 获取图片执行参数
             CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParam.getImageStyleExecuteRequest();
+            // 获取图片模板执行参数列表
             List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
+            // 获取首图模板
             Optional<CreativePlanImageExecuteDTO> mainImageOptional = imageRequests.stream().filter(CreativePlanImageExecuteDTO::getIsMain).findFirst();
-            // 首图不存在，直接跳过先
+            // 首图不存在，直接抛出异常
             if (!mainImageOptional.isPresent()) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_IMAGE_MAIN_NOT_EXIST, imageStyleExecuteRequest.getName());
             }
             CreativePlanImageExecuteDTO mainImageRequest = mainImageOptional.get();
+            // 获取首图模板参数
             List<VariableItemDTO> mainImageRequestParams = mainImageRequest.getParams();
-            List<VariableItemDTO> mainImageTypeRequestParams = mainImageRequestParams.stream().filter(item -> "IMAGE".equalsIgnoreCase(item.getType())).collect(Collectors.toList());
-
-            // 替换图片素材
+            // 获取首图模板参数中的图片类型参数
+            List<VariableItemDTO> mainImageStyleRequestParams = CreativeImageUtils.imageTypeVariableList(mainImageRequestParams);
+            // 首图图片参数素材图片替换
             List<String> imageParamList = Lists.newArrayList();
-            for (int j = 0; j < mainImageTypeRequestParams.size(); j++) {
-                VariableItemDTO variableItem = mainImageTypeRequestParams.get(j);
+            for (int j = 0; j < mainImageStyleRequestParams.size(); j++) {
+                VariableItemDTO variableItem = mainImageStyleRequestParams.get(j);
                 if (j == 0) {
                     String imageUrl = disperseImageUrlList.get(i);
                     variableItem.setValue(imageUrl);
                     imageParamList.add(imageUrl);
                 } else {
-                    variableItem.setValue(CreativeImageUtils.randomImageList(imageParamList, imageUrlList, mainImageTypeRequestParams.size()));
+                    variableItem.setValue(CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageStyleRequestParams.size()));
                 }
             }
 
@@ -400,10 +407,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             imageCreateRequest.setTempUid(tempUid);
             imageCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest));
             imageCreateRequest.setUsePicture(imageUrlList);
-            xhsCreativeContentCreateReqList.add(imageCreateRequest);
+            creativeContentCreateRequestList.add(imageCreateRequest);
         }
         // 批量插入任务
-        creativeContentService.create(xhsCreativeContentCreateReqList);
+        creativeContentService.create(creativeContentCreateRequestList);
     }
 
     /**
@@ -420,11 +427,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
         // 查询并且校验应用是否存在
         AppMarketRespVO app = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
-        // 查询Poster模板列表，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
-        List<CreativeImageTemplateDTO> posterTemplateList = creativeImageManager.templates();
-        // Poster模板Map
-        Map<String, CreativeImageTemplateDTO> posterMap = CollectionUtil.emptyIfNull(posterTemplateList).stream()
-                .collect(Collectors.toMap(CreativeImageTemplateDTO::getId, Function.identity()));
+        // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
+        Map<String, CreativeImageTemplateDTO> posterMap = creativeImageManager.mapTemplate();
 
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
@@ -438,7 +442,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 List<CreativeImageTemplateDTO> templateList = style.getTemplateList();
                 AppValidate.notEmpty(templateList, CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
                 // 图片执行参数
-                CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getImageStyleExecuteRequest(scheme.getName(), style, planConfig.getImageUrlList(), posterMap);
+                CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), posterMap);
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                 planExecute.setSchemeUid(scheme.getUid());
                 planExecute.setAppExecuteRequest(appExecute);
