@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.xhs;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,16 +23,16 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "XhsImageStyleDTO", description = "小红书图片风格")
-public class XhsImageStyleDTO implements java.io.Serializable {
+@Schema(name = "CreativeImageStyleDTO", description = "创作中心图片风格对象")
+public class CreativeImageStyleDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 3693634357817132472L;
 
     /**
      * 风格id
      */
-    @Schema(description = "风格id")
-    @NotBlank(message = "风格id不能为空！")
+    @Schema(description = "风格ID")
+    @NotBlank(message = "风格ID不能为空！")
     private String id;
 
     /**
@@ -48,6 +48,6 @@ public class XhsImageStyleDTO implements java.io.Serializable {
     @Schema(description = "模板列表")
     @Valid
     @NotEmpty(message = "请选择图片模板！")
-    private List<XhsImageTemplateDTO> templateList;
-    
+    private List<CreativeImageTemplateDTO> templateList;
+
 }

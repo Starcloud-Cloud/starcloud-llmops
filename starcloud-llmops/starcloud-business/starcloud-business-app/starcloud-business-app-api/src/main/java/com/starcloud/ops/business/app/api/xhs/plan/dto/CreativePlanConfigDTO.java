@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.api.xhs.plan.dto;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -56,10 +57,10 @@ public class CreativePlanConfigDTO implements java.io.Serializable {
      */
     public void validate() {
         if (CollectionUtil.isEmpty(imageUrlList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_UPLOAD_IMAGE_EMPTY);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
         }
         if (CollectionUtil.isEmpty(schemeUidList)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.CREATIVE_PLAN_SCHEME_NOT_EMPTY);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_SCHEME_NOT_EMPTY);
         }
     }
 }

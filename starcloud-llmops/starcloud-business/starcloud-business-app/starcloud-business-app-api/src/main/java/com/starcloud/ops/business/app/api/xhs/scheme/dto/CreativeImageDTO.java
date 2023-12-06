@@ -1,11 +1,11 @@
-package com.starcloud.ops.business.app.api.xhs.content.dto;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 @Schema(description = "生成图片")
-public class XhsCreativePictureContentDTO {
+public class CreativeImageDTO {
 
     @Schema(description = "图片序号")
     private Integer index;

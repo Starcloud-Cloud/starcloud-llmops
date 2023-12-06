@@ -25,12 +25,6 @@ public class CreativeSchemeListReqVO implements java.io.Serializable {
     private static final long serialVersionUID = 2885674454654361146L;
 
     /**
-     * UID 列表
-     */
-    @Schema(description = "UID")
-    private List<String> uidList;
-
-    /**
      * 创作方案名称
      */
     @Schema(description = "创作方案名称")

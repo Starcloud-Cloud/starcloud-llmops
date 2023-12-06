@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.util.UserUtils;
@@ -47,7 +47,7 @@ public interface CreativePlanConvert {
      */
     default CreativePlanDO convertCreateRequest(CreativePlanReqVO request) {
         CreativePlanConfigDTO config = request.getConfig();
-        AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL, request.getName());
+        AppValidate.notNull(config, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
         CreativePlanDO creativePlan = new CreativePlanDO();
         creativePlan.setUid(IdUtil.fastSimpleUUID());
         creativePlan.setName(request.getName());
@@ -73,7 +73,7 @@ public interface CreativePlanConvert {
      */
     default CreativePlanDO convertModifyRequest(CreativePlanModifyReqVO request) {
         CreativePlanConfigDTO config = request.getConfig();
-        AppValidate.notNull(config, ErrorCodeConstants.CREATIVE_PLAN_CONFIG_NOT_NULL, request.getName());
+        AppValidate.notNull(config, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
         CreativePlanDO creativePlan = new CreativePlanDO();
         creativePlan.setUid(request.getUid());
         creativePlan.setName(request.getName());

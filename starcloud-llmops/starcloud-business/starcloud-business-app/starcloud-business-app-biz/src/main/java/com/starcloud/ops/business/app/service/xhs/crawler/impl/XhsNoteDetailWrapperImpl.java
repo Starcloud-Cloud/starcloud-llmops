@@ -86,7 +86,6 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
         } catch (RuntimeException e) {
             log.error("系统通知信息发送失败", e);
         }
-
     }
 
 

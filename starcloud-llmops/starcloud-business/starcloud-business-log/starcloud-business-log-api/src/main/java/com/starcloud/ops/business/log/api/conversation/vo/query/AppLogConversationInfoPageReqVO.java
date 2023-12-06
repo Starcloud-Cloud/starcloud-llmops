@@ -54,6 +54,12 @@ public class AppLogConversationInfoPageReqVO extends PageParam {
     private String aiModel;
 
     /**
+     * 用户ID
+     */
+    @Schema(description = "用户ID")
+    private String userId;
+
+    /**
      * 应用场景
      */
     @Schema(description = "应用场景")

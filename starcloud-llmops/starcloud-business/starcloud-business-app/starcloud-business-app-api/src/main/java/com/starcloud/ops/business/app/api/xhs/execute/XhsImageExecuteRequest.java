@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.execute;
 
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,7 +31,13 @@ public class XhsImageExecuteRequest implements java.io.Serializable {
      */
     @Schema(description = "图片模板")
     @NotBlank(message = "图片模板不能为空")
-    private String imageTemplate;
+    private String id;
+
+    /**
+     * 图片模板名称
+     */
+    @Schema(description = "图片模板名称")
+    private String name;
 
     /**
      * 应用UID

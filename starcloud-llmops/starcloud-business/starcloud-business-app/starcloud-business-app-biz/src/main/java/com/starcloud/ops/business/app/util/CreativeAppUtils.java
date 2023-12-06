@@ -12,6 +12,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
@@ -20,9 +22,9 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWriti
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
+import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -42,8 +44,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE;
-
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -51,7 +51,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.WORKFLOW_C
  */
 @Slf4j
 @SuppressWarnings("unused")
-public class CreativeUtil {
+public class CreativeAppUtils {
 
     private static final String NAME = "NAME";
     private static final String TYPE = "TYPE";
@@ -64,6 +64,34 @@ public class CreativeUtil {
     private static final String SUMMARY = "SUMMARY";
     private static final String DEMAND = "DEMAND";
     private static final String EXAMPLE = "EXAMPLE";
+
+    /**
+     * 获取应用的第一步步骤配置
+     *
+     * @param appResponse 应用市场应用
+     * @return 第一步步骤配置
+     */
+    public static WorkflowStepWrapperRespVO firstStep(AppMarketRespVO appResponse) {
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appResponse).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE));
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(0);
+        AppValidate.notNull(stepWrapper, ErrorCodeConstants.WORKFLOW_STEP_NOT_EXIST, appResponse.getName());
+        return stepWrapper;
+    }
+
+    /**
+     * 获取应用的第二步步骤配置
+     *
+     * @param appResponse 应用市场应用
+     * @return 第二步步骤配置
+     */
+    public static WorkflowStepWrapperRespVO secondStep(AppMarketRespVO appResponse) {
+        List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appResponse).map(AppMarketRespVO::getWorkflowConfig).map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE));
+        WorkflowStepWrapperRespVO stepWrapper = stepWrapperList.get(1);
+        AppValidate.notNull(stepWrapper, ErrorCodeConstants.WORKFLOW_STEP_NOT_EXIST, appResponse.getName());
+        return stepWrapper;
+    }
 
     /**
      * 获取小红书应用执行参数
@@ -89,8 +117,7 @@ public class CreativeUtil {
         params.add(ofTextAreaVariableItem(DESCRIPTION, scheme.getDescription()));
         params.add(ofTextAreaVariableItem(REFERS, JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(scheme.getRefers()))));
         params.add(ofTextAreaVariableItem(SUMMARY, copyWritingTemplate.getSummary()));
-        params.add(ofTextAreaVariableItem(DEMAND, CreativeUtil.handlerDemand(copyWritingTemplate, variableList)));
-        params.add(ofTextAreaVariableItem(EXAMPLE, copyWritingTemplate.getExample()));
+        params.add(ofTextAreaVariableItem(DEMAND, CreativeAppUtils.handlerDemand(copyWritingTemplate, variableList)));
 
         CreativePlanAppExecuteDTO appExecute = new CreativePlanAppExecuteDTO();
         appExecute.setUid(appUid);
@@ -106,19 +133,22 @@ public class CreativeUtil {
      * @param request 创作方案请求
      * @return 应用市场应用
      */
-    public static AppReqVO transform(AppMarketRespVO app, CreativeSchemeReqVO request) {
+    public static AppReqVO transform(AppMarketRespVO app, CreativeSchemeReqVO request, String stepId) {
         // 参数信息
         CreativeSchemeConfigDTO configuration = request.getConfiguration();
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
 
         // 获取步骤配置信息
         WorkflowConfigRespVO config = app.getWorkflowConfig();
-        AppValidate.notNull(config, WORKFLOW_CONFIG_FAILURE);
+        AppValidate.notNull(config, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
 
         List<WorkflowStepWrapperRespVO> stepWrapperList = config.getSteps();
-        AppValidate.notEmpty(stepWrapperList, WORKFLOW_CONFIG_FAILURE);
+        AppValidate.notEmpty(stepWrapperList, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
 
         for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            if (Objects.isNull(stepId) || !stepId.equalsIgnoreCase(stepWrapper.getField())) {
+                continue;
+            }
             VariableRespVO variable = stepWrapper.getVariable();
             List<VariableItemRespVO> variableList = variable.getVariables();
             if (CollectionUtil.isEmpty(variableList)) {
@@ -163,11 +193,72 @@ public class CreativeUtil {
                     String demand = handlerDemand(copyWritingTemplate, null);
                     variableItem.setValue(demand);
                     variableItem.setDefaultValue(demand);
+                }
+            }
+            variable.setVariables(variableList);
+            stepWrapper.setVariable(variable);
+        }
 
-                } else if (EXAMPLE.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(copyWritingTemplate.getExample())) {
-                    String example = JSONUtil.toJsonStr(copyWritingTemplate.getExample());
-                    variableItem.setValue(example);
-                    variableItem.setDefaultValue(example);
+        config.setSteps(stepWrapperList);
+        app.setWorkflowConfig(config);
+        return AppMarketConvert.INSTANCE.convert(app);
+    }
+
+    /**
+     * 将数据转为应用，参数替换
+     *
+     * @param app     应用市场应用
+     * @param request 创作方案请求
+     * @return 应用市场应用
+     */
+    public static AppReqVO transform(AppMarketRespVO app, CreativeSchemeSseReqVO request, String stepId) {
+
+        // 获取步骤配置信息
+        WorkflowConfigRespVO config = app.getWorkflowConfig();
+        AppValidate.notNull(config, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
+
+        List<WorkflowStepWrapperRespVO> stepWrapperList = config.getSteps();
+        AppValidate.notEmpty(stepWrapperList, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
+
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            if (Objects.isNull(stepId) || !stepId.equalsIgnoreCase(stepWrapper.getField())) {
+                continue;
+            }
+            VariableRespVO variable = stepWrapper.getVariable();
+            List<VariableItemRespVO> variableList = variable.getVariables();
+            if (CollectionUtil.isEmpty(variableList)) {
+                continue;
+            }
+            for (VariableItemRespVO variableItem : variableList) {
+                if (NAME.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getName())) {
+                    String name = request.getName();
+                    variableItem.setValue(name);
+                    variableItem.setDefaultValue(name);
+
+                } else if (TYPE.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getType())) {
+                    String type = request.getType();
+                    variableItem.setValue(type);
+                    variableItem.setDefaultValue(type);
+
+                } else if (CATEGORY.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getCategory())) {
+                    String category = request.getCategory();
+                    variableItem.setValue(category);
+                    variableItem.setDefaultValue(category);
+
+                } else if (TAGS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getTags())) {
+                    String tags = String.join(",", request.getTags());
+                    variableItem.setValue(tags);
+                    variableItem.setDefaultValue(tags);
+
+                } else if (DESCRIPTION.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getDescription())) {
+                    String description = request.getDescription();
+                    variableItem.setValue(description);
+                    variableItem.setDefaultValue(description);
+
+                } else if (REFERS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
+                    String refers = JSONUtil.toJsonStr(request.getRefers());
+                    variableItem.setValue(refers);
+                    variableItem.setDefaultValue(refers);
                 }
             }
             variable.setVariables(variableList);
@@ -213,16 +304,13 @@ public class CreativeUtil {
      */
     public static AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-//        if (Objects.nonNull(request.getSseEmitter())) {
-//            executeRequest.setSseEmitter(request.getSseEmitter());
-//        }
         executeRequest.setStepId(request.getStepId());
         executeRequest.setUserId(request.getUserId());
         executeRequest.setMode(AppModelEnum.COMPLETION.name());
         executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
         executeRequest.setAppUid(app.getUid());
         executeRequest.setN(request.getN());
-        executeRequest.setAppReqVO(transform(app, request.getParams()));
+        executeRequest.setAppReqVO(transform(app, request.getParams(), request.getStepId()));
         return executeRequest;
     }
 
@@ -233,29 +321,33 @@ public class CreativeUtil {
      * @param appParams 请求
      * @return 应用请求
      */
-    public static AppReqVO transform(AppMarketRespVO app, Map<String, Object> appParams) {
+    public static AppReqVO transform(AppMarketRespVO app, Map<String, Object> appParams, String stepId) {
 
         // 获取步骤配置信息
         WorkflowConfigRespVO config = app.getWorkflowConfig();
-        AppValidate.notNull(config, WORKFLOW_CONFIG_FAILURE);
+        AppValidate.notNull(config, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
 
         List<WorkflowStepWrapperRespVO> stepWrapperList = config.getSteps();
-        AppValidate.notEmpty(stepWrapperList, WORKFLOW_CONFIG_FAILURE);
+        AppValidate.notEmpty(stepWrapperList, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
 
         for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            // 如果指定了步骤ID，则只替换指定步骤的参数
+            if (Objects.isNull(stepId) || !stepId.equalsIgnoreCase(stepWrapper.getField())) {
+                continue;
+            }
             VariableRespVO variable = stepWrapper.getVariable();
             List<VariableItemRespVO> variableList = variable.getVariables();
+
             if (CollectionUtil.isEmpty(variableList)) {
                 continue;
             }
+
             for (VariableItemRespVO variableItem : variableList) {
                 if (appParams.containsKey(variableItem.getField()) && Objects.nonNull(appParams.get(variableItem.getField()))) {
                     Object value = appParams.get(variableItem.getField());
                     variableItem.setValue(value);
                     variableItem.setDefaultValue(value);
                 } else {
-                    // 1. 直接设置为空 ？
-                    // 2. 抛出异常 ？
                     Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
                     variableItem.setValue(value);
                     variableItem.setDefaultValue(value);
@@ -283,14 +375,14 @@ public class CreativeUtil {
                 CopyWritingContentDTO copyWriting = JSONUtil.toBean(answer.trim(), CopyWritingContentDTO.class);
                 if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
                     log.error("生成格式不正确：原始数据：{}", answer);
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR);
                 } else {
                     log.info("小红书执行应用成功。应用UID: {}, 生成条数: {}, 文案内容: {}", appUid, n, JSONUtil.toJsonStr(copyWriting));
                     return XhsAppExecuteResponse.success(appUid, copyWriting, n);
                 }
             } catch (Exception exception) {
                 log.error("生成格式不正确：原始数据：{}", answer);
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR);
             }
         } else {
             TypeReference<List<ChatCompletionChoice>> typeReference = new TypeReference<List<ChatCompletionChoice>>() {
@@ -298,11 +390,11 @@ public class CreativeUtil {
             List<ChatCompletionChoice> choices = JSONUtil.toBean(answer.trim(), typeReference, true);
             if (CollectionUtil.isEmpty(choices)) {
                 log.error("生成结果为空：原始数据：{}", answer);
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST);
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_NOT_EXIST);
             }
             if (choices.size() != n) {
                 log.error("生成格式不正确：原始数据：{}", answer);
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR);
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR);
             }
             List<XhsAppExecuteResponse> list = new ArrayList<>();
             for (int i = 0; i < choices.size(); i++) {
@@ -314,8 +406,8 @@ public class CreativeUtil {
                 if (StringUtils.isBlank(content)) {
                     log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原始数据: {}", i + 1, appUid, n, content);
                     appExecuteResponse.setSuccess(Boolean.FALSE);
-                    appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST.getCode().toString());
-                    appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_NOT_EXIST.getMsg());
+                    appExecuteResponse.setErrorCode(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_NOT_EXIST.getCode().toString());
+                    appExecuteResponse.setErrorMsg(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_NOT_EXIST.getMsg());
                     list.add(appExecuteResponse);
                 } else {
                     try {
@@ -323,8 +415,8 @@ public class CreativeUtil {
                         if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
                             log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原数据: {}", i + 1, appUid, n, content);
                             appExecuteResponse.setSuccess(Boolean.FALSE);
-                            appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
-                            appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
+                            appExecuteResponse.setErrorCode(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
+                            appExecuteResponse.setErrorMsg(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
                             list.add(appExecuteResponse);
                         } else {
                             log.info("第[{}]生成成功：应用UID: {}, 总生成条数: {}, 文案信息: {}", i + 1, appUid, n, JSONUtil.toJsonStr(copyWriting));
@@ -335,8 +427,8 @@ public class CreativeUtil {
                     } catch (Exception e) {
                         log.warn("第[{}]生成失败：应用UID: {}, 总生成条数: {}, 原数据: {}", i + 1, appUid, n, content);
                         appExecuteResponse.setSuccess(Boolean.TRUE);
-                        appExecuteResponse.setErrorCode(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
-                        appExecuteResponse.setErrorMsg(ErrorCodeConstants.XHS_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
+                        appExecuteResponse.setErrorCode(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR.getCode().toString());
+                        appExecuteResponse.setErrorMsg(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR.getMsg());
                         list.add(appExecuteResponse);
                     }
                 }
@@ -409,28 +501,6 @@ public class CreativeUtil {
         variableItem.setOrder(order);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
-        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
-        variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.FALSE);
-        variableItem.setOptions(Lists.newArrayList());
-        return variableItem;
-    }
-
-    /**
-     * 获取文本变量
-     *
-     * @param field 字段
-     * @param label 值
-     * @return 文本变量
-     */
-    public static VariableItemDTO ofImageVariable(String field, String label, Integer order) {
-        VariableItemDTO variableItem = new VariableItemDTO();
-        variableItem.setField(field);
-        variableItem.setLabel(label);
-        variableItem.setDescription(label);
-        variableItem.setOrder(order);
-        variableItem.setType("IMAGE");
-        variableItem.setStyle("IMAGE");
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
