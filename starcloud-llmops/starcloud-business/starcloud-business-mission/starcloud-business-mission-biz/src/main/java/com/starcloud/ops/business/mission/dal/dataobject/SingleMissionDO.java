@@ -34,6 +34,11 @@ public class SingleMissionDO extends TenantBaseDO {
     private String creativeUid;
 
     /**
+     * 创作计划Uid
+     */
+    private String creativePlanUid;
+
+    /**
      * 任务类型 {@link com.starcloud.ops.business.enums.MisssionTypeEnum}
      */
     private String type;
