@@ -3,12 +3,14 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
@@ -268,7 +270,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         exportVOList.forEach(exportVo -> {
             exportVo.setStatus(SingleMissionStatusEnum.valueOfCode(exportVo.getStatus()).getDesc());
             exportVo.setClaimUrl(dictDataDO.getValue() + exportVo.getUid());
-            exportVo.setContentPicture(SingleMissionConvert.INSTANCE.pictureConvert(exportVo.getContentPicture()));
+            exportVo.setContentPicture(pictureConvert(exportVo.getContentPicture()));
         });
         return exportVOList;
     }
@@ -362,6 +364,21 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             updateList.add(missionDO);
         }
         singleMissionMapper.updateBatch(updateList, updateList.size());
+    }
+
+    private String pictureConvert(String str) {
+        if (StringUtils.isBlank(str)) {
+            return StringUtils.EMPTY;
+        }
+        List<CreativeImageDTO> list = JSONUtil.parseArray(str).toList(CreativeImageDTO.class);
+        if (CollectionUtils.isEmpty(list)) {
+            return StringUtils.EMPTY;
+        }
+        StringJoiner sj = new StringJoiner(StringUtils.LF);
+        for (CreativeImageDTO creativeImageDTO : list) {
+            sj.add(creativeImageDTO.getUrl());
+        }
+        return sj.toString();
     }
 
     private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
