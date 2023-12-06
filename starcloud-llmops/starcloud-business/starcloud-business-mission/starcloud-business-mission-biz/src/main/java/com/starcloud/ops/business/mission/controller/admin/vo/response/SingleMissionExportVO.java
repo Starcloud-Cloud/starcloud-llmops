@@ -22,6 +22,15 @@ public class SingleMissionExportVO {
     @ExcelProperty("状态")
     private String status;
 
+    @ExcelProperty("文案")
+    private String contentText;
+
+    @ExcelProperty("标签")
+    private String label;
+
+    @ExcelProperty("图片")
+    private String contentPicture;
+
     @ExcelProperty("认领链接")
     private String claimUrl;
 
