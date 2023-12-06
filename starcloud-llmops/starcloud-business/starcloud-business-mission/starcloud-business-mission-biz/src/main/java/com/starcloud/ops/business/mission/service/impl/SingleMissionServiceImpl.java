@@ -268,6 +268,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         exportVOList.forEach(exportVo -> {
             exportVo.setStatus(SingleMissionStatusEnum.valueOfCode(exportVo.getStatus()).getDesc());
             exportVo.setClaimUrl(dictDataDO.getValue() + exportVo.getUid());
+            exportVo.setContentPicture(SingleMissionConvert.INSTANCE.pictureConvert(exportVo.getContentPicture()));
         });
         return exportVOList;
     }
