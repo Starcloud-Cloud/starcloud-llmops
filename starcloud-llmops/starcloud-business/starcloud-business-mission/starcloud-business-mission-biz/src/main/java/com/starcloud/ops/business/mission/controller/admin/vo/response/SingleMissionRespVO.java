@@ -87,5 +87,14 @@ public class SingleMissionRespVO {
     @Schema(description = "价格明细")
     private SingleMissionPostingPriceDTO unitPrice;
 
+    @Schema(description = "预结算失败信息")
+    private String preSettlementMsg;
+
+    @Schema(description = "关闭信息")
+    private String closeMsg;
+
+    @Schema(description = "结算失败信息")
+    private String settlementMsg;
+
 
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
 import org.apache.commons.lang3.StringUtils;
@@ -17,15 +18,17 @@ import java.util.List;
 @Mapper
 public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
 
-    default List<SingleMissionDO> export(SinglePageQueryReqVO reqVO) {
-        LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
-                .eq(SingleMissionDO::getNotificationUid, reqVO.getNotificationUid())
-                .eq(StringUtils.isNotBlank(reqVO.getStatus()), SingleMissionDO::getStatus, reqVO.getStatus())
-                .eq(StringUtils.isNotBlank(reqVO.getClaimUsername()), SingleMissionDO::getClaimUsername, reqVO.getClaimUsername())
-                .eq(StringUtils.isNotBlank(reqVO.getClaimUserId()), SingleMissionDO::getClaimUserId, reqVO.getClaimUserId())
-                .orderByDesc(SingleMissionDO::getId);
-        return selectList(wrapper);
-    }
+//    default List<SingleMissionDO> export(SinglePageQueryReqVO reqVO) {
+//        LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
+//                .eq(SingleMissionDO::getNotificationUid, reqVO.getNotificationUid())
+//                .eq(StringUtils.isNotBlank(reqVO.getStatus()), SingleMissionDO::getStatus, reqVO.getStatus())
+//                .eq(StringUtils.isNotBlank(reqVO.getClaimUsername()), SingleMissionDO::getClaimUsername, reqVO.getClaimUsername())
+//                .eq(StringUtils.isNotBlank(reqVO.getClaimUserId()), SingleMissionDO::getClaimUserId, reqVO.getClaimUserId())
+//                .orderByDesc(SingleMissionDO::getId);
+//        return selectList(wrapper);
+//    }
+
+    List<SingleMissionExportVO> export(@Param("reqVO") SinglePageQueryReqVO reqVO);
 
     default List<SingleMissionDO> listByNotification(String notificationUid) {
         LambdaQueryWrapper<SingleMissionDO> wrapper = Wrappers.lambdaQuery(SingleMissionDO.class)
