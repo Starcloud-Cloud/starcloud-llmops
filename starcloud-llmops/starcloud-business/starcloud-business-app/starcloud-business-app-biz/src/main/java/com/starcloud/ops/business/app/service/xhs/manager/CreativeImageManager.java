@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
@@ -13,9 +14,11 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageStyleThreadPoolHolder;
@@ -34,6 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +83,46 @@ public class CreativeImageManager {
             response.setImageNumber(imageNumber);
             return response;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取图片模板 Map
+     *
+     * @return 图片模板 Map
+     */
+    public Map<String, CreativeImageTemplateDTO> mapTemplate() {
+        if (CollectionUtils.isNotEmpty(templates())) {
+            return templates().stream().collect(Collectors.toMap(CreativeImageTemplateDTO::getId, Function.identity()));
+        }
+        return Maps.newHashMap();
+    }
+
+    /**
+     * 根据类型分组获取模板列表
+     *
+     * @return 模板列表
+     */
+    public List<CreativeImageTemplateTypeDTO> templateGroupByType() {
+        List<PosterTemplateTypeDTO> templateTypeList = posterService.templateGroupByType();
+        return CollectionUtil.emptyIfNull(templateTypeList).stream()
+                .map(item -> {
+                    // 获取模板列表
+                    List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(item.getList()).stream()
+                            .map(templateItem -> {
+                                CreativeImageTemplateDTO template = new CreativeImageTemplateDTO();
+                                template.setId(templateItem.getId());
+                                template.setName(templateItem.getLabel());
+                                template.setExample(templateItem.getTempUrl());
+                                return template;
+                            }).collect(Collectors.toList());
+                    // 组装模板类型
+                    CreativeImageTemplateTypeDTO templateType = new CreativeImageTemplateTypeDTO();
+                    templateType.setId(item.getId());
+                    templateType.setName(item.getLabel());
+                    templateType.setOrder(item.getOrder());
+                    templateType.setList(templateList);
+                    return templateType;
+                }).collect(Collectors.toList());
     }
 
     /**

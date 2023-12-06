@@ -267,7 +267,7 @@ public class CreativeExecuteManager {
             request.setPlanUid(latestContent.getPlanUid());
             request.setSchemeUid(latestContent.getSchemeUid());
             request.setBusinessUid(latestContent.getBusinessUid());
-            request.setImageStyleRequest(CreativeImageUtils.transformExecuteImageStyle(latestContent, copyWriting, force));
+            request.setImageStyleRequest(CreativeImageUtils.getImageStyleExecuteRequest(latestContent, copyWriting, force));
             // 执行请求
             XhsImageCreativeExecuteResponse response = creativeImageManager.creativeExecute(request);
 
