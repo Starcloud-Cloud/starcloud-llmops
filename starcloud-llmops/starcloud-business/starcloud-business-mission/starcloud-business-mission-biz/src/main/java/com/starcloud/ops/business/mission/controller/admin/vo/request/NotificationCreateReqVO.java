@@ -51,12 +51,12 @@ public class NotificationCreateReqVO {
 
     @Schema(description = "通告总预算")
     @NotNull(message = "通告总预算不能为空")
-    @Min(value = 0, message = "通告总预算要大于0")
+//    @Min(value = 0, message = "通告总预算要大于0")
     private BigDecimal notificationBudget;
 
     @Schema(description = "单个任务预算")
     @NotNull(message = "单个任务预算不能为空")
-    @Min(value = 0, message = "单个任务预算要大于0")
+//    @Min(value = 0, message = "单个任务预算要大于0")
     private BigDecimal singleBudget;
 
     @Schema(description = "任务说明")
