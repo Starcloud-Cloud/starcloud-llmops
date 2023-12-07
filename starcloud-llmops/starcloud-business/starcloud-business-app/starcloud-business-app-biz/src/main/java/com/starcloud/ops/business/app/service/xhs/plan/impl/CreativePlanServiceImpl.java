@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
@@ -45,6 +46,8 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.app.util.CreativeUploadUtils;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -55,6 +58,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.Duration;
@@ -93,6 +97,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private RedissonClient redissonClient;
+
+    /**
+     * 上传图片
+     *
+     * @param image 上传图片
+     * @return 图片信息
+     */
+    @Override
+    public UploadImageInfoDTO uploadImage(MultipartFile image) {
+        log.info("Creative 开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
+        return CreativeUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+    }
 
     /**
      * 获取创作计划详情
