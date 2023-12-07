@@ -265,6 +265,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         updateWrapper.set(CreativePlanDO::getStatus, status);
         updateWrapper.set(CreativePlanDO::getEndTime, LocalDateTime.now());
         updateWrapper.set(CreativePlanDO::getElapsed, duration.toMillis());
+        updateWrapper.set(CreativePlanDO::getUpdateTime, now);
         updateWrapper.eq(CreativePlanDO::getUid, uid);
         creativePlanMapper.update(null, updateWrapper);
     }
