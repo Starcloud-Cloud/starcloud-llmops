@@ -19,8 +19,8 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContent
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -44,7 +44,9 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_C
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
 
 /**
- * @author admin
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
  */
 @Service
 @Slf4j
@@ -72,7 +74,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         for (CreativeContentCreateReqVO createReq : createReqs) {
             CreativeContentDO contentDO = CreativeContentConvert.INSTANCE.convert(createReq);
             contentDO.setUid(IdUtil.fastSimpleUUID());
-            contentDO.setStatus(XhsCreativeContentStatusEnums.INIT.getCode());
+            contentDO.setStatus(CreativeContentStatusEnum.INIT.getCode());
             creativeContentMapper.insert(contentDO);
         }
     }
@@ -83,14 +85,14 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         log.info("开始执行 {} 任务 {}", type, ids);
         try {
             List<CreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
-                    .stream().filter(content -> !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
+                    .stream().filter(content -> !CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
             }
-            if (XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equalsIgnoreCase(type)) {
+            if (CreativeContentTypeEnum.COPY_WRITING.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
-            } else if (XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(type)) {
+            } else if (CreativeContentTypeEnum.PICTURE.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executePicture(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
@@ -103,8 +105,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public CreativeContentRespVO retry(String businessUid) {
-        CreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
-        CreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, XhsCreativeContentTypeEnums.PICTURE.getCode());
+        CreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.COPY_WRITING.getCode());
+        CreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.PICTURE.getCode());
 
         if (textDO == null || picDO == null) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
@@ -182,9 +184,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 continue;
             }
             boolean error = contentList.stream()
-                    .anyMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+                    .anyMatch(x -> CreativeContentStatusEnum.EXECUTE_ERROR.getCode().equals(x.getStatus()));
             boolean success = contentList.stream()
-                    .allMatch(x -> XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
+                    .allMatch(x -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
             if (error) {
                 errorCount++;
             } else if (success) {
@@ -204,7 +206,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public CreativeContentRespVO modify(CreativeContentModifyReqVO modifyReq) {
-        CreativeContentDO contentDO = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+        CreativeContentDO contentDO = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), CreativeContentTypeEnum.COPY_WRITING.getCode());
         if (contentDO == null) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
         }

@@ -87,6 +87,11 @@ public interface CreativeErrorCodeConstants {
     ErrorCode PLAN_IMAGE_MAIN_NOT_EXIST = new ErrorCode(710100124, "未发现首图！风格名称: {}）!");
 
     /**
+     * 更新创作计划状态失败
+     */
+    ErrorCode PLAN_UPDATE_STATUS_FAILED = new ErrorCode(710100125, "更新创作计划状态失败，请稍后重试({})！{}!");
+
+    /**
      * 创作方案不存在
      */
     ErrorCode SCHEME_NOT_EXIST = new ErrorCode(720100110, "创作方案不存在，请重新输入！");

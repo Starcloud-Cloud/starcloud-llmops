@@ -6,22 +6,35 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @TableName("llm_creative_content")
 public class CreativeContentDO extends TenantBaseDO {
 
+    private static final long serialVersionUID = -5839072713407684423L;
+
+    /**
+     * ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * UID
+     */
     @TableField("uid")
     private String uid;
 
@@ -62,7 +75,7 @@ public class CreativeContentDO extends TenantBaseDO {
     private String executeParams;
 
     /**
-     * 执行状态 {@link XhsCreativeContentStatusEnums}
+     * 执行状态 {@link CreativeContentStatusEnum}
      */
     private String status;
 

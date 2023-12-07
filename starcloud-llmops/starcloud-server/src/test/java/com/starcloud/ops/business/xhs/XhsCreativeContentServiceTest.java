@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +55,7 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
 
         List<Long> ids = Arrays.asList(402L, 404L);
 
-        xhsCreativeContentService.execute(ids, XhsCreativeContentTypeEnums.PICTURE.getCode(), true);
+        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.PICTURE.getCode(), true);
 
     }
 
@@ -65,7 +65,7 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
 
         List<Long> ids = Arrays.asList(401L, 403L);
 
-        xhsCreativeContentService.execute(ids, XhsCreativeContentTypeEnums.COPY_WRITING.getCode(), true);
+        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.COPY_WRITING.getCode(), true);
 
     }
 

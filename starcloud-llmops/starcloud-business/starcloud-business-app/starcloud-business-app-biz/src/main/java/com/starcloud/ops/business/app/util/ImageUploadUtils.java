@@ -68,10 +68,18 @@ public class ImageUploadUtils {
      */
     private static final FileApi FILE_API = SpringUtil.getBean(FileApi.class);
 
-
     static {
         UPLOAD_PATH_MAP.put(UPLOAD, "mofaai/images/upload/");
         UPLOAD_PATH_MAP.put(GENERATE, "mofaai/images/ai-generation/");
+    }
+
+    /**
+     * 获取上传路径Map
+     *
+     * @return 上传路径Map
+     */
+    public static Map<String, String> getUploadPathMap() {
+        return UPLOAD_PATH_MAP;
     }
 
     /**
@@ -474,7 +482,7 @@ public class ImageUploadUtils {
      * @param mediaType
      * @return 后缀
      */
-    private static String getExtensionByMediaType(String mediaType) {
+    public static String getExtensionByMediaType(String mediaType) {
         if ("image/png".equalsIgnoreCase(mediaType)) {
             return "png";
         }
@@ -493,7 +501,7 @@ public class ImageUploadUtils {
      * @param extension 后缀
      * @return 媒体类型
      */
-    private static String getMediaTypeByExtension(String extension) {
+    public static String getMediaTypeByExtension(String extension) {
         if ("png".equalsIgnoreCase(extension)) {
             return "image/png";
         }
