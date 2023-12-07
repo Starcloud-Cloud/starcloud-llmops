@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.content.vo.request;
 
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -25,7 +25,7 @@ public class CreativeContentCreateReqVO {
     private String planUid;
 
     /**
-     * {@link XhsCreativeContentTypeEnums}
+     * {@link CreativeContentTypeEnum}
      * XhsCreativeContentTypeEnums.code
      */
     @Schema(description = "任务类型")

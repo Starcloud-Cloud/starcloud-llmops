@@ -12,7 +12,7 @@ import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendD
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -58,7 +58,7 @@ public interface CreativeContentConvert {
         xhsCreativeContentDO.setExecuteParams(toStr(createReq.getExecuteParams()));
         xhsCreativeContentDO.setExtend(toStr(createReq.getExtend()));
         xhsCreativeContentDO.setUid(IdUtil.fastSimpleUUID());
-        xhsCreativeContentDO.setStatus(XhsCreativeContentStatusEnums.INIT.getCode());
+        xhsCreativeContentDO.setStatus(CreativeContentStatusEnum.INIT.getCode());
         xhsCreativeContentDO.setBusinessUid(createReq.getBusinessUid());
         xhsCreativeContentDO.setType(createReq.getType());
 
