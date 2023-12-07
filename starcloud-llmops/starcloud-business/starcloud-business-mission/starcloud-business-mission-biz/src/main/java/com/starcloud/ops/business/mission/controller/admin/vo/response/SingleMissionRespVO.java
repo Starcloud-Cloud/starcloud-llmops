@@ -97,5 +97,8 @@ public class SingleMissionRespVO {
     @Schema(description = "结算失败信息")
     private String settlementMsg;
 
+    @Schema(description = "认领链接")
+    private String claimUrl;
+
 
 }

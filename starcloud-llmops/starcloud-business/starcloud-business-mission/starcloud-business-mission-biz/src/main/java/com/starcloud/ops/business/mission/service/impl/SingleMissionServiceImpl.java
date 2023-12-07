@@ -98,14 +98,10 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         List<SingleMissionDTO> singleMissionDTOList = singleMissionMapper.pageDetail(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
         PageResult<SingleMissionRespVO> result = new PageResult<>(SingleMissionConvert.INSTANCE.pageConvert(singleMissionDTOList), count);
-//        SinglePageQueryReqVO countVo = new SinglePageQueryReqVO();
-//        countVo.setNotificationUid(reqVO.getNotificationUid());
-//        countVo.setStatus(SingleMissionStatusEnum.stay_claim.getCode());
-//        result.setStayClaimCount(singleMissionMapper.pageCount(countVo));
-//        countVo.setStatus(SingleMissionStatusEnum.claimed.getCode());
-//        result.setClaimCount(singleMissionMapper.pageCount(countVo));
-//        countVo.setStatus(SingleMissionStatusEnum.settlement.getCode());
-//        result.setSettlementCount(singleMissionMapper.pageCount(countVo));
+        DictDataDO dictDataDO = dictDataService.parseDictData("notification_config", "claim_url");
+        result.getList().forEach(missionRespVO -> {
+            missionRespVO.setClaimUrl(dictDataDO.getValue() + missionRespVO.getUid());
+        });
         return result;
     }
 
