@@ -287,12 +287,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 当前计划下只有全部执行成功的，则计划完成
             boolean complete = contentList.stream().allMatch(item -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(item.getStatus()));
             if (complete) {
+                log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
                 updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
                 return;
             }
             // 当前计划下只要有彻底失败的，则计划失败
             boolean failure = contentList.stream().anyMatch(item -> CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(item.getStatus()));
             if (failure) {
+                log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
                 updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
             }
             log.info("更新计划状态完成，planUid: {}", planUid);
