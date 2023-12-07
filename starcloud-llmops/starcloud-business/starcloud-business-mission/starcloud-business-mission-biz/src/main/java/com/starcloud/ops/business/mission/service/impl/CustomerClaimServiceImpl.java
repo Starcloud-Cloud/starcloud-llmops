@@ -84,7 +84,7 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
             }
             XhsNoteDetailRespVO xhsNoteDetailRespVO = noteDetailService.remoteDetail(reqVO.getPublishUrl());
             PostingContentDTO postingContent = SingleMissionConvert.INSTANCE.toPostingContent(detail.getContent());
-            postingContent.validPostingContent(xhsNoteDetailRespVO);
+//            postingContent.validPostingContent(xhsNoteDetailRespVO);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
             modifyReqVO.setUid(reqVO.getUid());
             modifyReqVO.setClaimUsername(reqVO.getClaimUsername());
