@@ -25,6 +25,12 @@ public class SingleMissionDetailVO {
     @Schema(description = "状态")
     private String status;
 
+    @Schema(description = "认领人")
+    private String claimUsername;
+
+    @Schema(description = "发布链接")
+    private String publishUrl;
+
     @Schema(description = "标签")
     private List<String> tags;
 
