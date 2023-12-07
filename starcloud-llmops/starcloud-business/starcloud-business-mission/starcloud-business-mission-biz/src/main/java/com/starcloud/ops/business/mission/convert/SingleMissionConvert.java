@@ -11,8 +11,10 @@ import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionP
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionDetailVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
@@ -35,6 +37,8 @@ public interface SingleMissionConvert {
     PageResult<SingleMissionRespVO> convert(PageResult<SingleMissionDO> page);
 
     SingleMissionRespVO convert(SingleMissionDO singleMissionDO);
+
+    SingleMissionDetailVO convertDetail(MissionNotificationDTO singleMissionDO);
 
     List<SingleMissionExportVO> convert(List<SingleMissionDO> missionList);
 
