@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 
 
@@ -23,6 +24,7 @@ public class CustomerClaimlController {
 
     @GetMapping("/detail/{uid}")
     @Operation(summary = "任务详情")
+    @PermitAll
     public CommonResult<SingleMissionRespVO> detailById(@PathVariable("uid") String uid) {
         return CommonResult.success(claimService.missionDetail(uid));
     }
@@ -30,6 +32,7 @@ public class CustomerClaimlController {
 
     @PutMapping("/claim")
     @Operation(summary = "认领任务")
+    @PermitAll
     public CommonResult<Boolean> claim(@Valid @RequestBody ClaimReqVO reqVO) {
         claimService.claim(reqVO);
         return CommonResult.success(true);
