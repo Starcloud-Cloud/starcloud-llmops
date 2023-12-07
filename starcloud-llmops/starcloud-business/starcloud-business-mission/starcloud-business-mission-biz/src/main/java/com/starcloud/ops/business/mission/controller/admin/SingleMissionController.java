@@ -2,6 +2,7 @@ package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.RefreshNoteDetailReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
@@ -85,11 +86,11 @@ public class SingleMissionController {
         return CommonResult.success(true);
     }
 
-    @PostMapping("/refresh/note/{uid}")
-    @Operation(summary = "刷新结算", description = "刷新笔记 重新结算")
-    public CommonResult<Boolean> refreshNote(@PathVariable("uid") String uid) {
-        singleMissionService.refreshNote(uid);
-        return CommonResult.success(true);
+    @PostMapping("/refresh/note")
+    @Operation(summary = "刷新互动信息", description = "刷新互动信息")
+    public CommonResult<SingleMissionRespVO> refreshNote(@Valid @RequestBody RefreshNoteDetailReqVO reqVO) {
+        SingleMissionRespVO singleMissionRespVO = singleMissionService.refreshNote(reqVO);
+        return CommonResult.success(singleMissionRespVO);
     }
 
     @DeleteMapping("/batch/delete")

@@ -12,7 +12,7 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
@@ -20,9 +20,6 @@ import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
@@ -277,18 +274,20 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void refreshNote(String uid) {
-        SingleMissionDO missionDO = getByUid(uid);
-
-        if (!SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
-            // 状态不允许刷新
-            throw exception(MISSION_STATUS_NOT_SUPPORT);
+    public SingleMissionRespVO refreshNote(RefreshNoteDetailReqVO reqVO) {
+        SingleMissionDO missionDO = getByUid(reqVO.getUid());
+        if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())) {
+            throw exception(CAN_NOT_REFRESH);
         }
-        XhsDetailConstants.validNoteUrl(missionDO.getPublishUrl());
-        preSettlement(SingleMissionConvert.INSTANCE.convert(missionDO));
+        SingleMissionRespVO missionRespVO = SingleMissionConvert.INSTANCE.convert(missionDO);
+        XhsNoteDetailRespVO noteDetail = noteDetailService.remoteDetail(reqVO.getPublishUrl());
+        validPostingContent(missionRespVO.getContent(), noteDetail);
+        SingleMissionRespVO respVO = SingleMissionConvert.INSTANCE.convert(missionDO);
+        BigDecimal amount = missionRespVO.getUnitPrice().calculationAmount(noteDetail.getLikedCount(), noteDetail.getCommentCount());
+        respVO.setLikedCount(noteDetail.getLikedCount());
+        respVO.setCommentCount(noteDetail.getCommentCount());
+        respVO.setEstimatedAmount(amount);
+        return respVO;
     }
 
     @Override
@@ -316,6 +315,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
         for (SingleMissionDO missionDO : singleMissionDOList) {
             if (SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.claimed.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
