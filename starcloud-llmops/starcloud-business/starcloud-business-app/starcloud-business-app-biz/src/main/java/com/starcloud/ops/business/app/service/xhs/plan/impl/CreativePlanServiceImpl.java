@@ -283,28 +283,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 return;
             }
             List<CreativeContentDO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listByPlanUid(planUid));
-
-            // 当前计划下只要有彻底失败的，则计划失败
-            boolean failure = contentList.stream().anyMatch(item -> CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(item.getStatus()));
-            if (failure) {
-                updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
-                return;
-            }
-
-            // 当前计划下只要有正在执行的，则计划正在执行
-            boolean running = contentList.stream().anyMatch(item -> item.getRetryCount() == null || item.getRetryCount() < 3);
-            if (running) {
-                updateStatus(planUid, CreativePlanStatusEnum.RUNNING.name());
-                return;
-            }
-
             // 当前计划下只有全部执行成功的，则计划完成
             boolean complete = contentList.stream().allMatch(item -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(item.getStatus()));
             if (complete) {
                 updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
+                return;
             }
-        } catch (Exception e) {
-            log.warn("更新计划失败", e);
+            // 当前计划下只要有彻底失败的，则计划失败
+            boolean failure = contentList.stream().anyMatch(item -> CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(item.getStatus()));
+            if (failure) {
+                updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
+            }
+        } catch (Exception exception) {
+            log.warn("更新计划失败: {}", planUid, exception);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPDATE_STATUS_FAILED, planUid, exception.getMessage());
         } finally {
             if (lock != null) {
                 lock.unlock();
