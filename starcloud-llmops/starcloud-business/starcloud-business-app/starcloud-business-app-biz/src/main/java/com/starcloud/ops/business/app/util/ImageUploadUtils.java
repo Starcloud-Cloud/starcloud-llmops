@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
+import com.aliyun.oss.OSS;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,6 @@ public class ImageUploadUtils {
      * 文件服务
      */
     private static final FileApi FILE_API = SpringUtil.getBean(FileApi.class);
-
 
     static {
         UPLOAD_PATH_MAP.put(UPLOAD, "mofaai/images/upload/");
@@ -474,7 +474,7 @@ public class ImageUploadUtils {
      * @param mediaType
      * @return 后缀
      */
-    private static String getExtensionByMediaType(String mediaType) {
+    public static String getExtensionByMediaType(String mediaType) {
         if ("image/png".equalsIgnoreCase(mediaType)) {
             return "png";
         }
@@ -493,7 +493,7 @@ public class ImageUploadUtils {
      * @param extension 后缀
      * @return 媒体类型
      */
-    private static String getMediaTypeByExtension(String extension) {
+    public static String getMediaTypeByExtension(String extension) {
         if ("png".equalsIgnoreCase(extension)) {
             return "image/png";
         }
