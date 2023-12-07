@@ -158,6 +158,8 @@ yudao:
       - /app-api/share/**       # 游客访问
       - /admin-api/share/**
       - /admin-api/llm/chat/config/detail/*
+      - /admin-api/llm/notification/metadata
+      - /admin-api/llm/xhs/customer/**
     ignore-tables:
       - system_tenant
       - system_tenant_package

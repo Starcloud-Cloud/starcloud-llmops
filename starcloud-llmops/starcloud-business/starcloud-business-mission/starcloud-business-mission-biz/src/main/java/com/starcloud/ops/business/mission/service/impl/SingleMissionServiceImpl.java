@@ -12,20 +12,14 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.*;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
-import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
@@ -45,7 +39,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -105,15 +98,20 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         List<SingleMissionDTO> singleMissionDTOList = singleMissionMapper.pageDetail(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
         PageResult<SingleMissionRespVO> result = new PageResult<>(SingleMissionConvert.INSTANCE.pageConvert(singleMissionDTOList), count);
-//        SinglePageQueryReqVO countVo = new SinglePageQueryReqVO();
-//        countVo.setNotificationUid(reqVO.getNotificationUid());
-//        countVo.setStatus(SingleMissionStatusEnum.stay_claim.getCode());
-//        result.setStayClaimCount(singleMissionMapper.pageCount(countVo));
-//        countVo.setStatus(SingleMissionStatusEnum.claimed.getCode());
-//        result.setClaimCount(singleMissionMapper.pageCount(countVo));
-//        countVo.setStatus(SingleMissionStatusEnum.settlement.getCode());
-//        result.setSettlementCount(singleMissionMapper.pageCount(countVo));
+        DictDataDO dictDataDO = dictDataService.parseDictData("notification_config", "claim_url");
+        result.getList().forEach(missionRespVO -> {
+            missionRespVO.setClaimUrl(dictDataDO.getValue() + missionRespVO.getUid());
+        });
         return result;
+    }
+
+    @Override
+    public MissionNotificationDTO missionDetail(String uid) {
+        MissionNotificationDTO detail = singleMissionMapper.detail(uid);
+        if (detail == null) {
+            throw exception(MISSION_NOT_EXISTS, uid);
+        }
+        return detail;
     }
 
     @Override
@@ -277,18 +275,20 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void refreshNote(String uid) {
-        SingleMissionDO missionDO = getByUid(uid);
-
-        if (!SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
-                && !SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
-            // 状态不允许刷新
-            throw exception(MISSION_STATUS_NOT_SUPPORT);
+    public SingleMissionRespVO refreshNote(RefreshNoteDetailReqVO reqVO) {
+        SingleMissionDO missionDO = getByUid(reqVO.getUid());
+        if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())) {
+            throw exception(CAN_NOT_REFRESH);
         }
-        XhsDetailConstants.validNoteUrl(missionDO.getPublishUrl());
-        preSettlement(SingleMissionConvert.INSTANCE.convert(missionDO));
+        SingleMissionRespVO missionRespVO = SingleMissionConvert.INSTANCE.convert(missionDO);
+        XhsNoteDetailRespVO noteDetail = noteDetailService.remoteDetail(reqVO.getPublishUrl());
+        missionRespVO.getContent().validPostingContent(noteDetail);
+        SingleMissionRespVO respVO = SingleMissionConvert.INSTANCE.convert(missionDO);
+        BigDecimal amount = missionRespVO.getUnitPrice().calculationAmount(noteDetail.getLikedCount(), noteDetail.getCommentCount());
+        respVO.setLikedCount(noteDetail.getLikedCount());
+        respVO.setCommentCount(noteDetail.getCommentCount());
+        respVO.setEstimatedAmount(amount);
+        return respVO;
     }
 
     @Override
@@ -316,6 +316,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
         for (SingleMissionDO missionDO : singleMissionDOList) {
             if (SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.claimed.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
@@ -384,7 +385,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
         XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
         // 校验note内容
-        validPostingContent(singleMissionRespVO.getContent(), noteDetail);
+        singleMissionRespVO.getContent().validPostingContent(noteDetail);
         updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
     }
 
@@ -398,16 +399,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         modifyReqVO.setNoteDetailId(noteDetailId);
         update(modifyReqVO);
     }
-
-    private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {
-        if (content != null && noteDetail != null
-                && StringUtils.equals(content.getTitle(), noteDetail.getTitle())
-                && StringUtils.equals(content.getText(), noteDetail.getDesc())) {
-            return;
-        }
-        throw exception(CONTENT_INCONSISTENT);
-    }
-
 
     private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
         if (notificationBudget == null
