@@ -3,6 +3,7 @@ package com.starcloud.ops.business.core.config.oss;
 import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * @version 1.0.0
  * @since 2021-06-22
  */
+@Slf4j
 @Configuration
 public class OssConfiguration {
 
@@ -29,9 +31,13 @@ public class OssConfiguration {
         if (StringUtils.isBlank(secretKey)) {
             throw new IllegalArgumentException("初始化阿里云OSS失败：secretKey 为必填！");
         }
+        if (StringUtils.isBlank(properties.getBucket())) {
+            throw new IllegalArgumentException("初始化阿里云OSS失败：bucket 为必填！");
+        }
 
         ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
-        clientBuilderConfiguration.setSupportCname(Boolean.TRUE);
+        clientBuilderConfiguration.setSupportCname(properties.getSupportCname());
+        log.info("初始化阿里云OSS：是否支持CNAME: {}, Endpoint: {}, Bucket: {}", properties.getSupportCname(), endpoint, properties.getBucket());
         return new OSSClientBuilder().build(endpoint, accessKey, secretKey, clientBuilderConfiguration);
     }
 }
