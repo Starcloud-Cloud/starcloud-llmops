@@ -276,10 +276,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public void updatePlanStatus(String planUid) {
+        log.info("开始更新计划状态，planUid: {}", planUid);
         String key = "creative-plan-update-status-" + planUid;
         RLock lock = redissonClient.getLock(key);
         try {
-            if (lock != null && !lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+            if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
                 return;
             }
             List<CreativeContentDO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listByPlanUid(planUid));
@@ -294,13 +295,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (failure) {
                 updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
             }
+            log.info("更新计划状态完成，planUid: {}", planUid);
         } catch (Exception exception) {
             log.warn("更新计划失败: {}", planUid, exception);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPDATE_STATUS_FAILED, planUid, exception.getMessage());
         } finally {
-            if (lock != null) {
-                lock.unlock();
-            }
+            lock.unlock();
         }
     }
 
