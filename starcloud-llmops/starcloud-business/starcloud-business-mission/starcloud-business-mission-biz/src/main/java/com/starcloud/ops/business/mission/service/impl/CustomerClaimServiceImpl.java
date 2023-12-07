@@ -4,7 +4,7 @@ import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
-import com.starcloud.ops.business.mission.controller.app.vo.ClaimReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.ClaimReqVO;
 import com.starcloud.ops.business.mission.service.CustomerClaimService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
