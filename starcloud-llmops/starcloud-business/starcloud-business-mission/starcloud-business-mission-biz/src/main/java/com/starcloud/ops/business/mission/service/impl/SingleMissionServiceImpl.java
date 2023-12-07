@@ -13,16 +13,13 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeConten
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.*;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
-import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
@@ -42,7 +39,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -111,6 +107,15 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 //        countVo.setStatus(SingleMissionStatusEnum.settlement.getCode());
 //        result.setSettlementCount(singleMissionMapper.pageCount(countVo));
         return result;
+    }
+
+    @Override
+    public MissionNotificationDTO missionDetail(String uid) {
+        MissionNotificationDTO detail = singleMissionMapper.detail(uid);
+        if (detail == null) {
+            throw exception(MISSION_NOT_EXISTS, uid);
+        }
+        return detail;
     }
 
     @Override
@@ -281,7 +286,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         SingleMissionRespVO missionRespVO = SingleMissionConvert.INSTANCE.convert(missionDO);
         XhsNoteDetailRespVO noteDetail = noteDetailService.remoteDetail(reqVO.getPublishUrl());
-        validPostingContent(missionRespVO.getContent(), noteDetail);
+        missionRespVO.getContent().validPostingContent(noteDetail);
         SingleMissionRespVO respVO = SingleMissionConvert.INSTANCE.convert(missionDO);
         BigDecimal amount = missionRespVO.getUnitPrice().calculationAmount(noteDetail.getLikedCount(), noteDetail.getCommentCount());
         respVO.setLikedCount(noteDetail.getLikedCount());
@@ -384,7 +389,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
         XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
         // 校验note内容
-        validPostingContent(singleMissionRespVO.getContent(), noteDetail);
+        singleMissionRespVO.getContent().validPostingContent(noteDetail);
         updateSingleMission(singleMissionRespVO.getUid(), noteDetail.getAmount(), noteDetail.getId());
     }
 
@@ -398,16 +403,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         modifyReqVO.setNoteDetailId(noteDetailId);
         update(modifyReqVO);
     }
-
-    private void validPostingContent(PostingContentDTO content, XhsNoteDetailRespVO noteDetail) {
-        if (content != null && noteDetail != null
-                && StringUtils.equals(content.getTitle(), noteDetail.getTitle())
-                && StringUtils.equals(content.getText(), noteDetail.getDesc())) {
-            return;
-        }
-        throw exception(CONTENT_INCONSISTENT);
-    }
-
 
     private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
         if (notificationBudget == null
