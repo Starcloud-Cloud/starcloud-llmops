@@ -10,7 +10,6 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -20,12 +19,13 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRespon
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * @author admin
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
  */
 @Component
 @Slf4j
@@ -94,7 +96,7 @@ public class CreativeExecuteManager {
         List<Long> ids = contentList.stream().map(CreativeContentDO::getId).sorted().collect(Collectors.toList());
         StringJoiner sj = new StringJoiner("-");
         ids.forEach(id -> sj.add(id.toString()));
-        String key = "xhs-creative-content-copy-writing-" + sj;
+        String key = "creative-content-copy-writing-" + sj;
         RLock lock = redissonClient.getLock(key);
 
         if (lock != null && !lock.tryLock()) {
@@ -102,9 +104,9 @@ public class CreativeExecuteManager {
             return result;
         }
         Integer maxRetry = getMaxRetry(force);
-        contentList = creativeContentMapper.selectBatchIds(ids).stream().filter(xhsCreativeContentDO -> xhsCreativeContentDO.getRetryCount() < maxRetry
-                && !XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(xhsCreativeContentDO.getStatus())
-                && XhsCreativeContentTypeEnums.COPY_WRITING.getCode().equalsIgnoreCase(xhsCreativeContentDO.getType())).collect(Collectors.toList());
+        contentList = creativeContentMapper.selectBatchIds(ids).stream().filter(item -> item.getRetryCount() < maxRetry
+                && !CreativeContentStatusEnum.EXECUTING.getCode().equals(item.getStatus())
+                && CreativeContentTypeEnum.COPY_WRITING.getCode().equalsIgnoreCase(item.getType())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(contentList)) {
             log.warn("没有可执行状态的任务，{}", sj);
             return result;
@@ -174,7 +176,7 @@ public class CreativeExecuteManager {
                 updateContent.setStartTime(start);
                 updateContent.setEndTime(end);
                 updateContent.setExecuteTime(executeTime);
-                updateContent.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+                updateContent.setStatus(CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode());
                 updateContent.setUpdateTime(LocalDateTime.now());
                 updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
                 creativeContentMapper.updateById(updateContent);
@@ -247,7 +249,7 @@ public class CreativeExecuteManager {
      */
     public XhsImageCreativeExecuteResponse imageExecute(CreativeContentDO content, Map<String, CreativeImageTemplateDTO> posterTemplateMap, Boolean force) {
         // 获取锁
-        String lockKey = "xhs-creative-content-image-" + content.getId();
+        String lockKey = "creative-content-image-" + content.getId();
         RLock lock = redissonClient.getLock(lockKey);
         if (lock != null && !lock.tryLock()) {
             log.warn("创作中心：生成图片正在执行中，重复调用(内容ID：{})！", content.getId());
@@ -306,7 +308,7 @@ public class CreativeExecuteManager {
             updateContent.setStartTime(start);
             updateContent.setEndTime(end);
             updateContent.setExecuteTime(executeTime);
-            updateContent.setStatus(XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode());
+            updateContent.setStatus(CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode());
             updateContent.setUpdateTime(end);
             updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
             creativeContentMapper.updateById(updateContent);
@@ -338,33 +340,33 @@ public class CreativeExecuteManager {
     @NotNull
     private CopyWritingContentDTO getCopyWritingContent(CreativeContentDO content, LocalDateTime start, Integer maxRetry) {
         // 查询文案执行情况。需要文案执行成功才能执行图片
-        CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+        CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), CreativeContentTypeEnum.COPY_WRITING.getCode());
         if (Objects.isNull(business)) {
             // 此时说明数据存在问题，直接更新为最终失败
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
             throw exception(350600141, "创作中心：文案任务不存在，不能执行图片生成(ID: %s)！", content.getUid());
         }
-        if (XhsCreativeContentStatusEnums.INIT.getCode().equals(business.getStatus())) {
+        if (CreativeContentStatusEnum.INIT.getCode().equals(business.getStatus())) {
             // 文案未执行，直接跳出，不执行图片生成，等待下次执行
             throw exception(350600142, "创作中心：文案任务初始化中，不能执行图片生成(ID: %s)！", content.getUid());
 
-        } else if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(business.getStatus())) {
+        } else if (CreativeContentStatusEnum.EXECUTING.getCode().equals(business.getStatus())) {
             // 文案执行中，直接跳出，不执行图片生成，等待下次执行
             throw exception(350600143, "创作中心：文案任务执行中，不能执行图片生成(ID: %s)！", content.getUid());
 
-        } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(business.getStatus())) {
+        } else if (CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(business.getStatus())) {
             // 文案最终执行失败，图片更新为最终失败
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
             throw exception(350600144, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
 
-        } else if (XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(business.getStatus())) {
+        } else if (CreativeContentStatusEnum.EXECUTE_ERROR.getCode().equals(business.getStatus())) {
             // 文案执行失败
             if (business.getRetryCount() >= maxRetry) {
                 updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
             }
             throw exception(350600145, "创作中心：文案任务执行失败，不能执行图片生成(ID: %s)！", content.getUid());
 
-        } else if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(business.getStatus())) {
+        } else if (CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(business.getStatus())) {
             // 文案执行成功，但是文案执行结果为空，说明数据存在问题，直接更新为最终失败
             if (StringUtils.isBlank(business.getCopyWritingResult())) {
                 updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案任务执行结果不存在，不能执行图片生成(ID: %s)！", content.getUid()), maxRetry);
@@ -399,19 +401,19 @@ public class CreativeExecuteManager {
             throw exception(350600211, "未找到对应的创作任务(ID: %s)！", id);
         }
 
-        if (!XhsCreativeContentTypeEnums.PICTURE.getCode().equalsIgnoreCase(content.getType())) {
+        if (!CreativeContentTypeEnum.PICTURE.getCode().equalsIgnoreCase(content.getType())) {
             throw exception(350600212, "创作任务类型不是图片(ID: %s)！", id);
         }
 
-        if (XhsCreativeContentStatusEnums.EXECUTING.getCode().equals(content.getStatus())) {
+        if (CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())) {
             throw exception(350600213, "创作任务正在执行(ID: %s)！", id);
         }
 
         if (!force) {
-            if (XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
+            if (CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
                 throw exception(350600214, "创作任务已经执行成功(ID: %s)！", id);
             }
-            if (XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() >= maxRetry) {
+            if (CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() >= maxRetry) {
                 throw exception(350600215, "创作任务: %s，重试次数：%s，最多重试次数：%s ！", id, content.getRetryCount(), maxRetry);
             }
         }
@@ -452,7 +454,7 @@ public class CreativeExecuteManager {
         content.setId(id);
         content.setErrorMsg(errorMsg);
         content.setRetryCount(retry + 1);
-        content.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode());
+        content.setStatus(CreativeContentStatusEnum.EXECUTE_ERROR.getCode());
         content.setStartTime(start);
         LocalDateTime end = LocalDateTime.now();
         content.setEndTime(end);
@@ -475,7 +477,7 @@ public class CreativeExecuteManager {
         content.setId(id);
         content.setErrorMsg(errorMsg);
         content.setRetryCount(maxRetry);
-        content.setStatus(XhsCreativeContentStatusEnums.EXECUTE_ERROR_FINISHED.getCode());
+        content.setStatus(CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode());
         content.setStartTime(start);
         LocalDateTime end = LocalDateTime.now();
         content.setEndTime(end);
