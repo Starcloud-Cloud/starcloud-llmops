@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.mission.service;
 
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
-import com.starcloud.ops.business.mission.controller.app.vo.ClaimReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.ClaimReqVO;
 
 public interface CustomerClaimService {
 

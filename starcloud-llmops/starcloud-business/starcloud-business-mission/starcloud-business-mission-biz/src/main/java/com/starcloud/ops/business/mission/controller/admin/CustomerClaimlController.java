@@ -1,8 +1,8 @@
-package com.starcloud.ops.business.mission.controller.app;
+package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
-import com.starcloud.ops.business.mission.controller.app.vo.ClaimReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.ClaimReqVO;
 import com.starcloud.ops.business.mission.service.CustomerClaimService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
