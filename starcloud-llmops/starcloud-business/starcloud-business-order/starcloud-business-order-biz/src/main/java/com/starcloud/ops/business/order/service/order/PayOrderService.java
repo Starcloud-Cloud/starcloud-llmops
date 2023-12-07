@@ -162,7 +162,7 @@ public interface PayOrderService {
     /**
      * 获取新用户优惠券
      */
-    UserDiscountCodeInfoVO getNewUserDiscountCode();
+    UserDiscountCodeInfoVO getNewUserDiscountCode(Long userId);
 
     /**
      * 更新示例订单为已支付

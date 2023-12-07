@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
@@ -216,7 +217,7 @@ public class PayOrderController {
     @PostMapping("/discount/newuser")
     @Operation(summary = "获取新用户折扣码")
     public CommonResult<UserDiscountCodeInfoVO> getOrderProductDiscount() {
-         return success(payOrderService.getNewUserDiscountCode());
+         return success(payOrderService.getNewUserDiscountCode(getLoginUserId()));
     }
 
     // @PostMapping("/update-paid")
