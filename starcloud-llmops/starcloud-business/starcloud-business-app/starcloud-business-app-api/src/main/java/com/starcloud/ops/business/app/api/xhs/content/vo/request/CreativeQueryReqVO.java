@@ -1,16 +1,21 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.request;
 
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.Data;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
+ */
 @Data
 public class CreativeQueryReqVO {
 
     private String planUid;
 
     /**
-     * 执行任务类型 picture/copy_writing
+     * 执行任务类型
      */
     private String type;
 
@@ -26,9 +31,6 @@ public class CreativeQueryReqVO {
 
 
     public Boolean valid() {
-        if (StringUtil.isBlank(type) || !XhsCreativeContentTypeEnums.contain(type)) {
-            return false;
-        }
-        return true;
+        return !StringUtil.isBlank(type) && CreativeContentTypeEnum.contain(type);
     }
 }

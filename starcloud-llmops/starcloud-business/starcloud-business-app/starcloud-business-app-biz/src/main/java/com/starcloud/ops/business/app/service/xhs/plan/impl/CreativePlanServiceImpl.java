@@ -34,8 +34,8 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentTypeEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
@@ -156,7 +156,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             List<CreativeContentBusinessPO> businessItemList = CollectionUtil.emptyIfNull(businessMap.get(item.getUid()));
             // 全部成功才算成功
             List<CreativeContentBusinessPO> successList = businessItemList.stream()
-                    .filter(businessItem -> businessItem.getSuccessCount() == XhsCreativeContentTypeEnums.values().length).collect(Collectors.toList());
+                    .filter(businessItem -> businessItem.getSuccessCount() == CreativeContentTypeEnum.values().length).collect(Collectors.toList());
             // 全部失败才算失败
             List<CreativeContentBusinessPO> failureList = businessItemList.stream()
                     .filter(businessItem -> businessItem.getFailureCount() != 0).collect(Collectors.toList());
@@ -276,32 +276,39 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public void updatePlanStatus(String planUid) {
-        String key = "xhs-plan-" + planUid;
+        String key = "creative-plan-update-status-" + planUid;
         RLock lock = redissonClient.getLock(key);
         try {
-            if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+            if (lock != null && !lock.tryLock(3, 10, TimeUnit.SECONDS)) {
                 return;
             }
-            List<CreativeContentDO> contentList = creativeContentService.listByPlanUid(planUid);
+            List<CreativeContentDO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listByPlanUid(planUid));
 
-            boolean fail = contentList.stream().anyMatch(contentDO -> contentDO.getRetryCount() != null && contentDO.getRetryCount() >= 3 && XhsCreativeContentStatusEnums.EXECUTE_ERROR.getCode().equals(contentDO.getStatus()));
-            if (fail) {
+            // 当前计划下只要有彻底失败的，则计划失败
+            boolean failure = contentList.stream().anyMatch(item -> CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(item.getStatus()));
+            if (failure) {
                 updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
+                return;
             }
 
-            boolean running = contentList.stream().anyMatch(contentDO -> contentDO.getRetryCount() == null || contentDO.getRetryCount() < 3);
+            // 当前计划下只要有正在执行的，则计划正在执行
+            boolean running = contentList.stream().anyMatch(item -> item.getRetryCount() == null || item.getRetryCount() < 3);
             if (running) {
                 updateStatus(planUid, CreativePlanStatusEnum.RUNNING.name());
+                return;
             }
 
-            boolean complete = contentList.stream().allMatch(contentDO -> XhsCreativeContentStatusEnums.EXECUTE_SUCCESS.getCode().equals(contentDO.getStatus()));
+            // 当前计划下只有全部执行成功的，则计划完成
+            boolean complete = contentList.stream().allMatch(item -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(item.getStatus()));
             if (complete) {
                 updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
             }
         } catch (Exception e) {
             log.warn("更新计划失败", e);
         } finally {
-            lock.unlock();
+            if (lock != null) {
+                lock.unlock();
+            }
         }
     }
 
@@ -376,7 +383,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             appCreateRequest.setPlanUid(plan.getUid());
             appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
             appCreateRequest.setBusinessUid(businessUid);
-            appCreateRequest.setType(XhsCreativeContentTypeEnums.COPY_WRITING.getCode());
+            appCreateRequest.setType(CreativeContentTypeEnum.COPY_WRITING.getCode());
             appCreateRequest.setTempUid(appExecuteRequest.getUid());
             appCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofApp(appExecuteRequest));
             creativeContentCreateRequestList.add(appCreateRequest);
@@ -419,7 +426,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             imageCreateRequest.setPlanUid(plan.getUid());
             imageCreateRequest.setSchemeUid(executeParam.getSchemeUid());
             imageCreateRequest.setBusinessUid(businessUid);
-            imageCreateRequest.setType(XhsCreativeContentTypeEnums.PICTURE.getCode());
+            imageCreateRequest.setType(CreativeContentTypeEnum.PICTURE.getCode());
             imageCreateRequest.setTempUid(tempUid);
             imageCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest));
             imageCreateRequest.setUsePicture(imageUrlList);
