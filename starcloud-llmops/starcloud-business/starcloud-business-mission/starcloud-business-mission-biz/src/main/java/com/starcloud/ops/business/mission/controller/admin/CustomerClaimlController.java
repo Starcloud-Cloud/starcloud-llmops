@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionDetailVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.ClaimReqVO;
 import com.starcloud.ops.business.mission.service.CustomerClaimService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +25,7 @@ public class CustomerClaimlController {
     @GetMapping("/detail/{uid}")
     @Operation(summary = "任务详情")
     @PermitAll
-    public CommonResult<SingleMissionRespVO> detailById(@PathVariable("uid") String uid) {
+    public CommonResult<SingleMissionDetailVO> detailById(@PathVariable("uid") String uid) {
         return CommonResult.success(claimService.missionDetail(uid));
     }
 

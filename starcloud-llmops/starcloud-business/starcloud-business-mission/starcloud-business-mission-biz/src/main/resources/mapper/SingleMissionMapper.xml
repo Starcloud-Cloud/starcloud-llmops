@@ -91,4 +91,12 @@
             and m.claim_user_id = #{reqVO.claimUserId}
         </if>
     </select>
+
+    <select id="detail" resultType="com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO">
+        select m.*, n.name as notificationName
+        from llm_single_mission m
+                 left join llm_notification n on m.notification_Uid = n.uid
+        where m.deleted = false
+          and m.uid = #{uid}
+    </select>
 </mapper>

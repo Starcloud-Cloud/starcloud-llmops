@@ -13,16 +13,13 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeConten
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.*;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
-import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
@@ -113,9 +110,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
-    public SingleMissionRespVO missionDetail(String uid) {
-        SingleMissionDO missionDO = getByUid(uid);
-        return SingleMissionConvert.INSTANCE.convert(missionDO);
+    public MissionNotificationDTO missionDetail(String uid) {
+        MissionNotificationDTO detail = singleMissionMapper.detail(uid);
+        if (detail == null) {
+            throw exception(MISSION_NOT_EXISTS, uid);
+        }
+        return detail;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 
 import javax.validation.Valid;
@@ -24,7 +25,7 @@ public interface SingleMissionService {
     /**
      * 任务详情
      */
-    SingleMissionRespVO missionDetail(String uid);
+    MissionNotificationDTO missionDetail(String uid);
 
 
     /**

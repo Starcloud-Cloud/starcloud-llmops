@@ -3,13 +3,12 @@ package com.starcloud.ops.business.mission.dal.mysql;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -67,6 +66,8 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
                 .eq(SingleMissionDO::getNotificationUid, notificationUid);
         return selectList(wrapper);
     }
+
+    MissionNotificationDTO detail(@Param("uid") String uid);
 
     List<Long> selectIds(@Param("reqVO") SingleMissionQueryReqVO reqVO);
 
