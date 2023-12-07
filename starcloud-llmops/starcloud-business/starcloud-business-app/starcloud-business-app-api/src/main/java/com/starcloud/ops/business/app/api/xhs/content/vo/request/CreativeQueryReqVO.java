@@ -12,6 +12,9 @@ import lombok.Data;
 @Data
 public class CreativeQueryReqVO {
 
+    /**
+     * 计划UID
+     */
     private String planUid;
 
     /**
@@ -28,6 +31,11 @@ public class CreativeQueryReqVO {
      * 是否只执行重试任务
      */
     private Boolean retryProcess;
+
+    /**
+     * 最大重试次数
+     */
+    private Integer maxRetry;
 
 
     public Boolean valid() {

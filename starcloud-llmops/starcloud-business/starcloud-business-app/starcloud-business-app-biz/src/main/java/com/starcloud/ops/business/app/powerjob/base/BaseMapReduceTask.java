@@ -18,7 +18,7 @@ import java.util.List;
 public abstract class BaseMapReduceTask implements MapReduceProcessor {
 
     /**
-     * 获取task 名称
+     * 获取task名称
      *
      * @return task 任务名称
      */
