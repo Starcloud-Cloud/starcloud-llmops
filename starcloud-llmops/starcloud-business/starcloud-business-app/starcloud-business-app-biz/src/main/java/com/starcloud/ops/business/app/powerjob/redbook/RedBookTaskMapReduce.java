@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import com.starcloud.ops.business.app.powerjob.base.PowerJobTaskContext;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.manager.context.CreativeContentExecuteContext;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -123,7 +124,9 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                     SubTask subTask = new SubTask();
                     subTask.setPlanUid(planUid);
                     subTask.setRunType(params.getRunType());
-                    subTask.setRedBookIdList(longs);
+                    subTask.setContentIdList(longs);
+                    subTask.setRetryProcess(params.getRetryProcess());
+                    subTask.setMaxRetry(params.getMaxRetry());
                     subTasks.add(subTask);
                 }
             }
@@ -137,13 +140,30 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         return BaseTaskResult.of(Boolean.TRUE, "小红书内容生成根任务【执行成功】：根任务执行成功！");
     }
 
-
-    //单操作任务执行入口
+    /**
+     * 子任务执行
+     *
+     * @param context 任务上下文
+     * @param subTask 子任务信息
+     * @return 任务执行结果
+     */
+    @SuppressWarnings("all")
     public BaseTaskResult runSub(BaseTaskContext context, SubTask subTask) {
         try {
+            log.info("小红书内容生成子任务【执行开始】......");
+            // 构建执行上下文
+            CreativeContentExecuteContext executeContext = new CreativeContentExecuteContext();
+            executeContext.setPlanUid(subTask.getPlanUid());
+            executeContext.setContentIdList(subTask.getContentIdList());
+            executeContext.setType(subTask.getRunType());
+            executeContext.setRetryProcess(subTask.getRetryProcess());
+            executeContext.setMaxRetry(subTask.getMaxRetry());
+            log.info("小红书内容生成子任务【执行参数】\n：{}", JSONUtil.parse(executeContext).toStringPretty());
 
-            List<Long> redBookTask = subTask.getRedBookIdList();
+            // 执行任务
+            List<Long> redBookTask = subTask.getContentIdList();
             Map<Long, Boolean> resp = creativeContentService.execute(redBookTask, subTask.getRunType(), false);
+
 
             StringJoiner sj = new StringJoiner(",");
             List<Long> errorTasks = new ArrayList<>();
@@ -156,65 +176,81 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             }
 
             return new SubTaskResult(true, sj.toString(), subTask.planUid, redBookTask, errorTasks);
-        } catch (Exception e) {
-            //不会调用到这里，兜底错误和日志
-            return new SubTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
+        } catch (Exception exception) {
+            log.error("小红书内容生成子任务【执行失败】：错误信息：{}", exception.getMessage(), exception);
+            return new SubTaskResult(Boolean.FALSE, "小红书内容生成子任务【执行失败】：计划UID：" + subTask.getPlanUid() + " 错误信息：" + exception.getMessage());
         }
     }
 
     /**
      * 子任务执行完执行
      *
-     * @param taskContext
-     * @param taskResults
-     * @return
+     * @param context 任务上下文
+     * @param results 子任务执行结果
+     * @return 任务执行结果
      */
     @Override
     @TenantIgnore
-    public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-        if (CollectionUtils.isEmpty(taskResults)) {
-            return new ProcessResult(true, "reduce_success");
+    public ProcessResult reduce(TaskContext context, List<TaskResult> results) {
+        try {
+            log.info("小红书内容生成 结果任务【执行开始】......");
+            if (CollectionUtils.isEmpty(results)) {
+                return new ProcessResult(Boolean.TRUE, "reduce_success");
+            }
+
+            // 查询计划表下的 所有状态，并更新计划表的状态
+            List<String> planUidList = results.stream().map(item -> {
+                SubTaskResult result = JSON.parseObject(item.getResult(), SubTaskResult.class);
+                if (Objects.isNull(result) || StringUtils.isBlank(result.getPlanUid())) {
+                    return null;
+                }
+                return result.getPlanUid();
+            }).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+
+            for (String planUid : planUidList) {
+                creativePlanService.updatePlanStatus(planUid);
+            }
+            log.info("小红书内容生成 结果任务【执行成功】：结果任务数量：{}", planUidList.size());
+            return new ProcessResult(true, results.toString());
+        } catch (Exception exception) {
+            log.error("小红书内容生成 结果任务【执行失败】：错误信息：{}", exception.getMessage(), exception);
+            return new ProcessResult(Boolean.FALSE, "小红书内容生成 结果任务【执行失败】：错误信息：" + exception.getMessage());
         }
-
-        //查询计划表下的 所有状态，并更新计划表的状态
-        List<String> planUids = taskResults.stream().map(sub -> {
-            SubTaskResult subTaskResult = JSON.parseObject(sub.getResult(), SubTaskResult.class);
-            return subTaskResult.getPlanUid();
-        }).collect(Collectors.toList());
-
-        updateInstance(planUids);
-
-        return new ProcessResult(true, taskResults.toString());
     }
 
-    private void updateInstance(List<String> planUidList) {
-
-        //根据创作任务找到所有创作计划
-
-        //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
-        planUidList = planUidList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
-        for (String planUid : planUidList) {
-            creativePlanService.updatePlanStatus(planUid);
-        }
-    }
-
-
+    /**
+     * 子任务参数
+     */
     @Builder
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SubTask {
 
-        //DTO对象
-        private List<Long> redBookIdList;
-
-
         /**
          * 生成计划ID
          */
         private String planUid;
 
-        //带入一些上游的参数做校验
+        /**
+         * 创作内容ID列表
+         */
+        private List<Long> contentIdList;
+
+        /**
+         * 执行类型
+         */
         private String runType;
+
+        /**
+         * 是否只执行重试任务
+         */
+        private Boolean retryProcess;
+
+        /**
+         * 最大重试次数
+         */
+        private Integer maxRetry;
+
     }
 }
