@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.dto.PostingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;

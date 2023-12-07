@@ -74,7 +74,7 @@ public interface SingleMissionService {
     /**
      * 刷新小红书笔记
      */
-    void refreshNote(String uid);
+    SingleMissionRespVO refreshNote(RefreshNoteDetailReqVO reqVO);
 
     /**
      * 结算更新

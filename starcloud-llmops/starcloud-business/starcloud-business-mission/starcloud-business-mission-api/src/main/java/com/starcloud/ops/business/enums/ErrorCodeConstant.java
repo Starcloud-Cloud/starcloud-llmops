@@ -35,4 +35,6 @@ public interface ErrorCodeConstant {
     ErrorCode  ONLY_STAY_CLAIM =  new ErrorCode(700010016, "只有待认领状态可以导入");
 
     ErrorCode  BUDGET_ERROR =  new ErrorCode(700010017, "通告总预算要大于单个任务预算");
+
+    ErrorCode  CAN_NOT_REFRESH =  new ErrorCode(700010018, "先发布通告再刷新互动信息");
 }
