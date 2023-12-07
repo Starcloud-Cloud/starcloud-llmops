@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class NotificationCenterController {
 
     @GetMapping("/metadata")
     @Operation(summary = "获取通告中心元数据", description = "获取通告中心元数据")
+    @PermitAll
     public CommonResult<Map<String, Object>> metadata() {
         return CommonResult.success(centerService.metadata());
     }

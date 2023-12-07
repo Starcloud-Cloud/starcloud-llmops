@@ -22,6 +22,12 @@ public interface SingleMissionService {
     PageResult<SingleMissionRespVO> page(SinglePageQueryReqVO reqVO);
 
     /**
+     * 任务详情
+     */
+    SingleMissionRespVO missionDetail(String uid);
+
+
+    /**
      * 修改任务
      */
     void modifySelective(@Valid SingleMissionModifyReqVO reqVO);

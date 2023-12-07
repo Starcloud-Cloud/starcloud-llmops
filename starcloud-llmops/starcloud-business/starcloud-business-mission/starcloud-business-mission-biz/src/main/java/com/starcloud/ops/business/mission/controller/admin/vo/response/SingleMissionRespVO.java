@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
-import com.starcloud.ops.business.dto.PostingContentDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

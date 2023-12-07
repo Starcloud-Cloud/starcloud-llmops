@@ -37,4 +37,9 @@ public interface ErrorCodeConstant {
     ErrorCode  BUDGET_ERROR =  new ErrorCode(700010017, "通告总预算要大于单个任务预算");
 
     ErrorCode  CAN_NOT_REFRESH =  new ErrorCode(700010018, "先发布通告再刷新互动信息");
+
+    ErrorCode  MISSION_IS_CHANGE =  new ErrorCode(700010019, "只有待认领状态任务可以认领,请刷新页面后重试");
+
+    ErrorCode  MISSION_CAN_NOT_CLAIM =  new ErrorCode(700010020, "任务状态为{} ，只有待认领状态任务可以认领");
+
 }
