@@ -8,9 +8,14 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 @Slf4j
 public class JsoupUtil {
@@ -39,6 +44,19 @@ public class JsoupUtil {
         if (StrUtil.isBlank(acceptLanguage)) {
             acceptLanguage = "zh";
         }
+        // 创建自定义 TrustManager
+        TrustManager[] trustManagers = new TrustManager[]{new TrustAllCertManager()};
+
+        // 获取默认的 SSLContext
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustManagers, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
+        // 应用自定义的 SSLContext
+        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
 
         // url转换为标准格式
         String normalize = URLUtil.normalize(url);
@@ -57,6 +75,19 @@ public class JsoupUtil {
             acceptLanguage = "zh";
         }
 
+        // 创建自定义 TrustManager
+        TrustManager[] trustManagers = new TrustManager[]{new TrustAllCertManager()};
+
+        // 获取默认的 SSLContext
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustManagers, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
+        // 应用自定义的 SSLContext
+        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
         // url转换为标准格式
         String normalize = URLUtil.normalize(url);
         // 创建链接
@@ -86,10 +117,16 @@ public class JsoupUtil {
             }
         }
 
+
     }
 
     public static String html2Markdown(String html) {
         CopyDown converter = new CopyDown();
         return converter.convert(html);
+    }
+
+    public static void main(String[] args) throws IOException {
+        Document document = loadNoProxyUrl("https://www.chinatax.gov.cn/chinatax/n363/c5211371/content.html", null);
+        System.out.println(document.text());
     }
 }
