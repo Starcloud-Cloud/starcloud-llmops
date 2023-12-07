@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.content;
 
-import com.starcloud.ops.business.app.enums.xhs.content.XhsCreativeContentStatusEnums;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -37,7 +37,7 @@ public class CreativeContentDTO {
     private String copyWritingParams;
 
     /**
-     * {@link XhsCreativeContentStatusEnums}
+     * {@link CreativeContentStatusEnum}
      */
     @Schema(description = "图片状态")
     private String pictureStatus;

@@ -7,7 +7,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
-import com.aliyun.oss.OSS;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +71,15 @@ public class ImageUploadUtils {
     static {
         UPLOAD_PATH_MAP.put(UPLOAD, "mofaai/images/upload/");
         UPLOAD_PATH_MAP.put(GENERATE, "mofaai/images/ai-generation/");
+    }
+
+    /**
+     * 获取上传路径Map
+     *
+     * @return 上传路径Map
+     */
+    public static Map<String, String> getUploadPathMap() {
+        return UPLOAD_PATH_MAP;
     }
 
     /**
