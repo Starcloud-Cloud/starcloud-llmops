@@ -608,12 +608,10 @@ public class PayOrderServiceImpl implements PayOrderService {
      * 获取新用户优惠券
      */
     @Override
-    public UserDiscountCodeInfoVO getNewUserDiscountCode() {
+    public UserDiscountCodeInfoVO getNewUserDiscountCode(Long userId) {
 
         UserDiscountCodeInfoVO userDiscountCodeInfoVO = new UserDiscountCodeInfoVO();
-        Long payOrderSuccess = orderMapper.selectCount(Wrappers.lambdaQuery(PayOrderDO.class).eq(PayOrderDO::getStatus, PayOrderStatusEnum.SUCCESS.getStatus()).eq(PayOrderDO::getCreator, getLoginUserId()));
-
-        if (payOrderSuccess == 0) {
+        if (isUserRegisteredWithinSpecifiedTime(userId, 3) && hasOrdersWithSuccessPayment(userId, null)) {
             try {
                 UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER.getName());
                 if (ObjectUtil.isNull(masterConfigStrategyByType)) {
@@ -621,17 +619,23 @@ public class PayOrderServiceImpl implements PayOrderService {
                 }
                 userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
                 userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
-                userDiscountCodeInfoVO.setStartTime(masterConfigStrategyByType.getStartTime());
-                userDiscountCodeInfoVO.setEndTime(masterConfigStrategyByType.getEndTime());
+
+                AdminUserDO user = userService.getUser(userId);
+                // 获取用户注册时间
+                LocalDateTime registeredTime = user.getCreateTime();
+
+                userDiscountCodeInfoVO.setStartTime(registeredTime);
+                userDiscountCodeInfoVO.setEndTime(registeredTime.plusDays(3));
 
             } catch (RuntimeException e) {
                 log.warn("新用户权益配置已经过期");
                 return userDiscountCodeInfoVO;
             }
-
-        } else {
-            log.info("当前用户已经存在支付订单，无法获取新用户优惠信息");
         }
+
+
+        log.info("当前用户已经存在支付订单，无法获取新用户优惠信息");
+
         return userDiscountCodeInfoVO;
     }
 
@@ -881,10 +885,10 @@ public class PayOrderServiceImpl implements PayOrderService {
 
 
     /**
-     * 用户是否在指定时间内注册
+     * 用户是否有成功下单的下单记录
      *
      * @param userId       用户 ID
-     * @param productCodes 产品 code
+     * @param productCodes 产品 code （可以为空）
      * @return
      */
     private Boolean hasOrdersWithSuccessPayment(Long userId, List<String> productCodes) {
@@ -894,7 +898,7 @@ public class PayOrderServiceImpl implements PayOrderService {
         wrapper.in(CollUtil.isNotEmpty(productCodes), PayOrderDO::getProductCode, productCodes);
         Long aLong = orderMapper.selectCount(wrapper);
 
-        // 判断创建时间是否在days天内
+        // 判断是否存在成功订单
         return aLong <= 0;
 
     }
