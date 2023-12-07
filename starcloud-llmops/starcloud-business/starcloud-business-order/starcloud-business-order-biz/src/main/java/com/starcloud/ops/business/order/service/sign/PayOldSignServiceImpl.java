@@ -220,7 +220,11 @@ public class PayOldSignServiceImpl implements PaySignService {
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = new PayOrderUnifiedReqDTO();
         unifiedOrderReqDTO.setNotifyUrl(getChannelPayNotifyUrl(channel));
         unifiedOrderReqDTO.setBizContent(bizContent.toString());
-
+        unifiedOrderReqDTO.setOutTradeNo("202324342323442342");
+        unifiedOrderReqDTO.setSubject("测试");
+        unifiedOrderReqDTO.setExpireTime(DateUtil.nextMonth().toLocalDateTime());
+        unifiedOrderReqDTO.setPrice(1000);
+        unifiedOrderReqDTO.setUserIp("127.0.0.1");
         return client.unifiedOrder(unifiedOrderReqDTO).getDisplayContent();
     }
 
