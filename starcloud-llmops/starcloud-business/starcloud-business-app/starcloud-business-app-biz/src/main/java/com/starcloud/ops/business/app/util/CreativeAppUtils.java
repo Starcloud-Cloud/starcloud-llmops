@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -127,6 +128,65 @@ public class CreativeAppUtils {
     }
 
     /**
+     * 构建执行请求
+     *
+     * @param app     应用
+     * @param request 请求
+     * @return 执行请求
+     */
+    public static AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
+        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+        executeRequest.setStepId(request.getStepId());
+        executeRequest.setUserId(request.getUserId());
+        executeRequest.setMode(AppModelEnum.COMPLETION.name());
+        executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
+        executeRequest.setAppUid(app.getUid());
+        executeRequest.setN(request.getN());
+        executeRequest.setAppReqVO(transform(app, request.getParams(), request.getStepId()));
+        return executeRequest;
+    }
+
+    /**
+     * 处理参考内容
+     *
+     * @param referenceList 处理参考内容
+     * @return 参考内容
+     */
+    public static List<CreativeSchemeReferenceDTO> handlerReferences(List<CreativeSchemeReferenceDTO> referenceList) {
+        return CollectionUtil.emptyIfNull(referenceList).stream().map(item -> {
+            CreativeSchemeReferenceDTO reference = new CreativeSchemeReferenceDTO();
+            reference.setTitle(item.getTitle());
+            reference.setContent(item.getContent());
+            return reference;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 处理需求文本，变量填充等
+     *
+     * @param copyWritingTemplate 文案生成模板
+     * @param variableList        创作计划配置变量
+     * @return 处理后的文案
+     */
+    public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemDTO> variableList) {
+        String demand = copyWritingTemplate.getDemand();
+        if (CollectionUtil.isEmpty(variableList)) {
+            variableList = Optional.ofNullable(copyWritingTemplate.getVariables()).orElse(Lists.newArrayList());
+        }
+        Map<String, VariableItemDTO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemDTO::getField, item -> item));
+        for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariables())) {
+            String field = variableItem.getField();
+            VariableItemDTO variable = variableMap.getOrDefault(field, variableItem);
+            Object value = variable.getValue();
+            if (Objects.isNull(value)) {
+                value = Optional.ofNullable(variable.getDefaultValue()).orElse("");
+            }
+            demand = demand.replace("{" + field + "}", String.valueOf(value));
+        }
+        return demand;
+    }
+
+    /**
      * 将数据转为应用，参数替换
      *
      * @param app     应用市场应用
@@ -181,7 +241,7 @@ public class CreativeAppUtils {
                     variableItem.setDefaultValue(description);
 
                 } else if (REFERS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
-                    String refers = JSONUtil.toJsonStr(request.getRefers());
+                    String refers = JSONUtil.toJsonStr(handlerReferences(request.getRefers()));
                     variableItem.setValue(refers);
                     variableItem.setDefaultValue(refers);
                 } else if (SUMMARY.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getSummary())) {
@@ -256,7 +316,7 @@ public class CreativeAppUtils {
                     variableItem.setDefaultValue(description);
 
                 } else if (REFERS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
-                    String refers = JSONUtil.toJsonStr(request.getRefers());
+                    String refers = JSONUtil.toJsonStr(handlerReferences(request.getRefers()));
                     variableItem.setValue(refers);
                     variableItem.setDefaultValue(refers);
                 }
@@ -268,50 +328,6 @@ public class CreativeAppUtils {
         config.setSteps(stepWrapperList);
         app.setWorkflowConfig(config);
         return AppMarketConvert.INSTANCE.convert(app);
-    }
-
-    /**
-     * 处理需求文本，变量填充等
-     *
-     * @param copyWritingTemplate 文案生成模板
-     * @param variableList        创作计划配置变量
-     * @return 处理后的文案
-     */
-    public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemDTO> variableList) {
-        String demand = copyWritingTemplate.getDemand();
-        if (CollectionUtil.isEmpty(variableList)) {
-            variableList = Optional.ofNullable(copyWritingTemplate.getVariables()).orElse(Lists.newArrayList());
-        }
-        Map<String, VariableItemDTO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemDTO::getField, item -> item));
-        for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariables())) {
-            String field = variableItem.getField();
-            VariableItemDTO variable = variableMap.getOrDefault(field, variableItem);
-            Object value = variable.getValue();
-            if (Objects.isNull(value)) {
-                value = Optional.ofNullable(variable.getDefaultValue()).orElse("");
-            }
-            demand = demand.replace("{" + field + "}", String.valueOf(value));
-        }
-        return demand;
-    }
-
-    /**
-     * 构建执行请求
-     *
-     * @param app     应用
-     * @param request 请求
-     * @return 执行请求
-     */
-    public static AppExecuteReqVO buildExecuteRequest(AppMarketRespVO app, XhsAppExecuteRequest request) {
-        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        executeRequest.setStepId(request.getStepId());
-        executeRequest.setUserId(request.getUserId());
-        executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(StringUtils.isBlank(request.getScene()) ? AppSceneEnum.XHS_WRITING.name() : request.getScene());
-        executeRequest.setAppUid(app.getUid());
-        executeRequest.setN(request.getN());
-        executeRequest.setAppReqVO(transform(app, request.getParams(), request.getStepId()));
-        return executeRequest;
     }
 
     /**
@@ -343,6 +359,13 @@ public class CreativeAppUtils {
             }
 
             for (VariableItemRespVO variableItem : variableList) {
+                if (REFERS.equals(variableItem.getField()) && StringUtils.isNotBlank((String) variableItem.getValue())) {
+                    TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
+                    };
+                    List<CreativeSchemeReferenceDTO> refers = JSONUtil.toBean((String) variableItem.getValue(), typeReference, false);
+                    refers = handlerReferences(refers);
+                    appParams.put(variableItem.getField(), JSONUtil.toJsonStr(refers));
+                }
                 if (appParams.containsKey(variableItem.getField()) && Objects.nonNull(appParams.get(variableItem.getField()))) {
                     Object value = appParams.get(variableItem.getField());
                     variableItem.setValue(value);
