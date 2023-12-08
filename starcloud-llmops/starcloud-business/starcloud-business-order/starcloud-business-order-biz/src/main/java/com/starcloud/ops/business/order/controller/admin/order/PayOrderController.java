@@ -214,11 +214,19 @@ public class PayOrderController {
     }
 
     @Deprecated
+    @PostMapping("/discount/list")
+    @Operation(summary = "获取用户折扣码列表")
+    public CommonResult<List<UserDiscountCodeInfoVO> > getDiscountList() {
+         return success(payOrderService.getDiscountList(getLoginUserId()));
+    }
+
+    @Deprecated
     @PostMapping("/discount/newuser")
     @Operation(summary = "获取新用户折扣码")
     public CommonResult<UserDiscountCodeInfoVO> getOrderProductDiscount() {
-         return success(payOrderService.getNewUserDiscountCode(getLoginUserId()));
+        return success(payOrderService.getNewUserDiscountCode(getLoginUserId()));
     }
+
 
     // @PostMapping("/update-paid")
     // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
