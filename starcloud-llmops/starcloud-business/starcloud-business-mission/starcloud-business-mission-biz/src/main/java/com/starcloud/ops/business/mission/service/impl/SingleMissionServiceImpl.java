@@ -304,6 +304,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             modifyReqVO.setUid(singleMissionRespVO.getUid());
             modifyReqVO.setRunTime(LocalDateTime.now());
             modifyReqVO.setPreSettlementMsg(e.getMessage());
+            modifyReqVO.setPreSettlementTime(LocalDateTime.now());
             update(modifyReqVO);
         }
     }
