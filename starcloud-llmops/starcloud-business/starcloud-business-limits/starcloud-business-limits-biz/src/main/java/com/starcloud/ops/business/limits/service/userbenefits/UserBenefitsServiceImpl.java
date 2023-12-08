@@ -829,10 +829,11 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
      * @return Boolean
      */
     @Override
-    public Boolean exitBenefitsStrategy(Long strategyId) {
+    public Boolean exitBenefitsStrategy(Long strategyId, Long userId) {
         // 查询条件
         LambdaQueryWrapper<UserBenefitsDO> wrapper = Wrappers.lambdaQuery(UserBenefitsDO.class);
         wrapper.eq(UserBenefitsDO::getStrategyId, strategyId);
+        wrapper.eq(UserBenefitsDO::getUserId, userId);
         Long count = userBenefitsMapper.selectCount(wrapper);
         return BooleanUtil.isTrue(count > 0);
     }
