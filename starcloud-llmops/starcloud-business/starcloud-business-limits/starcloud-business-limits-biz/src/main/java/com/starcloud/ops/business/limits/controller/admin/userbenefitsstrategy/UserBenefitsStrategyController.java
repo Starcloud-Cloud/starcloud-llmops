@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUser;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 
 @Tag(name = "星河云海 - 权益策略 ")
@@ -52,8 +54,8 @@ public class UserBenefitsStrategyController {
     @PostMapping("/check-code/{code}/{strategyType}")
     @Operation(summary = "验证策略 code 是否合法 ")
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:create')")
-    public CommonResult<Boolean> checkCode(@ApiParam("主键") @PathVariable(value = "code") String code,@ApiParam("策略类型") @PathVariable(value = "strategyType") String strategyType) {
-        return success(userBenefitsStrategyService.checkCode(code,strategyType));
+    public CommonResult<Boolean> checkCode(@ApiParam("主键") @PathVariable(value = "code") String code, @ApiParam("策略类型") @PathVariable(value = "strategyType") String strategyType) {
+        return success(userBenefitsStrategyService.checkCode(code, strategyType));
     }
 
     @PostMapping("/master-config/{strategyType}")
@@ -84,7 +86,7 @@ public class UserBenefitsStrategyController {
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('starcloud-business-limits:user-benefits-strategy:delete')")
     public CommonResult<Boolean> deleteUserBenefitsStrategy(@RequestParam("id") Long id) {
-        benefitsOperationService.deleteUserBenefitsStrategy(id);
+        benefitsOperationService.deleteUserBenefitsStrategy(id, getLoginUserId());
         return success(true);
     }
 
@@ -96,6 +98,7 @@ public class UserBenefitsStrategyController {
         userBenefitsStrategyService.enabledBenefitsStrategy(id);
         return success(true);
     }
+
     @DeleteMapping("/unenabled")
     @Operation(summary = "停用权益策略 ")
     @Parameter(name = "id", description = "编号", required = true)
@@ -104,6 +107,7 @@ public class UserBenefitsStrategyController {
         userBenefitsStrategyService.unEnabledBenefitsStrategy(id);
         return success(true);
     }
+
     @DeleteMapping("/archived")
     @Operation(summary = "归档权益策略 ")
     @Parameter(name = "id", description = "编号", required = true)

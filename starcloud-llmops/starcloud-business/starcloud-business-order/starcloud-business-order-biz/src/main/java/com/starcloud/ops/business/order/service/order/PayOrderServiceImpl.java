@@ -694,12 +694,12 @@ public class PayOrderServiceImpl implements PayOrderService {
 
         }
         // 获取用户八折优惠券
-        if (hasOrdersWithSuccessPayment(userId, CollUtil.list(true, "ai_trial"))) {
+        if (!hasOrdersWithSuccessPayment(userId, CollUtil.list(true, "ai_trial"))) {
 
             UserDiscountCodeInfoVO userDiscountCodeInfoVO = new UserDiscountCodeInfoVO();
             try {
                 UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80.getName());
-                if (userBenefitsService.exitBenefitsStrategy(masterConfigStrategyByType.getId())) {
+                if (!userBenefitsService.exitBenefitsStrategy(masterConfigStrategyByType.getId(), userId)) {
                     if (ObjectUtil.isNotNull(masterConfigStrategyByType)) {
                         userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
                         userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
@@ -709,7 +709,7 @@ public class PayOrderServiceImpl implements PayOrderService {
                         LocalDateTime registeredTime = user.getCreateTime();
 
                         userDiscountCodeInfoVO.setStartTime(registeredTime);
-                        userDiscountCodeInfoVO.setEndTime(registeredTime.plusDays(3));
+                        userDiscountCodeInfoVO.setEndTime(registeredTime.plusDays(10));
                         UserDiscountCodeInfos.add(userDiscountCodeInfoVO);
                     }
                 }
