@@ -80,6 +80,10 @@ public enum BenefitsStrategyTypeEnums {
     /**
      * BASIC套餐
      */
+    PAY_TRAIL("PAY_TRAIL", "魔法ai-体验版", "TRAIL Package", "TB", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
+    /**
+     * BASIC套餐
+     */
     PAY_BASIC_MONTH("PAY_BASIC_MONTH", "魔法ai-基础版-年付", "PLUS Package", "PB", BenefitsTypesEnums.BASIC_BENEFITS, 0.00, null),
     /**
      * BASIC套餐

@@ -216,7 +216,7 @@ public class PayOrderController {
     @Deprecated
     @PostMapping("/discount/newuser")
     @Operation(summary = "获取新用户折扣码")
-    public CommonResult<UserDiscountCodeInfoVO> getOrderProductDiscount() {
+    public CommonResult<List<UserDiscountCodeInfoVO> > getOrderProductDiscount() {
          return success(payOrderService.getNewUserDiscountCode(getLoginUserId()));
     }
 
