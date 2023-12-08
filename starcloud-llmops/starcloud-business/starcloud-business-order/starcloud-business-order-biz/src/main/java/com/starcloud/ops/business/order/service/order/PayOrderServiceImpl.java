@@ -994,11 +994,9 @@ public class PayOrderServiceImpl implements PayOrderService {
         // 获取当前时间
         LocalDateTime nowTime = LocalDateTimeUtil.now();
 
-        // 计算14天后的时间
-        LocalDateTime fourteenDaysLater = nowTime.plusDays(days);
-
         // 判断创建时间是否在days天内
-        return registeredTime.isBefore(fourteenDaysLater);
+        return nowTime.isAfter(registeredTime.plusDays(days));
+
 
     }
 }
