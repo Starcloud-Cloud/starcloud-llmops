@@ -140,9 +140,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         }
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
 
-        if (NotificationCenterStatusEnum.cancel_published.getCode().equals(notificationCenterDO.getStatus())) {
-            singleMissionService.validBudget(notificationCenterDO);
-        }
+//        singleMissionService.validBudget(notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.updateById(notificationCenterDO);
         return NotificationCenterConvert.INSTANCE.convert(notificationCenterDO);
