@@ -13,6 +13,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ProductTimeEnum {
 
+    WEEK("week", "周付"),
     YEAR("year", " 月付"),
     MONTH("month", "年付"),
     ;
