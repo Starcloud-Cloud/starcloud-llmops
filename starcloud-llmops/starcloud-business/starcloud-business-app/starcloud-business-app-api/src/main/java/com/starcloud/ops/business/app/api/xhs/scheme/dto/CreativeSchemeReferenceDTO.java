@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,6 +21,7 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "CreativeSchemeReferenceDTO", description = "创作方案配置")
 public class CreativeSchemeReferenceDTO implements java.io.Serializable {
 

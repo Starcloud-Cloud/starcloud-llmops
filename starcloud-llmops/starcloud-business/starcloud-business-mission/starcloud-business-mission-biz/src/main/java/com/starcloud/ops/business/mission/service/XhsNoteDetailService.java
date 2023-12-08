@@ -16,6 +16,11 @@ public interface XhsNoteDetailService {
     XhsNoteDetailRespVO selectByNoteUrl(String noteUrl);
 
     /**
+     * 实时数据
+     */
+    XhsNoteDetailRespVO remoteDetail(String noteUrl);
+
+    /**
      * 爬取新数据预结算
      *
      * @param noteId 小红书笔记id

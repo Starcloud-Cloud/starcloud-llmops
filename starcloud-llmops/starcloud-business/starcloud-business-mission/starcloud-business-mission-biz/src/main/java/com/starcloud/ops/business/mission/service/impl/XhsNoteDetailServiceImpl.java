@@ -49,6 +49,14 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
     }
 
     @Override
+    public XhsNoteDetailRespVO remoteDetail(String noteUrl) {
+        XhsDetailConstants.validNoteUrl(noteUrl);
+        String noteId = ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);
+        ServerRequestInfo requestInfo = xhsNoteDetailWrapper.requestDetail(noteId);
+        return XhsNoteDetailConvert.INSTANCE.convert(requestInfo.getNoteDetail());
+    }
+
+    @Override
     public XhsNoteDetailRespVO preSettlementByUrl(String missionUid, String noteUrl, SingleMissionPostingPriceDTO unitPriceDTO) {
         XhsDetailConstants.validNoteUrl(noteUrl);
         String noteId = ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);

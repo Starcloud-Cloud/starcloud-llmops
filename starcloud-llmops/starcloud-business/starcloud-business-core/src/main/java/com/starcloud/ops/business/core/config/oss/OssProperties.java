@@ -21,17 +21,29 @@ import org.springframework.stereotype.Component;
 public class OssProperties {
 
     /**
-     * 阿里云OSS服务的accessKey
+     * 阿里云OSS服务的 Endpoint
+     */
+    private String endpoint;
+
+    /**
+     * 阿里云OSS服务的 Bucket
+     */
+    private String bucket;
+
+    /**
+     * 阿里云OSS服务是否支持CNAME
+     */
+    private Boolean supportCname = false;
+
+    /**
+     * 阿里云OSS服务的 AccessKey
      */
     private String accessKey;
 
     /**
-     * 阿里云OSS服务的secretKey
+     * 阿里云OSS服务的 SecretKey
      */
     private String secretKey;
 
-    /**
-     * 阿里云OSS服务的endpoint
-     */
-    private String endpoint;
+
 }
