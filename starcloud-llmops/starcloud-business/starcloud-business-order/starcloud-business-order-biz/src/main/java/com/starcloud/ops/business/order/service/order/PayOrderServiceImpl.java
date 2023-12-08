@@ -696,27 +696,34 @@ public class PayOrderServiceImpl implements PayOrderService {
         // 获取用户八折优惠券
         if (!hasOrdersWithSuccessPayment(userId, CollUtil.list(true, "ai_trial"))) {
 
-            UserDiscountCodeInfoVO userDiscountCodeInfoVO = new UserDiscountCodeInfoVO();
-            try {
-                UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80.getName());
-                if (!userBenefitsService.exitBenefitsStrategy(masterConfigStrategyByType.getId(), userId)) {
-                    if (ObjectUtil.isNotNull(masterConfigStrategyByType)) {
-                        userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
-                        userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
+            LambdaQueryWrapper<PayOrderDO> wrapper = Wrappers.lambdaQuery(PayOrderDO.class);
+            wrapper.eq(PayOrderDO::getStatus, PayOrderStatusEnum.SUCCESS.getStatus());
+            wrapper.eq(PayOrderDO::getCreator, userId);
+            wrapper.in(PayOrderDO::getProductCode, "ai_trial");
+            PayOrderDO order = orderMapper.selectOne(wrapper);
+            LocalDateTime now = LocalDateTime.now();
 
-                        AdminUserDO user = userService.getUser(userId);
-                        // 获取用户注册时间
-                        LocalDateTime registeredTime = user.getCreateTime();
+            if (now.isBefore(order.getCreateTime().plusDays(7))) {
 
-                        userDiscountCodeInfoVO.setStartTime(registeredTime);
-                        userDiscountCodeInfoVO.setEndTime(registeredTime.plusDays(10));
-                        UserDiscountCodeInfos.add(userDiscountCodeInfoVO);
+                UserDiscountCodeInfoVO userDiscountCodeInfoVO = new UserDiscountCodeInfoVO();
+                try {
+                    UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80.getName());
+                    if (!userBenefitsService.exitBenefitsStrategy(masterConfigStrategyByType.getId(), userId)) {
+                        if (ObjectUtil.isNotNull(masterConfigStrategyByType)) {
+                            userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
+                            userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
+
+                            userDiscountCodeInfoVO.setStartTime(order.getCreateTime());
+                            userDiscountCodeInfoVO.setEndTime(order.getCreateTime().plusDays(7));
+                            UserDiscountCodeInfos.add(userDiscountCodeInfoVO);
+                        }
                     }
-                }
 
-            } catch (RuntimeException e) {
-                log.warn("新用户权益配置已经过期");
+                } catch (RuntimeException e) {
+                    log.warn("八折权益配置已经过期");
+                }
             }
+
 
         }
 
