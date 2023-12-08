@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.limits.enums;
 
-import cn.hutool.core.util.ArrayUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.math3.stat.descriptive.summary.Product;
 
 /**
  * 用户权益 - 策略类型的枚举
