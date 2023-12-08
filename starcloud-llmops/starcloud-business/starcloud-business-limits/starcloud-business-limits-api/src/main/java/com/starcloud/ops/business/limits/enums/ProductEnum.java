@@ -19,7 +19,7 @@ public enum ProductEnum {
     AI_FREE("ai_free", "魔法ai-免费版", 0, "免费版", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.FREE, null, null, new BenefitsStrategyTypeEnums[]{}, null),
 
-    AI_TRIAL("ai_trial", "魔法ai-体验版", 990, "体验版-新人专享", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
+    AI_TRIAL("ai_trial", "魔法ai-体验版-新人专享", 990, "魔法ai-体验版-新人专享", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.BASIC, ProductTimeEnum.WEEK, BenefitsStrategyTypeEnums.PAY_TRAIL, new BenefitsStrategyTypeEnums[]{}, null),
     AI_BASIC_MONTH("basic_month", "魔法ai-基础版-月付", 5900, "魔法ai-基础版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH, new BenefitsStrategyTypeEnums[]{
