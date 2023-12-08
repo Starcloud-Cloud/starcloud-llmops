@@ -15,12 +15,12 @@ public interface BenefitsOperationService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateUserBenefitsStrategy(@Validated UserBenefitsStrategyUpdateReqVO updateReqVO);
+    void updateUserBenefitsStrategy(@Validated UserBenefitsStrategyUpdateReqVO updateReqVO, Long userId);
 
     /**
      * 删除用户权益策略
      *
      * @param id 编号
      */
-    void deleteUserBenefitsStrategy(Long id);
+    void deleteUserBenefitsStrategy(Long id, Long userId);
 }
