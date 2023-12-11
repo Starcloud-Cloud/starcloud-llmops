@@ -83,8 +83,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (CollectionUtils.isEmpty(toBeBound)) {
             return;
         }
-        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
-
+//        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
         List<CreativeContentRespVO> claimList = creativeContentService.bound(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
         singleMissionMapper.insertBatch(singleMissions);
@@ -217,6 +216,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (publish && CollectionUtils.isEmpty(singleMissionList)) {
             throw exception(NOTIFICATION_NOT_BOUND_MISSION, notificationCenterDO.getUid());
         }
+        // 校验金额
+        validBudget(notificationCenterDO.getSingleBudget(),notificationCenterDO.getNotificationBudget(),singleMissionList.size());
         if (BooleanUtils.isTrue(publish)) {
             // 发布 只修改未发布的状态 更新单价明细
             for (SingleMissionDO missionDO : singleMissionList) {
@@ -303,6 +304,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             modifyReqVO.setUid(singleMissionRespVO.getUid());
             modifyReqVO.setRunTime(LocalDateTime.now());
             modifyReqVO.setPreSettlementMsg(e.getMessage());
+            modifyReqVO.setPreSettlementTime(LocalDateTime.now());
             update(modifyReqVO);
         }
     }
@@ -397,6 +399,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement.getCode());
         modifyReqVO.setRunTime(LocalDateTime.now());
         modifyReqVO.setNoteDetailId(noteDetailId);
+        modifyReqVO.setPreSettlementMsg(StringUtils.EMPTY);
         update(modifyReqVO);
     }
 

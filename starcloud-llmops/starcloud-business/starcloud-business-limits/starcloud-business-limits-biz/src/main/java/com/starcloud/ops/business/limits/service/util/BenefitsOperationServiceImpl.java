@@ -37,11 +37,11 @@ public class BenefitsOperationServiceImpl implements BenefitsOperationService {
      * @param updateReqVO 更新信息
      */
     @Override
-    public void updateUserBenefitsStrategy(UserBenefitsStrategyUpdateReqVO updateReqVO) {
+    public void updateUserBenefitsStrategy(UserBenefitsStrategyUpdateReqVO updateReqVO, Long userId) {
         // 验证权益是否存在
         userBenefitsStrategyService.validateUserBenefitsStrategyExists(updateReqVO.getId());
         // 验证权益是否被使用
-        if (userBenefitsService.exitBenefitsStrategy(updateReqVO.getId())) {
+        if (userBenefitsService.exitBenefitsStrategy(updateReqVO.getId(), userId)) {
             log.error("[deleteUserBenefitsStrategy][修改用户权益策略失败，该配置已经被使用：策略ID({})|策略名称({})|用户ID({})", updateReqVO.getId(), updateReqVO.getStrategyName(), getLoginUserId());
             throw exception(BENEFITS_STRATEGY_CAN_NOT_MODIFY_USED);
         }
@@ -56,11 +56,11 @@ public class BenefitsOperationServiceImpl implements BenefitsOperationService {
      * @param id 编号
      */
     @Override
-    public void deleteUserBenefitsStrategy(Long id) {
+    public void deleteUserBenefitsStrategy(Long id, Long userId) {
         // 验证权益是否存在
         userBenefitsStrategyService.validateUserBenefitsStrategyExists(id);
         // 验证权益是否被使用
-        if (userBenefitsService.exitBenefitsStrategy(id)) {
+        if (userBenefitsService.exitBenefitsStrategy(id, userId)) {
             log.error("[deleteUserBenefitsStrategy][修改用户权益策略失败，该配置已经被使用：策略ID({})|用户ID({})", id, getLoginUserId());
             throw exception(BENEFITS_STRATEGY_CAN_NOT_DELETE);
         }
