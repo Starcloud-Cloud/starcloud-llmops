@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
