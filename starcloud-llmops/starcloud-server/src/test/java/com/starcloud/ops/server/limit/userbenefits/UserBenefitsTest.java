@@ -81,7 +81,7 @@ public class UserBenefitsTest extends BaseDbUnitTest {
     @Test
     public void SysDeleteBenefitsStrategy() {
         // 删除策略
-        benefitsOperationService.deleteUserBenefitsStrategy(1L);
+        benefitsOperationService.deleteUserBenefitsStrategy(1L,199L);
     }
 
     /**

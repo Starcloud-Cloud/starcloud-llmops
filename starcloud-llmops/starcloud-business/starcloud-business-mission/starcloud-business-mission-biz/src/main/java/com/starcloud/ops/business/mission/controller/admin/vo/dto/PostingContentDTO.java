@@ -26,8 +26,7 @@ public class PostingContentDTO {
 
     public void validPostingContent(XhsNoteDetailRespVO noteDetail) {
         if (noteDetail != null
-                && StringUtils.equals(this.title, noteDetail.getTitle())
-                && StringUtils.equals(this.text, noteDetail.getDesc())) {
+                && StringUtils.equals(this.title, noteDetail.getTitle())) {
             return;
         }
         throw exception(CONTENT_INCONSISTENT);

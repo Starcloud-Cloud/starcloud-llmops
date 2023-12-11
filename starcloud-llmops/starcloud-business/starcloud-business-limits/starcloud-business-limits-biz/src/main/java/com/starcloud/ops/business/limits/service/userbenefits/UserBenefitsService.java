@@ -17,12 +17,14 @@ public interface UserBenefitsService {
 
     /**
      * 校验当前用户能否使用当前权益
+     *
      * @return
      */
     Boolean validateUserBenefitsByCode(String code, Long userId);
 
     /**
      * 校验当前用户能否使用当前权益
+     *
      * @return
      */
     Boolean validateUserBenefitsByType(String benefitsType, Long userId);
@@ -87,7 +89,7 @@ public interface UserBenefitsService {
      * @param strategyId 策略编号
      * @return Boolean
      */
-    Boolean exitBenefitsStrategy(Long strategyId);
+    Boolean exitBenefitsStrategy(Long strategyId, Long userId);
 
 
     /**

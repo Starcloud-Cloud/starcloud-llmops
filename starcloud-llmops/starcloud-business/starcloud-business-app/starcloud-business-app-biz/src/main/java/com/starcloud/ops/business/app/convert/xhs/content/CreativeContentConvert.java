@@ -69,6 +69,10 @@ public interface CreativeContentConvert {
         return JSONUtil.toJsonStr(list);
     }
 
+    default String imageToStr(List<CreativeImageDTO> images) {
+        return JSONUtil.toJsonStr(images);
+    }
+
     default String toStr(CreativePlanExecuteDTO executeParamsDTO) {
         return JSONUtil.toJsonStr(executeParamsDTO);
     }

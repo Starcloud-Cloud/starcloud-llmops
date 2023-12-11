@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -205,16 +206,37 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public CreativeContentRespVO modify(CreativeContentModifyReqVO modifyReq) {
-        CreativeContentDO contentDO = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), CreativeContentTypeEnum.COPY_WRITING.getCode());
-        if (contentDO == null) {
-            throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
+        if (CollectionUtils.isNotEmpty(modifyReq.getPictureContent())) {
+            CreativeContentDO pictDo = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), CreativeContentTypeEnum.PICTURE.getCode());
+            if (pictDo == null) {
+                throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
+            }
+            pictDo.setPictureContent(CreativeContentConvert.INSTANCE.imageToStr(modifyReq.getPictureContent()));
+            pictDo.setUpdateTime(LocalDateTime.now());
+            pictDo.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
+            creativeContentMapper.updateById(pictDo);
+            return CreativeContentConvert.INSTANCE.convert(pictDo);
         }
-        CreativeContentConvert.INSTANCE.updateSelective(modifyReq, contentDO);
-        contentDO.setUpdateTime(LocalDateTime.now());
-        contentDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
-        creativeContentMapper.updateById(contentDO);
-        return CreativeContentConvert.INSTANCE.convert(contentDO);
+
+        if (StringUtils.isNotBlank(modifyReq.getCopyWritingTitle()) || StringUtils.isNotBlank(modifyReq.getCopyWritingContent())) {
+            CreativeContentDO contentDO = creativeContentMapper.selectByType(modifyReq.getBusinessUid(), CreativeContentTypeEnum.COPY_WRITING.getCode());
+            if (contentDO == null) {
+                throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
+            }
+            if ( modifyReq.getCopyWritingTitle() != null ) {
+                contentDO.setCopyWritingTitle( modifyReq.getCopyWritingTitle() );
+            }
+            if ( modifyReq.getCopyWritingContent() != null ) {
+                contentDO.setCopyWritingContent( modifyReq.getCopyWritingContent() );
+            }
+            contentDO.setUpdateTime(LocalDateTime.now());
+            contentDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
+            creativeContentMapper.updateById(contentDO);
+            return CreativeContentConvert.INSTANCE.convert(contentDO);
+        }
+        return null;
     }
 
     @Override
