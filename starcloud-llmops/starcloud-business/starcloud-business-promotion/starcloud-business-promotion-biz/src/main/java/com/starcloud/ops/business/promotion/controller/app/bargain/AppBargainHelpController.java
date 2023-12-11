@@ -26,7 +26,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 
 @Tag(name = "用户 App - 砍价助力")
 @RestController
-@RequestMapping("/promotion/bargain-help")
+@RequestMapping("/llm/promotion/bargain-help")
 @Validated
 public class AppBargainHelpController {
 

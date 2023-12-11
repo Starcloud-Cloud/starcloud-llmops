@@ -23,7 +23,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "用户 APP - 文章")
 @RestController
-@RequestMapping("/promotion/article")
+@RequestMapping("/llm/promotion/article")
 @Validated
 public class AppArticleController {
 

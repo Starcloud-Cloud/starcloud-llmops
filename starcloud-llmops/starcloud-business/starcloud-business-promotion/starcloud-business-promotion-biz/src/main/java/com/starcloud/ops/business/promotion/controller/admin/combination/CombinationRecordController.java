@@ -30,7 +30,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 拼团记录")
 @RestController
-@RequestMapping("/promotion/combination-record")
+@RequestMapping("/llm/promotion/combination-record")
 @Validated
 public class CombinationRecordController {
 

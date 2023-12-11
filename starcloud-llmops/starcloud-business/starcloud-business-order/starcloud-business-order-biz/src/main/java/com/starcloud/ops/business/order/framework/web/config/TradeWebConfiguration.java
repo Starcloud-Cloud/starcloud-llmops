@@ -12,13 +12,13 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 public class TradeWebConfiguration {
-
-    /**
-     * trade 模块的 API 分组
-     */
-    @Bean
-    public GroupedOpenApi tradeGroupedOpenApi() {
-        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("trade");
-    }
+//
+//    /**
+//     * trade 模块的 API 分组
+//     */
+//    @Bean
+//    public GroupedOpenApi tradeGroupedOpenApi() {
+//        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("trade");
+//    }
 
 }

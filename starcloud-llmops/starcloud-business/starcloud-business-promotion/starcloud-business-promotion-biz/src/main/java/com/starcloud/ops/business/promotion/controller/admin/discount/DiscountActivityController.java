@@ -26,7 +26,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 限时折扣活动")
 @RestController
-@RequestMapping("/promotion/discount-activity")
+@RequestMapping("/llm/promotion/discount-activity")
 @Validated
 public class DiscountActivityController {
 

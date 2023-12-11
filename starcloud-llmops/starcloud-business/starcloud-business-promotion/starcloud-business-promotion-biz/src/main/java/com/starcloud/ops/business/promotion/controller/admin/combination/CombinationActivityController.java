@@ -32,7 +32,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 拼团活动")
 @RestController
-@RequestMapping("/promotion/combination-activity")
+@RequestMapping("/llm/promotion/combination-activity")
 @Validated
 public class CombinationActivityController {
 

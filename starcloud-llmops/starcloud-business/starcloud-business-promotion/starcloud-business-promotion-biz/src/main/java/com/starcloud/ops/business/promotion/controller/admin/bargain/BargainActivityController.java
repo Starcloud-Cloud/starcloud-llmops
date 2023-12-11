@@ -30,7 +30,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 砍价活动")
 @RestController
-@RequestMapping("/promotion/bargain-activity")
+@RequestMapping("/llm/promotion/bargain-activity")
 @Validated
 public class BargainActivityController {
 

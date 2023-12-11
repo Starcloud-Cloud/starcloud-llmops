@@ -34,7 +34,7 @@ import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLogi
 
 @Tag(name = "用户 App - 优惠劵模板")
 @RestController
-@RequestMapping("/promotion/coupon-template")
+@RequestMapping("/llm/promotion/coupon-template")
 @Validated
 public class AppCouponTemplateController {
 

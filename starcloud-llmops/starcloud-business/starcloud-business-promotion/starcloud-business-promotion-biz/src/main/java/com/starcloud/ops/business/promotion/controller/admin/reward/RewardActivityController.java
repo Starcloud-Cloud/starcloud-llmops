@@ -23,7 +23,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 满减送活动")
 @RestController
-@RequestMapping("/promotion/reward-activity")
+@RequestMapping("/llm/promotion/reward-activity")
 @Validated
 public class RewardActivityController {
 

@@ -32,7 +32,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 
 @Tag(name = "用户 APP - 拼团活动")
 @RestController
-@RequestMapping("/promotion/combination-record")
+@RequestMapping("/llm/promotion/combination-record")
 @Validated
 public class AppCombinationRecordController {
 

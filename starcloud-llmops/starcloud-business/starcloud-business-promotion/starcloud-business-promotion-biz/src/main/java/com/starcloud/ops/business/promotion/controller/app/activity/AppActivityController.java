@@ -30,7 +30,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "用户 APP - 营销活动") // 用于提供跨多个活动的 HTTP 接口
 @RestController
-@RequestMapping("/promotion/activity")
+@RequestMapping("/llm/promotion/activity")
 @Validated
 public class AppActivityController {
 

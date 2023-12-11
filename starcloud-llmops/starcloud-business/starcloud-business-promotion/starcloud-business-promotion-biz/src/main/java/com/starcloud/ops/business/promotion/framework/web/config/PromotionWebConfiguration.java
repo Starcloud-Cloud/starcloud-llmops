@@ -16,9 +16,9 @@ public class PromotionWebConfiguration {
     /**
      * promotion 模块的 API 分组
      */
-    @Bean
-    public GroupedOpenApi promotionGroupedOpenApi() {
-        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("promotion");
-    }
+//    @Bean
+//    public GroupedOpenApi promotionGroupedOpenApi() {
+//        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("promotion");
+//    }
 
 }

@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "用户 APP - 装修模板")
 @RestController
-@RequestMapping("/promotion/diy-template")
+@RequestMapping("/llm/promotion/diy-template")
 @Validated
 public class AppDiyTemplateController {
 

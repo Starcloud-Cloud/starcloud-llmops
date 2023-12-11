@@ -41,7 +41,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 
 @Tag(name = "用户 App - 砍价记录")
 @RestController
-@RequestMapping("/promotion/bargain-record")
+@RequestMapping("/llm/promotion/bargain-record")
 @Validated
 public class AppBargainRecordController {
 

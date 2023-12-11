@@ -20,7 +20,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 优惠劵模板")
 @RestController
-@RequestMapping("/promotion/coupon-template")
+@RequestMapping("/llm/promotion/coupon-template")
 @Validated
 public class CouponTemplateController {
 

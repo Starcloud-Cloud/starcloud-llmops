@@ -22,7 +22,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 装修页面")
 @RestController
-@RequestMapping("/promotion/diy-page")
+@RequestMapping("/llm/promotion/diy-page")
 @Validated
 public class DiyPageController {
 

@@ -23,7 +23,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 文章管理")
 @RestController
-@RequestMapping("/promotion/article")
+@RequestMapping("/llm/promotion/article")
 @Validated
 public class ArticleController {
 

@@ -20,7 +20,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "用户 APP - 文章分类")
 @RestController
-@RequestMapping("/promotion/article-category")
+@RequestMapping("/llm/promotion/article-category")
 @Validated
 public class AppArticleCategoryController {
 

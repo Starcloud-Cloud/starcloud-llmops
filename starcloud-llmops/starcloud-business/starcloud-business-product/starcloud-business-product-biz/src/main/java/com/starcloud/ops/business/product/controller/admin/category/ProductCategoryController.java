@@ -22,9 +22,9 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "管理后台 - 商品分类")
+@Tag(name = "星河云海 -管理后台 - 商品分类")
 @RestController
-@RequestMapping("/product/category")
+@RequestMapping("/llm/product/category")
 @Validated
 public class ProductCategoryController {
 

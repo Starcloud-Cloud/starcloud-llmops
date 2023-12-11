@@ -22,7 +22,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 店铺页面装修")
 @RestController
-@RequestMapping("/promotion/decorate")
+@RequestMapping("/llm/promotion/decorate")
 @Validated
 public class DecorateComponentController {
 

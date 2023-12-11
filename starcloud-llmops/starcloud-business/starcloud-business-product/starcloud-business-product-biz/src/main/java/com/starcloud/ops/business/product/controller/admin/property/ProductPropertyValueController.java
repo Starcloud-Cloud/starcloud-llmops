@@ -20,9 +20,9 @@ import javax.validation.Valid;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "管理后台 - 商品属性值")
+@Tag(name = "星河云海 -管理后台 - 商品属性值")
 @RestController
-@RequestMapping("/product/property/value")
+@RequestMapping("/llm/product/property/value")
 @Validated
 public class ProductPropertyValueController {
 

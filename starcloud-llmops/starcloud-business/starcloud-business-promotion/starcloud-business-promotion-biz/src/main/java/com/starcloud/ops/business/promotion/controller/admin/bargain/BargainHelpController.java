@@ -27,7 +27,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 砍价助力")
 @RestController
-@RequestMapping("/promotion/bargain-help")
+@RequestMapping("/llm/promotion/bargain-help")
 @Validated
 public class BargainHelpController {
 

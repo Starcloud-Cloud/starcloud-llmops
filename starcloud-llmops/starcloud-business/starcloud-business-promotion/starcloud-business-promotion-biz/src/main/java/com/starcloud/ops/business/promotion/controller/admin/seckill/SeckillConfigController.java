@@ -22,7 +22,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 秒杀时段")
 @RestController
-@RequestMapping("/promotion/seckill-config")
+@RequestMapping("/llm/promotion/seckill-config")
 @Validated
 public class SeckillConfigController {
 

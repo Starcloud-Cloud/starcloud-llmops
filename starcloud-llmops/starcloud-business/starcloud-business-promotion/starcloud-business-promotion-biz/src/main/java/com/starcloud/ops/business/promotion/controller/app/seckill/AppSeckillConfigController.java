@@ -20,7 +20,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "用户 App - 秒杀时间段")
 @RestController
-@RequestMapping("/promotion/seckill-config")
+@RequestMapping("/llm/promotion/seckill-config")
 @Validated
 public class AppSeckillConfigController {
     @Resource

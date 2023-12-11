@@ -17,7 +17,7 @@ import java.util.List;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @RestController
-@RequestMapping("/promotion/banner")
+@RequestMapping("/llm/promotion/banner")
 @Tag(name = "用户 APP - 首页 Banner")
 @Validated
 public class AppBannerController {

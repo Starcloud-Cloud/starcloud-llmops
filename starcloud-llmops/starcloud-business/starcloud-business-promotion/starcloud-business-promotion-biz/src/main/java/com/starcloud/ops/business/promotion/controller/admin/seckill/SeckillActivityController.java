@@ -26,7 +26,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 秒杀活动")
 @RestController
-@RequestMapping("/promotion/seckill-activity")
+@RequestMapping("/llm/promotion/seckill-activity")
 @Validated
 public class SeckillActivityController {
 

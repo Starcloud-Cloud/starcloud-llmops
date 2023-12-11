@@ -28,7 +28,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 
 @Tag(name = "管理后台 - 优惠劵")
 @RestController
-@RequestMapping("/promotion/coupon")
+@RequestMapping("/llm/promotion/coupon")
 @Validated
 public class CouponController {
 

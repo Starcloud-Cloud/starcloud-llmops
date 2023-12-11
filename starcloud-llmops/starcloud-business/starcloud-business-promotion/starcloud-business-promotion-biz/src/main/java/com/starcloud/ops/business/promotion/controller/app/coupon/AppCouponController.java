@@ -27,7 +27,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 
 @Tag(name = "用户 App - 优惠劵")
 @RestController
-@RequestMapping("/promotion/coupon")
+@RequestMapping("/llm/promotion/coupon")
 @Validated
 public class AppCouponController {
 

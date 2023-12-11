@@ -13,12 +13,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class ProductWebConfiguration {
 
-    /**
-     * product 模块的 API 分组
-     */
-    @Bean
-    public GroupedOpenApi productGroupedOpenApi() {
-        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("product");
-    }
+//    /**
+//     * product 模块的 API 分组
+//     */
+//    @Bean
+//    public GroupedOpenApi productGroupedOpenApi() {
+//        return YudaoSwaggerAutoConfiguration.buildGroupedOpenApi("product");
+//    }
 
 }

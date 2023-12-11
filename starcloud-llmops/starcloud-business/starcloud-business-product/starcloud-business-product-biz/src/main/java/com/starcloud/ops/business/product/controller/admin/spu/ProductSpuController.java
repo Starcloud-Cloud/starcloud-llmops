@@ -33,9 +33,9 @@ import java.util.Map;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.EXPORT;
 
-@Tag(name = "管理后台 - 商品 SPU")
+@Tag(name = "星河云海 -管理后台 - 商品 SPU")
 @RestController
-@RequestMapping("/product/spu")
+@RequestMapping("/llm/product/spu")
 @Validated
 public class ProductSpuController {
 

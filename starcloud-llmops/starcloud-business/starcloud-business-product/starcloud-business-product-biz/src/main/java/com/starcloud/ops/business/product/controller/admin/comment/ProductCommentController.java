@@ -18,9 +18,9 @@ import javax.validation.Valid;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
-@Tag(name = "管理后台 - 商品评价")
+@Tag(name = "星河云海 -管理后台 - 商品评价")
 @RestController
-@RequestMapping("/product/comment")
+@RequestMapping("/llm/product/comment")
 @Validated
 public class ProductCommentController {
 

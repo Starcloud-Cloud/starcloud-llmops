@@ -24,9 +24,9 @@ import java.util.List;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 
-@Tag(name = "管理后台 - 商品属性项")
+@Tag(name = "星河云海 -管理后台 - 商品属性项")
 @RestController
-@RequestMapping("/product/property")
+@RequestMapping("/llm/product/property")
 @Validated
 public class ProductPropertyController {
 
