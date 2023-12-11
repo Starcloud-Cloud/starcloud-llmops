@@ -399,6 +399,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement.getCode());
         modifyReqVO.setRunTime(LocalDateTime.now());
         modifyReqVO.setNoteDetailId(noteDetailId);
+        modifyReqVO.setPreSettlementMsg(StringUtils.EMPTY);
         update(modifyReqVO);
     }
 
