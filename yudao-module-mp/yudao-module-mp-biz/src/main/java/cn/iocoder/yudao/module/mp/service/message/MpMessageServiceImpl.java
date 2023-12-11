@@ -12,7 +12,6 @@ import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.dal.mysql.message.MpMessageMapper;
 import cn.iocoder.yudao.module.mp.enums.message.MpMessageSendFromEnum;
 import cn.iocoder.yudao.module.mp.framework.mp.core.MpServiceFactory;
-import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.framework.mp.core.util.MpUtils;
 import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
 import cn.iocoder.yudao.module.mp.service.material.MpMaterialService;
@@ -125,30 +124,6 @@ public class MpMessageServiceImpl implements MpMessageService {
         // 记录消息
         MpMessageDO message = MpMessageConvert.INSTANCE.convert(wxMessage, account, user)
                 .setSendFrom(MpMessageSendFromEnum.MP_TO_USER.getFrom());
-        downloadMessageMedia(message);
-        mpMessageMapper.insert(message);
-        return message;
-    }
-
-    @Override
-    public MpMessageDO sendMessage(String openId, MpMessageSendReqVO sendReqVO) {
-        WxMpKefuMessage wxMessage = MpMessageConvert.INSTANCE.convert(sendReqVO, openId);
-        String appId = MpContextHolder.getAppId();
-        WxMpService mpService = mpServiceFactory.getRequiredMpService(appId);
-        MpAccountDO mpAccountDO = mpAccountService.getAccountFromCache(appId);
-        try {
-            mpService.getKefuService().sendKefuMessageWithResponse(wxMessage);
-        } catch (WxErrorException e) {
-            throw exception(MESSAGE_SEND_FAIL, e.getError().getErrorMsg());
-        }
-        MpMessageDO message = MpMessageConvert.INSTANCE.convert(wxMessage)
-                .setSendFrom(MpMessageSendFromEnum.MP_TO_USER.getFrom())
-                .setAccountId(mpAccountDO.getId())
-                .setAppId(appId)
-                .setOpenid(openId)
-                .setUserId(sendReqVO.getUserId())
-                ;
-
         downloadMessageMedia(message);
         mpMessageMapper.insert(message);
         return message;

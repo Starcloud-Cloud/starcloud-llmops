@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>starcloud-business</artifactId>
+        <groupId>com.starcloud.ops</groupId>
+        <version>${starcloud.revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+
+    <artifactId>starcloud-business-promotion</artifactId>
+    <packaging>pom</packaging>
+    <version>${starcloud.revision}</version>
+
+    <modules>
+        <module>starcloud-business-promotion-biz</module>
+        <module>starcloud-business-promotion-api</module>
+    </modules>
+
+    <description>
+        promotion 模块，主要实现营销相关功能
+        例如：营销活动、banner 广告、优惠券、优惠码等功能。
+    </description>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-promotion-biz</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-promotion-api</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

@@ -38,6 +38,7 @@ public interface FileApi {
      */
     String createFile(String name, String path, byte[] content);
 
+    @Deprecated
     byte[] getContent(String path) throws Exception;
 
 }

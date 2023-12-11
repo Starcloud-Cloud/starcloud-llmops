@@ -66,8 +66,9 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
             // 如果获取不到租户编号，则尝试使用登陆用户的租户编号
             if (tenantId == null) {
                 tenantId = adminUserApi.getTenantId(user.getId());
+                // tenantId = user.getTenantId();
                 TenantContextHolder.setTenantId(tenantId);
-            // 如果传递了租户编号，则进行比对租户编号，避免越权问题
+                // 如果传递了租户编号，则进行比对租户编号，避免越权问题
             } else if (!Objects.equals(user.getTenantId(), TenantContextHolder.getTenantId())) {
                 log.error("[doFilterInternal][租户({}) User({}/{}) 越权访问租户({}) URL({}/{})]",
                         user.getTenantId(), user.getId(), user.getUserType(),

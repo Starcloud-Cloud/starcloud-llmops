@@ -47,4 +47,3 @@ public interface FileService {
 
     byte[] getContent(String path) throws Exception;
 }
-

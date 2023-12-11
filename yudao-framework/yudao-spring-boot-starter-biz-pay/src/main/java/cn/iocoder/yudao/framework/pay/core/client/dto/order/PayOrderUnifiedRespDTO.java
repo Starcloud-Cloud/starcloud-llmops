@@ -9,6 +9,7 @@ import lombok.Data;
  * @author 芋道源码
  */
 @Data
+@Deprecated
 public class PayOrderUnifiedRespDTO {
 
     /**

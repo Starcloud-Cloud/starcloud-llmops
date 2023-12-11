@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.chat;
 
-import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
+import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;

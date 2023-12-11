@@ -13,6 +13,7 @@ import java.util.Map;
 @Data
 @ToString
 @Builder
+@Deprecated
 public class PayNotifyReqDTO {
 
 

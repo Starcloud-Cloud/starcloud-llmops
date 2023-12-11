@@ -193,7 +193,6 @@ public class BenefitsApiImpl implements BenefitsApi {
     }
 
     public void addBenefitsAndRole(String benefitsType, Long useId, String roleCode) {
-        // TODO 设置用户角色 异常处理 日志
         userBenefitsService.addBenefitsAndRole(benefitsType, useId, roleCode);
     }
 

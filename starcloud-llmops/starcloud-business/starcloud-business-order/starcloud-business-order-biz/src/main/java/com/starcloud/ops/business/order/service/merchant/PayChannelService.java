@@ -2,6 +2,7 @@ package com.starcloud.ops.business.order.service.merchant;
 
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelCreateReqVO;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelExportReqVO;
 import com.starcloud.ops.business.order.controller.admin.merchant.vo.channel.PayChannelPageReqVO;
@@ -129,5 +130,14 @@ public interface PayChannelService {
      * @return 渠道信息
      */
     PayChannelDO validPayChannel(Long appId, String code);
+
+    /**
+     * 获得指定编号的支付客户端
+     *
+     * @param id 编号
+     * @return 支付客户端
+     */
+    PayClient getPayClient(Long id);
+
 
 }

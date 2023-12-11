@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.dataset.mq.consumer;
 
-import cn.iocoder.yudao.framework.mq.core.stream.AbstractStreamMessageListener;
+import cn.iocoder.yudao.framework.mq.redis.core.stream.AbstractRedisStreamMessageListener;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
@@ -13,7 +13,7 @@ import javax.annotation.Resource;
  */
 
 @Slf4j
-public abstract class AbstractDataProcessor<T extends DatasetSourceSendMessage> extends AbstractStreamMessageListener<T> {
+public abstract class AbstractDataProcessor<T extends DatasetSourceSendMessage> extends AbstractRedisStreamMessageListener<T> {
 
 
     @Resource

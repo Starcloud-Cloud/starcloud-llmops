@@ -52,7 +52,8 @@ public class YudaoSwaggerAutoConfiguration {
                 // 接口信息
                 .info(buildInfo(properties))
                 // 接口安全配置
-                .components(new Components().securitySchemes(securitySchemas));
+                .components(new Components().securitySchemes(securitySchemas))
+                .addSecurityItem(new SecurityRequirement().addList(HttpHeaders.AUTHORIZATION));
         securitySchemas.keySet().forEach(key -> openAPI.addSecurityItem(new SecurityRequirement().addList(key)));
         return openAPI;
     }
@@ -92,9 +93,7 @@ public class YudaoSwaggerAutoConfiguration {
                                          PropertyResolverUtils propertyResolverUtils,
                                          Optional<List<OpenApiBuilderCustomizer>> openApiBuilderCustomizers,
                                          Optional<List<ServerBaseUrlCustomizer>> serverBaseUrlCustomizers,
-                                         Optional<JavadocProvider> javadocProvider, SwaggerProperties properties) {
-
-        //springDocConfigProperties.getCache().setDisabled(true);
+                                         Optional<JavadocProvider> javadocProvider) {
 
         return new OpenAPIService(openAPI, securityParser, springDocConfigProperties,
                 propertyResolverUtils, openApiBuilderCustomizers, serverBaseUrlCustomizers, javadocProvider);

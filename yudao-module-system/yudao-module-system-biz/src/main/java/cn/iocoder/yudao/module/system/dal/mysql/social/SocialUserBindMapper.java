@@ -4,8 +4,6 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -18,13 +16,6 @@ public interface SocialUserBindMapper extends BaseMapperX<SocialUserBindDO> {
                 .eq(SocialUserBindDO::getUserId, userId)
                 .eq(SocialUserBindDO::getSocialType, socialType));
     }
-
-    @Select(
-            "<script> "
-            + " select * from system_social_user_bind where social_user_id = #{id} AND user_type = #{type} order by id desc limit 1"
-            + "</script>"
-    )
-    SocialUserBindDO selectDeleteDO(@Param("id") Long id, @Param("type")Integer type);
 
     default void deleteByUserTypeAndSocialUserId(Integer userType, Long socialUserId) {
         delete(new LambdaQueryWrapperX<SocialUserBindDO>()

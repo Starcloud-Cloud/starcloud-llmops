@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageS
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
+import cn.iocoder.yudao.module.mp.service.message.bo.MpMessageSendOutReqBO;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
@@ -91,7 +92,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         messageSendReqVO.setContent(format);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
         messageSendReqVO.setUserId(inviteUserid);
-        messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
+        messageService.sendKefuMessage(messageSendReqVO);
     }
 
     @Override
@@ -154,7 +155,8 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
         messageSendReqVO.setUserId(userId);
         try {
-            messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
+
+            messageService.sendKefuMessage(messageSendReqVO);
         } catch (Exception e) {
             log.warn("发送公共号消息失败, userId = {}, error = {}", userId, e.getMessage());
         }

@@ -14,7 +14,7 @@
     <version>${starcloud.revision}</version>
 
     <properties>
-        <springdoc.version>1.6.15</springdoc.version>
+<!--        <springdoc.version>1.6.15</springdoc.version>-->
         <mapstruct.version>1.5.3.Final</mapstruct.version>
         <transmittable-thread-local.version>2.14.2</transmittable-thread-local.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
@@ -58,19 +58,28 @@
             <artifactId>spring-web</artifactId>
             <scope>provided</scope> <!-- 设置为 provided，只有工具类需要使用到 -->
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <scope>provided</scope> <!-- 设置为 provided，只有工具类需要使用到 -->
+        </dependency>
 
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope> <!-- 设置为 provided，只有工具类需要使用到 -->
         </dependency>
-
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <scope>provided</scope> <!-- 设置为 provided，主要是 PageParam 使用到 -->
-            <version>${springdoc.version}</version>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.springdoc</groupId>-->
+<!--            <artifactId>springdoc-openapi-ui</artifactId>-->
+<!--            <scope>provided</scope> &lt;!&ndash; 设置为 provided，主要是 PageParam 使用到 &ndash;&gt;-->
+<!--            <version>${springdoc.version}</version>-->
+<!--        </dependency>-->
 
 
         <!-- 工具类相关 -->

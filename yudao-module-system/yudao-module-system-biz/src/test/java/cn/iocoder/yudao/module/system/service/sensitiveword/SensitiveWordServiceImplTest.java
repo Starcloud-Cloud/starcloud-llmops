@@ -10,9 +10,8 @@ import cn.iocoder.yudao.module.system.controller.admin.sensitiveword.vo.Sensitiv
 import cn.iocoder.yudao.module.system.controller.admin.sensitiveword.vo.SensitiveWordUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.sensitiveword.SensitiveWordDO;
 import cn.iocoder.yudao.module.system.dal.mysql.sensitiveword.SensitiveWordMapper;
-import cn.iocoder.yudao.module.system.mq.producer.sensitiveword.SensitiveWordProducer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
 import javax.annotation.Resource;
@@ -29,7 +28,6 @@ import static cn.iocoder.yudao.framework.test.core.util.RandomUtils.randomPojo;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.SENSITIVE_WORD_NOT_EXISTS;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
 
 /**
  * {@link SensitiveWordServiceImpl} 的单元测试类
@@ -45,8 +43,10 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
     @Resource
     private SensitiveWordMapper sensitiveWordMapper;
 
-    @MockBean
-    private SensitiveWordProducer sensitiveWordProducer;
+    @BeforeEach
+    public void setUp() {
+        SensitiveWordServiceImpl.ENABLED = true;
+    }
 
     @Test
     public void testInitLocalCache() {
@@ -56,16 +56,28 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         SensitiveWordDO wordDO2 = randomPojo(SensitiveWordDO.class, o -> o.setName("笨蛋")
                 .setTags(singletonList("蔬菜")).setStatus(CommonStatusEnum.ENABLE.getStatus()));
         sensitiveWordMapper.insert(wordDO2);
+        SensitiveWordDO wordDO3 = randomPojo(SensitiveWordDO.class, o -> o.setName("白")
+                .setTags(singletonList("测试")).setStatus(CommonStatusEnum.ENABLE.getStatus()));
+        sensitiveWordMapper.insert(wordDO3);
+        SensitiveWordDO wordDO4 = randomPojo(SensitiveWordDO.class, o -> o.setName("白痴")
+                .setTags(singletonList("测试")).setStatus(CommonStatusEnum.ENABLE.getStatus()));
+        sensitiveWordMapper.insert(wordDO4);
 
         // 调用
         sensitiveWordService.initLocalCache();
         // 断言 sensitiveWordTagsCache 缓存
-        assertEquals(SetUtils.asSet("论坛", "蔬菜"), sensitiveWordService.getSensitiveWordTagSet());
+        assertEquals(SetUtils.asSet("论坛", "蔬菜", "测试"), sensitiveWordService.getSensitiveWordTagSet());
+        // 断言 sensitiveWordCache
+        assertEquals(4, sensitiveWordService.getSensitiveWordCache().size());
+        assertPojoEquals(wordDO1, sensitiveWordService.getSensitiveWordCache().get(0));
+        assertPojoEquals(wordDO2, sensitiveWordService.getSensitiveWordCache().get(1));
+        assertPojoEquals(wordDO3, sensitiveWordService.getSensitiveWordCache().get(2));
         // 断言 tagSensitiveWordTries 缓存
         assertNotNull(sensitiveWordService.getDefaultSensitiveWordTrie());
-        assertEquals(2, sensitiveWordService.getTagSensitiveWordTries().size());
+        assertEquals(3, sensitiveWordService.getTagSensitiveWordTries().size());
         assertNotNull(sensitiveWordService.getTagSensitiveWordTries().get("论坛"));
         assertNotNull(sensitiveWordService.getTagSensitiveWordTries().get("蔬菜"));
+        assertNotNull(sensitiveWordService.getTagSensitiveWordTries().get("测试"));
     }
 
     @Test
@@ -80,7 +92,6 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         // 校验记录的属性是否正确
         SensitiveWordDO sensitiveWord = sensitiveWordMapper.selectById(sensitiveWordId);
         assertPojoEquals(reqVO, sensitiveWord);
-        verify(sensitiveWordProducer).sendSensitiveWordRefreshMessage();
     }
 
     @Test
@@ -98,7 +109,6 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         // 校验是否更新正确
         SensitiveWordDO sensitiveWord = sensitiveWordMapper.selectById(reqVO.getId()); // 获取最新的
         assertPojoEquals(reqVO, sensitiveWord);
-        verify(sensitiveWordProducer).sendSensitiveWordRefreshMessage();
     }
 
     @Test
@@ -122,7 +132,6 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         sensitiveWordService.deleteSensitiveWord(id);
         // 校验数据不存在了
         assertNull(sensitiveWordMapper.selectById(id));
-        verify(sensitiveWordProducer).sendSensitiveWordRefreshMessage();
     }
 
     @Test
@@ -230,11 +239,17 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         testInitLocalCache();
         // 准备参数
         String text = "你是傻瓜，你是笨蛋";
-
         // 调用
         List<String> result = sensitiveWordService.validateText(text, null);
         // 断言
         assertEquals(Arrays.asList("傻瓜", "笨蛋"), result);
+
+        // 准备参数
+        String text2 = "你是傻瓜，你是笨蛋，你是白";
+        // 调用
+        List<String> result2 = sensitiveWordService.validateText(text2, null);
+        // 断言
+        assertEquals(Arrays.asList("傻瓜", "笨蛋","白"), result2);
     }
 
     @Test
@@ -242,11 +257,18 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         testInitLocalCache();
         // 准备参数
         String text = "你是傻瓜，你是笨蛋";
-
         // 调用
         List<String> result = sensitiveWordService.validateText(text, singletonList("论坛"));
         // 断言
         assertEquals(singletonList("傻瓜"), result);
+
+
+        // 准备参数
+        String text2 = "你是白";
+        // 调用
+        List<String> result2 = sensitiveWordService.validateText(text2, singletonList("测试"));
+        // 断言
+        assertEquals(singletonList("白"), result2);
     }
 
     @Test
@@ -254,9 +276,13 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         testInitLocalCache();
         // 准备参数
         String text = "你是傻瓜，你是笨蛋";
-
         // 调用，断言
         assertFalse(sensitiveWordService.isTextValid(text, null));
+
+        // 准备参数
+        String text2 = "你是白";
+        // 调用，断言
+        assertFalse(sensitiveWordService.isTextValid(text2, null));
     }
 
     @Test
@@ -264,9 +290,13 @@ public class SensitiveWordServiceImplTest extends BaseDbUnitTest {
         testInitLocalCache();
         // 准备参数
         String text = "你是傻瓜，你是笨蛋";
-
         // 调用，断言
         assertFalse(sensitiveWordService.isTextValid(text, singletonList("论坛")));
+
+        // 准备参数
+        String text2 = "你是白";
+        // 调用，断言
+        assertFalse(sensitiveWordService.isTextValid(text2, singletonList("测试")));
     }
 
 }

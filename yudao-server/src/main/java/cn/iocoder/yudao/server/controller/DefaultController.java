@@ -15,11 +15,6 @@ import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeC
 @RestController
 public class DefaultController {
 
-    @RequestMapping("/health")
-    public CommonResult<Boolean> health() {
-        return CommonResult.success(true);
-    }
-
     @RequestMapping("/admin-api/bpm/**")
     public CommonResult<Boolean> bpm404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
@@ -44,6 +39,12 @@ public class DefaultController {
     public CommonResult<Boolean> report404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[报表模块 yudao-module-report - 已禁用][参考 https://doc.iocoder.cn/report/ 开启]");
+    }
+
+    @RequestMapping(value = {"/admin-api/pay/**"})
+    public CommonResult<Boolean> pay404() {
+        return CommonResult.error(NOT_IMPLEMENTED.getCode(),
+                "[支付模块 yudao-module-pay - 已禁用][参考 https://doc.iocoder.cn/pay/build/ 开启]");
     }
 
 }
