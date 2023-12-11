@@ -215,6 +215,7 @@ yudao:
       - system_sms_log
       - system_sensitive_word
       - system_oauth2_client
+      - system_oauth2_access_token
       - system_mail_account
       - system_mail_template
       - system_mail_log

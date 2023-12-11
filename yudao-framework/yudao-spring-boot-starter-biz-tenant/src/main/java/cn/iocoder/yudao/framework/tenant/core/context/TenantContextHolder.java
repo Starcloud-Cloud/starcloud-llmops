@@ -39,11 +39,8 @@ public class TenantContextHolder {
      */
     public static Long getRequiredTenantId() {
         Long tenantId = getTenantId();
+
         if (tenantId == null) {
-            LoginUser loginUser = getLoginUser();
-            if (loginUser!= null){
-                setTenantId(loginUser.getTenantId());
-            }
             throw new NullPointerException("TenantContextHolder 不存在租户编号！可参考文档："
                 + DocumentEnum.TENANT.getUrl());
         }
