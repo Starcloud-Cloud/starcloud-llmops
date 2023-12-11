@@ -40,9 +40,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_GREATER_RETRY;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
 
 /**
  * @author nacoyer
@@ -213,11 +211,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             if (pictDo == null) {
                 throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
             }
+            if (BooleanUtils.isTrue(pictDo.getClaim())) {
+                throw exception(CREATIVE_CONTENT_CLAIMED, modifyReq.getBusinessUid());
+            }
             pictDo.setPictureContent(CreativeContentConvert.INSTANCE.imageToStr(modifyReq.getPictureContent()));
             pictDo.setUpdateTime(LocalDateTime.now());
             pictDo.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
             creativeContentMapper.updateById(pictDo);
-            return CreativeContentConvert.INSTANCE.convert(pictDo);
         }
 
         if (StringUtils.isNotBlank(modifyReq.getCopyWritingTitle()) || StringUtils.isNotBlank(modifyReq.getCopyWritingContent())) {
@@ -225,18 +225,20 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             if (contentDO == null) {
                 throw exception(CREATIVE_CONTENT_NOT_EXIST, modifyReq.getBusinessUid());
             }
-            if ( modifyReq.getCopyWritingTitle() != null ) {
-                contentDO.setCopyWritingTitle( modifyReq.getCopyWritingTitle() );
+            if (BooleanUtils.isTrue(contentDO.getClaim())) {
+                throw exception(CREATIVE_CONTENT_CLAIMED, modifyReq.getBusinessUid());
             }
-            if ( modifyReq.getCopyWritingContent() != null ) {
-                contentDO.setCopyWritingContent( modifyReq.getCopyWritingContent() );
+            if (modifyReq.getCopyWritingTitle() != null) {
+                contentDO.setCopyWritingTitle(modifyReq.getCopyWritingTitle());
+            }
+            if (modifyReq.getCopyWritingContent() != null) {
+                contentDO.setCopyWritingContent(modifyReq.getCopyWritingContent());
             }
             contentDO.setUpdateTime(LocalDateTime.now());
             contentDO.setUpdater(WebFrameworkUtils.getLoginUserId().toString());
             creativeContentMapper.updateById(contentDO);
-            return CreativeContentConvert.INSTANCE.convert(contentDO);
         }
-        return null;
+        return detail(modifyReq.getBusinessUid());
     }
 
     @Override
