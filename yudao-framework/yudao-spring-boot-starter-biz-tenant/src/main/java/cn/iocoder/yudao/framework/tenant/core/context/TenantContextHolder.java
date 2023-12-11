@@ -1,7 +1,10 @@
 package cn.iocoder.yudao.framework.tenant.core.context;
 
 import cn.iocoder.yudao.framework.common.enums.DocumentEnum;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
 import com.alibaba.ttl.TransmittableThreadLocal;
+
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.*;
 
 /**
  * 多租户上下文 Holder
@@ -37,6 +40,10 @@ public class TenantContextHolder {
     public static Long getRequiredTenantId() {
         Long tenantId = getTenantId();
         if (tenantId == null) {
+            LoginUser loginUser = getLoginUser();
+            if (loginUser!= null){
+                setTenantId(loginUser.getTenantId());
+            }
             throw new NullPointerException("TenantContextHolder 不存在租户编号！可参考文档："
                 + DocumentEnum.TENANT.getUrl());
         }
