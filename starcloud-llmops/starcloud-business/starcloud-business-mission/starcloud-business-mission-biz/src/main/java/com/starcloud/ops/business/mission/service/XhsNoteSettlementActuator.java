@@ -41,11 +41,6 @@ public class XhsNoteSettlementActuator {
                 return;
             }
 
-            if (LocalDateTimeUtils.afterYesterday(singleMissionRespVO.getPreSettlementTime())
-                    || LocalDateTimeUtils.afterYesterday(singleMissionRespVO.getSettlementTime())) {
-                log.info("{} 今天已结算", singleMissionId);
-                return;
-            }
             singleMissionService.settlement(singleMissionRespVO);
         } catch (Exception e) {
             log.warn("结算异常", e);
