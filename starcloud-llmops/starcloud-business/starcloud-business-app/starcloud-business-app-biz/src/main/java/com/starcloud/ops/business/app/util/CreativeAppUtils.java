@@ -36,6 +36,7 @@ import com.starcloud.ops.business.app.validate.AppValidate;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -157,6 +158,10 @@ public class CreativeAppUtils {
             CreativeSchemeReferenceDTO reference = new CreativeSchemeReferenceDTO();
             reference.setTitle(item.getTitle());
             reference.setContent(item.getContent());
+            reference.setImages(null);
+            reference.setLink(null);
+            reference.setSource(null);
+            reference.setId(null);
             return reference;
         }).collect(Collectors.toList());
     }
@@ -338,9 +343,9 @@ public class CreativeAppUtils {
      * @return 应用请求
      */
     public static AppReqVO transform(AppMarketRespVO app, Map<String, Object> appParams, String stepId) {
-
+        AppMarketRespVO appMarket = SerializationUtils.clone(app);
         // 获取步骤配置信息
-        WorkflowConfigRespVO config = app.getWorkflowConfig();
+        WorkflowConfigRespVO config = appMarket.getWorkflowConfig();
         AppValidate.notNull(config, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
 
         List<WorkflowStepWrapperRespVO> stepWrapperList = config.getSteps();
@@ -380,8 +385,8 @@ public class CreativeAppUtils {
             stepWrapper.setVariable(variable);
         }
         config.setSteps(stepWrapperList);
-        app.setWorkflowConfig(config);
-        return AppMarketConvert.INSTANCE.convert(app);
+        appMarket.setWorkflowConfig(config);
+        return AppMarketConvert.INSTANCE.convert(appMarket);
     }
 
     /**
