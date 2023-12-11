@@ -3,15 +3,18 @@ package com.starcloud.ops.business.mission.convert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.response.XhsCreativeContentResp;
-import com.starcloud.ops.business.dto.PostingContentDTO;
+import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionDetailVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
@@ -35,6 +38,8 @@ public interface SingleMissionConvert {
 
     SingleMissionRespVO convert(SingleMissionDO singleMissionDO);
 
+    SingleMissionDetailVO convertDetail(MissionNotificationDTO singleMissionDO);
+
     List<SingleMissionExportVO> convert(List<SingleMissionDO> missionList);
 
     List<SingleMissionRespVO> pageConvert(List<SingleMissionDTO> singleMissionList);
@@ -47,7 +52,7 @@ public interface SingleMissionConvert {
 
     SingleMissionQueryReqVO convert(XhsTaskContentParams params);
 
-    default SingleMissionPostingPriceDTO convert(NotificationCenterDO notificationCenterDO){
+    default SingleMissionPostingPriceDTO convert(NotificationCenterDO notificationCenterDO) {
         PostingUnitPriceDTO price = NotificationCenterConvert.INSTANCE.toPrice(notificationCenterDO.getUnitPrice());
         SingleMissionPostingPriceDTO priceDTO = new SingleMissionPostingPriceDTO();
         priceDTO.setSingleBudget(notificationCenterDO.getSingleBudget());
@@ -58,7 +63,7 @@ public interface SingleMissionConvert {
         return priceDTO;
     }
 
-    default SingleMissionDO convert(XhsCreativeContentResp creativeContentResp, NotificationCenterDO notificationCenterDO) {
+    default SingleMissionDO convert(CreativeContentRespVO creativeContentResp, NotificationCenterDO notificationCenterDO) {
         if (creativeContentResp == null) {
             return null;
         }
@@ -66,6 +71,7 @@ public interface SingleMissionConvert {
         singleMissionDO.setUid(IdUtil.fastSimpleUUID());
         singleMissionDO.setNotificationUid(notificationCenterDO.getUid());
         singleMissionDO.setCreativeUid(creativeContentResp.getBusinessUid());
+        singleMissionDO.setCreativePlanUid(creativeContentResp.getPlanUid());
         singleMissionDO.setType(notificationCenterDO.getType());
         PostingContentDTO postingContentDTO = new PostingContentDTO();
         postingContentDTO.setTitle(creativeContentResp.getCopyWritingTitle());
@@ -85,7 +91,7 @@ public interface SingleMissionConvert {
     }
 
     default String toStr(PostingContentDTO postingContentDTO) {
-        return JSONUtil.toJsonStr(postingContentDTO);
+        return JSON.toJSONString(postingContentDTO);
     }
 
     default String format(LocalDateTime time) {
@@ -97,6 +103,7 @@ public interface SingleMissionConvert {
     }
 
     default PostingContentDTO toPostingContent(String string) {
-        return JSONUtil.toBean(string, PostingContentDTO.class);
+        return JSON.parseObject(string, PostingContentDTO.class);
     }
+
 }

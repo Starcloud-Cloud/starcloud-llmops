@@ -5,7 +5,6 @@ import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.enums.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.NotificationPlatformEnum;
@@ -29,9 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -64,6 +65,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
         validName(reqVO.getName());
+        if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+            throw exception(BUDGET_ERROR);
+        }
         NotificationCenterDO createDo = NotificationCenterConvert.INSTANCE.convert(reqVO);
         createDo.setUid(IdUtil.fastSimpleUUID());
         createDo.setStatus(NotificationCenterStatusEnum.init.getCode());
@@ -101,11 +105,13 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
             throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
+        singleMissionService.deleteNotification(notificationCenterDO.getUid());
         notificationCenterMapper.deleteById(notificationCenterDO.getId());
     }
 
@@ -134,7 +140,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         }
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
 
-        singleMissionService.validBudget(notificationCenterDO);
+//        singleMissionService.validBudget(notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.updateById(notificationCenterDO);
         return NotificationCenterConvert.INSTANCE.convert(notificationCenterDO);

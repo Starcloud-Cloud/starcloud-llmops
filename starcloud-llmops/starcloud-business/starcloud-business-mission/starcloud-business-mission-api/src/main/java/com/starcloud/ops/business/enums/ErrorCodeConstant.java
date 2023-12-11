@@ -23,4 +23,23 @@ public interface ErrorCodeConstant {
     ErrorCode MISSION_BUDGET_ERROR = new ErrorCode(700010009, "单个任务预算要大于0");
 
     ErrorCode TOO_MANY_MISSION = new ErrorCode(700010010, "绑定太多任务，总预算不足");
+
+    ErrorCode DONT_ALLOW_DELETE =  new ErrorCode(700010011, "存在已认领任务不允许删除");
+
+    ErrorCode EXCEL_IS_EMPTY =  new ErrorCode(700010012, "导入的excel为空");
+
+    ErrorCode  NOT_EXIST_UID =  new ErrorCode(700010014, "导入的uid不存在 {}");
+
+    ErrorCode  CONTENT_INCONSISTENT =  new ErrorCode(700010015, "任务内容和用户发布内容不一致");
+
+    ErrorCode  ONLY_STAY_CLAIM =  new ErrorCode(700010016, "只有待认领状态可以导入");
+
+    ErrorCode  BUDGET_ERROR =  new ErrorCode(700010017, "通告总预算要大于单个任务预算");
+
+    ErrorCode  CAN_NOT_REFRESH =  new ErrorCode(700010018, "先发布通告再刷新互动信息");
+
+    ErrorCode  MISSION_IS_CHANGE =  new ErrorCode(700010019, "只有待认领状态任务可以认领,请刷新页面后重试");
+
+    ErrorCode  MISSION_CAN_NOT_CLAIM =  new ErrorCode(700010020, "任务状态为{} ，只有待认领状态任务可以认领");
+
 }

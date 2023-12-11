@@ -547,6 +547,16 @@ public class PayOldOrderServiceImpl implements PayOrderService {
         }
         appPayProductDiscountRespVO.setCode(product.getCode());
         appPayProductDiscountRespVO.setName(product.getName());
+        if (ProductEnum.AI_TRIAL.equals(product)) {
+            appPayProductDiscountRespVO.setOriginalAmount(5900L);
+            appPayProductDiscountRespVO.setDiscountAmount(4910L);
+            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
+            if (StrUtil.isNotBlank(discountCode)) {
+                throw new RuntimeException("当前产品不可以使用优惠券");
+            }
+            appPayProductDiscountRespVO.setDiscountCouponStatus(false);
+            return appPayProductDiscountRespVO;
+        }
         //  商品为年付商品
         if (product.getTimeType().equals(ProductTimeEnum.YEAR)) {
             // 获取月付产品
@@ -606,31 +616,101 @@ public class PayOldOrderServiceImpl implements PayOrderService {
      * 获取新用户优惠券
      */
     @Override
-    public UserDiscountCodeInfoVO getNewUserDiscountCode() {
+    public UserDiscountCodeInfoVO getNewUserDiscountCode(Long userId) {
 
-        UserDiscountCodeInfoVO userDiscountCodeInfoVO = new UserDiscountCodeInfoVO();
-        Long payOrderSuccess = orderMapper.selectCount(Wrappers.lambdaQuery(PayOrderDO.class).eq(PayOrderDO::getStatus, PayOrderStatusEnum.SUCCESS.getStatus()).eq(PayOrderDO::getCreator, getLoginUserId()));
 
-        if (payOrderSuccess == 0) {
+        UserDiscountCodeInfoVO newUserDiscount = new UserDiscountCodeInfoVO();
+        // 获取新用户优惠券
+        if (isUserRegisteredWithinSpecifiedTime(userId, 3) && hasOrdersWithSuccessPayment(userId, null)) {
+
             try {
                 UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER.getName());
                 if (ObjectUtil.isNull(masterConfigStrategyByType)) {
                     log.error("后台缺失新用户优惠券配置");
                 }
-                userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
-                userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
-                userDiscountCodeInfoVO.setStartTime(masterConfigStrategyByType.getStartTime());
-                userDiscountCodeInfoVO.setEndTime(masterConfigStrategyByType.getEndTime());
+                newUserDiscount.setCode(masterConfigStrategyByType.getCode());
+                newUserDiscount.setName(masterConfigStrategyByType.getStrategyName());
+
+                AdminUserDO user = userService.getUser(userId);
+                // 获取用户注册时间
+                LocalDateTime registeredTime = user.getCreateTime();
+
+                newUserDiscount.setStartTime(registeredTime);
+                newUserDiscount.setEndTime(registeredTime.plusDays(3));
+
+            } catch (RuntimeException e) {
+                newUserDiscount.setCode("00001");
+                newUserDiscount.setName("新人专享体验套餐");
+
+                AdminUserDO user = userService.getUser(userId);
+                // 获取用户注册时间
+                LocalDateTime registeredTime = user.getCreateTime();
+                newUserDiscount.setStartTime(registeredTime);
+                newUserDiscount.setEndTime(registeredTime.plusDays(3));
+                log.warn("新用户权益配置已经过期");
+            }
+
+        }
+        return newUserDiscount;
+    }
+
+
+    public List<UserDiscountCodeInfoVO> getDiscountList(Long userId) {
+
+        List<UserDiscountCodeInfoVO> UserDiscountCodeInfos = new ArrayList<>();
+        // 获取新用户优惠券
+        if (isUserRegisteredWithinSpecifiedTime(userId, 3) && hasOrdersWithSuccessPayment(userId, null)) {
+
+            UserDiscountCodeInfoVO newUserDiscount = new UserDiscountCodeInfoVO();
+            try {
+                UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER.getName());
+                if (ObjectUtil.isNull(masterConfigStrategyByType)) {
+                    log.error("后台缺失新用户优惠券配置");
+                }
+                newUserDiscount.setCode(masterConfigStrategyByType.getCode());
+                newUserDiscount.setName(masterConfigStrategyByType.getStrategyName());
+
+                AdminUserDO user = userService.getUser(userId);
+                // 获取用户注册时间
+                LocalDateTime registeredTime = user.getCreateTime();
+
+                newUserDiscount.setStartTime(registeredTime);
+                newUserDiscount.setEndTime(registeredTime.plusDays(3));
+
+                UserDiscountCodeInfos.add(newUserDiscount);
+            } catch (RuntimeException e) {
+                log.warn("新用户权益配置已经过期");
+            }
+
+        }
+        // 获取用户八折优惠券
+        if (hasOrdersWithSuccessPayment(userId, CollUtil.list(true, "ai_trial"))) {
+
+            UserDiscountCodeInfoVO userDiscountCodeInfoVO = new UserDiscountCodeInfoVO();
+            try {
+                UserBenefitsStrategyDO masterConfigStrategyByType = userBenefitsStrategyService.getMasterConfigStrategyByType(BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80.getName());
+                if (userBenefitsService.exitBenefitsStrategy(masterConfigStrategyByType.getId())) {
+                    if (ObjectUtil.isNotNull(masterConfigStrategyByType)) {
+                        userDiscountCodeInfoVO.setCode(masterConfigStrategyByType.getCode());
+                        userDiscountCodeInfoVO.setName(masterConfigStrategyByType.getStrategyName());
+
+                        AdminUserDO user = userService.getUser(userId);
+                        // 获取用户注册时间
+                        LocalDateTime registeredTime = user.getCreateTime();
+
+                        userDiscountCodeInfoVO.setStartTime(registeredTime);
+                        userDiscountCodeInfoVO.setEndTime(registeredTime.plusDays(3));
+                        UserDiscountCodeInfos.add(userDiscountCodeInfoVO);
+                    }
+                }
 
             } catch (RuntimeException e) {
                 log.warn("新用户权益配置已经过期");
-                return userDiscountCodeInfoVO;
             }
 
-        } else {
-            log.info("当前用户已经存在支付订单，无法获取新用户优惠信息");
         }
-        return userDiscountCodeInfoVO;
+
+        return UserDiscountCodeInfos;
     }
 
     /**
@@ -673,13 +753,12 @@ public class PayOldOrderServiceImpl implements PayOrderService {
         return Boolean.FALSE;
     }
 
-    /**
-     * 校验交易订单满足被支付的条件
-     *
-     * 1. 交易订单未支付
-     * 2. 支付单已支付
-     *
-     * @param id 交易订单编号
+    /*
+      校验交易订单满足被支付的条件
+      1. 交易订单未支付
+      2. 支付单已支付
+
+      @param id 交易订单编号
      * @param payOrderId 支付订单编号
      * @return 交易订单
      */
@@ -879,20 +958,21 @@ public class PayOldOrderServiceImpl implements PayOrderService {
 
 
     /**
-     * 用户是否在指定时间内注册
+     * 用户是否有成功下单的下单记录
      *
      * @param userId       用户 ID
-     * @param productCodes 产品 code
+     * @param productCodes 产品 code （可以为空）
      * @return
      */
     private Boolean hasOrdersWithSuccessPayment(Long userId, List<String> productCodes) {
 
         LambdaQueryWrapper<PayOrderDO> wrapper = Wrappers.lambdaQuery(PayOrderDO.class);
         wrapper.eq(PayOrderDO::getStatus, PayOrderStatusEnum.SUCCESS.getStatus());
+        wrapper.eq(PayOrderDO::getCreator, userId);
         wrapper.in(CollUtil.isNotEmpty(productCodes), PayOrderDO::getProductCode, productCodes);
         Long aLong = orderMapper.selectCount(wrapper);
 
-        // 判断创建时间是否在days天内
+        // 判断是否存在成功订单
         return aLong <= 0;
 
     }

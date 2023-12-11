@@ -183,6 +183,9 @@ public class AppLogServiceImpl implements AppLogService {
         if (StringUtils.isBlank(query.getFromScene())) {
             query.setFromSceneList(getFromSceneList());
         }
+        if (UserUtils.isNotAdmin()) {
+            query.setUserId(null);
+        }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
@@ -252,6 +255,9 @@ public class AppLogServiceImpl implements AppLogService {
             query.setMarketUid(getMarketUidByApp(app));
         }
 
+        if (!isAdmin) {
+            query.setUserId(null);
+        }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
@@ -280,6 +286,9 @@ public class AppLogServiceImpl implements AppLogService {
     public PageResult<AppLogConversationInfoRespVO> pageLogConversation(AppLogConversationInfoPageReqVO query) {
         if (StringUtils.isBlank(query.getFromScene())) {
             query.setFromSceneList(getFromSceneList());
+        }
+        if (UserUtils.isNotAdmin()) {
+            query.setUserId(null);
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
@@ -345,11 +354,11 @@ public class AppLogServiceImpl implements AppLogService {
         // 查询应用类型
         AppDO app = appMapper.get(query.getAppUid(), Boolean.TRUE);
         AppValidate.notNull(app, APP_NON_EXISTENT, query.getAppUid());
+        Boolean isAdmin = UserUtils.isAdmin();
 
         // 应用模型为 COMPLETION 时，说明为应用场景下的应用分析
         if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
             List<AppSceneEnum> appAnalysisScenes = new ArrayList<>(AppSceneEnum.APP_ANALYSIS_SCENES);
-            Boolean isAdmin = UserUtils.isAdmin();
             if (isAdmin) {
                 appAnalysisScenes.add(AppSceneEnum.OPTIMIZE_PROMPT);
                 appAnalysisScenes.add(AppSceneEnum.LISTING_GENERATE);
@@ -384,7 +393,9 @@ public class AppLogServiceImpl implements AppLogService {
             // 执行场景为空的情况，需要查询应用市场执行信息。
             query.setMarketUid(getMarketUidByApp(app));
         }
-
+        if (!isAdmin) {
+            query.setUserId(null);
+        }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         PageResult<LogAppConversationInfoPO> pageResult = logAppConversationService.pageLogAppConversation(query);
@@ -563,7 +574,9 @@ public class AppLogServiceImpl implements AppLogService {
 
         // 查询应用市场信息并校验是否存在
         AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
-        AppValidate.notNull(appMarket, MARKET_APP_NON_EXISTENT, marketUid);
+        if (Objects.isNull(appMarket)) {
+            return null;
+        }
 
         return appMarket.getUid();
     }
@@ -635,6 +648,7 @@ public class AppLogServiceImpl implements AppLogService {
     private AppLogMessageRespVO transformAppLogMessage(LogAppMessageDO message, LogAppConversationDO conversation, String images) {
         AppLogMessageRespVO appLogMessageResponse = transformAppLogMessage(message, conversation);
         appLogMessageResponse.setImages(AppUtils.split(images));
+        appLogMessageResponse.setAiModel(message.getAiModel());
         return appLogMessageResponse;
     }
 

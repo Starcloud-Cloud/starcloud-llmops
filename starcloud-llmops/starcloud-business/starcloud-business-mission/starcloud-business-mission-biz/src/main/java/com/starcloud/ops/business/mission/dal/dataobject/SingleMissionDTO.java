@@ -19,4 +19,9 @@ public class SingleMissionDTO extends SingleMissionDO{
      * 评论数
      */
     private Integer commentCount;
+
+    /**
+     * 创作计划
+     */
+    private String planName;
 }

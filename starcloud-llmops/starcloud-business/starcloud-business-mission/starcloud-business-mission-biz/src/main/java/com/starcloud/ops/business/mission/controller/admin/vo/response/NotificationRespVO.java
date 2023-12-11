@@ -64,4 +64,7 @@ public class NotificationRespVO {
 
     @Schema(description = "结算数")
     private Long settlementCount;
+
+    @Schema(description = "创建人")
+    private String createUser;
 }

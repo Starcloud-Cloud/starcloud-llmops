@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper">
+    
+    <sql id="page_column">
+        pic
+        .
+        plan_uid
+        as planUid,
+        pic.business_uid as businessUid, text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
+        pic.execute_params as pictureParams, text.execute_params as copyWritingParams, pic.status as pictureStatus, text.status as copyWritingStatus,
+        pic.start_time as pictureStartTime, pic.end_time as pictureEndTime, pic.execute_time as pictureExecuteTime,
+        text.start_time as copyWritingStartTime, text.end_time as copyWritingEndTime, text.execute_time as copyWritingExecuteTime,
+        text.copy_writing_title as copyWritingTitle,text.copy_writing_content as copyWritingContent, pic.picture_num as pictureNum,
+        pic.picture_content as pictureContent, pic.error_msg as pictureErrorMsg, text.error_msg as copyWritingErrorMsg,
+        pic.retry_count as pictureRetryCount, text.retry_count as copyWritingRetryCount,text.copy_writing_count as copyWritingCount,
+        pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim, text.liked as liked
+    </sql>
+    
+    
+    <select id="selectCount" resultType="java.lang.Long">
+        select count(*) FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.deleted = false and text.deleted = false
+        <if test="req.planUid != null and req.planUid != ''">
+            and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.schemeUid != null and req.schemeUid != ''">
+            and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
+        </if>
+        <if test="req.claim != null ">
+            and pic.claim = #{req.claim} and text.claim = #{req.claim}
+        </if>
+        <if test="req.status != null and req.status != ''">
+            and pic.status = #{req.status} and text.status = #{req.status}
+        </if>
+    </select>
+    
+    <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        select
+        <include refid="page_column"/>
+        FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.deleted = false and text.deleted = false
+        <if test="req.planUid != null and req.planUid != ''">
+            and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.schemeUid != null and req.schemeUid != ''">
+            and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
+        </if>
+        <if test="req.claim != null ">
+            and pic.claim = #{req.claim} and text.claim = #{req.claim}
+        </if>
+        <if test="req.status != null and req.status != ''">
+            and pic.status = #{req.status} and text.status = #{req.status}
+        </if>
+        order by pic.update_time limit #{start},#{end}
+    </select>
+    
+    <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        select
+        <include refid="page_column"/>
+        FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.business_uid = #{businessUid} and text.business_uid = #{businessUid}
+    </select>
+    
+    <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO">
+        SELECT a.* FROM
+        llm_creative_content a
+        INNER JOIN llm_creative_plan b on a.plan_uid = b.uid
+        WHERE a.retry_count &lt; 3 and b.status in ('RUNNING','FAILURE')
+        and a.deleted = false and b.deleted = false
+        <if test="req.planUid != null and req.planUid != ''">
+            and a.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.type != null and req.type != ''">
+            and a.type = #{req.type}
+        </if>
+        <if test="req.retryProcess != null and req.retryProcess == true">
+            and a.retry_count &gt;= 1 and a.status = 'execute_error'
+        </if>
+        and a.status != 'execute_success' and a.status != 'executing'
+        ORDER BY a.update_time ASC
+        <if test="req.bathCount != null and req.bathCount gt 0">
+            LIMIT #{req.bathCount}
+        </if>
+    </select>
+    
+    <select id="countByBusinessUid" resultType="java.lang.Long">
+        select count(*) FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.deleted = false and text.deleted = false and pic.claim = false and text.claim = false
+        <if test="businessUids != null and businessUids.size() > 0">
+            and pic.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and text.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    
+    <select id="selectByBusinessUid"
+            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        select
+        <include refid="page_column"/>
+        FROM
+        llm_creative_content pic
+        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
+        WHERE pic.type = 'picture' and text.type = 'copy_writing'
+        and pic.deleted = false and text.deleted = false
+        <if test="claim != null">
+            and pic.claim = #{claim} and text.claim = #{claim}
+        </if>
+        <if test="businessUids != null and businessUids.size() > 0">
+            and pic.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and text.business_uid in
+            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        order by pic.create_time desc
+    </select>
+    
+    <select id="listGroupByBusinessUid"
+            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO">
+        SELECT
+        plan_uid AS planUid,
+        business_uid AS businessUid,
+        SUM(CASE WHEN status = 'execute_success' THEN 1 ELSE 0 END) AS successCount,
+        SUM(CASE WHEN status = 'execute_error_finished' THEN 1 ELSE 0 END) AS failureCount
+        FROM
+        llm_creative_content
+        WHERE
+        plan_uid IN
+        <foreach collection="planUidList" item="planUid" open="(" close=")" separator=",">
+            #{planUid}
+        </foreach>
+        AND deleted = 0
+        GROUP BY
+        plan_uid, business_uid
+        ORDER BY
+        id DESC
+    </select>
+</mapper>

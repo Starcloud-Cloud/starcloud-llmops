@@ -8,6 +8,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
 import com.starcloud.ops.business.limits.enums.ProductEnum;
@@ -211,12 +213,22 @@ public class PayOldOrderController {
     public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestBody PayOrderDiscountReqVO payOrderDiscountReqVO) {
         return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
     }
-    
+
+
+    @Deprecated
+    @PostMapping("/discount/list")
+    @Operation(summary = "获取用户折扣码列表")
+    public CommonResult<List<UserDiscountCodeInfoVO> > getDiscountList() {
+         return success(payOrderService.getDiscountList(getLoginUserId()));
+    }
+
+    @Deprecated
     @PostMapping("/discount/newuser")
     @Operation(summary = "获取新用户折扣码")
     public CommonResult<UserDiscountCodeInfoVO> getOrderProductDiscount() {
-         return success(payOrderService.getNewUserDiscountCode());
+        return success(payOrderService.getNewUserDiscountCode(getLoginUserId()));
     }
+
 
     // @PostMapping("/update-paid")
     // @Operation(summary = "更新示例订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayOldNotifyJob

@@ -4,6 +4,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 
 import javax.validation.Valid;
@@ -20,6 +21,12 @@ public interface SingleMissionService {
      * 分页查询
      */
     PageResult<SingleMissionRespVO> page(SinglePageQueryReqVO reqVO);
+
+    /**
+     * 任务详情
+     */
+    MissionNotificationDTO missionDetail(String uid);
+
 
     /**
      * 修改任务
@@ -74,10 +81,20 @@ public interface SingleMissionService {
     /**
      * 刷新小红书笔记
      */
-    void refreshNote(String uid);
+    SingleMissionRespVO refreshNote(RefreshNoteDetailReqVO reqVO);
 
     /**
      * 结算更新
      */
     void settlement(SingleMissionRespVO singleMissionRespVO);
+
+    /**
+     * 删除通告
+     */
+    void deleteNotification(String notificationUid);
+
+    /**
+     * 导入
+     */
+    void importSettlement(List<SingleMissionImportVO> importVOList);
 }

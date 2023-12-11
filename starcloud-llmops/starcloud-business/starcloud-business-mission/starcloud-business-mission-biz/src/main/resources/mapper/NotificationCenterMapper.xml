@@ -7,22 +7,56 @@
         select count(*)
         from llm_notification
         where deleted = false
+        <if test="reqVO.name != null and reqVO.name != ''">
+            and name = #{reqVO.name}
+        </if>
+        <if test="reqVO.field != null and reqVO.field != ''">
+            and field = #{reqVO.field}
+        </if>
+        <if test="reqVO.status != null and reqVO.status != ''">
+            and status = #{reqVO.status}
+        </if>
+        <if test="reqVO.createStartTime != null">
+            and create_time &gt; DATE_FORMAT(#{reqVO.createStartTime,jdbcType=TIMESTAMP},'%Y-%m-%d %H:%i:%S')
+        </if>
+        <if test="reqVO.createEndTime != null">
+            and create_time &lt;= DATE_FORMAT(#{reqVO.createEndTime,jdbcType=TIMESTAMP},'%Y-%m-%d %H:%i:%S')
+        </if>
     </select>
 
     <select id="pageDetail" resultType="com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO">
-        select n.*, u.username as createUser,
-               COUNT(CASE WHEN m.status = 'stay_claim' THEN 1 END) AS stayClaimCount,
-               COUNT(CASE WHEN m.status in ('claimed') THEN 1 END) AS claimCount,
-               COUNT(CASE WHEN m.status in ('published','pre_settlement','pre_settlement_error')THEN 1 END) AS publishedCount,
-               COUNT(CASE WHEN m.status in ('settlement','settlement_error')THEN 1 END) AS settlementCount,
-               COUNT(m.id) AS total
+        select n.*,
+               u.username                                                                                       as createUser,
+               COUNT(CASE WHEN m.deleted = false and m.status = 'stay_claim' THEN 1 END)                        AS stayClaimCount,
+               COUNT(CASE WHEN m.deleted = false and m.status in ('claimed') THEN 1 END)                        AS claimCount,
+               COUNT(CASE
+                         WHEN m.deleted = false and m.status in ('published', 'pre_settlement', 'pre_settlement_error')
+                             THEN 1 END)                                                                        AS publishedCount,
+               COUNT(CASE
+                         WHEN m.deleted = false and m.status in ('settlement', 'settlement_error')
+                             THEN 1 END)                                                                        AS settlementCount,
+               COUNT(CASE WHEN m.deleted = false THEN 1 END)                                                    AS total
         from llm_notification n
                  left join llm_single_mission m on m.notification_Uid = n.uid
-                  left join system_users u on m.creator = u.id
+                 left join system_users u on m.creator = u.id
         where n.deleted = false
-          and (m.deleted = false or m.deleted is null)
+        <if test="reqVO.name != null and reqVO.name != ''">
+            and n.name = #{reqVO.name}
+        </if>
+        <if test="reqVO.field != null and reqVO.field != ''">
+            and n.field = #{reqVO.field}
+        </if>
+        <if test="reqVO.status != null and reqVO.status != ''">
+            and n.status = #{reqVO.status}
+        </if>
+        <if test="reqVO.createStartTime != null">
+            and n.create_time &gt; DATE_FORMAT(#{reqVO.createStartTime,jdbcType=TIMESTAMP},'%Y-%m-%d %H:%i:%S')
+        </if>
+        <if test="reqVO.createEndTime != null">
+            and n.create_time &lt;= DATE_FORMAT(#{reqVO.createEndTime,jdbcType=TIMESTAMP},'%Y-%m-%d %H:%i:%S')
+        </if>
         group by n.uid
-        order by create_time desc
+        order by n.create_time desc
         limit #{start},#{end}
     </select>
 </mapper>

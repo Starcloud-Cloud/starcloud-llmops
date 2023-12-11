@@ -3,14 +3,14 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.controller.admin.xhs.vo.request.XhsCreativeQueryReq;
-import com.starcloud.ops.business.app.dal.databoject.xhs.XhsCreativeContentDO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.powerjob.base.BaseMapReduceTask;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import com.starcloud.ops.business.app.powerjob.base.PowerJobTaskContext;
-import com.starcloud.ops.business.app.service.plan.CreativePlanService;
-import com.starcloud.ops.business.app.service.xhs.XhsCreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
     @Resource
-    private XhsCreativeContentService xhsCreativeContentService;
+    private CreativeContentService xhsCreativeContentService;
 
     @Resource
     private CreativePlanService creativePlanService;
@@ -82,21 +82,21 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         //支持的条件可能有，文案模版，图片模版，渠道 （创作任务表上的字段） 时间生序查询，优先执行最早的
 
 
-        XhsCreativeQueryReq queryReq = new XhsCreativeQueryReq();
+        CreativeQueryReqVO queryReq = new CreativeQueryReqVO();
         queryReq.setType(params.getRunType());
         queryReq.setRetryProcess(params.getRetryProcess());
         queryReq.setBathCount(params.getBathCount());
-        List<XhsCreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
+        List<CreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
         if (CollectionUtils.isEmpty(creativeContentList)) {
             return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS : 未找到待执行的任务");
         }
 
-        Map<String, List<XhsCreativeContentDO>> planUidGroup = creativeContentList.stream().collect(Collectors.groupingBy(XhsCreativeContentDO::getPlanUid));
+        Map<String, List<CreativeContentDO>> planUidGroup = creativeContentList.stream().collect(Collectors.groupingBy(CreativeContentDO::getPlanUid));
 
         List<SubTask> subTasks = new ArrayList<>(planUidGroup.size());
         Integer subSize = params.getSubSize() == null ? 5 : params.getSubSize();
         for (String planUid : planUidGroup.keySet()) {
-            List<Long> ids = planUidGroup.get(planUid).stream().map(XhsCreativeContentDO::getId).collect(Collectors.toList());
+            List<Long> ids = planUidGroup.get(planUid).stream().map(CreativeContentDO::getId).collect(Collectors.toList());
             List<List<Long>> split = CollUtil.split(ids, subSize);
             for (List<Long> longs : split) {
                 SubTask subTask = new SubTask();

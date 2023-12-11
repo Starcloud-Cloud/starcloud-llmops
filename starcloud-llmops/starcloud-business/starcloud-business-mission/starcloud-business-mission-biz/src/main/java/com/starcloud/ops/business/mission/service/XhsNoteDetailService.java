@@ -16,16 +16,26 @@ public interface XhsNoteDetailService {
     XhsNoteDetailRespVO selectByNoteUrl(String noteUrl);
 
     /**
+     * 实时数据
+     */
+    XhsNoteDetailRespVO remoteDetail(String noteUrl);
+
+    /**
      * 爬取新数据预结算
      *
      * @param noteId 小红书笔记id
      */
-    XhsNoteDetailRespVO preSettlementByNoteId(String noteId, SingleMissionPostingPriceDTO unitPriceDTO);
+    XhsNoteDetailRespVO preSettlementByNoteId(String missionUid, String noteId, SingleMissionPostingPriceDTO unitPriceDTO);
 
     /**
      * 爬取新数据预结算
      *
      * @param noteUrl 小红书访问url
      */
-    XhsNoteDetailRespVO preSettlementByUrl(String noteUrl, SingleMissionPostingPriceDTO unitPriceDTO);
+    XhsNoteDetailRespVO preSettlementByUrl(String missionUid, String noteUrl, SingleMissionPostingPriceDTO unitPriceDTO);
+
+    /**
+     * 预结算
+     */
+    XhsNoteDetailRespVO preSettlement(String missionUid, Integer likedCount, Integer commentCount, SingleMissionPostingPriceDTO unitPriceDTO);
 }
