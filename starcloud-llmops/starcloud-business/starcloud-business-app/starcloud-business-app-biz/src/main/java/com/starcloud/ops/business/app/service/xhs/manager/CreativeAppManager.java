@@ -120,6 +120,9 @@ public class CreativeAppManager {
         Integer n = Objects.nonNull(request.getN()) && request.getN() > 0 ? request.getN() : 1;
         request.setN(n);
         try {
+
+            //把 uid 和 step ,改成 根据模式 对应的枚举配置写死 在创作的时候保存就行了。
+
             AppMarketRespVO appMarket;
             if (StringUtils.isBlank(request.getUid())) {
                 appMarket = appMarketService.get(request.getUid());
@@ -134,6 +137,9 @@ public class CreativeAppManager {
             request.setStepId(stepWrapper.getField());
             // 执行应用
             String answer = execute(CreativeAppUtils.buildExecuteRequest(appMarket, request));
+
+            // 返回结果需要解析，解析根据 模式 枚举配置来，
+
             return CreativeAppUtils.handleAnswer(answer, request.getUid(), n);
         } catch (ServiceException exception) {
             log.error("创作中心：执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, exception.getCode().toString(), exception.getMessage());

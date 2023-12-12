@@ -169,7 +169,10 @@ public class CreativeExecuteManager {
 
                 CreativeContentDO updateContent = new CreativeContentDO();
                 updateContent.setId(contentDO.getId());
+
+                // 根据模式把 干货图文的 md 格式 转换为 纯文本格式
                 updateContent.setCopyWritingContent(copyWriting.getContent());
+
                 updateContent.setCopyWritingTitle(copyWriting.getTitle());
                 updateContent.setCopyWritingCount(copyWriting.getContent().length());
                 updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
@@ -272,6 +275,8 @@ public class CreativeExecuteManager {
             request.setPlanUid(latestContent.getPlanUid());
             request.setSchemeUid(latestContent.getSchemeUid());
             request.setBusinessUid(latestContent.getBusinessUid());
+
+            //图片执行参数需要抽象。
             request.setImageStyleRequest(CreativeImageUtils.getImageStyleExecuteRequest(latestContent, copyWriting, posterTemplateMap, force));
             // 执行请求
             XhsImageCreativeExecuteResponse response = creativeImageManager.creativeExecute(request);

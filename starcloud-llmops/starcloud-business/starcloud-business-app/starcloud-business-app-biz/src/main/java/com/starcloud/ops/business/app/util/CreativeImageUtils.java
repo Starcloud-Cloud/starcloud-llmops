@@ -78,7 +78,29 @@ public class CreativeImageUtils {
             request.setName(imageRequest.getName());
             request.setIndex(imageRequest.getIndex());
             request.setIsMain(imageRequest.getIsMain());
-            request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
+
+
+            /**
+             * 不同模式
+             * 1，图文，支持首图替换 图片主子标题的功能
+             *
+             * 2，干货文章，
+             *      根据内容md 格式判断需要生成多少张图片
+             *      使用配置的图片模版，依次替换 首图 + 段落图（可重复） + 尾图 （）
+             *
+             */
+
+            if (1 == 1) {
+                //图文
+                request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
+            } else {
+
+                //干货的
+
+
+            }
+
+
             imageExecuteRequests.add(request);
         }
         executeRequest.setId(imageStyleExecuteRequest.getId());
@@ -209,6 +231,8 @@ public class CreativeImageUtils {
             } else {
                 if (Objects.isNull(variableItem.getValue()) ||
                         ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
+
+
                     // 只有主图才会替换标题和副标题
                     if (imageRequest.getIsMain()) {
                         if (TITLE.equalsIgnoreCase(variableItem.getField())) {
