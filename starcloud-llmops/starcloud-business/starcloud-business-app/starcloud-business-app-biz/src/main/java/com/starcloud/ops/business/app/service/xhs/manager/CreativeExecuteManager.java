@@ -137,7 +137,22 @@ public class CreativeExecuteManager {
                 executeRequest.setContentUid(content.getUid());
                 executeRequest.setUid(appExecuteRequest.getUid());
                 executeRequest.setScene(appExecuteRequest.getScene());
+
+
+                /**
+                 * params
+                 * 不同模式，需要转换参数到指定的 应用
+                 * 1，图文生成
+                 *     1，配置的方案参数
+                 *
+                 *
+                 * 2，干货文章 (让前端计算个大概多少字)
+                 *     1，需要控制 每一个段落输出的结构或长度 （最终转换成了prompt）
+                 *     2，这段prompt 作为一个参数 传入到应用中的一个 约定的字段中去。
+                  */
+
                 executeRequest.setParams(params);
+
                 executeRequest.setUserId(Long.valueOf(content.getCreator()));
                 requests.add(executeRequest);
             }
