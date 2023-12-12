@@ -228,6 +228,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setCategory(creativeScheme.getCategory());
         scheme.setTags(creativeScheme.getTags());
         scheme.setDescription(creativeScheme.getDescription());
+        scheme.setMode(creativeScheme.getMode());
         scheme.setRefers(creativeScheme.getRefers());
         scheme.setConfiguration(creativeScheme.getConfiguration());
         scheme.setUseImages(creativeScheme.getUseImages());
@@ -576,6 +577,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 创作方案请求对象
      */
     private void handlerAndValidate(CreativeSchemeReqVO request) {
+        request.validate();
         // 如果是普通用户或者为空，强制设置为用户类型
         if (UserUtils.isNotAdmin() || StringUtils.isBlank(request.getType())) {
             request.setType(CreativeSchemeTypeEnum.USER.name());
@@ -583,6 +585,5 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
-        request.validate();
     }
 }
