@@ -19,7 +19,7 @@ public enum CreativeSchemeModeEnum implements IEnumable<Integer> {
     /**
      * 干货文生成
      */
-    DRY_IMAGE_TEXT(2, "干货文生成");
+    PRACTICAL_IMAGE_TEXT(2, "干货文生成");
 
     /**
      * 类型编码
