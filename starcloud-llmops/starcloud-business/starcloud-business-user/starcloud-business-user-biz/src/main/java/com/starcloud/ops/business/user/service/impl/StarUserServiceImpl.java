@@ -39,7 +39,7 @@ import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
 import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
-import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;

@@ -36,4 +36,16 @@ public interface ErrorCodeConstant {
 
 
 
+    //========== 用户等级 1-004-011-000 ==========
+    ErrorCode LEVEL_NOT_EXISTS = new ErrorCode(2_004_011_000, "用户等级不存在");
+    ErrorCode LEVEL_NAME_EXISTS = new ErrorCode(2_004_011_001, "用户等级名称[{}]已被使用");
+    ErrorCode LEVEL_VALUE_EXISTS = new ErrorCode(2_004_011_002, "用户等级值[{}]已被[{}]使用");
+    ErrorCode LEVEL_EXPERIENCE_MIN = new ErrorCode(2_004_011_003, "升级经验必须大于上一个等级[{}]设置的升级经验[{}]");
+    ErrorCode LEVEL_EXPERIENCE_MAX = new ErrorCode(2_004_011_004, "升级经验必须小于下一个等级[{}]设置的升级经验[{}]");
+    ErrorCode LEVEL_HAS_USER = new ErrorCode(2_004_011_005, "用户等级下存在用户，无法删除");
+
+    ErrorCode EXPERIENCE_BIZ_NOT_SUPPORT = new ErrorCode(2_004_011_201, "用户经验业务类型不支持");
+
+
+
 }
