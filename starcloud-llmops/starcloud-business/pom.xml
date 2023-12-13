@@ -30,8 +30,6 @@
         <module>starcloud-business-mission</module>
         <module>starcloud-business-product</module>
         <module>starcloud-business-promotion</module>
-        <module>starcloud-business-trade</module>
-
     </modules>
 
 
