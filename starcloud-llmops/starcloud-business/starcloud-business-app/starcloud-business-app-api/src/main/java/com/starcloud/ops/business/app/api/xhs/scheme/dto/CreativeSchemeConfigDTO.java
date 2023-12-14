@@ -28,6 +28,12 @@ public class CreativeSchemeConfigDTO implements java.io.Serializable {
     private static final long serialVersionUID = 8377338212121361722L;
 
     /**
+     * 文案段落数量
+     */
+    @Schema(description = "文案段落数量")
+    private Integer paragraphCount;
+
+    /**
      * 文案生成模板
      */
     @Valid

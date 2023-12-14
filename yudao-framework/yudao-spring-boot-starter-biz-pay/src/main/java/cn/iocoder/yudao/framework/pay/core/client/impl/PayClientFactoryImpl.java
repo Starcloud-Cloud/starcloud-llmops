@@ -55,7 +55,7 @@ public class PayClientFactoryImpl implements PayClientFactory {
     @SuppressWarnings("unchecked")
     private <Config extends PayClientConfig> AbstractPayClient<Config> createPayClient(
             Long channelId, String channelCode, Config config) {
-        if ("alipay_sign".equals(channelCode) || "alipay_sign_pay".equals(channelCode)) {
+        if ("alipay_agreement_app".equals(channelCode) || "alipay_sign_pay".equals(channelCode)) {
             channelCode = "alipay_pc";
         }
         PayChannelEnum channelEnum = PayChannelEnum.getByCode(channelCode);

@@ -39,6 +39,7 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
@@ -345,6 +346,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
         updateWrapper.set(CreativePlanDO::getStartTime, LocalDateTime.now());
+        updateWrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());
         updateWrapper.eq(CreativePlanDO::getUid, uid);
         creativePlanMapper.update(null, updateWrapper);
     }
@@ -380,7 +382,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             appCreateRequest.setBusinessUid(businessUid);
             appCreateRequest.setType(CreativeContentTypeEnum.COPY_WRITING.getCode());
             appCreateRequest.setTempUid(appExecuteRequest.getUid());
-            appCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofApp(appExecuteRequest));
+            CreativePlanExecuteDTO appPlanExecute = CreativePlanExecuteDTO.ofApp(appExecuteRequest);
+            appPlanExecute.setSchemeUid(executeParam.getSchemeUid());
+            appPlanExecute.setSchemeMode(executeParam.getSchemeMode());
+            appCreateRequest.setExecuteParams(appPlanExecute);
             creativeContentCreateRequestList.add(appCreateRequest);
 
             // 添加一条图片执行任务
@@ -423,7 +428,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             imageCreateRequest.setBusinessUid(businessUid);
             imageCreateRequest.setType(CreativeContentTypeEnum.PICTURE.getCode());
             imageCreateRequest.setTempUid(tempUid);
-            imageCreateRequest.setExecuteParams(CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest));
+            CreativePlanExecuteDTO imagePlanExecute = CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest);
+            if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParam.getSchemeMode())) {
+                imagePlanExecute.setParagraphCount(executeParam.getParagraphCount());
+            }
+            imagePlanExecute.setSchemeUid(executeParam.getSchemeUid());
+            imagePlanExecute.setSchemeMode(executeParam.getSchemeMode());
+            imageCreateRequest.setExecuteParams(imagePlanExecute);
             imageCreateRequest.setUsePicture(imageUrlList);
             creativeContentCreateRequestList.add(imageCreateRequest);
         }
@@ -459,12 +470,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             for (CreativeImageStyleDTO style : imageTemplate.getStyleList()) {
                 List<CreativeImageTemplateDTO> templateList = style.getTemplateList();
                 AppValidate.notEmpty(templateList, CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
-                // 图片执行参数
-                CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), posterMap);
+
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+                if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(scheme.getMode())) {
+                    planExecute.setParagraphCount(configuration.getParagraphCount());
+                    CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), configuration.getParagraphCount(), posterMap);
+                    planExecute.setImageStyleExecuteRequest(styleExecute);
+                } else {
+                    // 图片执行参数
+                    CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), posterMap);
+                    planExecute.setImageStyleExecuteRequest(styleExecute);
+                }
                 planExecute.setSchemeUid(scheme.getUid());
+                planExecute.setSchemeMode(scheme.getMode());
                 planExecute.setAppExecuteRequest(appExecute);
-                planExecute.setImageStyleExecuteRequest(styleExecute);
                 list.add(planExecute);
             }
         }

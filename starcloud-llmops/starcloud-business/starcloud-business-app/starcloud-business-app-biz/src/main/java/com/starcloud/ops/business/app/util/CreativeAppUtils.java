@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
@@ -32,6 +33,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatMessage;
@@ -66,6 +68,8 @@ public class CreativeAppUtils {
     private static final String SUMMARY = "SUMMARY";
     private static final String DEMAND = "DEMAND";
     private static final String EXAMPLE = "EXAMPLE";
+    public static final String PARAGRAPH_COUNT = "PARAGRAPH_COUNT";
+    public static final String PARAGRAPH_DEMAND = "PARAGRAPH_DEMAND";
 
     /**
      * 获取应用的第一步步骤配置
@@ -120,6 +124,10 @@ public class CreativeAppUtils {
         params.add(ofTextAreaVariableItem(REFERS, JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(scheme.getRefers()))));
         params.add(ofTextAreaVariableItem(SUMMARY, copyWritingTemplate.getSummary()));
         params.add(ofTextAreaVariableItem(DEMAND, CreativeAppUtils.handlerDemand(copyWritingTemplate, variableList)));
+        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(scheme.getMode())) {
+            params.add(ofInputVariableItem(PARAGRAPH_COUNT, configuration.getParagraphCount()));
+            params.add(ofInputVariableItem(PARAGRAPH_DEMAND, StrUtil.EMPTY));
+        }
 
         CreativePlanAppExecuteDTO appExecute = new CreativePlanAppExecuteDTO();
         appExecute.setUid(appUid);
@@ -521,7 +529,7 @@ public class CreativeAppUtils {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemDTO ofInputVariable(String field, String label, Integer order) {
+    public static VariableItemDTO ofInputVariable(String field, String label, Integer order, Integer count) {
         VariableItemDTO variableItem = new VariableItemDTO();
         variableItem.setField(field);
         variableItem.setLabel(label);
@@ -533,6 +541,9 @@ public class CreativeAppUtils {
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
         variableItem.setOptions(Lists.newArrayList());
+        variableItem.setCount(count);
         return variableItem;
     }
+
+
 }

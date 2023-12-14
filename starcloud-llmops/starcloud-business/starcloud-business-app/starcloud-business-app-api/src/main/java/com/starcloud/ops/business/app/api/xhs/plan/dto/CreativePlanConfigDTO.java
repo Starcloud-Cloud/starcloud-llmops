@@ -35,7 +35,7 @@ public class CreativePlanConfigDTO implements java.io.Serializable {
      * 上传图片地址列表
      */
     @Schema(description = "上传图片地址列表")
-    @NotEmpty(message = "请上传您的图片素材！")
+//    @NotEmpty(message = "请上传您的图片素材！")
     private List<String> imageUrlList;
 
     /**
@@ -56,9 +56,9 @@ public class CreativePlanConfigDTO implements java.io.Serializable {
      * 校验配置信息
      */
     public void validate() {
-        if (CollectionUtil.isEmpty(imageUrlList)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
-        }
+//        if (CollectionUtil.isEmpty(imageUrlList)) {
+//            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
+//        }
         if (CollectionUtil.isEmpty(schemeUidList)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_SCHEME_NOT_EMPTY);
         }
