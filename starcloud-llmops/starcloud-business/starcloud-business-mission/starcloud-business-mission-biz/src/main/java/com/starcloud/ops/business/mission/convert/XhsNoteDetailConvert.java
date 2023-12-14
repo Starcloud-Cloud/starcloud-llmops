@@ -2,10 +2,7 @@ package com.starcloud.ops.business.mission.convert;
 
 
 import cn.hutool.json.JSONUtil;
-import com.starcloud.ops.business.app.api.xhs.note.NoteDetail;
-import com.starcloud.ops.business.app.api.xhs.note.NoteImage;
-import com.starcloud.ops.business.app.api.xhs.note.NoteInteractInfo;
-import com.starcloud.ops.business.app.api.xhs.note.NoteVideo;
+import com.starcloud.ops.business.app.api.xhs.note.*;
 import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +35,7 @@ public interface XhsNoteDetailConvert {
         }
         noteDetailDO.setNoteId(noteDetail.getNoteId());
         noteDetailDO.setTitle(noteDetail.getTitle());
-        noteDetailDO.setDescription(noteDetail.getDesc());
+        noteDetailDO.setDescription(formatDesc(noteDetail.getDesc()));
         noteDetailDO.setImageList(JSONUtil.toJsonStr(noteDetail.getImageList()));
         noteDetailDO.setVideo(JSONUtil.toJsonStr(noteDetail.getVideo()));
         NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
@@ -50,6 +47,7 @@ public interface XhsNoteDetailConvert {
         noteDetailDO.setCommentCount(interactInfo.getCommentCount());
         noteDetailDO.setShareCount(interactInfo.getShareCount());
         noteDetailDO.setUpdateTime(LocalDateTime.now());
+        noteDetailDO.setTagList(JSONUtil.toJsonStr(noteDetail.getTagList()));
     }
 
     default XhsNoteDetailRespVO convert(NoteDetail noteDetail) {
@@ -72,6 +70,24 @@ public interface XhsNoteDetailConvert {
         respVO.setCommentCount(interactInfo.getCommentCount());
         respVO.setShareCount(interactInfo.getShareCount());
         return respVO;
+    }
+
+    default String formatDesc(String desc) {
+        if (StringUtils.isBlank(desc)) {
+            return StringUtils.EMPTY;
+        }
+        int index = desc.indexOf("#");
+        if (index != -1) {
+            return desc.substring(0, index);
+        }
+        return desc;
+    }
+
+    default List<NoteTag> toTag(String string) {
+        if (StringUtils.isBlank(string)) {
+            return Collections.emptyList();
+        }
+        return JSONUtil.parseArray(string).toList(NoteTag.class);
     }
 
     default List<NoteImage> toImage(String string) {
