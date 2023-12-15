@@ -92,4 +92,9 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
         noteDetailMapper.insert(xhsNoteDetailDO);
         return XhsNoteDetailConvert.INSTANCE.convert(xhsNoteDetailDO);
     }
+
+    @Override
+    public XhsNoteDetailDO getById(Long id) {
+        return noteDetailMapper.selectById(id);
+    }
 }

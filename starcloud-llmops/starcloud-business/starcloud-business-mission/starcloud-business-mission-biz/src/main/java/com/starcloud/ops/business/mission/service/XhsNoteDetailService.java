@@ -2,6 +2,7 @@ package com.starcloud.ops.business.mission.service;
 
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
 
 public interface XhsNoteDetailService {
 
@@ -38,4 +39,9 @@ public interface XhsNoteDetailService {
      * 预结算
      */
     XhsNoteDetailRespVO preSettlement(String missionUid, Integer likedCount, Integer commentCount, SingleMissionPostingPriceDTO unitPriceDTO);
+
+    /**
+     * 预结算数据
+     */
+    XhsNoteDetailDO getById(Long id);
 }

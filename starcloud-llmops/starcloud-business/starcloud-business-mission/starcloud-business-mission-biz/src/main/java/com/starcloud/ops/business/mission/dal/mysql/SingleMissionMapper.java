@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.mission.dal.mysql;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.mission.api.vo.request.ClaimedMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
@@ -75,5 +77,11 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
     Long pageCount(@Param("reqVO") SinglePageQueryReqVO reqVO);
 
     List<SingleMissionDTO> pageDetail(@Param("reqVO") SinglePageQueryReqVO reqVO,
-                                      @Param("start") Integer start, @Param("end") Integer end);
+                                      @Param("start") Integer start, @Param("size") Integer size);
+
+    Long claimedMissionCount(@Param("reqVO") ClaimedMissionQueryReqVO reqVO);
+
+
+    List<MissionNotificationDTO> claimedMissionPage(@Param("reqVO")ClaimedMissionQueryReqVO reqVO,
+                                               @Param("start") Integer start, @Param("size") Integer size);
 }

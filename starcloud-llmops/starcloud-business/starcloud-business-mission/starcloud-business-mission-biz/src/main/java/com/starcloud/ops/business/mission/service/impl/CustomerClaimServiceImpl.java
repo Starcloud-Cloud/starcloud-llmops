@@ -91,6 +91,7 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
             modifyReqVO.setPublishUrl(reqVO.getPublishUrl());
             modifyReqVO.setStatus(SingleMissionStatusEnum.published.getCode());
             modifyReqVO.setClaimTime(LocalDateTime.now());
+            modifyReqVO.setPublishTime(LocalDateTime.now());
             missionService.update(modifyReqVO);
         } finally {
             lock.unlock();

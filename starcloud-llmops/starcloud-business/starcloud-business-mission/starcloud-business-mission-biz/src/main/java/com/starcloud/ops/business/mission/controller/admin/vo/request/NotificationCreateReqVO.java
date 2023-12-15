@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.request;
 
+import com.starcloud.ops.business.enums.*;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
-import com.starcloud.ops.business.enums.MisssionTypeEnum;
-import com.starcloud.ops.business.enums.NotificationPlatformEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -65,4 +65,7 @@ public class NotificationCreateReqVO {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "领取人员限制")
+    private ClaimLimitDTO claimLimit;
 }

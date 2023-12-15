@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -76,4 +77,8 @@ public class NotificationRespVO {
 
     @Schema(description = "创建人")
     private String createUser;
+
+
+    @Schema(description = "领取人员限制")
+    private ClaimLimitDTO claimLimit;
 }

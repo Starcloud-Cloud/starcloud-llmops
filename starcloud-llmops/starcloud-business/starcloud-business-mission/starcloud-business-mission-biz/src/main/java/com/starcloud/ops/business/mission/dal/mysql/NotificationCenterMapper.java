@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.mission.api.vo.request.AppNotificationQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
@@ -37,5 +38,9 @@ public interface NotificationCenterMapper extends BaseMapperX<NotificationCenter
     Long pageCount(@Param("reqVO") NotificationPageQueryReqVO reqVO);
 
     List<NotificationCenterDTO> pageDetail(@Param("reqVO") NotificationPageQueryReqVO reqVO,
-                                           @Param("start") Integer start, @Param("end") Integer end);
+                                           @Param("start") Integer start, @Param("size") Integer size);
+
+    Long appPageCount(@Param("reqVO") AppNotificationQueryReqVO reqVO);
+
+    List<NotificationCenterDO> appPage(@Param("reqVO") AppNotificationQueryReqVO reqVO,  @Param("start") Integer start, @Param("size") Integer size);
 }
