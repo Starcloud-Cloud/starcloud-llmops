@@ -51,6 +51,7 @@ public class ChatController {
 
         if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() >= 800) {
             emitter.completeWithError(exception(new ErrorCode(500,"问题字符数大于0且小于800")));
+            return emitter;
         }
 
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
