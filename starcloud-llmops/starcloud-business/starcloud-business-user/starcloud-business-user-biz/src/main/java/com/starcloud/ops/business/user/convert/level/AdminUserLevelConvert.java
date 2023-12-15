@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.user.convert.level;
 
 
-import com.starcloud.ops.business.user.api.level.dto.MemberLevelRespDTO;
+import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelConfigRespDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import org.mapstruct.Mapper;
@@ -31,6 +31,6 @@ public interface AdminUserLevelConvert {
 
     List<AppAdminUserLevelRespVO> convertList02(List<AdminUserLevelDO> list);
 
-    MemberLevelRespDTO convert02(AdminUserLevelDO bean);
+    AdminUserLevelConfigRespDTO convert02(AdminUserLevelDO bean);
 
 }

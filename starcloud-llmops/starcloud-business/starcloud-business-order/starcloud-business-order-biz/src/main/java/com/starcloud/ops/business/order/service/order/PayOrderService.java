@@ -120,35 +120,35 @@ public interface PayOrderService {
      */
     void notifyPayOrder(Long channelId, PayOrderNotifyRespDTO notify, PayNotifyReqDTO rawNotify);
 
-
-    /**
-     * 用户获得订单记录
-     * 分页
-     *
-     * @param userId   分页查询
-     * @param tenantId 分页查询
-     * @return 支付订单
-     * 分页
-     */
-    PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO, Long userId, Long tenantId);
-
-
-    /**
-     * 获取商品列表
-     * 分页
-     *
-     * @return 支付订单
-     * 分页
-     */
-    Map<String, List<AppPayProductDetailsRespVO>> getAppProductList();
-
-
-    /**
-     * 获取商品优惠信息
-     *
-     * @return
-     */
-    AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode);
+//
+//    /**
+//     * 用户获得订单记录
+//     * 分页
+//     *
+//     * @param userId   分页查询
+//     * @param tenantId 分页查询
+//     * @return 支付订单
+//     * 分页
+//     */
+//    PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO, Long userId, Long tenantId);
+//
+//
+//    /**
+//     * 获取商品列表
+//     * 分页
+//     *
+//     * @return 支付订单
+//     * 分页
+//     */
+//    Map<String, List<AppPayProductDetailsRespVO>> getAppProductList();
+//
+//
+//    /**
+//     * 获取商品优惠信息
+//     *
+//     * @return
+//     */
+//    AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode);
 
 
     /**

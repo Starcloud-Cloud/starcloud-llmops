@@ -471,130 +471,130 @@ public class PayOldOrderServiceImpl implements PayOrderService {
      * @return 支付订单
      * 分页
      */
-    @Override
-    public PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO, Long userId, Long tenantId) {
-
-        PageResult<PayOrderDO> payOrderDOPageResult = orderMapper.selectAppPage(pageReqVO, userId, tenantId);
-
-        List<PayOrderDO> list = payOrderDOPageResult.getList();
-
-        LocalDateTime now = LocalDateTimeUtil.of(System.currentTimeMillis(), TimeZone.getTimeZone("Asia/Shanghai"));
-        List<PayOrderDO> updatedList = list.stream()
-                .peek(order -> {
-                    order.setCreateTime(order.getUpdateTime());
-                    if (now.isAfter(order.getExpireTime()) && !PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
-                        order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
-                    }
-                    if (!PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
-                        order.setCreateTime(null);
-                    }
-                })
-                .collect(Collectors.toList());
-        payOrderDOPageResult.setList(updatedList);
-        return PayOrderConvert.INSTANCE.convertAppPage(payOrderDOPageResult);
-
-    }
-
-    /**
-     * 获取商品列表
-     * 分页
-     *
-     * @return 支付订单
-     * 分页
-     */
-    @Override
-    public Map<String, List<AppPayProductDetailsRespVO>> getAppProductList() {
-        Map<String, List<AppPayProductDetailsRespVO>> productListMap = new HashMap<>();
-
-        for (ProductTimeEnum timeType : ProductTimeEnum.values()) {
-            List<ProductEnum> productList = ProductEnum.getBySetMealTimeType(timeType);
-
-            List<AppPayProductDetailsRespVO> collect = productList.stream()
-                    .map(setMealInfo -> {
-                        AppPayProductDetailsRespVO product = new AppPayProductDetailsRespVO();
-                        product.setCode(setMealInfo.getCode());
-                        product.setName(setMealInfo.getName());
-                        product.setImage(setMealInfo.getPicture());
-                        product.setDescribe(setMealInfo.getDescription());
-                        product.setAmount(Long.valueOf(setMealInfo.getPrice()));
-                        return product;
-                    })
-                    .collect(Collectors.toList());
-            productListMap.put(timeType.getType(), collect);
-        }
-
-        return productListMap;
-    }
-
-    /**
-     * 获取商品优惠信息
-     * 分页
-     *
-     * @param productCode  产品代码
-     * @param discountCode 折扣代码
-     * @return 支付订单
-     * 分页
-     */
-    @Override
-    public AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode) {
-        AppPayProductDiscountRespVO appPayProductDiscountRespVO = new AppPayProductDiscountRespVO();
-        // 判断商品是否存在 存在则获取商品信息
-        ProductEnum product;
-        try {
-            product = ProductEnum.getByCode(productCode);
-        } catch (RuntimeException e) {
-            throw new RuntimeException("未获取到该产品信息");
-        }
-        appPayProductDiscountRespVO.setCode(product.getCode());
-        appPayProductDiscountRespVO.setName(product.getName());
-        if (ProductEnum.AI_TRIAL.equals(product)) {
-            appPayProductDiscountRespVO.setOriginalAmount(5900L);
-            appPayProductDiscountRespVO.setDiscountAmount(4910L);
-            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
-            if (StrUtil.isNotBlank(discountCode)) {
-                throw new RuntimeException("当前产品不可以使用优惠券");
-            }
-            appPayProductDiscountRespVO.setDiscountCouponStatus(false);
-            return appPayProductDiscountRespVO;
-        }
-        //  商品为年付商品
-        if (product.getTimeType().equals(ProductTimeEnum.YEAR)) {
-            // 获取月付产品
-            ProductEnum monthProduct = ProductEnum.getByCode(noNeedProductCode);
-            Integer monthUnitPrice = monthProduct.getPrice();
-
-            appPayProductDiscountRespVO.setOriginalAmount((long) (monthUnitPrice * 12));
-            appPayProductDiscountRespVO.setDiscountAmount((long) (monthUnitPrice * 12 - product.getPrice()));
-            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
-        } else {
-            appPayProductDiscountRespVO.setOriginalAmount(Long.valueOf(product.getPrice()));
-            appPayProductDiscountRespVO.setDiscountAmount(0L);
-            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
-        }
-
-        appPayProductDiscountRespVO.setDiscountCouponStatus(false);
-        // 如果有折扣码 则判断折扣码的有效性
-        if (StrUtil.isNotBlank(discountCode) && userBenefitsService.validateUserBenefitsByCode(discountCode, getLoginUserId())) {
-
-            // 折扣码有效  则根据折扣码计算对应的价格
-            UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId());
-            if (ObjectUtil.isNotNull(userBenefitsStrategyDO)) {
-                Long discountPrice = userBenefitsService.calculateDiscountPrice(productCode, discountCode);
-
-                appPayProductDiscountRespVO.setDiscountAmount(appPayProductDiscountRespVO.getOriginalAmount() - discountPrice);
-                appPayProductDiscountRespVO.setDiscountedAmount(discountPrice);
-                appPayProductDiscountRespVO.setDiscountCouponName(userBenefitsStrategyDO.getStrategyName());
-
-                appPayProductDiscountRespVO.setDiscountCouponStatus(true);
-
-            } else {
-                appPayProductDiscountRespVO.setDiscountCouponStatus(false);
-            }
-        } else {
-            appPayProductDiscountRespVO.setDiscountCouponStatus(false);
-        }
-        return appPayProductDiscountRespVO;
-    }
+//    @Override
+//    public PageResult<AppPayOrderDetailsRespVO> getAppOrderPage(PayOrderAppPageReqVO pageReqVO, Long userId, Long tenantId) {
+//
+//        PageResult<PayOrderDO> payOrderDOPageResult = orderMapper.selectAppPage(pageReqVO, userId, tenantId);
+//
+//        List<PayOrderDO> list = payOrderDOPageResult.getList();
+//
+//        LocalDateTime now = LocalDateTimeUtil.of(System.currentTimeMillis(), TimeZone.getTimeZone("Asia/Shanghai"));
+//        List<PayOrderDO> updatedList = list.stream()
+//                .peek(order -> {
+//                    order.setCreateTime(order.getUpdateTime());
+//                    if (now.isAfter(order.getExpireTime()) && !PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
+//                        order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
+//                    }
+//                    if (!PayOrderStatusEnum.SUCCESS.getStatus().equals(order.getStatus())) {
+//                        order.setCreateTime(null);
+//                    }
+//                })
+//                .collect(Collectors.toList());
+//        payOrderDOPageResult.setList(updatedList);
+//        return PayOrderConvert.INSTANCE.convertAppPage(payOrderDOPageResult);
+//
+//    }
+//
+//    /**
+//     * 获取商品列表
+//     * 分页
+//     *
+//     * @return 支付订单
+//     * 分页
+//     */
+//    @Override
+//    public Map<String, List<AppPayProductDetailsRespVO>> getAppProductList() {
+//        Map<String, List<AppPayProductDetailsRespVO>> productListMap = new HashMap<>();
+//
+//        for (ProductTimeEnum timeType : ProductTimeEnum.values()) {
+//            List<ProductEnum> productList = ProductEnum.getBySetMealTimeType(timeType);
+//
+//            List<AppPayProductDetailsRespVO> collect = productList.stream()
+//                    .map(setMealInfo -> {
+//                        AppPayProductDetailsRespVO product = new AppPayProductDetailsRespVO();
+//                        product.setCode(setMealInfo.getCode());
+//                        product.setName(setMealInfo.getName());
+//                        product.setImage(setMealInfo.getPicture());
+//                        product.setDescribe(setMealInfo.getDescription());
+//                        product.setAmount(Long.valueOf(setMealInfo.getPrice()));
+//                        return product;
+//                    })
+//                    .collect(Collectors.toList());
+//            productListMap.put(timeType.getType(), collect);
+//        }
+//
+//        return productListMap;
+//    }
+//
+//    /**
+//     * 获取商品优惠信息
+//     * 分页
+//     *
+//     * @param productCode  产品代码
+//     * @param discountCode 折扣代码
+//     * @return 支付订单
+//     * 分页
+//     */
+//    @Override
+//    public AppPayProductDiscountRespVO getOrderProductDiscount(String productCode, String noNeedProductCode, String discountCode) {
+//        AppPayProductDiscountRespVO appPayProductDiscountRespVO = new AppPayProductDiscountRespVO();
+//        // 判断商品是否存在 存在则获取商品信息
+//        ProductEnum product;
+//        try {
+//            product = ProductEnum.getByCode(productCode);
+//        } catch (RuntimeException e) {
+//            throw new RuntimeException("未获取到该产品信息");
+//        }
+//        appPayProductDiscountRespVO.setCode(product.getCode());
+//        appPayProductDiscountRespVO.setName(product.getName());
+//        if (ProductEnum.AI_TRIAL.equals(product)) {
+//            appPayProductDiscountRespVO.setOriginalAmount(5900L);
+//            appPayProductDiscountRespVO.setDiscountAmount(4910L);
+//            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
+//            if (StrUtil.isNotBlank(discountCode)) {
+//                throw new RuntimeException("当前产品不可以使用优惠券");
+//            }
+//            appPayProductDiscountRespVO.setDiscountCouponStatus(false);
+//            return appPayProductDiscountRespVO;
+//        }
+//        //  商品为年付商品
+//        if (product.getTimeType().equals(ProductTimeEnum.YEAR)) {
+//            // 获取月付产品
+//            ProductEnum monthProduct = ProductEnum.getByCode(noNeedProductCode);
+//            Integer monthUnitPrice = monthProduct.getPrice();
+//
+//            appPayProductDiscountRespVO.setOriginalAmount((long) (monthUnitPrice * 12));
+//            appPayProductDiscountRespVO.setDiscountAmount((long) (monthUnitPrice * 12 - product.getPrice()));
+//            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
+//        } else {
+//            appPayProductDiscountRespVO.setOriginalAmount(Long.valueOf(product.getPrice()));
+//            appPayProductDiscountRespVO.setDiscountAmount(0L);
+//            appPayProductDiscountRespVO.setDiscountedAmount(Long.valueOf(product.getPrice()));
+//        }
+//
+//        appPayProductDiscountRespVO.setDiscountCouponStatus(false);
+//        // 如果有折扣码 则判断折扣码的有效性
+//        if (StrUtil.isNotBlank(discountCode) && userBenefitsService.validateUserBenefitsByCode(discountCode, getLoginUserId())) {
+//
+//            // 折扣码有效  则根据折扣码计算对应的价格
+//            UserBenefitsStrategyDO userBenefitsStrategyDO = userBenefitsService.validateDiscount(productCode, discountCode, getLoginUserId());
+//            if (ObjectUtil.isNotNull(userBenefitsStrategyDO)) {
+//                Long discountPrice = userBenefitsService.calculateDiscountPrice(productCode, discountCode);
+//
+//                appPayProductDiscountRespVO.setDiscountAmount(appPayProductDiscountRespVO.getOriginalAmount() - discountPrice);
+//                appPayProductDiscountRespVO.setDiscountedAmount(discountPrice);
+//                appPayProductDiscountRespVO.setDiscountCouponName(userBenefitsStrategyDO.getStrategyName());
+//
+//                appPayProductDiscountRespVO.setDiscountCouponStatus(true);
+//
+//            } else {
+//                appPayProductDiscountRespVO.setDiscountCouponStatus(false);
+//            }
+//        } else {
+//            appPayProductDiscountRespVO.setDiscountCouponStatus(false);
+//        }
+//        return appPayProductDiscountRespVO;
+//    }
 
     /**
      * 创建订单的时候价格校验

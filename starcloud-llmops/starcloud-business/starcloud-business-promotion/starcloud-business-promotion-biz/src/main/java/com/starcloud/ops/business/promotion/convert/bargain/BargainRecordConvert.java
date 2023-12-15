@@ -11,7 +11,7 @@ import com.starcloud.ops.business.promotion.controller.app.bargain.vo.record.App
 import com.starcloud.ops.business.promotion.controller.app.bargain.vo.record.AppBargainRecordSummaryRespVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.bargain.BargainActivityDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.bargain.BargainRecordDO;
-import com.starcloud.ops.business.order.api.order.dto.TradeOrderRespDTO;
+import com.starcloud.ops.business.trade.api.order.dto.TradeOrderRespDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

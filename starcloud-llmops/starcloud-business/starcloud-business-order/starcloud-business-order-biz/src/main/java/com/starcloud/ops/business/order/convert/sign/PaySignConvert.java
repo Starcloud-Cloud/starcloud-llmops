@@ -49,7 +49,7 @@ public interface PaySignConvert {
     PayOrderPageItemRespVO pageConvertItemPage(PayOrderDO bean);
 
 
-    PageResult<AppPayOrderDetailsRespVO> convertAppPage(PageResult<PayOrderDO> page);
+//    PageResult<AppPayOrderDetailsRespVO> convertAppPage(PageResult<PayOrderDO> page);
 
 
     PaySignDO convert(PayOrderCreateReqDTO bean);

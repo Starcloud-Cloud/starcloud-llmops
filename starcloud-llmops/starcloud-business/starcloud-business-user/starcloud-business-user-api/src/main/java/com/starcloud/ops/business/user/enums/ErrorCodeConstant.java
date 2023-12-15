@@ -36,7 +36,7 @@ public interface ErrorCodeConstant {
 
 
 
-    //========== 用户等级 1-004-011-000 ==========
+    //========== 用户等级 2-004-011-000 ==========
     ErrorCode LEVEL_NOT_EXISTS = new ErrorCode(2_004_011_000, "用户等级不存在");
     ErrorCode LEVEL_NAME_EXISTS = new ErrorCode(2_004_011_001, "用户等级名称[{}]已被使用");
     ErrorCode LEVEL_VALUE_EXISTS = new ErrorCode(2_004_011_002, "用户等级值[{}]已被[{}]使用");
@@ -45,6 +45,9 @@ public interface ErrorCodeConstant {
     ErrorCode LEVEL_HAS_USER = new ErrorCode(2_004_011_005, "用户等级下存在用户，无法删除");
 
     ErrorCode EXPERIENCE_BIZ_NOT_SUPPORT = new ErrorCode(2_004_011_201, "用户经验业务类型不支持");
+
+    //========== 积分记录 2-004-008-000 ==========
+    ErrorCode POINT_RECORD_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户积分记录业务类型不支持");
 
 
 

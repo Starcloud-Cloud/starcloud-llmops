@@ -8,7 +8,7 @@ import com.starcloud.ops.business.promotion.convert.combination.CombinationActiv
 import com.starcloud.ops.business.promotion.dal.dataobject.combination.CombinationRecordDO;
 import com.starcloud.ops.business.promotion.enums.combination.CombinationRecordStatusEnum;
 import com.starcloud.ops.business.promotion.service.combination.CombinationRecordService;
-import com.starcloud.ops.business.order.api.order.TradeOrderApi;
+import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

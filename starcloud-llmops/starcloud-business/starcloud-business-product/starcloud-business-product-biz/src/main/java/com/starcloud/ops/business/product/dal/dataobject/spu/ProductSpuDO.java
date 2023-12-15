@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.product.dal.dataobject.spu;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import com.starcloud.ops.business.product.controller.admin.spu.vo.GiveRightsVO;
+import com.starcloud.ops.business.product.controller.admin.spu.vo.SubscribeConfigVO;
 import com.starcloud.ops.business.product.dal.dataobject.brand.ProductBrandDO;
 import com.starcloud.ops.business.product.dal.dataobject.category.ProductCategoryDO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
@@ -299,7 +302,7 @@ public class ProductSpuDO extends BaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseArray(json, GiveRights.class);
+            return JsonUtils.parseObject(json, GiveRights.class);
         }
 
         @Override
@@ -308,12 +311,14 @@ public class ProductSpuDO extends BaseDO {
         }
 
     }
+
+
 
     public static class SubscribeConfigTypeHandler extends AbstractJsonTypeHandler<Object> {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseArray(json, SubscribeConfig.class);
+            return JsonUtils.parseObject(json, SubscribeConfig.class);
         }
 
         @Override
@@ -322,4 +327,5 @@ public class ProductSpuDO extends BaseDO {
         }
 
     }
+
 }

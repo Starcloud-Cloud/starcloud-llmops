@@ -19,10 +19,10 @@ import com.starcloud.ops.business.promotion.enums.bargain.BargainRecordStatusEnu
 import com.starcloud.ops.business.promotion.service.bargain.BargainActivityService;
 import com.starcloud.ops.business.promotion.service.bargain.BargainHelpService;
 import com.starcloud.ops.business.promotion.service.bargain.BargainRecordService;
-import com.starcloud.ops.business.order.api.order.TradeOrderApi;
-import com.starcloud.ops.business.order.api.order.dto.TradeOrderRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
+import com.starcloud.ops.business.trade.api.order.dto.TradeOrderRespDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

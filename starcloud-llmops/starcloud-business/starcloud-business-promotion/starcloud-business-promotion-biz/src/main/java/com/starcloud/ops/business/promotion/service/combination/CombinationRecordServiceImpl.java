@@ -22,7 +22,7 @@ import com.starcloud.ops.business.promotion.dal.dataobject.combination.Combinati
 import com.starcloud.ops.business.promotion.dal.dataobject.combination.CombinationRecordDO;
 import com.starcloud.ops.business.promotion.dal.mysql.combination.CombinationRecordMapper;
 import com.starcloud.ops.business.promotion.enums.combination.CombinationRecordStatusEnum;
-import com.starcloud.ops.business.order.api.order.TradeOrderApi;
+import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;

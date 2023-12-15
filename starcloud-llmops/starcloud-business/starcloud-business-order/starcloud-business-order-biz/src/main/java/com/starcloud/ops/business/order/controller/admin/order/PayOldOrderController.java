@@ -193,25 +193,25 @@ public class PayOldOrderController {
             throw exception(ErrorCodeConstants.PAY_ORDER_SUBMIT_CHANNEL_ERROR);
         }
     }
-
-    @PostMapping("/user/page")
-    @Operation(summary = "用户获取订单分页")
-    public CommonResult<PageResult<AppPayOrderDetailsRespVO>> submitPayOrder(@RequestBody PayOrderAppPageReqVO pageReqVO) {
-        PageResult<AppPayOrderDetailsRespVO> respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUserId(), getTenantId());
-        return success(respVO);
-    }
-
-    @PostMapping("/product/list")
-    @Operation(summary = "获取商品列表")
-    public CommonResult<Map<String, List<AppPayProductDetailsRespVO>>> getProductList() {
-        return success(payOrderService.getAppProductList());
-    }
-
-    @PostMapping("/product/discount")
-    @Operation(summary = "获取商品优惠信息")
-    public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestBody PayOrderDiscountReqVO payOrderDiscountReqVO) {
-        return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
-    }
+//
+//    @PostMapping("/user/page")
+//    @Operation(summary = "用户获取订单分页")
+//    public CommonResult<PageResult<AppPayOrderDetailsRespVO>> submitPayOrder(@RequestBody PayOrderAppPageReqVO pageReqVO) {
+//        PageResult<AppPayOrderDetailsRespVO> respVO = payOrderService.getAppOrderPage(pageReqVO, getLoginUserId(), getTenantId());
+//        return success(respVO);
+//    }
+//
+//    @PostMapping("/product/list")
+//    @Operation(summary = "获取商品列表")
+//    public CommonResult<Map<String, List<AppPayProductDetailsRespVO>>> getProductList() {
+//        return success(payOrderService.getAppProductList());
+//    }
+//
+//    @PostMapping("/product/discount")
+//    @Operation(summary = "获取商品优惠信息")
+//    public CommonResult<AppPayProductDiscountRespVO> getOrderProductDiscount(@RequestBody PayOrderDiscountReqVO payOrderDiscountReqVO) {
+//        return success(payOrderService.getOrderProductDiscount(payOrderDiscountReqVO.getProductCode(), payOrderDiscountReqVO.getNoNeedProductCode(),payOrderDiscountReqVO.getDiscountCode()));
+//    }
 
 
     @Deprecated

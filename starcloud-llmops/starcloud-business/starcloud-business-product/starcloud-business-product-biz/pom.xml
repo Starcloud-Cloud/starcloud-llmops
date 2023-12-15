@@ -84,6 +84,11 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-test</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
 
     </dependencies>
 
