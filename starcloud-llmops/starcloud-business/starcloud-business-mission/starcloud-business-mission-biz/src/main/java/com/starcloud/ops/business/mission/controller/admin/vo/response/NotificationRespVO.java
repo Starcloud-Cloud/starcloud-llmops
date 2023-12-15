@@ -21,8 +21,17 @@ public class NotificationRespVO {
     @Schema(description = "通告名称")
     private String name;
 
+    @Schema(description = "平台")
+    private String platform;
+
+    @Schema(description = "领域")
+    private String field;
+
     @Schema(description = "任务类型")
     private String type;
+
+    @Schema(description = "状态")
+    private String status;
 
     @Schema(description = "单价明细")
     private PostingUnitPriceDTO unitPrice;

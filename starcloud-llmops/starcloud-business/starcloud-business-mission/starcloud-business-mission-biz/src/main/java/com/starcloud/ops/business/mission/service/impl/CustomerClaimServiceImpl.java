@@ -89,7 +89,7 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
             modifyReqVO.setUid(reqVO.getUid());
             modifyReqVO.setClaimUsername(reqVO.getClaimUsername());
             modifyReqVO.setPublishUrl(reqVO.getPublishUrl());
-            modifyReqVO.setStatus(SingleMissionStatusEnum.claimed.getCode());
+            modifyReqVO.setStatus(SingleMissionStatusEnum.published.getCode());
             modifyReqVO.setClaimTime(LocalDateTime.now());
             modifyReqVO.setPublishTime(LocalDateTime.now());
             missionService.update(modifyReqVO);
