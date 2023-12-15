@@ -6,6 +6,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 @Schema(description = "小程序查询通告列表")
@@ -15,16 +16,10 @@ public class AppNotificationQueryReqVO extends PageParam {
     @NotBlank(message = "用户id不能为空")
     private String claimUserId;
 
-//    @Schema(description = "区域")
-//    private String address;
-//
-//    @Schema(description = "性别")
-//    private String gender;
-//
-//    @Schema(description = "帐号类型")
-//    private String accountType;
-//
-//    @Schema(description = "粉丝数")
-//    private Long fansNum;
+    @Schema(description = "是否公开")
+    private Boolean open;
+
+    @Schema(description = "任务创建人")
+    private List<String> creator;
 
 }

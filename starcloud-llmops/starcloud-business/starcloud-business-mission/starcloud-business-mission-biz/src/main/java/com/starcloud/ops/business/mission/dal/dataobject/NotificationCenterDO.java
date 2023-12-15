@@ -88,4 +88,9 @@ public class NotificationCenterDO extends TenantBaseDO {
      */
     private String claimLimit;
 
+    /**
+     * 是否公开
+     */
+    private Boolean open;
+
 }
