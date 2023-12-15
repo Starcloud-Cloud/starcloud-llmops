@@ -53,4 +53,16 @@ public class AppNotificationRespVO {
 
     @Schema(description = "领取人员限制")
     private ClaimLimitDTO claimLimit;
+
+    @Schema(description = "总任务量")
+    private Integer total;
+
+    @Schema(description = "总领取数")
+    private Integer claimCount;
+
+    @Schema(description = "当前用户领取数量")
+    private Integer currentUserNum;
+
+    @Schema(description = "访问次数")
+    private Integer visitNum;
 }

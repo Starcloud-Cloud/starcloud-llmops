@@ -31,6 +31,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -172,9 +173,31 @@ public class WechatAppApiImpl implements WechatAppApi {
     }
 
     @Override
-    public AppNotificationRespVO notifyDetail(String notificationUid) {
+    public AppNotificationRespVO notifyDetail(String notificationUid, String userId) {
         NotificationCenterDO notificationCenterDO = notificationByUid(notificationUid);
-        return NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDO);
+        notificationCenterDO.setVisitNum((notificationCenterDO.getVisitNum() == null ? 0 : notificationCenterDO.getVisitNum()) + 1);
+        notificationCenterMapper.updateById(notificationCenterDO);
+        AppNotificationRespVO respVO = NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDO);
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByNotification(notificationUid);
+        respVO.setTotal(singleMissionDOList.size());
+        Integer claimCount = 0;
+        Integer currentUserNum = 0;
+        for (SingleMissionDO missionDO : singleMissionDOList) {
+            if (SingleMissionStatusEnum.claimed.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
+                claimCount++;
+                if (Objects.equals(userId, missionDO.getClaimUserId())) {
+                    currentUserNum++;
+                }
+            }
+        }
+        respVO.setClaimCount(claimCount);
+        respVO.setCurrentUserNum(currentUserNum);
+        return respVO;
     }
 
     private SingleMissionDO missionByUid(String uid) {
