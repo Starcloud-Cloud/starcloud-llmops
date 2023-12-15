@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.chat;
 
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -13,6 +14,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,12 +42,16 @@ public class ChatController {
 
     @Operation(summary = "聊天")
     @PostMapping("/completions")
-    public SseEmitter conversation(@RequestBody @Valid ChatRequestVO request, HttpServletResponse httpServletResponse) {
+    public SseEmitter conversation(@RequestBody ChatRequestVO request, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
+
+        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() >= 800) {
+            throw exception(new ErrorCode(500,"问题字符数大于0且小于800"));
+        }
 
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
 //        limitRequest.setExclude(Collections.singletonList("RATE"));
