@@ -57,6 +57,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         metadata.put("accountType", AccountTypeEnum.options());
         metadata.put("address", AddressEnum.options());
         metadata.put("gender", GenderEnum.options());
+        metadata.put("missionType", MisssionTypeEnum.options());
         return metadata;
 
     }
