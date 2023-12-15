@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.user.api.level;
 
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelRecordDO;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelRecordService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +25,8 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 @Slf4j
 public class AdminUserLevelApiImpl implements AdminUserLevelApi {
 
+    @Resource
+    private AdminUserLevelService adminUserLevelService;
     @Resource
     private AdminUserLevelRecordService adminUserLevelRecordService;
 
@@ -46,9 +50,17 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
      * @return 会员等级
      */
     @Override
-    public void addAdminUserLevel(Long userId, Integer levelId) {
+    public void addAdminUserLevel(Long userId, Long levelId) {
         log.warn("设置会员等级");
-        adminUserLevelRecordService.createLevelRecord(null);
+        AdminUserLevelDO level = adminUserLevelService.getLevel(levelId);
+        AdminUserLevelRecordDO adminUserLevelRecordDO = new AdminUserLevelRecordDO();
+        adminUserLevelRecordDO.setUserId(userId);
+        adminUserLevelRecordDO.setUserId(levelId);
+        adminUserLevelRecordDO.setLevelBefore(level.getLevel());
+        adminUserLevelRecordDO.setLevelAfter(level.getLevel());
+        adminUserLevelRecordDO.setValidStartTime(null);
+        adminUserLevelRecordDO.setValidEndTime(null);
+        adminUserLevelRecordService.createLevelRecord(adminUserLevelRecordDO);
     }
 
     /**

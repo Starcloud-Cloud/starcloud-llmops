@@ -1,26 +1,29 @@
-package com.starcloud.ops.business.trade.service.price;
+package com.starcloud.ops.business.trade.service.rights;
 
 
 import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
+import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculator;
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
+import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_STOCK_NOT_ENOUGH;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.PRICE_CALCULATE_PAY_PRICE_ILLEGAL;
@@ -33,34 +36,27 @@ import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.PRICE_CA
 @Service
 @Validated
 @Slf4j
-public class TradePriceServiceImpl implements TradePriceService {
+public class TradeRightsServiceImpl implements TradeRightsService {
 
     @Resource
     private ProductSkuApi productSkuApi;
     @Resource
     private ProductSpuApi productSpuApi;
 
-    @Resource
-    private List<TradePriceCalculator> priceCalculators;
-
     @Override
-    public TradePriceCalculateRespBO calculatePrice(TradePriceCalculateReqBO calculateReqBO) {
+    public TradeRightsCalculateRespBO calculateRights(TradePriceCalculateReqBO calculateReqBO) {
         // 1.1 获得商品 SKU 数组
         List<ProductSkuRespDTO> skuList = checkSkuList(calculateReqBO);
         // 1.2 获得商品 SPU 数组
         List<ProductSpuRespDTO> spuList = checkSpuList(skuList);
 
-        // 2.1 计算价格
-        TradePriceCalculateRespBO calculateRespBO = TradePriceCalculatorHelper
-                .buildCalculateResp(calculateReqBO, spuList, skuList);
-        priceCalculators.forEach(calculator -> calculator.calculate(calculateReqBO, calculateRespBO));
-        // 2.2  如果最终支付金额小于等于 0，则抛出业务异常
-        if (calculateRespBO.getPrice().getPayPrice() <= 0) {
-            log.error("[calculatePrice][价格计算不正确，请求 calculateReqDTO({})，结果 priceCalculate({})]",
-                    calculateReqBO, calculateRespBO);
-            throw exception(PRICE_CALCULATE_PAY_PRICE_ILLEGAL);
+        // 2.0 设置权益相关字段
+        TradeRightsCalculateRespBO calculateRespBO = new TradeRightsCalculateRespBO();
+         List<GiveRightsDTO> giveRights = new ArrayList<>();
+        for (ProductSpuRespDTO productSpuRespDTO : spuList) {
+            giveRights.add(productSpuRespDTO.getGiveRights());
         }
-        // 3.0 设置权益相关字段
+        calculateRespBO.setGiveRights(giveRights);
         return calculateRespBO;
     }
 

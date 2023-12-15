@@ -47,6 +47,8 @@ import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqB
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
 import com.starcloud.ops.business.trade.enums.order.*;
+import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
+import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -88,6 +90,9 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     private CartService cartService;
     @Resource
     private TradePriceService tradePriceService;
+
+    @Resource
+    private TradeRightsService tradeRightsService;
     @Resource
     private DeliveryExpressService deliveryExpressService;
     @Resource
@@ -154,14 +159,38 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         return tradePriceService.calculatePrice(calculateReqBO);
     }
 
+    /**
+     * 计算订单价格
+     *
+     * @param userId          用户编号
+     * @param settlementReqVO 结算信息
+     * @return 订单价格
+     */
+    private TradeRightsCalculateRespBO calculateRights(Long userId, AppTradeOrderSettlementReqVO settlementReqVO) {
+        // 1. 如果来自购物车，则获得购物车的商品
+        List<CartDO> cartList = cartService.getCartList(userId,
+                convertSet(settlementReqVO.getItems(), AppTradeOrderSettlementReqVO.Item::getCartId));
+
+        // 2. 计算价格
+        TradePriceCalculateReqBO calculateReqBO = TradeOrderConvert.INSTANCE.convert(userId, settlementReqVO, cartList);
+        calculateReqBO.getItems().forEach(item -> Assert.isTrue(item.getSelected(), // 防御性编程，保证都是选中的
+                "商品({}) 未设置为选中", item.getSkuId()));
+        return tradeRightsService.calculateRights(calculateReqBO);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     @TradeOrderLog(operateType = TradeOrderOperateTypeEnum.MEMBER_CREATE)
     public TradeOrderDO createOrder(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO, Integer terminal) {
         // 1.1 价格计算
         TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, createReqVO);
+
+        TradeRightsCalculateRespBO calculateRightsRespBO = calculateRights(userId, createReqVO);
         // 1.2 构建订单
         TradeOrderDO order = buildTradeOrder(userId, userIp, createReqVO, calculateRespBO, terminal);
+        // 1.3 设置订单权益组
+        order.setGiveRights(calculateRightsRespBO.getGiveRights());
+
         List<TradeOrderItemDO> orderItems = buildTradeOrderItems(order, calculateRespBO);
 
         // 2. 订单创建前的逻辑

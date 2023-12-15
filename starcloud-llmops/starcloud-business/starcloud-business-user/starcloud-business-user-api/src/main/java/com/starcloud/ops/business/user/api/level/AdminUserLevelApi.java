@@ -29,7 +29,7 @@ public interface AdminUserLevelApi {
      * @param levelId 会员等级编号
      * @return 会员等级
      */
-    void addAdminUserLevel(Long userId, Integer levelId);
+    void addAdminUserLevel(Long userId, Long levelId);
 
 
     /**

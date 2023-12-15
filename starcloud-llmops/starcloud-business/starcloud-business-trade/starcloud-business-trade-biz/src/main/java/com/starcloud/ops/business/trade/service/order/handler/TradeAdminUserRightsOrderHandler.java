@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.service.order.handler;
 
 import cn.hutool.core.collection.CollUtil;
+import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
@@ -28,17 +29,20 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
     @Resource
     private AdminUserLevelApi adminUserLevelApi;
 
-    @Resource
-    private AfterSaleService afterSaleService;
-
-
     @Override
     public void afterPayOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
 
+        if (order.getGiveRights().size() == 0) {
+            return;
+        }
         // 设置会员等级
-        adminUserLevelApi.addAdminUserLevel(order.getUserId(),order.getGiveRights().getLevel());
-        // 设置会员权益
-        adminUserRightsApi.addRights(order.getUserId(),order.getGiveRights().getGiveMagicBean(),order.getGiveRights().getGiveImage(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()));
+        for (GiveRightsDTO giveRight : order.getGiveRights()) {
+            adminUserLevelApi.addAdminUserLevel(order.getUserId(), giveRight.getLevel());
+            // 设置会员权益
+            adminUserRightsApi.addRights(order.getUserId(), giveRight.getGiveMagicBean(), giveRight.getGiveImage(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()));
+        }
+
+
     }
 
 //    @Override

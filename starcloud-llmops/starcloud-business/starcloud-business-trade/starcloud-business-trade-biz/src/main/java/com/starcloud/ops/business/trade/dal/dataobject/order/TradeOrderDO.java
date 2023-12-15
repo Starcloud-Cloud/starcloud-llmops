@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.trade.dal.dataobject.order;
 
 import cn.iocoder.yudao.framework.common.enums.TerminalEnum;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.brokerage.BrokerageUserDO;
 import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryExpressDO;
@@ -17,13 +19,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 交易订单 DO
  *
  * @author 芋道源码
  */
-@TableName("trade_order")
+@TableName(value ="trade_order", autoResultMap = true)
 @KeySequence("trade_order_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -335,7 +338,22 @@ public class TradeOrderDO extends BaseDO {
     /**
      * 属性，JSON 格式
      */
-    private GiveRightsDTO giveRights;
+    @TableField(typeHandler = GiveRightsDTOTypeHandler.class)
+    private List<GiveRightsDTO> giveRights;
+
+    public static class GiveRightsDTOTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseArray(json, GiveRightsDTO.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
 
 
 

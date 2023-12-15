@@ -311,10 +311,4 @@ public class TradePriceCalculateRespBO {
         private Integer discountPrice;
 
     }
-
-    // ========== 权益 相关字段 =========
-    @Schema(description = "权益参数")
-    @Valid
-    private GiveRightsDTO giveRights;
-
 }
