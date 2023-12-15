@@ -57,6 +57,20 @@
         </if>
         group by n.uid
         order by n.create_time desc
-        limit #{start},#{end}
+        limit #{start},#{size}
+    </select>
+
+    <select id="appPageCount" resultType="java.lang.Long">
+        select count(1)
+        from llm_notification
+        where deleted = false and end_time &gt; now() and status = 'published'
+    </select>
+
+    <select id="appPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO">
+        select *
+        from llm_notification
+        where deleted = false and end_time &gt; now() and status = 'published'
+        order by id
+        limit #{start},#{size}
     </select>
 </mapper>

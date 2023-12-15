@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.request;
 
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import com.starcloud.ops.business.enums.MisssionTypeEnum;
 import com.starcloud.ops.business.enums.NotificationPlatformEnum;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -56,4 +58,7 @@ public class NotificationModifyReqVO {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "领取人员限制")
+    private ClaimLimitDTO claimLimit;
 }

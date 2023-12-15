@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.mission.controller.admin.vo.response;
+package com.starcloud.ops.business.mission.api.vo.response;
 
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
@@ -9,11 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Schema(description = "任务详情")
-public class NotificationRespVO {
-
-    @Schema(description = "id")
-    private Long id;
+@Schema(description = "通告详情")
+public class AppNotificationRespVO {
 
     @Schema(description = "uid")
     private String uid;
@@ -21,8 +18,17 @@ public class NotificationRespVO {
     @Schema(description = "通告名称")
     private String name;
 
+    @Schema(description = "平台")
+    private String platform;
+
+    @Schema(description = "领域")
+    private String field;
+
     @Schema(description = "任务类型")
     private String type;
+
+    @Schema(description = "状态")
+    private String status;
 
     @Schema(description = "单价明细")
     private PostingUnitPriceDTO unitPrice;
@@ -44,31 +50,6 @@ public class NotificationRespVO {
 
     @Schema(description = "备注")
     private String remark;
-
-    @Schema(description = "创建时间")
-    private LocalDateTime createTime;
-
-    @Schema(description = "更新时间")
-    private LocalDateTime updateTime;
-
-    @Schema(description = "总量")
-    private Long total;
-
-    @Schema(description = "待领取数")
-    private Long stayClaimCount;
-
-    @Schema(description = "领取数")
-    private Long claimCount;
-
-    @Schema(description = "用户发布数")
-    private Long publishedCount;
-
-    @Schema(description = "结算数")
-    private Long settlementCount;
-
-    @Schema(description = "创建人")
-    private String createUser;
-
 
     @Schema(description = "领取人员限制")
     private ClaimLimitDTO claimLimit;
