@@ -114,11 +114,10 @@ public class ListingDraftController {
         return CommonResult.success(respVO);
     }
 
-    @GetMapping("/recommend/{uid}/{version}")
+    @PutMapping("/recommend")
     @Operation(summary = "智能推荐", description = "智能推荐")
-    public CommonResult<String> searchTermRecommend(@PathVariable("uid") String uid,
-                                                    @PathVariable("version") Integer version) {
-        String recommend = draftService.searchTermRecommend(uid, version);
+    public CommonResult<String> searchTermRecommend(@RequestBody DraftReqVO reqVO) {
+        String recommend = draftService.searchTermRecommend(reqVO);
         return CommonResult.success(recommend);
     }
 
