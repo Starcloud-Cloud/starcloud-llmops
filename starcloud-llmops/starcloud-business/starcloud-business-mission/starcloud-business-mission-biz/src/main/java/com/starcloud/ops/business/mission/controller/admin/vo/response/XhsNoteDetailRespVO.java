@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
 import com.starcloud.ops.business.app.api.xhs.note.NoteImage;
+import com.starcloud.ops.business.app.api.xhs.note.NoteTag;
 import com.starcloud.ops.business.app.api.xhs.note.NoteVideo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -45,5 +46,8 @@ public class XhsNoteDetailRespVO {
 
     @Schema(description = "预结算金额")
     private BigDecimal amount;
+
+    @Schema(description = "标签")
+    private List<NoteTag> tagList;
 
 }
