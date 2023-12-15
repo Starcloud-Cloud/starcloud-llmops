@@ -93,4 +93,9 @@ public class NotificationCenterDO extends TenantBaseDO {
      */
     private Integer visitNum;
 
+    /**
+     * 是否公开
+     */
+    private Boolean open;
+
 }

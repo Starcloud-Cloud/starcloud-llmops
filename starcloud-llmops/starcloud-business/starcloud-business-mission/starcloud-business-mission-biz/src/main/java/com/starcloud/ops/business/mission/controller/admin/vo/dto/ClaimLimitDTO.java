@@ -27,11 +27,11 @@ public class ClaimLimitDTO {
 
     @Schema(description = "最小粉丝数")
     @Min(value = 0, message = "最小粉丝数要大于0")
-    private Long minFansNum ;
+    private Integer minFansNum ;
 
     @Schema(description = "最大粉丝数")
     @Min(value = 0, message = "最大粉丝数要大于0")
-    private Long maxFansNum;
+    private Integer maxFansNum;
 
     @Schema(description = "每人领取数量")
     @Min(value = 0, message = "每人领取数量要大于0")
@@ -44,6 +44,8 @@ public class ClaimLimitDTO {
         claimLimitDTO.setGender(GenderEnum.unlimited.getCode());
         claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
         claimLimitDTO.setClaimNum(1);
+        claimLimitDTO.setMinFansNum(-1);
+        claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
         return claimLimitDTO;
     }
 }

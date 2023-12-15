@@ -64,12 +64,30 @@
         select count(1)
         from llm_notification
         where deleted = false and end_time &gt; now() and status = 'published'
+        <if test="reqVO.open != null">
+            and open = #{reqVO.open}
+        </if>
+        <if test="reqVO.creator != null  and reqVO.creator.size() > 0">
+            and creator in
+            <foreach collection="reqVO.creator" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
     </select>
 
     <select id="appPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO">
         select *
         from llm_notification
         where deleted = false and end_time &gt; now() and status = 'published'
+        <if test="reqVO.open != null">
+            and open = #{reqVO.open}
+        </if>
+        <if test="reqVO.creator != null and reqVO.creator.size() > 0">
+            and creator in
+            <foreach collection="reqVO.creator" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
         order by id
         limit #{start},#{size}
     </select>

@@ -58,7 +58,9 @@ public interface NotificationCenterConvert {
     default String toStr(ClaimLimitDTO claimLimitDTO) {
         if (claimLimitDTO == null) {
             claimLimitDTO = ClaimLimitDTO.defaultInstance();
+            return JSONUtil.toJsonStr(claimLimitDTO);
         }
+
         if (StringUtils.isBlank(claimLimitDTO.getAddress())) {
             claimLimitDTO.setAddress(AddressEnum.unlimited.getCode());
         }
@@ -73,6 +75,14 @@ public interface NotificationCenterConvert {
 
         if (claimLimitDTO.getClaimNum() == null || claimLimitDTO.getClaimNum() < 1) {
             claimLimitDTO.setClaimNum(1);
+        }
+
+        if (claimLimitDTO.getMinFansNum() == null) {
+            claimLimitDTO.setMinFansNum(-1);
+        }
+
+        if (claimLimitDTO.getMaxFansNum() == null) {
+            claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
         }
         return JSONUtil.toJsonStr(claimLimitDTO);
     }

@@ -21,6 +21,7 @@ import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
 import com.starcloud.ops.business.mission.api.WechatAppApi;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -57,6 +58,7 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     public PageResult<AppNotificationRespVO> notifyPage(AppNotificationQueryReqVO reqVO) {
+        reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
         Long count = notificationCenterMapper.appPageCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();

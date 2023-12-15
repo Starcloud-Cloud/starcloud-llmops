@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 @Getter
 public enum AddressEnum implements IEnumable<String> {
     unlimited("unlimited","不限"),
-    hangzhou("hangzhou","杭州");
+    shanghai("shanghai","上海市"),
+    hangzhou("hangzhou","杭州市"),
+    zhejiang("zhejiang","浙江省");
 
     private String code;
 
