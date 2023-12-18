@@ -85,7 +85,7 @@ public class CreativeImageUtils {
         List<Paragraph> paragraphList = Lists.newArrayList();
         if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
             String paragraphString = Optional.ofNullable(copyWriting.getContent()).orElse(StringUtils.EMPTY);
-            paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.SECOND);
+            paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.THIRD);
         }
 
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
