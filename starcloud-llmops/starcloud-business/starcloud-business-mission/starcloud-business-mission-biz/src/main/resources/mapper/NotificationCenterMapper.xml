@@ -88,7 +88,7 @@
                 #{item}
             </foreach>
         </if>
-        order by id
+        order by ${field} ${type}
         limit #{start},#{size}
     </select>
 </mapper>
