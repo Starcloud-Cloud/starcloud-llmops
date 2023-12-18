@@ -138,7 +138,7 @@ public class WechatAppApiImpl implements WechatAppApi {
             throw exception(MISSION_CAN_NOT_ABANDON_USERID);
         }
         NotificationCenterDO notificationCenterDO = notificationByUid(singleMissionDO.getNotificationUid());
-        singleMissionDO.setClaimUsername(StringUtils.EMPTY);
+        singleMissionDO.setClaimUserId(StringUtils.EMPTY);
         singleMissionDO.setClaimUsername(StringUtils.EMPTY);
         singleMissionDO.setClaimTime(null);
         singleMissionDO.setPublishUrl(StringUtils.EMPTY);
@@ -150,10 +150,10 @@ public class WechatAppApiImpl implements WechatAppApi {
         }
         singleMissionDO.setPreSettlementTime(null);
         singleMissionDO.setEstimatedAmount(BigDecimal.ZERO);
-        singleMissionDO.setSettlementMsg(StringUtils.EMPTY);
         singleMissionDO.setCloseMsg(StringUtils.EMPTY);
         singleMissionDO.setPreSettlementMsg(StringUtils.EMPTY);
-        singleMissionMapper.updateById(singleMissionDO);
+        singleMissionDO.setNoteDetailId(null);
+        singleMissionMapper.updateMission(singleMissionDO);
     }
 
     @Override

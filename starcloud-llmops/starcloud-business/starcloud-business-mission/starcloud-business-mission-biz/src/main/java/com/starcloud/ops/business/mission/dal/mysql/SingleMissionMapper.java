@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.dal.mysql;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.mission.api.vo.request.ClaimedMissionQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
@@ -28,6 +29,22 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
 //                .orderByDesc(SingleMissionDO::getId);
 //        return selectList(wrapper);
 //    }
+
+    default void updateMission(SingleMissionDO singleMissionDO) {
+        LambdaUpdateWrapper<SingleMissionDO> updateWrapper = Wrappers.lambdaUpdate(SingleMissionDO.class).eq(SingleMissionDO::getId, singleMissionDO.getId())
+                .set(SingleMissionDO::getClaimUserId, singleMissionDO.getClaimUserId())
+                .set(SingleMissionDO::getClaimUsername, singleMissionDO.getClaimUsername())
+                .set(SingleMissionDO::getClaimTime, singleMissionDO.getClaimTime())
+                .set(SingleMissionDO::getPublishUrl, singleMissionDO.getPublishUrl())
+                .set(SingleMissionDO::getPublishTime, singleMissionDO.getPublishTime())
+                .set(SingleMissionDO::getStatus, singleMissionDO.getStatus())
+                .set(SingleMissionDO::getPreSettlementTime, singleMissionDO.getPreSettlementTime())
+                .set(SingleMissionDO::getEstimatedAmount, singleMissionDO.getEstimatedAmount())
+                .set(SingleMissionDO::getCloseMsg, singleMissionDO.getCloseMsg())
+                .set(SingleMissionDO::getPreSettlementMsg, singleMissionDO.getPreSettlementMsg())
+                .set(SingleMissionDO::getNoteDetailId,singleMissionDO.getNoteDetailId());
+        update(updateWrapper);
+    }
 
     List<SingleMissionExportVO> export(@Param("reqVO") SinglePageQueryReqVO reqVO);
 
