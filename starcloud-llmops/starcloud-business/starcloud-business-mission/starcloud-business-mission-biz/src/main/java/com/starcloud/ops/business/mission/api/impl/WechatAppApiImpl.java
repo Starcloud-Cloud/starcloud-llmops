@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.mission.api.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
+import com.starcloud.ops.business.enums.NotificationSortFieldEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
@@ -63,7 +65,9 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (count == null || count <= 0) {
             return PageResult.empty();
         }
-        List<NotificationCenterDO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
+        List<NotificationCenterDO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO,
+                PageUtils.getStart(reqVO), reqVO.getPageSize(),
+                NotificationSortFieldEnum.getColumn(reqVO.getSortField()), BooleanUtil.isTrue(reqVO.getAsc()) ? "ASC" : "DESC");
         List<AppNotificationRespVO> respVOList = NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDOList);
         return new PageResult<>(respVOList, count);
     }

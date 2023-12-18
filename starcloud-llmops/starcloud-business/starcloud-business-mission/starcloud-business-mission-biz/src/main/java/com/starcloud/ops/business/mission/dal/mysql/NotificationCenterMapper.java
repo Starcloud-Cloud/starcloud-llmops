@@ -42,5 +42,7 @@ public interface NotificationCenterMapper extends BaseMapperX<NotificationCenter
 
     Long appPageCount(@Param("reqVO") AppNotificationQueryReqVO reqVO);
 
-    List<NotificationCenterDO> appPage(@Param("reqVO") AppNotificationQueryReqVO reqVO,  @Param("start") Integer start, @Param("size") Integer size);
+    List<NotificationCenterDO> appPage(@Param("reqVO") AppNotificationQueryReqVO reqVO,
+                                       @Param("start") Integer start, @Param("size") Integer size,
+                                       @Param("field") String field, @Param("type") String type);
 }

@@ -22,4 +22,10 @@ public class AppNotificationQueryReqVO extends PageParam {
     @Schema(description = "任务创建人")
     private List<String> creator;
 
+    @Schema(description = "排序字段")
+    private String sortField;
+
+    @Schema(description = "正序")
+    private Boolean asc;
+
 }
