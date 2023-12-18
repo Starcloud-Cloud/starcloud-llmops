@@ -5,11 +5,13 @@ import lombok.Getter;
 @Getter
 public enum NotificationSortFieldEnum {
 
-    endTime("end_time", "结束时间"),
+    endTime("n.end_time", "结束时间"),
 
-    singleBudget("single_budget", "单个任务预算"),
+    singleBudget("n.single_budget", "单个任务预算"),
 
-    updateTime("update_time", "更新时间"),
+    updateTime("n.update_time", "更新时间"),
+
+    claimCount("claimCount", "领取量"),
             ;
 
     private String column;

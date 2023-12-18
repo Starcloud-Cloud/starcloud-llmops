@@ -14,10 +14,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMis
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.convert.NotificationCenterConvert;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
-import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
-import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
-import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
-import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
+import com.starcloud.ops.business.mission.dal.dataobject.*;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
 import com.starcloud.ops.business.mission.api.WechatAppApi;
@@ -65,7 +62,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (count == null || count <= 0) {
             return PageResult.empty();
         }
-        List<NotificationCenterDO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO,
+        List<AppNotificationDTO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO,
                 PageUtils.getStart(reqVO), reqVO.getPageSize(),
                 NotificationSortFieldEnum.getColumn(reqVO.getSortField()), BooleanUtil.isTrue(reqVO.getAsc()) ? "ASC" : "DESC");
         List<AppNotificationRespVO> respVOList = NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDOList);
