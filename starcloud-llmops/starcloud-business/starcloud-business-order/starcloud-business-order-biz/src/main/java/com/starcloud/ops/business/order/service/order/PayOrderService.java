@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserDiscountCodeInfoVO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
@@ -22,6 +23,7 @@ import java.util.Map;
  *
  * @author aquan
  */
+@Deprecated
 public interface PayOrderService {
 
     /**
@@ -198,6 +200,7 @@ public interface PayOrderService {
      * @return 支付订单
      */
     List<PayOrderDO> getOrderBySign(Long signId);
+
 
 
 }

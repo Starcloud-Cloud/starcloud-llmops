@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.mq.consumer;
 
-import cn.iocoder.yudao.framework.mq.core.stream.AbstractStreamMessageListener;
+import cn.iocoder.yudao.framework.mq.redis.core.stream.AbstractRedisStreamMessageListener;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.mq.message.AppDeleteMessage;
@@ -13,7 +13,7 @@ import javax.annotation.Resource;
 
 @Component
 @Slf4j
-public class AppDeleteConsumer extends AbstractStreamMessageListener<AppDeleteMessage> {
+public class AppDeleteConsumer extends AbstractRedisStreamMessageListener<AppDeleteMessage> {
 
     @Resource
     private DatasetSourceDataService datasetSourceDataService;

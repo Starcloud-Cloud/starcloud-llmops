@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.framework.tenant.core.context;
 
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
-
+@Deprecated
 public class RequestContext {
 
 

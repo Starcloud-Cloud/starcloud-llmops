@@ -4,14 +4,17 @@ import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.iocoder.yudao.framework.social.core.enums.AuthExtendSource;
 import cn.iocoder.yudao.framework.social.core.request.AuthWeChatMiniAppRequest;
-import com.xkcoding.justauth.AuthRequestFactory;
-import com.xkcoding.justauth.autoconfigure.JustAuthProperties;
-import me.zhyd.oauth.cache.AuthStateCache;
-import me.zhyd.oauth.config.AuthConfig;
-import me.zhyd.oauth.config.AuthSource;
-import me.zhyd.oauth.request.AuthRequest;
+import cn.iocoder.yudao.framework.social.core.request.AuthWeChatMpRequest;
+import com.xingyuv.jushauth.cache.AuthStateCache;
+import com.xingyuv.jushauth.config.AuthConfig;
+import com.xingyuv.jushauth.config.AuthSource;
+import com.xingyuv.jushauth.request.AuthRequest;
+import com.xingyuv.justauth.AuthRequestFactory;
+import com.xingyuv.justauth.autoconfigure.JustAuthProperties;
 
 import java.lang.reflect.Method;
+
+import static com.xingyuv.jushauth.config.AuthDefaultSource.WECHAT_MP;
 
 /**
  * 第三方授权拓展 request 工厂类
@@ -55,6 +58,12 @@ public class YudaoAuthRequestFactory extends AuthRequestFactory {
     }
 
     protected AuthRequest getExtendRequest(String source) {
+        // TODO 芋艿：临时兼容 justauth 迁移的类型不对问题；
+        if (WECHAT_MP.name().equalsIgnoreCase(source)) {
+            AuthConfig config = properties.getType().get(WECHAT_MP.name());
+            return new AuthWeChatMpRequest(config, authStateCache);
+        }
+
         AuthExtendSource authExtendSource;
         try {
             authExtendSource = EnumUtil.fromString(AuthExtendSource.class, source.toUpperCase());

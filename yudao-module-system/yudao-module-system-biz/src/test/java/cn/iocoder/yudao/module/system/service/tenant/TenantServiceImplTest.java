@@ -157,7 +157,7 @@ public class TenantServiceImplTest extends BaseDbUnitTest {
             o.setContactMobile("15601691300");
             o.setPackageId(100L);
             o.setStatus(randomCommonStatus());
-            o.setDomain("https://www.iocoder.cn");
+            o.setWebsite("https://www.iocoder.cn");
             o.setUsername("yunai");
             o.setPassword("yuanma");
         });
@@ -185,7 +185,7 @@ public class TenantServiceImplTest extends BaseDbUnitTest {
         TenantUpdateReqVO reqVO = randomPojo(TenantUpdateReqVO.class, o -> {
             o.setId(dbTenant.getId()); // 设置更新的 ID
             o.setStatus(randomCommonStatus());
-            o.setDomain(randomString());
+            o.setWebsite(randomString());
         });
 
         // mock 套餐
@@ -197,9 +197,9 @@ public class TenantServiceImplTest extends BaseDbUnitTest {
         role100.setTenantId(dbTenant.getId());
         RoleDO role101 = randomPojo(RoleDO.class, o -> o.setId(101L));
         role101.setTenantId(dbTenant.getId());
-        when(roleService.getRoleListByStatus(isNull())).thenReturn(asList(role100, role101));
+        when(roleService.getRoleList()).thenReturn(asList(role100, role101));
         // mock 每个角色的权限
-        when(permissionService.getRoleMenuIds(eq(101L))).thenReturn(asSet(201L, 202L));
+        when(permissionService.getRoleMenuListByRoleId(eq(101L))).thenReturn(asSet(201L, 202L));
 
         // 调用
         tenantService.updateTenant(reqVO);
@@ -454,7 +454,7 @@ public class TenantServiceImplTest extends BaseDbUnitTest {
         TenantContextHolder.setTenantId(dbTenant.getId());
         // mock 菜单
         when(menuService.getMenuList()).thenReturn(Arrays.asList(randomPojo(MenuDO.class, o -> o.setId(100L)),
-                        randomPojo(MenuDO.class, o -> o.setId(101L))));
+                randomPojo(MenuDO.class, o -> o.setId(101L))));
 
         // 调用
         tenantService.handleTenantMenu(handler);

@@ -24,6 +24,7 @@ public class FileApiImpl implements FileApi {
     }
 
     @Override
+    @Deprecated
     public byte[] getContent(String path) throws Exception {
         return fileService.getContent(path);
     }

@@ -1,0 +1,28 @@
+package com.starcloud.ops.business.order.job.order;
+
+import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
+import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
+import com.starcloud.ops.business.order.service.order.TradeOrderUpdateService;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+
+/**
+ * 交易订单的自动过期 Job
+ *
+ * @author 芋道源码
+ */
+@Component
+public class TradeOrderAutoCancelJob implements JobHandler {
+
+    @Resource
+    private TradeOrderUpdateService tradeOrderUpdateService;
+
+    @Override
+    @TenantJob
+    public String execute(String param) {
+        int count = tradeOrderUpdateService.cancelOrderBySystem();
+        return String.format("过期订单 %s 个", count);
+    }
+
+}

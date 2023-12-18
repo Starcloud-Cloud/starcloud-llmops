@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.framework.pay.core.client.dto.notify;
 
-import cn.iocoder.yudao.framework.pay.core.enums.PayNotifyRefundStatusEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.refund.PayRefundStatusRespEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @ToString
 @Builder
+@Deprecated
 public class PayRefundNotifyRespDTO {
 
     /**
@@ -48,7 +49,7 @@ public class PayRefundNotifyRespDTO {
     /**
      * 退款是否成功
      */
-    private PayNotifyRefundStatusEnum status;
+    private PayRefundStatusRespEnum status;
 
     /**
      * 退款成功时间

@@ -4,9 +4,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
-import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
-import cn.iocoder.yudao.module.member.dal.mysql.user.MemberUserMapper;
-import cn.iocoder.yudao.module.member.service.user.MemberUserServiceImpl;
+import cn.iocoder.yudao.module.tourist.dal.dataobject.user.TouristDO;
+import cn.iocoder.yudao.module.tourist.dal.mysql.user.TouristMapper;
+import cn.iocoder.yudao.module.tourist.service.user.TouristServiceImpl;
 import cn.iocoder.yudao.module.system.api.logger.LoginLogApi;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.api.oauth2.OAuth2TokenApi;
@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getCli
 
 /**
  * 使用若以的表和逻辑，实现一个简单的游客状态的记录功能
- * 1，根据游客访问渠道（网页，微信对话，钉钉等唯一标识)，直接生成一个会员 参考 MemberAuthServiceImpl
+ * 1，根据游客访问渠道（网页，微信对话，钉钉等唯一标识)，直接生成一个会员 参考 TouristAuthServiceImpl
  * 2，生成令牌和登录记录
  */
 @Service
@@ -32,10 +32,10 @@ import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getCli
 public class EndUserServiceImpl {
 
     @Resource
-    private MemberUserMapper memberUserMapper;
+    private TouristMapper touristMapper;
 
     @Resource
-    private MemberUserServiceImpl userService;
+    private TouristServiceImpl userService;
 
     @Resource
     private LoginLogApi loginLogApi;
@@ -46,7 +46,7 @@ public class EndUserServiceImpl {
 
     public Boolean checkUser(String endUserCode) {
         // 用户已经存在
-        MemberUserDO user = memberUserMapper.selectByMobile(endUserCode);
+        TouristDO user = touristMapper.selectByMobile(endUserCode);
         return user != null;
     }
 
@@ -62,7 +62,7 @@ public class EndUserServiceImpl {
     public String webLogin(String endUserCode) {
 
         // 用户已经存在
-        MemberUserDO user = memberUserMapper.selectByMobile(endUserCode);
+        TouristDO user = touristMapper.selectByMobile(endUserCode);
 
         if (user == null) {
             user = createUser(endUserCode, AppSceneEnum.SHARE_WEB);
@@ -84,7 +84,7 @@ public class EndUserServiceImpl {
     public String weMpLogin(String openId) {
 
         // 用户已经存在
-        MemberUserDO user = memberUserMapper.selectByMobile(openId);
+        TouristDO user = touristMapper.selectByMobile(openId);
 
         if (user == null) {
             user = createUser(openId, AppSceneEnum.MP);
@@ -105,7 +105,7 @@ public class EndUserServiceImpl {
     public String weChatLogin(String userCode) {
 
         // 用户已经存在
-        MemberUserDO user = memberUserMapper.selectByMobile(userCode);
+        TouristDO user = touristMapper.selectByMobile(userCode);
 
         if (user == null) {
             user = createUser(userCode, AppSceneEnum.WECOM_GROUP);
@@ -126,7 +126,7 @@ public class EndUserServiceImpl {
     public String ddLogin(String userCode) {
 
         // 用户已经存在
-        MemberUserDO user = memberUserMapper.selectByMobile(userCode);
+        TouristDO user = touristMapper.selectByMobile(userCode);
 
         if (user == null) {
             user = createUser(userCode, null);
@@ -146,7 +146,7 @@ public class EndUserServiceImpl {
     public String dyLogin(String userCode) {
 
         // 用户已经存在
-        MemberUserDO user = memberUserMapper.selectByMobile(userCode);
+        TouristDO user = touristMapper.selectByMobile(userCode);
 
         if (user == null) {
             user = createUser(userCode, null);
@@ -159,13 +159,13 @@ public class EndUserServiceImpl {
 
 
     @Transactional
-    protected MemberUserDO createUser(String endUserCode, AppSceneEnum appScene) {
+    protected TouristDO createUser(String endUserCode, AppSceneEnum appScene) {
 
         // 校验验证码
         String userIp = getClientIP();
 
         // 用户不存在，则进行创建
-        MemberUserDO user = userService.createUser(endUserCode, appScene.name(), userIp);
+        TouristDO user = userService.createUser(endUserCode, appScene.name(), userIp);
         // 插入登陆日志
         createLoginLog(user.getId(), endUserCode, 106, LoginResultEnum.SUCCESS);
 

@@ -80,7 +80,7 @@ public class MobilePhoneServiceImpl implements CommunicationService {
     @DataPermission(enable = false)
     public void validateCode(CodeValidateReqVO reqVO) {
         checkAccount(reqVO.getAccount());
-        if (ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
+        if (SmsSceneEnum.ADMIN_MEMBER_BIND.getScene().equals(reqVO.getScene())) {
             AdminUserDO userByMobile = adminUserService.getUserByMobile(reqVO.getAccount());
             if (userByMobile != null) {
                 throw exception(USER_MOBILE_EXISTS);

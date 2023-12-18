@@ -23,10 +23,10 @@ import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
+import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
-import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
@@ -55,11 +55,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -103,8 +102,8 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private UserRoleMapper userRoleMapper;
 
-    @Autowired
-    private PermissionProducer permissionProducer;
+//    @Autowired
+//    private PermissionProducer permissionProducer;
 
     @Autowired
     private UserBenefitsService benefitsService;
@@ -135,6 +134,7 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
     public boolean register(RegisterRequest request) {
         validateEmailAndUsername(request.getUsername(), request.getEmail());
         String activationCode = IdUtil.getSnowflakeNextIdStr();
@@ -175,13 +175,13 @@ public class StarUserServiceImpl implements StarUserService {
         registerUserDO.setUserId(userId);
         mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
         int insert = registerUserMapper.insert(registerUserDO);
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
+//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//            @Override
+//            public void afterCommit() {
+//                permissionProducer.sendUserRoleRefreshMessage();
+//            }
+//
+//        });
         return insert > 0;
     }
 
@@ -263,6 +263,7 @@ public class StarUserServiceImpl implements StarUserService {
     }
 
     @Override
+    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
     public Long createNewUser(UserDTO userDTO) {
         DeptDO deptDO = new DeptDO();
         deptDO.setParentId(userDTO.getParentDeptId());
@@ -294,7 +295,7 @@ public class StarUserServiceImpl implements StarUserService {
         userRoleDO.setUserId(userDO.getId());
         userRoleDO.setCreator(userDO.getUsername());
         userRoleDO.setUpdater(userDO.getUpdater());
-        userRoleDO.setTenantId(userDO.getTenantId());
+//        userRoleDO.setTenantId(userDO.getTenantId());
         userRoleMapper.insert(userRoleDO);
         return userDO.getId();
     }

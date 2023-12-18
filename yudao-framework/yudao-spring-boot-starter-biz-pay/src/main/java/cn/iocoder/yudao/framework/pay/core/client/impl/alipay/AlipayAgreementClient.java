@@ -1,9 +1,10 @@
 package cn.iocoder.yudao.framework.pay.core.client.impl.alipay;
 
 import cn.hutool.http.Method;
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
-import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.request.AlipayUserAgreementPageSignRequest;
 import com.alipay.api.response.AlipayUserAgreementPageSignResponse;
@@ -17,14 +18,14 @@ import lombok.extern.slf4j.Slf4j;
  * @author 芋道源码
  */
 @Slf4j
-public class AlipayAgreementClient extends AbstractAlipayClient {
+public class AlipayAgreementClient extends AbstractAlipayPayClient {
 
     public AlipayAgreementClient(Long channelId, AlipayPayClientConfig config) {
         super(channelId, PayChannelEnum.ALIPAY_AGREEMENT.getCode(), config);
     }
 
     @Override
-    public PayOrderUnifiedRespDTO doUnifiedOrder(PayOrderUnifiedReqDTO reqDTO) throws AlipayApiException {
+    public PayOrderRespDTO doUnifiedOrder(PayOrderUnifiedReqDTO reqDTO) throws AlipayApiException {
 
         // 1.1 构建 AlipayTradeCreateRequest 请求
         AlipayUserAgreementPageSignRequest request = new AlipayUserAgreementPageSignRequest();
@@ -34,9 +35,12 @@ public class AlipayAgreementClient extends AbstractAlipayClient {
         // 2.1 执行请求
         AlipayUserAgreementPageSignResponse response = client.pageExecute(request, Method.GET.name());
         // 2.2 处理结果
-        validateSuccess(response);
-        return new PayOrderUnifiedRespDTO()
-                .setDisplayMode(null).setDisplayContent(response.getBody());
+        if (!response.isSuccess()) {
+            return buildClosedPayOrderRespDTO(reqDTO, response);
+        }
+        return PayOrderRespDTO.waitingOf(null, response.getBody(),
+                reqDTO.getOutTradeNo(), response);
+
     }
 
 }

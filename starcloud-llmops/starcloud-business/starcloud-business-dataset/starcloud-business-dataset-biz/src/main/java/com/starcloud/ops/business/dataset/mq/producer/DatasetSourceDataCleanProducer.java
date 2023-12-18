@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.dataset.mq.producer;
 
-import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
+import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import com.starcloud.ops.business.dataset.mq.consumer.DataSetSourceDataCleanSendConsumer;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceDataCleanSendMessage;
 import com.starcloud.ops.business.dataset.mq.message.DatasetSourceSendMessage;

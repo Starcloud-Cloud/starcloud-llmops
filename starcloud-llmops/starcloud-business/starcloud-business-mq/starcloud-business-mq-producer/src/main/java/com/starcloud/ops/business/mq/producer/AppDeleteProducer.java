@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.mq.producer;
 
-import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
+import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import com.starcloud.ops.business.mq.message.AppDeleteMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -2,13 +2,13 @@ package cn.iocoder.yudao.framework.common.context;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 
+@Deprecated
 public class UserContextHolder {
 
     /**
      * 当前用户编号
      */
     private static final ThreadLocal<Long> USER_ID = new TransmittableThreadLocal<>();
-
 
     /**
      * 获得用户编号。
@@ -26,4 +26,5 @@ public class UserContextHolder {
     public static void clear() {
         USER_ID.remove();
     }
+
 }

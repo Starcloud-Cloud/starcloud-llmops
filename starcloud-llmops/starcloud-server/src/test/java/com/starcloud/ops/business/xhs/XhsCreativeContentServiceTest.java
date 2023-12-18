@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.xhs;
 
 import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
-import cn.iocoder.yudao.framework.mq.core.RedisMQTemplate;
+import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
