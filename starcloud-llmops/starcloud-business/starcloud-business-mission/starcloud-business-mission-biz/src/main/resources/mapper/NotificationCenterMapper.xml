@@ -75,19 +75,23 @@
         </if>
     </select>
 
-    <select id="appPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO">
-        select *
-        from llm_notification
-        where deleted = false and end_time &gt; now() and status = 'published'
+    <select id="appPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.AppNotificationDTO">
+        select n.*,
+        COUNT(case WHEN m.`status` in ('claimed','published','pre_settlement','settlement','pre_settlement_error','settlement_error')  THEN 1 end ) claimCount,
+        COUNT(case WHEN m.`claim_user_id` = #{reqVO.claimUserId} THEN 1 end ) currentUserNum
+        from llm_notification n
+        LEFT JOIN llm_single_mission m ON m.notification_Uid = n.uid
+        where n.deleted = false and n.end_time &gt; now() and n.status = 'published'
         <if test="reqVO.open != null">
-            and open = #{reqVO.open}
+            and n.open = #{reqVO.open}
         </if>
         <if test="reqVO.creator != null and reqVO.creator.size() > 0">
-            and creator in
+            and n.creator in
             <foreach collection="reqVO.creator" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
+        GROUP BY n.id
         order by ${field} ${type}
         limit #{start},#{size}
     </select>

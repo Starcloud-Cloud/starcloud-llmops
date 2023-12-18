@@ -11,6 +11,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPri
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.AppNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -48,7 +49,9 @@ public interface NotificationCenterConvert {
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     void updateSelective(NotificationModifyReqVO reqVO, @MappingTarget NotificationCenterDO centerDO);
 
-    List<AppNotificationRespVO> appConvert(List<NotificationCenterDO> centerDTOList);
+    List<AppNotificationRespVO> appConvert(List<AppNotificationDTO> centerDTOList);
+
+    AppNotificationRespVO appConvert(AppNotificationDTO appNotificationDTO);
 
     AppNotificationRespVO appConvert(NotificationCenterDO centerDO);
 
