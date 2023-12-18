@@ -67,8 +67,7 @@ public class WechatAppController {
     @PermitAll
     @OperateLog(enable = false)
     public CommonResult<AppSingleMissionRespVO> claimMission(@Valid @RequestBody AppClaimReqVO reqVO) {
-        wechatAppApi.claimMission(reqVO);
-        return CommonResult.success(null);
+        return CommonResult.success(wechatAppApi.claimMission(reqVO));
     }
 
     @PutMapping("/mission/publish")

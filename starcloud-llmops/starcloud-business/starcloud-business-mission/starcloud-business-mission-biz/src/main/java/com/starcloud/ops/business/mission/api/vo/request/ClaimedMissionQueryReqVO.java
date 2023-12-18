@@ -12,5 +12,5 @@ public class ClaimedMissionQueryReqVO extends PageParam {
 
     @Schema(description = "认领人uid")
     @NotBlank(message = "认领人uid不能为空")
-    private Long claimUserId;
+    private String claimUserId;
 }
