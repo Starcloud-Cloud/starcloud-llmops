@@ -81,4 +81,9 @@ public class XhsNoteDetailDO extends BaseDO {
      * 单条任务Id
      */
     private String missionUid;
+
+    /**
+     * 标签
+     */
+    private String tagList;
 }

@@ -110,11 +110,9 @@ public interface DraftService {
     /**
      * 搜索词智能推荐
      *
-     * @param uid
-     * @param version
      * @return
      */
-    String searchTermRecommend(String uid, Integer version);
+    String searchTermRecommend(DraftReqVO reqVO);
 
     /**
      * 刷新关键词搜索量

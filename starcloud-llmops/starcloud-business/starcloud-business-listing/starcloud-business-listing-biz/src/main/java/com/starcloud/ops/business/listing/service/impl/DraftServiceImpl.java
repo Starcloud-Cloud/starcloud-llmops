@@ -359,13 +359,28 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public String searchTermRecommend(String uid, Integer version) {
-        ListingDraftDO draftDO = getVersion(uid, version);
+    public String searchTermRecommend(DraftReqVO reqVO) {
+        ListingDraftDO draftDO = getVersion(reqVO.getUid(), reqVO.getVersion());
+
+        String title = reqVO.getTitle();
+        Map<String, String> fiveDesc = reqVO.getFiveDesc();
+        String productDesc = reqVO.getProductDesc();
+        StringJoiner listing = new StringJoiner(org.apache.commons.lang3.StringUtils.SPACE);
+        for (String value : fiveDesc.values()) {
+            listing.add(value);
+        }
+        listing.add(title);
+        listing.add(productDesc);
+        String str = listing.toString().toLowerCase();
+
         List<KeywordMetaDataDTO> sortMetaData = keywordBindService.getMetaData(draftDO.getId(), draftDO.getEndpoint(), true);
         StringJoiner sj = new StringJoiner(org.apache.commons.lang3.StringUtils.SPACE);
         for (KeywordMetaDataDTO sortMetaDatum : sortMetaData) {
             if (sj.length() + sortMetaDatum.getKeyword().length() > 250) {
                 break;
+            }
+            if (str.contains(sortMetaDatum.getKeyword().toLowerCase())) {
+                continue;
             }
             sj.add(sortMetaDatum.getKeyword());
         }

@@ -538,5 +538,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode XHS_REMOTE_ERROR = new ErrorCode(300500008, "{}");
 
+    ErrorCode CREATIVE_CONTENT_CLAIMED = new ErrorCode(300500009, "创作任务已绑定,不允许修改 {}");
+
 
 }
