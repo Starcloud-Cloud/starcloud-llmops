@@ -33,7 +33,6 @@ public class CreativeSchemeConfigDTO implements java.io.Serializable {
      * 文案段落数量
      */
     @Schema(description = "文案段落数量")
-    @NotNull(message = "文案段落数量不能为空！")
     @Max(value = 10, message = "文案段落数量不能超过 10")
     @Min(value = 1, message = "文案段落数量不能小于 1")
     private Integer paragraphCount;

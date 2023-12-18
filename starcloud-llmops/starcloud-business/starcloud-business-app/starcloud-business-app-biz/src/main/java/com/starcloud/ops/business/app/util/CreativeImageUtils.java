@@ -46,8 +46,8 @@ public class CreativeImageUtils {
     private static final String IMAGE = "IMAGE";
     private static final String TITLE = "TITLE";
     private static final String SUB_TITLE = "SUB_TITLE";
-    private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_TITLE";
-    private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_CONTENT";
+    private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
+    private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
     private static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
     private static final String PARAGRAPH_TWO_CONTENT = "PARAGRAPH_TWO_CONTENT";
     private static final String PARAGRAPH_THREE_TITLE = "PARAGRAPH_THREE_TITLE";
@@ -307,7 +307,7 @@ public class CreativeImageUtils {
                 return i;
             }
         }
-        return 0;
+        throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_NOT_SUPPORTED);
     }
 
     /**
@@ -372,7 +372,7 @@ public class CreativeImageUtils {
         List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemDTO variableItem : variableItemList) {
             VariableItemDTO item = SerializationUtils.clone(variableItem);
-            if (IMAGE.equalsIgnoreCase(item.getType())) {
+            if (IMAGE.equalsIgnoreCase(item.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 item.setValue(randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
                 item.setValue(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
@@ -398,7 +398,7 @@ public class CreativeImageUtils {
         List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
         List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemDTO variableItem : variableItemList) {
-            if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
+            if (force && IMAGE.equalsIgnoreCase(variableItem.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                 params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
@@ -503,9 +503,6 @@ public class CreativeImageUtils {
      * @return 随机图片
      */
     public static String randomImage(List<String> imageList, List<String> useImageList, Integer imageTypeNumber) {
-        if (CollectionUtil.isEmpty(useImageList)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
-        }
         // 如果图片类型数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
         if (imageTypeNumber > useImageList.size()) {
             return useImageList.get(RandomUtil.randomInt(useImageList.size()));
