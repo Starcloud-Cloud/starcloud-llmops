@@ -272,29 +272,7 @@ public class CreativeImageUtils {
                 imageRequestList.add(imageExecuteRequestList.get(i));
             }
         } else {
-            // 少于段落数，补充
-            // 获取作为复制的基数索引
-            int index = 1, noNeedCount = 0;
-            for (int i = 0; i < paragraphParamCountList.size(); i++) {
-                if (i == 0) {
-                    noNeedCount += paragraphParamCountList.get(i);
-                    continue;
-                }
-                // 第一个不为0的索引, 该索引作为复制的基数，不计入 noNeedCount
-                if (paragraphParamCountList.get(i) > 0) {
-                    index = i;
-                }
-                noNeedCount += paragraphParamCountList.get(i);
-            }
-
-            for (int i = 0; i < paragraphParamCountList.size(); i++) {
-                if (i == 0) {
-                    imageRequestList.add(imageExecuteRequestList.get(i));
-                    continue;
-                }
-
-
-            }
+            // 少于段落数，补充，获取作为复制的基数索引
 
         }
 

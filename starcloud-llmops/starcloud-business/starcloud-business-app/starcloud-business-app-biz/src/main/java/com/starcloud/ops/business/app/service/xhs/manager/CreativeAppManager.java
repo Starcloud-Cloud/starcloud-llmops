@@ -16,13 +16,12 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -52,11 +51,11 @@ public class CreativeAppManager {
     /**
      * 根据类型获取需要执行的应用信息
      *
-     * @param type 计划类型
+     * @param model 计划类型
      * @return 应用信息
      */
-    public AppMarketRespVO getExecuteApp(String type) {
-        List<AppMarketRespVO> apps = appMarketplaceList(type);
+    public AppMarketRespVO getExecuteApp(CreativeSchemeModeEnum model) {
+        List<AppMarketRespVO> apps = appMarketplaceList(model);
         AppValidate.notEmpty(apps, CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
         AppMarketRespVO app = apps.get(0);
         AppValidate.notNull(app, CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
@@ -66,18 +65,14 @@ public class CreativeAppManager {
     /**
      * 根据类型获取应用列表
      *
-     * @param type 类型
+     * @param model 类型
      * @return 文案模板列表
      */
-    public List<AppMarketRespVO> appMarketplaceList(String type) {
-        AppValidate.notBlank(type, CreativeErrorCodeConstants.PLAN_TYPE_REQUIRED);
-        CreativeTypeEnum typeEnum = CreativeTypeEnum.of(type);
-        if (typeEnum == null) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_TYPE_NOT_SUPPORTED, type);
-        }
+    public List<AppMarketRespVO> appMarketplaceList(CreativeSchemeModeEnum model) {
+        AppValidate.notNull(model, CreativeErrorCodeConstants.SCHEME_MODE_REQUIRED);
         AppMarketListQuery query = new AppMarketListQuery();
         query.setIsSimple(Boolean.FALSE);
-        query.setTags(typeEnum.getTagType().getTags());
+        query.setTags(model.getTagType().getTags());
         List<AppMarketRespVO> list = appMarketService.list(query);
         return CollectionUtil.emptyIfNull(list);
     }
@@ -122,14 +117,7 @@ public class CreativeAppManager {
         try {
 
             //把 uid 和 step ,改成 根据模式 对应的枚举配置写死 在创作的时候保存就行了。
-
-            AppMarketRespVO appMarket;
-            if (StringUtils.isBlank(request.getUid())) {
-                appMarket = appMarketService.get(request.getUid());
-            } else {
-                appMarket = getExecuteApp(CreativeTypeEnum.XHS.name());
-            }
-
+            AppMarketRespVO appMarket = appMarketService.get(request.getUid());
             log.info("创作中心：执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
 
             // 获取第二步的步骤。约定，生成小红书内容为第二步

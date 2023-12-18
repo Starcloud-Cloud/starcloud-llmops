@@ -41,7 +41,7 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
@@ -281,7 +281,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (Objects.isNull(loginUserId)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
-        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT);
         WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.firstStep(executeApp);
 
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
@@ -342,7 +342,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     private List<CopyWritingContentDTO> copyWritingExample(CreativeSchemeReqVO request, Long loginUserId) {
         log.info("构建生成文案示例请求....");
         // 获取执行小红书的应用
-        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT);
         // 构建小红书应用执行请求
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
         // 获取第二步的步骤。约定，生成小红书内容为第二步

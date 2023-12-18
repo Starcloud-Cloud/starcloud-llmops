@@ -454,8 +454,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         planConfig.validate();
         // 查询并且校验创作方案是否存在
         List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
-        // 查询并且校验应用是否存在
-        AppMarketRespVO app = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
         // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
         Map<String, CreativeImageTemplateDTO> posterMap = creativeImageManager.mapTemplate();
 
@@ -465,6 +463,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
             configuration.validate(scheme.getName());
             CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+            // 查询并且校验应用是否存在
+            AppMarketRespVO app;
+            if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(scheme.getMode())) {
+                app = creativeAppManager.getExecuteApp(CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT);
+            } else {
+                app = creativeAppManager.getExecuteApp(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT);
+            }
             // 获取应用执行参数
             CreativePlanAppExecuteDTO appExecute = CreativeAppUtils.getXhsAppExecuteRequest(scheme, planConfig, app.getUid());
             for (CreativeImageStyleDTO style : imageTemplate.getStyleList()) {
