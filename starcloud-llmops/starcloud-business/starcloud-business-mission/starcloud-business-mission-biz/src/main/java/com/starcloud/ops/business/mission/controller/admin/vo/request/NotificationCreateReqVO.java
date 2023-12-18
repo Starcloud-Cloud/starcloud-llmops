@@ -68,4 +68,7 @@ public class NotificationCreateReqVO {
 
     @Schema(description = "领取人员限制")
     private ClaimLimitDTO claimLimit;
+
+    @Schema(description = "是否公开 true公开")
+    private Boolean open;
 }

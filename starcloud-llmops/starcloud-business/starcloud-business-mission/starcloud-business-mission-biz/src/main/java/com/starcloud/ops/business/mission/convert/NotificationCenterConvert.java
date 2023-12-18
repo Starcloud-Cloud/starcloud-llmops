@@ -11,8 +11,10 @@ import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPri
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
+import com.starcloud.ops.business.mission.dal.dataobject.AppNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -22,6 +24,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +49,9 @@ public interface NotificationCenterConvert {
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     void updateSelective(NotificationModifyReqVO reqVO, @MappingTarget NotificationCenterDO centerDO);
 
-    List<AppNotificationRespVO> appConvert(List<NotificationCenterDO> centerDTOList);
+    List<AppNotificationRespVO> appConvert(List<AppNotificationDTO> centerDTOList);
+
+    AppNotificationRespVO appConvert(AppNotificationDTO appNotificationDTO);
 
     AppNotificationRespVO appConvert(NotificationCenterDO centerDO);
 
@@ -58,9 +63,11 @@ public interface NotificationCenterConvert {
     default String toStr(ClaimLimitDTO claimLimitDTO) {
         if (claimLimitDTO == null) {
             claimLimitDTO = ClaimLimitDTO.defaultInstance();
+            return JSONUtil.toJsonStr(claimLimitDTO);
         }
-        if (StringUtils.isBlank(claimLimitDTO.getAddress())) {
-            claimLimitDTO.setAddress(AddressEnum.unlimited.getCode());
+
+        if (CollectionUtils.isEmpty(claimLimitDTO.getAddress())) {
+            claimLimitDTO.setAddress(Collections.singletonList(AddressEnum.unlimited.getCode()));
         }
 
         if (StringUtils.isBlank(claimLimitDTO.getGender())) {
@@ -73,6 +80,14 @@ public interface NotificationCenterConvert {
 
         if (claimLimitDTO.getClaimNum() == null || claimLimitDTO.getClaimNum() < 1) {
             claimLimitDTO.setClaimNum(1);
+        }
+
+        if (claimLimitDTO.getMinFansNum() == null) {
+            claimLimitDTO.setMinFansNum(-1);
+        }
+
+        if (claimLimitDTO.getMaxFansNum() == null) {
+            claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
         }
         return JSONUtil.toJsonStr(claimLimitDTO);
     }

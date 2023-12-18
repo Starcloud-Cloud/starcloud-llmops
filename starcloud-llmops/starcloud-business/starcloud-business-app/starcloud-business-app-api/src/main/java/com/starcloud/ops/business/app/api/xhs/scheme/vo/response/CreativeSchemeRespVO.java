@@ -68,6 +68,12 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     private String description;
 
     /**
+     * 创作方案模式
+     */
+    @Schema(description = "创作方案模式")
+    private String mode;
+
+    /**
      * 创作方案参考
      */
     @Schema(description = "创作方案参考账号")

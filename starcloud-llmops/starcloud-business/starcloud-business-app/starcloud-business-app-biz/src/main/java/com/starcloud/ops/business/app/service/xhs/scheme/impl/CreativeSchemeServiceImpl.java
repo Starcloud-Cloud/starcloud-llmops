@@ -41,7 +41,7 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
@@ -62,6 +62,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -228,6 +229,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setCategory(creativeScheme.getCategory());
         scheme.setTags(creativeScheme.getTags());
         scheme.setDescription(creativeScheme.getDescription());
+        scheme.setMode(creativeScheme.getMode());
         scheme.setRefers(creativeScheme.getRefers());
         scheme.setConfiguration(creativeScheme.getConfiguration());
         scheme.setUseImages(creativeScheme.getUseImages());
@@ -280,7 +282,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (Objects.isNull(loginUserId)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
         }
-        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
+        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(request.getMode());
         WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.firstStep(executeApp);
 
         AppExecuteReqVO executeRequest = new AppExecuteReqVO();
@@ -341,36 +343,71 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     private List<CopyWritingContentDTO> copyWritingExample(CreativeSchemeReqVO request, Long loginUserId) {
         log.info("构建生成文案示例请求....");
         // 获取执行小红书的应用
-        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(CreativeTypeEnum.XHS.name());
-        // 构建小红书应用执行请求
-        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        // 获取第二步的步骤。约定，生成小红书内容为第二步
-        WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(executeApp);
-        executeRequest.setUserId(loginUserId);
-        executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
-        executeRequest.setAppUid(executeApp.getUid());
-        executeRequest.setStepId(stepWrapper.getField());
-        executeRequest.setN(3);
-        executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
-        log.info("生成文案示开始....");
-        String answer = creativeAppManager.execute(executeRequest);
-        List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
-        if (CollectionUtil.isEmpty(responses)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE);
-        }
-        // 一条失败，全部失败
-        List<CopyWritingContentDTO> resultList = Lists.newArrayList();
-        for (XhsAppExecuteResponse response : responses) {
-            if (!response.getSuccess() || Objects.isNull(response.getCopyWriting()) || StringUtils.isBlank(response.getCopyWriting().getTitle()) || StringUtils.isBlank(response.getCopyWriting().getContent())) {
-                log.error("生成文案示例失败！{}", response.getErrorMsg());
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
+        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(request.getMode());
+        if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equalsIgnoreCase(request.getMode())) {
+            // 构建小红书应用执行请求
+            AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+            // 获取第二步的步骤。约定，生成小红书内容为第二步
+            WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(executeApp);
+            executeRequest.setUserId(loginUserId);
+            executeRequest.setMode(AppModelEnum.COMPLETION.name());
+            executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+            executeRequest.setAppUid(executeApp.getUid());
+            executeRequest.setStepId(stepWrapper.getField());
+            executeRequest.setN(3);
+            executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+            executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
+            log.info("生成文案示开始....");
+            String answer = creativeAppManager.execute(executeRequest);
+            List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
+            if (CollectionUtil.isEmpty(responses)) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE);
             }
-            resultList.add(response.getCopyWriting());
+            // 一条失败，全部失败
+            List<CopyWritingContentDTO> resultList = Lists.newArrayList();
+            for (XhsAppExecuteResponse response : responses) {
+                if (!response.getSuccess() || Objects.isNull(response.getCopyWriting()) || StringUtils.isBlank(response.getCopyWriting().getTitle()) || StringUtils.isBlank(response.getCopyWriting().getContent())) {
+                    log.error("生成文案示例失败！{}", response.getErrorMsg());
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
+                }
+                resultList.add(response.getCopyWriting());
+            }
+            log.info("生成文案示例成功！");
+            return resultList;
         }
-        log.info("生成文案示例成功！");
-        return resultList;
+        List<CopyWritingContentDTO> result = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            // 构建小红书应用执行请求
+            AppExecuteReqVO executeRequest = new AppExecuteReqVO();
+            // 获取第二步的步骤。约定，生成小红书内容为第二步
+            WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(executeApp);
+            executeRequest.setUserId(loginUserId);
+            executeRequest.setMode(AppModelEnum.COMPLETION.name());
+            executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+            executeRequest.setAppUid(executeApp.getUid());
+            executeRequest.setStepId(stepWrapper.getField());
+            executeRequest.setN(1);
+            executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+            executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
+            log.info("生成文案示开始....");
+            String answer = creativeAppManager.execute(executeRequest);
+            List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
+            if (CollectionUtil.isEmpty(responses)) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE);
+            }
+            // 一条失败，全部失败
+            List<CopyWritingContentDTO> resultList = Lists.newArrayList();
+            for (XhsAppExecuteResponse response : responses) {
+                if (!response.getSuccess() || Objects.isNull(response.getCopyWriting()) || StringUtils.isBlank(response.getCopyWriting().getTitle()) || StringUtils.isBlank(response.getCopyWriting().getContent())) {
+                    log.error("生成文案示例失败！{}", response.getErrorMsg());
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
+                }
+                resultList.add(response.getCopyWriting());
+            }
+            log.info("生成文案示例成功！");
+            result.addAll(resultList);
+        }
+        return result;
     }
 
     /**
@@ -576,6 +613,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 创作方案请求对象
      */
     private void handlerAndValidate(CreativeSchemeReqVO request) {
+        request.validate();
         // 如果是普通用户或者为空，强制设置为用户类型
         if (UserUtils.isNotAdmin() || StringUtils.isBlank(request.getType())) {
             request.setType(CreativeSchemeTypeEnum.USER.name());
@@ -583,6 +621,5 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
-        request.validate();
     }
 }

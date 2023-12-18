@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.mission.api.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
+import com.starcloud.ops.business.enums.NotificationSortFieldEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
@@ -12,15 +14,13 @@ import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMis
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.convert.NotificationCenterConvert;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
-import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
-import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
-import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
-import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
+import com.starcloud.ops.business.mission.dal.dataobject.*;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
 import com.starcloud.ops.business.mission.api.WechatAppApi;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -31,6 +31,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -56,11 +57,14 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     public PageResult<AppNotificationRespVO> notifyPage(AppNotificationQueryReqVO reqVO) {
+        reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
         Long count = notificationCenterMapper.appPageCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();
         }
-        List<NotificationCenterDO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO, PageUtils.getStart(reqVO), reqVO.getPageSize());
+        List<AppNotificationDTO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO,
+                PageUtils.getStart(reqVO), reqVO.getPageSize(),
+                NotificationSortFieldEnum.getColumn(reqVO.getSortField()), BooleanUtil.isTrue(reqVO.getAsc()) ? "ASC" : "DESC");
         List<AppNotificationRespVO> respVOList = NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDOList);
         return new PageResult<>(respVOList, count);
     }
@@ -135,7 +139,7 @@ public class WechatAppApiImpl implements WechatAppApi {
             throw exception(MISSION_CAN_NOT_ABANDON_USERID);
         }
         NotificationCenterDO notificationCenterDO = notificationByUid(singleMissionDO.getNotificationUid());
-        singleMissionDO.setClaimUsername(StringUtils.EMPTY);
+        singleMissionDO.setClaimUserId(StringUtils.EMPTY);
         singleMissionDO.setClaimUsername(StringUtils.EMPTY);
         singleMissionDO.setClaimTime(null);
         singleMissionDO.setPublishUrl(StringUtils.EMPTY);
@@ -147,10 +151,10 @@ public class WechatAppApiImpl implements WechatAppApi {
         }
         singleMissionDO.setPreSettlementTime(null);
         singleMissionDO.setEstimatedAmount(BigDecimal.ZERO);
-        singleMissionDO.setSettlementMsg(StringUtils.EMPTY);
         singleMissionDO.setCloseMsg(StringUtils.EMPTY);
         singleMissionDO.setPreSettlementMsg(StringUtils.EMPTY);
-        singleMissionMapper.updateById(singleMissionDO);
+        singleMissionDO.setNoteDetailId(null);
+        singleMissionMapper.updateMission(singleMissionDO);
     }
 
     @Override
@@ -172,9 +176,31 @@ public class WechatAppApiImpl implements WechatAppApi {
     }
 
     @Override
-    public AppNotificationRespVO notifyDetail(String notificationUid) {
+    public AppNotificationRespVO notifyDetail(String notificationUid, String userId) {
         NotificationCenterDO notificationCenterDO = notificationByUid(notificationUid);
-        return NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDO);
+        notificationCenterDO.setVisitNum((notificationCenterDO.getVisitNum() == null ? 0 : notificationCenterDO.getVisitNum()) + 1);
+        notificationCenterMapper.updateById(notificationCenterDO);
+        AppNotificationRespVO respVO = NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDO);
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByNotification(notificationUid);
+        respVO.setTotal(singleMissionDOList.size());
+        Integer claimCount = 0;
+        Integer currentUserNum = 0;
+        for (SingleMissionDO missionDO : singleMissionDOList) {
+            if (SingleMissionStatusEnum.claimed.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
+                claimCount++;
+                if (Objects.equals(userId, missionDO.getClaimUserId())) {
+                    currentUserNum++;
+                }
+            }
+        }
+        respVO.setClaimCount(claimCount);
+        respVO.setCurrentUserNum(currentUserNum);
+        return respVO;
     }
 
     private SingleMissionDO missionByUid(String uid) {

@@ -27,6 +27,18 @@ public class CreativePlanExecuteDTO implements java.io.Serializable {
     private String schemeUid;
 
     /**
+     * 创作方案模式
+     */
+    @Schema(description = "创作方案模式")
+    private String schemeMode;
+
+    /**
+     * 文案段落数量
+     */
+    @Schema(description = "文案段落数量")
+    private Integer paragraphCount;
+
+    /**
      * 小红书文案请求数据
      */
     @Schema(description = "小红书文案请求数据")

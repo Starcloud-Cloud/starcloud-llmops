@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
+import java.util.Collections;
+import java.util.List;
 
 @Data
 @Schema(description = "领取限制")
@@ -15,7 +17,7 @@ public class ClaimLimitDTO {
 
     @Schema(description = "区域")
     @InEnum(value = AddressEnum.class, field = InEnum.EnumField.CODE, message = "区域[{value}]必须是: {values}")
-    private String address;
+    private List<String> address;
 
     @Schema(description = "性别")
     @InEnum(value = GenderEnum.class, field = InEnum.EnumField.CODE, message = "性别[{value}]必须是: {values}")
@@ -27,11 +29,11 @@ public class ClaimLimitDTO {
 
     @Schema(description = "最小粉丝数")
     @Min(value = 0, message = "最小粉丝数要大于0")
-    private Long minFansNum ;
+    private Integer minFansNum ;
 
     @Schema(description = "最大粉丝数")
     @Min(value = 0, message = "最大粉丝数要大于0")
-    private Long maxFansNum;
+    private Integer maxFansNum;
 
     @Schema(description = "每人领取数量")
     @Min(value = 0, message = "每人领取数量要大于0")
@@ -40,10 +42,12 @@ public class ClaimLimitDTO {
 
     public static ClaimLimitDTO defaultInstance() {
         ClaimLimitDTO claimLimitDTO = new ClaimLimitDTO();
-        claimLimitDTO.setAddress(AddressEnum.unlimited.getCode());
+        claimLimitDTO.setAddress(Collections.singletonList(AddressEnum.unlimited.getCode()));
         claimLimitDTO.setGender(GenderEnum.unlimited.getCode());
         claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
         claimLimitDTO.setClaimNum(1);
+        claimLimitDTO.setMinFansNum(-1);
+        claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
         return claimLimitDTO;
     }
 }
