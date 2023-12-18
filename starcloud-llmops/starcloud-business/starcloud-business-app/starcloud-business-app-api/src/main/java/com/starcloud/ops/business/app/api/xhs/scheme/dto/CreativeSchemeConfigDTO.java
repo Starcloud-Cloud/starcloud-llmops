@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
@@ -26,6 +28,15 @@ import java.util.Objects;
 public class CreativeSchemeConfigDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 8377338212121361722L;
+
+    /**
+     * 文案段落数量
+     */
+    @Schema(description = "文案段落数量")
+    @NotNull(message = "文案段落数量不能为空！")
+    @Max(value = 10, message = "文案段落数量不能超过 10")
+    @Min(value = 1, message = "文案段落数量不能小于 1")
+    private Integer paragraphCount;
 
     /**
      * 文案生成模板
