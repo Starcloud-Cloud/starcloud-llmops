@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdminUserLevelRespVO extends AdminUserLevelBaseVO {
+public class AdminUserLevelConfigRespVO extends AdminUserLevelConfigBaseVO {
 
     @Schema(description = "编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "6103")
     private Long id;

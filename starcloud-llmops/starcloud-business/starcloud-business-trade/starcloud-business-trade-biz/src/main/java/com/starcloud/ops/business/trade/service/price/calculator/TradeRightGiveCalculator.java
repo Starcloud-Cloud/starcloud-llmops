@@ -39,7 +39,7 @@ public class TradeRightGiveCalculator implements TradePriceCalculator {
 //            return;
 //        }
 //        // 设置会员等级
-//        adminUserLevelApi.addAdminUserLevel(param.getUserId(),giveRightsDTO.getLevel());
+//        adminUserLevelApi.addAdminUserLevel(param.getUserId(),giveRightsDTO.getLevelId());
 //        // 设置会员权益
 //        adminUserRightsApi.addRights(param.getUserId(),giveRightsDTO.getGiveMagicBean(),giveRightsDTO.getGiveImage(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(111));
 

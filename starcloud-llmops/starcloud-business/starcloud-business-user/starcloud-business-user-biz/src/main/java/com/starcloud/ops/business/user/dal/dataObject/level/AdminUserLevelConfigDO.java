@@ -8,8 +8,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 /**
  * 会员等级 DO
  * <p>
@@ -25,7 +23,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminUserLevelDO extends BaseDO {
+public class AdminUserLevelConfigDO extends BaseDO {
 
     /**
      * 编号
@@ -41,27 +39,24 @@ public class AdminUserLevelDO extends BaseDO {
      *  所关联的角色 Id
      *  {@link RoleDO#getId()} ()} 字段
      */
-    private String roleId;
+    private Long roleId;
     /**
      * 等级名称
      */
     private String name;
+
     /**
      * 等级图标
      */
     private String icon;
-
     /**
      * 等级配置
      */
     private String levelConfig;
-
     /**
      * 等级背景图
      */
     private String backgroundUrl;
-
-
     /**
      * 状态
      * <p>

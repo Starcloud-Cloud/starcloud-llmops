@@ -9,7 +9,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.*;
 
 /**
- * 用户积分记录 DO
+ * 用户权益变动记录 DO
  *
  * @author QingX
  */
@@ -35,6 +35,10 @@ public class AdminUserRightsRecordDO extends BaseDO {
      */
     private Long userId;
 
+    /**
+     * 业务编码 对应权益 ID
+     */
+    private String bizCode;
     /**
      * 业务编码
      */

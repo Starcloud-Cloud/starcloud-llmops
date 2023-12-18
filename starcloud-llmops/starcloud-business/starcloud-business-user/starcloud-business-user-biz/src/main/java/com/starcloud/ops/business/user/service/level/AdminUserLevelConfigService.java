@@ -2,10 +2,10 @@ package com.starcloud.ops.business.user.service.level;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelListReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelUpdateReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigListReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigUpdateReqVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author owen
  */
-public interface AdminUserLevelService {
+public interface AdminUserLevelConfigService {
 
     /**
      * 创建会员等级
@@ -24,14 +24,14 @@ public interface AdminUserLevelService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createLevel(@Valid AdminUserLevelCreateReqVO createReqVO);
+    Long createLevel(@Valid AdminUserLevelConfigCreateReqVO createReqVO);
 
     /**
      * 更新会员等级
      *
      * @param updateReqVO 更新信息
      */
-    void updateLevel(@Valid AdminUserLevelUpdateReqVO updateReqVO);
+    void updateLevel(@Valid AdminUserLevelConfigUpdateReqVO updateReqVO);
 
     /**
      * 删除会员等级
@@ -46,7 +46,7 @@ public interface AdminUserLevelService {
      * @param id 编号
      * @return 会员等级
      */
-    AdminUserLevelDO getLevel(Long id);
+    AdminUserLevelConfigDO getLevelConfig(Long id);
 
     /**
      * 获得会员等级列表
@@ -54,7 +54,7 @@ public interface AdminUserLevelService {
      * @param ids 编号
      * @return 会员等级列表
      */
-    List<AdminUserLevelDO> getLevelList(Collection<Long> ids);
+    List<AdminUserLevelConfigDO> getLevelList(Collection<Long> ids);
 
     /**
      * 获得会员等级列表
@@ -62,7 +62,7 @@ public interface AdminUserLevelService {
      * @param listReqVO 查询参数
      * @return 会员等级列表
      */
-    List<AdminUserLevelDO> getLevelList(AdminUserLevelListReqVO listReqVO);
+    List<AdminUserLevelConfigDO> getLevelList(AdminUserLevelConfigListReqVO listReqVO);
 
     /**
      * 获得指定状态的会员等级列表
@@ -70,14 +70,14 @@ public interface AdminUserLevelService {
      * @param status 状态
      * @return 会员等级列表
      */
-    List<AdminUserLevelDO> getLevelListByStatus(Integer status);
+    List<AdminUserLevelConfigDO> getLevelListByStatus(Integer status);
 
     /**
      * 获得开启状态的会员等级列表
      *
      * @return 会员等级列表
      */
-    default List<AdminUserLevelDO> getEnableLevelList() {
+    default List<AdminUserLevelConfigDO> getEnableLevelList() {
         return getLevelListByStatus(CommonStatusEnum.ENABLE.getStatus());
     }
 

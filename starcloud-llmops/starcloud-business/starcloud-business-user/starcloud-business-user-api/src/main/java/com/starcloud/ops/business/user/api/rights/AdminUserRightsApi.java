@@ -33,7 +33,7 @@ public interface AdminUserRightsApi {
      * @param bizType     业务类型 {@link AdminUserRightsBizTypeEnum}
      * @param bizId       业务编号
      */
-    void reduceRights(Long userId, Integer rightType, @Min(value = 1L, message = "积分必须是正数") Integer rightAmount,
+    void reduceRights(Long userId, AdminUserRightsTypeEnum rightType, @Min(value = 1L, message = "积分必须是正数") Integer rightAmount,
                       Integer bizType, String bizId);
 
 }

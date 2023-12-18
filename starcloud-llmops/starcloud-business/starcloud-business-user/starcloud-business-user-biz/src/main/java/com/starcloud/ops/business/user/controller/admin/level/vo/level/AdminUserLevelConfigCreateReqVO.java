@@ -9,6 +9,6 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdminUserLevelCreateReqVO extends AdminUserLevelBaseVO {
+public class AdminUserLevelConfigCreateReqVO extends AdminUserLevelConfigBaseVO {
 
 }

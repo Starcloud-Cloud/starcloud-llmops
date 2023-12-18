@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.product.api.spu.dto;
 
 import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.starcloud.ops.business.product.enums.spu.PeriodTypeEnum;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -42,7 +42,7 @@ public class SubscribeConfigDTO {
      * 计划扣款时间 execute_time不允许传 28 日之后的日期（可以传 28 日），以此避免有些月份可能不存在对应日期的情况。
      */
     @Schema(description = "订阅周期类型", example = "DAY")
-    @InEnum(value = PeriodTypeEnum.class,message = "订阅周期类型所设置值，必须是 {value}")
+    @InEnum(value = TimeRangeTypeEnum.class,message = "订阅周期类型所设置值，必须是 {value}")
     private Integer periodType;
 
 }

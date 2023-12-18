@@ -5,6 +5,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -37,22 +38,30 @@ public class AdminUserLevelRecordDO extends BaseDO {
      * 关联 {@link AdminUserDO#getId()} 字段
      */
     private Long userId;
+
+    /**
+     * 业务编码
+     */
+    private String bizId;
+    /**
+     * 业务类型
+     *
+     * 枚举 {@link AdminUserLevelBizTypeEnum}
+     */
+    private Integer bizType;
+
     /**
      * 等级编号
      * <p>
-     * 关联 {@link AdminUserLevelDO#getId()} 字段
+     * 关联 {@link AdminUserLevelConfigDO#getId()} 字段
      */
     private Long levelId;
     /**
-     * 修改前用户等级
+     * 等级名称
      * <p>
-     * 冗余 {@link AdminUserLevelDO#getLevel()} 字段
+     * 冗余 {@link AdminUserLevelConfigDO#getName()} 字段
      */
-    private Integer levelBefore;
-    /**
-     * 修改后用户等级
-     */
-    private Integer levelAfter;
+    private String levelName;
 
     /**
      * 生效开始时间

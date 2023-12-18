@@ -1,18 +1,13 @@
 package com.starcloud.ops.business.product.dal.dataobject.spu;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.product.controller.admin.spu.vo.GiveRightsVO;
-import com.starcloud.ops.business.product.controller.admin.spu.vo.SubscribeConfigVO;
 import com.starcloud.ops.business.product.dal.dataobject.brand.ProductBrandDO;
 import com.starcloud.ops.business.product.dal.dataobject.category.ProductCategoryDO;
-import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
-import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyValueDO;
 import com.starcloud.ops.business.product.dal.dataobject.sku.ProductSkuDO;
-import com.starcloud.ops.business.product.enums.spu.PeriodTypeEnum;
 import com.starcloud.ops.business.product.enums.spu.ProductSpuStatusEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -254,35 +249,32 @@ public class ProductSpuDO extends BaseDO {
          * 赠送图片权益
          */
         private Integer giveImage;
+
         /**
          * 权益生效时间
          */
-        //@Schema(description = "权益生效时间", example = "100")
+        @Schema(description = "权益生效时间", example = "100")
         private Integer giveEffectiveTime;
+
         /**
          * 权益生效时间单位
          */
-        //@Schema(description = "权益生效时间单位", example = "100")
-       // @InEnum(value = PeriodTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
+        @Schema(description = "权益生效时间单位", example = "100")
+        @InEnum(value = TimeRangeTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
         private Integer giveEffectiveTimeUnit;
 
         /**
          * 用户等级
          */
-        //@Schema(description = "用户等级", example = "1")
-        private Long level;
-        /**
-         * 权益生效时间
-         */
-        //@Schema(description = "用户等级生效时间", example = "100")
-        private Integer levelEffectiveTime;
+        @Schema(description = "用户等级", example = "1")
+        private Long levelId;
 
-        /**
-         * 用户等级生效时间单位
-         */
-        //@Schema(description = "用户等级生效时间单位", example = "100")
-        //@InEnum(value = PeriodTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-        private Integer levelEffectiveTimeUnit;
+        @Schema(description = "用户等级生效时间", example = "100")
+        private Integer timeNums;
+
+        @Schema(description = "用户等级生效时间单位", example = "100")
+        @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
+        private Integer timeRange;
     }
 
     /**

@@ -42,7 +42,7 @@ public class AdminUserRightsRecordController {
     @PreAuthorize("@ss.hasPermission('point:record:query')")
     public CommonResult<PageResult<AdminUserRightsRespVO>> getPointRecordPage(@Valid AdminUserRightsPageReqVO pageVO) {
         // 执行分页查询
-        PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getPointRecordPage(pageVO);
+        PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(pageVO);
         if (CollectionUtils.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }

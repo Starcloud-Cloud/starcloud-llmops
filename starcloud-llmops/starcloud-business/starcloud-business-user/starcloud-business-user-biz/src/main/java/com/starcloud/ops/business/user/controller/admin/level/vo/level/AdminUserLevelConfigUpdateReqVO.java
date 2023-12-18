@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdminUserLevelUpdateReqVO extends AdminUserLevelBaseVO {
+public class AdminUserLevelConfigUpdateReqVO extends AdminUserLevelConfigBaseVO {
 
     @Schema(description = "编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "6103")
     @NotNull(message = "编号不能为空")

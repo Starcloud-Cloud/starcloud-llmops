@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.level;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelRecordDO;
 
@@ -32,6 +33,6 @@ public interface AdminUserLevelRecordService {
      *
      * @param levelRecord 会员等级记录
      */
-    void createLevelRecord(AdminUserLevelRecordDO levelRecord);
+    void createLevelRecord(AdminUserLevelRecordCreateReqVO levelRecord);
 
 }

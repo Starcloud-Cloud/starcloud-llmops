@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.user.controller.admin.level.vo.record;
 
+import cn.iocoder.yudao.framework.common.validation.InEnum;
+import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 /**
  * 会员等级记录 Base VO，提供给添加、修改、详细的子 VO 使用
@@ -20,24 +23,25 @@ public class AdminUserLevelRecordBaseVO {
     @NotNull(message = "等级编号不能为空")
     private Long levelId;
 
-    @Schema(description = "会员等级", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "会员等级不能为空")
-    private Integer level;
+    /**
+     * 业务编码
+     */
+    @Schema(description = "会员等级业务编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "会员等级业务编码不能为空")
+    private String bizId;
+    /**
+     * 业务类型
+     *
+     * 枚举 {@link AdminUserLevelBizTypeEnum}
+     */
+    @Schema(description = "会员等级业务类型", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "会员等级业务类型不能为空")
+    @InEnum(value = AdminUserLevelBizTypeEnum.class, message = "业务类型[{value}]必须是: {values}")
+    private Integer bizType;
 
-    @Schema(description = "享受折扣", requiredMode = Schema.RequiredMode.REQUIRED, example = "13319")
-    @NotNull(message = "享受折扣不能为空")
-    private Integer discountPercent;
-
-    @Schema(description = "升级经验", requiredMode = Schema.RequiredMode.REQUIRED, example = "13319")
-    @NotNull(message = "升级经验不能为空")
-    private Integer experience;
-
-    @Schema(description = "会员此时的经验", requiredMode = Schema.RequiredMode.REQUIRED, example = "13319")
-    @NotNull(message = "会员此时的经验不能为空")
-    private Integer userExperience;
 
     @Schema(description = "备注", requiredMode = Schema.RequiredMode.REQUIRED, example = "推广需要")
-    @NotNull(message = "备注不能为空")
+//    @NotNull(message = "备注不能为空")
     private String remark;
 
     @Schema(description = "描述", requiredMode = Schema.RequiredMode.REQUIRED, example = "升级为金牌会员")

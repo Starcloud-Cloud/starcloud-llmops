@@ -7,7 +7,7 @@ import lombok.ToString;
 @Schema(description = "管理后台 - 会员等级 Response VO")
 @Data
 @ToString(callSuper = true)
-public class AdminUserLevelSimpleRespVO {
+public class AdminUserLevelConfigSimpleRespVO {
 
     @Schema(description = "编号", example = "6103")
     private Long id;

@@ -1,19 +1,21 @@
 package com.starcloud.ops.business.user.api.level;
 
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import cn.iocoder.yudao.module.system.service.permission.RoleServiceImpl;
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelRecordDO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordCreateReqVO;
+import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelRecordService;
-import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.TIME_RANGE_BIZ_NOT_SUPPORT;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_BIZ_NOT_SUPPORT;
 
 /**
  * 会员等级 API 实现类
@@ -26,10 +28,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 public class AdminUserLevelApiImpl implements AdminUserLevelApi {
 
     @Resource
-    private AdminUserLevelService adminUserLevelService;
-    @Resource
     private AdminUserLevelRecordService adminUserLevelRecordService;
-
 
     /**
      * 获得会员等级列表
@@ -50,17 +49,36 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
      * @return 会员等级
      */
     @Override
-    public void addAdminUserLevel(Long userId, Long levelId) {
+    public void addAdminUserLevel(Long userId, Long levelId, Integer TimeNums, Integer timeRange,
+                                  Integer bizType, String bizId) {
+        // 2.0 计算会员有效期
+        AdminUserLevelBizTypeEnum bizTypeEnum = AdminUserLevelBizTypeEnum.getByType(bizType);
+        if (bizTypeEnum == null) {
+            throw exception(LEVEL_BIZ_NOT_SUPPORT);
+        }
+
+        TimeRangeTypeEnum timeRangeEnum = TimeRangeTypeEnum.getByType(timeRange);
+        if (timeRangeEnum == null) {
+            throw exception(TIME_RANGE_BIZ_NOT_SUPPORT);
+        }
+
         log.warn("设置会员等级");
-        AdminUserLevelDO level = adminUserLevelService.getLevel(levelId);
-        AdminUserLevelRecordDO adminUserLevelRecordDO = new AdminUserLevelRecordDO();
-        adminUserLevelRecordDO.setUserId(userId);
-        adminUserLevelRecordDO.setUserId(levelId);
-        adminUserLevelRecordDO.setLevelBefore(level.getLevel());
-        adminUserLevelRecordDO.setLevelAfter(level.getLevel());
-        adminUserLevelRecordDO.setValidStartTime(null);
-        adminUserLevelRecordDO.setValidEndTime(null);
-        adminUserLevelRecordService.createLevelRecord(adminUserLevelRecordDO);
+        AdminUserLevelRecordCreateReqVO createReqVO = new AdminUserLevelRecordCreateReqVO();
+        createReqVO.setUserId(userId);
+        createReqVO.setLevelId(levelId);
+
+        createReqVO.setBizId(bizId);
+        createReqVO.setBizType(bizType);
+
+        createReqVO.setTimeNums(TimeNums);
+        createReqVO.setTimeRange(timeRange);
+
+        createReqVO.setDescription(String.format(bizTypeEnum.getDescription(), levelId));
+
+
+        adminUserLevelRecordService.createLevelRecord(createReqVO);
+
+
     }
 
     /**
