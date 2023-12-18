@@ -30,6 +30,7 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.app.util.MarkdownUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -191,7 +192,7 @@ public class CreativeExecuteManager {
                 updateContent.setId(contentDO.getId());
 
                 // 根据模式把 干货图文的 md 格式 转换为 纯文本格式
-                updateContent.setCopyWritingContent(copyWriting.getContent());
+                updateContent.setCopyWritingContent(MarkdownUtils.convertToText(copyWriting.getContent()));
                 updateContent.setCopyWritingTitle(copyWriting.getTitle());
                 updateContent.setCopyWritingCount(copyWriting.getContent().length());
                 updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));

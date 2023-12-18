@@ -265,6 +265,9 @@ public class CreativeImageUtils {
             // 超过段落数，截取
             int sumCount = 0;
             for (int i = 0; i < paragraphParamCountList.size(); i++) {
+                if (i == paragraphParamCountList.size() - 1 && paragraphParamCountList.get(i) == 0) {
+                    imageRequestList.add(imageExecuteRequestList.get(i));
+                }
                 if (sumCount > paragraphCount) {
                     continue;
                 }
@@ -273,7 +276,21 @@ public class CreativeImageUtils {
             }
         } else {
             // 少于段落数，补充，获取作为复制的基数索引
-
+            imageRequestList.addAll(imageExecuteRequestList);
+            // 获取需要补充的数量
+            int diff = paragraphCount - total;
+            // 获取需要复制的元素的索引。
+            int index = getNextNonZeroIndex(paragraphParamCountList);
+            // 获取需要复制的元素
+            CreativePlanImageExecuteDTO imageExecuteRequest = imageExecuteRequestList.get(index);
+            // 复制元素
+            while (diff > 0) {
+                CreativePlanImageExecuteDTO copyImageExecuteRequest = SerializationUtils.clone(imageExecuteRequest);
+                // 在 index 索引后面添加复制的元素
+                imageRequestList.add(index + 1, copyImageExecuteRequest);
+                // diff 扣除复制的元素的数量
+                diff -= paragraphParamCountList.get(index);
+            }
         }
 
         // 图片风格执行参数
@@ -282,6 +299,15 @@ public class CreativeImageUtils {
         imageStyleExecuteRequest.setName(style.getName());
         imageStyleExecuteRequest.setImageRequests(imageRequestList);
         return imageStyleExecuteRequest;
+    }
+
+    private static int getNextNonZeroIndex(List<Integer> params) {
+        for (int i = 1; i < params.size(); i++) {
+            if (params.get(i) > 0) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     /**

@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +55,7 @@ public class CreativeAppManager {
      * @param model 计划类型
      * @return 应用信息
      */
-    public AppMarketRespVO getExecuteApp(CreativeSchemeModeEnum model) {
+    public AppMarketRespVO getExecuteApp(String model) {
         List<AppMarketRespVO> apps = appMarketplaceList(model);
         AppValidate.notEmpty(apps, CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
         AppMarketRespVO app = apps.get(0);
@@ -68,11 +69,12 @@ public class CreativeAppManager {
      * @param model 类型
      * @return 文案模板列表
      */
-    public List<AppMarketRespVO> appMarketplaceList(CreativeSchemeModeEnum model) {
+    public List<AppMarketRespVO> appMarketplaceList(String model) {
         AppValidate.notNull(model, CreativeErrorCodeConstants.SCHEME_MODE_REQUIRED);
+        CreativeSchemeModeEnum schemeModeEnum = IEnumable.nameOf(model.toUpperCase(), CreativeSchemeModeEnum.class);
         AppMarketListQuery query = new AppMarketListQuery();
         query.setIsSimple(Boolean.FALSE);
-        query.setTags(model.getTagType().getTags());
+        query.setTags(schemeModeEnum.getTagType().getTags());
         List<AppMarketRespVO> list = appMarketService.list(query);
         return CollectionUtil.emptyIfNull(list);
     }

@@ -464,12 +464,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             configuration.validate(scheme.getName());
             CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
             // 查询并且校验应用是否存在
-            AppMarketRespVO app;
-            if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(scheme.getMode())) {
-                app = creativeAppManager.getExecuteApp(CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT);
-            } else {
-                app = creativeAppManager.getExecuteApp(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT);
-            }
+            AppMarketRespVO app = creativeAppManager.getExecuteApp(scheme.getMode());
             // 获取应用执行参数
             CreativePlanAppExecuteDTO appExecute = CreativeAppUtils.getXhsAppExecuteRequest(scheme, planConfig, app.getUid());
             for (CreativeImageStyleDTO style : imageTemplate.getStyleList()) {
