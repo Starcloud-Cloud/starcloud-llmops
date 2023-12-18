@@ -34,12 +34,13 @@ public class WechatAppController {
         return CommonResult.success(result);
     }
 
-    @GetMapping("/notify/detail/{notificationUid}")
+    @GetMapping("/notify/detail/{notificationUid}/{userId}")
     @Operation(summary = "小程序通告详情")
     @PermitAll
     @OperateLog(enable = false)
-    public CommonResult<AppNotificationRespVO> notifyDetail(@PathVariable("notificationUid") String notificationUid) {
-        AppNotificationRespVO result = wechatAppApi.notifyDetail(notificationUid);
+    public CommonResult<AppNotificationRespVO> notifyDetail(@PathVariable("notificationUid") String notificationUid,
+                                                            @PathVariable("userId") String userId) {
+        AppNotificationRespVO result = wechatAppApi.notifyDetail(notificationUid, userId);
         return CommonResult.success(result);
     }
 

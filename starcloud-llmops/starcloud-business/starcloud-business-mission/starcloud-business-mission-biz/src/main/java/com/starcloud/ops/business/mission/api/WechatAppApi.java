@@ -41,5 +41,5 @@ public interface WechatAppApi {
     /**
      * 通告详情
      */
-    AppNotificationRespVO notifyDetail(String notificationUid);
+    AppNotificationRespVO notifyDetail(String notificationUid,String userId);
 }

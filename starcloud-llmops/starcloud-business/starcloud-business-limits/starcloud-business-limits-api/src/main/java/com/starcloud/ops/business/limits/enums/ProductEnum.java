@@ -23,20 +23,20 @@ public enum ProductEnum {
             UserLevelEnums.BASIC, ProductTimeEnum.WEEK, BenefitsStrategyTypeEnums.PAY_TRAIL, new BenefitsStrategyTypeEnums[]{}, null),
     AI_BASIC_MONTH("basic_month", "魔法ai-基础版-月付", 5900, "魔法ai-基础版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
             UserLevelEnums.BASIC, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_BASIC_MONTH, new BenefitsStrategyTypeEnums[]{
-                    BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10,BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER, BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_49,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80},
+                    BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10,BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_NEW_USER, BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_49,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_70},
             ProductSignEnum.PRODUCT_BASIC_CONFIG),
     AI_PLUS_MONTH("plus_month", "魔法ai-高级版-月付", 19900, "魔法ai-高级版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80}, null),
+            UserLevelEnums.PLUS, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PLUS_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_70}, null),
     AI_PRO_MONTH("pro_month", "魔法ai-团队版-月付", 49900, "魔法ai-团队版-月付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PRO, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PRO_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80}, null),
+            UserLevelEnums.PRO, ProductTimeEnum.MONTH, BenefitsStrategyTypeEnums.PAY_PRO_MONTH, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_10,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_80,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_70}, null),
 
 
     AI_BASIC_YEAR("basic_year", "魔法ai-基础版-年付", 59900, "魔法ai-基础版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.BASIC, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_BASIC_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100}, null),
+            UserLevelEnums.BASIC, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_BASIC_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_70}, null),
     AI_PLUS_YEAR("plus_year", "魔法ai-高级版-年付", 199900, "魔法ai-高级版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PLUS, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PLUS_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100}, null),
+            UserLevelEnums.PLUS, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PLUS_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_70}, null),
     AI_PRO_YEAR("pro_year", "魔法ai-团队版-年付", 499900, "魔法ai-团队版-年付", "https://cn-test.llmops-ui-user.hotsalestar.com/static/media/user-round.13b5a31bebd2cc6016d6db2cac8e92d1.svg",
-            UserLevelEnums.PRO, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PRO_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100}, null),
+            UserLevelEnums.PRO, ProductTimeEnum.YEAR, BenefitsStrategyTypeEnums.PAY_PRO_YEAR, new BenefitsStrategyTypeEnums[]{BenefitsStrategyTypeEnums.DIRECT_DISCOUNT_100,BenefitsStrategyTypeEnums.PERCENTAGE_DISCOUNT_70}, null),
     ;
 
 
