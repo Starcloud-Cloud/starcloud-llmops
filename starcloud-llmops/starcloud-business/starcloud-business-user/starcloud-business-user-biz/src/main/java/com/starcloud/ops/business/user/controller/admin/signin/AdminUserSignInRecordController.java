@@ -35,7 +35,7 @@ import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUti
 @RestController
 @RequestMapping("/admin/sign-in/record")
 @Validated
-public class MemberSignInRecordController {
+public class AdminUserSignInRecordController {
 
     @Resource
     private AdminUserSignInRecordService signInRecordService;

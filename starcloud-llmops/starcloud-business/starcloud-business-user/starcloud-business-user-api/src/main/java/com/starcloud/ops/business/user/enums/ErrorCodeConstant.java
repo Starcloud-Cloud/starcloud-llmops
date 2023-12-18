@@ -50,6 +50,12 @@ public interface ErrorCodeConstant {
     ErrorCode RIGHTS_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户权益记录业务类型不支持");
 
     //========== 签到配置 2-004-010-000 ==========
+
+    //========== 签到配置 1-004-009-000 ==========
+    ErrorCode SIGN_IN_CONFIG_NOT_EXISTS = new ErrorCode(2_004_009_000, "签到天数规则不存在");
+    ErrorCode SIGN_IN_CONFIG_EXISTS = new ErrorCode(2_004_009_001, "签到天数规则已存在");
+
+    //========== 签到配置 1-004-010-000 ==========
     ErrorCode SIGN_IN_RECORD_TODAY_EXISTS = new ErrorCode(2_004_010_000, "今日已签到，请勿重复签到");
 
 

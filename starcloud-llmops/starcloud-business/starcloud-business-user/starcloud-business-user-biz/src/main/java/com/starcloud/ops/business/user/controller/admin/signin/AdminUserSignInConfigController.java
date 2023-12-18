@@ -28,7 +28,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RestController
 @RequestMapping("/admin/sign-in/config")
 @Validated
-public class MemberSignInConfigController {
+public class AdminUserSignInConfigController {
 
     @Resource
     private AdminUserSignInConfigService signInConfigService;

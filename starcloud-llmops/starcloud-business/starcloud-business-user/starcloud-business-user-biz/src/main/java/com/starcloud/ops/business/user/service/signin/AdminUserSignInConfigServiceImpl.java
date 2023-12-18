@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.service.signin;
 
 import com.starcloud.ops.business.user.controller.admin.signin.vo.config.AdminUserSignInConfigCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.signin.vo.config.AdminUserSignInConfigUpdateReqVO;
+import com.starcloud.ops.business.user.convert.signin.AdminUserSignInConfigConvert;
 import com.starcloud.ops.business.user.dal.dataobject.signin.AdminUserSignInConfigDO;
 import com.starcloud.ops.business.user.dal.mysql.signin.AdminUserSignInConfigMapper;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,10 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.Comparator;
 import java.util.List;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.SIGN_IN_CONFIG_EXISTS;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.SIGN_IN_CONFIG_NOT_EXISTS;
 
 
 /**
