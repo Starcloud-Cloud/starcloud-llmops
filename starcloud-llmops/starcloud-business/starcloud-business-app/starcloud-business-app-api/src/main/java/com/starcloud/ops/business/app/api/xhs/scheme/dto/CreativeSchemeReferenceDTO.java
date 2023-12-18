@@ -61,6 +61,12 @@ public class CreativeSchemeReferenceDTO implements java.io.Serializable {
     private String link;
 
     /**
+     * 参考标签
+     */
+    @Schema(description = "标签")
+    private List<String> tagList;
+
+    /**
      * 参考图片
      */
     @Schema(description = "图片")

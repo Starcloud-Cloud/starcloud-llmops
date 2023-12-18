@@ -162,6 +162,16 @@ public interface CreativeErrorCodeConstants {
     ErrorCode POSTER_ID_REQUIRED = new ErrorCode(750100111, "图片模板ID不能为空！");
 
     /**
+     * 创作方案模式不能为空
+     */
+    ErrorCode SCHEME_MODE_REQUIRED = new ErrorCode(720100124, "创作方案模式不能为空！{}");
+
+    /**
+     * 创作方案模式不支持
+     */
+    ErrorCode SCHEME_MODE_NOT_SUPPORTED = new ErrorCode(720100125, "创作方案模式不支持（{}）！{}");
+
+    /**
      * 图片模板参数不能为空
      */
     ErrorCode POSTER_PARAMS_REQUIRED = new ErrorCode(750100112, "图片模板参数不能为空！");
