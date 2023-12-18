@@ -68,7 +68,7 @@ public class NotificationCenterController {
         return CommonResult.success(true);
     }
 
-    @DeleteMapping("/modify")
+    @PutMapping("/modify")
     @Operation(summary = "编辑", description = "编辑")
     public CommonResult<NotificationRespVO> modify(@Valid @RequestBody NotificationModifyReqVO reqVO) {
         NotificationRespVO respVO = centerService.modifySelective(reqVO);
