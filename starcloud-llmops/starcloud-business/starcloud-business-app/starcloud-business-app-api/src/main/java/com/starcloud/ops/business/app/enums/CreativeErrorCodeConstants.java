@@ -162,6 +162,16 @@ public interface CreativeErrorCodeConstants {
     ErrorCode POSTER_ID_REQUIRED = new ErrorCode(750100111, "图片模板ID不能为空！");
 
     /**
+     * 创作方案模式不能为空
+     */
+    ErrorCode SCHEME_MODE_REQUIRED = new ErrorCode(720100124, "创作方案模式不能为空！{}");
+
+    /**
+     * 创作方案模式不支持
+     */
+    ErrorCode SCHEME_MODE_NOT_SUPPORTED = new ErrorCode(720100125, "创作方案模式不支持（{}）！{}");
+
+    /**
      * 图片模板参数不能为空
      */
     ErrorCode POSTER_PARAMS_REQUIRED = new ErrorCode(750100112, "图片模板参数不能为空！");
@@ -215,4 +225,24 @@ public interface CreativeErrorCodeConstants {
      * 应用执行结果不存在
      */
     ErrorCode CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR = new ErrorCode(750100313, "执行结果格式不正确！，请稍后重试或者联系管理员（{}）！");
+
+    /**
+     * 生成段落数和要求段落数不想等
+     */
+    ErrorCode PARAGRAPH_SIZE_NOT_EQUAL = new ErrorCode(750100314, "生成段落数和要求段落数不想等！");
+
+    /**
+     * 生成的段落标题不能为空
+     */
+    ErrorCode PARAGRAPH_TITLE_IS_NOT_BLANK = new ErrorCode(750100315, "生成的段落标题不能为空！");
+
+    /**
+     * 生成的段落内容不能为空
+     */
+    ErrorCode PARAGRAPH_CONTENT_IS_NOT_BLANK = new ErrorCode(750100316, "生成的段落内容不能为空！");
+
+    /**
+     * 段落数量使必填的
+     */
+    ErrorCode PARAGRAPH_COUNT_IS_REQUIRED = new ErrorCode(750100317, "段落数量使必填的！");
 }

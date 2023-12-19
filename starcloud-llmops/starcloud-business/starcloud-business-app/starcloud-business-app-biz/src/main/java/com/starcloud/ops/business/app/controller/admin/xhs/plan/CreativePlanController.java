@@ -11,7 +11,9 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanStatusReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -111,6 +114,17 @@ public class CreativePlanController {
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<Boolean> execute(@Validated @RequestBody UidRequest request) {
         creativePlanService.execute(request.getUid());
+        return CommonResult.success(true);
+    }
+
+    @Resource
+    private CreativeContentService creativeContentService;
+
+    @PostMapping("/test")
+    @Operation(summary = "执行创作计划", description = "执行创作计划")
+    @ApiOperationSupport(order = 80, author = "nacoyer")
+    public CommonResult<Boolean> test(@Validated @RequestBody List<Long> ids) {
+        creativeContentService.execute(ids, CreativeContentTypeEnum.PICTURE.getCode(), Boolean.FALSE);
         return CommonResult.success(true);
     }
 }

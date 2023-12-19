@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
@@ -19,12 +20,14 @@ import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,17 @@ public class CreativeImageUtils {
     private static final String IMAGE = "IMAGE";
     private static final String TITLE = "TITLE";
     private static final String SUB_TITLE = "SUB_TITLE";
+    private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
+    private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
+    private static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
+    private static final String PARAGRAPH_TWO_CONTENT = "PARAGRAPH_TWO_CONTENT";
+    private static final String PARAGRAPH_THREE_TITLE = "PARAGRAPH_THREE_TITLE";
+    private static final String PARAGRAPH_THREE_CONTENT = "PARAGRAPH_THREE_CONTENT";
+    private static final String PARAGRAPH_FOUR_TITLE = "PARAGRAPH_FOUR_TITLE";
+    private static final String PARAGRAPH_FOUR_CONTENT = "PARAGRAPH_FOUR_CONTENT";
+
+    private static final List<String> PARAGRAPH_TITLE = Arrays.asList(PARAGRAPH_ONE_TITLE, PARAGRAPH_TWO_TITLE, PARAGRAPH_THREE_TITLE, PARAGRAPH_FOUR_TITLE);
+    private static final List<String> PARAGRAPH_CONTENT = Arrays.asList(PARAGRAPH_ONE_CONTENT, PARAGRAPH_TWO_CONTENT, PARAGRAPH_THREE_CONTENT, PARAGRAPH_FOUR_CONTENT);
 
     /**
      * 转换成执行参数
@@ -54,12 +68,12 @@ public class CreativeImageUtils {
      */
     public static XhsImageStyleExecuteRequest getImageStyleExecuteRequest(CreativeContentDO content,
                                                                           CopyWritingContentDTO copyWriting,
-                                                                          Map<String, CreativeImageTemplateDTO> posterTemplateMap,
                                                                           Boolean force) {
         // 获取使用图片
         List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
         // 获取执行参数
         CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+
         // 获取图片风格执行参数
         CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
         // 获取风格中图片执行参数
@@ -67,24 +81,128 @@ public class CreativeImageUtils {
         // 转换成执行参数
         XhsImageStyleExecuteRequest executeRequest = new XhsImageStyleExecuteRequest();
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
+
+        // 干货图文生成
+        List<Paragraph> paragraphList = Lists.newArrayList();
+        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
+            String paragraphString = Optional.ofNullable(copyWriting.getContent()).orElse(StringUtils.EMPTY);
+            paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.THIRD);
+            if (paragraphList.size() != executeParams.getParagraphCount()) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
+            }
+        }
+
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
             XhsImageExecuteRequest request = new XhsImageExecuteRequest();
-            // 如果强制执行，则使用最新的模板参数
-            if (force && posterTemplateMap.containsKey(imageRequest.getId())) {
-                CreativeImageTemplateDTO imageTemplate = posterTemplateMap.get(imageRequest.getId());
-                imageRequest.setParams(mergeVariables(imageRequest.getParams(), imageTemplate.getVariables()));
-            }
             request.setId(imageRequest.getId());
             request.setName(imageRequest.getName());
             request.setIndex(imageRequest.getIndex());
             request.setIsMain(imageRequest.getIsMain());
-            request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
+            if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
+                // 随机图文生成
+                request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
+            } else {
+                Map<String, Object> params = Maps.newHashMap();
+                // 图片集合，用于替换图片。
+                List<String> imageList = Lists.newArrayList();
+                List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+                List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
+
+                for (VariableItemDTO variableItem : variableItemList) {
+                    if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
+                        // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
+                        params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
+                    } else {
+                        if (Objects.isNull(variableItem.getValue()) || ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
+                            // 只有主图才会替换标题和副标题
+                            if (imageRequest.getIsMain()) {
+                                if (TITLE.equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
+                                } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                                } else if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
+                                    paragraphTitle(params, variableItem, paragraphList);
+                                } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
+                                    paragraphContent(params, variableItem, paragraphList);
+                                } else {
+                                    params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+                                }
+                            } else {
+                                if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
+                                    paragraphTitle(params, variableItem, paragraphList);
+                                } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
+                                    paragraphContent(params, variableItem, paragraphList);
+                                } else {
+                                    params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+                                }
+                            }
+                        } else {
+                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
+                        }
+                    }
+                }
+                request.setParams(params);
+            }
             imageExecuteRequests.add(request);
         }
         executeRequest.setId(imageStyleExecuteRequest.getId());
         executeRequest.setName(imageStyleExecuteRequest.getName());
         executeRequest.setImageRequests(imageExecuteRequests);
         return executeRequest;
+    }
+
+    /**
+     * 处理段落标题
+     *
+     * @param params        参数
+     * @param variableItem  变量
+     * @param paragraphList 段落
+     */
+    private static void paragraphTitle(Map<String, Object> params, VariableItemDTO variableItem, List<Paragraph> paragraphList) {
+        if (CollectionUtil.isEmpty(paragraphList)) {
+            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+        }
+        for (Paragraph paragraph : paragraphList) {
+            if (!paragraph.getIsUseTitle()) {
+                String title = Optional.ofNullable(paragraph.getTitle()).orElse(StringUtils.EMPTY);
+                int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
+                if (title.length() > count - 3) {
+                    // 超出部分用 ... 代替
+                    title = StrUtil.maxLength(title, count - 3);
+                }
+                params.put(variableItem.getField(), title);
+                paragraph.setIsUseTitle(true);
+                return;
+            }
+        }
+        params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+    }
+
+    /**
+     * 处理段落内容
+     *
+     * @param params        参数
+     * @param variableItem  变量
+     * @param paragraphList 段落
+     */
+    private static void paragraphContent(Map<String, Object> params, VariableItemDTO variableItem, List<Paragraph> paragraphList) {
+        if (CollectionUtil.isEmpty(paragraphList)) {
+            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+        }
+        for (Paragraph paragraph : paragraphList) {
+            if (!paragraph.getIsUseContent()) {
+                String content = Optional.ofNullable(paragraph.getContent()).orElse(StringUtils.EMPTY);
+                int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
+                if (content.length() > count - 3) {
+                    // 超出部分用 ... 代替
+                    content = StrUtil.maxLength(content, count - 3);
+                }
+                params.put(variableItem.getField(), content);
+                paragraph.setIsUseContent(true);
+                return;
+            }
+        }
+        params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
     }
 
     /**
@@ -113,6 +231,87 @@ public class CreativeImageUtils {
         imageStyleExecuteRequest.setName(style.getName());
         imageStyleExecuteRequest.setImageRequests(imageExecuteRequestList);
         return imageStyleExecuteRequest;
+    }
+
+    /**
+     * 获取小红书批量图片执行参数
+     *
+     * @param style 图片模板列表
+     * @return 图片执行参数
+     */
+    public static CreativePlanImageStyleExecuteDTO getCreativeImageStyleExecute(CreativeImageStyleDTO style, List<String> useImageList,
+                                                                                Integer paragraphCount, Map<String, CreativeImageTemplateDTO> posterMap) {
+        // 图片参数信息
+        List<CreativePlanImageExecuteDTO> imageExecuteRequestList = Lists.newArrayList();
+        List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        // 图片参数配置的总段落数
+        List<Integer> paragraphParamCountList = new ArrayList<>();
+        for (int i = 0; i < templateList.size(); i++) {
+            CreativeImageTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
+            CreativePlanImageExecuteDTO imageExecuteRequest = new CreativePlanImageExecuteDTO();
+            imageExecuteRequest.setIndex(i + 1);
+            imageExecuteRequest.setIsMain(i == 0);
+            imageExecuteRequest.setId(posterTemplate.getId());
+            imageExecuteRequest.setName(posterTemplate.getName());
+            List<VariableItemDTO> params = transformParams(posterTemplate, useImageList);
+            int size = (int) params.stream().filter(item -> PARAGRAPH_TITLE.contains(item.getField())).count();
+            paragraphParamCountList.add(size);
+            imageExecuteRequest.setParams(params);
+            imageExecuteRequestList.add(imageExecuteRequest);
+        }
+
+        List<CreativePlanImageExecuteDTO> imageRequestList = Lists.newArrayList();
+        // paragraphParamCountList 依次相加 stream 方式
+        int total = paragraphParamCountList.stream().mapToInt(Integer::intValue).sum();
+        if (total == paragraphCount) {
+            imageRequestList = imageExecuteRequestList;
+        } else if (total > paragraphCount) {
+            // 超过段落数，截取
+            int sumCount = 0;
+            for (int i = 0; i < paragraphParamCountList.size(); i++) {
+                if (i == paragraphParamCountList.size() - 1 && paragraphParamCountList.get(i) == 0) {
+                    imageRequestList.add(imageExecuteRequestList.get(i));
+                }
+                if (sumCount > paragraphCount) {
+                    continue;
+                }
+                sumCount += paragraphParamCountList.get(i);
+                imageRequestList.add(imageExecuteRequestList.get(i));
+            }
+        } else {
+            // 少于段落数，补充，获取作为复制的基数索引
+            imageRequestList.addAll(imageExecuteRequestList);
+            // 获取需要补充的数量
+            int diff = paragraphCount - total;
+            // 获取需要复制的元素的索引。
+            int index = getNextNonZeroIndex(paragraphParamCountList);
+            // 获取需要复制的元素
+            CreativePlanImageExecuteDTO imageExecuteRequest = imageExecuteRequestList.get(index);
+            // 复制元素
+            while (diff > 0) {
+                CreativePlanImageExecuteDTO copyImageExecuteRequest = SerializationUtils.clone(imageExecuteRequest);
+                // 在 index 索引后面添加复制的元素
+                imageRequestList.add(index + 1, copyImageExecuteRequest);
+                // diff 扣除复制的元素的数量
+                diff -= paragraphParamCountList.get(index);
+            }
+        }
+
+        // 图片风格执行参数
+        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = new CreativePlanImageStyleExecuteDTO();
+        imageStyleExecuteRequest.setId(style.getId());
+        imageStyleExecuteRequest.setName(style.getName());
+        imageStyleExecuteRequest.setImageRequests(imageRequestList);
+        return imageStyleExecuteRequest;
+    }
+
+    private static int getNextNonZeroIndex(List<Integer> params) {
+        for (int i = 1; i < params.size(); i++) {
+            if (params.get(i) > 0) {
+                return i;
+            }
+        }
+        throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_NOT_SUPPORTED);
     }
 
     /**
@@ -177,7 +376,7 @@ public class CreativeImageUtils {
         List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemDTO variableItem : variableItemList) {
             VariableItemDTO item = SerializationUtils.clone(variableItem);
-            if (IMAGE.equalsIgnoreCase(item.getType())) {
+            if (IMAGE.equalsIgnoreCase(item.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 item.setValue(randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
                 item.setValue(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
@@ -203,7 +402,7 @@ public class CreativeImageUtils {
         List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
         List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemDTO variableItem : variableItemList) {
-            if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
+            if (force && IMAGE.equalsIgnoreCase(variableItem.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                 params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
@@ -227,6 +426,32 @@ public class CreativeImageUtils {
             }
         }
         return params;
+    }
+
+    public static String handlerParagraphDemand(CreativeContentDO business) {
+        StringBuilder builder = new StringBuilder();
+        // 获取执行参数
+        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(business.getExecuteParams());
+        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
+        List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
+        int i = 1;
+        for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
+            List<VariableItemDTO> params = imageRequest.getParams();
+            for (VariableItemDTO param : params) {
+                if ("TEXT".equalsIgnoreCase(param.getType())) {
+                    if (PARAGRAPH_TITLE.contains(param.getField())) {
+                        builder.append("第 ").append(i).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                    }
+                    if (PARAGRAPH_CONTENT.contains(param.getField())) {
+                        builder.append("第 ").append(i).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                    }
+                    i = i + 1;
+                }
+            }
+
+        }
+
+        return builder.toString();
     }
 
     /**
@@ -257,6 +482,9 @@ public class CreativeImageUtils {
      * @return 打散后的图片素材列表
      */
     public static List<String> disperseImageUrlList(List<String> imageUrlList, Integer total) {
+        if (CollectionUtil.isEmpty(imageUrlList)) {
+            return Lists.newArrayList();
+        }
         List<String> disperseImageUrlList = SerializationUtils.clone((ArrayList<String>) imageUrlList);
         Collections.shuffle(disperseImageUrlList);
         // 如果图片素材数量大于等于任务数量，直接返回打撒后的图片素材列表
@@ -279,9 +507,6 @@ public class CreativeImageUtils {
      * @return 随机图片
      */
     public static String randomImage(List<String> imageList, List<String> useImageList, Integer imageTypeNumber) {
-        if (CollectionUtil.isEmpty(useImageList)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
-        }
         // 如果图片类型数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
         if (imageTypeNumber > useImageList.size()) {
             return useImageList.get(RandomUtil.randomInt(useImageList.size()));

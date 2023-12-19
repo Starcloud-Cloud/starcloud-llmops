@@ -35,10 +35,17 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
     private String uid;
 
     /**
+     * 步骤
+     */
+    private String step;
+
+    /**
      * 场景
      */
     @Schema(description = "场景")
     private String scene;
+
+
 
     /**
      * 用户ID

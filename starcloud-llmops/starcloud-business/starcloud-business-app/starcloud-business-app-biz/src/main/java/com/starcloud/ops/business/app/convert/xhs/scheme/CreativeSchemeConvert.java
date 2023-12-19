@@ -50,6 +50,7 @@ public interface CreativeSchemeConvert {
         creativeScheme.setCategory(request.getCategory());
         creativeScheme.setTags(StringUtil.toString(request.getTags()));
         creativeScheme.setDescription(request.getDescription());
+        creativeScheme.setMode(request.getMode());
         if (CollectionUtil.isNotEmpty(request.getRefers())) {
             creativeScheme.setRefers(JSONUtil.toJsonStr(request.getRefers()));
         }
@@ -90,6 +91,7 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setCategory(creativeScheme.getCategory());
         creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
+        creativeSchemeResponse.setMode(creativeScheme.getMode());
         if (StringUtils.isNotBlank(creativeScheme.getRefers())) {
             TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
             };
