@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
@@ -29,7 +28,6 @@ public class AppNotificationQueryReqVO extends PageParam {
     private String platform;
 
     @Schema(description = "类目")
-    @NotBlank(message = "类目")
     private String field;
 
     @Schema(description = "排序字段")
