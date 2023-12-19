@@ -289,56 +289,58 @@ public class CreativeExecuteManager {
             CopyWritingContentDTO copyWriting = getCopyWritingContent(content, start, maxRetry);
             // 获取最新的创作内容并且校验
             CreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
-            // 构建请求
-            XhsImageCreativeExecuteRequest request = new XhsImageCreativeExecuteRequest();
-            request.setContentUid(latestContent.getUid());
-            request.setPlanUid(latestContent.getPlanUid());
-            request.setSchemeUid(latestContent.getSchemeUid());
-            request.setBusinessUid(latestContent.getBusinessUid());
-            // 图片执行参数需要抽象。
-            request.setImageStyleRequest(CreativeImageUtils.getImageStyleExecuteRequest(latestContent, copyWriting, force));
-            // 执行请求
-            XhsImageCreativeExecuteResponse response = creativeImageManager.creativeExecute(request);
+            try {
+                // 构建请求
+                XhsImageCreativeExecuteRequest request = new XhsImageCreativeExecuteRequest();
+                request.setContentUid(latestContent.getUid());
+                request.setPlanUid(latestContent.getPlanUid());
+                request.setSchemeUid(latestContent.getSchemeUid());
+                request.setBusinessUid(latestContent.getBusinessUid());
+                // 图片执行参数需要抽象。
+                request.setImageStyleRequest(CreativeImageUtils.getImageStyleExecuteRequest(latestContent, copyWriting, force));
+                // 执行请求
+                XhsImageCreativeExecuteResponse response = creativeImageManager.creativeExecute(request);
 
-            // 校验结果
-            if (Objects.isNull(response)) {
-                updateFailure(latestContent.getId(), start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()), latestContent.getRetryCount(), maxRetry);
-                throw exception(350600115, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
+                // 校验结果
+                if (Objects.isNull(response)) {
+                    throw exception(350600115, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
+                }
+                // 是否成功
+                if (!response.getSuccess()) {
+                    Integer errorCode = Objects.isNull(response.getErrorCode()) ? 350600119 : response.getErrorCode();
+                    String message = StringUtils.isBlank(response.getErrorMessage()) ? "创作中心：图片生成失败！" : response.getErrorMessage();
+                    throw exception(errorCode, message);
+                }
+                // 图片生成结果
+                List<XhsImageExecuteResponse> imageResponseList = CollectionUtil.emptyIfNull(response.getImageStyleResponse().getImageResponses());
+                if (CollectionUtils.isEmpty(imageResponseList)) {
+                    throw exception(350600120, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
+                }
+
+                // 更新创作内容
+                LocalDateTime end = LocalDateTime.now();
+                long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+                executeTime = new BigDecimal(String.valueOf(executeTime)).divide(new BigDecimal(String.valueOf(imageResponseList.size())), 2, RoundingMode.HALF_UP).longValue();
+                List<CreativeImageDTO> pictureContent = CreativeContentConvert.INSTANCE.convert2(imageResponseList);
+
+                CreativeContentDO updateContent = new CreativeContentDO();
+                updateContent.setId(latestContent.getId());
+                updateContent.setPictureContent(JSONUtil.toJsonStr(pictureContent));
+                updateContent.setPictureNum(pictureContent.size());
+                updateContent.setStartTime(start);
+                updateContent.setEndTime(end);
+                updateContent.setExecuteTime(executeTime);
+                updateContent.setStatus(CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode());
+                updateContent.setUpdateTime(end);
+                updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+                creativeContentMapper.updateById(updateContent);
+
+                log.info("创作中心：图片执行成功：ID：{}, 耗时： {} ms", latestContent.getId(), executeTime);
+                return response;
+            } catch (Exception e) {
+                updateFailure(latestContent.getId(), start, e.getMessage(), latestContent.getRetryCount(), maxRetry);
+                throw e;
             }
-            // 是否成功
-            if (!response.getSuccess()) {
-                Integer errorCode = Objects.isNull(response.getErrorCode()) ? 350600119 : response.getErrorCode();
-                String message = StringUtils.isBlank(response.getErrorMessage()) ? "创作中心：图片生成失败！" : response.getErrorMessage();
-                updateFailure(latestContent.getId(), start, message, latestContent.getRetryCount(), maxRetry);
-                throw exception(errorCode, message);
-            }
-            // 图片生成结果
-            List<XhsImageExecuteResponse> imageResponseList = CollectionUtil.emptyIfNull(response.getImageStyleResponse().getImageResponses());
-            if (CollectionUtils.isEmpty(imageResponseList)) {
-                updateFailure(latestContent.getId(), start, formatErrorMsg("创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid()), latestContent.getRetryCount(), maxRetry);
-                throw exception(350600120, "创作中心：图片生成结果为空(ID: %s)！", latestContent.getUid());
-            }
-
-            // 更新创作内容
-            LocalDateTime end = LocalDateTime.now();
-            long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-            executeTime = new BigDecimal(String.valueOf(executeTime)).divide(new BigDecimal(String.valueOf(imageResponseList.size())), 2, RoundingMode.HALF_UP).longValue();
-            List<CreativeImageDTO> pictureContent = CreativeContentConvert.INSTANCE.convert2(imageResponseList);
-
-            CreativeContentDO updateContent = new CreativeContentDO();
-            updateContent.setId(latestContent.getId());
-            updateContent.setPictureContent(JSONUtil.toJsonStr(pictureContent));
-            updateContent.setPictureNum(pictureContent.size());
-            updateContent.setStartTime(start);
-            updateContent.setEndTime(end);
-            updateContent.setExecuteTime(executeTime);
-            updateContent.setStatus(CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode());
-            updateContent.setUpdateTime(end);
-            updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-            creativeContentMapper.updateById(updateContent);
-
-            log.info("创作中心：图片执行成功：ID：{}, 耗时： {} ms", latestContent.getId(), executeTime);
-            return response;
         } catch (ServiceException exception) {
             log.error("创作中心：图片执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
             return failure(content, exception.getCode(), exception.getMessage(), null);
