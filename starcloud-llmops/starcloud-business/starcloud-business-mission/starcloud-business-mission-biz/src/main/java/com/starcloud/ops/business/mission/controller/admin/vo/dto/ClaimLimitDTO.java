@@ -23,17 +23,13 @@ public class ClaimLimitDTO {
     @InEnum(value = GenderEnum.class, field = InEnum.EnumField.CODE, message = "性别[{value}]必须是: {values}")
     private String gender;
 
-    @Schema(description = "帐号类型")
-    @InEnum(value = AccountTypeEnum.class, field = InEnum.EnumField.CODE, message = "帐号类型[{value}]必须是: {values}")
-    private String accountType;
+//    @Schema(description = "帐号类型")
+//    @InEnum(value = AccountTypeEnum.class, field = InEnum.EnumField.CODE, message = "帐号类型[{value}]必须是: {values}")
+//    private String accountType;
 
-    @Schema(description = "最小粉丝数")
-    @Min(value = 0, message = "最小粉丝数要大于0")
-    private Integer minFansNum ;
-
-    @Schema(description = "最大粉丝数")
-    @Min(value = 0, message = "最大粉丝数要大于0")
-    private Integer maxFansNum;
+//    @Schema(description = "最大粉丝数")
+//    @Min(value = 0, message = "最大粉丝数要大于0")
+//    private Integer maxFansNum;
 
     @Schema(description = "每人领取数量")
     @Min(value = 0, message = "每人领取数量要大于0")
@@ -42,12 +38,11 @@ public class ClaimLimitDTO {
 
     public static ClaimLimitDTO defaultInstance() {
         ClaimLimitDTO claimLimitDTO = new ClaimLimitDTO();
-        claimLimitDTO.setAddress(Collections.singletonList(AddressEnum.unlimited.getCode()));
-        claimLimitDTO.setGender(GenderEnum.unlimited.getCode());
-        claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
+        claimLimitDTO.setAddress(Collections.singletonList("unlimited"));
+        claimLimitDTO.setGender("unlimited");
+//        claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
         claimLimitDTO.setClaimNum(1);
-        claimLimitDTO.setMinFansNum(-1);
-        claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
+//        claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
         return claimLimitDTO;
     }
 }

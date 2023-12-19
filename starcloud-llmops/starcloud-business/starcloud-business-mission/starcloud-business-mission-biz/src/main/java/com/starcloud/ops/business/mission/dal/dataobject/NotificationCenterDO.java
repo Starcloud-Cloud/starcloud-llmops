@@ -89,6 +89,11 @@ public class NotificationCenterDO extends TenantBaseDO {
     private String claimLimit;
 
     /**
+     * 最小粉丝数
+     */
+    private Integer minFansNum;
+
+    /**
      * 访问次数
      */
     private Integer visitNum;
