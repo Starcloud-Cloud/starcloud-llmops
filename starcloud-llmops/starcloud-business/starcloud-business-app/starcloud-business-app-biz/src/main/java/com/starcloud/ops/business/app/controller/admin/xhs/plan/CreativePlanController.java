@@ -124,7 +124,7 @@ public class CreativePlanController {
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<Boolean> test(@Validated @RequestBody List<Long> ids) {
-        creativeContentService.execute(ids, CreativeContentTypeEnum.PICTURE.getCode(), Boolean.FALSE);
+        creativeContentService.execute(ids, CreativeContentTypeEnum.COPY_WRITING.getCode(), Boolean.FALSE);
         return CommonResult.success(true);
     }
 }
