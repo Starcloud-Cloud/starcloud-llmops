@@ -211,7 +211,7 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Override
     public PageResult<PreSettlementRecordRespVO> preSettlementRecord(PreSettlementRecordReqVO reqVO) {
         SingleMissionDO missionDO = missionByUid(reqVO.getMissionUid());
-        if (Objects.equals(reqVO.getClaimUserId(), missionDO.getClaimUserId())) {
+        if (!Objects.equals(reqVO.getClaimUserId(), missionDO.getClaimUserId())) {
             throw exception(NOT_FOR_SELF);
         }
         PageResult<XhsNoteDetailDO> result = noteDetailService.preSettlementRecord(reqVO);
