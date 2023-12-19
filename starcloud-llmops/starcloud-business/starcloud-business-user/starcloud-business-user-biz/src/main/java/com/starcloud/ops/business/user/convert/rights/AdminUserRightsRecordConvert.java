@@ -3,7 +3,7 @@ package com.starcloud.ops.business.user.convert.rights;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.AdminUserRightsRecordRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.record.AdminUserRightsRecordRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsRecordDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

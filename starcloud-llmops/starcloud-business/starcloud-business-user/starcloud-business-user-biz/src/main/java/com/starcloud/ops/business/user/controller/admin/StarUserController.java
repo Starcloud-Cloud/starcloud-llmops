@@ -84,9 +84,17 @@ public class StarUserController {
     }
 
 
+    @Deprecated
     @GetMapping("/user/detail")
     @Operation(summary = "获取用户明细", description = "获取用户明细")
     public CommonResult<UserDetailVO> userDetail() {
+        return CommonResult.success(llmUserService.userDetail());
+    }
+
+    @Deprecated
+    @GetMapping("/user/rights_detail")
+    @Operation(summary = "获取用户明细", description = "获取用户明细")
+    public CommonResult<UserDetailVO> userRightsDetail() {
         return CommonResult.success(llmUserService.userDetail());
     }
 

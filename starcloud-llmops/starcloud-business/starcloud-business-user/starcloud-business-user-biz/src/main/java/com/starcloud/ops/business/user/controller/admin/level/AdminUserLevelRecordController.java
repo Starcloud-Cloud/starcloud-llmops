@@ -22,7 +22,7 @@ import javax.validation.Valid;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "管理后台 - 会员等级记录")
+@Tag(name = "管理后台 - 系统会员等级记录")
 @RestController
 @RequestMapping("/admin/level-record")
 @Validated

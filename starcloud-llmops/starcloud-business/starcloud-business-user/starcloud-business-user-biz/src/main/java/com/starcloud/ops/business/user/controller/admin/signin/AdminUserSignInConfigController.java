@@ -24,7 +24,7 @@ import java.util.List;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 // TODO 芋艿：url
-@Tag(name = "管理后台 - 签到规则")
+@Tag(name = "管理后台 - 系统会员签到规则")
 @RestController
 @RequestMapping("/admin/sign-in/config")
 @Validated

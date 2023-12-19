@@ -31,7 +31,7 @@ public class InvitationRecordsServiceImpl implements InvitationRecordsService {
     private InvitationRecordsMapper invitationRecordsMapper;
 
     @Override
-    public void createInvitationRecords(Long inviterId, Long inviteeId) {
+    public Long createInvitationRecords(Long inviterId, Long inviteeId) {
         try {
             log.info("[createInvitationRecords][增加邀请记录：邀请人用户ID({})｜被邀请人({})]", inviterId, inviteeId);
             // 插入
@@ -42,9 +42,11 @@ public class InvitationRecordsServiceImpl implements InvitationRecordsService {
             invitationRecords.setCreator(String.valueOf(inviteeId));
             invitationRecords.setUpdater(String.valueOf(inviteeId));
             invitationRecordsMapper.insert(invitationRecords);
+            return invitationRecords.getId();
         } catch (RuntimeException e) {
             log.error("[createInvitationRecords][增加邀请记录失败：邀请人用户ID({})｜被邀请人({})]", inviterId, inviteeId);
         }
+        return 0L;
 
     }
 
