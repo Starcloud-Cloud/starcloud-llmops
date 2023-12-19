@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.mission.api.vo.request;
 
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import com.starcloud.ops.business.enums.NotificationPlatformEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,6 +23,14 @@ public class AppNotificationQueryReqVO extends PageParam {
 
     @Schema(description = "任务创建人")
     private List<String> creator;
+
+    @Schema(description = "平台")
+    @InEnum(value = NotificationPlatformEnum.class, field = InEnum.EnumField.CODE, message = "平台类型[{value}]必须是: {values}")
+    private String platform;
+
+    @Schema(description = "类目")
+    @NotBlank(message = "类目")
+    private String field;
 
     @Schema(description = "排序字段")
     private String sortField;
