@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum GenderEnum implements IEnumable<String> {
+    unlimited("unlimited","不限"),
 
     male("male", "男"),
 
