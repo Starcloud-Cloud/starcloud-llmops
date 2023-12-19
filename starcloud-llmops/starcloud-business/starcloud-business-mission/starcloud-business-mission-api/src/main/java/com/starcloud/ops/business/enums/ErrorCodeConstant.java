@@ -58,4 +58,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode  NOTIFICATION_CLOSED =  new ErrorCode(700020007,"通告任务已关闭，请领取其他任务");
 
+    ErrorCode  NOT_FOR_SELF =  new ErrorCode(700020008,"只能查询自己领取的任务");
+
 }

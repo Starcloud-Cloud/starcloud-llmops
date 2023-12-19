@@ -84,9 +84,9 @@ public interface SingleMissionService {
     SingleMissionRespVO refreshNote(RefreshNoteDetailReqVO reqVO);
 
     /**
-     * 结算更新
+     * 预结算更新
      */
-    void settlement(SingleMissionRespVO singleMissionRespVO);
+    void preSettlement(SingleMissionRespVO singleMissionRespVO);
 
     /**
      * 删除通告

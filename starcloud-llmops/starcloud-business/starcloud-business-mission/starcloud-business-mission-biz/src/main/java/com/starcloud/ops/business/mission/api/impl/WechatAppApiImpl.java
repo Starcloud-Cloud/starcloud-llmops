@@ -9,11 +9,13 @@ import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
+import com.starcloud.ops.business.mission.api.vo.response.PreSettlementRecordRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.convert.NotificationCenterConvert;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
+import com.starcloud.ops.business.mission.convert.XhsNoteDetailConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.*;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
@@ -53,6 +55,9 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private XhsNoteDetailService noteDetailService;
 
 
     @Override
@@ -201,6 +206,16 @@ public class WechatAppApiImpl implements WechatAppApi {
         respVO.setClaimCount(claimCount);
         respVO.setCurrentUserNum(currentUserNum);
         return respVO;
+    }
+
+    @Override
+    public PageResult<PreSettlementRecordRespVO> preSettlementRecord(PreSettlementRecordReqVO reqVO) {
+        SingleMissionDO missionDO = missionByUid(reqVO.getMissionUid());
+        if (Objects.equals(reqVO.getClaimUserId(), missionDO.getClaimUserId())) {
+            throw exception(NOT_FOR_SELF);
+        }
+        PageResult<XhsNoteDetailDO> result = noteDetailService.preSettlementRecord(reqVO);
+        return XhsNoteDetailConvert.INSTANCE.convert(result);
     }
 
     private SingleMissionDO missionByUid(String uid) {

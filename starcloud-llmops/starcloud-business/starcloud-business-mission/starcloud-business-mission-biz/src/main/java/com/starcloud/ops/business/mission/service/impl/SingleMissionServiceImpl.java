@@ -294,9 +294,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void settlement(SingleMissionRespVO singleMissionRespVO) {
+    public void preSettlement(SingleMissionRespVO singleMissionRespVO) {
         try {
-            preSettlement(singleMissionRespVO);
+            preSettlement0(singleMissionRespVO);
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
@@ -384,7 +384,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         return sj.toString();
     }
 
-    private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
+    private void preSettlement0(SingleMissionRespVO singleMissionRespVO) {
         XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
         // 校验note内容
         singleMissionRespVO.getContent().validPostingContent(noteDetail);

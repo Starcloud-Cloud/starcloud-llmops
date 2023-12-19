@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
+import com.starcloud.ops.business.mission.api.vo.response.PreSettlementRecordRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 
@@ -42,4 +43,9 @@ public interface WechatAppApi {
      * 通告详情
      */
     AppNotificationRespVO notifyDetail(String notificationUid,String userId);
+
+    /**
+     * 预结算记录
+     */
+    PageResult<PreSettlementRecordRespVO> preSettlementRecord(PreSettlementRecordReqVO reqVO);
 }

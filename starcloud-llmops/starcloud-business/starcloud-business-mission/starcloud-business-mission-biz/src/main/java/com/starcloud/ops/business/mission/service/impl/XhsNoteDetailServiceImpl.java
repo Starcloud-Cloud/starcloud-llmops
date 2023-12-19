@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.util.ReUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
+import com.starcloud.ops.business.mission.api.vo.request.PreSettlementRecordReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.convert.XhsNoteDetailConvert;
@@ -96,5 +98,10 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
     @Override
     public XhsNoteDetailDO getById(Long id) {
         return noteDetailMapper.selectById(id);
+    }
+
+    @Override
+    public PageResult<XhsNoteDetailDO> preSettlementRecord(PreSettlementRecordReqVO reqVO) {
+        return noteDetailMapper.page(reqVO);
     }
 }

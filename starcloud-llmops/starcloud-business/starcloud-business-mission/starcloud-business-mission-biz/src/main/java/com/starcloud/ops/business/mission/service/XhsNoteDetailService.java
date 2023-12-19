@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.mission.service;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.mission.api.vo.request.PreSettlementRecordReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
@@ -44,4 +46,9 @@ public interface XhsNoteDetailService {
      * 预结算数据
      */
     XhsNoteDetailDO getById(Long id);
+
+    /**
+     * 预结算记录
+     */
+    PageResult<XhsNoteDetailDO> preSettlementRecord(PreSettlementRecordReqVO reqVO);
 }
