@@ -49,7 +49,7 @@ public class PermissionApiImpl implements PermissionApi {
      */
     @Override
     public Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds) {
-        return (Map<Long, List<String>>) permissionService.getRoleMenuListByRoleId(userIds);
+        return permissionService.mapRoleCodeListByUserIds(userIds);
     }
 
     /**
@@ -60,7 +60,7 @@ public class PermissionApiImpl implements PermissionApi {
      */
     @Override
     public void appendRole(Long userId, String roleCode) {
-         permissionService.addUserRole(userId,roleCode);
+        permissionService.addUserRole(userId, roleCode);
     }
 
 }

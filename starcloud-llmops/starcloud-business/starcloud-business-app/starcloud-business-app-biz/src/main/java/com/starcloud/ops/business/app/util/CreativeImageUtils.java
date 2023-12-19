@@ -87,6 +87,9 @@ public class CreativeImageUtils {
         if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
             String paragraphString = Optional.ofNullable(copyWriting.getContent()).orElse(StringUtils.EMPTY);
             paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.THIRD);
+            if (paragraphList.size() != executeParams.getParagraphCount()) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
+            }
         }
 
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
