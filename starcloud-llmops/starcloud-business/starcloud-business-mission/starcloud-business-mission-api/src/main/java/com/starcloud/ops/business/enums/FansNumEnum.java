@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum FansNumEnum {
-
+    unlimited(0,"不限"),
     hundred(100,"100起"),
     thousands(1000,"1000起"),
     two_thousands(2000,"2000起"),
