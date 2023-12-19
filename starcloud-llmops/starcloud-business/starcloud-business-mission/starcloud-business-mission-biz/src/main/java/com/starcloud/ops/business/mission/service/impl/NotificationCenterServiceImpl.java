@@ -67,14 +67,16 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
         validName(reqVO.getName());
-        if ((reqVO.getSingleBudget() == null && reqVO.getNotificationBudget() != null)) {
-            throw exception(BUDGET_ERROR);
+
+        if (reqVO.getNotificationBudget() != null) {
+            if (reqVO.getSingleBudget() == null) {
+                throw exception(BUDGET_ERROR);
+            }
+            if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+                throw exception(BUDGET_ERROR);
+            }
         }
 
-        if (reqVO.getSingleBudget() != null && reqVO.getNotificationBudget() != null
-                && NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
-            throw exception(BUDGET_ERROR);
-        }
         if (reqVO.getUnitPrice() != null) {
             BigDecimal addPrice = reqVO.getUnitPrice().addPrice();
             if (NumberUtil.isGreater(addPrice, BigDecimal.ZERO)) {
@@ -154,13 +156,13 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
-        if ((reqVO.getSingleBudget() == null && reqVO.getNotificationBudget() != null)) {
-            throw exception(BUDGET_ERROR);
-        }
-
-        if (reqVO.getSingleBudget() != null && reqVO.getNotificationBudget() != null
-                && NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
-            throw exception(BUDGET_ERROR);
+        if (reqVO.getNotificationBudget() != null) {
+            if (reqVO.getSingleBudget() == null) {
+                throw exception(BUDGET_ERROR);
+            }
+            if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+                throw exception(BUDGET_ERROR);
+            }
         }
         if (reqVO.getUnitPrice() != null) {
             BigDecimal addPrice = reqVO.getUnitPrice().addPrice();

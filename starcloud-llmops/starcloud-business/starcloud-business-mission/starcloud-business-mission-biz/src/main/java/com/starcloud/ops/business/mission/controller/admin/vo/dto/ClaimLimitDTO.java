@@ -38,8 +38,8 @@ public class ClaimLimitDTO {
 
     public static ClaimLimitDTO defaultInstance() {
         ClaimLimitDTO claimLimitDTO = new ClaimLimitDTO();
-        claimLimitDTO.setAddress(Collections.singletonList("unlimited"));
-        claimLimitDTO.setGender("unlimited");
+        claimLimitDTO.setAddress(Collections.singletonList(AddressEnum.unlimited.getCode()));
+        claimLimitDTO.setGender(GenderEnum.unlimited.getCode());
 //        claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
         claimLimitDTO.setClaimNum(1);
 //        claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
