@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -58,12 +59,15 @@ public class CreativeSchemeConfigDTO implements java.io.Serializable {
      *
      * @param name 方案名称
      */
-    public void validate(String name) {
+    public void validate(String name, String mode) {
         if (Objects.isNull(copyWritingTemplate)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL, name);
         }
         if (Objects.isNull(imageTemplate)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_NOT_NULL, name);
+        }
+        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(mode) && Objects.isNull(paragraphCount)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_COUNT_IS_REQUIRED);
         }
         copyWritingTemplate.validate(name);
         imageTemplate.validate(name);

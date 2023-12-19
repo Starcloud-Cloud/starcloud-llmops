@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import lombok.Getter;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
@@ -77,8 +80,14 @@ public class MarkdownUtils {
         if (node instanceof Heading && ((Heading) node).getLevel() == level.getLevel()) {
             // 段落标题
             String title = TEXT_CONTENT_RENDERER.render(node);
+            if (StrUtil.isBlank(title)) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_TITLE_IS_NOT_BLANK);
+            }
             // 段落内容
             String content = getContent(node, level);
+            if (StrUtil.isBlank(content)) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_CONTENT_IS_NOT_BLANK);
+            }
             secondLevelHeadings.add(Paragraph.of(title, content));
         }
 

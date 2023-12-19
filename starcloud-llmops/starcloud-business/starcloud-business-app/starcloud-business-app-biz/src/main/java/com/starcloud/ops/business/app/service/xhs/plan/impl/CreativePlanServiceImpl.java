@@ -461,7 +461,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
             CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
-            configuration.validate(scheme.getName());
+            configuration.validate(scheme.getName(), scheme.getMode());
             CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
             // 查询并且校验应用是否存在
             AppMarketRespVO app = creativeAppManager.getExecuteApp(scheme.getMode());
