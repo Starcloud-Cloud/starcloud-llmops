@@ -2,8 +2,8 @@ package com.starcloud.ops.business.user.dal.mysql.level;
 
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelListReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigListReqVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -14,20 +14,20 @@ import java.util.List;
  * @author owen
  */
 @Mapper
-public interface AdminUserLevelMapper extends BaseMapperX<AdminUserLevelDO> {
+public interface AdminUserLevelMapper extends BaseMapperX<AdminUserLevelConfigDO> {
 
-    default List<AdminUserLevelDO> selectList(AdminUserLevelListReqVO reqVO) {
-        return selectList(new LambdaQueryWrapperX<AdminUserLevelDO>()
-                .likeIfPresent(AdminUserLevelDO::getName, reqVO.getName())
-                .eqIfPresent(AdminUserLevelDO::getStatus, reqVO.getStatus())
-                .orderByAsc(AdminUserLevelDO::getLevel));
+    default List<AdminUserLevelConfigDO> selectList(AdminUserLevelConfigListReqVO reqVO) {
+        return selectList(new LambdaQueryWrapperX<AdminUserLevelConfigDO>()
+                .likeIfPresent(AdminUserLevelConfigDO::getName, reqVO.getName())
+                .eqIfPresent(AdminUserLevelConfigDO::getStatus, reqVO.getStatus())
+                .orderByAsc(AdminUserLevelConfigDO::getLevel));
     }
 
 
-    default List<AdminUserLevelDO> selectListByStatus(Integer status) {
-        return selectList(new LambdaQueryWrapperX<AdminUserLevelDO>()
-                .eq(AdminUserLevelDO::getStatus, status)
-                .orderByAsc(AdminUserLevelDO::getLevel));
+    default List<AdminUserLevelConfigDO> selectListByStatus(Integer status) {
+        return selectList(new LambdaQueryWrapperX<AdminUserLevelConfigDO>()
+                .eq(AdminUserLevelConfigDO::getStatus, status)
+                .orderByAsc(AdminUserLevelConfigDO::getLevel));
     }
 
 }

@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.AdminUserRightsRecordPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsRecordDO;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
 /**
  * 用户积分记录 Service 接口
@@ -33,10 +33,11 @@ public interface AdminUserRightsRecordService {
     /**
      * 创建用户积分记录
      *
-     * @param userId  用户ID
-     * @param point   变动积分
-     * @param bizType 业务类型
-     * @param bizId   业务编号
+     * @param userId     用户ID
+     * @param amount     变动权益
+     * @param rightsType 权益类型
+     * @param bizType    业务类型
+     * @param bizId      业务编号
      */
-    void createPointRecord(Long userId, Integer point, AdminUserRightsBizTypeEnum bizType, String bizId);
+    void createRightsRecord(Long userId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode);
 }

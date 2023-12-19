@@ -16,7 +16,7 @@ import javax.validation.constraints.Positive;
  * 如果子 VO 存在差异的字段，请不要添加到这里，影响 Swagger 文档生成
  */
 @Data
-public class AdminUserLevelBaseVO {
+public class AdminUserLevelConfigBaseVO {
 
     @Schema(description = "等级名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     @NotBlank(message = "等级名称不能为空")

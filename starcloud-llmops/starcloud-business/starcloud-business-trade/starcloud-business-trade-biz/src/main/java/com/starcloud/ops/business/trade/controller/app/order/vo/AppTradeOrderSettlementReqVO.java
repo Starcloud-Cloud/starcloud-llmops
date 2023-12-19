@@ -32,7 +32,7 @@ public class AppTradeOrderSettlementReqVO {
     private Boolean pointStatus;
 
     // ========== 配送相关相关字段 ==========
-    @Schema(description = "配送方式", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @Schema(description = "配送方式 前端默认传递参数为 3", requiredMode = Schema.RequiredMode.REQUIRED, example = "3")
     @InEnum(value = DeliveryTypeEnum.class, message = "配送方式不正确")
     private Integer deliveryType;
 

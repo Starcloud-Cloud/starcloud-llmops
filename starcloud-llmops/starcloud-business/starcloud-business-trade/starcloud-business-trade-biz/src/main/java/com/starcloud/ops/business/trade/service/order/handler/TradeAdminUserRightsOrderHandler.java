@@ -1,20 +1,16 @@
 package com.starcloud.ops.business.trade.service.order.handler;
 
-import cn.hutool.core.collection.CollUtil;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
-import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
-import com.starcloud.ops.business.trade.service.aftersale.AfterSaleService;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
-
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getSumValue;
 
 /**
  * 会员积分、等级的 {@link TradeOrderHandler} 实现类
@@ -37,9 +33,20 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
         }
         // 设置会员等级
         for (GiveRightsDTO giveRight : order.getGiveRights()) {
-            adminUserLevelApi.addAdminUserLevel(order.getUserId(), giveRight.getLevel());
+            adminUserLevelApi.addAdminUserLevel(
+                    order.getUserId(),
+                    giveRight.getLevelId(),
+                    giveRight.getTimeNums(),
+                    giveRight.getTimeRange(),
+                    AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
+                    String.valueOf(AdminUserLevelBizTypeEnum.ORDER_GIVE.getDescription()));
             // 设置会员权益
-            adminUserRightsApi.addRights(order.getUserId(), giveRight.getGiveMagicBean(), giveRight.getGiveImage(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()));
+            adminUserRightsApi.addRights(
+                    order.getUserId(),
+                    giveRight.getGiveMagicBean(),
+                    giveRight.getGiveImage(),
+                    AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(),
+                    String.valueOf(order.getId()));
         }
 
 
@@ -97,19 +104,19 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
 //     * 2. 支付 or 下单成功时，创建积分记录（冻结），确认收货解冻或者 n 天后解冻
 //     *
 //     * @param userId  用户编号
-//     * @param point   增加积分数量
+//     * @param magicBean   增加积分数量
 //     * @param bizType 业务编号
 //     * @param bizId   业务编号
 //     */
-//    protected void addPoint(Long userId, Integer point, MemberPointBizTypeEnum bizType, Long bizId) {
-//        if (point != null && point > 0) {
-//            adminUserRightsApi.addRights(userId, point, bizType.getType(), String.valueOf(bizId));
+//    protected void addPoint(Long userId, Integer magicBean, MemberPointBizTypeEnum bizType, Long bizId) {
+//        if (magicBean != null && magicBean > 0) {
+//            adminUserRightsApi.addRights(userId, magicBean, bizType.getType(), String.valueOf(bizId));
 //        }
 //    }
 //
-//    protected void reducePoint(Long userId, Integer point, MemberPointBizTypeEnum bizType, Long bizId) {
-//        if (point != null && point > 0) {
-//            adminUserRightsApi.reduceRights(userId, point, bizType.getType(), String.valueOf(bizId));
+//    protected void reducePoint(Long userId, Integer magicBean, MemberPointBizTypeEnum bizType, Long bizId) {
+//        if (magicBean != null && magicBean > 0) {
+//            adminUserRightsApi.reduceRights(userId, magicBean, bizType.getType(), String.valueOf(bizId));
 //        }
 //    }
 

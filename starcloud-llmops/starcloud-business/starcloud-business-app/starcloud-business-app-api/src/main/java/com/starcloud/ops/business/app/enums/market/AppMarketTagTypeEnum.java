@@ -44,7 +44,7 @@ public enum AppMarketTagTypeEnum implements IEnumable<Integer> {
     /**
      * 小红书文案干货文生成
      */
-    XIAO_HONG_SHU_PRACTICAL_WRITING(1, "小红书文案生成", Arrays.asList("Writing", "小红书", "干货")),
+    XIAO_HONG_SHU_PRACTICAL_WRITING(1, "小红书文案生成", Arrays.asList("Writing", "小红书", "Practical")),
 
     /**
      * Listing标题生成

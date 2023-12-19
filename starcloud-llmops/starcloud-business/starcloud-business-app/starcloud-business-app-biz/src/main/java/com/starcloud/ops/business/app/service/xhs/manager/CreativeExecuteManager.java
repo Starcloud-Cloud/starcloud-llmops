@@ -115,6 +115,7 @@ public class CreativeExecuteManager {
         }
 
         try {
+            LocalDateTime start = LocalDateTime.now();
             List<XhsAppCreativeExecuteResponse> resp = new ArrayList<>();
             List<XhsAppCreativeExecuteRequest> requests = new ArrayList<>(contentList.size());
             for (CreativeContentDO content : contentList) {
@@ -162,9 +163,11 @@ public class CreativeExecuteManager {
                 }
             }
 
-            LocalDateTime start = LocalDateTime.now();
-            List<XhsAppCreativeExecuteResponse> respRandom = creativeAppManager.bathAppCreativeExecute(requests);
-            resp.addAll(respRandom);
+            if (CollectionUtils.isNotEmpty(requests)) {
+                List<XhsAppCreativeExecuteResponse> respRandom = creativeAppManager.bathAppCreativeExecute(requests);
+                resp.addAll(respRandom);
+            }
+
             if (CollectionUtils.isEmpty(resp)) {
                 return result;
             }

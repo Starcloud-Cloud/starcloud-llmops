@@ -44,10 +44,19 @@ public interface ErrorCodeConstant {
     ErrorCode LEVEL_EXPERIENCE_MAX = new ErrorCode(2_004_011_004, "升级经验必须小于下一个等级[{}]设置的升级经验[{}]");
     ErrorCode LEVEL_HAS_USER = new ErrorCode(2_004_011_005, "用户等级下存在用户，无法删除");
 
-    ErrorCode EXPERIENCE_BIZ_NOT_SUPPORT = new ErrorCode(2_004_011_201, "用户经验业务类型不支持");
+    ErrorCode LEVEL_BIZ_NOT_SUPPORT = new ErrorCode(2_004_011_201, "用户等级业务类型不支持");
 
     //========== 积分记录 2-004-008-000 ==========
-    ErrorCode POINT_RECORD_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户积分记录业务类型不支持");
+    ErrorCode RIGHTS_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户权益记录业务类型不支持");
+
+    //========== 签到配置 2-004-010-000 ==========
+
+    //========== 签到配置 1-004-009-000 ==========
+    ErrorCode SIGN_IN_CONFIG_NOT_EXISTS = new ErrorCode(2_004_009_000, "签到天数规则不存在");
+    ErrorCode SIGN_IN_CONFIG_EXISTS = new ErrorCode(2_004_009_001, "签到天数规则已存在");
+
+    //========== 签到配置 1-004-010-000 ==========
+    ErrorCode SIGN_IN_RECORD_TODAY_EXISTS = new ErrorCode(2_004_010_000, "今日已签到，请勿重复签到");
 
 
 

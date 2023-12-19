@@ -324,7 +324,7 @@ public class BrokerageUserServiceImpl implements BrokerageUserService {
      *
      * @param bindUserId 绑定用户编号
      * @param level      下级用户的层级。
-     *                   如果 level 为空，则查询 1+2 两个层级
+     *                   如果 levelId 为空，则查询 1+2 两个层级
      * @return 下级用户编号列表
      */
     private List<Long> getChildUserIdsByLevel(Long bindUserId, Integer level) {
@@ -337,17 +337,17 @@ public class BrokerageUserServiceImpl implements BrokerageUserService {
             return Collections.emptyList();
         }
 
-        // 情况一：level 为空，查询所有级别
+        // 情况一：levelId 为空，查询所有级别
         if (level == null) {
             // 再查第 2 级，并合并结果
             bindUserIds.addAll(brokerageUserMapper.selectIdListByBindUserIdIn(bindUserIds));
             return bindUserIds;
         }
-        // 情况二：level 为 1，只查询第 1 级
+        // 情况二：levelId 为 1，只查询第 1 级
         if (level == 1) {
             return bindUserIds;
         }
-        // 情况三：level 为 1，只查询第 2 级
+        // 情况三：levelId 为 1，只查询第 2 级
         if (level == 2) {
             return brokerageUserMapper.selectIdListByBindUserIdIn(bindUserIds);
         }

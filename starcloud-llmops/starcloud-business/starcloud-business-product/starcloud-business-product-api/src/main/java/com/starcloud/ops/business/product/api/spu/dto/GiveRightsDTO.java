@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.product.api.spu.dto;
 
 import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.starcloud.ops.business.product.enums.spu.PeriodTypeEnum;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import javax.validation.constraints.NotEmpty;
 
 /**
  * 魔法 AI 权益赠送 VO
@@ -28,19 +26,19 @@ public class GiveRightsDTO {
     private Integer giveEffectiveTime;
 
     @Schema(description = "权益生效时间单位", example = "100")
-    @InEnum(value = PeriodTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
+    @InEnum(value = TimeRangeTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
     private Integer giveEffectiveTimeUnit;
 
     /**
      * 用户等级
      */
     @Schema(description = "用户等级", example = "1")
-    private Long level;
+    private Long levelId;
 
     @Schema(description = "用户等级生效时间", example = "100")
-    private Integer levelEffectiveTime;
+    private Integer timeNums;
 
     @Schema(description = "用户等级生效时间单位", example = "100")
-    @InEnum(value = PeriodTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-    private Integer levelEffectiveTimeUnit;
+    @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
+    private Integer timeRange;
 }

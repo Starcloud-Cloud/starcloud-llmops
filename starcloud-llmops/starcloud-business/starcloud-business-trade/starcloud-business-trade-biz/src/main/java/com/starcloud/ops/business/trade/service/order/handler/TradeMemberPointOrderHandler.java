@@ -97,19 +97,19 @@ public class TradeMemberPointOrderHandler implements TradeOrderHandler {
 //     * 2. 支付 or 下单成功时，创建积分记录（冻结），确认收货解冻或者 n 天后解冻
 //     *
 //     * @param userId  用户编号
-//     * @param point   增加积分数量
+//     * @param magicBean   增加积分数量
 //     * @param bizType 业务编号
 //     * @param bizId   业务编号
 //     */
-//    protected void addPoint(Long userId, Integer point, MemberPointBizTypeEnum bizType, Long bizId) {
-//        if (point != null && point > 0) {
-//            memberPointApi.addPoint(userId, point, bizType.getType(), String.valueOf(bizId));
+//    protected void addPoint(Long userId, Integer magicBean, MemberPointBizTypeEnum bizType, Long bizId) {
+//        if (magicBean != null && magicBean > 0) {
+//            memberPointApi.addPoint(userId, magicBean, bizType.getType(), String.valueOf(bizId));
 //        }
 //    }
 //
-//    protected void reducePoint(Long userId, Integer point, MemberPointBizTypeEnum bizType, Long bizId) {
-//        if (point != null && point > 0) {
-//            memberPointApi.reducePoint(userId, point, bizType.getType(), String.valueOf(bizId));
+//    protected void reducePoint(Long userId, Integer magicBean, MemberPointBizTypeEnum bizType, Long bizId) {
+//        if (magicBean != null && magicBean > 0) {
+//            memberPointApi.reducePoint(userId, magicBean, bizType.getType(), String.valueOf(bizId));
 //        }
 //    }
 

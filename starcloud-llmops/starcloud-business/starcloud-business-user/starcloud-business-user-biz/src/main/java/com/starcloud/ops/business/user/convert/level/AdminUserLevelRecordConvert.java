@@ -2,12 +2,16 @@ package com.starcloud.ops.business.user.convert.level;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
+import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordRespVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelRecordDO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,15 +26,20 @@ public interface AdminUserLevelRecordConvert {
 
     AdminUserLevelRecordRespVO convert(AdminUserLevelRecordDO bean);
 
+    @Mapping(source = "levelName", target = "levelName")
+    @Mapping(source = "startTime", target = "validStartTime")
+    @Mapping(source = "endTime", target = "validEndTime")
+    AdminUserLevelRecordDO convert01(AdminUserLevelRecordCreateReqVO bean, String levelName, LocalDateTime startTime,LocalDateTime endTime);
+
 
     List<AdminUserLevelRecordRespVO> convertList(List<AdminUserLevelRecordDO> list);
 
     PageResult<AdminUserLevelRecordRespVO> convertPage(PageResult<AdminUserLevelRecordDO> page);
 
-    default AdminUserLevelRecordDO copyTo(AdminUserLevelDO from, AdminUserLevelRecordDO to) {
+    default AdminUserLevelRecordDO copyTo(AdminUserLevelConfigDO from, AdminUserLevelRecordDO to) {
         if (from != null) {
             to.setLevelId(from.getId());
-//            to.setCurrentLevel(from.getLevel());
+//            to.setCurrentLevel(from.getLevelConfig());
         }
         return to;
     }

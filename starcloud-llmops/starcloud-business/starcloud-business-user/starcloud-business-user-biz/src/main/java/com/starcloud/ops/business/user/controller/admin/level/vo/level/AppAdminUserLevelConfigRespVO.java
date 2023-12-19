@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Schema(description = "用户 App - 会员等级 Response VO")
 @Data
-public class AppAdminUserLevelRespVO {
+public class AppAdminUserLevelConfigRespVO {
 
     @Schema(description = "等级名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private String name;

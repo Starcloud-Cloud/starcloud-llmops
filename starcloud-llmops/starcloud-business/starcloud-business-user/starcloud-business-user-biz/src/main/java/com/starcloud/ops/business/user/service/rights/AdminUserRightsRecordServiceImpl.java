@@ -10,6 +10,7 @@ import com.starcloud.ops.business.user.controller.admin.rights.vo.AdminUserRight
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsRecordDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsRecordMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -63,29 +64,22 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createPointRecord(Long userId, Integer point, AdminUserRightsBizTypeEnum bizType, String bizId) {
-        if (point == 0) {
+    public void createRightsRecord(Long userId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId,String bizCode) {
+        if (amount == 0) {
             return;
         }
-//        // 1. 校验用户积分余额
-//        AdminUserDO user = adminUserService.getUser(userId);
-//        Integer userPoint = ObjectUtil.defaultIfNull(user.getPoint(), 0);
-//        int totalPoint = userPoint + point; // 用户变动后的积分
-//        if (totalPoint < 0) {
-//            throw exception(USER_POINT_NOT_ENOUGH);
-//        }
-//
-//        // 2. 更新用户积分
-//        boolean success = adminUserService.updateUserPoint(userId, point);
-//        if (!success) {
-//            throw exception(USER_POINT_NOT_ENOUGH);
-//        }
+        AdminUserRightsBizTypeEnum rightsBizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
+        // 1. 校验权益
+        if (!rightsBizTypeEnum.isAdd() && amount > 0) {
+            amount = -amount;
+        }
 
         // 3. 增加积分记录
         AdminUserRightsRecordDO record = new AdminUserRightsRecordDO()
-                .setUserId(userId).setBizId(bizId).setBizType(bizType.getType())
-                .setTitle(bizType.getName()).setDescription(StrUtil.format(bizType.getDescription(), point));
-//                .setPoint(point).setTotalPoint(totalPoint);
+                .setUserId(userId).setBizCode(bizCode).setBizId(bizId).setBizType(bizType)
+                .setTitle(rightsBizTypeEnum.getName())
+                .setDescription(StrUtil.format(rightsBizTypeEnum.getDescription(), rightsType.getName(), amount))
+                .setRightsType(rightsType.getType()).setRightsAmount(amount);
         adminUserRightsRecordMapper.insert(record);
     }
 

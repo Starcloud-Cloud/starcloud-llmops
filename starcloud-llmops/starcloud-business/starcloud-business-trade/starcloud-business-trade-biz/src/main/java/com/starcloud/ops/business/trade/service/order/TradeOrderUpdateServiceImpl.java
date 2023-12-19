@@ -299,7 +299,11 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
 
         // 4. 记录订单日志
-        TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), TradeOrderStatusEnum.UNDELIVERED.getStatus());
+        Integer afterStatus= TradeOrderStatusEnum.UNDELIVERED.getStatus();
+        if (DeliveryTypeEnum.AUTO.getType().equals(order.getDeliveryType())){
+            afterStatus =TradeOrderStatusEnum.COMPLETED.getStatus();
+        }
+        TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.MEMBER.getValue());
     }
 

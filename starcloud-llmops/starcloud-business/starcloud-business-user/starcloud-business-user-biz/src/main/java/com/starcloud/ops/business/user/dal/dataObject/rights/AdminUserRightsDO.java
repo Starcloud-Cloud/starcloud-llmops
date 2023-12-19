@@ -49,11 +49,11 @@ public class AdminUserRightsDO extends BaseDO {
 
 
     /**
-     * 积分标题
+     * 权益标题
      */
     private String title;
     /**
-     * 积分描述
+     * 权益描述
      */
     private String description;
 
@@ -91,6 +91,13 @@ public class AdminUserRightsDO extends BaseDO {
      * '生效结束时间'
      */
     private LocalDateTime validEndTime;
+
+
+    /**
+     * 权益状态
+     * <p>
+     */
+    private Integer status;
 
 
 }

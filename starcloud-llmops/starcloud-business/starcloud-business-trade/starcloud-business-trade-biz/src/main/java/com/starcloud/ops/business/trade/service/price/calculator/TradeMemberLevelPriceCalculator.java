@@ -30,15 +30,15 @@ public class TradeMemberLevelPriceCalculator implements TradePriceCalculator {
 //        if (user.getLevelId() == null || user.getLevelId() <= 0) {
 //            return;
 //        }
-//        AdminUserLevelConfigRespDTO level = adminUserLevelApi.getAdminUserLevel(user.getLevelId());
-//        if (level == null || level.getDiscountPercent() == null) {
+//        AdminUserLevelConfigRespDTO levelId = adminUserLevelApi.getAdminUserLevel(user.getLevelId());
+//        if (levelId == null || levelId.getDiscountPercent() == null) {
 //            return;
 //        }
 //
 //        // 2. 计算每个 SKU 的优惠金额
 //        result.getItems().forEach(orderItem -> {
 //            // 2.1 计算优惠金额
-//            Integer vipPrice = calculateVipPrice(orderItem.getPayPrice(), level.getDiscountPercent());
+//            Integer vipPrice = calculateVipPrice(orderItem.getPayPrice(), levelId.getDiscountPercent());
 //            if (vipPrice <= 0) {
 //                return;
 //            }
@@ -47,7 +47,7 @@ public class TradeMemberLevelPriceCalculator implements TradePriceCalculator {
 //            if (orderItem.getSelected()) {
 //                // 注意，只有在选中的情况下，才会记录到优惠明细。否则仅仅是更新 SKU 优惠金额，用于展示
 //                TradePriceCalculatorHelper.addPromotion(result, orderItem,
-//                        level.getId(), level.getName(), PromotionTypeEnum.MEMBER_LEVEL.getType(),
+//                        levelId.getId(), levelId.getName(), PromotionTypeEnum.MEMBER_LEVEL.getType(),
 //                        String.format("会员等级折扣：省 %s 元", TradePriceCalculatorHelper.formatPrice(vipPrice)),
 //                        vipPrice);
 //            }

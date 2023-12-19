@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.POINT_RECORD_BIZ_NOT_SUPPORT;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
 
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -30,29 +30,24 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     @Override
     public void addRights(Long userId, Integer magicBean, Integer magicImage,
                           Integer bizType, String bizId) {
-        Assert.isTrue(magicBean > 0);
-        Assert.isTrue(magicImage > 0);
+        Assert.isTrue(magicBean > 0 || magicImage > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
-            throw exception(POINT_RECORD_BIZ_NOT_SUPPORT);
+            throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createPointRecord(userId, magicBean, magicImage, bizTypeEnum, bizId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, bizTypeEnum, bizId);
     }
 
     @Override
-    public void reduceRights(Long userId, Integer rightType, Integer rightAmount,
+    public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
                              Integer bizType, String bizId) {
         Assert.isTrue(rightAmount > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
-        if (bizTypeEnum == null) {
-            throw exception(POINT_RECORD_BIZ_NOT_SUPPORT);
-        }
-        AdminUserRightsTypeEnum rightTypeEnum = AdminUserRightsTypeEnum.getByType(rightType);
-        if (bizTypeEnum == null) {
-            throw exception(POINT_RECORD_BIZ_NOT_SUPPORT);
-        }
 
-        adminUserRightsService.createPointRecord(userId, -rightAmount,null, bizTypeEnum, bizId);
+        if (bizTypeEnum == null) {
+            throw exception(RIGHTS_BIZ_NOT_SUPPORT);
+        }
+        adminUserRightsService.reduceRights(userId, rightsType, rightAmount, bizTypeEnum, bizId);
     }
 
 }

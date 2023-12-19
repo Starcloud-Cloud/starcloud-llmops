@@ -7,7 +7,7 @@ import lombok.ToString;
 @Schema(description = "管理后台 - 会员等级列表筛选 Request VO")
 @Data
 @ToString(callSuper = true)
-public class AdminUserLevelListReqVO {
+public class AdminUserLevelConfigListReqVO {
 
     @Schema(description = "等级名称", example = "芋艿")
     private String name;
