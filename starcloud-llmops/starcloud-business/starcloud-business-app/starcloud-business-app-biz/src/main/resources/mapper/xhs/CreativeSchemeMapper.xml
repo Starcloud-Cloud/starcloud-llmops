@@ -85,6 +85,9 @@
             <if test="query.category != null and query.category != '' ">
                 AND `category` = #{query.category}
             </if>
+            <if test="query.mode != null and query.mode != '' ">
+                AND `mode` = #{query.mode}
+            </if>
             <if test="query.tags != null and query.tags.size() > 0 ">
                 AND
                 <foreach collection='query.tags' item='tag' separator=' AND '>

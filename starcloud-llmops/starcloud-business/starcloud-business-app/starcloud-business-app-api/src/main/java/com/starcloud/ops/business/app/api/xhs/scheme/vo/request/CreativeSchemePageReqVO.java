@@ -43,4 +43,10 @@ public class CreativeSchemePageReqVO extends PageQuery {
     @Schema(description = "创作方案标签")
     private List<String> tags;
 
+    /**
+     * 创作方式
+     */
+    @Schema(description = "创作方式")
+    private List<String> mode;
+
 }
