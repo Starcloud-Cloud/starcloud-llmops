@@ -42,8 +42,8 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
                 .set(SingleMissionDO::getEstimatedAmount, singleMissionDO.getEstimatedAmount())
                 .set(SingleMissionDO::getCloseMsg, singleMissionDO.getCloseMsg())
                 .set(SingleMissionDO::getPreSettlementMsg, singleMissionDO.getPreSettlementMsg())
-                .set(SingleMissionDO::getNoteDetailId,singleMissionDO.getNoteDetailId());
-        update(updateWrapper);
+                .set(SingleMissionDO::getNoteDetailId, singleMissionDO.getNoteDetailId());
+        update(null, updateWrapper);
     }
 
     List<SingleMissionExportVO> export(@Param("reqVO") SinglePageQueryReqVO reqVO);
@@ -99,6 +99,6 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
     Long claimedMissionCount(@Param("reqVO") ClaimedMissionQueryReqVO reqVO);
 
 
-    List<MissionNotificationDTO> claimedMissionPage(@Param("reqVO")ClaimedMissionQueryReqVO reqVO,
-                                               @Param("start") Integer start, @Param("size") Integer size);
+    List<MissionNotificationDTO> claimedMissionPage(@Param("reqVO") ClaimedMissionQueryReqVO reqVO,
+                                                    @Param("start") Integer start, @Param("size") Integer size);
 }
