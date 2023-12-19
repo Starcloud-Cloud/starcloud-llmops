@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
@@ -83,7 +84,7 @@ public class CreativeImageUtils {
 
         // 干货图文生成
         List<Paragraph> paragraphList = Lists.newArrayList();
-        if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
+        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
             String paragraphString = Optional.ofNullable(copyWriting.getContent()).orElse(StringUtils.EMPTY);
             paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.THIRD);
         }
@@ -162,9 +163,9 @@ public class CreativeImageUtils {
             if (!paragraph.getIsUseTitle()) {
                 String title = Optional.ofNullable(paragraph.getTitle()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (title.length() > count) {
+                if (title.length() > count - 3) {
                     // 超出部分用 ... 代替
-                    title = title.substring(0, count + 3) + "...";
+                    title = StrUtil.maxLength(title, count - 3);
                 }
                 params.put(variableItem.getField(), title);
                 paragraph.setIsUseTitle(true);
@@ -189,9 +190,9 @@ public class CreativeImageUtils {
             if (!paragraph.getIsUseContent()) {
                 String content = Optional.ofNullable(paragraph.getContent()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (content.length() > count) {
+                if (content.length() > count - 3) {
                     // 超出部分用 ... 代替
-                    content = content.substring(0, count + 3) + "...";
+                    content = StrUtil.maxLength(content, count - 3);
                 }
                 params.put(variableItem.getField(), content);
                 paragraph.setIsUseContent(true);
