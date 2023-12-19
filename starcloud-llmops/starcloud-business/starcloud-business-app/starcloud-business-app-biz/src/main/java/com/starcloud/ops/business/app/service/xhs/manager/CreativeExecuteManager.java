@@ -404,7 +404,7 @@ public class CreativeExecuteManager {
 
         // 文案执行结果
         CopyWritingContentDTO copyWriting = JSONUtil.toBean(business.getCopyWritingResult(), CopyWritingContentDTO.class);
-        if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getImgTitle()) || StringUtils.isBlank(copyWriting.getImgSubTitle())) {
+        if (Objects.isNull(copyWriting)) {
             // 文案执行结果为空，说明数据存在问题，直接更新为最终失败
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid()), maxRetry);
             throw exception(350600148, "创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid());
