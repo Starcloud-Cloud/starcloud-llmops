@@ -2,7 +2,9 @@ package com.starcloud.ops.business.mission.convert;
 
 
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.xhs.note.*;
+import com.starcloud.ops.business.mission.api.vo.response.PreSettlementRecordRespVO;
 import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import org.apache.commons.lang3.StringUtils;
@@ -19,8 +21,10 @@ public interface XhsNoteDetailConvert {
 
     XhsNoteDetailConvert INSTANCE = Mappers.getMapper(XhsNoteDetailConvert.class);
 
-    @Mapping(source = "description",target = "desc")
+    @Mapping(source = "description", target = "desc")
     XhsNoteDetailRespVO convert(XhsNoteDetailDO xhsNoteDetailDO);
+
+    PageResult<PreSettlementRecordRespVO> convert(PageResult<XhsNoteDetailDO> result);
 
     default XhsNoteDetailDO convertDo(NoteDetail noteDetail) {
         XhsNoteDetailDO xhsNoteDetailDO = new XhsNoteDetailDO();

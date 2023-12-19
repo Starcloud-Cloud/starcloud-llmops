@@ -7,6 +7,7 @@ import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.WechatAppApi;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
+import com.starcloud.ops.business.mission.api.vo.response.PreSettlementRecordRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,6 +87,15 @@ public class WechatAppController {
     public CommonResult<Boolean> abandonMission(@Valid @RequestBody AppAbandonMissionReqVO reqVO) {
         wechatAppApi.abandonMission(reqVO);
         return CommonResult.success(true);
+    }
+
+    @GetMapping("/preSettlement/record")
+    @Operation(summary = "预结算记录")
+    @PermitAll
+    @OperateLog(enable = false)
+    public CommonResult<PageResult<PreSettlementRecordRespVO>> preSettlementRecord(@Valid PreSettlementRecordReqVO reqVO) {
+        PageResult<PreSettlementRecordRespVO> result = wechatAppApi.preSettlementRecord(reqVO);
+        return CommonResult.success(result);
     }
 
 }

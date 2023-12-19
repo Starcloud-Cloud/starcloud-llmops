@@ -103,6 +103,9 @@
         select count(*)
         from llm_single_mission
         where deleted = false and claim_user_id = #{reqVO.claimUserId}
+        <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
+            and status = #{reqVO.singleMissionStatus}
+        </if>
     </select>
 
     <select id="claimedMissionPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO">
@@ -110,7 +113,10 @@
         from llm_single_mission m
                  left join llm_notification n on m.notification_Uid = n.uid
         where m.deleted = false
-          and m.claim_user_id = #{reqVO.claimUserId}
+        and m.claim_user_id = #{reqVO.claimUserId}
+        <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
+            and status = #{reqVO.singleMissionStatus}
+        </if>
         order by m.claim_time, m.settlement_time desc
         limit #{start},#{size}
     </select>
