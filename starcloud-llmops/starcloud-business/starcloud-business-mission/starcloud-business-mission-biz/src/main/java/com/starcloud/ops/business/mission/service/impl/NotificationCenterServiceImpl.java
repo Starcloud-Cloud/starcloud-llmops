@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +55,11 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         metadata.put("notificationStatusEnum", NotificationCenterStatusEnum.options());
         metadata.put("singleMissionStatusEnum", SingleMissionStatusEnum.options());
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
-        metadata.put("accountType", AccountTypeEnum.options());
+//        metadata.put("accountType", AccountTypeEnum.options());
         metadata.put("address", AddressEnum.options());
         metadata.put("gender", GenderEnum.options());
         metadata.put("missionType", MisssionTypeEnum.options());
+        metadata.put("fansNum", FansNumEnum.options());
         return metadata;
 
     }
@@ -65,9 +67,23 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
         validName(reqVO.getName());
-        if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+        if ((reqVO.getSingleBudget() == null && reqVO.getNotificationBudget() != null)) {
             throw exception(BUDGET_ERROR);
         }
+
+        if (reqVO.getSingleBudget() != null && reqVO.getNotificationBudget() != null
+                && NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+            throw exception(BUDGET_ERROR);
+        }
+        if (reqVO.getUnitPrice() != null) {
+            BigDecimal addPrice = reqVO.getUnitPrice().addPrice();
+            if (NumberUtil.isGreater(addPrice, BigDecimal.ZERO)) {
+                if (reqVO.getSingleBudget() != null && NumberUtil.isGreater(addPrice, reqVO.getSingleBudget())) {
+                    throw exception(BUDGET_PRICE_ERROR);
+                }
+            }
+        }
+
         NotificationCenterDO createDo = NotificationCenterConvert.INSTANCE.convert(reqVO);
         createDo.setUid(IdUtil.fastSimpleUUID());
         createDo.setStatus(NotificationCenterStatusEnum.init.getCode());
@@ -138,6 +154,23 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
+        if ((reqVO.getSingleBudget() == null && reqVO.getNotificationBudget() != null)) {
+            throw exception(BUDGET_ERROR);
+        }
+
+        if (reqVO.getSingleBudget() != null && reqVO.getNotificationBudget() != null
+                && NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+            throw exception(BUDGET_ERROR);
+        }
+        if (reqVO.getUnitPrice() != null) {
+            BigDecimal addPrice = reqVO.getUnitPrice().addPrice();
+            if (NumberUtil.isGreater(addPrice, BigDecimal.ZERO)) {
+                if (reqVO.getSingleBudget() != null && NumberUtil.isGreater(addPrice, reqVO.getSingleBudget())) {
+                    throw exception(BUDGET_PRICE_ERROR);
+                }
+            }
+        }
+
         NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
 
 //        singleMissionService.validBudget(notificationCenterDO);

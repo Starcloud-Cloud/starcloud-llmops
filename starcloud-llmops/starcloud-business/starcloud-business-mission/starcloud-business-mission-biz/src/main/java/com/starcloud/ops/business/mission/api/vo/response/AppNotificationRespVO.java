@@ -54,6 +54,9 @@ public class AppNotificationRespVO {
     @Schema(description = "领取人员限制")
     private ClaimLimitDTO claimLimit;
 
+    @Schema(description = "最小粉丝数")
+    private Integer minFansNum ;
+
     @Schema(description = "总任务量")
     private Integer total;
 
