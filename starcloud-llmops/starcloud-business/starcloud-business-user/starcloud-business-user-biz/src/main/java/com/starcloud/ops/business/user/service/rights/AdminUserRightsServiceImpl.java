@@ -7,8 +7,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -74,19 +73,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         return adminUserRightsMapper.selectPage(userId, pageVO);
     }
 
-    /**
-     * 新增系统权益
-     *
-     * @param userId     用户ID
-     * @param magicBean  魔法豆
-     * @param magicImage 图片
-     * @param bizType    业务类型
-     * @param bizId      业务编号
-     */
-    @Override
-    public void addSystemRights(Long userId, Integer magicBean, Integer magicImage, AdminUserRightsBizTypeEnum bizType, String bizId) {
-
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -103,10 +89,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         if (magicBean > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 100, record.getBizId(), String.valueOf(record.getId()));
+            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 3500, record.getBizId(), String.valueOf(record.getId()));
         }
         if (magicImage > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 100, record.getBizId(), String.valueOf(record.getId()));
+            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 3500, record.getBizId(), String.valueOf(record.getId()));
         }
 
 
@@ -160,7 +146,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .map(adminUserRightsDO -> adminUserRightsDO.getId().toString()) // 提取Id
                 .collect(Collectors.joining(",")); // 使用逗号连接
 
-        adminUserRightsRecordService.createRightsRecord(userId, rightAmount, rightsType, bizType.getType() + 100, bizId, deductIds);
+        adminUserRightsRecordService.createRightsRecord(userId, rightAmount, rightsType, bizType.getType() + 3500, bizId, deductIds);
 
     }
 

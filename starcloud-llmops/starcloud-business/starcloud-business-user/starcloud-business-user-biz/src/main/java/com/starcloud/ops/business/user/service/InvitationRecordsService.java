@@ -20,7 +20,7 @@ public interface InvitationRecordsService {
      * @param inviterId 邀请人 ID
      * @param inviteeId 被邀请人 ID
      */
-    void createInvitationRecords(Long inviterId, Long inviteeId);
+    Long createInvitationRecords(Long inviterId, Long inviteeId);
 
 
     /**

@@ -18,7 +18,7 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@Tag(name = "管理后台 - 会员等级")
+@Tag(name = "管理后台 - 系统会员等级配置")
 @RestController
 @RequestMapping("/admin/level")
 @Validated

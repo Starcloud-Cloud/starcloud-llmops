@@ -1,18 +1,14 @@
 package com.starcloud.ops.business.trade.service.price.calculator;
 
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 赠送积分的 {@link TradePriceCalculator} 实现类

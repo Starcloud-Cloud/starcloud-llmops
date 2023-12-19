@@ -35,4 +35,10 @@ public interface AdminUserLevelRecordService {
      */
     void createLevelRecord(AdminUserLevelRecordCreateReqVO levelRecord);
 
+    /**
+     * 创建会员默认等级记录
+     *
+     * @param userId 用户 ID
+     */
+    void createInitLevelRecord(Long userId);
 }

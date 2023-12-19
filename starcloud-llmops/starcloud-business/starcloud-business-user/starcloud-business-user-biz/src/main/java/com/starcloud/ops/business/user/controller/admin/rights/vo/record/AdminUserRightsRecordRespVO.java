@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin.rights.vo;
+package com.starcloud.ops.business.user.controller.admin.rights.vo.record;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Schema(description = "管理后台 - 用户积分记录 Response VO")
 @Data
-public class AdminUserRightsRespVO {
+public class AdminUserRightsRecordRespVO {
 
     @Schema(description = "自增主键", requiredMode = Schema.RequiredMode.REQUIRED, example = "31457")
     private Long id;

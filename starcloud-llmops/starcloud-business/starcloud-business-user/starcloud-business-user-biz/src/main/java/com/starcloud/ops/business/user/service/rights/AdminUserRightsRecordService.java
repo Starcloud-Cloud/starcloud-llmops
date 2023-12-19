@@ -2,7 +2,7 @@ package com.starcloud.ops.business.user.service.rights;
 
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.AdminUserRightsRecordPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.record.AdminUserRightsRecordPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsRecordDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 

@@ -39,7 +39,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                     giveRight.getTimeNums(),
                     giveRight.getTimeRange(),
                     AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
-                    String.valueOf(AdminUserLevelBizTypeEnum.ORDER_GIVE.getDescription()));
+                    String.valueOf(order.getId()));
             // 设置会员权益
             adminUserRightsApi.addRights(
                     order.getUserId(),

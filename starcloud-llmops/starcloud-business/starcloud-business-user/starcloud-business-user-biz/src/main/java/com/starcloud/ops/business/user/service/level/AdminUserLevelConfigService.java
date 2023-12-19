@@ -73,6 +73,14 @@ public interface AdminUserLevelConfigService {
     List<AdminUserLevelConfigDO> getLevelListByStatus(Integer status);
 
     /**
+     * 获得指定状态的会员等级列表
+     *
+     * @param roleId 状态
+     * @return 会员等级列表
+     */
+    AdminUserLevelConfigDO getLevelByRoleId(Long roleId);
+
+    /**
      * 获得开启状态的会员等级列表
      *
      * @return 会员等级列表

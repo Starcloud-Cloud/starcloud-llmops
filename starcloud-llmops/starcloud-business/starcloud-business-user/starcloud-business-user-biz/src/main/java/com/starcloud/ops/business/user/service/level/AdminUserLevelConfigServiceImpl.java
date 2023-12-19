@@ -3,7 +3,10 @@ package com.starcloud.ops.business.user.service.level;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
+import cn.iocoder.yudao.module.system.api.permission.RoleApi;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.annotations.VisibleForTesting;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigUpdateReqVO;
@@ -37,10 +40,14 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
     @Resource
     private AdminUserLevelMapper adminUserLevelMapper;
 
+    @Resource
+    private RoleApi roleApi;
+
+
     @Override
     public Long createLevel(AdminUserLevelConfigCreateReqVO createReqVO) {
         // 校验配置是否有效
-        validateConfigValid(null, createReqVO.getName(), createReqVO.getLevel(), createReqVO.getExperience());
+        validateConfigValid(null, createReqVO.getName(), createReqVO.getLevel(), createReqVO.getRoleId());
 
         // 插入
         AdminUserLevelConfigDO level = AdminUserLevelConvert.INSTANCE.convert(createReqVO);
@@ -54,7 +61,7 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
         // 校验存在
         validateLevelExists(updateReqVO.getId());
         // 校验配置是否有效
-        validateConfigValid(updateReqVO.getId(), updateReqVO.getName(), updateReqVO.getLevel(), updateReqVO.getExperience());
+        validateConfigValid(updateReqVO.getId(), updateReqVO.getName(), updateReqVO.getLevel(), updateReqVO.getRoleId());
 
         // 更新
         AdminUserLevelConfigDO updateObj = AdminUserLevelConvert.INSTANCE.convert(updateReqVO);
@@ -106,35 +113,29 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
     }
 
     @VisibleForTesting
-    void validateExperienceOutRange(List<AdminUserLevelConfigDO> list, Long id, Integer level, Integer experience) {
-//        for (AdminUserLevelConfigDO levelDO : list) {
-//            if (levelDO.getId().equals(id)) {
-//                continue;
-//            }
-//
-//            if (levelDO.getLevelConfig() < levelId) {
-//                // 经验大于前一个等级
-//                if (magicImage <= levelDO.getMagicImage()) {
-//                    throw exception(LEVEL_EXPERIENCE_MIN, levelDO.getName(), levelDO.getMagicImage());
-//                }
-//            } else if (levelDO.getLevelConfig() > levelId) {
-//                //小于下一个级别
-//                if (magicImage >= levelDO.getMagicImage()) {
-//                    throw exception(LEVEL_EXPERIENCE_MAX, levelDO.getName(), levelDO.getMagicImage());
-//                }
-//            }
-//        }
+    void validateRoleIdUnique(List<AdminUserLevelConfigDO> list, Long id, Long roleId) {
+        // 校验角色是否存在
+        roleApi.validRoleList(CollUtil.list(true, roleId));
+        // 校验角色是否唯一
+        for (AdminUserLevelConfigDO levelDO : list) {
+            if (ObjUtil.notEqual(levelDO.getRoleId(), roleId)) {
+                continue;
+            }
+            if (id == null || !id.equals(levelDO.getId())) {
+                throw exception(LEVEL_ROLE_EXISTS, levelDO. getRoleId());
+            }
+        }
     }
 
     @VisibleForTesting
-    void validateConfigValid(Long id, String name, Integer level, Integer experience) {
+    void validateConfigValid(Long id, String name, Integer level, Long roleId) {
         List<AdminUserLevelConfigDO> list = adminUserLevelMapper.selectList();
         // 校验名称唯一
         validateNameUnique(list, id, name);
         // 校验等级唯一
         validateLevelUnique(list, id, level);
-        // 校验升级所需经验是否有效: 大于前一个等级，小于下一个级别
-        validateExperienceOutRange(list, id, level, experience);
+        // 校验角色存在且唯一
+        validateRoleIdUnique(list, id, roleId);
     }
 
     @VisibleForTesting
@@ -166,6 +167,18 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
     @Override
     public List<AdminUserLevelConfigDO> getLevelListByStatus(Integer status) {
         return adminUserLevelMapper.selectListByStatus(status);
+    }
+
+    /**
+     * 获得指定状态的会员等级列表
+     *
+     * @param roleId 角色 ID
+     * @return 会员等级配置信息
+     */
+    @Override
+    public AdminUserLevelConfigDO getLevelByRoleId(Long roleId){
+
+        return adminUserLevelMapper.selectOne( Wrappers.lambdaQuery(AdminUserLevelConfigDO.class).eq(AdminUserLevelConfigDO::getRoleId,roleId).eq(AdminUserLevelConfigDO::getStatus, CommonStatusEnum.ENABLE.getStatus()));
     }
 
 //    @Override
