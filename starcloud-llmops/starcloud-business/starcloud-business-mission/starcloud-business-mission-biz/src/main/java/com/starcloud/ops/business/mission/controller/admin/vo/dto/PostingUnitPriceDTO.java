@@ -54,11 +54,4 @@ public class PostingUnitPriceDTO {
         this.postingUnitPrice = Optional.ofNullable(postingUnitPrice).orElse(BigDecimal.ZERO);
         return likeUnitPrice.add(replyUnitPrice).add(postingUnitPrice);
     }
-
-    public BigDecimal addPrice() {
-        this.likeUnitPrice = Optional.ofNullable(likeUnitPrice).orElse(BigDecimal.ZERO);
-        this.replyUnitPrice = Optional.ofNullable(replyUnitPrice).orElse(BigDecimal.ZERO);
-        this.postingUnitPrice = Optional.ofNullable(postingUnitPrice).orElse(BigDecimal.ZERO);
-        return likeUnitPrice.add(replyUnitPrice).add(postingUnitPrice);
-    }
 }
