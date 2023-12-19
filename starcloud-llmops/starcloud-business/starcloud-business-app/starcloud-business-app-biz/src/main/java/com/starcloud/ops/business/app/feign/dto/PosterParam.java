@@ -44,4 +44,10 @@ public class PosterParam implements java.io.Serializable {
     @Schema(description = "参数类型")
     private String type;
 
+    /**
+     * 字符数量
+     */
+    @Schema(description = "字符数量")
+    private Integer count;
+
 }

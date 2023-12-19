@@ -66,10 +66,11 @@ public class CreativeImageManager {
             List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
             int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
             List<VariableItemDTO> variables = params.stream().map(param -> {
+                Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
                 if ("image".equals(param.getType())) {
-                    return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
+                    return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), order);
                 } else if ("text".equals(param.getType())) {
-                    return CreativeAppUtils.ofInputVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
+                    return CreativeAppUtils.ofInputVariable(param.getId(), param.getName(), order, param.getCount());
                 } else {
                     return null;
                 }
@@ -113,10 +114,11 @@ public class CreativeImageManager {
                                 int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
                                 List<VariableItemDTO> variables = params.stream()
                                         .map(param -> {
+                                            Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
                                             if ("image".equals(param.getType())) {
-                                                return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
+                                                return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), order);
                                             } else if ("text".equals(param.getType())) {
-                                                return CreativeAppUtils.ofInputVariable(param.getId(), param.getName(), Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE));
+                                                return CreativeAppUtils.ofInputVariable(param.getId(), param.getName(), order, param.getCount());
                                             } else {
                                                 return null;
                                             }

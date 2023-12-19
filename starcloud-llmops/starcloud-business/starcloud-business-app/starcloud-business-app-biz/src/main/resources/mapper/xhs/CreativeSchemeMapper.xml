@@ -4,7 +4,7 @@
     
     <!-- 通用字段查询 -->
     <sql id="SELECT_GENERAL_COLUMNS">
-        `id`, `uid`, `name`, `type`, `category`, `tags`, `description`, `use_images`, `example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
+        `id`, `uid`, `name`, `type`, `category`, `tags`, `description`, `mode`, `use_images`, `example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
     </sql>
     
     <!-- 列表查询条件 -->

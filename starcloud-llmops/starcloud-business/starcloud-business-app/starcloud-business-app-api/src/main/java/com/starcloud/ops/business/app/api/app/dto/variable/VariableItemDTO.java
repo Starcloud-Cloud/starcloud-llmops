@@ -98,4 +98,10 @@ public class VariableItemDTO implements Serializable {
     @Schema(description = "变量选项")
     private List<Option> options;
 
+    /**
+     * 字符数量
+     */
+    @Schema(description = "字符数量")
+    private Integer count;
+
 }
