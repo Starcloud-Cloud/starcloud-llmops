@@ -22,7 +22,9 @@ public interface XhsNoteDetailMapper extends BaseMapperX<XhsNoteDetailDO> {
 
     default PageResult<XhsNoteDetailDO> page(PreSettlementRecordReqVO reqVO) {
         LambdaQueryWrapper<XhsNoteDetailDO> queryWrapper = Wrappers.lambdaQuery(XhsNoteDetailDO.class)
-                .eq(XhsNoteDetailDO::getMissionUid, reqVO.getMissionUid());
+                .eq(XhsNoteDetailDO::getMissionUid, reqVO.getMissionUid())
+                .orderByDesc(XhsNoteDetailDO::getUpdateTime)
+                ;
         return selectPage(reqVO, queryWrapper);
     }
 }
