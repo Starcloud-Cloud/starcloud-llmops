@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.execute;
 
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

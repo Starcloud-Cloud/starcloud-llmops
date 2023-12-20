@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageStyleExe
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -83,10 +84,9 @@ public class CreativeImageUtils {
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
         // 干货图文生成
-        List<Paragraph> paragraphList = Lists.newArrayList();
+        List<ParagraphDTO> paragraphList = Lists.newArrayList();
         if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
-            String paragraphString = Optional.ofNullable(copyWriting.getContent()).orElse(StringUtils.EMPTY);
-            paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.THIRD);
+            paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList());
             if (paragraphList.size() != executeParams.getParagraphCount()) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
             }
@@ -158,13 +158,13 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphTitle(Map<String, Object> params, VariableItemDTO variableItem, List<Paragraph> paragraphList) {
+    private static void paragraphTitle(Map<String, Object> params, VariableItemDTO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
-        for (Paragraph paragraph : paragraphList) {
+        for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseTitle()) {
-                String title = Optional.ofNullable(paragraph.getTitle()).orElse(StringUtils.EMPTY);
+                String title = Optional.ofNullable(paragraph.getParagraphTitle()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
                 if (title.length() > count - 3) {
                     // 超出部分用 ... 代替
@@ -185,13 +185,13 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphContent(Map<String, Object> params, VariableItemDTO variableItem, List<Paragraph> paragraphList) {
+    private static void paragraphContent(Map<String, Object> params, VariableItemDTO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
-        for (Paragraph paragraph : paragraphList) {
+        for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseContent()) {
-                String content = Optional.ofNullable(paragraph.getContent()).orElse(StringUtils.EMPTY);
+                String content = Optional.ofNullable(paragraph.getParagraphContent()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
                 if (content.length() > count - 3) {
                     // 超出部分用 ... 代替
