@@ -48,6 +48,7 @@ public class CreativeImageUtils {
     private static final String IMAGE = "IMAGE";
     private static final String TITLE = "TITLE";
     private static final String SUB_TITLE = "SUB_TITLE";
+    private static final String TEXT_TITLE = "TEXT_TITLE";
     private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
     private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
     private static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
@@ -120,6 +121,8 @@ public class CreativeImageUtils {
                                     params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                                 } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
                                     params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                                } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
                                 } else if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
                                     paragraphTitle(params, variableItem, paragraphList);
                                 } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
@@ -421,6 +424,8 @@ public class CreativeImageUtils {
                             params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                         } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
                             params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                        } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                            params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
                         } else {
                             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                         }
