@@ -8,6 +8,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.CONTENT_INCONSISTENT;
@@ -31,7 +32,7 @@ public class PostingContentDTO {
             return;
         }
 
-        if (SpringUtil.getActiveProfile().equals("cn-test")) {
+        if (Objects.equals("cn-test", SpringUtil.getActiveProfile())) {
             return;
         }
         throw exception(CONTENT_INCONSISTENT);
