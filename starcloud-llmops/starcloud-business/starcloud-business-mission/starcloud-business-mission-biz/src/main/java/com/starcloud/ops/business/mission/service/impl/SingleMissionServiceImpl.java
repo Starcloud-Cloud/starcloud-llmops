@@ -83,7 +83,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (CollectionUtils.isEmpty(toBeBound)) {
             return;
         }
-//        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
+        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
         List<CreativeContentRespVO> claimList = creativeContentService.bound(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
         singleMissionMapper.insertBatch(singleMissions);
@@ -294,9 +294,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void settlement(SingleMissionRespVO singleMissionRespVO) {
+    public void preSettlement(SingleMissionRespVO singleMissionRespVO) {
         try {
-            preSettlement(singleMissionRespVO);
+            preSettlement0(singleMissionRespVO);
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
             SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
@@ -384,7 +384,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         return sj.toString();
     }
 
-    private void preSettlement(SingleMissionRespVO singleMissionRespVO) {
+    private void preSettlement0(SingleMissionRespVO singleMissionRespVO) {
         XhsNoteDetailRespVO noteDetail = noteDetailService.preSettlementByUrl(singleMissionRespVO.getUid(), singleMissionRespVO.getPublishUrl(), singleMissionRespVO.getUnitPrice());
         // 校验note内容
         singleMissionRespVO.getContent().validPostingContent(noteDetail);
@@ -404,16 +404,21 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     private void validBudget(BigDecimal singleBudget, BigDecimal notificationBudget, Integer missionSize) {
-        if (notificationBudget == null
-                || notificationBudget.equals(BigDecimal.ZERO)) {
-            throw exception(NOTIFICATION_BUDGET_ERROR);
+        if (notificationBudget == null) {
+            return;
         }
-        if (singleBudget == null
-                || singleBudget.equals(BigDecimal.ZERO)) {
-            throw exception(MISSION_BUDGET_ERROR);
+
+        if (singleBudget == null) {
+            throw exception(BUDGET_ERROR);
         }
-        NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget);
-        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
+
+        if (singleBudget != null
+                && NumberUtil.isLess(notificationBudget, singleBudget)) {
+            throw exception(BUDGET_ERROR);
+        }
+
+        if (singleBudget != null
+                && NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
             throw exception(TOO_MANY_MISSION);
         }
     }

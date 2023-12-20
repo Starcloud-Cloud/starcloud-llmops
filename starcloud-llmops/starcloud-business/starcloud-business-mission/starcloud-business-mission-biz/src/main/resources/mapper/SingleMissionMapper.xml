@@ -52,7 +52,7 @@
             and m.claim_username like concat(#{reqVO.claimUsername},'%')
         </if>
         order by m.create_time desc
-        limit #{start},#{end}
+        limit #{start},#{size}
     </select>
 
     <select id="export"
@@ -97,5 +97,27 @@
                  left join llm_notification n on m.notification_Uid = n.uid
         where m.deleted = false
           and m.uid = #{uid}
+    </select>
+
+    <select id="claimedMissionCount" resultType="java.lang.Long">
+        select count(*)
+        from llm_single_mission
+        where deleted = false and claim_user_id = #{reqVO.claimUserId}
+        <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
+            and status = #{reqVO.singleMissionStatus}
+        </if>
+    </select>
+
+    <select id="claimedMissionPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO">
+        select m.*, n.name as notificationName
+        from llm_single_mission m
+                 left join llm_notification n on m.notification_Uid = n.uid
+        where m.deleted = false
+        and m.claim_user_id = #{reqVO.claimUserId}
+        <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
+            and m.status = #{reqVO.singleMissionStatus}
+        </if>
+        order by m.claim_time, m.settlement_time desc
+        limit #{start},#{size}
     </select>
 </mapper>

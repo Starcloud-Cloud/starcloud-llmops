@@ -10,15 +10,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public enum MisssionTypeEnum implements IEnumable<String> {
-
-    posting("posting", "发帖任务");
+public enum AddressEnum implements IEnumable<String> {
+    unlimited("unlimited","不限"),
+    shanghai("shanghai","上海市"),
+    hangzhou("hangzhou","杭州市");
 
     private String code;
 
     private String desc;
 
-    MisssionTypeEnum(String code, String desc) {
+    AddressEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -29,7 +30,7 @@ public enum MisssionTypeEnum implements IEnumable<String> {
     }
 
     public static List<Option> options() {
-        return Arrays.stream(values()).sorted(Comparator.comparingInt(MisssionTypeEnum::ordinal))
+        return Arrays.stream(values()).sorted(Comparator.comparingInt(AddressEnum::ordinal))
                 .map(item -> {
                     Option option = new Option();
                     option.setLabel(item.getDesc());
@@ -37,5 +38,4 @@ public enum MisssionTypeEnum implements IEnumable<String> {
                     return option;
                 }).collect(Collectors.toList());
     }
-
 }
