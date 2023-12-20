@@ -587,8 +587,7 @@ public class CreativeAppUtils {
         StringBuilder content = new StringBuilder();
         for (int i = 0; i < CollectionUtil.emptyIfNull(paragraphList).size(); i++) {
             ParagraphDTO paragraph = paragraphList.get(i);
-            Integer index = i + 1;
-            content.append(index).append(". ").append(paragraph.getParagraphTitle()).append("\n");
+            content.append(paragraph.getParagraphTitle()).append("\n");
             content.append(paragraph.getParagraphContent()).append("\n\n");
         }
         return content.toString();
