@@ -10,15 +10,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public enum MisssionTypeEnum implements IEnumable<String> {
+public enum GenderEnum implements IEnumable<String> {
+    unlimited("unlimited","不限"),
 
-    posting("posting", "发帖任务");
+    male("male", "男"),
+
+    female("female", "女");
+
+
 
     private String code;
 
     private String desc;
 
-    MisssionTypeEnum(String code, String desc) {
+    GenderEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -29,7 +34,7 @@ public enum MisssionTypeEnum implements IEnumable<String> {
     }
 
     public static List<Option> options() {
-        return Arrays.stream(values()).sorted(Comparator.comparingInt(MisssionTypeEnum::ordinal))
+        return Arrays.stream(values()).sorted(Comparator.comparingInt(GenderEnum::ordinal))
                 .map(item -> {
                     Option option = new Option();
                     option.setLabel(item.getDesc());
@@ -37,5 +42,4 @@ public enum MisssionTypeEnum implements IEnumable<String> {
                     return option;
                 }).collect(Collectors.toList());
     }
-
 }
