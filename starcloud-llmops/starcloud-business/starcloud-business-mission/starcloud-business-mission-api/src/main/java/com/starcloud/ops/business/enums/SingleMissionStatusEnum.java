@@ -21,7 +21,9 @@ public enum SingleMissionStatusEnum implements IEnumable<String> {
     settlement("settlement", "结算"),
     close("close", "关闭"),
     pre_settlement_error("pre_settlement_error", "预结算异常"),
-    settlement_error("settlement_error", "结算异常");
+    settlement_error("settlement_error", "结算异常"),
+    complete("complete","完成")
+    ;
 
     private final String code;
 

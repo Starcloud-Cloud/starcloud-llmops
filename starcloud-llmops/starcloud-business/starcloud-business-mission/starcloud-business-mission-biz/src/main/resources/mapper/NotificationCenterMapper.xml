@@ -74,10 +74,13 @@
             and field = #{reqVO.field}
         </if>
         <if test="reqVO.minFansNum != null">
-            and min_fans_num = #{reqVO.minFansNum}
+            and min_fans_num &gt;= #{reqVO.minFansNum}
         </if>
         <if test="reqVO.singleBudget != null">
-            and single_budget = #{reqVO.singleBudget}
+            and (single_budget &gt;= #{reqVO.singleBudget} or single_budget is null)
+        </if>
+        <if test="reqVO.notificationName != null">
+            and name like concat(#{reqVO.notificationName},'%')
         </if>
         <if test="reqVO.creator != null  and reqVO.creator.size() > 0">
             and creator in
@@ -90,7 +93,7 @@
     <select id="appPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.AppNotificationDTO">
         select n.*,
         COUNT(case WHEN m.`status` in ('claimed','published','pre_settlement','settlement','pre_settlement_error','settlement_error')  THEN 1 end ) as claimCount,
-        GROUP_CONCAT(m.uid) as messionUids,
+<!--        GROUP_CONCAT(m.uid) as messionUids,-->
         json_unquote(JSON_EXTRACT(	m.content, '$.picture[0].url')) as picture,
         COUNT(case WHEN m.`claim_user_id` = #{reqVO.claimUserId} THEN 1 end ) as currentUserNum
         from llm_notification n
@@ -106,10 +109,13 @@
             and n.field = #{reqVO.field}
         </if>
         <if test="reqVO.minFansNum != null">
-            and n.min_fans_num = #{reqVO.minFansNum}
+            and n.min_fans_num &gt;= #{reqVO.minFansNum}
         </if>
         <if test="reqVO.singleBudget != null">
-            and n.single_budget = #{reqVO.singleBudget}
+            and (n.single_budget &gt;= #{reqVO.singleBudget}  or n.single_budget is null)
+        </if>
+        <if test="reqVO.notificationName != null">
+            and n.name like concat(#{reqVO.notificationName},'%')
         </if>
         <if test="reqVO.creator != null and reqVO.creator.size() > 0">
             and n.creator in

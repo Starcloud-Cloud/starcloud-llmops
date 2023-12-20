@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
@@ -48,6 +47,7 @@ public class CreativeImageUtils {
     private static final String IMAGE = "IMAGE";
     private static final String TITLE = "TITLE";
     private static final String SUB_TITLE = "SUB_TITLE";
+    private static final String TEXT_TITLE = "TEXT_TITLE";
     private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
     private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
     private static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
@@ -120,6 +120,8 @@ public class CreativeImageUtils {
                                     params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                                 } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
                                     params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                                } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
                                 } else if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
                                     paragraphTitle(params, variableItem, paragraphList);
                                 } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
@@ -165,15 +167,6 @@ public class CreativeImageUtils {
         for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseTitle()) {
                 String title = Optional.ofNullable(paragraph.getParagraphTitle()).orElse(StringUtils.EMPTY);
-                int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (title.length() > count) {
-                    // 超出部分用 ... 代替
-                    if (count > 3) {
-                        title = StrUtil.maxLength(title, count - 3);
-                    } else {
-                        title = StrUtil.maxLength(title, count);
-                    }
-                }
                 params.put(variableItem.getField(), title);
                 paragraph.setIsUseTitle(true);
                 return;
@@ -196,14 +189,6 @@ public class CreativeImageUtils {
         for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseContent()) {
                 String content = Optional.ofNullable(paragraph.getParagraphContent()).orElse(StringUtils.EMPTY);
-                int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (content.length() > count) {
-                    if (count > 3) {
-                        content = StrUtil.maxLength(content, count - 3);
-                    } else {
-                        content = StrUtil.maxLength(content, count);
-                    }
-                }
                 params.put(variableItem.getField(), content);
                 paragraph.setIsUseContent(true);
                 return;
@@ -421,6 +406,8 @@ public class CreativeImageUtils {
                             params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                         } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
                             params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                        } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                            params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
                         } else {
                             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                         }
