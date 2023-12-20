@@ -36,6 +36,12 @@ public interface NotificationCenterMapper extends BaseMapperX<NotificationCenter
         return selectOne(wrapper);
     }
 
+    default Long count(String creator) {
+        LambdaQueryWrapper<NotificationCenterDO> wrapper = Wrappers.lambdaQuery(NotificationCenterDO.class)
+                .eq(NotificationCenterDO::getCreator, creator);
+        return this.selectCount(wrapper);
+    }
+
     Long pageCount(@Param("reqVO") NotificationPageQueryReqVO reqVO);
 
     List<NotificationCenterDTO> pageDetail(@Param("reqVO") NotificationPageQueryReqVO reqVO,
