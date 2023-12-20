@@ -589,7 +589,7 @@ public class CreativeAppUtils {
             ParagraphDTO paragraph = paragraphList.get(i);
             Integer index = i + 1;
             content.append(index).append(". ").append(paragraph.getParagraphTitle()).append("\n");
-            content.append(paragraph.getParagraphContent()).append("\n");
+            content.append(paragraph.getParagraphContent()).append("\n\n");
         }
         return content.toString();
     }
