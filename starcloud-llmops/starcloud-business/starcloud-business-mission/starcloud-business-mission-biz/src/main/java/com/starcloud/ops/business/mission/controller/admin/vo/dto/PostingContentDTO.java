@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.dto;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,6 +28,10 @@ public class PostingContentDTO {
     public void validPostingContent(XhsNoteDetailRespVO noteDetail) {
         if (noteDetail != null
                 && StringUtils.equals(this.title, noteDetail.getTitle())) {
+            return;
+        }
+
+        if (SpringUtil.getActiveProfile().equals("cn-test")) {
             return;
         }
         throw exception(CONTENT_INCONSISTENT);
