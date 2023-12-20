@@ -29,6 +29,6 @@ public class PostingContentDTO {
                 && StringUtils.equals(this.title, noteDetail.getTitle())) {
             return;
         }
-//        throw exception(CONTENT_INCONSISTENT);
+        throw exception(CONTENT_INCONSISTENT);
     }
 }
