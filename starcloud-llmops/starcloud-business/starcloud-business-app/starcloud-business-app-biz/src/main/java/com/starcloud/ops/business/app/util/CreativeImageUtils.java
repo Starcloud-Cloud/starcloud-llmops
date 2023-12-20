@@ -448,12 +448,12 @@ public class CreativeImageUtils {
                 if ("TEXT".equalsIgnoreCase(param.getType())) {
                     if (PARAGRAPH_TITLE.contains(param.getField())) {
                         builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        titleIndex = titleIndex + 1;
                     }
                     if (PARAGRAPH_CONTENT.contains(param.getField())) {
                         builder.append("第 ").append(contentIndex).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        contentIndex = contentIndex + 1;
                     }
-                    titleIndex = titleIndex + 1;
-                    contentIndex = contentIndex + 1;
                 }
             }
 

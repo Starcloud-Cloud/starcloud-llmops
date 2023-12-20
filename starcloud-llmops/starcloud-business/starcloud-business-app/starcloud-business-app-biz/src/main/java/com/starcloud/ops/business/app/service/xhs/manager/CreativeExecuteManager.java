@@ -474,13 +474,13 @@ public class CreativeExecuteManager {
             }
         }
 
-        // 获取并且校验使用图片
-        List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
-        if (CollectionUtils.isEmpty(useImageList)) {
-            // 可用图片为空，说明该任务数据存在问题。需要更新状态
-            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
-            throw exception(350600113, "创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid());
-        }
+//        // 获取并且校验使用图片
+//        List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
+//        if (CollectionUtils.isEmpty(useImageList)) {
+//            // 可用图片为空，说明该任务数据存在问题。需要更新状态
+//            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
+//            throw exception(350600113, "创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid());
+//        }
         // 获取并且校验执行参数
         CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
         if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getImageStyleExecuteRequest())) {
