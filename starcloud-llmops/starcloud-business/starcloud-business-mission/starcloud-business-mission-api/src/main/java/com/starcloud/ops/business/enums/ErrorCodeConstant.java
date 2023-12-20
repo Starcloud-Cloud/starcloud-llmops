@@ -42,6 +42,8 @@ public interface ErrorCodeConstant {
 
     ErrorCode  MISSION_CAN_NOT_CLAIM =  new ErrorCode(700010020, "任务状态为{} ，只有待认领状态任务可以认领");
 
+    ErrorCode  BUDGET_PRICE_ERROR =  new ErrorCode(700010021, "任务预算要大于单价之和");
+
     ErrorCode  MISSION_CAN_NOT_PUBLISH_STATUS =  new ErrorCode(700020001, "任务状态为{} ，只有认领状态任务可以发布");
 
     ErrorCode  MISSION_CAN_NOT_PUBLISH_USERID =  new ErrorCode(700020002, "只可以发布自己认领的任务");

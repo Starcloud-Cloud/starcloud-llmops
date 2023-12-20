@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.enums;
 
 import com.starcloud.ops.framework.common.api.dto.Option;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -10,35 +9,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public enum GenderEnum implements IEnumable<String> {
-    unlimited("unlimited","不限"),
+public enum FansNumEnum {
+    unlimited(0,"不限"),
+    hundred(100,"100起"),
+    thousands(1000,"1000起"),
+    two_thousands(2000,"2000起"),
+    five_thousands(5000,"5000起"),
+    ;
 
-    male("male", "男"),
-
-    female("female", "女");
-
-
-
-    private String code;
+    private Integer minNum;
 
     private String desc;
 
-    GenderEnum(String code, String desc) {
-        this.code = code;
+
+    FansNumEnum(Integer minNum, String desc) {
+        this.minNum = minNum;
         this.desc = desc;
     }
 
-    @Override
-    public String getLabel() {
-        return code;
-    }
-
     public static List<Option> options() {
-        return Arrays.stream(values()).sorted(Comparator.comparingInt(GenderEnum::ordinal))
+        return Arrays.stream(values()).sorted(Comparator.comparingInt(FansNumEnum::ordinal))
                 .map(item -> {
                     Option option = new Option();
                     option.setLabel(item.getDesc());
-                    option.setValue(item.getCode());
+                    option.setValue(item.getMinNum());
                     return option;
                 }).collect(Collectors.toList());
     }

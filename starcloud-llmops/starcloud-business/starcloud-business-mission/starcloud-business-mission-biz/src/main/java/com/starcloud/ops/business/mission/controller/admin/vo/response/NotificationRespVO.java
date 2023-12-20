@@ -82,6 +82,9 @@ public class NotificationRespVO {
     @Schema(description = "领取人员限制")
     private ClaimLimitDTO claimLimit;
 
+    @Schema(description = "最小粉丝数")
+    private Integer minFansNum;
+
     @Schema(description = "是否公开")
     private Boolean open;
 }

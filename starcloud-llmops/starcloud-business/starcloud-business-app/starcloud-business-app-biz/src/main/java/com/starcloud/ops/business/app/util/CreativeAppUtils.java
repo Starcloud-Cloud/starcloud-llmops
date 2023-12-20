@@ -372,12 +372,17 @@ public class CreativeAppUtils {
             }
 
             for (VariableItemRespVO variableItem : variableList) {
-                if (REFERS.equals(variableItem.getField()) && StringUtils.isNotBlank((String) variableItem.getValue())) {
-                    TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
-                    };
-                    List<CreativeSchemeReferenceDTO> refers = JSONUtil.toBean((String) variableItem.getValue(), typeReference, false);
-                    refers = handlerReferences(refers);
-                    appParams.put(variableItem.getField(), JSONUtil.toJsonStr(refers));
+
+                if (REFERS.equals(variableItem.getField())) {
+                    Object value = appParams.get(variableItem.getField());
+                    if (value instanceof String && StringUtils.isNoneBlank((String) value)) {
+                        TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
+                        };
+                        List<CreativeSchemeReferenceDTO> refers = JSONUtil.toBean((String) value, typeReference, false);
+                        String refs = JSONUtil.toJsonStr(handlerReferences(refers));
+                        variableItem.setValue(refs);
+                        variableItem.setDefaultValue(refs);
+                    }
                 }
                 if (appParams.containsKey(variableItem.getField()) && Objects.nonNull(appParams.get(variableItem.getField()))) {
                     Object value = appParams.get(variableItem.getField());

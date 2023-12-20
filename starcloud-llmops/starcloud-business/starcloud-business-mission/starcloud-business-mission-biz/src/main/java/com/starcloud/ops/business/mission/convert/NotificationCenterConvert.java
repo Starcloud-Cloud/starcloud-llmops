@@ -67,28 +67,24 @@ public interface NotificationCenterConvert {
         }
 
         if (CollectionUtils.isEmpty(claimLimitDTO.getAddress())) {
-            claimLimitDTO.setAddress(Collections.singletonList(AddressEnum.unlimited.getCode()));
+            claimLimitDTO.setAddress(Collections.singletonList("unlimited"));
         }
 
         if (StringUtils.isBlank(claimLimitDTO.getGender())) {
-            claimLimitDTO.setGender(GenderEnum.unlimited.getCode());
+            claimLimitDTO.setGender("unlimited");
         }
 
-        if (StringUtils.isBlank(claimLimitDTO.getAccountType())) {
-            claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
-        }
+//        if (StringUtils.isBlank(claimLimitDTO.getAccountType())) {
+//            claimLimitDTO.setAccountType(AccountTypeEnum.unlimited.getCode());
+//        }
 
         if (claimLimitDTO.getClaimNum() == null || claimLimitDTO.getClaimNum() < 1) {
             claimLimitDTO.setClaimNum(1);
         }
 
-        if (claimLimitDTO.getMinFansNum() == null) {
-            claimLimitDTO.setMinFansNum(-1);
-        }
-
-        if (claimLimitDTO.getMaxFansNum() == null) {
-            claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
-        }
+//        if (claimLimitDTO.getMaxFansNum() == null) {
+//            claimLimitDTO.setMaxFansNum(Integer.MAX_VALUE);
+//        }
         return JSONUtil.toJsonStr(claimLimitDTO);
     }
 

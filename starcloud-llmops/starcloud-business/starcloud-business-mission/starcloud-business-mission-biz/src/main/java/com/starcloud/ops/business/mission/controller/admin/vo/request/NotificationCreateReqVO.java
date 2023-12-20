@@ -38,7 +38,6 @@ public class NotificationCreateReqVO {
     private String type;
 
     @Schema(description = "单价明细")
-    @NotNull(message = "单价明细不能为空")
     private PostingUnitPriceDTO unitPrice;
 
     @Schema(description = "任务开始时间")
@@ -50,12 +49,12 @@ public class NotificationCreateReqVO {
     private LocalDateTime endTime;
 
     @Schema(description = "通告总预算")
-    @NotNull(message = "通告总预算不能为空")
+//    @NotNull(message = "通告总预算不能为空")
 //    @Min(value = 0, message = "通告总预算要大于0")
     private BigDecimal notificationBudget;
 
     @Schema(description = "单个任务预算")
-    @NotNull(message = "单个任务预算不能为空")
+//    @NotNull(message = "单个任务预算不能为空")
 //    @Min(value = 0, message = "单个任务预算要大于0")
     private BigDecimal singleBudget;
 
@@ -68,6 +67,9 @@ public class NotificationCreateReqVO {
 
     @Schema(description = "领取人员限制")
     private ClaimLimitDTO claimLimit;
+
+    @Schema(description = "最小粉丝数")
+    private Integer minFansNum ;
 
     @Schema(description = "是否公开 true公开")
     private Boolean open;
