@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.rights;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -9,9 +10,17 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.ExpiredReminderVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefits;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserLevelVO;
+import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserTokenExpiredReminderVO;
 import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
+import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import com.starcloud.ops.business.limits.enums.UserLevelEnums;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -25,17 +34,18 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_VALID_TIME_NOT_EXISTS;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 
 /**
@@ -88,11 +98,18 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
 
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
-        Integer sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
-        Integer sumMagicImage = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImage).sum();
+        Integer sumMagicBean = 0;
+        Integer sumMagicImage = 0;
+        Integer sumMagicBeanInit = 0;
+        Integer sumMagicImageInit = 0;
+        if (!validRightsList.isEmpty()) {
+            sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
+            sumMagicImage = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImage).sum();
 
-        Integer sumMagicBeanInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBeanInit).sum();
-        Integer sumMagicImageInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImageInit).sum();
+            sumMagicBeanInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBeanInit).sum();
+            sumMagicImageInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImageInit).sum();
+        }
+
         List<AdminUserRightsCollectRespVO> rightsCollectRespVOS = new ArrayList<>();
         rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_BEAN.getName(), AdminUserRightsTypeEnum.MAGIC_BEAN.name(), sumMagicBeanInit,
                 sumMagicBeanInit - sumMagicBean, sumMagicBean, NumberUtil.toDouble(NumberUtil.div(sumMagicBean, sumMagicBeanInit))));
@@ -105,16 +122,26 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, AdminUserRightsBizTypeEnum bizType, String bizId) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, LocalDateTime validStartTime, LocalDateTime validEndTime, AdminUserRightsBizTypeEnum bizType, String bizId) {
         if (magicBean == 0 || magicImage == 0) {
             return;
         }
 
-        // 3. 增加积分记录
+        // 3. 增加权益记录
         AdminUserRightsDO record = new AdminUserRightsDO()
                 .setUserId(userId).setBizId(bizId).setBizType(bizType.getType())
                 .setTitle(bizType.getName()).setDescription(StrUtil.format(bizType.getDescription(), magicBean, magicImage))
-                .setMagicBean(magicBean).setMagicImage(magicImage).setMagicBeanInit(magicBean).setMagicImageInit(magicImage);
+                .setMagicBean(magicBean).setMagicImage(magicImage).setMagicBeanInit(magicBean).setMagicImageInit(magicImage)
+                .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
+
+        if (Objects.isNull(validStartTime)||Objects.isNull(validEndTime)){
+            if (!bizType.isSystem()){
+                throw exception(RIGHTS_VALID_TIME_NOT_EXISTS);
+            }
+            record.setValidStartTime(LocalDateTime.now());
+            record.setValidEndTime(LocalDateTime.now().plusMonths(1));
+        }
+
         adminUserRightsMapper.insert(record);
 
         if (magicBean > 0) {
@@ -138,6 +165,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     public Boolean calculateUserRightsEnough(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
         // 获取可用权益列表
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, rightsType);
+        if (validRightsList.isEmpty()) {
+            return false;
+        }
 
         int validSum = 0;
         switch (rightsType) {
@@ -164,6 +194,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId) {
         // 获取可用权益列表
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, rightsType);
+        if (validRightsList.isEmpty()) {
+            throw exception(USER_RIGHTS_NOT_ENOUGH);
+        }
 
         List<AdminUserRightsDO> deductRightsList = deduct(validRightsList, rightsType, rightAmount);
 
@@ -177,6 +210,42 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         adminUserRightsRecordService.createRightsRecord(userId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
 
+    }
+
+    /**
+     * 权益过期提醒
+     *
+     * @param userId 用户 ID
+     */
+    @Override
+    public NotifyExpiringRightsRespVO notifyExpiringRights(Long userId) {
+
+        NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = new NotifyExpiringRightsRespVO();
+        notifyExpiringRightsRespVO.setIsNotify(false);
+
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime nextWeek = today.plusDays(7);
+        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, AdminUserRightsTypeEnum.MAGIC_BEAN);
+        if (CollUtil.isEmpty(validRightsList)) {
+            return notifyExpiringRightsRespVO;
+        }
+        // 获取 7 天内即将过期的权益
+        List<AdminUserRightsDO> nextWeekExpiringRights = validRightsList.stream()
+                .filter(rights -> rights.getValidEndTime().isBefore(nextWeek) && rights.getValidEndTime().isAfter(today))
+                .collect(Collectors.toList());
+        if (CollUtil.isEmpty(nextWeekExpiringRights)) {
+            return notifyExpiringRightsRespVO;
+        }
+
+        // 计算7 天内过期的魔法豆数量
+        int sumMagicBean = nextWeekExpiringRights.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
+
+        notifyExpiringRightsRespVO.setName(AdminUserRightsTypeEnum.MAGIC_BEAN.getName());
+        notifyExpiringRightsRespVO.setRightsType(AdminUserRightsTypeEnum.MAGIC_BEAN.name());
+        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 10);
+        notifyExpiringRightsRespVO.setExpiredNum(sumMagicBean);
+
+        return notifyExpiringRightsRespVO;
     }
 
 

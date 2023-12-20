@@ -4,13 +4,18 @@ package com.starcloud.ops.business.user.controller.admin;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserNotifyExpiringRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +35,12 @@ public class StarUserController {
 
     @Autowired
     private StarUserService llmUserService;
+
+    @Autowired
+    private AdminUserLevelService adminUserLevelService;
+
+    @Autowired
+    private AdminUserRightsService adminUserRightsService;
 
 
     @PostMapping("/register")
@@ -104,6 +115,27 @@ public class StarUserController {
     @TenantIgnore
     public CommonResult<Boolean> updateUserProfile(@RequestBody @Valid UserProfileUpdateRequest request) {
         return CommonResult.success(llmUserService.updateUserProfile(request));
+    }
+
+
+    @PutMapping("/test/addBenefits")
+    @Operation(summary = "测试添加注册权益", description = "测试添加注册权益")
+    @TenantIgnore
+    public CommonResult<Boolean> addBenefits(@RequestBody @Valid UserProfileUpdateRequest request) {
+        llmUserService.addBenefits(getLoginUserId(),215L);
+        return CommonResult.success(true);
+    }
+
+    @PutMapping("/test/notify_expiring")
+    @Operation(summary = "用户过期提醒", description = "用户过期提醒")
+    @TenantIgnore
+    public CommonResult<AdminUserNotifyExpiringRespVO> NotifyExpiring(@RequestBody @Valid UserProfileUpdateRequest request) {
+        AdminUserNotifyExpiringRespVO adminUserNotifyExpiringRespVO = new AdminUserNotifyExpiringRespVO();
+        NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = adminUserLevelService.notifyExpiringLevel(getLoginUserId());
+        NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = adminUserRightsService.notifyExpiringRights(getLoginUserId());
+        adminUserNotifyExpiringRespVO.setNotifyExpiringLevelRespVO(notifyExpiringLevelRespVO);
+        adminUserNotifyExpiringRespVO.setNotifyExpiringRightsRespVO(notifyExpiringRightsRespVO);
+        return CommonResult.success(adminUserNotifyExpiringRespVO);
     }
 
 }

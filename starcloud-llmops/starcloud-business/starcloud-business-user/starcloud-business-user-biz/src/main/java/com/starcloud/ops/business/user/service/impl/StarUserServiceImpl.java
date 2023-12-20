@@ -107,8 +107,8 @@ public class StarUserServiceImpl implements StarUserService {
 //    @Autowired
 //    private PermissionProducer permissionProducer;
 
-    @Autowired
-    private UserBenefitsService benefitsService;
+//    @Autowired
+//    private UserBenefitsService benefitsService;
 
     @Resource
     private InvitationRecordsService invitationRecordsService;
@@ -208,20 +208,20 @@ public class StarUserServiceImpl implements StarUserService {
                 // 增加邀请记录
                 Long invitationId = invitationRecordsService.createInvitationRecords(inviteUserId, currentUserId);
                 log.info("邀请记录添加成功，开始发送注册与邀请权益");
-                adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
-                adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
+                adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
+                adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null,null,AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
 
                 // 邀请注册权益 邀请人
-                benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
+//                benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
 
                 // 获取当天的邀请记录
                 List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
                 if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
-                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
+                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
                     // FIXME: 2023/12/19  取消之前的代码
-                    benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
+//                    benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
                     sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
                             "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
                                     "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
@@ -229,7 +229,9 @@ public class StarUserServiceImpl implements StarUserService {
 
             } else {
                 // 普通注册权益
-                benefitsService.addUserBenefitsSign(currentUserId);
+                adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
+
+//                benefitsService.addUserBenefitsSign(currentUserId);
             }
 
         } catch (Exception e) {
@@ -278,7 +280,6 @@ public class StarUserServiceImpl implements StarUserService {
     }
 
     @Override
-//    @Cacheable(value = RedisKeyConstants.USER_ROLE_ID_LIST, key = "#userId")
     public Long createNewUser(UserDTO userDTO) {
         DeptDO deptDO = new DeptDO();
         deptDO.setParentId(userDTO.getParentDeptId());

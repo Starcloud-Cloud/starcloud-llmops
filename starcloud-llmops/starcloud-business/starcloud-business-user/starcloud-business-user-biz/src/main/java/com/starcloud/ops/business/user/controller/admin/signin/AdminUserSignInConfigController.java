@@ -76,7 +76,7 @@ public class AdminUserSignInConfigController {
 
 
     @GetMapping("/u/list")
-    @Operation(summary = "获得签到规则列表")
+    @Operation(summary = "系统会员-获得签到规则列表")
     public CommonResult<List<AppAdminUserSignInConfigRespVO>> getSignInConfigListByUser() {
         List<AdminUserSignInConfigDO> pageResult = signInConfigService.getSignInConfigList(CommonStatusEnum.ENABLE.getStatus());
         return success(AdminUserSignInConfigConvert.INSTANCE.convertList02(pageResult));

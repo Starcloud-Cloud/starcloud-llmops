@@ -98,7 +98,7 @@ public class CouponTemplateController {
     //=====================ADMIN==========USER========================
 
     @GetMapping("/u/list")
-    @Operation(summary = "获得优惠劵模版列表")
+    @Operation(summary = "系统会员-获得优惠劵模版列表")
     @Parameters({
             @Parameter(name = "spuId", description = "商品 SPU 编号"), // 目前主要给商品详情使用
             @Parameter(name = "useType", description = "使用类型"),
@@ -124,7 +124,7 @@ public class CouponTemplateController {
     }
 
     @GetMapping("/u/page")
-    @Operation(summary = "获得优惠劵模版分页")
+    @Operation(summary = "系统会员-获得优惠劵模版分页")
     public CommonResult<PageResult<AppCouponTemplateRespVO>> getCouponTemplatePage(AppCouponTemplatePageReqVO pageReqVO) {
         // 1.1 处理查询条件：商品范围编号
         Long productScopeValue = getProductScopeValue(pageReqVO.getProductScope(), pageReqVO.getSpuId());

@@ -10,6 +10,8 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 
+import java.time.LocalDateTime;
+
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
 
 
@@ -28,14 +30,14 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     private AdminUserRightsService adminUserRightsService;
 
     @Override
-    public void addRights(Long userId, Integer magicBean, Integer magicImage,
+    public void addRights(Long userId, Integer magicBean, Integer magicImage, LocalDateTime validStartTime, LocalDateTime validEndTime,
                           Integer bizType, String bizId) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, bizTypeEnum, bizId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, validStartTime, validEndTime, bizTypeEnum, bizId);
     }
 
     @Override

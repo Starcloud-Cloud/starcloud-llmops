@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -33,6 +34,6 @@ public interface AdminUserRightsConvert {
     }
     PageResult<AdminUserRightsRespVO> convertPage(PageResult<AdminUserRightsDO> pageResult);
 
-    PageResult<AdminUserRightsRespVO> convertPage02(PageResult<AdminUserRightsDO> pageResult);
+    PageResult<AppAdminUserRightsRespVO> convertPage02(PageResult<AdminUserRightsDO> pageResult);
 
 }

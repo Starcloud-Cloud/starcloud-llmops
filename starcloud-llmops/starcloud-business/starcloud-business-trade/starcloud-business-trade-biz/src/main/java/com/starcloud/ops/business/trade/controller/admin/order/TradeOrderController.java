@@ -190,14 +190,14 @@ public class TradeOrderController {
     //========================APP======ADMIN=====USER=========================
 
     @GetMapping("/u/settlement")
-    @Operation(summary = "第一步-获得订单结算信息")
+    @Operation(summary = "系统会员-第一步-获得订单结算信息")
     @PreAuthenticated
     public CommonResult<AppTradeOrderSettlementRespVO> settlementOrder(@Valid AppTradeOrderSettlementReqVO settlementReqVO) {
         return success(tradeOrderUpdateService.settlementOrder(getLoginUserId(), settlementReqVO));
     }
 
     @PostMapping("/u/create")
-    @Operation(summary = "创建订单")
+    @Operation(summary = "系统会员-创建订单")
     @PreAuthenticated
     public CommonResult<AppTradeOrderCreateRespVO> createOrder(@Valid @RequestBody AppTradeOrderCreateReqVO createReqVO,
                                                                @RequestHeader Integer terminal) {
@@ -206,7 +206,7 @@ public class TradeOrderController {
     }
 
     @PostMapping("/u/update-paid")
-    @Operation(summary = "用户-更新订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
+    @Operation(summary = "系统会员-用户-更新订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
     @PermitAll // 无需登录，安全由 PayDemoOrderService 内部校验实现
     @OperateLog(enable = false) // 禁用操作日志，因为没有操作人
     public CommonResult<Boolean> updateOrderPaid(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
@@ -216,7 +216,7 @@ public class TradeOrderController {
     }
 
     @GetMapping("/u/get-detail")
-    @Operation(summary = "用户-获得交易订单")
+    @Operation(summary = "系统会员-用户-获得交易订单")
     @Parameter(name = "id", description = "交易订单编号")
     public CommonResult<AppTradeOrderDetailRespVO> getOrder(@RequestParam("id") Long id) {
         // 查询订单
@@ -243,7 +243,7 @@ public class TradeOrderController {
 //    }
 
     @GetMapping("/u/page")
-    @Operation(summary = "用户-获得交易订单分页")
+    @Operation(summary = "系统会员-获得交易订单分页")
     public CommonResult<PageResult<AppTradeOrderPageItemRespVO>> getOrderPage(AppTradeOrderPageReqVO reqVO) {
         // 查询订单
         PageResult<TradeOrderDO> pageResult = tradeOrderQueryService.getOrderPage(getLoginUserId(), reqVO);
@@ -255,7 +255,7 @@ public class TradeOrderController {
     }
 
     @GetMapping("/u/get-count")
-    @Operation(summary = "用户-获得交易订单数量")
+    @Operation(summary = "系统会员-获得交易订单数量")
     public CommonResult<Map<String, Long>> getOrderCount() {
         Map<String, Long> orderCount = Maps.newLinkedHashMapWithExpectedSize(5);
         // 全部
@@ -276,7 +276,7 @@ public class TradeOrderController {
     }
 
     @PutMapping("/u/receive")
-    @Operation(summary = "用户-确认交易订单收货")
+    @Operation(summary = "系统会员-确认交易订单收货")
     @Parameter(name = "id", description = "交易订单编号")
     public CommonResult<Boolean> receiveOrder(@RequestParam("id") Long id) {
         tradeOrderUpdateService.receiveOrderByMember(getLoginUserId(), id);
@@ -284,7 +284,7 @@ public class TradeOrderController {
     }
 
     @DeleteMapping("/u/cancel")
-    @Operation(summary = "用户-取消交易订单")
+    @Operation(summary = "系统会员-取消交易订单")
     @Parameter(name = "id", description = "交易订单编号")
     public CommonResult<Boolean> cancelOrder(@RequestParam("id") Long id) {
         tradeOrderUpdateService.cancelOrderByMember(getLoginUserId(), id);
@@ -292,7 +292,7 @@ public class TradeOrderController {
     }
 
     @DeleteMapping("/u/delete")
-    @Operation(summary = "用户-删除交易订单")
+    @Operation(summary = "系统会员-删除交易订单")
     @Parameter(name = "id", description = "交易订单编号")
     public CommonResult<Boolean> deleteOrder(@RequestParam("id") Long id) {
         tradeOrderUpdateService.deleteOrder(getLoginUserId(), id);
@@ -302,7 +302,7 @@ public class TradeOrderController {
     // ========== 订单项 ==========
 
     @GetMapping("/u/item/get")
-    @Operation(summary = "用户-获得交易订单项")
+    @Operation(summary = "系统会员-获得交易订单项")
     @Parameter(name = "id", description = "交易订单项编号")
     public CommonResult<AppTradeOrderItemRespVO> getOrderItem(@RequestParam("id") Long id) {
         TradeOrderItemDO item = tradeOrderQueryService.getOrderItem(getLoginUserId(), id);
@@ -310,7 +310,7 @@ public class TradeOrderController {
     }
 
     @PostMapping("/u/item/create-comment")
-    @Operation(summary = "用户-创建交易订单项的评价")
+    @Operation(summary = "系统会员-创建交易订单项的评价")
     public CommonResult<Long> createOrderItemComment(@RequestBody AppTradeOrderItemCommentCreateReqVO createReqVO) {
         return success(tradeOrderUpdateService.createOrderItemCommentByMember(getLoginUserId(), createReqVO));
     }

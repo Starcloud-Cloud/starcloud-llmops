@@ -11,7 +11,6 @@ public interface SendSocialMsgService {
      * 发送注册信息
      *
      * @param mpUser
-     * @param suffix
      */
     void asynSendWxRegisterMsg(MpUserDO mpUser);
 

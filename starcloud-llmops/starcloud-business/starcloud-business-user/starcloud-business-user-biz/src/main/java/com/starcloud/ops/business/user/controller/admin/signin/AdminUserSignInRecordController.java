@@ -61,14 +61,14 @@ public class AdminUserSignInRecordController {
 
 
     @GetMapping("/u/get-summary")
-    @Operation(summary = "获得个人签到统计")
+    @Operation(summary = "系统会员-获得个人签到统计")
     @PreAuthenticated
     public CommonResult<AppAdminUserSignInRecordSummaryRespVO> getSignInRecordSummary() {
         return success(signInRecordService.getSignInRecordSummary(getLoginUserId()));
     }
 
     @PostMapping("/u/create")
-    @Operation(summary = "签到")
+    @Operation(summary = "系统会员-签到")
     @PreAuthenticated
     public CommonResult<AppAdminUserSignInRecordRespVO> createSignInRecord() {
         AdminUserSignInRecordDO recordDO = signInRecordService.createSignRecord(getLoginUserId());
@@ -76,7 +76,7 @@ public class AdminUserSignInRecordController {
     }
 
     @GetMapping("/u/page")
-    @Operation(summary = "获得签到记录分页")
+    @Operation(summary = "系统会员-获得签到记录分页")
     @PreAuthenticated
     public CommonResult<PageResult<AppAdminUserSignInRecordRespVO>> getSignRecordPage(PageParam pageParam) {
         PageResult<AdminUserSignInRecordDO> pageResult = signInRecordService.getSignRecordPage(getLoginUserId(), pageParam);

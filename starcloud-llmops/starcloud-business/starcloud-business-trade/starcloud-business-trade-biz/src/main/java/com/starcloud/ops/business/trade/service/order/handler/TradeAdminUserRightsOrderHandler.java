@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.trade.service.order.handler;
 
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
@@ -10,6 +11,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,8 +33,30 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
         if (order.getGiveRights().size() == 0) {
             return;
         }
+
         // 设置会员等级
         for (GiveRightsDTO giveRight : order.getGiveRights()) {
+            LocalDateTime validStartTime = LocalDateTime.now();
+            LocalDateTime validEndTime;
+            TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getTimeRange());
+            switch (timeRangeTypeEnum) {
+                case DAY:
+                    validEndTime = validStartTime.plusDays(giveRight.getTimeNums());
+                    break;
+                case WEEK:
+                    validEndTime = validStartTime.plusWeeks(giveRight.getTimeNums());
+                    break;
+                case MONTH:
+                    validEndTime = validStartTime.plusMonths(giveRight.getTimeNums());
+                    break;
+                case YEAR:
+                    validEndTime = validStartTime.plusYears(giveRight.getTimeNums());
+                    break;
+                default:
+                    throw new RuntimeException("产品权益信息设置异常，请联系管理员");
+
+            }
+
             adminUserLevelApi.addAdminUserLevel(
                     order.getUserId(),
                     giveRight.getLevelId(),
@@ -44,7 +68,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
             adminUserRightsApi.addRights(
                     order.getUserId(),
                     giveRight.getGiveMagicBean(),
-                    giveRight.getGiveImage(),
+                    giveRight.getGiveImage(), validStartTime, validEndTime,
                     AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(),
                     String.valueOf(order.getId()));
         }

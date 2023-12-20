@@ -16,13 +16,14 @@ import java.util.Objects;
 @Getter
 public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
 
-    ADMIN(1, "管理员修改", "管理员修改 {} 魔法豆，{} 图片", true, false, 0, 0),
+    ADMIN_MINUS(0, "管理员增加", "管理员修改权益，扣除 {} 魔法豆，{} 图片", false, false, 0, 0),
+    ADMIN_ADD(1, "管理员修改", "管理员修改权益，增加 {} 魔法豆，{} 图片", true, false, 0, 0),
     REGISTER(2, "普通注册", "签到获得 {} 魔法豆，{} 图片", true, true, 10, 5),
     INVITE_TO_REGISTER(3, "邀请注册", "签到获得 {} 魔法豆，{} 图片", true, true, 10, 5),
     USER_INVITE(4, "用户推广", "签到获得 {} 魔法豆，{} 图片", true, true, 5, 2),
     USER_INVITE_REPEAT(5, "邀请达人", "签到获得 {} 魔法豆，{} 图片", true, true, 5, 2),
     SIGN(6, "签到", "签到获得 {} 魔法豆，{} 图片", true, true, 2, 1),
-    REDEEM_CODE(7, "兑换码", "使用兑换码获得 {} 魔法豆，{} 图片", true, false, 0, 0),
+    REDEEM_CODE(7, "兑换码", "使用兑换码获得 {} 魔法豆，{} 图片", false, false, 0, 0),
     EXPIRE(8, " 过期", "权益过期，过期 {} 魔法豆，{} 图片", false, false, 0, 0),
 
     ORDER_GIVE(11, "订单权益奖励", "下单获取权益,获得 {} 魔法豆，{} 图片", true, false, 0, 0), // 支付订单时，赠送积分
@@ -31,8 +32,8 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
 
 
     //================仅限变动记录使用======Type 值上面的+50=========================================
-
-    ADMIN_RECORD(51, "管理员修改", "管理员修改权益 获得{},{}", true, false, 0, 0),
+    ADMIN_MINUS_RECORD(50, "管理员增加", "管理员修改权益，扣除 {},{} ", false, false, 0, 0),
+    ADMIN_RECORD(51, "管理员修改", "管理员修改权益  增加{},{}", true, false, 0, 0),
     REGISTER_RECORD(52, "普通注册", "签到获得{},{}", true, true, 10, 5),
     INVITE_TO_REGISTER_RECORD(53, "邀请注册", "签到获得{},{}", true, true, 10, 5),
     USER_INVITE_RECORD(54, "用户推广", "签到获得{},{}", true, true, 5, 2),

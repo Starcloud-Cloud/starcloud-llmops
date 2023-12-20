@@ -130,7 +130,7 @@ public class ProductSpuController {
 
     //=======================ADMIN====USER=======================
     @GetMapping("/u/list")
-    @Operation(summary = "获得商品 SPU 列表")
+    @Operation(summary = "系统会员-获得商品 SPU 列表")
     @Parameters({
             @Parameter(name = "recommendType", description = "推荐类型", required = true), // 参见 AppProductSpuPageReqVO.RECOMMEND_TYPE_XXX 常量
             @Parameter(name = "count", description = "数量", required = true)
@@ -149,7 +149,7 @@ public class ProductSpuController {
     }
 
     @GetMapping("/u/page")
-    @Operation(summary = "获得商品 SPU 分页")
+    @Operation(summary = "系统会员-获得商品 SPU 分页")
     public CommonResult<PageResult<AppProductSpuPageRespVO>> getSpuPage(@Valid AppProductSpuPageReqVO pageVO) {
         PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO);
         if (CollUtil.isEmpty(pageResult.getList())) {
@@ -162,7 +162,7 @@ public class ProductSpuController {
     }
 
     @GetMapping("/u/get-detail")
-    @Operation(summary = "获得商品 SPU 明细")
+    @Operation(summary = "系统会员-获得商品 SPU 明细")
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<AppProductSpuDetailRespVO> getUSpuDetail(@RequestParam("id") Long id) {
         // 获得商品 SPU

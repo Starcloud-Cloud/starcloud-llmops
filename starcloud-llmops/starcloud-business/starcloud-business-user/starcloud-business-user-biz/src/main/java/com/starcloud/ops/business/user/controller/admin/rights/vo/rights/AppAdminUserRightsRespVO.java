@@ -5,36 +5,18 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Schema(description = "管理后台 - 用户积分记录 Response VO")
+@Schema(description = "系统会员用户 App - 用户积分记录 Response VO")
 @Data
-public class AdminUserRightsRespVO {
+public class AppAdminUserRightsRespVO {
 
     @Schema(description = "自增主键", requiredMode = Schema.RequiredMode.REQUIRED, example = "31457")
-    private Long id;
-
-    @Schema(description = "用户编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
-    private Long userId;
-
-    @Schema(description = "昵称", example = "张三")
-    private String nickname;
-
-    @Schema(description = "业务编码", requiredMode = Schema.RequiredMode.REQUIRED, example = "22706")
-    private String bizId;
-
-    @Schema(description = "业务类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    private Integer bizType;
+    private Long id;;
 
     @Schema(description = "积分标题", requiredMode = Schema.RequiredMode.REQUIRED, example = "你猜")
     private String title;
 
     @Schema(description = "积分描述", example = "你猜")
     private String description;
-
-    @Schema(description = "剩余魔法豆", requiredMode = Schema.RequiredMode.REQUIRED, example = "100")
-    private Integer magicBean;
-
-    @Schema(description = "剩余图片", requiredMode = Schema.RequiredMode.REQUIRED, example = "100")
-    private Integer magicImage;
 
     @Schema(description = "魔法豆", requiredMode = Schema.RequiredMode.REQUIRED, example = "100")
     private Integer magicBeanInit;

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.service.level;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -10,11 +11,14 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -24,9 +28,11 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
@@ -148,6 +154,39 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     public List<AdminUserLevelDO> getLevelList(Long userId) {
         return adminUserLevelMapper.selectValidList(userId);
 
+    }
+
+    /**
+     * 等级过期提醒
+     *
+     * @param userId 用户 ID
+     */
+    @Override
+    public NotifyExpiringLevelRespVO notifyExpiringLevel(Long userId) {
+
+        NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = new NotifyExpiringLevelRespVO();
+        notifyExpiringLevelRespVO.setIsNotify(false);
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime nextWeek = today.plusDays(7);
+        List<AdminUserLevelDO> validLevelList = adminUserLevelMapper.selectValidList(userId);
+        if (CollUtil.isEmpty(validLevelList)){
+            return notifyExpiringLevelRespVO;
+        }
+
+        // 获取 7 天内即将过期的等级
+        List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream()
+                .filter(level -> level.getValidEndTime().isBefore(nextWeek) && level.getValidEndTime().isAfter(today))
+                .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
+                .collect(Collectors.toList());
+        if (CollUtil.isEmpty(nextWeekExpiringLevel)){
+            return notifyExpiringLevelRespVO;
+        }
+
+        notifyExpiringLevelRespVO.setLevelId(nextWeekExpiringLevel.get(0).getLevelId());
+        notifyExpiringLevelRespVO.setLevelName(nextWeekExpiringLevel.get(0).getLevelName());
+        notifyExpiringLevelRespVO.setValidEndTime(nextWeekExpiringLevel.get(0).getValidEndTime());
+        notifyExpiringLevelRespVO.setIsNotify(true);
+        return notifyExpiringLevelRespVO;
     }
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {

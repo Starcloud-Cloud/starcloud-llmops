@@ -5,10 +5,12 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -43,7 +45,6 @@ public interface AdminUserRightsService {
     List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId);
 
 
-
     /**
      * 创建用户权益记录
      *
@@ -53,7 +54,7 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage, AdminUserRightsBizTypeEnum bizType, String bizId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage, LocalDateTime validStartTime ,LocalDateTime validEndTime, AdminUserRightsBizTypeEnum bizType, String bizId);
 
     /**
      * 校验权益是否可供扣除
@@ -74,6 +75,11 @@ public interface AdminUserRightsService {
      */
     void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId);
 
+    /**
+     * 权益过期提醒
+     * @param userId
+     */
+    NotifyExpiringRightsRespVO notifyExpiringRights(Long userId);
 
     void expireRights();
 

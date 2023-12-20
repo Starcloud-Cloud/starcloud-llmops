@@ -47,6 +47,8 @@ public interface ErrorCodeConstant {
 
     //========== 积分记录 2-004-008-000 ==========
     ErrorCode RIGHTS_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户权益记录业务类型不支持");
+    ErrorCode USER_RIGHTS_NOT_ENOUGH= new ErrorCode(2_004_008_001, "用户{}权益不足");
+    ErrorCode RIGHTS_VALID_TIME_NOT_EXISTS= new ErrorCode(2_004_008_002, "权益有效期不可以为空");
 
     //========== 签到配置 2-004-010-000 ==========
 

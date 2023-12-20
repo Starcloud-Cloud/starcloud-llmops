@@ -104,14 +104,14 @@ public class CouponController {
     }
 
     @GetMapping("/u/match-list")
-    @Operation(summary = "获得匹配指定商品的优惠劵列表", description = "用于下单页，展示优惠劵列表")
+    @Operation(summary = "系统会员-获得匹配指定商品的优惠劵列表", description = "用于下单页，展示优惠劵列表")
     public CommonResult<List<AppCouponMatchRespVO>> getMatchCouponList(AppCouponMatchReqVO matchReqVO) {
         // todo: 优化：优惠金额倒序
         return success(CouponConvert.INSTANCE.convertList(couponService.getMatchCouponList(getLoginUserId(), matchReqVO)));
     }
 
     @GetMapping("/u/page")
-    @Operation(summary = "我的优惠劵列表")
+    @Operation(summary = "系统会员-我的优惠劵列表")
     @PreAuthenticated
     public CommonResult<PageResult<AppCouponRespVO>> getCouponPage(AppCouponPageReqVO pageReqVO) {
         PageResult<CouponDO> pageResult = couponService.getCouponPage(
@@ -120,7 +120,7 @@ public class CouponController {
     }
 
     @GetMapping(value = "/u/get-unused-count")
-    @Operation(summary = "获得未使用的优惠劵数量")
+    @Operation(summary = "系统会员-获得未使用的优惠劵数量")
     @PreAuthenticated
     public CommonResult<Long> getUnusedCouponCount() {
         return success(couponService.getUnusedCouponCount(getLoginUserId()));
