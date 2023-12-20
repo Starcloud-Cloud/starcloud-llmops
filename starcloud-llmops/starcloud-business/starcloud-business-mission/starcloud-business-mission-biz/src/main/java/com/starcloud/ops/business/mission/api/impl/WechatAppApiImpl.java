@@ -212,6 +212,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         respVO.setMinFansNum(notificationCenterDO.getMinFansNum());
         respVO.setNotificationName(notificationCenterDO.getName());
         respVO.setField(notificationCenterDO.getField());
+        respVO.setVisitNum(notificationCenterDO.getVisitNum());
         if (SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
             respVO.setErrorMsg(missionDO.getPreSettlementMsg());
         }

@@ -114,4 +114,7 @@ public class AppSingleMissionRespVO {
     @Schema(description = "通告uid")
     private String notificationUid;
 
+    @Schema(description = "访问次数")
+    private Integer visitNum;
+
 }
