@@ -134,6 +134,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             record.setValidStartTime(LocalDateTime.now());
             record.setValidEndTime(LocalDateTime.now().plusMonths(1));
         }
+       if (getLoginUserId()==null){
+           record.setCreator(String.valueOf(userId));
+           record.setUpdater(String.valueOf(userId));
+       }
 
         adminUserRightsMapper.insert(record);
 

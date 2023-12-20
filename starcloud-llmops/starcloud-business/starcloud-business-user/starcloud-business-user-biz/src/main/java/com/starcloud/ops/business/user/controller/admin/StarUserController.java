@@ -126,7 +126,7 @@ public class StarUserController {
         return CommonResult.success(true);
     }
 
-    @PutMapping("/test/notify_expiring")
+    @PutMapping("/user/notify_expiring")
     @Operation(summary = "用户过期提醒", description = "用户过期提醒")
     @TenantIgnore
     public CommonResult<AdminUserNotifyExpiringRespVO> NotifyExpiring() {

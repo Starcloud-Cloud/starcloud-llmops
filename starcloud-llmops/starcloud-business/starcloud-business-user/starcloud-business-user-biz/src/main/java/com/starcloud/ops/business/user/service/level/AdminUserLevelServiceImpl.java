@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_EXISTS;
 
@@ -95,6 +96,10 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         AdminUserLevelDO AdminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
+        if (getLoginUserId()==null){
+            AdminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
+            AdminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
+        }
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(AdminUserLevelDO);
         // 获取当前用户角色
