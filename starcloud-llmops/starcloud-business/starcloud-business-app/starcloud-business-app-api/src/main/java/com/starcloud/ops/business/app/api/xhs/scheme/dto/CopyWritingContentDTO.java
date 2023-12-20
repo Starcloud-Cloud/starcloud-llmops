@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -43,6 +45,12 @@ public class CopyWritingContentDTO implements java.io.Serializable {
      */
     @Schema(description = "图片副标题")
     private String imgSubTitle;
+
+    /**
+     * 段落数据
+     */
+    @Schema(description = "段落数据")
+    private List<ParagraphDTO> paragraphList;
 
 
 }

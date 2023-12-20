@@ -44,4 +44,23 @@ public class XhsAppCreativeExecuteResponse extends XhsAppExecuteResponse {
     @Schema(description = "创作任务UID")
     private String contentUid;
 
+    /**
+     * 创作方案模式
+     */
+    @Schema(description = "创作方案模式")
+    private String schemeMode;
+
+    public static XhsAppCreativeExecuteResponse buildFailure(XhsAppCreativeExecuteRequest request, String errorCode, String errorMessage) {
+        XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+        response.setPlanUid(request.getPlanUid());
+        response.setSchemeUid(request.getSchemeUid());
+        response.setBusinessUid(request.getBusinessUid());
+        response.setContentUid(request.getContentUid());
+        response.setSchemeMode(request.getSchemeMode());
+        response.setSuccess(Boolean.FALSE);
+        response.setErrorCode(errorCode);
+        response.setErrorMsg(errorMessage);
+        return response;
+    }
+
 }

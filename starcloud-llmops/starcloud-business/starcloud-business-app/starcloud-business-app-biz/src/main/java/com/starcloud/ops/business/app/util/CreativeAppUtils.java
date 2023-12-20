@@ -13,6 +13,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
@@ -21,6 +23,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -479,6 +482,29 @@ public class CreativeAppUtils {
         }
     }
 
+    public static XhsAppCreativeExecuteResponse handlePracticalAnswer(String answer, XhsAppCreativeExecuteRequest request) {
+        CopyWritingContentDTO copyWriting = JSONUtil.toBean(answer.trim(), CopyWritingContentDTO.class);
+        if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || CollectionUtil.isEmpty(copyWriting.getParagraphList())) {
+            log.error("生成格式不正确：原始数据：{}", answer);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.CREATIVE_APP_EXECUTE_RESULT_FORMAT_ERROR);
+        }
+        List<ParagraphDTO> paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList()).stream().peek(item -> {
+            item.setIsUseTitle(Boolean.FALSE);
+            item.setIsUseContent(Boolean.FALSE);
+        }).collect(Collectors.toList());
+        copyWriting.setParagraphList(paragraphList);
+
+        XhsAppCreativeExecuteResponse response = new XhsAppCreativeExecuteResponse();
+        response.setPlanUid(request.getPlanUid());
+        response.setSchemeUid(request.getSchemeUid());
+        response.setBusinessUid(request.getBusinessUid());
+        response.setContentUid(request.getContentUid());
+        response.setSchemeMode(request.getSchemeMode());
+        response.setSuccess(Boolean.TRUE);
+        response.setCopyWriting(copyWriting);
+        return response;
+    }
+
     /**
      * 获取文本变量
      *
@@ -550,5 +576,22 @@ public class CreativeAppUtils {
         return variableItem;
     }
 
+    /**
+     * 处理干货文本的内容
+     *
+     * @param copyWriting 干货文本
+     * @return 干货文本内容
+     */
+    public static String buildPracticalCopyWritingContent(CopyWritingContentDTO copyWriting) {
+        List<ParagraphDTO> paragraphList = copyWriting.getParagraphList();
+        StringBuilder content = new StringBuilder();
+        for (int i = 0; i < CollectionUtil.emptyIfNull(paragraphList).size(); i++) {
+            ParagraphDTO paragraph = paragraphList.get(i);
+            Integer index = i + 1;
+            content.append(index).append(" ").append(paragraph.getParagraphTitle()).append("\n");
+            content.append(paragraph.getParagraphContent()).append("\n");
+        }
+        return content.toString();
+    }
 
 }
