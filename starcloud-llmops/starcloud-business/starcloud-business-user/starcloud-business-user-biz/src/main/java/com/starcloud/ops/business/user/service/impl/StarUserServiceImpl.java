@@ -11,11 +11,13 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.tenant.TenantDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
@@ -208,20 +210,21 @@ public class StarUserServiceImpl implements StarUserService {
                 // 增加邀请记录
                 Long invitationId = invitationRecordsService.createInvitationRecords(inviteUserId, currentUserId);
                 log.info("邀请记录添加成功，开始发送注册与邀请权益");
-                adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
-                adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null,null,AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
 
-                // 邀请注册权益 邀请人
-//                benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
+                TenantUtils.execute(tenantId, () -> {
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
+                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null,null,AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
+                });
+
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
 
                 // 获取当天的邀请记录
                 List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
                 if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
-                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
-                    // FIXME: 2023/12/19  取消之前的代码
-//                    benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
+                    TenantUtils.execute(tenantId, () -> {
+                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
+                    });
                     sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
                             "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
                                     "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
@@ -229,9 +232,9 @@ public class StarUserServiceImpl implements StarUserService {
 
             } else {
                 // 普通注册权益
-                adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
-
-//                benefitsService.addUserBenefitsSign(currentUserId);
+                TenantUtils.execute(tenantId, () -> {
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
+                });
             }
 
         } catch (Exception e) {

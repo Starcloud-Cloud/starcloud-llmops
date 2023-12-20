@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -95,6 +96,7 @@ public class AdminUserRightsDO extends BaseDO {
 
     /**
      * 权益状态
+     * {@link AdminUserRightsStatusEnum}
      * <p>
      */
     private Integer status;
