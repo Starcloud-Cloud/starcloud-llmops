@@ -3,10 +3,13 @@ package com.starcloud.ops.business.user.service.rights;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+
+import java.util.List;
 
 /**
  * 用户权益 Service 接口
@@ -31,6 +34,14 @@ public interface AdminUserRightsService {
      * @return 签到记录分页
      */
     PageResult<AdminUserRightsDO> getRightsPage(Long userId, PageParam pageVO);
+
+    /**
+     * 获取权益数据汇总
+     * @param userId 用户编号
+     * @return
+     */
+    List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId);
+
 
 
     /**
@@ -65,4 +76,6 @@ public interface AdminUserRightsService {
 
 
     void expireRights();
+
+
 }

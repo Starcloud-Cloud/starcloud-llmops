@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.user.service.rights;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -7,6 +9,8 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
@@ -24,6 +28,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -73,6 +78,30 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         return adminUserRightsMapper.selectPage(userId, pageVO);
     }
 
+    /**
+     * 获取权益数据汇总
+     *
+     * @param userId 用户编号
+     * @return
+     */
+    @Override
+    public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
+
+        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
+        Integer sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
+        Integer sumMagicImage = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImage).sum();
+
+        Integer sumMagicBeanInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBeanInit).sum();
+        Integer sumMagicImageInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImageInit).sum();
+        List<AdminUserRightsCollectRespVO> rightsCollectRespVOS = new ArrayList<>();
+        rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_BEAN.getName(), AdminUserRightsTypeEnum.MAGIC_BEAN.name(), sumMagicBeanInit,
+                sumMagicBeanInit - sumMagicBean, sumMagicBean, NumberUtil.toDouble(NumberUtil.div(sumMagicBean, sumMagicBeanInit))));
+        rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_IMAGE.getName(), AdminUserRightsTypeEnum.MAGIC_IMAGE.name(), sumMagicImageInit,
+                sumMagicImageInit - sumMagicImage, sumMagicImage, NumberUtil.toDouble(NumberUtil.div(sumMagicImage, sumMagicImageInit))));
+
+        return rightsCollectRespVOS;
+    }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -89,10 +118,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         if (magicBean > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 3500, record.getBizId(), String.valueOf(record.getId()));
+            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
         if (magicImage > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 3500, record.getBizId(), String.valueOf(record.getId()));
+            adminUserRightsRecordService.createRightsRecord(userId, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
 
 
@@ -146,7 +175,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .map(adminUserRightsDO -> adminUserRightsDO.getId().toString()) // 提取Id
                 .collect(Collectors.joining(",")); // 使用逗号连接
 
-        adminUserRightsRecordService.createRightsRecord(userId, rightAmount, rightsType, bizType.getType() + 3500, bizId, deductIds);
+        adminUserRightsRecordService.createRightsRecord(userId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
 
     }
 
@@ -163,7 +192,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      * 获取权益数大于 0 且有效的权益列表
      *
      * @param userId     用户 ID
-     * @param rightsType 权益类型
+     * @param rightsType 权益类型 如果为空 查询所有有效数据
      * @return
      */
     private List<AdminUserRightsDO> getValidAndCountableRightsList(Long userId, AdminUserRightsTypeEnum rightsType) {
@@ -178,17 +207,19 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .ge(AdminUserRightsDO::getValidEndTime, now)
                 .eq(AdminUserRightsDO::getUserId, userId)
                 .orderByDesc(AdminUserRightsDO::getValidEndTime);
-
-        switch (rightsType) {
-            case MAGIC_IMAGE:
-                wrapper.gt(AdminUserRightsDO::getMagicImage, 0L);
-                wrapper.orderByAsc(AdminUserRightsDO::getMagicImage);
-                break;
-            case MAGIC_BEAN:
-                wrapper.gt(AdminUserRightsDO::getMagicBean, 0L);
-                wrapper.orderByAsc(AdminUserRightsDO::getMagicBean);
-                break;
+        if (Objects.nonNull(rightsType)) {
+            switch (rightsType) {
+                case MAGIC_IMAGE:
+                    wrapper.gt(AdminUserRightsDO::getMagicImage, 0L);
+                    wrapper.orderByAsc(AdminUserRightsDO::getMagicImage);
+                    break;
+                case MAGIC_BEAN:
+                    wrapper.gt(AdminUserRightsDO::getMagicBean, 0L);
+                    wrapper.orderByAsc(AdminUserRightsDO::getMagicBean);
+                    break;
+            }
         }
+
         return adminUserRightsMapper.selectList(wrapper);
 
     }

@@ -1,11 +1,10 @@
 package com.starcloud.ops.business.user.api.level;
 
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
-import cn.iocoder.yudao.module.system.service.permission.RoleServiceImpl;
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
-import com.starcloud.ops.business.user.service.level.AdminUserLevelRecordService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -28,7 +27,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_BIZ_
 public class AdminUserLevelApiImpl implements AdminUserLevelApi {
 
     @Resource
-    private AdminUserLevelRecordService adminUserLevelRecordService;
+    private AdminUserLevelService adminUserLevelService;
 
     /**
      * 获得会员等级列表
@@ -63,7 +62,7 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
         }
 
         log.warn("设置会员等级");
-        AdminUserLevelRecordCreateReqVO createReqVO = new AdminUserLevelRecordCreateReqVO();
+        AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
         createReqVO.setUserId(userId);
         createReqVO.setLevelId(levelId);
 
@@ -76,7 +75,7 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
         createReqVO.setDescription(String.format(bizTypeEnum.getDescription(), levelId));
 
 
-        adminUserLevelRecordService.createLevelRecord(createReqVO);
+        adminUserLevelService.createLevelRecord(createReqVO);
 
 
     }

@@ -4,6 +4,7 @@ package com.starcloud.ops.business.user.controller.admin;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
@@ -19,6 +20,8 @@ import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 @RestController
 @RequestMapping("/llm/auth")
@@ -84,18 +87,16 @@ public class StarUserController {
     }
 
 
-    @Deprecated
     @GetMapping("/user/detail")
     @Operation(summary = "获取用户明细", description = "获取用户明细")
     public CommonResult<UserDetailVO> userDetail() {
         return CommonResult.success(llmUserService.userDetail());
     }
 
-    @Deprecated
-    @GetMapping("/user/rights_detail")
+    @GetMapping("/user/all_detail")
     @Operation(summary = "获取用户明细", description = "获取用户明细")
-    public CommonResult<UserDetailVO> userRightsDetail() {
-        return CommonResult.success(llmUserService.userDetail());
+    public CommonResult<AdminUserInfoRespVO> userRightsDetail() {
+        return CommonResult.success(llmUserService.userDetail(getLoginUserId()));
     }
 
     @PutMapping("/user/update")

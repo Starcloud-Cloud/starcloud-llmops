@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.user.controller.admin.level;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
-import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.*;
+import com.starcloud.ops.business.user.convert.level.AdminUserLevelConfigConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelConfigService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,7 +57,7 @@ public class AdminUserLevelConfigController {
     @PreAuthorize("@ss.hasPermission('member:level:query')")
     public CommonResult<AdminUserLevelConfigRespVO> getLevel(@RequestParam("id") Long id) {
         AdminUserLevelConfigDO level = adminUserLevelConfigService.getLevelConfig(id);
-        return success(AdminUserLevelConvert.INSTANCE.convert(level));
+        return success(AdminUserLevelConfigConvert.INSTANCE.convert(level));
     }
 
     @GetMapping("/list-all-simple")
@@ -66,7 +66,7 @@ public class AdminUserLevelConfigController {
         // 获用户列表，只要开启状态的
         List<AdminUserLevelConfigDO> list = adminUserLevelConfigService.getEnableLevelList();
         // 排序后，返回给前端
-        return success(AdminUserLevelConvert.INSTANCE.convertSimpleList(list));
+        return success(AdminUserLevelConfigConvert.INSTANCE.convertSimpleList(list));
     }
 
     @GetMapping("/list")
@@ -74,7 +74,7 @@ public class AdminUserLevelConfigController {
     @PreAuthorize("@ss.hasPermission('member:level:query')")
     public CommonResult<List<AdminUserLevelConfigRespVO>> getLevelList(@Valid AdminUserLevelConfigListReqVO listReqVO) {
         List<AdminUserLevelConfigDO> result = adminUserLevelConfigService.getLevelList(listReqVO);
-        return success(AdminUserLevelConvert.INSTANCE.convertList(result));
+        return success(AdminUserLevelConfigConvert.INSTANCE.convertList(result));
     }
 
 }

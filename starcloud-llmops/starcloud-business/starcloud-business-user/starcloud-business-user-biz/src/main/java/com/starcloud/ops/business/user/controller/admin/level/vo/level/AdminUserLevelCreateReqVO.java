@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin.level.vo.record;
+package com.starcloud.ops.business.user.controller.admin.level.vo.level;
 
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdminUserLevelRecordCreateReqVO extends AdminUserLevelRecordBaseVO {
+public class AdminUserLevelCreateReqVO extends AdminUserLevelBaseVO {
 
 //    @Schema(description = "生效开始时间", requiredMode = Schema.RequiredMode.REQUIRED)
 //    @NotNull(message = "生效开始时间不能为空")
