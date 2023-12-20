@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -67,7 +68,6 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = RedisKeyConstants.MENU_ROLE_ID_LIST, allEntries = true)
     public void createLevelRecord(AdminUserLevelCreateReqVO createReqVO) {
         // 1.0 根据会员配置等级 获取会员配置信息
         AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(createReqVO.getLevelId());
@@ -119,6 +119,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         }
 
         AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelByRoleId(role.getId());
+        if (Objects.isNull(levelConfigDO)) {
+            throw exception(LEVEL_NOT_EXISTS);
+        }
         AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
         createReqVO.setUserId(userId);
         createReqVO.setLevelId(levelConfigDO.getId());

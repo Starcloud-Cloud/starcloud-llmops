@@ -20,6 +20,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 @Tag(name = "管理后台 - 系统会员等级记录")
 @RestController
@@ -45,5 +46,13 @@ public class AdminUserLevelController {
         PageResult<AdminUserLevelDO> pageResult = adminUserLevelService.getLevelPage(pageVO);
         return success(AdminUserLevelConvert.INSTANCE.convertPage(pageResult));
     }
+
+    @GetMapping("/createInitLevelRecord")
+    @Operation(summary = "获得会员等级记录分页")
+    public CommonResult<Boolean> createInitLevelRecord() {
+        adminUserLevelService.createInitLevelRecord(getLoginUserId());
+        return success(Boolean.TRUE);
+    }
+
 
 }

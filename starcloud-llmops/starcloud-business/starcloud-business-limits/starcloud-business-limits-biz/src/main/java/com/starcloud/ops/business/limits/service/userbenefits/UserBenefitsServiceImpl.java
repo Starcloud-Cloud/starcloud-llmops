@@ -1022,7 +1022,7 @@ public class UserBenefitsServiceImpl implements UserBenefitsService {
         long sum = resultList.stream().mapToLong(UserBenefitsDO::getComputationalPowerRemaining).sum();
 
         tokenExpiredReminderVO.setName(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode());
-        tokenExpiredReminderVO.setIsReminder(sum > 10 ? false : true);
+        tokenExpiredReminderVO.setIsReminder(sum <= 10);
         tokenExpiredReminderVO.setExpiredNum(sum > 10 ? 0 : sum);
         expiredReminderVO.setTokenExpiredReminderVO(tokenExpiredReminderVO);
 
