@@ -6,9 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
-import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
-import com.starcloud.ops.business.enums.NotificationPlatformEnum;
-import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
+import com.starcloud.ops.business.enums.*;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationCreateReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationModifyReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
@@ -32,7 +30,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -58,6 +55,11 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         metadata.put("notificationStatusEnum", NotificationCenterStatusEnum.options());
         metadata.put("singleMissionStatusEnum", SingleMissionStatusEnum.options());
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
+//        metadata.put("accountType", AccountTypeEnum.options());
+        metadata.put("address", AddressEnum.options());
+        metadata.put("gender", GenderEnum.options());
+        metadata.put("missionType", MisssionTypeEnum.options());
+        metadata.put("fansNum", FansNumEnum.options());
         return metadata;
 
     }
@@ -65,9 +67,25 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO create(NotificationCreateReqVO reqVO) {
         validName(reqVO.getName());
-        if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
-            throw exception(BUDGET_ERROR);
+
+        if (reqVO.getNotificationBudget() != null) {
+            if (reqVO.getSingleBudget() == null) {
+                throw exception(BUDGET_ERROR);
+            }
+            if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+                throw exception(BUDGET_ERROR);
+            }
         }
+
+        if (reqVO.getUnitPrice() != null) {
+            BigDecimal addPrice = reqVO.getUnitPrice().addPrice();
+            if (NumberUtil.isGreater(addPrice, BigDecimal.ZERO)) {
+                if (reqVO.getSingleBudget() != null && NumberUtil.isGreater(addPrice, reqVO.getSingleBudget())) {
+                    throw exception(BUDGET_PRICE_ERROR);
+                }
+            }
+        }
+
         NotificationCenterDO createDo = NotificationCenterConvert.INSTANCE.convert(reqVO);
         createDo.setUid(IdUtil.fastSimpleUUID());
         createDo.setStatus(NotificationCenterStatusEnum.init.getCode());
@@ -138,8 +156,26 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         if (StringUtils.isNotBlank(reqVO.getName()) && !StringUtils.equals(notificationCenterDO.getName(), reqVO.getName())) {
             validName(reqVO.getName());
         }
-        NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
+        if (reqVO.getNotificationBudget() != null) {
+            if (reqVO.getSingleBudget() == null) {
+                throw exception(BUDGET_ERROR);
+            }
+            if (NumberUtil.isLess(reqVO.getNotificationBudget(), reqVO.getSingleBudget())) {
+                throw exception(BUDGET_ERROR);
+            }
+        }
+        if (reqVO.getUnitPrice() != null) {
+            BigDecimal addPrice = reqVO.getUnitPrice().addPrice();
+            if (NumberUtil.isGreater(addPrice, BigDecimal.ZERO)) {
+                if (reqVO.getSingleBudget() != null && NumberUtil.isGreater(addPrice, reqVO.getSingleBudget())) {
+                    throw exception(BUDGET_PRICE_ERROR);
+                }
+            }
+        }
 
+        NotificationCenterConvert.INSTANCE.updateSelective(reqVO, notificationCenterDO);
+        notificationCenterDO.setSingleBudget(reqVO.getSingleBudget());
+        notificationCenterDO.setNotificationBudget(reqVO.getNotificationBudget());
 //        singleMissionService.validBudget(notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.updateById(notificationCenterDO);

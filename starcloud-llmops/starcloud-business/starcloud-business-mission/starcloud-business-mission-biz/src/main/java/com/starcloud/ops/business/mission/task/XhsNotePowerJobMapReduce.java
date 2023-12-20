@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.mission.task;
 
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.powerjob.base.BaseMapReduceTask;
-import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import com.starcloud.ops.business.app.powerjob.base.PowerJobTaskContext;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
@@ -80,7 +78,7 @@ public class XhsNotePowerJobMapReduce extends BaseMapReduceTask {
     public BaseTaskResult runSub(SubTask subTask) {
         List<Long> singleMissionIdList = subTask.getSingleMissionIdList();
         for (Long missionId : singleMissionIdList) {
-            settlementActuator.settlement(missionId);
+            settlementActuator.preSettlement(missionId);
         }
         return new BaseTaskResult(true, "SUB_PROCESS_SUCCESS");
     }
