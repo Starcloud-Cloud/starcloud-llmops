@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import lombok.Getter;
 import org.commonmark.node.Heading;
@@ -62,7 +63,7 @@ public class MarkdownUtils {
      * @param level  级别
      * @return 段落
      */
-    public static List<Paragraph> getHeadingsByLevel(String market, Level level) {
+    public static List<ParagraphDTO> getHeadingsByLevel(String market, Level level) {
         Node node = MARKDOWN_PARSER.parse(market);
         return getHeadingsByLevel(node, level);
     }
@@ -74,8 +75,8 @@ public class MarkdownUtils {
      * @param level level
      * @return List<Node>
      */
-    public static List<Paragraph> getHeadingsByLevel(Node node, Level level) {
-        List<Paragraph> secondLevelHeadings = new ArrayList<>();
+    public static List<ParagraphDTO> getHeadingsByLevel(Node node, Level level) {
+        List<ParagraphDTO> secondLevelHeadings = new ArrayList<>();
 
         if (node instanceof Heading && ((Heading) node).getLevel() == level.getLevel()) {
             // 段落标题
@@ -88,7 +89,7 @@ public class MarkdownUtils {
             if (StrUtil.isBlank(content)) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_CONTENT_IS_NOT_BLANK);
             }
-            secondLevelHeadings.add(Paragraph.of(title, content));
+            secondLevelHeadings.add(ParagraphDTO.of(title, content));
         }
 
         Node child = node.getFirstChild();
@@ -122,10 +123,10 @@ public class MarkdownUtils {
 
         Node document = MARKDOWN_PARSER.parse(a);
         System.out.println(TEXT_CONTENT_RENDERER.render(document));
-        List<Paragraph> secondLevelHeadings = getHeadingsByLevel(document, Level.SECOND);
+        List<ParagraphDTO> secondLevelHeadings = getHeadingsByLevel(document, Level.SECOND);
 
         System.out.println("Second level headings found:");
-        for (Paragraph heading : secondLevelHeadings) {
+        for (ParagraphDTO heading : secondLevelHeadings) {
             System.out.println(heading.toString());
         }
     }

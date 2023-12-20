@@ -46,7 +46,6 @@ public class XhsAppExecuteRequest implements java.io.Serializable {
     private String scene;
 
 
-
     /**
      * 用户ID
      */

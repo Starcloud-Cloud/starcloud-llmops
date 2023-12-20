@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageStyleExe
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -47,6 +48,7 @@ public class CreativeImageUtils {
     private static final String IMAGE = "IMAGE";
     private static final String TITLE = "TITLE";
     private static final String SUB_TITLE = "SUB_TITLE";
+    private static final String TEXT_TITLE = "TEXT_TITLE";
     private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
     private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
     private static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
@@ -83,10 +85,9 @@ public class CreativeImageUtils {
         List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
 
         // 干货图文生成
-        List<Paragraph> paragraphList = Lists.newArrayList();
+        List<ParagraphDTO> paragraphList = Lists.newArrayList();
         if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
-            String paragraphString = Optional.ofNullable(copyWriting.getContent()).orElse(StringUtils.EMPTY);
-            paragraphList = MarkdownUtils.getHeadingsByLevel(paragraphString, MarkdownUtils.Level.THIRD);
+            paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList());
             if (paragraphList.size() != executeParams.getParagraphCount()) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
             }
@@ -120,6 +121,8 @@ public class CreativeImageUtils {
                                     params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                                 } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
                                     params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                                } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
                                 } else if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
                                     paragraphTitle(params, variableItem, paragraphList);
                                 } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
@@ -158,17 +161,21 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphTitle(Map<String, Object> params, VariableItemDTO variableItem, List<Paragraph> paragraphList) {
+    private static void paragraphTitle(Map<String, Object> params, VariableItemDTO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
-        for (Paragraph paragraph : paragraphList) {
+        for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseTitle()) {
-                String title = Optional.ofNullable(paragraph.getTitle()).orElse(StringUtils.EMPTY);
+                String title = Optional.ofNullable(paragraph.getParagraphTitle()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (title.length() > count - 3) {
+                if (title.length() > count) {
                     // 超出部分用 ... 代替
-                    title = StrUtil.maxLength(title, count - 3);
+                    if (count > 3) {
+                        title = StrUtil.maxLength(title, count - 3);
+                    } else {
+                        title = StrUtil.maxLength(title, count);
+                    }
                 }
                 params.put(variableItem.getField(), title);
                 paragraph.setIsUseTitle(true);
@@ -185,17 +192,20 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphContent(Map<String, Object> params, VariableItemDTO variableItem, List<Paragraph> paragraphList) {
+    private static void paragraphContent(Map<String, Object> params, VariableItemDTO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
-        for (Paragraph paragraph : paragraphList) {
+        for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseContent()) {
-                String content = Optional.ofNullable(paragraph.getContent()).orElse(StringUtils.EMPTY);
+                String content = Optional.ofNullable(paragraph.getParagraphContent()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (content.length() > count - 3) {
-                    // 超出部分用 ... 代替
-                    content = StrUtil.maxLength(content, count - 3);
+                if (content.length() > count) {
+                    if (count > 3) {
+                        content = StrUtil.maxLength(content, count - 3);
+                    } else {
+                        content = StrUtil.maxLength(content, count);
+                    }
                 }
                 params.put(variableItem.getField(), content);
                 paragraph.setIsUseContent(true);
@@ -414,6 +424,8 @@ public class CreativeImageUtils {
                             params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
                         } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
                             params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
+                        } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                            params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
                         } else {
                             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
                         }
@@ -434,18 +446,19 @@ public class CreativeImageUtils {
         CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(business.getExecuteParams());
         CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
         List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
-        int i = 1;
+        int titleIndex = 1, contentIndex = 1;
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
             List<VariableItemDTO> params = imageRequest.getParams();
             for (VariableItemDTO param : params) {
                 if ("TEXT".equalsIgnoreCase(param.getType())) {
                     if (PARAGRAPH_TITLE.contains(param.getField())) {
-                        builder.append("第 ").append(i).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        titleIndex = titleIndex + 1;
                     }
                     if (PARAGRAPH_CONTENT.contains(param.getField())) {
-                        builder.append("第 ").append(i).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        builder.append("第 ").append(contentIndex).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        contentIndex = contentIndex + 1;
                     }
-                    i = i + 1;
                 }
             }
 

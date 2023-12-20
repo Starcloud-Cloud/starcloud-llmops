@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.util;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,19 +12,19 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-public class Paragraph implements java.io.Serializable {
+public class ParagraphDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -1337532008546820464L;
 
     /**
      * 标题
      */
-    private String title;
+    private String paragraphTitle;
 
     /**
      * 内容
      */
-    private String content;
+    private String paragraphContent;
 
     /**
      * 是否使用
@@ -43,10 +43,10 @@ public class Paragraph implements java.io.Serializable {
      * @param content 内容
      * @return Section
      */
-    public static Paragraph of(String title, String content) {
-        Paragraph section = new Paragraph();
-        section.setTitle(title);
-        section.setContent(content);
+    public static ParagraphDTO of(String title, String content) {
+        ParagraphDTO section = new ParagraphDTO();
+        section.setParagraphTitle(title);
+        section.setParagraphContent(content);
         section.setIsUseTitle(false);
         section.setIsUseContent(false);
         return section;
