@@ -2,9 +2,9 @@ package com.starcloud.ops.business.user.service.level;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigListReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigUpdateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.AdminUserLevelConfigCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.AdminUserLevelConfigListReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.AdminUserLevelConfigUpdateReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 
 import javax.validation.Valid;

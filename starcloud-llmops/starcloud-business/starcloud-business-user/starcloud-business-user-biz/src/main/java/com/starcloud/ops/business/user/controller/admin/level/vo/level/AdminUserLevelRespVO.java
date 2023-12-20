@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin.level.vo.record;
+package com.starcloud.ops.business.user.controller.admin.level.vo.level;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdminUserLevelRecordRespVO extends AdminUserLevelRecordBaseVO {
+public class AdminUserLevelRespVO extends AdminUserLevelBaseVO {
 
     @Schema(description = "编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "8741")
     private Long id;

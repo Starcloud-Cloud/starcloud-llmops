@@ -2,23 +2,18 @@ package com.starcloud.ops.business.user.service.level;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
-import cn.iocoder.yudao.module.system.service.permission.RoleServiceImpl;
-import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.record.AdminUserLevelRecordRespVO;
-import com.starcloud.ops.business.user.convert.level.AdminUserLevelRecordConvert;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
+import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelRecordDO;
-import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelRecordMapper;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -29,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -42,10 +38,10 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_
  */
 @Service
 @Validated
-public class AdminUserLevelRecordServiceImpl implements AdminUserLevelRecordService {
+public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Resource
-    private AdminUserLevelRecordMapper adminUserLevelRecordMapper;
+    private AdminUserLevelMapper adminUserLevelMapper;
 
     @Resource
     private AdminUserLevelConfigService levelConfigService;
@@ -60,19 +56,19 @@ public class AdminUserLevelRecordServiceImpl implements AdminUserLevelRecordServ
     private String roleCode;
 
     @Override
-    public AdminUserLevelRecordDO getLevelRecord(Long id) {
-        return adminUserLevelRecordMapper.selectById(id);
+    public AdminUserLevelDO getLevel(Long id) {
+        return adminUserLevelMapper.selectById(id);
     }
 
     @Override
-    public PageResult<AdminUserLevelRecordDO> getLevelRecordPage(AdminUserLevelRecordPageReqVO pageReqVO) {
-        return adminUserLevelRecordMapper.selectPage(pageReqVO);
+    public PageResult<AdminUserLevelDO> getLevelPage(AdminUserLevelPageReqVO pageReqVO) {
+        return adminUserLevelMapper.selectPage(pageReqVO);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = RedisKeyConstants.MENU_ROLE_ID_LIST, allEntries = true)
-    public void createLevelRecord(AdminUserLevelRecordCreateReqVO createReqVO) {
+    public void createLevelRecord(AdminUserLevelCreateReqVO createReqVO) {
         // 1.0 根据会员配置等级 获取会员配置信息
         AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(createReqVO.getLevelId());
         if (levelConfig == null) {
@@ -82,7 +78,7 @@ public class AdminUserLevelRecordServiceImpl implements AdminUserLevelRecordServ
         LocalDateTime startTime = LocalDateTimeUtil.now();
         LocalDateTime endTime;
         // 2.1 判断当前会员是否有当前等级信息
-        AdminUserLevelRecordDO latestExpirationByLevel = findLatestExpirationByLevel(createReqVO.getUserId(), createReqVO.getLevelId());
+        AdminUserLevelDO latestExpirationByLevel = findLatestExpirationByLevel(createReqVO.getUserId(), createReqVO.getLevelId());
         if (latestExpirationByLevel != null) {
             startTime = latestExpirationByLevel.getValidEndTime();
         }
@@ -94,10 +90,10 @@ public class AdminUserLevelRecordServiceImpl implements AdminUserLevelRecordServ
             endTime = getSpecificTime(startTime, createReqVO.getTimeNums(), createReqVO.getTimeRange());
         }
 
-        AdminUserLevelRecordDO AdminUserLevelRecordDO = AdminUserLevelRecordConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
+        AdminUserLevelDO AdminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
         // 3.0 添加会员等级记录
-        adminUserLevelRecordMapper.insert(AdminUserLevelRecordDO);
+        adminUserLevelMapper.insert(AdminUserLevelDO);
         // 获取当前用户角色
         Set<Long> userRoleIdListByUserId = permissionService.getUserRoleIdListByUserId(createReqVO.getUserId());
 
@@ -123,7 +119,7 @@ public class AdminUserLevelRecordServiceImpl implements AdminUserLevelRecordServ
         }
 
         AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelByRoleId(role.getId());
-        AdminUserLevelRecordCreateReqVO createReqVO = new AdminUserLevelRecordCreateReqVO();
+        AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
         createReqVO.setUserId(userId);
         createReqVO.setLevelId(levelConfigDO.getId());
 
@@ -138,9 +134,20 @@ public class AdminUserLevelRecordServiceImpl implements AdminUserLevelRecordServ
 
     }
 
-    public AdminUserLevelRecordDO findLatestExpirationByLevel(Long userId, Long levelId) {
+    /**
+     * 获取会员下有效的等级列表
+     *
+     * @param userId
+     */
+    @Override
+    public List<AdminUserLevelDO> getLevelList(Long userId) {
+        return adminUserLevelMapper.selectValidList(userId);
+
+    }
+
+    public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
         // 1.0 根据会员配置等级 获取会员配置信息
-        return adminUserLevelRecordMapper.findLatestExpirationByLevel(userId, levelId);
+        return adminUserLevelMapper.findLatestExpirationByLevel(userId, levelId);
 
     }
 

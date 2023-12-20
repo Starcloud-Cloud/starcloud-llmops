@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin.level.vo.level;
+package com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

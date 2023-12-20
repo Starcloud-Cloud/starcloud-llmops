@@ -16,14 +16,11 @@ import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
-import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
@@ -34,12 +31,15 @@ import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
 import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -51,15 +51,13 @@ import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
-import com.starcloud.ops.business.user.service.level.AdminUserLevelRecordService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -130,10 +128,12 @@ public class StarUserServiceImpl implements StarUserService {
     private SendSocialMsgService sendSocialMsgService;
 
 
-    private AdminUserLevelRecordService adminUserLevelRecordService;
+    @Resource
+    private AdminUserLevelService adminUserLevelService;
 
     @Resource
     private AdminUserRightsService adminUserRightsService;
+
 
     @Value("${starcloud-llm.role.code:mofaai_free}")
     private String roleCode;
@@ -306,7 +306,7 @@ public class StarUserServiceImpl implements StarUserService {
 //        }
 
         // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
-        adminUserLevelRecordService.createInitLevelRecord(userDO.getId());
+        adminUserLevelService.createInitLevelRecord(userDO.getId());
 //        UserRoleDO userRoleDO = new UserRoleDO();
 //        userRoleDO.setRoleId(roleDO.getId());
 //        userRoleDO.setUserId(userDO.getId());
@@ -484,6 +484,34 @@ public class StarUserServiceImpl implements StarUserService {
         String inviteUrl = getOrigin() + "/login?inviteCode=" + inviteCode;
         userDetailVO.setInviteUrl(inviteUrl);
         return userDetailVO;
+    }
+
+    /**
+     * 获取用户详情 包含用户等级 用户权益
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public AdminUserInfoRespVO userDetail(Long userId) {
+        AdminUserDO userDO = adminUserMapper.selectById(userId);
+        String inviteCode = null;
+        try {
+            inviteCode = EncryptionUtils.encrypt(userDO.getId()).toString();
+        } catch (Exception e) {
+            throw exception(ENCRYPTION_ERROR);
+        }
+
+        // 获取用户等级
+        List<AdminUserLevelDO> levelList = adminUserLevelService.getLevelList(userId);
+        // 获取用户权益
+        List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
+
+        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO,levelList,rightsCollect);
+        userDetailVO.setInviteCode(inviteCode);
+        userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s",getOrigin() ,inviteCode));
+        return userDetailVO;
+
     }
 
     @Override

@@ -1,11 +1,9 @@
-package com.starcloud.ops.business.user.controller.admin.level.vo.level;
+package com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotBlank;

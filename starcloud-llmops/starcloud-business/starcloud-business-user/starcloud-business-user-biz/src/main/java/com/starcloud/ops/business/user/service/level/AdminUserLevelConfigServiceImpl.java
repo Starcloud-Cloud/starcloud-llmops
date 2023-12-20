@@ -5,15 +5,14 @@ import cn.hutool.core.util.ObjUtil;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.module.system.api.permission.RoleApi;
-import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.annotations.VisibleForTesting;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigUpdateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelConfigListReqVO;
-import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.AdminUserLevelConfigCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.AdminUserLevelConfigUpdateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig.AdminUserLevelConfigListReqVO;
+import com.starcloud.ops.business.user.convert.level.AdminUserLevelConfigConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
-import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
+import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelConfigMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +37,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigService {
 
     @Resource
-    private AdminUserLevelMapper adminUserLevelMapper;
+    private AdminUserLevelConfigMapper adminUserLevelConfigMapper;
 
     @Resource
     private RoleApi roleApi;
@@ -50,8 +49,8 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
         validateConfigValid(null, createReqVO.getName(), createReqVO.getLevel(), createReqVO.getRoleId());
 
         // 插入
-        AdminUserLevelConfigDO level = AdminUserLevelConvert.INSTANCE.convert(createReqVO);
-        adminUserLevelMapper.insert(level);
+        AdminUserLevelConfigDO level = AdminUserLevelConfigConvert.INSTANCE.convert(createReqVO);
+        adminUserLevelConfigMapper.insert(level);
         // 返回
         return level.getId();
     }
@@ -64,8 +63,8 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
         validateConfigValid(updateReqVO.getId(), updateReqVO.getName(), updateReqVO.getLevel(), updateReqVO.getRoleId());
 
         // 更新
-        AdminUserLevelConfigDO updateObj = AdminUserLevelConvert.INSTANCE.convert(updateReqVO);
-        adminUserLevelMapper.updateById(updateObj);
+        AdminUserLevelConfigDO updateObj = AdminUserLevelConfigConvert.INSTANCE.convert(updateReqVO);
+        adminUserLevelConfigMapper.updateById(updateObj);
     }
 
     @Override
@@ -75,12 +74,12 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
         // 校验分组下是否有用户
         validateLevelHasUser(id);
         // 删除
-        adminUserLevelMapper.deleteById(id);
+        adminUserLevelConfigMapper.deleteById(id);
     }
 
     @VisibleForTesting
     AdminUserLevelConfigDO validateLevelExists(Long id) {
-        AdminUserLevelConfigDO levelDO = adminUserLevelMapper.selectById(id);
+        AdminUserLevelConfigDO levelDO = adminUserLevelConfigMapper.selectById(id);
         if (levelDO == null) {
             throw exception(LEVEL_NOT_EXISTS);
         }
@@ -129,7 +128,7 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
 
     @VisibleForTesting
     void validateConfigValid(Long id, String name, Integer level, Long roleId) {
-        List<AdminUserLevelConfigDO> list = adminUserLevelMapper.selectList();
+        List<AdminUserLevelConfigDO> list = adminUserLevelConfigMapper.selectList();
         // 校验名称唯一
         validateNameUnique(list, id, name);
         // 校验等级唯一
@@ -148,7 +147,7 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
 
     @Override
     public AdminUserLevelConfigDO getLevelConfig(Long id) {
-        return id != null && id > 0 ? adminUserLevelMapper.selectById(id) : null;
+        return id != null && id > 0 ? adminUserLevelConfigMapper.selectById(id) : null;
     }
 
     @Override
@@ -156,17 +155,17 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
         if (CollUtil.isEmpty(ids)) {
             return Collections.emptyList();
         }
-        return adminUserLevelMapper.selectBatchIds(ids);
+        return adminUserLevelConfigMapper.selectBatchIds(ids);
     }
 
     @Override
     public List<AdminUserLevelConfigDO> getLevelList(AdminUserLevelConfigListReqVO listReqVO) {
-        return adminUserLevelMapper.selectList(listReqVO);
+        return adminUserLevelConfigMapper.selectList(listReqVO);
     }
 
     @Override
     public List<AdminUserLevelConfigDO> getLevelListByStatus(Integer status) {
-        return adminUserLevelMapper.selectListByStatus(status);
+        return adminUserLevelConfigMapper.selectListByStatus(status);
     }
 
     /**
@@ -178,7 +177,7 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
     @Override
     public AdminUserLevelConfigDO getLevelByRoleId(Long roleId){
 
-        return adminUserLevelMapper.selectOne( Wrappers.lambdaQuery(AdminUserLevelConfigDO.class).eq(AdminUserLevelConfigDO::getRoleId,roleId).eq(AdminUserLevelConfigDO::getStatus, CommonStatusEnum.ENABLE.getStatus()));
+        return adminUserLevelConfigMapper.selectOne( Wrappers.lambdaQuery(AdminUserLevelConfigDO.class).eq(AdminUserLevelConfigDO::getRoleId,roleId).eq(AdminUserLevelConfigDO::getStatus, CommonStatusEnum.ENABLE.getStatus()));
     }
 
 //    @Override

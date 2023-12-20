@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin.level.vo.record;
+package com.starcloud.ops.business.user.controller.admin.level.vo.level;
 
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +15,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AdminUserLevelRecordPageReqVO extends PageParam {
+public class AdminUserLevelPageReqVO extends PageParam {
 
     @Schema(description = "用户编号", example = "25923")
     private Long userId;

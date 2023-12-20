@@ -77,7 +77,7 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
         AdminUserRightsRecordDO record = new AdminUserRightsRecordDO()
                 .setUserId(userId).setBizCode(bizCode).setBizId(bizId).setBizType(bizType)
                 .setTitle(rightsBizTypeEnum.getName())
-                .setDescription(StrUtil.format(rightsBizTypeEnum.getDescription(), rightsType.getName(), amount))
+                .setDescription(StrUtil.format(rightsBizTypeEnum.getDescription(), amount, rightsType.getName()))
                 .setRightsType(rightsType.getType()).setRightsAmount(amount);
         adminUserRightsRecordMapper.insert(record);
     }
