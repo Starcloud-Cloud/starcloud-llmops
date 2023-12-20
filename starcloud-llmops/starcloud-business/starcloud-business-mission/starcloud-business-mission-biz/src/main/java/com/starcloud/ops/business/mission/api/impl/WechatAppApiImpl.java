@@ -39,6 +39,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -230,6 +231,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         respVO.setTotal(singleMissionDOList.size());
         Integer claimCount = 0;
         Integer currentUserNum = 0;
+        StringJoiner sj = new StringJoiner(",");
         for (SingleMissionDO missionDO : singleMissionDOList) {
             if (SingleMissionStatusEnum.claimed.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
@@ -240,6 +242,7 @@ public class WechatAppApiImpl implements WechatAppApi {
                 claimCount++;
                 if (Objects.equals(userId, missionDO.getClaimUserId())) {
                     currentUserNum++;
+                    sj.add(missionDO.getUid());
                 }
             }
         }
@@ -255,7 +258,11 @@ public class WechatAppApiImpl implements WechatAppApi {
         } else {
             respVO.setCanClaim(false);
         }
+        if (claimCount == singleMissionDOList.size()) {
+            respVO.setCanClaim(false);
+        }
 
+        respVO.setMessionUids(sj.toString());
         respVO.setClaimCount(claimCount);
         respVO.setCurrentUserNum(currentUserNum);
         return respVO;

@@ -18,6 +18,9 @@ public class AppNotificationQueryReqVO extends PageParam {
     @NotBlank(message = "用户id不能为空")
     private String claimUserId;
 
+    @Schema(description = "通告名称 左匹配")
+    private String notificationName;
+
     @Schema(description = "是否公开")
     private Boolean open;
 

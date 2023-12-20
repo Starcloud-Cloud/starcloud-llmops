@@ -45,6 +45,7 @@ public interface SingleMissionConvert {
     PageResult<AppSingleMissionRespVO> convert(PageResult<SingleMissionDO> doPageResult);
 
     @Mapping(target = "unitPrice", source = "singleMissionDO.unitPrice")
+    @Mapping(target = "updateTime", source = "singleMissionDO.updateTime")
     AppSingleMissionRespVO appConvert(SingleMissionDO singleMissionDO, XhsNoteDetailDO noteDetailDO);
 
     List<AppSingleMissionRespVO> appConvert(List<MissionNotificationDTO> missionDOList);
