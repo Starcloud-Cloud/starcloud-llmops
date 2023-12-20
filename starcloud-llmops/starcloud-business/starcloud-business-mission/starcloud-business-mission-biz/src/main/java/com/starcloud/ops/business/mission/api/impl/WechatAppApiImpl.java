@@ -190,7 +190,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (NumberUtil.isLong(notificationCenterDO.getCreator())) {
             AdminUserDO user = adminUserService.getUser(Long.valueOf(notificationCenterDO.getCreator()));
             Long count = notificationCenterMapper.count(user.getCreator());
-            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count,user.getAvatar());
+            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count, user.getAvatar());
             respVO.setUserDetail(userDetailVO);
 
         }
@@ -253,7 +253,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (NumberUtil.isLong(notificationCenterDO.getCreator())) {
             AdminUserDO user = adminUserService.getUser(Long.valueOf(notificationCenterDO.getCreator()));
             Long count = notificationCenterMapper.count(user.getCreator());
-            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count,user.getAvatar());
+            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count, user.getAvatar());
             respVO.setUserDetail(userDetailVO);
         }
         if (respVO.getClaimLimit() != null && respVO.getClaimLimit().getClaimNum() != null
