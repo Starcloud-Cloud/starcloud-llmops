@@ -166,9 +166,13 @@ public class CreativeImageUtils {
             if (!paragraph.getIsUseTitle()) {
                 String title = Optional.ofNullable(paragraph.getParagraphTitle()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (title.length() > count - 3) {
+                if (title.length() > count) {
                     // 超出部分用 ... 代替
-                    title = StrUtil.maxLength(title, count - 3);
+                    if (count > 3) {
+                        title = StrUtil.maxLength(title, count - 3);
+                    } else {
+                        title = StrUtil.maxLength(title, count);
+                    }
                 }
                 params.put(variableItem.getField(), title);
                 paragraph.setIsUseTitle(true);
@@ -193,9 +197,12 @@ public class CreativeImageUtils {
             if (!paragraph.getIsUseContent()) {
                 String content = Optional.ofNullable(paragraph.getParagraphContent()).orElse(StringUtils.EMPTY);
                 int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (content.length() > count - 3) {
-                    // 超出部分用 ... 代替
-                    content = StrUtil.maxLength(content, count - 3);
+                if (content.length() > count) {
+                    if (count > 3) {
+                        content = StrUtil.maxLength(content, count - 3);
+                    } else {
+                        content = StrUtil.maxLength(content, count);
+                    }
                 }
                 params.put(variableItem.getField(), content);
                 paragraph.setIsUseContent(true);
@@ -434,18 +441,19 @@ public class CreativeImageUtils {
         CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(business.getExecuteParams());
         CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
         List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
-        int i = 1;
+        int titleIndex = 1, contentIndex = 1;
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
             List<VariableItemDTO> params = imageRequest.getParams();
             for (VariableItemDTO param : params) {
                 if ("TEXT".equalsIgnoreCase(param.getType())) {
                     if (PARAGRAPH_TITLE.contains(param.getField())) {
-                        builder.append("第 ").append(i).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
                     }
                     if (PARAGRAPH_CONTENT.contains(param.getField())) {
-                        builder.append("第 ").append(i).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+                        builder.append("第 ").append(contentIndex).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
                     }
-                    i = i + 1;
+                    titleIndex = titleIndex + 1;
+                    contentIndex = contentIndex + 1;
                 }
             }
 
