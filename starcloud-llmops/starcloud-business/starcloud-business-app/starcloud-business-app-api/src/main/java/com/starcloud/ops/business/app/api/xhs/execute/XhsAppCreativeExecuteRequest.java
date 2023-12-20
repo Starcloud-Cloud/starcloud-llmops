@@ -42,4 +42,10 @@ public class XhsAppCreativeExecuteRequest extends XhsAppExecuteRequest {
     @Schema(description = "创作任务UID")
     private String contentUid;
 
+    /**
+     * 创作方案模式
+     */
+    @Schema(description = "创作方案模式")
+    private String schemeMode;
+
 }

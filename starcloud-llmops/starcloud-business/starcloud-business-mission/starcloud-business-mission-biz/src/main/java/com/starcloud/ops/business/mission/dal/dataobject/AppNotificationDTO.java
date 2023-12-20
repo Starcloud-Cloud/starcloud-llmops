@@ -14,4 +14,14 @@ public class AppNotificationDTO extends NotificationCenterDO{
      * 当前用户领取数量
      */
     private Integer currentUserNum;
+
+    /**
+     * 任务uid
+     */
+    private String messionUids;
+
+    /**
+     * 图片
+     */
+    private String picture;
 }

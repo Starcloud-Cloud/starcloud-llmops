@@ -68,4 +68,16 @@ public class AppNotificationRespVO {
 
     @Schema(description = "访问次数")
     private Integer visitNum;
+
+    @Schema(description = "任务uid")
+    private String messionUids;
+
+    @Schema(description = "图片")
+    private String picture;
+
+    @Schema(description = "管理员详情")
+    private UserDetailVO userDetail;
+
+    @Schema(description = "是否可认领")
+    private Boolean canClaim;
 }

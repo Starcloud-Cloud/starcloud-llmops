@@ -55,12 +55,4 @@ public class CreativePlanAppExecuteDTO implements java.io.Serializable {
     @Schema(description = "应用生成参数")
     private List<VariableItemDTO> params;
 
-
-    /**
-     * 模式
-     */
-    private String type;
-
-
-
 }

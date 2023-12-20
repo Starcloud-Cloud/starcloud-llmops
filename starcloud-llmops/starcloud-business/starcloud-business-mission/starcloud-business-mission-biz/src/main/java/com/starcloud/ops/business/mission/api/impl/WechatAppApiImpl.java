@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.mission.api.impl;
 
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.NotificationSortFieldEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
@@ -10,6 +13,7 @@ import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.PreSettlementRecordRespVO;
+import com.starcloud.ops.business.mission.api.vo.response.UserDetailVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
@@ -58,6 +62,9 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Resource
     private XhsNoteDetailService noteDetailService;
+
+    @Resource
+    private AdminUserService adminUserService;
 
 
     @Override
@@ -177,7 +184,40 @@ public class WechatAppApiImpl implements WechatAppApi {
     public AppSingleMissionRespVO missionDetail(String missionUid) {
         SingleMissionDO missionDO = missionByUid(missionUid);
         XhsNoteDetailDO noteDetailDO = xhsNoteDetailService.getById(missionDO.getNoteDetailId());
-        return SingleMissionConvert.INSTANCE.appConvert(missionDO, noteDetailDO);
+        AppSingleMissionRespVO respVO = SingleMissionConvert.INSTANCE.appConvert(missionDO, noteDetailDO);
+        NotificationCenterDO notificationCenterDO = notificationByUid(missionDO.getNotificationUid());
+        if (NumberUtil.isLong(notificationCenterDO.getCreator())) {
+            AdminUserDO user = adminUserService.getUser(Long.valueOf(notificationCenterDO.getCreator()));
+            Long count = notificationCenterMapper.count(user.getCreator());
+            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count,user.getAvatar());
+            respVO.setUserDetail(userDetailVO);
+
+        }
+        List<SingleMissionDO> singleMissionDOList = singleMissionMapper.listByNotification(missionDO.getNotificationUid());
+        Integer claimCount = 0;
+        for (SingleMissionDO singleMissionDO : singleMissionDOList) {
+            if (SingleMissionStatusEnum.claimed.getCode().equals(singleMissionDO.getStatus())
+                    || SingleMissionStatusEnum.published.getCode().equals(singleMissionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement.getCode().equals(singleMissionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement.getCode().equals(singleMissionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionDO.getStatus())
+                    || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(singleMissionDO.getStatus())) {
+                claimCount++;
+            }
+        }
+        respVO.setDescription(notificationCenterDO.getDescription());
+        respVO.setClaimCount(claimCount);
+        respVO.setMinFansNum(notificationCenterDO.getMinFansNum());
+        if (SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
+            respVO.setErrorMsg(missionDO.getPreSettlementMsg());
+        }
+
+        if (SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
+            respVO.setErrorMsg(missionDO.getSettlementMsg());
+        }
+
+        respVO.setClaimLimit(NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit()));
+        return respVO;
     }
 
     @Override
@@ -203,6 +243,19 @@ public class WechatAppApiImpl implements WechatAppApi {
                 }
             }
         }
+        if (NumberUtil.isLong(notificationCenterDO.getCreator())) {
+            AdminUserDO user = adminUserService.getUser(Long.valueOf(notificationCenterDO.getCreator()));
+            Long count = notificationCenterMapper.count(user.getCreator());
+            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count,user.getAvatar());
+            respVO.setUserDetail(userDetailVO);
+        }
+        if (respVO.getClaimLimit() != null && respVO.getClaimLimit().getClaimNum() != null
+                && respVO.getClaimLimit().getClaimNum() > currentUserNum) {
+            respVO.setCanClaim(true);
+        } else {
+            respVO.setCanClaim(false);
+        }
+
         respVO.setClaimCount(claimCount);
         respVO.setCurrentUserNum(currentUserNum);
         return respVO;

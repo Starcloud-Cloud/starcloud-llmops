@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -35,5 +36,11 @@ public class AppNotificationQueryReqVO extends PageParam {
 
     @Schema(description = "正序")
     private Boolean asc;
+
+    @Schema(description = "最小粉丝数")
+    private Integer minFansNum;
+
+    @Schema(description = "单个任务预算")
+    private BigDecimal singleBudget;
 
 }
