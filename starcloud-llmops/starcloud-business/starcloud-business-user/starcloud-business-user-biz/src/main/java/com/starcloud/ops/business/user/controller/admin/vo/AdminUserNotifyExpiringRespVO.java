@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdminUserNotifyExpiringRespVO {
 
-    @Schema(description = "会员等级提醒 VO", required = true, example = "芋艿")
+    @Schema(description = "会员等级提醒 VO", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private NotifyExpiringLevelRespVO notifyExpiringLevelRespVO;
 
-    @Schema(description = "会员权益提醒VO", required = true, example = "芋艿")
+    @Schema(description = "会员权益提醒VO", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private NotifyExpiringRightsRespVO notifyExpiringRightsRespVO;
 }

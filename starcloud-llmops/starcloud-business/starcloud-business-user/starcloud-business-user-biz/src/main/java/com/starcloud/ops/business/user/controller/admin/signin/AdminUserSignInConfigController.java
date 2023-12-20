@@ -35,14 +35,12 @@ public class AdminUserSignInConfigController {
 
     @PostMapping("/create")
     @Operation(summary = "创建签到规则")
-    @PreAuthorize("@ss.hasPermission('point:sign-in-config:create')")
     public CommonResult<Long> createSignInConfig(@Valid @RequestBody AdminUserSignInConfigCreateReqVO createReqVO) {
         return success(signInConfigService.createSignInConfig(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新签到规则")
-    @PreAuthorize("@ss.hasPermission('point:sign-in-config:update')")
     public CommonResult<Boolean> updateSignInConfig(@Valid @RequestBody AdminUserSignInConfigUpdateReqVO updateReqVO) {
         signInConfigService.updateSignInConfig(updateReqVO);
         return success(true);
@@ -51,7 +49,6 @@ public class AdminUserSignInConfigController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除签到规则")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('point:sign-in-config:delete')")
     public CommonResult<Boolean> deleteSignInConfig(@RequestParam("id") Long id) {
         signInConfigService.deleteSignInConfig(id);
         return success(true);
@@ -60,7 +57,6 @@ public class AdminUserSignInConfigController {
     @GetMapping("/get")
     @Operation(summary = "获得签到规则")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('point:sign-in-config:query')")
     public CommonResult<AdminUserSignInConfigRespVO> getSignInConfig(@RequestParam("id") Long id) {
         AdminUserSignInConfigDO signInConfig = signInConfigService.getSignInConfig(id);
         return success(AdminUserSignInConfigConvert.INSTANCE.convert(signInConfig));
@@ -68,7 +64,6 @@ public class AdminUserSignInConfigController {
 
     @GetMapping("/list")
     @Operation(summary = "获得签到规则列表")
-    @PreAuthorize("@ss.hasPermission('point:sign-in-config:query')")
     public CommonResult<List<AdminUserSignInConfigRespVO>> getSignInConfigList() {
         List<AdminUserSignInConfigDO> list = signInConfigService.getSignInConfigList();
         return success(AdminUserSignInConfigConvert.INSTANCE.convertList(list));

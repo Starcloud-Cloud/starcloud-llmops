@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.user.service.rights;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -10,14 +9,6 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.ExpiredReminderVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserBenefits;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserLevelVO;
-import com.starcloud.ops.business.limits.controller.admin.userbenefits.vo.UserTokenExpiredReminderVO;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
-import com.starcloud.ops.business.limits.enums.UserLevelEnums;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
@@ -34,9 +25,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -134,8 +127,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .setMagicBean(magicBean).setMagicImage(magicImage).setMagicBeanInit(magicBean).setMagicImageInit(magicImage)
                 .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
 
-        if (Objects.isNull(validStartTime)||Objects.isNull(validEndTime)){
-            if (!bizType.isSystem()){
+        if (Objects.isNull(validStartTime) || Objects.isNull(validEndTime)) {
+            if (!bizType.isSystem()) {
                 throw exception(RIGHTS_VALID_TIME_NOT_EXISTS);
             }
             record.setValidStartTime(LocalDateTime.now());

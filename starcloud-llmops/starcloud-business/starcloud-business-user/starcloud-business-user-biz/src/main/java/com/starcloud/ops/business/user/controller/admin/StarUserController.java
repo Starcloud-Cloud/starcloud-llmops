@@ -121,7 +121,7 @@ public class StarUserController {
     @PutMapping("/test/addBenefits")
     @Operation(summary = "测试添加注册权益", description = "测试添加注册权益")
     @TenantIgnore
-    public CommonResult<Boolean> addBenefits(@RequestBody @Valid UserProfileUpdateRequest request) {
+    public CommonResult<Boolean> addBenefits() {
         llmUserService.addBenefits(getLoginUserId(),215L);
         return CommonResult.success(true);
     }
@@ -129,7 +129,7 @@ public class StarUserController {
     @PutMapping("/test/notify_expiring")
     @Operation(summary = "用户过期提醒", description = "用户过期提醒")
     @TenantIgnore
-    public CommonResult<AdminUserNotifyExpiringRespVO> NotifyExpiring(@RequestBody @Valid UserProfileUpdateRequest request) {
+    public CommonResult<AdminUserNotifyExpiringRespVO> NotifyExpiring() {
         AdminUserNotifyExpiringRespVO adminUserNotifyExpiringRespVO = new AdminUserNotifyExpiringRespVO();
         NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = adminUserLevelService.notifyExpiringLevel(getLoginUserId());
         NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = adminUserRightsService.notifyExpiringRights(getLoginUserId());

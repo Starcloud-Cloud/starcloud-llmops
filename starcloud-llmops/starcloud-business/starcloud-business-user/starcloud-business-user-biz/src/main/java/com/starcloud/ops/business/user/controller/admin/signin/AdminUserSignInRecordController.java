@@ -45,7 +45,6 @@ public class AdminUserSignInRecordController {
 
     @GetMapping("/page")
     @Operation(summary = "获得签到记录分页")
-    @PreAuthorize("@ss.hasPermission('point:sign-in-record:query')")
     public CommonResult<PageResult<AdminUserSignInRecordRespVO>> getSignInRecordPage(@Valid AdminUserSignInRecordPageReqVO pageVO) {
         // 执行分页查询
         PageResult<AdminUserSignInRecordDO> pageResult = signInRecordService.getSignInRecordPage(pageVO);
