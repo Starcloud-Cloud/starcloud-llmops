@@ -178,7 +178,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         notificationCenterDO.setNotificationBudget(reqVO.getNotificationBudget());
 //        singleMissionService.validBudget(notificationCenterDO);
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
-        notificationCenterMapper.updateById(notificationCenterDO);
+        notificationCenterMapper.update(notificationCenterDO);
         return NotificationCenterConvert.INSTANCE.convert(notificationCenterDO);
     }
 

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.dal.mysql;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.mission.api.vo.request.AppNotificationQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
@@ -40,6 +41,26 @@ public interface NotificationCenterMapper extends BaseMapperX<NotificationCenter
         LambdaQueryWrapper<NotificationCenterDO> wrapper = Wrappers.lambdaQuery(NotificationCenterDO.class)
                 .eq(NotificationCenterDO::getCreator, creator);
         return this.selectCount(wrapper);
+    }
+
+    default void update(NotificationCenterDO notificationCenterDO) {
+        LambdaUpdateWrapper<NotificationCenterDO> updateWrapper = Wrappers.lambdaUpdate(NotificationCenterDO.class)
+                .eq(NotificationCenterDO::getId, notificationCenterDO.getId())
+                .set(NotificationCenterDO::getName, notificationCenterDO.getName())
+                .set(NotificationCenterDO::getPlatform, notificationCenterDO.getPlatform())
+                .set(NotificationCenterDO::getField, notificationCenterDO.getField())
+                .set(NotificationCenterDO::getType, notificationCenterDO.getType())
+                .set(NotificationCenterDO::getUnitPrice, notificationCenterDO.getUnitPrice())
+                .set(NotificationCenterDO::getStartTime, notificationCenterDO.getStartTime())
+                .set(NotificationCenterDO::getEndTime, notificationCenterDO.getEndTime())
+                .set(NotificationCenterDO::getNotificationBudget, notificationCenterDO.getNotificationBudget())
+                .set(NotificationCenterDO::getSingleBudget, notificationCenterDO.getSingleBudget())
+                .set(NotificationCenterDO::getDescription, notificationCenterDO.getDescription())
+                .set(NotificationCenterDO::getRemark, notificationCenterDO.getRemark())
+                .set(NotificationCenterDO::getClaimLimit, notificationCenterDO.getClaimLimit())
+                .set(NotificationCenterDO::getMinFansNum, notificationCenterDO.getMinFansNum())
+                .set(NotificationCenterDO::getOpen, notificationCenterDO.getOpen());
+        update(null, updateWrapper);
     }
 
     Long pageCount(@Param("reqVO") NotificationPageQueryReqVO reqVO);
