@@ -83,7 +83,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (CollectionUtils.isEmpty(toBeBound)) {
             return;
         }
-//        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
+        validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
         List<CreativeContentRespVO> claimList = creativeContentService.bound(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
         singleMissionMapper.insertBatch(singleMissions);
