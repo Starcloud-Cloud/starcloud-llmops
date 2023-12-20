@@ -98,6 +98,9 @@ public class AppSingleMissionRespVO {
     @Schema(description = "总领取数")
     private Integer claimCount;
 
+    @Schema(description = "总任务量")
+    private Integer total;
+
     @Schema(description = "任务说明")
     private String description;
 
