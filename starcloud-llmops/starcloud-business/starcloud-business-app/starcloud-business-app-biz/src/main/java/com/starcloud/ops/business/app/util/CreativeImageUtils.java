@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
@@ -168,15 +167,6 @@ public class CreativeImageUtils {
         for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseTitle()) {
                 String title = Optional.ofNullable(paragraph.getParagraphTitle()).orElse(StringUtils.EMPTY);
-                int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (title.length() > count) {
-                    // 超出部分用 ... 代替
-                    if (count > 3) {
-                        title = StrUtil.maxLength(title, count - 3);
-                    } else {
-                        title = StrUtil.maxLength(title, count);
-                    }
-                }
                 params.put(variableItem.getField(), title);
                 paragraph.setIsUseTitle(true);
                 return;
@@ -199,14 +189,6 @@ public class CreativeImageUtils {
         for (ParagraphDTO paragraph : paragraphList) {
             if (!paragraph.getIsUseContent()) {
                 String content = Optional.ofNullable(paragraph.getParagraphContent()).orElse(StringUtils.EMPTY);
-                int count = Optional.ofNullable(variableItem.getCount()).orElse(0);
-                if (content.length() > count) {
-                    if (count > 3) {
-                        content = StrUtil.maxLength(content, count - 3);
-                    } else {
-                        content = StrUtil.maxLength(content, count);
-                    }
-                }
                 params.put(variableItem.getField(), content);
                 paragraph.setIsUseContent(true);
                 return;
