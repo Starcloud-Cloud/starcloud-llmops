@@ -68,6 +68,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+//    @CacheEvict(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#reqVO.permission",
+//            condition = "#reqVO.permission != null")
     public void createLevelRecord(AdminUserLevelCreateReqVO createReqVO) {
         // 1.0 根据会员配置等级 获取会员配置信息
         AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(createReqVO.getLevelId());

@@ -36,7 +36,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
+//    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
     public List<MigrateResultDTO> migrateUsers(List<WpUserDTO> wpUserDTOS) {
        List<MigrateResultDTO> migrateResults = new ArrayList<>(wpUserDTOS.size());
         for (WpUserDTO wpUserDTO : wpUserDTOS) {

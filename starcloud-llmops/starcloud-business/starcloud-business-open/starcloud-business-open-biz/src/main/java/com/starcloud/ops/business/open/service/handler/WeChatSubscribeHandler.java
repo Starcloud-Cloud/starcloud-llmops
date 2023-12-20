@@ -36,6 +36,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.math.BigInteger;
@@ -83,7 +85,6 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = RedisKeyConstants.USER_ROLE_ID_LIST, key = "#userId")
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信关注事件，内容：{}", wxMessage);
         try {
