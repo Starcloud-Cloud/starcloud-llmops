@@ -73,6 +73,12 @@
         <if test="reqVO.field != null and reqVO.field != ''">
             and field = #{reqVO.field}
         </if>
+        <if test="reqVO.minFansNum != null">
+            and min_fans_num = #{reqVO.minFansNum}
+        </if>
+        <if test="reqVO.singleBudget != null">
+            and single_budget = #{reqVO.singleBudget}
+        </if>
         <if test="reqVO.creator != null  and reqVO.creator.size() > 0">
             and creator in
             <foreach collection="reqVO.creator" item="item" open="(" close=")" separator=",">
@@ -83,8 +89,10 @@
 
     <select id="appPage" resultType="com.starcloud.ops.business.mission.dal.dataobject.AppNotificationDTO">
         select n.*,
-        COUNT(case WHEN m.`status` in ('claimed','published','pre_settlement','settlement','pre_settlement_error','settlement_error')  THEN 1 end ) claimCount,
-        COUNT(case WHEN m.`claim_user_id` = #{reqVO.claimUserId} THEN 1 end ) currentUserNum
+        COUNT(case WHEN m.`status` in ('claimed','published','pre_settlement','settlement','pre_settlement_error','settlement_error')  THEN 1 end ) as claimCount,
+        GROUP_CONCAT(m.uid) as messionUids,
+        json_unquote(JSON_EXTRACT(	m.content, '$.picture[0].url')) as picture,
+        COUNT(case WHEN m.`claim_user_id` = #{reqVO.claimUserId} THEN 1 end ) as currentUserNum
         from llm_notification n
         LEFT JOIN llm_single_mission m ON m.notification_Uid = n.uid
         where n.deleted = false and n.end_time &gt; now() and n.status = 'published'
@@ -96,6 +104,12 @@
         </if>
         <if test="reqVO.field != null and reqVO.field != ''">
             and n.field = #{reqVO.field}
+        </if>
+        <if test="reqVO.minFansNum != null">
+            and n.min_fans_num = #{reqVO.minFansNum}
+        </if>
+        <if test="reqVO.singleBudget != null">
+            and n.single_budget = #{reqVO.singleBudget}
         </if>
         <if test="reqVO.creator != null and reqVO.creator.size() > 0">
             and n.creator in

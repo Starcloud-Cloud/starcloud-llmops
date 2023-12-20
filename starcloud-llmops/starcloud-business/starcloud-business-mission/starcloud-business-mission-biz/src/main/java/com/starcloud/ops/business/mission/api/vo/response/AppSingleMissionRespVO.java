@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.api.vo.response;
 
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Schema(description = "单个任务")
@@ -57,7 +59,7 @@ public class AppSingleMissionRespVO {
     @Schema(description = "支付单号")
     private String paymentOrder;
 
-    @Schema(description = "结算失败原因")
+    @Schema(description = "失败原因")
     private String errorMsg;
 
     @Schema(description = "点赞数")
@@ -80,5 +82,23 @@ public class AppSingleMissionRespVO {
 
     @Schema(description = "结算失败信息")
     private String settlementMsg;
+
+    @Schema(description = "标签")
+    private List<String> tags;
+
+    @Schema(description = "管理员详情")
+    private UserDetailVO userDetail;
+
+    @Schema(description = "领取人员限制")
+    private ClaimLimitDTO claimLimit;
+
+    @Schema(description = "最小粉丝数")
+    private Integer minFansNum;
+
+    @Schema(description = "总领取数")
+    private Integer claimCount;
+
+    @Schema(description = "任务说明")
+    private String description;
 
 }

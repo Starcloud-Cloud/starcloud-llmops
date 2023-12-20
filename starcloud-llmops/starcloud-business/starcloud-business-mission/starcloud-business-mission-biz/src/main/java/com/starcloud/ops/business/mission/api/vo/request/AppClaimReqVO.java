@@ -18,6 +18,5 @@ public class AppClaimReqVO {
     private String claimUserId;
 
     @Schema(description = "认领人")
-    @NotBlank(message = "认领人不能为空")
     private String claimUsername;
 }
