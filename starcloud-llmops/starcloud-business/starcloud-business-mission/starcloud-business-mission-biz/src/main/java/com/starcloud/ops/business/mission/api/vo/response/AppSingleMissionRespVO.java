@@ -101,4 +101,10 @@ public class AppSingleMissionRespVO {
     @Schema(description = "任务说明")
     private String description;
 
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
+
+    @Schema(description = "通告uid")
+    private String notificationUid;
+
 }
