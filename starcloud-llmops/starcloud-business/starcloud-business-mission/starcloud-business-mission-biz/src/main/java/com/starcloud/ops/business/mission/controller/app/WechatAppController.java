@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.controller.app;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.WechatAppApi;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
@@ -33,14 +34,14 @@ public class WechatAppController {
 
     @GetMapping("/metadata")
     @Operation(summary = "获取通告中心元数据", description = "获取通告中心元数据")
-    @PermitAll
+    @PreAuthenticated
     public CommonResult<Map<String, Object>> metadata() {
         return CommonResult.success(centerService.metadata());
     }
 
     @PostMapping("/notify/page")
     @Operation(summary = "小程序通告列表")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<PageResult<AppNotificationRespVO>> notifyPage(@Valid @RequestBody AppNotificationQueryReqVO reqVO) {
         PageResult<AppNotificationRespVO> result = wechatAppApi.notifyPage(reqVO);
@@ -49,7 +50,7 @@ public class WechatAppController {
 
     @GetMapping("/notify/detail/{notificationUid}")
     @Operation(summary = "小程序通告详情")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<AppNotificationRespVO> notifyDetail(@PathVariable("notificationUid") String notificationUid) {
         AppNotificationRespVO result = wechatAppApi.notifyDetail(notificationUid);
@@ -58,7 +59,7 @@ public class WechatAppController {
 
     @PostMapping("/mission/claimed")
     @Operation(summary = "小程序已认领任务")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<PageResult<AppSingleMissionRespVO>> claimedMission(@Valid @RequestBody ClaimedMissionQueryReqVO reqVO) {
         PageResult<AppSingleMissionRespVO> result = wechatAppApi.claimedMission(reqVO);
@@ -67,7 +68,7 @@ public class WechatAppController {
 
     @GetMapping("/mission/detail/{missionUid}")
     @Operation(summary = "小程序任务详情")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<AppSingleMissionRespVO> detail(@PathVariable("missionUid") String missionUid) {
         AppSingleMissionRespVO result = wechatAppApi.missionDetail(missionUid);
@@ -76,7 +77,7 @@ public class WechatAppController {
 
     @PutMapping("/mission/claim")
     @Operation(summary = "小程序认领")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<AppSingleMissionRespVO> claimMission(@Valid @RequestBody AppClaimReqVO reqVO) {
         return CommonResult.success(wechatAppApi.claimMission(reqVO));
@@ -84,7 +85,7 @@ public class WechatAppController {
 
     @PutMapping("/mission/publish")
     @Operation(summary = "小程序提交发布链接")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<Boolean> publishMission(@Valid @RequestBody AppMissionPublishReqVO reqVO) {
         wechatAppApi.publishMission(reqVO);
@@ -93,7 +94,7 @@ public class WechatAppController {
 
     @PutMapping("/mission/abandon")
     @Operation(summary = "小程序取消认领")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<Boolean> abandonMission(@Valid @RequestBody AppAbandonMissionReqVO reqVO) {
         wechatAppApi.abandonMission(reqVO);
@@ -102,7 +103,7 @@ public class WechatAppController {
 
     @GetMapping("/preSettlement/record")
     @Operation(summary = "预结算记录")
-    @PermitAll
+    @PreAuthenticated
     @OperateLog(enable = false)
     public CommonResult<PageResult<PreSettlementRecordRespVO>> preSettlementRecord(@Valid PreSettlementRecordReqVO reqVO) {
         PageResult<PreSettlementRecordRespVO> result = wechatAppApi.preSettlementRecord(reqVO);
