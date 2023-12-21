@@ -105,7 +105,7 @@ public class StarUserController {
     }
 
     @GetMapping("/user/all_detail")
-    @Operation(summary = "获取用户明细", description = "获取用户明细")
+    @Operation(summary = "获取用户数据明细", description = "获取用户数据明细")
     public CommonResult<AdminUserInfoRespVO> userRightsDetail() {
         return CommonResult.success(llmUserService.userDetail(getLoginUserId()));
     }

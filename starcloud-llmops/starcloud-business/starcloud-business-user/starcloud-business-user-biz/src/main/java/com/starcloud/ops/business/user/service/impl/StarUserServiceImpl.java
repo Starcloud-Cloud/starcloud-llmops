@@ -209,8 +209,8 @@ public class StarUserServiceImpl implements StarUserService {
                 log.info("邀请记录添加成功，开始发送注册与邀请权益");
 
                 TenantUtils.execute(tenantId, () -> {
-                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
-                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null,null,AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
+                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
                 });
 
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
@@ -220,7 +220,7 @@ public class StarUserServiceImpl implements StarUserService {
                 if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
                     TenantUtils.execute(tenantId, () -> {
-                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
+                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
                     });
                     sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
                             "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
@@ -230,7 +230,7 @@ public class StarUserServiceImpl implements StarUserService {
             } else {
                 // 普通注册权益
                 TenantUtils.execute(tenantId, () -> {
-                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(),null,null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
                 });
             }
 
@@ -307,7 +307,10 @@ public class StarUserServiceImpl implements StarUserService {
 //        }
 
         // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
-        adminUserLevelService.createInitLevelRecord(userDO.getId());
+        TenantUtils.execute(tenantId, () -> {
+            adminUserLevelService.createInitLevelRecord(userDO.getId());
+        });
+
 //        UserRoleDO userRoleDO = new UserRoleDO();
 //        userRoleDO.setRoleId(roleDO.getId());
 //        userRoleDO.setUserId(userDO.getId());
@@ -508,9 +511,9 @@ public class StarUserServiceImpl implements StarUserService {
         // 获取用户权益
         List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
 
-        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO,levelList,rightsCollect);
+        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
         userDetailVO.setInviteCode(inviteCode);
-        userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s",getOrigin() ,inviteCode));
+        userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
         return userDetailVO;
 
     }

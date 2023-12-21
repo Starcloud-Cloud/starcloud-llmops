@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 
 /**
@@ -63,7 +64,7 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRightsRecord(Long userId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId,String bizCode) {
+    public void createRightsRecord(Long userId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode) {
         if (amount == 0) {
             return;
         }
@@ -79,6 +80,10 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
                 .setTitle(rightsBizTypeEnum.getName())
                 .setDescription(StrUtil.format(rightsBizTypeEnum.getDescription(), amount, rightsType.getName()))
                 .setRightsType(rightsType.getType()).setRightsAmount(amount);
+        if (getLoginUserId() == null) {
+            record.setCreator(String.valueOf(userId));
+            record.setUpdater(String.valueOf(userId));
+        }
         adminUserRightsRecordMapper.insert(record);
     }
 
