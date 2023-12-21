@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.api.vo.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,5 +18,8 @@ public class PreSettlementRecordRespVO {
 
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
+
+    @Schema(description = "佣金")
+    private BigDecimal amount;
 
 }
