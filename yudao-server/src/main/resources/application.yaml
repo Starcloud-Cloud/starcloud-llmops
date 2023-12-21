@@ -205,7 +205,6 @@ yudao:
       - /admin-api/llm/chat/config/detail/*
       - /admin-api/llm/notification/metadata
       - /admin-api/llm/xhs/customer/**
-      - /app-api/llm/wechat/app
     ignore-tables:
       - system_tenant
       - system_tenant_package
