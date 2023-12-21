@@ -331,7 +331,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         //结构太深，无法把messageID 返回出去，所以在这里处理权益
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         String model = llmParams.getOrDefault("model", "").toString();
-        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
+//        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
     }
 
     private void createChatFunctionMessage(String message, AIMessage aiMessage) {
@@ -356,7 +356,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         String model = llmParams.getOrDefault("model", "").toString();
-        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
+//        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
     }
 
 
@@ -477,7 +477,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
         String model = llmParams.getOrDefault("model", "").toString();
-        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
+//        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
     }
 
 
