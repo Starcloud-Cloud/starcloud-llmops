@@ -62,4 +62,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode  NOT_FOR_SELF =  new ErrorCode(700020008,"只能查询自己领取的任务");
 
+    ErrorCode  CLAIM_TIME_END =  new ErrorCode(700020009,"认领时间结束，请领取其他任务");
+
 }

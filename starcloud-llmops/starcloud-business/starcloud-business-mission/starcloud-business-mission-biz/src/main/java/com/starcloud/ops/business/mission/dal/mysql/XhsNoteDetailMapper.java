@@ -20,6 +20,12 @@ public interface XhsNoteDetailMapper extends BaseMapperX<XhsNoteDetailDO> {
         return selectOne(wrapper);
     }
 
+    default void deleteByMissionUid(String missionUid) {
+        LambdaQueryWrapper<XhsNoteDetailDO> wrapper = Wrappers.lambdaQuery(XhsNoteDetailDO.class)
+                .eq(XhsNoteDetailDO::getMissionUid, missionUid);
+        delete(wrapper);
+    }
+
     default PageResult<XhsNoteDetailDO> page(PreSettlementRecordReqVO reqVO) {
         LambdaQueryWrapper<XhsNoteDetailDO> queryWrapper = Wrappers.lambdaQuery(XhsNoteDetailDO.class)
                 .eq(XhsNoteDetailDO::getMissionUid, reqVO.getMissionUid())

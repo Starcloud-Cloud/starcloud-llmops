@@ -51,4 +51,9 @@ public interface XhsNoteDetailService {
      * 预结算记录
      */
     PageResult<XhsNoteDetailDO> preSettlementRecord(PreSettlementRecordReqVO reqVO);
+
+    /**
+     * 取消认领
+     */
+    void abandonMission(String missionUid);
 }

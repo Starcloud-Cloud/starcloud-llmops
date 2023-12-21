@@ -14,7 +14,7 @@ public class PreSettlementRecordReqVO extends PageParam {
     @NotBlank(message = "任务uid 不能为空")
     private String missionUid;
 
-    @Schema(description = "认领人id")
-    @NotBlank(message = "认领人id不能为空")
-    private String claimUserId;
+//    @Schema(description = "认领人id")
+//    @NotBlank(message = "认领人id不能为空")
+//    private String claimUserId;
 }
