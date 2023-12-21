@@ -31,6 +31,27 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     ORDER_GIVE_CANCEL_ITEM(13, "订单积分奖励（单个退款）", "订单退款，扣除赠送的{} 魔法豆，{} 图片", false, false, 0, 0),// ORDER_GIVE 的取消
     CHAT(14, "聊天", "聊天扣除 {} 魔法豆，，{} 图片", false, false, 0, 0),
 
+    // 场景
+    WEB_ADMIN_SCENE(14, "创作中心", "创作中心，扣除 {}，{} ", false, false, 0, 0),
+    CHAT_TEST_SCENE(15, "聊天调试", "聊天调试，扣除 {}，{} ", false, false, 0, 0),
+    WEB_MARKET_SCENE(16, "应用市场", "应用市场，扣除 {}，{} ", false, false, 0, 0),
+    CHAT_MARKET_SCENE(17, "员工广场", "员工广场，扣除 {}，{} ", false, false, 0, 0),
+    WEB_IMAGE_SCENE(18, "AI自由绘图", "AI自由绘图，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_UPSCALING_SCENE(19, "图片高清放大", "图片高清放大，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_REMOVE_BACKGROUND_SCENE(20, "图片去背景", "图片去背景，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_REPLACE_BACKGROUND_SCENE(21, "图片替换背景", "图片替换背景，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_REMOVE_TEXT_SCENE(22, "图片去文字", "图片去文字，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_SKETCH_SCENE(23, "草图生成图片", "草图生成图片，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_VARIANTS_SCENE(24, "图片裂变", "图片裂变，扣除 {}，{} ", false, false, 0, 0),
+    OPTIMIZE_PROMPT_SCENE(25, "优化提示词", "优化提示词，扣除 {}，{} ", false, false, 0, 0),
+    LISTING_GENERATE_SCENE(26, "Listing生成", "Listing生成，扣除 {}，{} ", false, false, 0, 0),
+    XHS_WRITING_SCENE(27, "小红书文案", "小红书文案，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_WEB_SCENE(28, "页面分享", "页面分享，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_IFRAME_SCENE(29, "iframe分享", "iframe分享，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_JS_SCENE(30, "JS分享", "JS分享，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_API_SCENE(31, "API调用", "API调用，扣除 {}，{} ", false, false, 0, 0),
+    WECOM_GROUP_SCENE(32, "企业微信群", "企业微信群，扣除 {}，{} ", false, false, 0, 0),
+    MP_SCENE(33, "微信公共号", "微信公共号，扣除 {}，{} ", false, false, 0, 0),
 
     //================仅限变动记录使用======Type 值上面的+50=========================================
     ADMIN_MINUS_RECORD(50, "管理员增加", "管理员修改权益，扣除 {},{} ", false, false, 0, 0),
@@ -47,6 +68,28 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     ORDER_GIVE_CANCEL_RECORD(62, "订单积分奖励（整单取消）", "订单取消，退还{},{}", false, false, 0, 0), // ORDER_GIVE 的取消
     ORDER_GIVE_CANCEL_ITEM_RECORD(63, "订单积分奖励（单个退款）", "订单退款，扣除赠送的{},{}", false, false, 0, 0),// ORDER_GIVE 的取消
     CHAT_RECORD(64, "聊天", "聊天扣除 {} 魔法豆，，{} 图片", false, false, 0, 0),
+
+    // 场景
+    WEB_ADMIN_SCENE_RECORD(54, "创作中心", "创作中心，扣除 {}，{} ", false, false, 0, 0),
+    CHAT_TEST_SCENE_RECORD(55, "聊天调试", "聊天调试，扣除 {}，{} ", false, false, 0, 0),
+    WEB_MARKET_SCENE_RECORD(56, "应用市场", "应用市场，扣除 {}，{} ", false, false, 0, 0),
+    CHAT_MARKET_SCENE_RECORD(57, "员工广场", "员工广场，扣除 {}，{} ", false, false, 0, 0),
+    WEB_IMAGE_SCENE_RECORD(58, "AI自由绘图", "AI自由绘图，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_UPSCALING_SCENE_RECORD(59, "图片高清放大", "图片高清放大，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_REMOVE_BACKGROUND_SCENE_RECORD(60, "图片去背景", "图片去背景，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_REPLACE_BACKGROUND_SCENE_RECORD(61, "图片替换背景", "图片替换背景，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_REMOVE_TEXT_SCENE_RECORD(62, "图片去文字", "图片去文字，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_SKETCH_SCENE_RECORD(63, "草图生成图片", "草图生成图片，扣除 {}，{} ", false, false, 0, 0),
+    IMAGE_VARIANTS_SCENE_RECORD(64, "图片裂变", "图片裂变，扣除 {}，{} ", false, false, 0, 0),
+    OPTIMIZE_PROMPT_SCENE_RECORD(65, "优化提示词", "优化提示词，扣除 {}，{} ", false, false, 0, 0),
+    LISTING_GENERATE_SCENE_RECORD(66, "Listing生成", "Listing生成，扣除 {}，{} ", false, false, 0, 0),
+    XHS_WRITING_SCENE_RECORD(67, "小红书文案", "小红书文案，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_WEB_SCENE_RECORD(68, "页面分享", "页面分享，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_IFRAME_SCENE_RECORD(69, "iframe分享", "iframe分享，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_JS_SCENE_RECORD(70, "JS分享", "JS分享，扣除 {}，{} ", false, false, 0, 0),
+    SHARE_API_SCENE_RECORD(71, "API调用", "API调用，扣除 {}，{} ", false, false, 0, 0),
+    WECOM_GROUP_SCENE_RECORD(72, "企业微信群", "企业微信群，扣除 {}，{} ", false, false, 0, 0),
+    MP_SCENE_RECORD(73, "微信公共号", "微信公共号，扣除 {}，{} ", false, false, 0, 0),
     ;
 
     /**
