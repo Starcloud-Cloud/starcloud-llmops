@@ -14,7 +14,7 @@ public class ClaimedMissionQueryReqVO extends PageParam {
 
 //    @Schema(description = "认领人id")
 //    @NotBlank(message = "认领人id不能为空")
-//    private String claimUserId;
+    private String claimUserId;
 
     @Schema(description = "任务状态")
     @InEnum(value = SingleMissionStatusEnum.class, field = InEnum.EnumField.CODE, message = "平台类型[{value}]必须是: {values}")
