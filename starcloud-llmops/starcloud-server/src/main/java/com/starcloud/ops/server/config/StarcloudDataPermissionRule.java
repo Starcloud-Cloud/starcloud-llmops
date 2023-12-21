@@ -64,8 +64,12 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
     public Expression getExpression(String tableName, Alias tableAlias) {
         Long userId = WebFrameworkUtils.getLoginUserId();
 
-        if (Objects.equals(WebFrameworkUtils.getLoginUserType(), UserTypeEnum.MEMBER.getValue())) {
-            return null;
+        try {
+            if (Objects.equals(WebFrameworkUtils.getLoginUserType(), UserTypeEnum.MEMBER.getValue())) {
+                return null;
+            }
+        } catch (Exception e) {
+            log.warn("check user error", e.getMessage());
         }
 
         if (userId == null) {
