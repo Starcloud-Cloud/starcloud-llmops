@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.mission.controller.admin;
+package com.starcloud.ops.business.mission.controller.admin.app;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -10,6 +10,7 @@ import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO
 import com.starcloud.ops.business.mission.api.vo.response.PreSettlementRecordRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.NotificationRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/llm/wechat/app")
@@ -25,6 +27,16 @@ public class WechatAppController {
 
     @Resource
     private WechatAppApi wechatAppApi;
+
+    @Resource
+    private NotificationCenterService centerService;
+
+    @GetMapping("/metadata")
+    @Operation(summary = "获取通告中心元数据", description = "获取通告中心元数据")
+    @PermitAll
+    public CommonResult<Map<String, Object>> metadata() {
+        return CommonResult.success(centerService.metadata());
+    }
 
     @PostMapping("/notify/page")
     @Operation(summary = "小程序通告列表")
