@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
@@ -331,7 +332,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         //结构太深，无法把messageID 返回出去，所以在这里处理权益
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         String model = llmParams.getOrDefault("model", "").toString();
-//        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
+        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(),logVo.getUid());
     }
 
     private void createChatFunctionMessage(String message, AIMessage aiMessage) {
@@ -356,7 +357,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         String model = llmParams.getOrDefault("model", "").toString();
-//        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
+        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(),logVo.getUid());
     }
 
 
@@ -477,7 +478,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
         String model = llmParams.getOrDefault("model", "").toString();
-//        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), AdminUserRightsBizTypeEnum.CHAT.getType(),logVo.getUid());
+        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(),logVo.getUid());
     }
 
 
