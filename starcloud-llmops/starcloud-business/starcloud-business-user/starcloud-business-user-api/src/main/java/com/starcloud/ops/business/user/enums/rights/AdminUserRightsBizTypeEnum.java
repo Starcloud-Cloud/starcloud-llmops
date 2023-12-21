@@ -29,7 +29,6 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     ORDER_GIVE(11, "订单权益奖励", "下单获取权益,获得 {} 魔法豆，{} 图片", true, false, 0, 0), // 支付订单时，赠送积分
     ORDER_GIVE_CANCEL(12, "订单积分奖励（整单取消）", "订单取消，退还 {} 魔法豆，{} 图片", false, false, 0, 0), // ORDER_GIVE 的取消
     ORDER_GIVE_CANCEL_ITEM(13, "订单积分奖励（单个退款）", "订单退款，扣除赠送的{} 魔法豆，{} 图片", false, false, 0, 0),// ORDER_GIVE 的取消
-    CHAT(14, "聊天", "聊天扣除 {} 魔法豆，，{} 图片", false, false, 0, 0),
 
     // 场景
     WEB_ADMIN_SCENE(14, "创作中心", "创作中心，扣除 {}，{} ", false, false, 0, 0),
@@ -67,7 +66,6 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     ORDER_GIVE_RECORD(61, "订单权益奖励", "下单获取权益,获得{},{}", true, false, 0, 0), // 支付订单时，赠送积分
     ORDER_GIVE_CANCEL_RECORD(62, "订单积分奖励（整单取消）", "订单取消，退还{},{}", false, false, 0, 0), // ORDER_GIVE 的取消
     ORDER_GIVE_CANCEL_ITEM_RECORD(63, "订单积分奖励（单个退款）", "订单退款，扣除赠送的{},{}", false, false, 0, 0),// ORDER_GIVE 的取消
-    CHAT_RECORD(64, "聊天", "聊天扣除 {} 魔法豆，，{} 图片", false, false, 0, 0),
 
     // 场景
     WEB_ADMIN_SCENE_RECORD(54, "创作中心", "创作中心，扣除 {}，{} ", false, false, 0, 0),
