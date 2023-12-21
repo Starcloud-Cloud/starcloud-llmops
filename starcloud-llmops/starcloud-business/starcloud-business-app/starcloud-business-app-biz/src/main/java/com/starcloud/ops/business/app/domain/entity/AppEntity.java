@@ -37,6 +37,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversa
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
@@ -144,7 +145,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         AppContext appContext;
         try {
             // 权益检测
-            this.allowExpendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), request.getUserId());
+            this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_BEAN, request.getUserId());
             // 构建应用上下文
             appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
             appContext.setUserId(request.getUserId());

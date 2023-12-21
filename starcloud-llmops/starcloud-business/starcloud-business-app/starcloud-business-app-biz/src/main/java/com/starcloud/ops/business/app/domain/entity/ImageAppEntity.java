@@ -25,6 +25,7 @@ import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreate
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +123,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         }
         try {
             // 检测权益
-            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), request.getUserId());
+            this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_IMAGE, request.getUserId());
 
             // 调用图片生成服务
             BaseImageResponse imageResponse = imageHandler.handle(request.getImageRequest());

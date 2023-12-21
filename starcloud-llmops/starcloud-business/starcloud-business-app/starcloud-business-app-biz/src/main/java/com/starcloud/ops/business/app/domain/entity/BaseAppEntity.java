@@ -27,6 +27,8 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +56,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private UserBenefitsService userBenefitsService = SpringUtil.getBean(UserBenefitsService.class);
+    private static AdminUserRightsApi adminUserRightsApi = SpringUtil.getBean(AdminUserRightsApi.class);
 
     /**
      * 会话记录服务
@@ -440,13 +442,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     /**
      * 权益检测
      *
-     * @param benefitsType 权益类型
-     * @param userId       用户 ID
+     * @param rightsType 权益类型
+     * @param userId     用户 ID
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void allowExpendBenefits(String benefitsType, Long userId) {
-        userBenefitsService.allowExpendBenefits(benefitsType, userId);
+    protected void allowExpendBenefits(AdminUserRightsTypeEnum rightsType, Long userId) {
+        adminUserRightsApi.calculateUserRightsEnough(userId, rightsType, null);
     }
 
     /**

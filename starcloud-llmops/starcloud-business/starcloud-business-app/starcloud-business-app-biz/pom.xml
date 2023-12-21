@@ -41,7 +41,12 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-        
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
         
         <dependency>
             <groupId>com.starcloud.ops</groupId>
