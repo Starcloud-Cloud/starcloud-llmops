@@ -187,6 +187,8 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     public PageResult<AppSingleMissionRespVO> claimedMission(ClaimedMissionQueryReqVO reqVO) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        reqVO.setClaimUserId(loginUserId.toString());
         Long count = singleMissionMapper.claimedMissionCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();
