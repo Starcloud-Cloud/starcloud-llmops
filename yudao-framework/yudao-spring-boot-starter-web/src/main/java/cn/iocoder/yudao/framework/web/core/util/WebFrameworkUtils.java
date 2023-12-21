@@ -10,6 +10,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 /**
  * 专属于 web 包的工具类
@@ -89,10 +90,11 @@ public class WebFrameworkUtils {
             return userType;
         }
         // 2. 其次，基于 URL 前缀的约定
-        if (request.getServletPath().startsWith(properties.getAdminApi().getPrefix())) {
+        Optional<String> optional = Optional.ofNullable(request.getServletPath());
+        if (optional.isPresent() && optional.get().startsWith(properties.getAdminApi().getPrefix())) {
             return UserTypeEnum.ADMIN.getValue();
         }
-        if (request.getServletPath().startsWith(properties.getAppApi().getPrefix())) {
+        if (optional.isPresent() && optional.get().startsWith(properties.getAppApi().getPrefix())) {
             return UserTypeEnum.MEMBER.getValue();
         }
         return null;
