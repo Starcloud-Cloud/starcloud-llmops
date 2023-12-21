@@ -52,4 +52,17 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
         adminUserRightsService.reduceRights(userId, rightsType, rightAmount, bizTypeEnum, bizId);
     }
 
+    /**
+     * 判断权益是否充足
+     *
+     * @param userId
+     * @param rightsType
+     * @param rightAmount
+     * @return
+     */
+    @Override
+    public Boolean calculateUserRightsEnough(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
+        return adminUserRightsService.calculateUserRightsEnough(userId, rightsType, rightAmount);
+    }
+
 }

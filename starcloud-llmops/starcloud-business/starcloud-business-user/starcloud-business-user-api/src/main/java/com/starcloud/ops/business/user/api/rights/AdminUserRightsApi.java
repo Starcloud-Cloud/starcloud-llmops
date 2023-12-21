@@ -37,4 +37,13 @@ public interface AdminUserRightsApi {
     void reduceRights(Long userId, AdminUserRightsTypeEnum rightType, @Min(value = 1L, message = "积分必须是正数") Integer rightAmount,
                       Integer bizType, String bizId);
 
+    /**
+     * 判断权益是否充足
+     * @param userId
+     * @param rightsType
+     * @param rightAmount
+     * @return
+     */
+    Boolean calculateUserRightsEnough(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
+
 }

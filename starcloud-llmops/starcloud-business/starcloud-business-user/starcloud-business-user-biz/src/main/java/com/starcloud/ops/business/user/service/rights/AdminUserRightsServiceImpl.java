@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.service.rights;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -37,8 +38,7 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_VALID_TIME_NOT_EXISTS;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 
 /**
@@ -192,8 +192,16 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 获取可用权益列表
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, rightsType);
         if (validRightsList.isEmpty()) {
+            if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())){
+                throw exception(USER_RIGHTS_BEAN_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())){
+                throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
+
         }
+
 
         List<AdminUserRightsDO> deductRightsList = deduct(validRightsList, rightsType, rightAmount);
 

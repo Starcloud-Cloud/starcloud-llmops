@@ -50,6 +50,9 @@ public interface ErrorCodeConstant {
     ErrorCode USER_RIGHTS_NOT_ENOUGH= new ErrorCode(2_004_008_001, "用户{}权益不足");
     ErrorCode RIGHTS_VALID_TIME_NOT_EXISTS= new ErrorCode(2_004_008_002, "权益有效期不可以为空");
 
+    ErrorCode USER_RIGHTS_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_003, "用户魔法豆权益不足");
+    ErrorCode USER_RIGHTS_IMAGE_NOT_ENOUGH= new ErrorCode(2_004_008_004, "用户图片权益不足");
+
     //========== 签到配置 2-004-010-000 ==========
 
     //========== 签到配置 1-004-009-000 ==========
