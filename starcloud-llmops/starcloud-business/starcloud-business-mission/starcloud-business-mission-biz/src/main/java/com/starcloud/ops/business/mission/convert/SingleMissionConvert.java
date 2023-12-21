@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
@@ -14,10 +15,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMiss
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionDetailVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
-import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
-import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
-import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
-import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
+import com.starcloud.ops.business.mission.dal.dataobject.*;
 import com.starcloud.ops.business.mission.task.XhsTaskContentParams;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.*;
@@ -34,8 +32,6 @@ public interface SingleMissionConvert {
 
     SingleMissionConvert INSTANCE = Mappers.getMapper(SingleMissionConvert.class);
 
-    PageResult<SingleMissionRespVO> convert(PageResult<SingleMissionDO> page);
-
     SingleMissionRespVO convert(SingleMissionDO singleMissionDO);
 
     SingleMissionDetailVO convertDetail(MissionNotificationDTO singleMissionDO);
@@ -45,6 +41,18 @@ public interface SingleMissionConvert {
     List<SingleMissionRespVO> pageConvert(List<SingleMissionDTO> singleMissionList);
 
     SingleMissionRespVO convert(SingleMissionDTO dto);
+
+    PageResult<AppSingleMissionRespVO> convert(PageResult<SingleMissionDO> doPageResult);
+
+    @Mapping(target = "unitPrice", source = "singleMissionDO.unitPrice")
+    @Mapping(target = "updateTime", source = "singleMissionDO.updateTime")
+    AppSingleMissionRespVO appConvert(SingleMissionDO singleMissionDO, XhsNoteDetailDO noteDetailDO);
+
+    List<AppSingleMissionRespVO> appConvert(List<MissionNotificationDTO> missionDOList);
+
+    AppSingleMissionRespVO appConvert(MissionNotificationDTO singleMissionDO);
+
+    AppSingleMissionRespVO appConvert(SingleMissionDO singleMissionDO);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
             nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)

@@ -1,0 +1,94 @@
+package com.starcloud.ops.business.user.api.level;
+
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
+import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.TIME_RANGE_BIZ_NOT_SUPPORT;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_BIZ_NOT_SUPPORT;
+
+/**
+ * 会员等级 API 实现类
+ *
+ * @author owen
+ */
+@Service
+@Validated
+@Slf4j
+public class AdminUserLevelApiImpl implements AdminUserLevelApi {
+
+    @Resource
+    private AdminUserLevelService adminUserLevelService;
+
+    /**
+     * 获得会员等级列表
+     *
+     * @param userId 会员ID
+     * @return 会员等级
+     */
+    @Override
+    public List<AdminUserLevelRespDTO> getAdminUserLevelList(Long userId) {
+        return null;
+    }
+
+    /**
+     * 新增会员等级
+     *
+     * @param userId  会员ID
+     * @param levelId 会员等级编号
+     * @return 会员等级
+     */
+    @Override
+    public void addAdminUserLevel(Long userId, Long levelId, Integer TimeNums, Integer timeRange,
+                                  Integer bizType, String bizId) {
+        // 2.0 计算会员有效期
+        AdminUserLevelBizTypeEnum bizTypeEnum = AdminUserLevelBizTypeEnum.getByType(bizType);
+        if (bizTypeEnum == null) {
+            throw exception(LEVEL_BIZ_NOT_SUPPORT);
+        }
+
+        TimeRangeTypeEnum timeRangeEnum = TimeRangeTypeEnum.getByType(timeRange);
+        if (timeRangeEnum == null) {
+            throw exception(TIME_RANGE_BIZ_NOT_SUPPORT);
+        }
+
+        log.warn("设置会员等级");
+        AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
+        createReqVO.setUserId(userId);
+        createReqVO.setLevelId(levelId);
+
+        createReqVO.setBizId(bizId);
+        createReqVO.setBizType(bizType);
+
+        createReqVO.setTimeNums(TimeNums);
+        createReqVO.setTimeRange(timeRange);
+
+        createReqVO.setDescription(String.format(bizTypeEnum.getDescription(), levelId));
+
+
+        adminUserLevelService.createLevelRecord(createReqVO);
+
+
+    }
+
+    /**
+     * 过期会员等级
+     *
+     * @param userId  会员ID
+     * @param levelId 会员等级编号
+     * @return 会员等级
+     */
+    @Override
+    public void expireAdminUserLevel(Long userId, Long levelId) {
+
+    }
+}

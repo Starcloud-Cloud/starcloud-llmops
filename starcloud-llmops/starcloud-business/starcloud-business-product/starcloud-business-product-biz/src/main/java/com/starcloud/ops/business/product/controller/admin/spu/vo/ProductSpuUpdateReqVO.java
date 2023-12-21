@@ -38,4 +38,14 @@ public class ProductSpuUpdateReqVO extends ProductSpuBaseVO {
     @Valid
     private List<ProductSkuCreateOrUpdateReqVO> skus;
 
+
+    // ========== 权益 相关字段 =========
+    @Schema(description = "权益参数")
+    @Valid
+    private GiveRightsVO giveRights;
+
+    @Schema(description = "订阅参数")
+    @Valid
+    private SubscribeConfigVO subscribeConfig;
+
 }

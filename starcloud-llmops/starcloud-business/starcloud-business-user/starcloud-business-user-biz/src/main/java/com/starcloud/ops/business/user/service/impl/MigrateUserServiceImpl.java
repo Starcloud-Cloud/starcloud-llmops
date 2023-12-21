@@ -3,7 +3,6 @@ package com.starcloud.ops.business.user.service.impl;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
-import cn.iocoder.yudao.module.system.dal.redis.RedisKeyConstants;
 import com.starcloud.ops.business.user.pojo.dto.MigrateResultDTO;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.dto.WpUserDTO;
@@ -11,7 +10,6 @@ import com.starcloud.ops.business.user.service.MigrateUserService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +34,7 @@ public class MigrateUserServiceImpl implements MigrateUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
+//    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
     public List<MigrateResultDTO> migrateUsers(List<WpUserDTO> wpUserDTOS) {
        List<MigrateResultDTO> migrateResults = new ArrayList<>(wpUserDTOS.size());
         for (WpUserDTO wpUserDTO : wpUserDTOS) {

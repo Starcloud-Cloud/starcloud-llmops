@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.response;
 
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.ClaimLimitDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingUnitPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -20,8 +21,17 @@ public class NotificationRespVO {
     @Schema(description = "通告名称")
     private String name;
 
+    @Schema(description = "平台")
+    private String platform;
+
+    @Schema(description = "领域")
+    private String field;
+
     @Schema(description = "任务类型")
     private String type;
+
+    @Schema(description = "状态")
+    private String status;
 
     @Schema(description = "单价明细")
     private PostingUnitPriceDTO unitPrice;
@@ -67,4 +77,14 @@ public class NotificationRespVO {
 
     @Schema(description = "创建人")
     private String createUser;
+
+
+    @Schema(description = "领取人员限制")
+    private ClaimLimitDTO claimLimit;
+
+    @Schema(description = "最小粉丝数")
+    private Integer minFansNum;
+
+    @Schema(description = "是否公开")
+    private Boolean open;
 }

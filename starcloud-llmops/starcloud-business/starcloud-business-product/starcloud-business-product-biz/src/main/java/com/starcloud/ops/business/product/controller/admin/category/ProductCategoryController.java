@@ -33,7 +33,7 @@ public class ProductCategoryController {
 
     @PostMapping("/create")
     @Operation(summary = "创建商品分类")
-    @PreAuthorize("@ss.hasPermission('product:category:create')")
+//    @PreAuthorize("@ss.hasPermission('product:category:create')")
     public CommonResult<Long> createCategory(@Valid @RequestBody ProductCategoryCreateReqVO createReqVO) {
         return success(categoryService.createCategory(createReqVO));
     }
@@ -58,7 +58,7 @@ public class ProductCategoryController {
     @GetMapping("/get")
     @Operation(summary = "获得商品分类")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('product:category:query')")
+//    @PreAuthorize("@ss.hasPermission('product:category:query')")
     public CommonResult<ProductCategoryRespVO> getCategory(@RequestParam("id") Long id) {
         ProductCategoryDO category = categoryService.getCategory(id);
         return success(ProductCategoryConvert.INSTANCE.convert(category));
@@ -66,7 +66,7 @@ public class ProductCategoryController {
 
     @GetMapping("/list")
     @Operation(summary = "获得商品分类列表")
-    @PreAuthorize("@ss.hasPermission('product:category:query')")
+//    @PreAuthorize("@ss.hasPermission('product:category:query')")
     public CommonResult<List<ProductCategoryRespVO>> getCategoryList(@Valid ProductCategoryListReqVO treeListReqVO) {
         List<ProductCategoryDO> list = categoryService.getEnableCategoryList(treeListReqVO);
         list.sort(Comparator.comparing(ProductCategoryDO::getSort));

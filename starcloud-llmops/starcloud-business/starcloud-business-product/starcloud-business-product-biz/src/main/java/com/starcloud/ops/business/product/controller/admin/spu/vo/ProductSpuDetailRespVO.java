@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Schema(description = "管理后台 - 商品 SPU 详细 Response VO")
@@ -30,5 +31,14 @@ public class ProductSpuDetailRespVO extends ProductSpuBaseVO {
 
     @Schema(description = "SKU 数组")
     private List<ProductSkuRespVO> skus;
+
+    // ========== 权益 相关字段 =========
+    @Schema(description = "权益参数")
+    @Valid
+    private GiveRightsVO giveRights;
+
+    @Schema(description = "订阅参数")
+    @Valid
+    private SubscribeConfigVO subscribeConfig;
 
 }

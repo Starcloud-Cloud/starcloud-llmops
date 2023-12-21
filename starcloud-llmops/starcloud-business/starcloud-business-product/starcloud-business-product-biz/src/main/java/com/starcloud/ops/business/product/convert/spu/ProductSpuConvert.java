@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.product.convert.spu;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.dict.core.util.DictFrameworkUtils;
+import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.controller.admin.spu.vo.*;
 import com.starcloud.ops.business.product.controller.app.spu.vo.AppProductSpuDetailRespVO;
 import com.starcloud.ops.business.product.controller.app.spu.vo.AppProductSpuPageReqVO;
@@ -14,6 +17,7 @@ import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
 import com.starcloud.ops.business.product.enums.DictTypeConstants;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
@@ -34,8 +38,14 @@ public interface ProductSpuConvert {
 
     ProductSpuConvert INSTANCE = Mappers.getMapper(ProductSpuConvert.class);
 
+//    @Mapping(target = "giveRights", expression = "java(spu.getPrice() / 100)")
+//    @Mapping(target = "subscribeConfig", expression = "java(spu.getPrice() / 100)")
+    @Mapping(source = "bean.giveRights", target = "giveRights")
+    @Mapping(source = "bean.subscribeConfig", target = "subscribeConfig")
     ProductSpuDO convert(ProductSpuCreateReqVO bean);
 
+    @Mapping(source = "bean.giveRights", target = "giveRights")
+    @Mapping(source = "bean.subscribeConfig", target = "subscribeConfig")
     ProductSpuDO convert(ProductSpuUpdateReqVO bean);
 
     List<ProductSpuDO> convertList(List<ProductSpuDO> list);
@@ -47,6 +57,7 @@ public interface ProductSpuConvert {
     List<ProductSpuRespDTO> convertList2(List<ProductSpuDO> list);
 
     List<ProductSpuSimpleRespVO> convertList02(List<ProductSpuDO> list);
+
 
     @Mapping(target = "price", expression = "java(spu.getPrice() / 100)")
     @Mapping(target = "marketPrice", expression = "java(spu.getMarketPrice() / 100)")
@@ -62,10 +73,27 @@ public interface ProductSpuConvert {
         return spuExcelVOs;
     }
 
+    @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsVO(spu.getGiveRights()))")
+    @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigVO(spu.getSubscribeConfig()))")
     ProductSpuDetailRespVO convert03(ProductSpuDO spu);
 
+    public static SubscribeConfigVO mapToSubscribeConfigVO(ProductSpuDO.SubscribeConfig subscribeConfig) {
+        return BeanUtil.toBean(subscribeConfig,SubscribeConfigVO.class);
+    }
+    public static GiveRightsVO mapToGiveRightsVO(ProductSpuDO.GiveRights giveRights) {
+        return BeanUtil.toBean(giveRights,GiveRightsVO.class);
+    }
+
+    @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsDTO(bean.getGiveRights()))")
+    @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigDTO(bean.getSubscribeConfig()))")
     ProductSpuRespDTO convert02(ProductSpuDO bean);
 
+    public static SubscribeConfigDTO mapToSubscribeConfigDTO(ProductSpuDO.SubscribeConfig subscribeConfig) {
+        return BeanUtil.toBean(subscribeConfig,SubscribeConfigDTO.class);
+    }
+    public static GiveRightsDTO mapToGiveRightsDTO(ProductSpuDO.GiveRights giveRights) {
+        return BeanUtil.toBean(giveRights,GiveRightsDTO.class);
+    }
     // ========== 用户 App 相关 ==========
 
     PageResult<AppProductSpuPageRespVO> convertPageForGetSpuPage(PageResult<ProductSpuDO> page);

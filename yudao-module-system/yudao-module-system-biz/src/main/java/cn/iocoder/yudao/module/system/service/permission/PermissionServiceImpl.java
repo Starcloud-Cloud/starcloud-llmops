@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 /**
  * 权限 Service 实现类
@@ -99,7 +100,7 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * 判断指定角色，是否拥有该 permission 权限
      *
-     * @param roles 指定角色数组
+     * @param roles      指定角色数组
      * @param permission 权限标识
      * @return 是否拥有
      */
@@ -228,6 +229,10 @@ public class PermissionServiceImpl implements PermissionService {
                 UserRoleDO entity = new UserRoleDO();
                 entity.setUserId(userId);
                 entity.setRoleId(roleId);
+                if (getLoginUserId() == null) {
+                    entity.setCreator(String.valueOf(userId));
+                    entity.setUpdater(String.valueOf(userId));
+                }
                 return entity;
             }));
         }
@@ -382,6 +387,7 @@ public class PermissionServiceImpl implements PermissionService {
         }
         return result;
     }
+
     @Override
     @Cacheable(value = RedisKeyConstants.USER_ROLE_ID_LIST, key = "#userId")
     public void addUserRole(Long userId, String role) {
@@ -401,6 +407,7 @@ public class PermissionServiceImpl implements PermissionService {
         userRoleMapper.insert(entity);
 
     }
+
     /**
      * 获得自身的代理对象，解决 AOP 生效问题
      *

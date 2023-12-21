@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-order-api</artifactId>
+            <artifactId>starcloud-business-trade-api</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
         <dependency>

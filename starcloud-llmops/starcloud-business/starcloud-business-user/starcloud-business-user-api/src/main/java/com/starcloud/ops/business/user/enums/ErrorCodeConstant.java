@@ -36,4 +36,32 @@ public interface ErrorCodeConstant {
 
 
 
+    //========== 用户等级 2-004-011-000 ==========
+    ErrorCode LEVEL_NOT_EXISTS = new ErrorCode(2_004_011_000, "用户等级不存在");
+    ErrorCode LEVEL_NAME_EXISTS = new ErrorCode(2_004_011_001, "用户等级名称[{}]已被使用");
+    ErrorCode LEVEL_VALUE_EXISTS = new ErrorCode(2_004_011_002, "用户等级值[{}]已被[{}]使用");
+    ErrorCode LEVEL_ROLE_EXISTS = new ErrorCode(2_004_011_001, "用户等级所绑定的角色[{}]已被使用");
+    ErrorCode LEVEL_HAS_USER = new ErrorCode(2_004_011_005, "用户等级下存在用户，无法删除");
+
+    ErrorCode LEVEL_BIZ_NOT_SUPPORT = new ErrorCode(2_004_011_201, "用户等级业务类型不支持");
+
+    //========== 积分记录 2-004-008-000 ==========
+    ErrorCode RIGHTS_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户权益记录业务类型不支持");
+    ErrorCode USER_RIGHTS_NOT_ENOUGH= new ErrorCode(2_004_008_001, "用户{}权益不足");
+    ErrorCode RIGHTS_VALID_TIME_NOT_EXISTS= new ErrorCode(2_004_008_002, "权益有效期不可以为空");
+
+    ErrorCode USER_RIGHTS_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_003, "用户魔法豆权益不足");
+    ErrorCode USER_RIGHTS_IMAGE_NOT_ENOUGH= new ErrorCode(2_004_008_004, "用户图片权益不足");
+
+    //========== 签到配置 2-004-010-000 ==========
+
+    //========== 签到配置 1-004-009-000 ==========
+    ErrorCode SIGN_IN_CONFIG_NOT_EXISTS = new ErrorCode(2_004_009_000, "签到天数规则不存在");
+    ErrorCode SIGN_IN_CONFIG_EXISTS = new ErrorCode(2_004_009_001, "签到天数规则已存在");
+
+    //========== 签到配置 1-004-010-000 ==========
+    ErrorCode SIGN_IN_RECORD_TODAY_EXISTS = new ErrorCode(2_004_010_000, "今日已签到，请勿重复签到");
+
+
+
 }

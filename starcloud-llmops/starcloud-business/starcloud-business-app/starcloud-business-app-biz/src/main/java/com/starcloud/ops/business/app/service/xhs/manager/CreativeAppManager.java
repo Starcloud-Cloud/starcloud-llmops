@@ -129,7 +129,6 @@ public class CreativeAppManager {
             String answer = execute(CreativeAppUtils.buildExecuteRequest(appMarket, request));
 
             // 返回结果需要解析，解析根据 模式 枚举配置来，
-
             return CreativeAppUtils.handleAnswer(answer, request.getUid(), n);
         } catch (ServiceException exception) {
             log.error("创作中心：执行应用失败。应用UID: {}, 生成条数: {}, 错误码: {}, 错误信息: {}", request.getUid(), n, exception.getCode().toString(), exception.getMessage());
@@ -194,6 +193,7 @@ public class CreativeAppManager {
                     response.setSchemeUid(executeRequest.getSchemeUid());
                     response.setBusinessUid(executeRequest.getBusinessUid());
                     response.setContentUid(executeRequest.getContentUid());
+                    response.setSchemeMode(executeRequest.getSchemeMode());
                     responseList.add(response);
                 }
                 log.info("创作计划UID：{}，创作方案UID：{}，执行结束！", planEntry.getKey(), schemeEntry.getKey());
@@ -202,5 +202,37 @@ public class CreativeAppManager {
         }
         log.info("创作中心：执行批量生成应用结束......! \n {}", JSONUtil.parse(responseList).toStringPretty());
         return responseList;
+    }
+
+
+    /**
+     * 批量执行应用, 同步执行
+     *
+     * @param requests 请求
+     * @return 响应
+     */
+    @SuppressWarnings("all")
+    public XhsAppCreativeExecuteResponse creativePracticalExecute(XhsAppCreativeExecuteRequest request) {
+        request.setN(1);
+        try {
+
+            //把 uid 和 step ,改成 根据模式 对应的枚举配置写死 在创作的时候保存就行了。
+            AppMarketRespVO appMarket = appMarketService.get(request.getUid());
+            log.info("创作中心：执行应用开始(干货文模式)。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
+
+            // 获取第二步的步骤。约定，生成小红书内容为第二步
+            WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(appMarket);
+            request.setStepId(stepWrapper.getField());
+            // 执行应用
+            String answer = execute(CreativeAppUtils.buildExecuteRequest(appMarket, request));
+            // 返回结果需要解析，解析根据 模式 枚举配置来，
+            return CreativeAppUtils.handlePracticalAnswer(answer, request);
+        } catch (ServiceException exception) {
+            log.error("创作中心：执行应用失败(干货文模式)。应用UID: {}, 错误码: {}, 错误信息: {}", request.getUid(), exception.getCode().toString(), exception.getMessage());
+            return XhsAppCreativeExecuteResponse.buildFailure(request, exception.getCode().toString(), exception.getMessage());
+        } catch (Exception exception) {
+            log.error("创作中心：执行应用失败(干货文模式)。应用UID: {}, 错误码: {}, 错误信息: {}", request.getUid(), "750100310", exception.getMessage());
+            return XhsAppCreativeExecuteResponse.buildFailure(request, "750100310", exception.getMessage());
+        }
     }
 }

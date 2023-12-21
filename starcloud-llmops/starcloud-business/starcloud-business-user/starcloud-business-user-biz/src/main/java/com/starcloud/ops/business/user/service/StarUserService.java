@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service;
 
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
@@ -66,6 +67,13 @@ public interface StarUserService {
      * @return
      */
     UserDetailVO userDetail();
+
+    /**
+     * 获取用户详情 包含用户等级 用户权益
+     * @param userId
+     * @return
+     */
+    AdminUserInfoRespVO userDetail(Long userId);
 
     /**
      * 创建新用户 部门 绑定角色
