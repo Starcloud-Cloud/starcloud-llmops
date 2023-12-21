@@ -68,7 +68,7 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
                 if (Objects.equals(user.getUserType(), 2)) {
                     tenantId = adminUserApi.getTenantId(user.getId());
                 }
-                // tenantId = user.getTenantId();
+                 tenantId = user.getTenantId();
                 TenantContextHolder.setTenantId(tenantId);
                 // 如果传递了租户编号，则进行比对租户编号，避免越权问题
             } else if (Objects.isNull(user.getTenantId())) {
