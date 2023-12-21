@@ -55,9 +55,9 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     /**
      * 判断权益是否充足
      *
-     * @param userId
-     * @param rightsType
-     * @param rightAmount
+     * @param userId 用户 ID
+     * @param rightsType 权益类型
+     * @param rightAmount 检测权益数 可以为空 为空 仅仅判断当前权益数大于 0
      * @return
      */
     @Override

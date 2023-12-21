@@ -134,10 +134,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             record.setValidStartTime(LocalDateTime.now());
             record.setValidEndTime(LocalDateTime.now().plusMonths(1));
         }
-       if (getLoginUserId()==null){
-           record.setCreator(String.valueOf(userId));
-           record.setUpdater(String.valueOf(userId));
-       }
+        if (getLoginUserId() == null) {
+            record.setCreator(String.valueOf(userId));
+            record.setUpdater(String.valueOf(userId));
+        }
 
         adminUserRightsMapper.insert(record);
 
@@ -175,7 +175,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
                 break;
         }
-        return validSum > rightAmount;
+        if (Objects.isNull(rightAmount) || rightAmount == 0) {
+            return validSum > 0;
+        }
+        return validSum >= rightAmount;
 
     }
 
@@ -192,10 +195,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 获取可用权益列表
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, rightsType);
         if (validRightsList.isEmpty()) {
-            if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())){
+            if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_BEAN_NOT_ENOUGH);
             }
-            if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())){
+            if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
             }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
