@@ -14,10 +14,6 @@ import java.util.List;
 @Schema(description = "小程序查询通告列表")
 public class AppNotificationQueryReqVO extends PageParam {
 
-    @Schema(description = "用户id")
-    @NotBlank(message = "用户id不能为空")
-    private String claimUserId;
-
     @Schema(description = "通告名称 左匹配")
     private String notificationName;
 
@@ -45,5 +41,7 @@ public class AppNotificationQueryReqVO extends PageParam {
 
     @Schema(description = "单个任务预算")
     private BigDecimal singleBudget;
+
+    private String claimUserId;
 
 }

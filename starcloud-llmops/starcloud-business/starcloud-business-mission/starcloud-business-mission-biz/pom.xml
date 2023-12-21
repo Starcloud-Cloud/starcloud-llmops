@@ -20,6 +20,11 @@
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-mission-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-module-member-biz</artifactId>
+            <version>${revision}</version>
+        </dependency>
 
     </dependencies>
 

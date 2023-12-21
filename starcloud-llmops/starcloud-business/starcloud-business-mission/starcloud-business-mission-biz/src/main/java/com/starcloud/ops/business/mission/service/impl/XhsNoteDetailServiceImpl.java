@@ -104,4 +104,9 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
     public PageResult<XhsNoteDetailDO> preSettlementRecord(PreSettlementRecordReqVO reqVO) {
         return noteDetailMapper.page(reqVO);
     }
+
+    @Override
+    public void abandonMission(String missionUid) {
+        noteDetailMapper.deleteByMissionUid(missionUid);
+    }
 }

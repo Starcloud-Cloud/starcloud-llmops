@@ -42,7 +42,7 @@ public interface WechatAppApi {
     /**
      * 通告详情
      */
-    AppNotificationRespVO notifyDetail(String notificationUid,String userId);
+    AppNotificationRespVO notifyDetail(String notificationUid);
 
     /**
      * 预结算记录

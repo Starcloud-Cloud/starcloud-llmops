@@ -21,7 +21,7 @@ public class AppMissionPublishReqVO {
     @NotBlank(message = "发布链接不能为空")
     private String publishUrl;
 
-    @Schema(description = "认领人id")
-    @NotBlank(message = "认领人id不能为空")
-    private String claimUserId;
+//    @Schema(description = "认领人id")
+//    @NotBlank(message = "认领人id不能为空")
+//    private String claimUserId;
 }
