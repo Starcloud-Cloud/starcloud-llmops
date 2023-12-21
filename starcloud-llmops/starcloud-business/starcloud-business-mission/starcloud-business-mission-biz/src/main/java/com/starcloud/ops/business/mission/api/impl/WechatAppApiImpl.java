@@ -103,7 +103,7 @@ public class WechatAppApiImpl implements WechatAppApi {
             if (!NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
                 throw exception(NOTIFICATION_CLOSED);
             }
-            if (notificationCenterDO.getEndTime().isAfter(LocalDateTime.now())) {
+            if (notificationCenterDO.getEndTime().isBefore(LocalDateTime.now())) {
                 throw exception(CLAIM_TIME_END);
             }
             ClaimLimitDTO claimLimit = NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit());
