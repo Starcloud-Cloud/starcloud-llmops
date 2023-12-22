@@ -117,7 +117,7 @@
         <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
             and m.status = #{reqVO.singleMissionStatus}
         </if>
-        order by m.claim_time, m.settlement_time desc
+        order by m.claim_time desc
         limit #{start},#{size}
     </select>
 </mapper>
