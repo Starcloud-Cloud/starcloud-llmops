@@ -85,7 +85,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         }
         List<AppNotificationDTO> notificationCenterDOList = notificationCenterMapper.appPage(reqVO,
                 PageUtils.getStart(reqVO), reqVO.getPageSize(),
-                NotificationSortFieldEnum.getColumn(reqVO.getSortField()), BooleanUtil.isTrue(reqVO.getAsc()) ? "ASC NULLS FIRST" : "DESC NULLS LAST");
+                NotificationSortFieldEnum.getColumn(reqVO.getSortField()), BooleanUtil.isTrue(reqVO.getAsc()) ? "ASC NULLS LAST" : "DESC NULLS LAST");
         List<AppNotificationRespVO> respVOList = NotificationCenterConvert.INSTANCE.appConvert(notificationCenterDOList);
         return new PageResult<>(respVOList, count);
     }
