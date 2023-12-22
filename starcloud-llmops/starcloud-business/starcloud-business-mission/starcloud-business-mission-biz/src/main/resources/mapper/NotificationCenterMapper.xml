@@ -38,7 +38,7 @@
                COUNT(CASE WHEN m.deleted = false THEN 1 END)                                                    AS total
         from llm_notification n
                  left join llm_single_mission m on m.notification_Uid = n.uid
-                 left join system_users u on m.creator = u.id
+                 left join system_users u on n.creator = u.id
         where n.deleted = false
         <if test="reqVO.name != null and reqVO.name != ''">
             and n.name = #{reqVO.name}
