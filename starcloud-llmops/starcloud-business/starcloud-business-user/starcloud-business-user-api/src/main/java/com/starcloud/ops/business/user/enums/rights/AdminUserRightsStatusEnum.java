@@ -16,9 +16,9 @@ import java.util.Objects;
 @Getter
 public enum AdminUserRightsStatusEnum implements IntArrayValuable {
 
-    NORMAL(1, "正常"),
-    EXPIRE(2, "过期"),
-    CANCEL(3, "取消"),
+    NORMAL(0, "正常"),
+    EXPIRE(1, "过期"),
+    CANCEL(2, "取消"),
     ;
 
     /**

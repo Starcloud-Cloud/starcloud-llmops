@@ -27,6 +27,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.temporal.ValueRange;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -104,10 +105,11 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
 
         List<AdminUserRightsCollectRespVO> rightsCollectRespVOS = new ArrayList<>();
+
         rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_BEAN.getName(), AdminUserRightsTypeEnum.MAGIC_BEAN.name(), sumMagicBeanInit,
-                sumMagicBeanInit - sumMagicBean, sumMagicBean, NumberUtil.toDouble(NumberUtil.div(sumMagicBean, sumMagicBeanInit))));
+                sumMagicBeanInit - sumMagicBean, sumMagicBean, 0));
         rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_IMAGE.getName(), AdminUserRightsTypeEnum.MAGIC_IMAGE.name(), sumMagicImageInit,
-                sumMagicImageInit - sumMagicImage, sumMagicImage, NumberUtil.toDouble(NumberUtil.div(sumMagicImage, sumMagicImageInit))));
+                sumMagicImageInit - sumMagicImage, sumMagicImage, 0));
 
         return rightsCollectRespVOS;
     }
