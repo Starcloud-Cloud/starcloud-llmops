@@ -181,6 +181,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         singleMissionDO.setCloseMsg(StringUtils.EMPTY);
         singleMissionDO.setPreSettlementMsg(StringUtils.EMPTY);
         singleMissionDO.setNoteDetailId(null);
+        singleMissionDO.setRunTime(null);
         singleMissionMapper.updateMission(singleMissionDO);
         noteDetailService.abandonMission(singleMissionDO.getUid());
     }
@@ -230,6 +231,8 @@ public class WechatAppApiImpl implements WechatAppApi {
         respVO.setNotificationName(notificationCenterDO.getName());
         respVO.setField(notificationCenterDO.getField());
         respVO.setVisitNum(notificationCenterDO.getVisitNum());
+        respVO.setStartTime(notificationCenterDO.getStartTime());
+        respVO.setEndTime(notificationCenterDO.getEndTime());
         if (SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
             respVO.setErrorMsg(missionDO.getPreSettlementMsg());
         }

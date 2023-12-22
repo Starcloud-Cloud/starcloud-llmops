@@ -42,7 +42,8 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
                 .set(SingleMissionDO::getEstimatedAmount, singleMissionDO.getEstimatedAmount())
                 .set(SingleMissionDO::getCloseMsg, singleMissionDO.getCloseMsg())
                 .set(SingleMissionDO::getPreSettlementMsg, singleMissionDO.getPreSettlementMsg())
-                .set(SingleMissionDO::getNoteDetailId, singleMissionDO.getNoteDetailId());
+                .set(SingleMissionDO::getNoteDetailId, singleMissionDO.getNoteDetailId())
+                .set(SingleMissionDO::getRunTime, singleMissionDO.getRunTime());
         update(null, updateWrapper);
     }
 
