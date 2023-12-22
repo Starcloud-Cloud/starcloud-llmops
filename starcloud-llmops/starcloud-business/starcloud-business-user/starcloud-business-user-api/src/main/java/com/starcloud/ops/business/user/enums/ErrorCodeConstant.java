@@ -64,4 +64,11 @@ public interface ErrorCodeConstant {
 
 
 
+    //========== 用户标签 2-004-006-000 ==========
+    ErrorCode TAG_NOT_EXISTS = new ErrorCode(2_004_006_000, "用户标签不存在");
+    ErrorCode TAG_NAME_EXISTS = new ErrorCode(2_004_006_001, "用户标签已经存在");
+    ErrorCode TAG_HAS_USER = new ErrorCode(2_004_006_002, "用户标签下存在用户，无法删除");
+
+
+
 }

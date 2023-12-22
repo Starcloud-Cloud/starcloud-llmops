@@ -254,14 +254,14 @@ public class ProductSpuDO extends BaseDO {
          * 权益生效时间
          */
         @Schema(description = "权益生效时间", example = "100")
-        private Integer giveEffectiveTime;
+        private Integer rightsTimeNums;
 
         /**
          * 权益生效时间单位
          */
         @Schema(description = "权益生效时间单位", example = "100")
         @InEnum(value = TimeRangeTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
-        private Integer giveEffectiveTimeUnit;
+        private Integer rightsTimeRange;
 
         /**
          * 用户等级
@@ -270,11 +270,11 @@ public class ProductSpuDO extends BaseDO {
         private Long levelId;
 
         @Schema(description = "用户等级生效时间", example = "100")
-        private Integer timeNums;
+        private Integer levelTimeNums;
 
         @Schema(description = "用户等级生效时间单位", example = "100")
         @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-        private Integer timeRange;
+        private Integer LevelTimeRange;
     }
 
     /**

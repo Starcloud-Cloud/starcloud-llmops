@@ -53,6 +53,7 @@ import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
+import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -133,6 +134,8 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Resource
     private AdminUserRightsService adminUserRightsService;
+    @Resource
+    private AdminUserTagService adminUserTagService;
 
 
     @Value("${starcloud-llm.role.code:mofaai_free}")
@@ -310,6 +313,7 @@ public class StarUserServiceImpl implements StarUserService {
         // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
         TenantUtils.execute(tenantId, () -> {
             adminUserLevelService.createInitLevelRecord(userDO.getId());
+            adminUserTagService.addNewUserTag(userDO.getId());
         });
 
 //        UserRoleDO userRoleDO = new UserRoleDO();
