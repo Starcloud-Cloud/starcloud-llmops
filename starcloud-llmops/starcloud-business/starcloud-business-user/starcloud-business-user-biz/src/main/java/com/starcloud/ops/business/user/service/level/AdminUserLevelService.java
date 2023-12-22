@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.level;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
@@ -49,7 +50,7 @@ public interface AdminUserLevelService {
      * 获取会员下有效的等级列表
      * @param userId 用户 ID
      */
-    List<AdminUserLevelDO> getLevelList(Long userId);
+    List<AdminUserLevelDetailRespVO> getLevelList(Long userId);
 
     /**
      * 等级过期提醒

@@ -30,6 +30,7 @@ import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
@@ -507,7 +508,7 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         // 获取用户等级
-        List<AdminUserLevelDO> levelList = adminUserLevelService.getLevelList(userId);
+        List<AdminUserLevelDetailRespVO>  levelList = adminUserLevelService.getLevelList(userId);
         // 获取用户权益
         List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
 

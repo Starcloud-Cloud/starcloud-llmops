@@ -22,6 +22,12 @@ public class AdminUserLevelBaseVO {
     @NotNull(message = "等级编号不能为空")
     private Long levelId;
 
+
+    @Schema(description = "等级名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "25985")
+    @NotNull(message = "等级名称不能为空")
+    private String levelName;
+
+
     /**
      * 业务编码
      */
@@ -40,7 +46,6 @@ public class AdminUserLevelBaseVO {
 
 
     @Schema(description = "备注", requiredMode = Schema.RequiredMode.REQUIRED, example = "推广需要")
-//    @NotNull(message = "备注不能为空")
     private String remark;
 
     @Schema(description = "描述", requiredMode = Schema.RequiredMode.REQUIRED, example = "升级为金牌会员")

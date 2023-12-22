@@ -68,6 +68,46 @@ public class AdminUserInfoRespVO {
         @Schema(description = "等级", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
         private Integer levelId;
 
+        @Schema(description = "会员等级配置信息", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private LevelConfig levelConfig;
+
+
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LevelConfig {
+
+        /**
+         *  可使用的应用数
+         */
+        @Schema(description = "可使用的应用数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private Integer usableApp;
+
+        /**
+         *  可使用的基础版机器人数
+         */
+        @Schema(description = "可使用的基础版机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private Integer usableBasicBot;
+
+        /**
+         *  可使用的微信机器人数
+         */
+        @Schema(description = "可使用的微信机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private Integer usableWechatBot;
+
+        /**
+         *  可使用的机器人文档数
+         */
+        @Schema(description = "可使用的机器人文档数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private Integer usableBotDocument;
+
+        /**
+         *  技能插件数
+         */
+        @Schema(description = "技能插件数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private Integer usableSkillPlugin;
+
     }
 
     @Schema(description = "系统用户会员- 会员权益")
