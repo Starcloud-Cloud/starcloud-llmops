@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AppMemberUserInfoRespVO {
 
+    @Schema(description = " 虚拟用户 ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    private String virtualId;
+
     @Schema(description = "用户昵称", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private String nickname;
 

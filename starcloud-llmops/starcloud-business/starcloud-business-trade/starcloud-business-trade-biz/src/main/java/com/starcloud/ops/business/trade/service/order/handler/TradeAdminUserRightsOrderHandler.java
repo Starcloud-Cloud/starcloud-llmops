@@ -38,19 +38,19 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
         for (GiveRightsDTO giveRight : order.getGiveRights()) {
             LocalDateTime validStartTime = LocalDateTime.now();
             LocalDateTime validEndTime;
-            TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getTimeRange());
+            TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getLevelTimeRange());
             switch (timeRangeTypeEnum) {
                 case DAY:
-                    validEndTime = validStartTime.plusDays(giveRight.getTimeNums());
+                    validEndTime = validStartTime.plusDays(giveRight.getLevelTimeNums());
                     break;
                 case WEEK:
-                    validEndTime = validStartTime.plusWeeks(giveRight.getTimeNums());
+                    validEndTime = validStartTime.plusWeeks(giveRight.getLevelTimeNums());
                     break;
                 case MONTH:
-                    validEndTime = validStartTime.plusMonths(giveRight.getTimeNums());
+                    validEndTime = validStartTime.plusMonths(giveRight.getLevelTimeNums());
                     break;
                 case YEAR:
-                    validEndTime = validStartTime.plusYears(giveRight.getTimeNums());
+                    validEndTime = validStartTime.plusYears(giveRight.getLevelTimeNums());
                     break;
                 default:
                     throw new RuntimeException("产品权益信息设置异常，请联系管理员");
@@ -60,8 +60,8 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
             adminUserLevelApi.addAdminUserLevel(
                     order.getUserId(),
                     giveRight.getLevelId(),
-                    giveRight.getTimeNums(),
-                    giveRight.getTimeRange(),
+                    giveRight.getLevelTimeNums(),
+                    giveRight.getLevelTimeRange(),
                     AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
                     String.valueOf(order.getId()));
             // 设置会员权益
