@@ -42,6 +42,7 @@ import java.util.function.Consumer;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INTEREST;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 /**
  * App 实体类, 提供基础的应用功能，封装一些基本的模版方法。
@@ -452,7 +453,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     protected void allowExpendBenefits(AdminUserRightsTypeEnum rightsType, Long userId) {
         if (!adminUserRightsApi.calculateUserRightsEnough(userId, rightsType, null)) {
-            throw exception(USER_BENEFITS_USELESS_INTEREST);
+            if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_BEAN_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
+            throw exception(USER_RIGHTS_NOT_ENOUGH);
         }
     }
 
