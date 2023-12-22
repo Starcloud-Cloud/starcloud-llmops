@@ -79,7 +79,7 @@
         <if test="reqVO.singleBudget != null">
             and (single_budget &gt;= #{reqVO.singleBudget} or single_budget is null)
         </if>
-        <if test="reqVO.notificationName != null">
+        <if test="reqVO.notificationName != null and reqVO.notificationName != ''">
             and name like concat(#{reqVO.notificationName},'%')
         </if>
         <if test="reqVO.creator != null  and reqVO.creator.size() > 0">
@@ -114,7 +114,7 @@
         <if test="reqVO.singleBudget != null">
             and (n.single_budget &gt;= #{reqVO.singleBudget}  or n.single_budget is null)
         </if>
-        <if test="reqVO.notificationName != null">
+        <if test="reqVO.notificationName != null and reqVO.notificationName != ''">
             and n.name like concat(#{reqVO.notificationName},'%')
         </if>
         <if test="reqVO.creator != null and reqVO.creator.size() > 0">
