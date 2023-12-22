@@ -1,14 +1,17 @@
 package com.starcloud.ops.business.user.service.level;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
@@ -16,6 +19,8 @@ import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfig
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +28,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -39,6 +41,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_
  *
  * @author owen
  */
+@Slf4j
 @Service
 @Validated
 public class AdminUserLevelServiceImpl implements AdminUserLevelService {
@@ -93,10 +96,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         } else {
             endTime = getSpecificTime(startTime, createReqVO.getTimeNums(), createReqVO.getTimeRange());
         }
-
         AdminUserLevelDO AdminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
-        if (getLoginUserId()==null){
+        if (getLoginUserId() == null) {
             AdminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
             AdminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
         }
@@ -151,8 +153,33 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      * @param userId
      */
     @Override
-    public List<AdminUserLevelDO> getLevelList(Long userId) {
-        return adminUserLevelMapper.selectValidList(userId);
+    public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
+        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectValidList(userId);
+        List<AdminUserLevelDetailRespVO> adminUserLevelDetailRespVOS = new ArrayList<>();
+
+        for (AdminUserLevelDO level : adminUserLevelDOS) {
+            AdminUserLevelConfigDO levelConfig;
+            try {
+                levelConfig = levelConfigService.getLevelConfig(level.getLevelId());
+            } catch (Exception e) {
+                log.warn("未获取到该会员等级，{}", level.getLevelId());
+                continue; // 或者跳过当前循环迭代
+            }
+
+            AdminUserLevelDetailRespVO adminUserLevelDetailRespVO = new AdminUserLevelDetailRespVO();
+            adminUserLevelDetailRespVO.setUserId(userId)
+                    .setLevelId(level.getLevelId())
+                    .setLevelName(level.getLevelName())
+                    .setBizType(level.getBizType());
+            adminUserLevelDetailRespVO.setSort(levelConfig.getSort())
+                    .setLevelConfig(BeanUtil.toBean(levelConfig.getLevelConfig(), AdminUserLevelDetailRespVO.LevelConfig.class));
+
+            adminUserLevelDetailRespVOS.add(adminUserLevelDetailRespVO);
+        }
+
+        return adminUserLevelDetailRespVOS.stream()
+                .sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort))
+                .collect(Collectors.toList());
 
     }
 
@@ -169,7 +196,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         LocalDateTime today = LocalDateTime.now();
         LocalDateTime nextWeek = today.plusDays(7);
         List<AdminUserLevelDO> validLevelList = adminUserLevelMapper.selectValidList(userId);
-        if (CollUtil.isEmpty(validLevelList)){
+        if (CollUtil.isEmpty(validLevelList)) {
             return notifyExpiringLevelRespVO;
         }
 
@@ -178,7 +205,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
                 .filter(level -> level.getValidEndTime().isBefore(nextWeek) && level.getValidEndTime().isAfter(today))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
-        if (CollUtil.isEmpty(nextWeekExpiringLevel)){
+        if (CollUtil.isEmpty(nextWeekExpiringLevel)) {
             return notifyExpiringLevelRespVO;
         }
 

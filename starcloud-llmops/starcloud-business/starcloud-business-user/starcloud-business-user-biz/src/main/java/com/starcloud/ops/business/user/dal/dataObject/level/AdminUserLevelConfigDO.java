@@ -4,12 +4,14 @@ import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.List;
  *
  * @author owen
  */
-@TableName("system_user_level_config")
+@TableName(value = "system_user_level_config", autoResultMap = true)
 @KeySequence("system_user_level_config_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -56,6 +58,11 @@ public class AdminUserLevelConfigDO extends BaseDO {
      */
     private String icon;
 
+    /**
+     * 显示顺序
+     */
+    private Integer sort;
+
     // ========== 等级配置 =========
     /**
      * 等级配置
@@ -64,7 +71,7 @@ public class AdminUserLevelConfigDO extends BaseDO {
      * 属性数组，JSON 格式
      */
     @TableField(typeHandler = LevelConfigTypeHandler.class)
-    private List<LevelConfig> levelConfig;
+    private LevelConfig levelConfig;
     /**
      * 等级背景图
      */
@@ -89,7 +96,7 @@ public class AdminUserLevelConfigDO extends BaseDO {
         /**
          *  可使用的应用数
          */
-        private Boolean usableApp;
+        private Integer usableApp;
 
         /**
          *  可使用的基础版机器人数

@@ -16,13 +16,13 @@ import java.util.Objects;
 @Getter
 public enum AdminUserLevelBizTypeEnum implements IntArrayValuable {
 
-    REGISTER(1, "注册", "用户首次注册设置 {} 用户等级"),
-    ADMIN(99, "管理员修改", "管理员修改 {} 用户等级"),
+    REGISTER(1, "注册", "用户首次注册设置{}用户等级"),
+    ADMIN(99, "管理员修改", "管理员修改{}用户等级"),
 
 
-    ORDER_GIVE(21, "订单用户等级奖励", "下单获得 {} 用户等级"), // 支付订单时，赠送积分
-    ORDER_GIVE_CANCEL(22, "订单用户等级奖励（整单取消）", "订单取消，退还 {} 用户等级"), // ORDER_GIVE 的取消
-    ORDER_GIVE_CANCEL_ITEM(23, "订单用户等级奖励（单个退款）", "订单退款，扣除赠送的 {} 用户等级") // ORDER_GIVE 的取消
+    ORDER_GIVE(21, "订单用户等级奖励", "下单获得{}用户等级"), // 支付订单时，赠送积分
+    ORDER_GIVE_CANCEL(22, "订单用户等级奖励（整单取消）", "订单取消，退还{}用户等级"), // ORDER_GIVE 的取消
+    ORDER_GIVE_CANCEL_ITEM(23, "订单用户等级奖励（单个退款）", "订单退款，扣除赠送的{}用户等级") // ORDER_GIVE 的取消
     ;
 
     /**

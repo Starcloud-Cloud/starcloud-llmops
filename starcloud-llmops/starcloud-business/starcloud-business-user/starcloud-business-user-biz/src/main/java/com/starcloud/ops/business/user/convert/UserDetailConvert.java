@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.convert;
 
 
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
@@ -22,6 +23,6 @@ public interface UserDetailConvert {
 
     @Mapping(source = "adminUserLevelDOS", target = "levels")
     @Mapping(source = "adminUserRightsCollectRespVOS", target = "rights")
-    AdminUserInfoRespVO useToDetail02(AdminUserDO userDO, List<AdminUserLevelDO> adminUserLevelDOS, List<AdminUserRightsCollectRespVO> adminUserRightsCollectRespVOS);
+    AdminUserInfoRespVO useToDetail02(AdminUserDO userDO, List<AdminUserLevelDetailRespVO> adminUserLevelDOS, List<AdminUserRightsCollectRespVO> adminUserRightsCollectRespVOS);
 
 }
