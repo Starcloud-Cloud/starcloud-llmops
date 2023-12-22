@@ -38,7 +38,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
         for (GiveRightsDTO giveRight : order.getGiveRights()) {
             LocalDateTime validStartTime = LocalDateTime.now();
             LocalDateTime validEndTime;
-            TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getLevelTimeRange());
+            TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getRightsTimeRange());
             switch (timeRangeTypeEnum) {
                 case DAY:
                     validEndTime = validStartTime.plusDays(giveRight.getLevelTimeNums());
