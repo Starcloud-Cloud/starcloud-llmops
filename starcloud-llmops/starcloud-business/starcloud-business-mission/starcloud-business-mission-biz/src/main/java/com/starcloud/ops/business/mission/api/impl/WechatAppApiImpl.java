@@ -120,7 +120,7 @@ public class WechatAppApiImpl implements WechatAppApi {
             }
             SingleMissionDO singleMissionDO = stayClaimMission.get();
             singleMissionDO.setClaimUserId(user.getId().toString());
-            singleMissionDO.setClaimUsername(user.getNickname());
+//            singleMissionDO.setClaimUsername(user.getNickname());
             singleMissionDO.setClaimTime(LocalDateTime.now());
             singleMissionDO.setStatus(SingleMissionStatusEnum.claimed.getCode());
             singleMissionMapper.updateById(singleMissionDO);
@@ -167,7 +167,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         }
         NotificationCenterDO notificationCenterDO = notificationByUid(singleMissionDO.getNotificationUid());
         singleMissionDO.setClaimUserId(StringUtils.EMPTY);
-        singleMissionDO.setClaimUsername(StringUtils.EMPTY);
+//        singleMissionDO.setClaimUsername(StringUtils.EMPTY);
         singleMissionDO.setClaimTime(null);
         singleMissionDO.setPublishUrl(StringUtils.EMPTY);
         singleMissionDO.setPublishTime(null);

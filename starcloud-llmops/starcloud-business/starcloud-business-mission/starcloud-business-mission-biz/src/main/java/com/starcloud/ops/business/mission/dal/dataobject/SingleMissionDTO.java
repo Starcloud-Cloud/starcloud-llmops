@@ -24,4 +24,9 @@ public class SingleMissionDTO extends SingleMissionDO{
      * 创作计划
      */
     private String planName;
+
+    /**
+     * 认领人
+     */
+    private String claimUsername;
 }
