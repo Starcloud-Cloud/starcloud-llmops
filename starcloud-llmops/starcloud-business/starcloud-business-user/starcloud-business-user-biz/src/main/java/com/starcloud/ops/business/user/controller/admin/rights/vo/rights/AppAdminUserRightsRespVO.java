@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.user.controller.admin.rights.vo.rights;
 
+import cn.iocoder.yudao.framework.common.validation.InEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -11,6 +13,15 @@ public class AppAdminUserRightsRespVO {
 
     @Schema(description = "自增主键", requiredMode = Schema.RequiredMode.REQUIRED, example = "31457")
     private Long id;
+
+    /**
+     * 业务类型
+     * <p>
+     * 枚举 {@link AdminUserRightsBizTypeEnum}
+     */
+    @Schema(description = "积分标题", requiredMode = Schema.RequiredMode.REQUIRED, example = "你猜")
+    @InEnum(AdminUserRightsBizTypeEnum.class)
+    private Integer bizType;
 
     @Schema(description = "积分标题", requiredMode = Schema.RequiredMode.REQUIRED, example = "你猜")
     private String title;
@@ -24,7 +35,13 @@ public class AppAdminUserRightsRespVO {
     @Schema(description = "图片", requiredMode = Schema.RequiredMode.REQUIRED, example = "100")
     private Integer magicImageInit;
 
-    @Schema(description = "发生时间", requiredMode = Schema.RequiredMode.REQUIRED)
-    private LocalDateTime createTime;
+    @Schema(description = "生效时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    private LocalDateTime validStartTime;
+
+    @Schema(description = "过期时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    private LocalDateTime validEndTime;
+
+    @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer status;
 
 }
