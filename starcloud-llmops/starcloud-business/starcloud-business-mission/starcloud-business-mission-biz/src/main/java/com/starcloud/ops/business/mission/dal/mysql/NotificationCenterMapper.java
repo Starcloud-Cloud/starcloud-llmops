@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.mission.api.vo.request.AppNotificationQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NotificationPageQueryReqVO;
 import com.starcloud.ops.business.mission.dal.dataobject.AppNotificationDTO;
@@ -39,7 +40,9 @@ public interface NotificationCenterMapper extends BaseMapperX<NotificationCenter
 
     default Long count(String creator) {
         LambdaQueryWrapper<NotificationCenterDO> wrapper = Wrappers.lambdaQuery(NotificationCenterDO.class)
-                .eq(NotificationCenterDO::getCreator, creator);
+                .eq(NotificationCenterDO::getCreator, creator)
+                .eq(NotificationCenterDO::getStatus, NotificationCenterStatusEnum.published.getCode())
+                ;
         return this.selectCount(wrapper);
     }
 
