@@ -117,4 +117,9 @@ public class AppSingleMissionRespVO {
     @Schema(description = "访问次数")
     private Integer visitNum;
 
+    @Schema(description = "任务开始时间")
+    private LocalDateTime startTime;
+
+    @Schema(description = "任务结束时间")
+    private LocalDateTime endTime;
 }
