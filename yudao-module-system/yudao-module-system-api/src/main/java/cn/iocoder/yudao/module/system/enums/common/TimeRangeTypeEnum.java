@@ -34,7 +34,6 @@ public enum TimeRangeTypeEnum implements IntArrayValuable {
      */
     YEAR(365),
     ;
-
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(TimeRangeTypeEnum::getType).toArray();
 
     /**
