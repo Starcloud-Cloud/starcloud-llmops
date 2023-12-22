@@ -26,25 +26,25 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 会员标签")
 @RestController
-@RequestMapping("/member/tag")
+@RequestMapping("/llm/member/tag")
 @Validated
 public class AdminUserTagConfigController {
 
     @Resource
-    private AdminUserTagConfigService tagService;
+    private AdminUserTagConfigService adminUserTagConfigService;
 
     @PostMapping("/create")
     @Operation(summary = "创建会员标签")
     @PreAuthorize("@ss.hasPermission('member:tag:create')")
     public CommonResult<Long> createTag(@Valid @RequestBody AdminUserTagConfigCreateReqVO createReqVO) {
-        return success(tagService.createTag(createReqVO));
+        return success(adminUserTagConfigService.createTag(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新会员标签")
     @PreAuthorize("@ss.hasPermission('member:tag:update')")
     public CommonResult<Boolean> updateTag(@Valid @RequestBody AdminUserTagConfigUpdateReqVO updateReqVO) {
-        tagService.updateTag(updateReqVO);
+        adminUserTagConfigService.updateTag(updateReqVO);
         return success(true);
     }
 
@@ -53,7 +53,7 @@ public class AdminUserTagConfigController {
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('member:tag:delete')")
     public CommonResult<Boolean> deleteTag(@RequestParam("id") Long id) {
-        tagService.deleteTag(id);
+        adminUserTagConfigService.deleteTag(id);
         return success(true);
     }
 
@@ -62,7 +62,7 @@ public class AdminUserTagConfigController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('member:tag:query')")
     public CommonResult<AdminUserTagConfigRespVO> getMemberTag(@RequestParam("id") Long id) {
-        AdminUserTagConfigDO tag = tagService.getTag(id);
+        AdminUserTagConfigDO tag = adminUserTagConfigService.getTag(id);
         return success(MemberTagConvert.INSTANCE.convert(tag));
     }
 
@@ -70,7 +70,7 @@ public class AdminUserTagConfigController {
     @Operation(summary = "获取会员标签精简信息列表", description = "只包含被开启的会员标签，主要用于前端的下拉选项")
     public CommonResult<List<AdminUserTagConfigRespVO>> getSimpleTagList() {
         // 获用户列表，只要开启状态的
-        List<AdminUserTagConfigDO> list = tagService.getTagList();
+        List<AdminUserTagConfigDO> list = adminUserTagConfigService.getTagList();
         // 排序后，返回给前端
         return success(MemberTagConvert.INSTANCE.convertList(list));
     }
@@ -80,7 +80,7 @@ public class AdminUserTagConfigController {
     @Parameter(name = "ids", description = "编号列表", required = true, example = "1024,2048")
     @PreAuthorize("@ss.hasPermission('member:tag:query')")
     public CommonResult<List<AdminUserTagConfigRespVO>> getMemberTagList(@RequestParam("ids") Collection<Long> ids) {
-        List<AdminUserTagConfigDO> list = tagService.getTagList(ids);
+        List<AdminUserTagConfigDO> list = adminUserTagConfigService.getTagList(ids);
         return success(MemberTagConvert.INSTANCE.convertList(list));
     }
 
@@ -88,7 +88,7 @@ public class AdminUserTagConfigController {
     @Operation(summary = "获得会员标签分页")
     @PreAuthorize("@ss.hasPermission('member:tag:query')")
     public CommonResult<PageResult<AdminUserTagConfigRespVO>> getTagPage(@Valid AdminUserTagConfigPageReqVO pageVO) {
-        PageResult<AdminUserTagConfigDO> pageResult = tagService.getTagPage(pageVO);
+        PageResult<AdminUserTagConfigDO> pageResult = adminUserTagConfigService.getTagPage(pageVO);
         return success(MemberTagConvert.INSTANCE.convertPage(pageResult));
     }
 
