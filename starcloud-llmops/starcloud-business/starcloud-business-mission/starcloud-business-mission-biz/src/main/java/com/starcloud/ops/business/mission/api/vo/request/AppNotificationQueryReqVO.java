@@ -28,7 +28,7 @@ public class AppNotificationQueryReqVO extends PageParam {
     private String platform;
 
     @Schema(description = "类目")
-    private String field;
+    private List<String> fields;
 
     @Schema(description = "排序字段")
     private String sortField;

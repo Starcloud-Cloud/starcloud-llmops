@@ -70,9 +70,6 @@
         <if test="reqVO.platform != null and reqVO.platform != ''">
             and platform = #{reqVO.platform}
         </if>
-        <if test="reqVO.field != null and reqVO.field != ''">
-            and field = #{reqVO.field}
-        </if>
         <if test="reqVO.minFansNum != null">
             and min_fans_num &gt;= #{reqVO.minFansNum}
         </if>
@@ -85,6 +82,12 @@
         <if test="reqVO.creator != null  and reqVO.creator.size() > 0">
             and creator in
             <foreach collection="reqVO.creator" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="reqVO.fields != null  and reqVO.fields.size() > 0">
+            and field in
+            <foreach collection="reqVO.fields" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
@@ -105,9 +108,6 @@
         <if test="reqVO.platform != null and reqVO.platform != ''">
             and n.platform = #{reqVO.platform}
         </if>
-        <if test="reqVO.field != null and reqVO.field != ''">
-            and n.field = #{reqVO.field}
-        </if>
         <if test="reqVO.minFansNum != null">
             and n.min_fans_num &gt;= #{reqVO.minFansNum}
         </if>
@@ -120,6 +120,12 @@
         <if test="reqVO.creator != null and reqVO.creator.size() > 0">
             and n.creator in
             <foreach collection="reqVO.creator" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="reqVO.fields != null  and reqVO.fields.size() > 0">
+            and n.field in
+            <foreach collection="reqVO.fields" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
