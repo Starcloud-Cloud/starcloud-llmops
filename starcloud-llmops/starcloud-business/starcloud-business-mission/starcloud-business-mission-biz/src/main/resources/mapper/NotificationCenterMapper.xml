@@ -70,9 +70,6 @@
         <if test="reqVO.platform != null and reqVO.platform != ''">
             and platform = #{reqVO.platform}
         </if>
-<!--        <if test="reqVO.field != null and reqVO.field != ''">-->
-<!--            and field = #{reqVO.field}-->
-<!--        </if>-->
         <if test="reqVO.minFansNum != null">
             and min_fans_num &gt;= #{reqVO.minFansNum}
         </if>
@@ -111,9 +108,6 @@
         <if test="reqVO.platform != null and reqVO.platform != ''">
             and n.platform = #{reqVO.platform}
         </if>
-<!--        <if test="reqVO.field != null and reqVO.field != ''">-->
-<!--            and n.field = #{reqVO.field}-->
-<!--        </if>-->
         <if test="reqVO.minFansNum != null">
             and n.min_fans_num &gt;= #{reqVO.minFansNum}
         </if>
