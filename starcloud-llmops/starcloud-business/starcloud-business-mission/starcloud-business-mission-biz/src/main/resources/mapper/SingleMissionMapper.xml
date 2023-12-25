@@ -105,7 +105,14 @@
         from llm_single_mission
         where deleted = false and claim_user_id = #{reqVO.claimUserId}
         <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
-            and status = #{reqVO.singleMissionStatus}
+            <choose>
+                <when test="reqVO.singleMissionStatus == 'published'">
+                    and status in ('published','pre_settlement')
+                </when>
+                <otherwise>
+                    and status = #{reqVO.singleMissionStatus}
+                </otherwise>
+            </choose>
         </if>
     </select>
 
