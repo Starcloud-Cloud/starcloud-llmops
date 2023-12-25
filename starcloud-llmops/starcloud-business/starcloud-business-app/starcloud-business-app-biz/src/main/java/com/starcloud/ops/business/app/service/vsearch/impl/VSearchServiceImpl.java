@@ -1,14 +1,13 @@
 package com.starcloud.ops.business.app.service.vsearch.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.VSearchClient;
+import com.starcloud.ops.business.app.feign.dto.VSearchImage;
 import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.request.vsearch.VSearchUpscaleImageRequest;
-import com.starcloud.ops.business.app.feign.dto.VSearchImage;
 import com.starcloud.ops.business.app.feign.response.VSearchResponse;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +50,6 @@ public class VSearchServiceImpl implements VSearchService {
      */
     @Override
     public List<VSearchImage> generateImage(VSearchImageRequest request) {
-        log.info(JSONUtil.toJsonPrettyStr(request));
         // 生成图片
         VSearchResponse<List<VSearchImage>> response = vSearchClient.generateImage(request);
         // 校验响应结果
@@ -68,7 +66,6 @@ public class VSearchServiceImpl implements VSearchService {
      */
     @Override
     public List<VSearchImage> upscaleImage(VSearchUpscaleImageRequest request) {
-        log.info(JSONUtil.toJsonPrettyStr(request));
         // 生成图片
         VSearchResponse<List<VSearchImage>> response = vSearchClient.upscaleImage(request);
         // 校验响应结果
