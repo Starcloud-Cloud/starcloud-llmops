@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.vsearch.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -50,6 +51,7 @@ public class VSearchServiceImpl implements VSearchService {
      */
     @Override
     public List<VSearchImage> generateImage(VSearchImageRequest request) {
+        log.info(JSONUtil.toJsonPrettyStr(request));
         // 生成图片
         VSearchResponse<List<VSearchImage>> response = vSearchClient.generateImage(request);
         // 校验响应结果
@@ -66,6 +68,7 @@ public class VSearchServiceImpl implements VSearchService {
      */
     @Override
     public List<VSearchImage> upscaleImage(VSearchUpscaleImageRequest request) {
+        log.info(JSONUtil.toJsonPrettyStr(request));
         // 生成图片
         VSearchResponse<List<VSearchImage>> response = vSearchClient.upscaleImage(request);
         // 校验响应结果
