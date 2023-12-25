@@ -116,7 +116,14 @@
         where m.deleted = false
         and m.claim_user_id = #{reqVO.claimUserId}
         <if test="reqVO.singleMissionStatus != null and reqVO.singleMissionStatus != ''">
-            and m.status = #{reqVO.singleMissionStatus}
+            <choose>
+                <when test="reqVO.singleMissionStatus == 'published'">
+                    and m.status in ('published','pre_settlement')
+                </when>
+                <otherwise>
+                    and m.status = #{reqVO.singleMissionStatus}
+                </otherwise>
+            </choose>
         </if>
         order by m.claim_time desc
         limit #{start},#{size}
