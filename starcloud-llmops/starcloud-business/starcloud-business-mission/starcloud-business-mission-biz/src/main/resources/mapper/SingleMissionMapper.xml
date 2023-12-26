@@ -10,7 +10,7 @@
         and (m.pre_settlement_time is null or m.pre_settlement_time &lt; DATE_SUB(NOW(), INTERVAL 6 hour))
         and (m.run_time is null or m.run_time &lt;= DATE_SUB(NOW(), INTERVAL 6 hour))
         and m.status in ('published','pre_settlement','pre_settlement_error')
-        and n.end_time &gt;= now()
+        and n.end_time &gt; now()
         <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
             and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}
         </if>
