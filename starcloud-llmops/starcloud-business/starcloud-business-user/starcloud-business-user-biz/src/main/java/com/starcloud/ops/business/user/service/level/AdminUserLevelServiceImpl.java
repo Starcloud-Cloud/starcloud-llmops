@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -101,14 +102,15 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         } else {
             endTime = getSpecificTime(startTime, createReqVO.getTimeNums(), createReqVO.getTimeRange());
         }
-        AdminUserLevelDO AdminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
+        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
         if (getLoginUserId() == null) {
-            AdminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
-            AdminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
+            adminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
+            adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
         }
+        adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
         // 3.0 添加会员等级记录
-        adminUserLevelMapper.insert(AdminUserLevelDO);
+        adminUserLevelMapper.insert(adminUserLevelDO);
         // 获取当前用户角色
         Set<Long> userRoleIdListByUserId = permissionService.getUserRoleIdListByUserId(createReqVO.getUserId());
 
