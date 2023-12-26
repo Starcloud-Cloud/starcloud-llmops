@@ -28,7 +28,7 @@ public class SingleMissionModifyReqVO {
     private LocalDateTime claimTime;
 
     @Schema(description = "发布链接", example ="https://www.xiaohongshu.com/explore/24位数字和字母")
-    @Pattern(regexp = XHS_URL_REGEX, message = "发布链接为浏览器访问地址，如： https://www.xiaohongshu.com/explore/24位数字和字母")
+//    @Pattern(regexp = XHS_URL_REGEX, message = "发布链接为浏览器访问地址，如： https://www.xiaohongshu.com/explore/24位数字和字母")
     private String publishUrl;
 
     @Schema(description = "发布时间")
