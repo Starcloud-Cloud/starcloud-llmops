@@ -18,13 +18,14 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -48,12 +49,9 @@ import java.util.Objects;
 @Data
 public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
 
-    /**
-     * 用户权益服务
-     */
     @JsonIgnore
     @JSONField(serialize = false)
-    private static UserBenefitsService benefitsService = SpringUtil.getBean(UserBenefitsService.class);
+    private static AdminUserRightsApi adminUserRightsApi = SpringUtil.getBean(AdminUserRightsApi.class);
 
     /**
      * 图片生成服务
@@ -122,7 +120,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         }
         try {
             // 检测权益
-            this.allowExpendBenefits(BenefitsTypeEnums.IMAGE.getCode(), request.getUserId());
+            this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_IMAGE, request.getUserId());
 
             // 调用图片生成服务
             BaseImageResponse imageResponse = imageHandler.handle(request.getImageRequest());
@@ -133,7 +131,13 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             imageResponse.setFinishTime(new Date());
             // 扣除权益
             Integer costPoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
-            benefitsService.expendBenefits(BenefitsTypeEnums.IMAGE.getCode(), (long) costPoints, request.getUserId(), request.getConversationUid());
+            adminUserRightsApi.reduceRights(
+                    request.getUserId(), // 用户ID
+                    AdminUserRightsTypeEnum.MAGIC_IMAGE, // 权益类型
+                    costPoints, // 权益点数
+                    UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType(), // 业务类型
+                    request.getConversationUid() // 会话ID
+            );
             stopWatch.stop();
 
             // 记录消息日志

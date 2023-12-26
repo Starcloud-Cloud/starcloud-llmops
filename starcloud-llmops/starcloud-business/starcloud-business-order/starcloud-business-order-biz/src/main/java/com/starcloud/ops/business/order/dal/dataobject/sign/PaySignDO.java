@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.order.dal.dataobject.sign;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.starcloud.ops.business.order.dal.dataobject.merchant.PayAppDO;

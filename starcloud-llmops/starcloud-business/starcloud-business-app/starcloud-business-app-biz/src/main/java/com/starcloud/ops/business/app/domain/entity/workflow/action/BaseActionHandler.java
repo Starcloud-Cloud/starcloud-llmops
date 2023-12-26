@@ -14,8 +14,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,9 +37,11 @@ import java.util.Map;
 public abstract class BaseActionHandler<Q, R> {
 
     /**
-     * 权益服务
+     * 扣除权益
      */
-    private static final UserBenefitsService USER_BENEFITS_SERVICE = SpringUtil.getBean(UserBenefitsService.class);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AdminUserRightsApi ADMIN_USER_RIGHTS_API = SpringUtil.getBean(AdminUserRightsApi.class);
 
     /**
      * 步骤名称
@@ -131,7 +135,14 @@ public abstract class BaseActionHandler<Q, R> {
                 BenefitsTypeEnums benefitsType = this.getBenefitsType();
                 // 权益点数
                 Integer costPoints = actionResponse.getCostPoints();
-                USER_BENEFITS_SERVICE.expendBenefits(benefitsType.getCode(), (long) costPoints, context.getUserId(), context.getConversationUid());
+                // 扣除权益
+                ADMIN_USER_RIGHTS_API.reduceRights(
+                        context.getUserId(), // 用户ID
+                        AdminUserRightsTypeEnum.MAGIC_BEAN, // 权益类型
+                        costPoints, // 权益点数
+                        UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType(), // 业务类型
+                        context.getConversationUid() // 会话ID
+                );
                 log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", benefitsType.getCode(), costPoints, context.getUserId(), context.getConversationUid());
             }
 

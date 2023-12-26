@@ -67,11 +67,11 @@ public interface NotificationCenterConvert {
         }
 
         if (CollectionUtils.isEmpty(claimLimitDTO.getAddress())) {
-            claimLimitDTO.setAddress(Collections.singletonList(AddressEnum.unlimited.getCode()));
+            claimLimitDTO.setAddress(Collections.singletonList("unlimited"));
         }
 
         if (StringUtils.isBlank(claimLimitDTO.getGender())) {
-            claimLimitDTO.setGender(GenderEnum.unlimited.getCode());
+            claimLimitDTO.setGender("unlimited");
         }
 
 //        if (StringUtils.isBlank(claimLimitDTO.getAccountType())) {

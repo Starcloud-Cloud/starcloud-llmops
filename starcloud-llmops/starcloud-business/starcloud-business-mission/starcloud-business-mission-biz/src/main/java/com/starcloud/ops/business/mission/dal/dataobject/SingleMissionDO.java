@@ -58,10 +58,10 @@ public class SingleMissionDO extends TenantBaseDO {
      */
     private String claimUserId;
 
-    /**
-     * 认领人
-     */
-    private String claimUsername;
+//    /**
+//     * 认领人
+//     */
+//    private String claimUsername;
 
     /**
      * 认领时间

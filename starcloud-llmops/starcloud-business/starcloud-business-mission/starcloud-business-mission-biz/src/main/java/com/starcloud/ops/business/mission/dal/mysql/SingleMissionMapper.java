@@ -33,7 +33,7 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
     default void updateMission(SingleMissionDO singleMissionDO) {
         LambdaUpdateWrapper<SingleMissionDO> updateWrapper = Wrappers.lambdaUpdate(SingleMissionDO.class).eq(SingleMissionDO::getId, singleMissionDO.getId())
                 .set(SingleMissionDO::getClaimUserId, singleMissionDO.getClaimUserId())
-                .set(SingleMissionDO::getClaimUsername, singleMissionDO.getClaimUsername())
+//                .set(SingleMissionDO::getClaimUsername, singleMissionDO.getClaimUsername())
                 .set(SingleMissionDO::getClaimTime, singleMissionDO.getClaimTime())
                 .set(SingleMissionDO::getPublishUrl, singleMissionDO.getPublishUrl())
                 .set(SingleMissionDO::getPublishTime, singleMissionDO.getPublishTime())
@@ -42,7 +42,8 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
                 .set(SingleMissionDO::getEstimatedAmount, singleMissionDO.getEstimatedAmount())
                 .set(SingleMissionDO::getCloseMsg, singleMissionDO.getCloseMsg())
                 .set(SingleMissionDO::getPreSettlementMsg, singleMissionDO.getPreSettlementMsg())
-                .set(SingleMissionDO::getNoteDetailId, singleMissionDO.getNoteDetailId());
+                .set(SingleMissionDO::getNoteDetailId, singleMissionDO.getNoteDetailId())
+                .set(SingleMissionDO::getRunTime, singleMissionDO.getRunTime());
         update(null, updateWrapper);
     }
 

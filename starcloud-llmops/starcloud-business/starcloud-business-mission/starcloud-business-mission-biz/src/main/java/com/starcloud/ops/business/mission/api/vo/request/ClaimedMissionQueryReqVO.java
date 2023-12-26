@@ -12,8 +12,8 @@ import javax.validation.constraints.NotBlank;
 @Schema(description = "已认领任务查询")
 public class ClaimedMissionQueryReqVO extends PageParam {
 
-    @Schema(description = "认领人id")
-    @NotBlank(message = "认领人id不能为空")
+//    @Schema(description = "认领人id")
+//    @NotBlank(message = "认领人id不能为空")
     private String claimUserId;
 
     @Schema(description = "任务状态")

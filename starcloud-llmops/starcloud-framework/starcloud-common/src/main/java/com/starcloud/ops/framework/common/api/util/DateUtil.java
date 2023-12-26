@@ -1,7 +1,7 @@
 package com.starcloud.ops.framework.common.api.util;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -79,7 +79,7 @@ public class DateUtil {
      * @return {@link LocalDate} 对象 <br>
      */
     public static LocalDate toLocalDate(String date) {
-        if (StringUtils.isBlank(date)) {
+        if (StrUtil.isBlank(date)) {
             throw new IllegalArgumentException("date is cannot be blank");
         }
 
@@ -121,7 +121,7 @@ public class DateUtil {
      * @return {@link LocalDateTime} 对象
      */
     public static LocalDateTime toLocalDateTime(String dateTime) {
-        if (StringUtils.isBlank(dateTime)) {
+        if (StrUtil.isBlank(dateTime)) {
             throw new IllegalArgumentException("dateTime is cannot be blank");
         }
 

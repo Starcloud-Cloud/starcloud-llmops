@@ -11,13 +11,12 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.UserRoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
@@ -26,22 +25,25 @@ import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
-import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
 import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
-import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
@@ -50,6 +52,9 @@ import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
+import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +63,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -103,11 +106,11 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private UserRoleMapper userRoleMapper;
 
-    @Autowired
-    private PermissionProducer permissionProducer;
+//    @Autowired
+//    private PermissionProducer permissionProducer;
 
-    @Autowired
-    private UserBenefitsService benefitsService;
+//    @Autowired
+//    private UserBenefitsService benefitsService;
 
     @Resource
     private InvitationRecordsService invitationRecordsService;
@@ -126,6 +129,20 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private SendSocialMsgService sendSocialMsgService;
 
+
+    @Resource
+    private AdminUserLevelService adminUserLevelService;
+
+    @Resource
+    private AdminUserRightsService adminUserRightsService;
+    @Resource
+    private AdminUserTagService adminUserTagService;
+
+    @Resource
+    private TradeOrderApi tradeOrderApi;
+
+
+
     @Value("${starcloud-llm.role.code:mofaai_free}")
     private String roleCode;
 
@@ -135,6 +152,7 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+//    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
     public boolean register(RegisterRequest request) {
         validateEmailAndUsername(request.getUsername(), request.getEmail());
         String activationCode = IdUtil.getSnowflakeNextIdStr();
@@ -175,13 +193,13 @@ public class StarUserServiceImpl implements StarUserService {
         registerUserDO.setUserId(userId);
         mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
         int insert = registerUserMapper.insert(registerUserDO);
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                permissionProducer.sendUserRoleRefreshMessage();
-            }
-
-        });
+//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//            @Override
+//            public void afterCommit() {
+//                permissionProducer.sendUserRoleRefreshMessage();
+//            }
+//
+//        });
         return insert > 0;
     }
 
@@ -196,17 +214,23 @@ public class StarUserServiceImpl implements StarUserService {
             if (inviteUserId != null && inviteUserId > 0) {
 
                 // 增加邀请记录
-                invitationRecordsService.createInvitationRecords(inviteUserId, currentUserId);
+                Long invitationId = invitationRecordsService.createInvitationRecords(inviteUserId, currentUserId);
+                log.info("邀请记录添加成功，开始发送注册与邀请权益");
 
-                // 邀请注册权益 邀请人
-                benefitsService.addUserBenefitsInvitation(inviteUserId, currentUserId);
+                TenantUtils.execute(tenantId, () -> {
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
+                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
+                });
+
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
 
                 // 获取当天的邀请记录
                 List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
                 if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
-                    benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
+                    TenantUtils.execute(tenantId, () -> {
+                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
+                    });
                     sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
                             "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
                                     "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
@@ -214,7 +238,9 @@ public class StarUserServiceImpl implements StarUserService {
 
             } else {
                 // 普通注册权益
-                benefitsService.addUserBenefitsSign(currentUserId);
+                TenantUtils.execute(tenantId, () -> {
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
+                });
             }
 
         } catch (Exception e) {
@@ -284,18 +310,24 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setMobile(userDTO.getMobile());
         adminUserMapper.insert(userDO);
 
-        RoleDO roleDO = roleMapper.selectByCode(roleCode, tenantId);
-        if (roleDO == null) {
-            throw exception(ROLE_NOT_EXIST);
-        }
+//        RoleDO roleDO = roleMapper.selectByCode(roleCode, tenantId);
+//        if (roleDO == null) {
+//            throw exception(ROLE_NOT_EXIST);
+//        }
 
-        UserRoleDO userRoleDO = new UserRoleDO();
-        userRoleDO.setRoleId(roleDO.getId());
-        userRoleDO.setUserId(userDO.getId());
-        userRoleDO.setCreator(userDO.getUsername());
-        userRoleDO.setUpdater(userDO.getUpdater());
-        userRoleDO.setTenantId(userDO.getTenantId());
-        userRoleMapper.insert(userRoleDO);
+        // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
+        TenantUtils.execute(tenantId, () -> {
+            adminUserLevelService.createInitLevelRecord(userDO.getId());
+            adminUserTagService.addNewUserTag(userDO.getId());
+        });
+
+//        UserRoleDO userRoleDO = new UserRoleDO();
+//        userRoleDO.setRoleId(roleDO.getId());
+//        userRoleDO.setUserId(userDO.getId());
+//        userRoleDO.setCreator(userDO.getUsername());
+//        userRoleDO.setUpdater(userDO.getUpdater());
+////        userRoleDO.setTenantId(userDO.getTenantId());
+//        userRoleMapper.insert(userRoleDO);
         return userDO.getId();
     }
 
@@ -468,6 +500,37 @@ public class StarUserServiceImpl implements StarUserService {
         return userDetailVO;
     }
 
+    /**
+     * 获取用户详情 包含用户等级 用户权益
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public AdminUserInfoRespVO userDetail(Long userId) {
+        AdminUserDO userDO = adminUserMapper.selectById(userId);
+        String inviteCode = null;
+        try {
+            inviteCode = EncryptionUtils.encrypt(userDO.getId()).toString();
+        } catch (Exception e) {
+            throw exception(ENCRYPTION_ERROR);
+        }
+
+        // 获取用户等级
+        List<AdminUserLevelDetailRespVO> levelList = adminUserLevelService.getLevelList(userId);
+        // 获取用户权益
+        List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
+
+        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
+        userDetailVO.setInviteCode(inviteCode);
+        userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
+        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(),userId));
+        userDetailVO.setRegisterTime(userDO.getCreateTime());
+        userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
+        return userDetailVO;
+
+    }
+
     @Override
     public boolean changePassword(ChangePasswordRequest request) {
         RecoverPasswordDO recoverPasswordDO = recoverPasswordMapper.selectByCode(request.getVerificationCode());
@@ -535,5 +598,18 @@ public class StarUserServiceImpl implements StarUserService {
             }
 
         });
+    }
+
+    private Boolean validateIsNewUser(LocalDateTime RegisterTime,Long userId) {
+        if (tradeOrderApi.getSuccessOrderCount(userId)>0) {
+            return false;
+        }
+
+        // 注册时间3天内
+        if (RegisterTime.isAfter(LocalDateTime.now().minusDays(3))) {
+            return true;
+
+        }
+        return false;
     }
 }

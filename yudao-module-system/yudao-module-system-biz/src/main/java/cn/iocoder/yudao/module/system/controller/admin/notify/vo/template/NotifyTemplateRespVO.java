@@ -2,6 +2,8 @@ package cn.iocoder.yudao.module.system.controller.admin.notify.vo.template;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Schema(description = "管理后台 - 站内信模版 Response VO")
@@ -10,13 +12,13 @@ import java.util.*;
 @ToString(callSuper = true)
 public class NotifyTemplateRespVO extends NotifyTemplateBaseVO {
 
-    @Schema(description = "ID", required = true, example = "1024")
+    @Schema(description = "ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
     private Long id;
 
     @Schema(description = "参数数组", example = "name,code")
     private List<String> params;
 
-    @Schema(description = "创建时间", required = true)
-    private Date createTime;
+    @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    private LocalDateTime createTime;
 
 }

@@ -13,7 +13,7 @@ public class AppAbandonMissionReqVO {
     @NotBlank(message = "任务uid不能为空")
     private String missionUid;
 
-    @Schema(description = "认领人uid")
-    @NotBlank(message = "认领人uid不能为空")
-    private String claimUserId;
+//    @Schema(description = "认领人uid")
+//    @NotBlank(message = "认领人uid不能为空")
+//    private String claimUserId;
 }

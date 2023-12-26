@@ -12,7 +12,6 @@ import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
-import cn.iocoder.yudao.module.system.mq.producer.permission.PermissionProducer;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.open.service.WechatService;
@@ -35,8 +34,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.math.BigInteger;
@@ -59,9 +56,6 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
 
     @Autowired
     private StarUserService starUserService;
-
-    @Autowired
-    private PermissionProducer permissionProducer;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -148,13 +142,13 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
                     .socialUserId(socialUserDO.getId()).socialType(socialUserDO.getType()).build();
             socialUserBindMapper.insert(socialUserBind);
 
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    permissionProducer.sendUserRoleRefreshMessage();
-                }
-
-            });
+//            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//                @Override
+//                public void afterCommit() {
+//                    permissionProducer.sendUserRoleRefreshMessage();
+//                }
+//
+//            });
             if (StringUtils.isNotBlank(wxMessage.getTicket())) {
                 redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
             }
@@ -167,10 +161,10 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             } catch (Exception e) {
                 log.warn("获取邀请用户失败，currentUser={}", userId, e);
             }
-
+            wxMessage.setContent(msg);
             starUserService.addBenefits(userId, inviteUserid);
             sendSocialMsgService.asynSendWxRegisterMsg(mpUserDO);
-            return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), msg, wxMessage);
+            return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(),  wxMessage);
         } catch (Exception e) {
             log.error("新增用户失败", e);
             redisTemplate.boundValueOps(wxMessage.getTicket() + "_error").set(e.getMessage(), 1L, TimeUnit.MINUTES);

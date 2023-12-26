@@ -147,9 +147,9 @@ public class DataPermissionDatabaseInterceptorTest extends BaseMockitoUnitTest {
         List<DataPermissionRule> rules = singletonList(new DeptDataPermissionRule());
         interceptor.getMappedStatementCache().addNoRewritable(ms, rules);
 
-        // 场景一，splitRule 为空
+        // 场景一，rules 为空
         assertTrue(interceptor.getMappedStatementCache().noRewritable(ms, null));
-        // 场景二，splitRule 非空，可重写
+        // 场景二，rules 非空，可重写
         assertFalse(interceptor.getMappedStatementCache().noRewritable(ms, singletonList(new EmptyDataPermissionRule())));
         // 场景三，rule 非空，不可重写
         assertTrue(interceptor.getMappedStatementCache().noRewritable(ms, rules));

@@ -13,10 +13,10 @@ public class AppClaimReqVO {
     @NotBlank(message = "通告uid不能为空")
     private String notificationUid;
 
-    @Schema(description = "认领人id")
-    @NotBlank(message = "认领人id不能为空")
-    private String claimUserId;
-
-    @Schema(description = "认领人")
-    private String claimUsername;
+//    @Schema(description = "认领人id")
+//    @NotBlank(message = "认领人id不能为空")
+//    private String claimUserId;
+//
+//    @Schema(description = "认领人")
+//    private String claimUsername;
 }

@@ -4,12 +4,19 @@ package com.starcloud.ops.business.user.controller.admin;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
+import com.starcloud.ops.business.user.controller.admin.vo.AdminUserNotifyExpiringRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
+import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+
 @RestController
 @RequestMapping("/llm/auth")
 @Tag(name = "星河云海-用户管理")
@@ -27,6 +36,15 @@ public class StarUserController {
 
     @Autowired
     private StarUserService llmUserService;
+
+    @Autowired
+    private AdminUserLevelService adminUserLevelService;
+
+    @Autowired
+    private AdminUserRightsService adminUserRightsService;
+
+    @Autowired
+    private AdminUserTagService adminUserTagService;
 
 
     @PostMapping("/register")
@@ -90,11 +108,32 @@ public class StarUserController {
         return CommonResult.success(llmUserService.userDetail());
     }
 
+    @GetMapping("/user/all_detail")
+    @Operation(summary = "获取用户数据明细", description = "获取用户数据明细")
+    public CommonResult<AdminUserInfoRespVO> userRightsDetail() {
+        return CommonResult.success(llmUserService.userDetail(getLoginUserId()));
+    }
+
     @PutMapping("/user/update")
     @Operation(summary = "修改用户个人信息", description = "修改用户个人信息")
     @TenantIgnore
     public CommonResult<Boolean> updateUserProfile(@RequestBody @Valid UserProfileUpdateRequest request) {
         return CommonResult.success(llmUserService.updateUserProfile(request));
     }
+
+
+    @PutMapping("/user/notify_expiring")
+    @Operation(summary = "用户过期提醒", description = "用户过期提醒")
+    @TenantIgnore
+    public CommonResult<AdminUserNotifyExpiringRespVO> NotifyExpiring() {
+        AdminUserNotifyExpiringRespVO adminUserNotifyExpiringRespVO = new AdminUserNotifyExpiringRespVO();
+        NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = adminUserLevelService.notifyExpiringLevel(getLoginUserId());
+        NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = adminUserRightsService.notifyExpiringRights(getLoginUserId());
+        adminUserNotifyExpiringRespVO.setNotifyExpiringLevelRespVO(notifyExpiringLevelRespVO);
+        adminUserNotifyExpiringRespVO.setNotifyExpiringRightsRespVO(notifyExpiringRightsRespVO);
+        return CommonResult.success(adminUserNotifyExpiringRespVO);
+    }
+
+
 
 }

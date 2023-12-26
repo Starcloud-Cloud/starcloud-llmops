@@ -1,5 +1,6 @@
 package com.starcloud.ops.server.config;
 
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -15,6 +16,7 @@ import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -61,6 +63,14 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
     @Override
     public Expression getExpression(String tableName, Alias tableAlias) {
         Long userId = WebFrameworkUtils.getLoginUserId();
+
+        try {
+            if (Objects.equals(WebFrameworkUtils.getLoginUserType(), UserTypeEnum.MEMBER.getValue())) {
+                return null;
+            }
+        } catch (Exception e) {
+            log.warn("check user error", e.getMessage());
+        }
 
         if (userId == null) {
             return null;

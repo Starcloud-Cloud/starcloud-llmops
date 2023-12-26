@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.framework.pay.core.client.dto.refund;
 
-import cn.iocoder.yudao.framework.pay.core.enums.PayChannelRefundRespEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +15,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Deprecated
 public class PayRefundUnifiedRespDTO {
 
     /**

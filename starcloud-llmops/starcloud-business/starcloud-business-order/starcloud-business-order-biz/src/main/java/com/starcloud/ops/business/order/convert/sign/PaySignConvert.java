@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedRespDTO;
 import com.starcloud.ops.business.order.api.order.dto.PayOrderCreateReqDTO;
-import com.starcloud.ops.business.order.api.order.dto.PayOrderRespDTO;
+import com.starcloud.ops.business.order.api.order.dto.PayOrderRespOldDTO;
 import com.starcloud.ops.business.order.controller.admin.order.vo.*;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderDO;
 import com.starcloud.ops.business.order.dal.dataobject.order.PayOrderExtensionDO;
@@ -29,7 +29,7 @@ public interface PaySignConvert {
 
     PayOrderRespVO convert(PaySignDO bean);
 
-    PayOrderRespDTO convert2(PaySignDO order);
+    PayOrderRespOldDTO convert2(PaySignDO order);
 
     PayOrderDetailsRespVO orderDetailConvert(PayOrderDO bean);
 
@@ -49,7 +49,7 @@ public interface PaySignConvert {
     PayOrderPageItemRespVO pageConvertItemPage(PayOrderDO bean);
 
 
-    PageResult<AppPayOrderDetailsRespVO> convertAppPage(PageResult<PayOrderDO> page);
+//    PageResult<AppPayOrderDetailsRespVO> convertAppPage(PageResult<PayOrderDO> page);
 
 
     PaySignDO convert(PayOrderCreateReqDTO bean);

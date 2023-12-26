@@ -1,6 +1,6 @@
 package com.starcloud.ops.framework.common.api.enums;
 
-import org.apache.commons.lang3.StringUtils;
+import cn.hutool.core.util.StrUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +30,7 @@ public interface IEnumable<T> {
      * @return 如果 code 为 null，则返回 false。<br>
      */
     static <E extends Enum<E> & IEnumable<T>, T> Boolean contains(String name, Class<E> clazz) {
-        if (StringUtils.isBlank(name) || Objects.isNull(clazz)) {
+        if (StrUtil.isBlank(name) || Objects.isNull(clazz)) {
             return Boolean.FALSE;
         }
         return Arrays.stream(clazz.getEnumConstants()).anyMatch(item -> item.name().equals(name));

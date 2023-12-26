@@ -690,6 +690,7 @@ public class AppLogServiceImpl implements AppLogService {
         appLogMessageResponse.setCreateTime(message.getCreateTime());
         appLogMessageResponse.setAppInfo(buildAppResponse(message));
         appLogMessageResponse.setMsgType(message.getMsgType());
+        appLogMessageResponse.setAiModel(message.getAiModel());
         return appLogMessageResponse;
     }
 
@@ -726,6 +727,7 @@ public class AppLogServiceImpl implements AppLogService {
         imageLogMessageResponse.setErrorMessage(message.getErrorMsg());
         imageLogMessageResponse.setCreateTime(message.getCreateTime());
         imageLogMessageResponse.setImageInfo(transformImageMessageAnswer(message));
+        imageLogMessageResponse.setAiModel(message.getAiModel());
         return imageLogMessageResponse;
     }
 

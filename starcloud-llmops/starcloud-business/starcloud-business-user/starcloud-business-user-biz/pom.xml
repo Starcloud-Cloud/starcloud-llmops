@@ -23,7 +23,7 @@
 
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
-            <artifactId>yudao-module-member-biz</artifactId>
+            <artifactId>yudao-module-tourist-biz</artifactId>
             <version>${revision}</version>
         </dependency>
 
@@ -69,6 +69,11 @@
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-chat-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-trade-api</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
     </dependencies>

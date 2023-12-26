@@ -80,42 +80,42 @@ public enum AppSceneEnum implements IEnumable<Integer> {
     /**
      * Listing生成
      */
-    LISTING_GENERATE(19, "Listing生成", "Listing Generate"),
+    LISTING_GENERATE(13, "Listing生成", "Listing Generate"),
 
     /**
      * 小红书文案生成
      */
-    XHS_WRITING(20, "小红书文案生成", "小红书"),
+    XHS_WRITING(14, "小红书文案生成", "小红书"),
 
     /**
      * 分享页面场景入口
      */
-    SHARE_WEB(13, "页面分享", "Page Share"),
+    SHARE_WEB(15, "页面分享", "Page Share"),
 
     /**
      * iframe场景入口
      */
-    SHARE_IFRAME(14, "IFrame分享", "IFrame Share"),
+    SHARE_IFRAME(16, "IFrame分享", "IFrame Share"),
 
     /**
      * js页面场景入口
      */
-    SHARE_JS(15, "JS分享", "JS Share"),
+    SHARE_JS(17, "JS分享", "JS Share"),
 
     /**
      * API场景入口
      */
-    SHARE_API(16, "API调用", "API Call"),
+    SHARE_API(18, "API调用", "API Call"),
 
     /**
      * 企业微信群
      */
-    WECOM_GROUP(17, "企业微信群", "WeCom Group"),
+    WECOM_GROUP(19, "企业微信群", "WeCom Group"),
 
     /**
      * 微信公共号
      */
-    MP(18, "微信公共号", "WeChat Public Account"),
+    MP(20, "微信公共号", "WeChat Public Account"),
 
     ;
 

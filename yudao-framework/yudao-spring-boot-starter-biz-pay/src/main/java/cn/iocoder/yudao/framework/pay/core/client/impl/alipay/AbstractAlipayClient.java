@@ -1,15 +1,18 @@
 package cn.iocoder.yudao.framework.pay.core.client.impl.alipay;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayNotifyReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayOrderNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PayRefundNotifyRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.notify.PaySignNotifyRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundUnifiedRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.impl.AbstractPayClient;
-import cn.iocoder.yudao.framework.pay.core.enums.PayNotifyRefundStatusEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.refund.PayRefundStatusRespEnum;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.DefaultAlipayClient;
@@ -21,8 +24,10 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Map;
 
+import static cn.hutool.core.date.DateUtil.parseTime;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
 
 /**
@@ -31,6 +36,7 @@ import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString
  * @author  jason
  */
 @Slf4j
+@Deprecated
 public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayClientConfig> {
 
     protected DefaultAlipayClient client;
@@ -53,13 +59,13 @@ public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayCl
      * @return 退款请求 Response
      */
     @Override
-    protected PayRefundUnifiedRespDTO doUnifiedRefund(PayRefundUnifiedReqDTO reqDTO)  {
+    protected PayRefundRespDTO doUnifiedRefund(PayRefundUnifiedReqDTO reqDTO)  {
         AlipayTradeRefundModel model=new AlipayTradeRefundModel();
-        model.setTradeNo(reqDTO.getChannelOrderNo());
-        model.setOutTradeNo(reqDTO.getPayTradeNo());
+        model.setTradeNo(reqDTO.getOutTradeNo());
+        model.setOutTradeNo(reqDTO.getOutRefundNo());
 
-        model.setOutRequestNo(reqDTO.getMerchantRefundId());
-        model.setRefundAmount(formatAmount(reqDTO.getAmount()).toString());
+        model.setOutRequestNo(reqDTO.getOutRefundNo());
+        model.setRefundAmount(String.valueOf(reqDTO.getPayPrice()/100.0));
         model.setRefundReason(reqDTO.getReason());
 
         AlipayTradeRefundRequest refundRequest = new AlipayTradeRefundRequest();
@@ -75,16 +81,20 @@ public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayCl
                 PayRefundUnifiedRespDTO respDTO = new PayRefundUnifiedRespDTO();
                 respDTO.setChannelRefundId("");
 //                return PayCommonResult.build(response.getCode(), response.getMsg(), respDTO, codeMapping); TODO
-                return null;
+                LocalDateTime successTime = LocalDateTimeUtil.of(response.getGmtRefundPay());
+                return PayRefundRespDTO.successOf(response.getTradeNo(), successTime,
+                                response.getOutTradeNo(), response);
             }
             // 失败。需要抛出异常
 //            return PayCommonResult.build(response.getCode(), response.getMsg(), null, codeMapping); TODO
-            return null;
+            return PayRefundRespDTO.failureOf(response.getCode(), response.getSubMsg(),
+                    reqDTO.getOutTradeNo(), response);
         } catch (AlipayApiException e) {
             // TODO 记录异常日志
             log.error("[doUnifiedRefund][request({}) 发起退款失败,网络读超时，退款状态未知]", toJsonString(reqDTO), e);
 //            return PayCommonResult.build(e.getErrCode(), e.getErrMsg(), null, codeMapping); TODO
-            return null;
+            return PayRefundRespDTO.failureOf(e.getErrCode(), e.getErrMsg(),
+                    reqDTO.getOutTradeNo(), null);
         }
     }
 
@@ -102,8 +112,8 @@ public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayCl
         if (bodyObj.containsKey("refund_fee")) {
             return PayRefundNotifyRespDTO.builder().channelOrderNo(bodyObj.get("trade_no"))
                     .tradeNo(bodyObj.get("out_trade_no")).reqNo(bodyObj.get("out_biz_no"))
-                    .status(PayNotifyRefundStatusEnum.SUCCESS)
-                    .refundSuccessTime(parseTime(params.get("gmt_refund")))
+                    .status(PayRefundStatusRespEnum.SUCCESS)
+                    .refundSuccessTime(parseTime(params.get("gmt_refund")).toLocalDateTime())
                     .build();
         }
         // 2.1 退款的情况
@@ -116,7 +126,7 @@ public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayCl
                     .personalProductCode(bodyObj.get("personal_product_code"))
                     .alipayLogonId(bodyObj.get("alipay_logon_id"))
                     .alipayUserId(bodyObj.get("alipay_user_id"))
-                    .signTime(parseTime(params.get("sign_time")))
+                    .signTime(parseTime(params.get("sign_time")).toLocalDateTime())
                     .status(bodyObj.get("status"))
                     .build();
         }
@@ -124,7 +134,7 @@ public abstract class AbstractAlipayClient extends AbstractPayClient<AlipayPayCl
         // 2.2 支付的情况
         return PayOrderNotifyRespDTO.builder().orderExtensionNo(bodyObj.get("out_trade_no"))
                 .channelOrderNo(bodyObj.get("trade_no")).channelUserId(bodyObj.get("seller_id"))
-                .tradeStatus(bodyObj.get("trade_status")).successTime(parseTime(params.get("notify_time")))
+                .tradeStatus(bodyObj.get("trade_status")).successTime(parseTime(params.get("notify_time")).toLocalDateTime())
                 .build();
 
 

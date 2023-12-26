@@ -6,6 +6,7 @@ import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionP
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,9 @@ public class AppSingleMissionRespVO {
 
     @Schema(description = "任务类型")
     private String type;
+
+    @Schema(description = "领域")
+    private String field;
 
     @Schema(description = "通告名称")
     private String notificationName;
@@ -98,6 +102,9 @@ public class AppSingleMissionRespVO {
     @Schema(description = "总领取数")
     private Integer claimCount;
 
+    @Schema(description = "总任务量")
+    private Integer total;
+
     @Schema(description = "任务说明")
     private String description;
 
@@ -107,4 +114,12 @@ public class AppSingleMissionRespVO {
     @Schema(description = "通告uid")
     private String notificationUid;
 
+    @Schema(description = "访问次数")
+    private Integer visitNum;
+
+    @Schema(description = "任务开始时间")
+    private LocalDateTime startTime;
+
+    @Schema(description = "任务结束时间")
+    private LocalDateTime endTime;
 }

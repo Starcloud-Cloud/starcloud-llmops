@@ -23,7 +23,7 @@ public class PermissionApiImpl implements PermissionApi {
 
     @Override
     public Set<Long> getUserRoleIdListByRoleIds(Collection<Long> roleIds) {
-        return permissionService.getUserRoleIdListByRoleIds(roleIds);
+        return permissionService.getUserRoleIdListByRoleId(roleIds);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class PermissionApiImpl implements PermissionApi {
      */
     @Override
     public void appendRole(Long userId, String roleCode) {
-         permissionService.addUserRole(userId,roleCode);
+        permissionService.addUserRole(userId, roleCode);
     }
 
 }

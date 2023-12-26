@@ -4,6 +4,9 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
+import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
@@ -67,9 +70,14 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Resource
     private AdminUserService adminUserService;
 
+    @Resource
+    private MemberUserService memberUserService;
+
 
     @Override
     public PageResult<AppNotificationRespVO> notifyPage(AppNotificationQueryReqVO reqVO) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        reqVO.setClaimUserId(loginUserId.toString());
         reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
         Long count = notificationCenterMapper.appPageCount(reqVO);
         if (count == null || count <= 0) {
@@ -85,6 +93,7 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Override
     public AppSingleMissionRespVO claimMission(AppClaimReqVO reqVO) {
         String lockKey = "claim_mission" + reqVO.getNotificationUid();
+        MemberUserDO user = memberUserService.getUser(SecurityFrameworkUtils.getLoginUserId());
         RLock lock = redissonClient.getLock(lockKey);
         try {
             if (!lock.tryLock(3, 3, TimeUnit.SECONDS)) {
@@ -94,10 +103,12 @@ public class WechatAppApiImpl implements WechatAppApi {
             if (!NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
                 throw exception(NOTIFICATION_CLOSED);
             }
-
+            if (notificationCenterDO.getEndTime().isBefore(LocalDateTime.now())) {
+                throw exception(CLAIM_TIME_END);
+            }
             ClaimLimitDTO claimLimit = NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit());
             List<SingleMissionDO> missionDOList = singleMissionMapper.listByNotification(reqVO.getNotificationUid());
-            long count = missionDOList.stream().filter(mission -> reqVO.getClaimUserId().equals(mission.getClaimUserId())).count();
+            long count = missionDOList.stream().filter(mission -> user.getId().equals(mission.getClaimUserId())).count();
             if (count >= claimLimit.getClaimNum()) {
                 throw exception(MORE_THAN_CLAIMED_NUM, claimLimit.getClaimNum());
             }
@@ -108,8 +119,8 @@ public class WechatAppApiImpl implements WechatAppApi {
                 throw exception(ALL_CLAIMED);
             }
             SingleMissionDO singleMissionDO = stayClaimMission.get();
-            singleMissionDO.setClaimUserId(reqVO.getClaimUserId());
-            singleMissionDO.setClaimUsername(reqVO.getClaimUsername());
+            singleMissionDO.setClaimUserId(user.getId().toString());
+//            singleMissionDO.setClaimUsername(user.getNickname());
             singleMissionDO.setClaimTime(LocalDateTime.now());
             singleMissionDO.setStatus(SingleMissionStatusEnum.claimed.getCode());
             singleMissionMapper.updateById(singleMissionDO);
@@ -125,11 +136,12 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publishMission(AppMissionPublishReqVO reqVO) {
+        String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO singleMissionDO = missionByUid(reqVO.getMissionUid());
         if (!SingleMissionStatusEnum.claimed.getCode().equals(singleMissionDO.getStatus())) {
             throw exception(MISSION_CAN_NOT_PUBLISH_STATUS, SingleMissionStatusEnum.valueOfCode(singleMissionDO.getStatus()));
         }
-        if (!reqVO.getClaimUserId().equals(singleMissionDO.getClaimUserId())) {
+        if (!claimedUser.equals(singleMissionDO.getClaimUserId())) {
             throw exception(MISSION_CAN_NOT_PUBLISH_USERID);
         }
         XhsNoteDetailRespVO noteDetail = xhsNoteDetailService.remoteDetail(reqVO.getPublishUrl());
@@ -142,18 +154,20 @@ public class WechatAppApiImpl implements WechatAppApi {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void abandonMission(AppAbandonMissionReqVO reqVO) {
+        String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO singleMissionDO = missionByUid(reqVO.getMissionUid());
         if (SingleMissionStatusEnum.settlement.getCode().equals(singleMissionDO.getStatus())
                 || SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionDO.getStatus())) {
             throw exception(MISSION_CAN_NOT_ABANDON_STATUS, SingleMissionStatusEnum.valueOfCode(singleMissionDO.getStatus()));
         }
-        if (!reqVO.getClaimUserId().equals(singleMissionDO.getClaimUserId())) {
+        if (!claimedUser.equals(singleMissionDO.getClaimUserId())) {
             throw exception(MISSION_CAN_NOT_ABANDON_USERID);
         }
         NotificationCenterDO notificationCenterDO = notificationByUid(singleMissionDO.getNotificationUid());
         singleMissionDO.setClaimUserId(StringUtils.EMPTY);
-        singleMissionDO.setClaimUsername(StringUtils.EMPTY);
+//        singleMissionDO.setClaimUsername(StringUtils.EMPTY);
         singleMissionDO.setClaimTime(null);
         singleMissionDO.setPublishUrl(StringUtils.EMPTY);
         singleMissionDO.setPublishTime(null);
@@ -167,11 +181,15 @@ public class WechatAppApiImpl implements WechatAppApi {
         singleMissionDO.setCloseMsg(StringUtils.EMPTY);
         singleMissionDO.setPreSettlementMsg(StringUtils.EMPTY);
         singleMissionDO.setNoteDetailId(null);
+        singleMissionDO.setRunTime(null);
         singleMissionMapper.updateMission(singleMissionDO);
+        noteDetailService.abandonMission(singleMissionDO.getUid());
     }
 
     @Override
     public PageResult<AppSingleMissionRespVO> claimedMission(ClaimedMissionQueryReqVO reqVO) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        reqVO.setClaimUserId(loginUserId.toString());
         Long count = singleMissionMapper.claimedMissionCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();
@@ -189,8 +207,8 @@ public class WechatAppApiImpl implements WechatAppApi {
         NotificationCenterDO notificationCenterDO = notificationByUid(missionDO.getNotificationUid());
         if (NumberUtil.isLong(notificationCenterDO.getCreator())) {
             AdminUserDO user = adminUserService.getUser(Long.valueOf(notificationCenterDO.getCreator()));
-            Long count = notificationCenterMapper.count(user.getCreator());
-            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count,user.getAvatar());
+            Long count = notificationCenterMapper.count(notificationCenterDO.getCreator());
+            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count, user.getAvatar());
             respVO.setUserDetail(userDetailVO);
 
         }
@@ -208,7 +226,13 @@ public class WechatAppApiImpl implements WechatAppApi {
         }
         respVO.setDescription(notificationCenterDO.getDescription());
         respVO.setClaimCount(claimCount);
+        respVO.setTotal(singleMissionDOList.size());
         respVO.setMinFansNum(notificationCenterDO.getMinFansNum());
+        respVO.setNotificationName(notificationCenterDO.getName());
+        respVO.setField(notificationCenterDO.getField());
+        respVO.setVisitNum(notificationCenterDO.getVisitNum());
+        respVO.setStartTime(notificationCenterDO.getStartTime());
+        respVO.setEndTime(notificationCenterDO.getEndTime());
         if (SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
             respVO.setErrorMsg(missionDO.getPreSettlementMsg());
         }
@@ -222,7 +246,8 @@ public class WechatAppApiImpl implements WechatAppApi {
     }
 
     @Override
-    public AppNotificationRespVO notifyDetail(String notificationUid, String userId) {
+    public AppNotificationRespVO notifyDetail(String notificationUid) {
+        String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         NotificationCenterDO notificationCenterDO = notificationByUid(notificationUid);
         notificationCenterDO.setVisitNum((notificationCenterDO.getVisitNum() == null ? 0 : notificationCenterDO.getVisitNum()) + 1);
         notificationCenterMapper.updateById(notificationCenterDO);
@@ -240,7 +265,7 @@ public class WechatAppApiImpl implements WechatAppApi {
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
                 claimCount++;
-                if (Objects.equals(userId, missionDO.getClaimUserId())) {
+                if (Objects.equals(claimedUser, missionDO.getClaimUserId())) {
                     currentUserNum++;
                     sj.add(missionDO.getUid());
                 }
@@ -248,8 +273,8 @@ public class WechatAppApiImpl implements WechatAppApi {
         }
         if (NumberUtil.isLong(notificationCenterDO.getCreator())) {
             AdminUserDO user = adminUserService.getUser(Long.valueOf(notificationCenterDO.getCreator()));
-            Long count = notificationCenterMapper.count(user.getCreator());
-            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count,user.getAvatar());
+            Long count = notificationCenterMapper.count(notificationCenterDO.getCreator());
+            UserDetailVO userDetailVO = new UserDetailVO(user.getUsername(), count, user.getAvatar());
             respVO.setUserDetail(userDetailVO);
         }
         if (respVO.getClaimLimit() != null && respVO.getClaimLimit().getClaimNum() != null
@@ -270,8 +295,9 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     public PageResult<PreSettlementRecordRespVO> preSettlementRecord(PreSettlementRecordReqVO reqVO) {
+        String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO missionDO = missionByUid(reqVO.getMissionUid());
-        if (!Objects.equals(reqVO.getClaimUserId(), missionDO.getClaimUserId())) {
+        if (!Objects.equals(claimedUser, missionDO.getClaimUserId())) {
             throw exception(NOT_FOR_SELF);
         }
         PageResult<XhsNoteDetailDO> result = noteDetailService.preSettlementRecord(reqVO);
