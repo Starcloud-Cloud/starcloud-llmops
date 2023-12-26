@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 推荐应用Variable Item 工厂类
@@ -343,5 +344,24 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
-
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defMediaMatrixRefers() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("REFERS");
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
 }

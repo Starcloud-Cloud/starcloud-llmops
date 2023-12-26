@@ -101,6 +101,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode APP_TYPE_NONSUPPORT = new ErrorCode(300100153, "不支持的应用类型，请检查后重试（{}）！");
 
+    /**
+     * 应用类型是必填的
+     */
+    ErrorCode APP_TYPE_REQUIRED = new ErrorCode(300100153, "应用类型是必填的！");
+
     // ========== 应用市场错误码 300 200 xxx ==========
 
     /**
