@@ -5,11 +5,14 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
@@ -56,6 +59,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     private PermissionService permissionService;
 
     @Resource
+    private AdminUserService adminUserService;
+
+    @Resource
     private RoleService roleService;
 
     @Value("${starcloud-llm.role.code:mofaai_free}")
@@ -96,14 +102,15 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         } else {
             endTime = getSpecificTime(startTime, createReqVO.getTimeNums(), createReqVO.getTimeRange());
         }
-        AdminUserLevelDO AdminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
+        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
         if (getLoginUserId() == null) {
-            AdminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
-            AdminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
+            adminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
+            adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
         }
+        adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
         // 3.0 添加会员等级记录
-        adminUserLevelMapper.insert(AdminUserLevelDO);
+        adminUserLevelMapper.insert(adminUserLevelDO);
         // 获取当前用户角色
         Set<Long> userRoleIdListByUserId = permissionService.getUserRoleIdListByUserId(createReqVO.getUserId());
 
@@ -214,6 +221,42 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         notifyExpiringLevelRespVO.setValidEndTime(nextWeekExpiringLevel.get(0).getValidEndTime());
         notifyExpiringLevelRespVO.setIsNotify(true);
         return notifyExpiringLevelRespVO;
+    }
+
+    /**
+     * 设置默认等级
+     *
+     */
+    @Override
+    public void setInitLevel() {
+        RoleDO role = roleService.getRoleByCode(roleCode);
+
+        if (role == null) {
+            throw exception(ROLE_NOT_EXISTS);
+        }
+
+        AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelByRoleId(role.getId());
+        if (Objects.isNull(levelConfigDO)) {
+            throw exception(LEVEL_NOT_EXISTS);
+        }
+        List<AdminUserDO>  userDOS = adminUserService.getUserList();
+        for (AdminUserDO adminUserDO : userDOS) {
+            AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
+            createReqVO.setUserId(adminUserDO.getId());
+            createReqVO.setLevelId(levelConfigDO.getId());
+
+            createReqVO.setBizId(String.valueOf(adminUserDO.getId()));
+            createReqVO.setBizType(AdminUserLevelBizTypeEnum.REGISTER.getType());
+
+            createReqVO.setStartTime(adminUserDO.getCreateTime());
+            createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
+
+            createReqVO.setDescription(String.format(AdminUserLevelBizTypeEnum.REGISTER.getDescription(), adminUserDO.getId()));
+            createLevelRecord(createReqVO);
+        }
+
+
+
     }
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {

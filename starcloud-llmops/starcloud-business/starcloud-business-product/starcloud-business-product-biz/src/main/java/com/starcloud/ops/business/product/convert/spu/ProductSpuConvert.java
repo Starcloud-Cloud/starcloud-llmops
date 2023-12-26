@@ -128,6 +128,8 @@ public interface ProductSpuConvert {
 
     List<AppProductSpuDetailRespVO.Sku> convertListForGetSpuDetail(List<ProductSkuDO> skus);
 
+    List<AppProductSpuPageRespVO.Sku> convertListForGetSKUDetail(List<ProductSkuDO> skus);
+
     default ProductSpuDetailRespVO convertForSpuDetailRespVO(ProductSpuDO spu, List<ProductSkuDO> skus) {
         return convert03(spu).setSkus(ProductSkuConvert.INSTANCE.convertList(skus));
     }

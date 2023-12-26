@@ -36,5 +36,6 @@ public interface TradeOrderApi {
      * @param orderId 订单编号
      */
     void cancelPaidOrder(Long userId, Long orderId);
+    Long getSuccessOrderCount(Long userId);
 
 }

@@ -5,6 +5,7 @@ import com.starcloud.ops.business.promotion.api.coupon.dto.CouponUseReqDTO;
 import com.starcloud.ops.business.promotion.api.coupon.dto.CouponValidReqDTO;
 
 import javax.validation.Valid;
+import java.util.Set;
 
 /**
  * 优惠劵 API 接口
@@ -34,5 +35,15 @@ public interface CouponApi {
      * @return 优惠劵
      */
     CouponRespDTO validateCoupon(@Valid CouponValidReqDTO validReqDTO);
+
+
+    /**
+     * 校验优惠劵
+     *
+     * @param templateId 校验请求
+     * @param userIds 校验请求
+     * @return 优惠劵
+     */
+    void addCoupon(Long templateId, Set<Long> userIds);
 
 }

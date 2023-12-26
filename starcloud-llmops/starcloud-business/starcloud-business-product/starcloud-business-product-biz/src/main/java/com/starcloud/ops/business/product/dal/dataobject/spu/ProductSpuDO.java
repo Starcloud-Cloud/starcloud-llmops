@@ -173,6 +173,11 @@ public class ProductSpuDO extends BaseDO {
     private Boolean recommendGood;
 
     /**
+     * 是否限制注册天数 -1 不受限制
+     */
+    private Integer registerDays;
+
+    /**
      * 赠送积分
      */
     private Integer giveIntegral;

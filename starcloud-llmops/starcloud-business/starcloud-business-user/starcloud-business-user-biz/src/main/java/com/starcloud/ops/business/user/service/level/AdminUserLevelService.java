@@ -57,4 +57,9 @@ public interface AdminUserLevelService {
      * @param userId 用户 ID
      */
     NotifyExpiringLevelRespVO notifyExpiringLevel(Long userId);
+
+    /**
+     * 设置默认等级
+     */
+    void setInitLevel();
 }

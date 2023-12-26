@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.controller.admin.order;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
@@ -10,6 +11,10 @@ import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
+import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
+import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.*;
 import com.starcloud.ops.business.trade.controller.app.order.vo.*;
 import com.starcloud.ops.business.trade.controller.app.order.vo.item.AppTradeOrderItemCommentCreateReqVO;
@@ -36,16 +41,20 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.ORDER_CREATE_FAIL_USER_LIMIT;
+import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.ORDER_NOT_FOUND;
 
 @Tag(name = "管理后台 - 交易订单")
 @RestController
@@ -58,6 +67,12 @@ public class TradeOrderController {
     private TradeOrderUpdateService tradeOrderUpdateService;
     @Resource
     private TradeOrderQueryService tradeOrderQueryService;
+
+    @Resource
+    private ProductSkuApi productSkuApi;
+
+    @Resource
+    private ProductSpuApi productSpuApi;
 
     @Resource
     private DeliveryExpressService deliveryExpressService;
@@ -189,19 +204,24 @@ public class TradeOrderController {
 
     //========================APP======ADMIN=====USER=========================
 
-    @GetMapping("/u/settlement")
+    @PostMapping("/u/settlement")
     @Operation(summary = "系统会员-第一步-获得订单结算信息")
     @PreAuthenticated
-    public CommonResult<AppTradeOrderSettlementRespVO> settlementOrder(@Valid AppTradeOrderSettlementReqVO settlementReqVO) {
+    public CommonResult<AppTradeOrderSettlementRespVO> settlementOrder(@Valid @RequestBody AppTradeOrderSettlementReqVO settlementReqVO) {
+        settlementReqVO.getItems().stream().forEach(item -> {
+            validateProductLimit(item.getSkuId());
+        });
         return success(tradeOrderUpdateService.settlementOrder(getLoginUserId(), settlementReqVO));
     }
 
     @PostMapping("/u/create")
     @Operation(summary = "系统会员-创建订单")
     @PreAuthenticated
-    public CommonResult<AppTradeOrderCreateRespVO> createOrder(@Valid @RequestBody AppTradeOrderCreateReqVO createReqVO,
-                                                               @RequestHeader Integer terminal) {
-        TradeOrderDO order = tradeOrderUpdateService.createOrder(getLoginUserId(), getClientIP(), createReqVO, terminal);
+    public CommonResult<AppTradeOrderCreateRespVO> createOrder(@Valid @RequestBody AppTradeOrderCreateReqVO createReqVO) {
+        createReqVO.getItems().stream().forEach(item -> {
+            validateProductLimit(item.getSkuId());
+        });
+        TradeOrderDO order = tradeOrderUpdateService.createOrder(getLoginUserId(), getClientIP(), createReqVO, createReqVO.getTerminal());
         return success(new AppTradeOrderCreateRespVO().setId(order.getId()).setPayOrderId(order.getPayOrderId()));
     }
 
@@ -301,6 +321,21 @@ public class TradeOrderController {
 
     // ========== 订单项 ==========
 
+    @GetMapping("/u/is-success")
+    @Operation(summary = "系统会员-判断订单状态是否支付成功")
+    @Parameter(name = "id", description = "交易订单编号")
+    public CommonResult<Boolean> validateOrderStatus(@RequestParam("id") Long id) {
+        Map<String, Long> orderCount = Maps.newLinkedHashMapWithExpectedSize(5);
+        TradeOrderDO order = tradeOrderQueryService.getOrder(getLoginUserId(), id);
+        if (Objects.isNull(order)) {
+            throw exception(ORDER_NOT_FOUND);
+        }
+        if (order.getStatus().equals(TradeOrderStatusEnum.UNPAID.getStatus()) || order.getStatus().equals(TradeOrderStatusEnum.CANCELED.getStatus())) {
+            return success(false);
+        }
+        return success(true);
+    }
+
     @GetMapping("/u/item/get")
     @Operation(summary = "系统会员-获得交易订单项")
     @Parameter(name = "id", description = "交易订单项编号")
@@ -313,6 +348,23 @@ public class TradeOrderController {
     @Operation(summary = "系统会员-创建交易订单项的评价")
     public CommonResult<Long> createOrderItemComment(@RequestBody AppTradeOrderItemCommentCreateReqVO createReqVO) {
         return success(tradeOrderUpdateService.createOrderItemCommentByMember(getLoginUserId(), createReqVO));
+    }
+
+
+    private void validateProductLimit(Long skuId){
+        ProductSkuRespDTO sku = productSkuApi.getSku(skuId);
+        if (!Objects.isNull(sku)) {
+            ProductSpuRespDTO spu = productSpuApi.getSpu(sku.getSpuId());
+            if (!Objects.isNull(spu) && !spu.getRegisterDays().equals(-1)) {
+                AdminUserDO user = adminUserService.getUser(getLoginUserId());
+                LocalDateTime now = LocalDateTimeUtil.now();
+                LocalDateTime sevenDaysAgo = now.minusDays(spu.getRegisterDays());
+                if (user.getCreateTime().isBefore(sevenDaysAgo)) {
+                    throw exception(ORDER_CREATE_FAIL_USER_LIMIT);
+                }
+
+            }
+        }
     }
 
 

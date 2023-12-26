@@ -36,5 +36,12 @@ public interface AdminUserTagService {
      */
     void addNewUserTag(Long userId);
 
+    /**
+     * 添加新用户标签
+     *
+     * @param userId 会员编号
+     */
+    Boolean validateNewUser(Long userId);
+
 
 }

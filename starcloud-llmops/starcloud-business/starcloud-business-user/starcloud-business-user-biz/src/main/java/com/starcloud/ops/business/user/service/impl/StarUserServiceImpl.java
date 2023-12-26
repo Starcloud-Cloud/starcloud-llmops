@@ -29,6 +29,7 @@ import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
@@ -136,6 +137,10 @@ public class StarUserServiceImpl implements StarUserService {
     private AdminUserRightsService adminUserRightsService;
     @Resource
     private AdminUserTagService adminUserTagService;
+
+    @Resource
+    private TradeOrderApi tradeOrderApi;
+
 
 
     @Value("${starcloud-llm.role.code:mofaai_free}")
@@ -512,13 +517,16 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         // 获取用户等级
-        List<AdminUserLevelDetailRespVO>  levelList = adminUserLevelService.getLevelList(userId);
+        List<AdminUserLevelDetailRespVO> levelList = adminUserLevelService.getLevelList(userId);
         // 获取用户权益
         List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
 
         AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
+        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(),userId));
+        userDetailVO.setRegisterTime(userDO.getCreateTime());
+        userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
         return userDetailVO;
 
     }
@@ -590,5 +598,18 @@ public class StarUserServiceImpl implements StarUserService {
             }
 
         });
+    }
+
+    private Boolean validateIsNewUser(LocalDateTime RegisterTime,Long userId) {
+        if (tradeOrderApi.getSuccessOrderCount(userId)>0) {
+            return false;
+        }
+
+        // 注册时间3天内
+        if (RegisterTime.isAfter(LocalDateTime.now().minusDays(3))) {
+            return true;
+
+        }
+        return false;
     }
 }
