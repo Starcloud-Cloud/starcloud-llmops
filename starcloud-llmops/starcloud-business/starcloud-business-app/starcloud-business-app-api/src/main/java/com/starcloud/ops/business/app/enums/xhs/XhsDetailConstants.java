@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.enums.xhs;
 
 
 import cn.hutool.core.util.ReUtil;
+import cn.hutool.http.HttpUtil;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_URL_ERROR;
@@ -26,11 +27,53 @@ public class XhsDetailConstants {
 
     public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24})$";
 
+    public static final String SHARE_LINK = "http://xhslink.com/([a-zA-Z0-9]{6})";
+
+    public static final String SHARE_NOTEID = "https://www.xiaohongshu.com/discovery/item/([a-zA-Z0-9]{24})";
+
     public static void validNoteUrl(String noteUrl) {
         boolean match = ReUtil.isMatch(XhsDetailConstants.XHS_URL_REGEX, noteUrl);
-        if (!match) {
-            throw exception(XHS_URL_ERROR, noteUrl);
+        if (match) {
+            return;
         }
+        match = ReUtil.contains(XhsDetailConstants.SHARE_LINK, noteUrl);
+        if (match) {
+            return;
+        }
+        throw exception(XHS_URL_ERROR, noteUrl);
+    }
+
+    public static String parsingShareLink(String shareLink) {
+        String shareUid = ReUtil.get(XhsDetailConstants.SHARE_LINK, shareLink, 0);
+        String html = HttpUtil.get(shareUid);
+        return ReUtil.get(XhsDetailConstants.SHARE_NOTEID, html, 1);
+    }
+
+    public static String parsingWebUrl(String noteUrl) {
+        return ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);
+    }
+
+    public static void main(String[] args) {
+        String str = "35 哈哈哼哼发布了一篇小红书笔记，快来看吧！ \uD83D\uDE06 nB1VRQNyuujNVH4 \uD83D\uDE06 http://xhslink.com/WteXPx，复制本条信息，打开【小红书】App查看精彩内容！";
+        validNoteUrl(str);
+        System.out.println(parsingNoteId(str));
+    }
+
+    /**
+     * 解析小红noteId
+     *
+     * @param str app分享链接/webUrl
+     * @return 小红noteId
+     */
+    public static String parsingNoteId(String str) {
+        if (ReUtil.contains(XhsDetailConstants.SHARE_LINK, str)) {
+            return parsingShareLink(str);
+        }
+
+        if (ReUtil.isMatch(XhsDetailConstants.XHS_URL_REGEX, str)) {
+            return parsingWebUrl(str);
+        }
+        throw exception(XHS_URL_ERROR, str);
     }
 
 }
