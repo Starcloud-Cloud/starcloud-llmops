@@ -26,7 +26,39 @@ public class AppProcessParser implements ConfigResource {
         this.resourceName = app.getUid();
     }
 
+    /**
+     * 创建一个一次只执行一次的 process
+     * @return
+     */
     public Optional<ProcessLink> getProcessLink() {
+
+        StartProcessLink bpmnLink = StartProcessLink.build(this.app.getUid(), this.app.getName());
+
+
+        List<ProcessLink> processLinks = new ArrayList<>();
+
+        // ProcessLink processLink = null;
+
+        List<WorkflowStepWrapper> stepWrappers = CollectionUtil.defaultIfEmpty(this.app.getWorkflowConfig().getSteps(), new ArrayList<>());
+        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getName()).build();
+
+            processLink.end();
+        }
+
+        // parallelJoinPoint.end();
+
+        bpmnLink.end();
+
+        return Optional.of(bpmnLink);
+    }
+
+
+    /**
+     * 创建一个串行执行的 process
+     * @return
+     */
+    public Optional<ProcessLink> getFlowProcessLink() {
 
         StartProcessLink bpmnLink = StartProcessLink.build(this.app.getUid(), this.app.getName());
 
