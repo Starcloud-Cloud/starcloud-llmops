@@ -19,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
@@ -131,7 +132,12 @@ public class AdminUserTagConfigServiceImpl implements AdminUserTagConfigService 
      */
     @Override
     public Long getNewUserTagId() {
-        return adminUserTagConfigMapper.selectNewUserTag().getId();
+        AdminUserTagConfigDO adminUserTagConfigDO = adminUserTagConfigMapper.selectNewUserTag();
+        if (Objects.isNull(adminUserTagConfigDO)){
+
+            return null;
+        }
+        return adminUserTagConfigDO.getId();
     }
 
 }

@@ -242,14 +242,20 @@ public interface TradeOrderConvert {
     }
 
     default AppTradeOrderSettlementRespVO convert(TradePriceCalculateRespBO calculate, AdminUserDO address) {
-        AppTradeOrderSettlementRespVO respVO = convert0(calculate, address);
-//        if (address != null) {
-//            respVO.getAddress().setAreaName(AreaUtils.format(address.getAreaId()));
-//        }
+        AppTradeOrderSettlementRespVO respVO  = convert0(calculate, address);
+        if (address != null) {
+            respVO = convert0(calculate, address);
+            respVO.getAddress().setAreaName(AreaUtils.format(address.getSex()));
+        }
+        if (address == null) {
+             respVO = convert01(calculate);
+        }
         return respVO;
     }
 
     AppTradeOrderSettlementRespVO convert0(TradePriceCalculateRespBO calculate, AdminUserDO address);
+
+    AppTradeOrderSettlementRespVO convert01(TradePriceCalculateRespBO calculate);
 
     List<AppOrderExpressTrackRespDTO> convertList02(List<ExpressTrackRespDTO> list);
 

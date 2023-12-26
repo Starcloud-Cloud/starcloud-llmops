@@ -117,13 +117,12 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 //        if (address != null) {
 //            settlementReqVO.setAddressId(address.getId());
 //        }
-//
-//        // 2. 计算价格
-//        TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, settlementReqVO);
-//
-//        // 3. 拼接返回
-//        return TradeOrderConvert.INSTANCE.convert(calculateRespBO, address);
-        return null;
+
+        // 2. 计算价格
+        TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, settlementReqVO);
+
+        // 3. 拼接返回
+        return TradeOrderConvert.INSTANCE.convert(calculateRespBO, null);
     }
 
 //    /**

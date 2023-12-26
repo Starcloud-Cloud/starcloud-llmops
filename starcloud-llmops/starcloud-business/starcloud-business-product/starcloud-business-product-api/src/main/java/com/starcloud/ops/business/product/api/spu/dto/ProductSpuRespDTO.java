@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.Valid;
+import java.util.List;
 
 // TODO @LeeYan9: ProductSpuRespDTO
 /**
@@ -86,6 +87,13 @@ public class ProductSpuRespDTO {
     private Long deliveryTemplateId;
 
     // ========== 营销相关字段 =========
+
+    /**
+     * 是否限制注册天数 -1 不受限制
+     */
+    private Integer registerDays;
+
+    private List<Long> giveCouponTemplateIds;
 
     /**
      * 赠送积分

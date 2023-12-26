@@ -16,6 +16,7 @@ import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
+import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class StarUserController {
 
     @Autowired
     private AdminUserRightsService adminUserRightsService;
+
+    @Autowired
+    private AdminUserTagService adminUserTagService;
 
 
     @PostMapping("/register")
@@ -118,14 +122,6 @@ public class StarUserController {
     }
 
 
-    @PutMapping("/test/addBenefits")
-    @Operation(summary = "测试添加注册权益", description = "测试添加注册权益")
-    @TenantIgnore
-    public CommonResult<Boolean> addBenefits() {
-        llmUserService.addBenefits(getLoginUserId(),215L);
-        return CommonResult.success(true);
-    }
-
     @PutMapping("/user/notify_expiring")
     @Operation(summary = "用户过期提醒", description = "用户过期提醒")
     @TenantIgnore
@@ -137,5 +133,7 @@ public class StarUserController {
         adminUserNotifyExpiringRespVO.setNotifyExpiringRightsRespVO(notifyExpiringRightsRespVO);
         return CommonResult.success(adminUserNotifyExpiringRespVO);
     }
+
+
 
 }

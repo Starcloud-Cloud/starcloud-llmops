@@ -40,6 +40,18 @@ public interface ProductSpuMapper extends BaseMapperX<ProductSpuDO> {
     }
 
     /**
+     * 获取特定商品 SPU 数据
+     *
+     * @return 商品 SPU 分页列表数据
+     */
+    default ProductSpuDO selectSpecialOfferSku() {
+        LambdaQueryWrapperX<ProductSpuDO> queryWrapper = new LambdaQueryWrapperX<ProductSpuDO>()
+                .eq(ProductSpuDO::getKeyword, "ai_trial")
+                .last("LIMIT 1");
+        return selectOne(queryWrapper);
+    }
+
+    /**
      * 查询触发警戒库存的 SPU 数量
      *
      * @return 触发警戒库存的 SPU 数量

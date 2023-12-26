@@ -148,4 +148,10 @@ public interface ProductSpuService {
      */
     List<ProductSpuDO> validateSpuList(Collection<Long> ids);
 
+
+    /**
+     * 获取特价商品列表
+     */
+    ProductSpuDO getSpecialOfferSku();
+
 }

@@ -5,6 +5,7 @@ import com.starcloud.ops.business.product.controller.admin.category.vo.ProductCa
 import com.starcloud.ops.business.product.controller.admin.category.vo.ProductCategoryListReqVO;
 import com.starcloud.ops.business.product.controller.admin.category.vo.ProductCategoryRespVO;
 import com.starcloud.ops.business.product.controller.admin.category.vo.ProductCategoryUpdateReqVO;
+import com.starcloud.ops.business.product.controller.app.category.vo.AppCategoryRespVO;
 import com.starcloud.ops.business.product.convert.category.ProductCategoryConvert;
 import com.starcloud.ops.business.product.dal.dataobject.category.ProductCategoryDO;
 import com.starcloud.ops.business.product.service.category.ProductCategoryService;
@@ -71,6 +72,16 @@ public class ProductCategoryController {
         List<ProductCategoryDO> list = categoryService.getEnableCategoryList(treeListReqVO);
         list.sort(Comparator.comparing(ProductCategoryDO::getSort));
         return success(ProductCategoryConvert.INSTANCE.convertList(list));
+    }
+
+
+
+    @GetMapping("/u/list")
+    @Operation(summary = "系统会员 - 获得商品分类列表")
+    public CommonResult<List<AppCategoryRespVO>> getProductCategoryList() {
+        List<ProductCategoryDO> list = categoryService.getEnableCategoryList();
+        list.sort(Comparator.comparing(ProductCategoryDO::getSort));
+        return success(ProductCategoryConvert.INSTANCE.convertList03(list));
     }
 
 }
