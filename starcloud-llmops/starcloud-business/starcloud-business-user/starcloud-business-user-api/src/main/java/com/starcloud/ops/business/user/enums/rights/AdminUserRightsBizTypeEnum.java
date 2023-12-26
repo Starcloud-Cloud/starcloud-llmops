@@ -16,8 +16,8 @@ import java.util.Objects;
 @Getter
 public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
 
-    ADMIN_MINUS(0, "管理员增加", "管理员修改权益，扣除 {} 魔法豆，{} 图片", false, false, 0, 0),
-    ADMIN_ADD(1, "管理员修改", "管理员修改权益，增加 {} 魔法豆，{} 图片", true, false, 0, 0),
+    ADMIN_MINUS(0, "管理员修改", "管理员修改权益，扣除 {} 魔法豆，{} 图片", false, false, 0, 0),
+    ADMIN_ADD(1, "管理员增加", "管理员修改权益，增加 {} 魔法豆，{} 图片", true, false, 0, 0),
     REGISTER(2, "普通注册", "普通注册获得 {} 魔法豆，{} 图片", true, true, 10, 5),
     INVITE_TO_REGISTER(3, "邀请注册", "邀请注册获得 {} 魔法豆，{} 图片", true, true, 10, 5),
     USER_INVITE(4, "用户推广", "普通注册获得 {} 魔法豆，{} 图片", true, true, 5, 2),

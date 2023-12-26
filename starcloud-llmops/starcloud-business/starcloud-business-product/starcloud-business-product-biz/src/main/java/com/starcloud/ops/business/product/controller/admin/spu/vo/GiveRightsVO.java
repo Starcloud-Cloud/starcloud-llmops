@@ -11,6 +11,7 @@ import lombok.Data;
  */
 @Data
 public class GiveRightsVO {
+
     /**
      * 赠送魔法豆
      */
@@ -23,19 +24,18 @@ public class GiveRightsVO {
     @Schema(description = "赠送图片权益", example = "100")
     private Integer giveImage;
 
-
     /**
      * 权益生效时间
      */
     @Schema(description = "权益生效时间", example = "100")
-    private Integer giveEffectiveTime;
+    private Integer rightsTimeNums;
 
     /**
      * 权益生效时间单位
      */
     @Schema(description = "权益生效时间单位", example = "100")
-    @InEnum(value = TimeRangeTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
-    private Integer giveEffectiveTimeUnit;
+    @InEnum(value = TimeRangeTypeEnum.class, message = "权益生效时间单位，必须是 {value}")
+    private Integer rightsTimeRange;
 
     /**
      * 用户等级
@@ -44,9 +44,10 @@ public class GiveRightsVO {
     private Long levelId;
 
     @Schema(description = "用户等级生效时间", example = "100")
-    private Integer timeNums;
+    private Integer levelTimeNums;
 
     @Schema(description = "用户等级生效时间单位", example = "100")
-    @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-    private Integer timeRange;
+    @InEnum(value = TimeRangeTypeEnum.class, message = "用户等级生效时间单位，必须是 {value}")
+    private Integer LevelTimeRange;
+
 }

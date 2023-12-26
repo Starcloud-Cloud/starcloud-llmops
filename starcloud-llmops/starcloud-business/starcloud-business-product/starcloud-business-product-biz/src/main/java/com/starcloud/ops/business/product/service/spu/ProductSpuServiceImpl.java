@@ -157,6 +157,14 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         return list;
     }
 
+    /**
+     * 获取特价商品列表
+     */
+    @Override
+    public ProductSpuDO getSpecialOfferSku() {
+        return productSpuMapper.selectSpecialOfferSku();
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSpu(Long id) {

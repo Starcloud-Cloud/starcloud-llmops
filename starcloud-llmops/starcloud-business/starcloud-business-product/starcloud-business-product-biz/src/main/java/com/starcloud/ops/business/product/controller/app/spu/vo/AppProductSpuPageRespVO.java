@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.product.controller.app.spu.vo;
 
+import com.starcloud.ops.business.product.controller.app.property.vo.value.AppProductPropertyValueDetailRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Schema(description = "用户 App - 商品 SPU Response VO")
@@ -26,6 +28,9 @@ public class AppProductSpuPageRespVO {
 
     @Schema(description = "单位名", requiredMode = Schema.RequiredMode.REQUIRED, example = "个")
     private String unitName;
+
+    @Schema(description = "关键字", requiredMode = Schema.RequiredMode.REQUIRED, example = "清凉丝滑不出汗")
+    private String keyword;
 
     // ========== SKU 相关字段 =========
 
@@ -53,5 +58,45 @@ public class AppProductSpuPageRespVO {
 
     @Schema(description = "商品销量", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
     private Integer salesCount;
+
+    /**
+     * SKU 数组
+     */
+    private List<Sku> skus;
+
+    @Schema(description = "用户 App - 商品 SPU 明细的 SKU 信息")
+    @Data
+    public static class Sku {
+
+        @Schema(description = "商品 SKU 编号", example = "1")
+        private Long id;
+
+        /**
+         * 商品属性数组
+         */
+        private List<AppProductPropertyValueDetailRespVO> properties;
+
+        @Schema(description = "销售价格，单位：分", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
+        private Integer price;
+
+        @Schema(description = "市场价，单位使用：分", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
+        private Integer marketPrice;
+
+        @Schema(description = "VIP 价格，单位使用：分", requiredMode = Schema.RequiredMode.REQUIRED, example = "968") // 通过会员等级，计算出折扣后价格
+        private Integer vipPrice;
+
+        @Schema(description = "图片地址", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn/xx.png")
+        private String picUrl;
+
+        @Schema(description = "库存", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+        private Integer stock;
+
+        @Schema(description = "商品重量", example = "1") // 单位：kg 千克
+        private Double weight;
+
+        @Schema(description = "商品体积", example = "1024") // 单位：m^3 平米
+        private Double volume;
+
+    }
 
 }

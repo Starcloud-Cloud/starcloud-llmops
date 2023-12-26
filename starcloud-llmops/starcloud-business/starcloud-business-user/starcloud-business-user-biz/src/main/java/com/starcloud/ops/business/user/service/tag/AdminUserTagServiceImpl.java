@@ -5,6 +5,7 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.tag.vo.AdminUserTagConfigCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.tag.vo.AdminUserTagConfigPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.tag.vo.AdminUserTagConfigUpdateReqVO;
@@ -77,5 +78,20 @@ public class AdminUserTagServiceImpl implements AdminUserTagService {
             adminUserTagDO.setUpdater(String.valueOf(userId));
         }
         adminUserTagMapper.insert(adminUserTagDO);
+    }
+
+    /**
+     * 添加新用户标签
+     *
+     * @param userId 会员编号
+     */
+    @Override
+    public Boolean validateNewUser(Long userId) {
+        Long newUserTagId = adminUserTagConfigService.getNewUserTagId();
+        if (Objects.isNull(newUserTagId)){
+            return false;
+        }
+        Long result = adminUserTagMapper.selectCount(Wrappers.lambdaQuery(AdminUserTagDO.class).eq(AdminUserTagDO::getUserId, userId).in(AdminUserTagDO::getTagIds, newUserTagId));
+        return result >0 ;
     }
 }

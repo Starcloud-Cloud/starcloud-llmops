@@ -30,9 +30,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.EXPORT;
+import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
 
 @Tag(name = "星河云海 -管理后台 - 商品 SPU")
 @RestController
@@ -152,12 +155,19 @@ public class ProductSpuController {
     @Operation(summary = "系统会员-获得商品 SPU 分页")
     public CommonResult<PageResult<AppProductSpuPageRespVO>> getSpuPage(@Valid AppProductSpuPageReqVO pageVO) {
         PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO);
+        List<ProductSpuDO> collect = pageResult.getList().stream().filter(sku -> sku.getRegisterDays() == -1).collect(Collectors.toList());
+        pageResult.setList(collect);
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }
 
         // 拼接返回
         PageResult<AppProductSpuPageRespVO> voPageResult = ProductSpuConvert.INSTANCE.convertPageForGetSpuPage(pageResult);
+        voPageResult.getList().stream().forEach(spu -> {
+            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId());
+            spu.setSkus(ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus));
+
+        });
         return success(voPageResult);
     }
 
@@ -178,6 +188,57 @@ public class ProductSpuController {
         List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId());
         AppProductSpuDetailRespVO detailVO = ProductSpuConvert.INSTANCE.convertForGetSpuDetail(spu, skus);
         return success(detailVO);
+    }
+
+    @GetMapping("/u/like_name")
+    @Operation(summary = "根据商品名称获得同类型商品")
+    @Parameter(name = "id", description = "编号", required = true)
+    public CommonResult<List<Long>> getSpuListByLikeName(@RequestParam("id") Long skuId) {
+
+        ProductSkuDO sku = productSkuService.getSku(skuId);
+        if (sku == null) {
+            throw exception(SKU_NOT_EXISTS);
+        }
+        ProductSpuDO spu = productSpuService.getSpu(sku.getSpuId());
+        if (spu == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.SPU_NOT_EXISTS);
+        }
+
+        AppProductSpuPageReqVO pageVO =new AppProductSpuPageReqVO();
+        String[] parts = spu.getName().split("-");
+        ArrayList<Long> list = new ArrayList<>();
+
+        if (parts.length>1){
+            pageVO.setKeyword(parts[0]);
+        }else {
+            return success(list);
+        }
+
+        PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO);
+        if (CollUtil.isEmpty(pageResult.getList())) {
+            return success(list);
+        }
+        pageResult.getList().stream().forEach(spuDO -> {
+            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spuDO.getId());
+            list.add(skus.get(0).getId());
+        });
+
+        return success(list);
+    }
+
+    @GetMapping("/u/special_offer")
+    @Operation(summary = "系统会员-获得特价商品")
+    public CommonResult<AppProductSpuPageRespVO> getSpecialOffer() {
+        ProductSpuDO specialOfferSku = productSpuService.getSpecialOfferSku();
+
+        List<AppProductSpuPageRespVO> appProductSpuPageRespVOS = ProductSpuConvert.INSTANCE.convertListForGetSpuList(Arrays.asList(specialOfferSku));
+
+        appProductSpuPageRespVOS.stream().forEach(spu -> {
+            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId());
+            spu.setSkus(ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus));
+
+        });
+        return success(appProductSpuPageRespVOS.get(0));
     }
 
 }

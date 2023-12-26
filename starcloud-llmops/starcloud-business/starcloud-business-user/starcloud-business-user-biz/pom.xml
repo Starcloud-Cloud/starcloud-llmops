@@ -71,5 +71,10 @@
             <artifactId>starcloud-business-chat-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-trade-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
     </dependencies>
 </project>

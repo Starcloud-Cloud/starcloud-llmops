@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.Set;
 
 /**
  * 优惠劵 API 实现类
@@ -39,6 +40,18 @@ public class CouponApiImpl implements CouponApi {
     public CouponRespDTO validateCoupon(CouponValidReqDTO validReqDTO) {
         CouponDO coupon = couponService.validCoupon(validReqDTO.getId(), validReqDTO.getUserId());
         return CouponConvert.INSTANCE.convert(coupon);
+    }
+
+    /**
+     * 校验优惠劵
+     *
+     * @param templateId
+     * @param userIds
+     * @return 优惠劵
+     */
+    @Override
+    public void addCoupon(Long templateId, Set<Long> userIds) {
+         couponService.takeCouponByAdmin(templateId,userIds);
     }
 
 }

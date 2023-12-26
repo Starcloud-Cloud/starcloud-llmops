@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Schema(description = "用户 APP - 用户个人信息 Response VO")
@@ -48,6 +49,15 @@ public class AdminUserInfoRespVO {
 
     @Schema(description = "邀请链接")
     private String inviteUrl;
+
+    @Schema(description = "是否新用户")
+    private Boolean isNewUser;
+
+    @Schema(description = "注册时间")
+    private LocalDateTime registerTime;
+
+    @Schema(description = "优惠结束时间")
+    private LocalDateTime endTime;
 
     @Schema(description = "用户等级")
     private List<Level> levels;
