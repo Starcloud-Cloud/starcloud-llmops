@@ -185,7 +185,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         }
 
         return adminUserLevelDetailRespVOS.stream()
-                .sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort))
+                .sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed())
                 .collect(Collectors.toList());
 
     }
@@ -212,6 +212,15 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
                 .filter(level -> level.getValidEndTime().isBefore(nextWeek) && level.getValidEndTime().isAfter(today))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
+        // 获取大于 7 天的用户等级
+        List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream()
+                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(nextWeek))
+                .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
+                .collect(Collectors.toList());
+
+        nextWeekExpiringLevel.removeIf(level -> noExpiringLevelDOS.stream()
+                .anyMatch(noExpiringLevel -> noExpiringLevel.getLevelId().equals(level.getLevelId())));
+
         if (CollUtil.isEmpty(nextWeekExpiringLevel)) {
             return notifyExpiringLevelRespVO;
         }
