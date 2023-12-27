@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.crawler.impl;
 
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
@@ -97,6 +98,7 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
             Map<String, Object> templateParams = new HashMap<>();
             templateParams.put("errorMsg", errorMsg);
             templateParams.put("date", LocalDateTime.now());
+            templateParams.put("environment", SpringUtil.getActiveProfile());
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")
