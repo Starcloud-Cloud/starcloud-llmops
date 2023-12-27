@@ -69,6 +69,11 @@ public interface SingleMissionService {
     List<Long> selectIds(@Valid SingleMissionQueryReqVO reqVO);
 
     /**
+     * 查询结算 Id
+     */
+    List<Long> selectSettlementIds(@Valid SingleMissionQueryReqVO reqVO);
+
+    /**
      * 校验预算金额
      */
     void validBudget(NotificationCenterDO notificationCenterDO);
@@ -87,6 +92,11 @@ public interface SingleMissionService {
      * 预结算更新
      */
     void preSettlement(SingleMissionRespVO singleMissionRespVO);
+
+    /**
+     * 结算
+     */
+    void settlement(SingleMissionRespVO singleMissionRespVO);
 
     /**
      * 删除通告

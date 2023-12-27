@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.api.impl;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
@@ -144,6 +145,17 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (!claimedUser.equals(singleMissionDO.getClaimUserId())) {
             throw exception(MISSION_CAN_NOT_PUBLISH_USERID);
         }
+
+        AppNotificationRespVO notificationRespVO = notifyDetail(singleMissionDO.getNotificationUid());
+        if (LocalDateTimeUtils.beforeNow(notificationRespVO.getEndTime())) {
+            SingleMissionDO missionDO = missionByUid(reqVO.getMissionUid());
+            missionDO.setStatus(SingleMissionStatusEnum.close.getCode());
+            missionDO.setCloseMsg("超时未发布链接");
+            missionDO.setUpdateTime(LocalDateTime.now());
+            singleMissionMapper.updateById(missionDO);
+            throw exception(END_TIME_OVER);
+        }
+
         XhsNoteDetailRespVO noteDetail = xhsNoteDetailService.remoteDetail(reqVO.getPublishUrl());
         SingleMissionRespVO singleMissionRespVO = SingleMissionConvert.INSTANCE.convert(singleMissionDO);
         singleMissionRespVO.getContent().validPostingContent(noteDetail);
@@ -239,6 +251,10 @@ public class WechatAppApiImpl implements WechatAppApi {
 
         if (SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
             respVO.setErrorMsg(missionDO.getSettlementMsg());
+        }
+
+        if (SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
+            respVO.setErrorMsg(missionDO.getCloseMsg());
         }
 
         respVO.setClaimLimit(NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit()));
