@@ -81,6 +81,7 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
                 log.warn("小红书数据json转换异常, {}", e.getMessage());
                 throw e;
             }
+            log.info("小红书接口重试");
             return requestDetail0(noteId, retry++);
         } catch (ServiceException e) {
             log.warn("处理小红书数据异常, {}", e.getMessage());
