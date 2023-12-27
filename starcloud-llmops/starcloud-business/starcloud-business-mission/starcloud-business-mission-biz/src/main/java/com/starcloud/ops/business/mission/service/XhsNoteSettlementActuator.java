@@ -62,7 +62,7 @@ public class XhsNoteSettlementActuator {
             if (SingleMissionStatusEnum.claimed.getCode().equals(singleMissionRespVO.getStatus())) {
                 // 过期未发布关闭
                 SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
-                modifyReqVO.setUid(modifyReqVO.getUid());
+                modifyReqVO.setUid(singleMissionRespVO.getUid());
                 modifyReqVO.setStatus(SingleMissionStatusEnum.close.getCode());
                 modifyReqVO.setCloseMsg("超时未发布链接");
                 singleMissionService.update(modifyReqVO);
