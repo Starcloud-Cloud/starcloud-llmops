@@ -81,7 +81,14 @@ public interface AdminUserRightsService {
      */
     NotifyExpiringRightsRespVO notifyExpiringRights(Long userId);
 
-    void expireRights();
+
+    /**
+     * 【系统】自动过期用户权益
+     *
+     * @return 过期数量
+     */
+    Integer expireRights();
 
 
+    void expireRightsBySystem(AdminUserRightsDO rightsDO);
 }

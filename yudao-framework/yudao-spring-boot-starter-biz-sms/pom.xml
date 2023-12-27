@@ -77,6 +77,13 @@
             <artifactId>tencentcloud-sdk-java-sms</artifactId>
         </dependency>
         <!-- SMS SDK end -->
+
+        <!-- 业务组件 -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-module-system-api</artifactId> <!-- 需要使用它，钉钉通知的模板封装 -->
+            <version>${revision}</version>
+        </dependency>
     </dependencies>
 
 </project>
