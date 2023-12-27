@@ -316,7 +316,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             modifyReqVO.setPreSettlementMsg(e.getMessage());
             modifyReqVO.setPreSettlementTime(LocalDateTime.now());
             update(modifyReqVO);
-            throw e;
         }
     }
 
@@ -343,7 +342,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             modifyReqVO.setSettlementMsg(e.getMessage());
             modifyReqVO.setSettlementTime(LocalDateTime.now());
             update(modifyReqVO);
-            throw e;
         }
     }
 
