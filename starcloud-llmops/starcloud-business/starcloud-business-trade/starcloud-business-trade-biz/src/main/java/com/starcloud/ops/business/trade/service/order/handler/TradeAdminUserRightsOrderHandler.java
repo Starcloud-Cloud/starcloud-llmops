@@ -36,26 +36,6 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
 
         // 设置会员等级
         for (GiveRightsDTO giveRight : order.getGiveRights()) {
-            LocalDateTime validStartTime = LocalDateTime.now();
-            LocalDateTime validEndTime;
-            TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getRightsTimeRange());
-            switch (timeRangeTypeEnum) {
-                case DAY:
-                    validEndTime = validStartTime.plusDays(giveRight.getRightsTimeNums());
-                    break;
-                case WEEK:
-                    validEndTime = validStartTime.plusWeeks(giveRight.getRightsTimeNums());
-                    break;
-                case MONTH:
-                    validEndTime = validStartTime.plusMonths(giveRight.getRightsTimeNums());
-                    break;
-                case YEAR:
-                    validEndTime = validStartTime.plusYears(giveRight.getRightsTimeNums());
-                    break;
-                default:
-                    throw new RuntimeException("产品权益信息设置异常，请联系管理员");
-
-            }
 
             adminUserLevelApi.addAdminUserLevel(
                     order.getUserId(),
@@ -68,7 +48,9 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
             adminUserRightsApi.addRights(
                     order.getUserId(),
                     giveRight.getGiveMagicBean(),
-                    giveRight.getGiveImage(), validStartTime, validEndTime,
+                    giveRight.getGiveImage(),
+                    giveRight.getRightsTimeNums(),
+                    giveRight.getRightsTimeRange(),
                     AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(),
                     String.valueOf(order.getId()));
         }

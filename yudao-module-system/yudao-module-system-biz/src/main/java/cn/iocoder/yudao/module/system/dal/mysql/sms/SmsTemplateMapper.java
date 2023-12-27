@@ -17,6 +17,10 @@ public interface SmsTemplateMapper extends BaseMapperX<SmsTemplateDO> {
         return selectOne(SmsTemplateDO::getCode, code);
     }
 
+    default SmsTemplateDO selectByTemplateId(String templateId) {
+        return selectOne(SmsTemplateDO::getApiTemplateId, templateId);
+    }
+
     default PageResult<SmsTemplateDO> selectPage(SmsTemplatePageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<SmsTemplateDO>()
                 .eqIfPresent(SmsTemplateDO::getType, reqVO.getType())

@@ -7,10 +7,12 @@ import cn.iocoder.yudao.framework.sms.core.client.impl.debug.DebugDingTalkSmsCli
 import cn.iocoder.yudao.framework.sms.core.client.impl.tencent.TencentSmsClient;
 import cn.iocoder.yudao.framework.sms.core.enums.SmsChannelEnum;
 import cn.iocoder.yudao.framework.sms.core.property.SmsChannelProperties;
+import cn.iocoder.yudao.module.system.api.sms.SmsTemplateApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -23,6 +25,9 @@ import java.util.concurrent.ConcurrentMap;
 @Validated
 @Slf4j
 public class SmsClientFactoryImpl implements SmsClientFactory {
+
+    @Resource
+    private  SmsTemplateApi smsTemplateApi;
 
     /**
      * 短信客户端 Map
@@ -79,7 +84,7 @@ public class SmsClientFactoryImpl implements SmsClientFactory {
         // 创建客户端
         switch (channelEnum) {
             case ALIYUN: return new AliyunSmsClient(properties);
-            case DEBUG_DING_TALK: return new DebugDingTalkSmsClient(properties);
+            case DEBUG_DING_TALK: return new DebugDingTalkSmsClient(properties, smsTemplateApi);
             case TENCENT: return new TencentSmsClient(properties);
         }
         // 创建失败，错误日志 + 抛出异常

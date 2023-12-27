@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.system.convert.sms;
 
+import cn.iocoder.yudao.framework.sms.core.client.dto.SmsTemplateRespDTO;
+import cn.iocoder.yudao.module.system.api.sms.dto.template.SmsTemplateConfigRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.sms.vo.template.SmsTemplateCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.sms.vo.template.SmsTemplateExcelVO;
 import cn.iocoder.yudao.module.system.controller.admin.sms.vo.template.SmsTemplateRespVO;
@@ -27,5 +29,8 @@ public interface SmsTemplateConvert {
     PageResult<SmsTemplateRespVO> convertPage(PageResult<SmsTemplateDO> page);
 
     List<SmsTemplateExcelVO> convertList02(List<SmsTemplateDO> list);
+
+
+    SmsTemplateConfigRespDTO convert01(SmsTemplateDO bean);
 
 }

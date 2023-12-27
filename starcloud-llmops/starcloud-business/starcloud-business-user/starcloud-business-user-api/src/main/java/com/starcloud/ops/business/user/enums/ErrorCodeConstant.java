@@ -44,14 +44,19 @@ public interface ErrorCodeConstant {
     ErrorCode LEVEL_HAS_USER = new ErrorCode(2_004_011_005, "用户等级下存在用户，无法删除");
 
     ErrorCode LEVEL_BIZ_NOT_SUPPORT = new ErrorCode(2_004_011_201, "用户等级业务类型不支持");
+    ErrorCode LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE = new ErrorCode(2_004_011_202, "用户等级过期失败，用户等级不是启用状态");
 
-    //========== 积分记录 2-004-008-000 ==========
+
+
+    //========== 权益记录 2-004-008-000 ==========
     ErrorCode RIGHTS_BIZ_NOT_SUPPORT = new ErrorCode(2_004_008_000, "用户权益记录业务类型不支持");
     ErrorCode USER_RIGHTS_NOT_ENOUGH= new ErrorCode(2_004_008_001, "用户{}权益不足");
     ErrorCode RIGHTS_VALID_TIME_NOT_EXISTS= new ErrorCode(2_004_008_002, "权益有效期不可以为空");
 
     ErrorCode USER_RIGHTS_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_003, "用户魔法豆权益不足");
     ErrorCode USER_RIGHTS_IMAGE_NOT_ENOUGH= new ErrorCode(2_004_008_004, "用户图片权益不足");
+
+    ErrorCode USER_RIGHTS_EXPIRE_FAIL_STATUS_NOT_ENABLE = new ErrorCode(2_004_008_005, "用户权益过期失败，用户等级不是启用状态");
 
     //========== 签到配置 2-004-010-000 ==========
 

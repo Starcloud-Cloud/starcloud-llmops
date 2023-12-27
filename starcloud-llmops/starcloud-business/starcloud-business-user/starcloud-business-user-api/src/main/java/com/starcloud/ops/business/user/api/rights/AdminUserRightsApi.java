@@ -22,7 +22,7 @@ public interface AdminUserRightsApi {
      * @param bizType 业务类型 {@link AdminUserRightsBizTypeEnum}
      * @param bizId   业务编号
      */
-    void addRights(Long userId, @Min(value = 1L, message = "魔法豆必须是正数") Integer magicBean, @Min(value = 1L, message = "图片值必须是正数")  Integer magicImage, LocalDateTime validStartTime, LocalDateTime validEndTime,
+    void addRights(Long userId, @Min(value = 1L, message = "魔法豆必须是正数") Integer magicBean, @Min(value = 1L, message = "图片值必须是正数")  Integer magicImage, Integer rightsTimeNums, Integer rightsTimeRange,
                    Integer bizType, String bizId);
 
     /**

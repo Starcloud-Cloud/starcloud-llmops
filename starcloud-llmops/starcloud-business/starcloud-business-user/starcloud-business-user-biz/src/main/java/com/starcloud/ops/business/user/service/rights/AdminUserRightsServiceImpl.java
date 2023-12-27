@@ -3,6 +3,8 @@ package com.starcloud.ops.business.user.service.rights;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -10,14 +12,17 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -135,6 +140,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
             record.setValidStartTime(LocalDateTime.now());
             record.setValidEndTime(LocalDateTime.now().plusMonths(1));
+        }else {
+            record.setValidStartTime(validStartTime);
+            record.setValidEndTime(validEndTime);
         }
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -263,8 +271,39 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      *
      */
     @Override
-    public void expireRights() {
+    public Integer expireRights() {
 
+        // 1. 查询过期的权益订单
+        List<AdminUserRightsDO> rightsDOS = adminUserRightsMapper.selectListByStatusAndValidTimeLt(
+                AdminUserRightsStatusEnum.EXPIRE.getType(),LocalDateTime.now());
+        if (CollUtil.isEmpty(rightsDOS)) {
+            return 0;
+        }
+
+        // 2. 遍历执行，逐个取消
+        int count = 0;
+        for (AdminUserRightsDO rightsDO : rightsDOS) {
+            try {
+                getSelf().expireRightsBySystem(rightsDO);
+                count++;
+            } catch (Throwable e) {
+                log.error("[expireRightsBySystem][rightsDO({}) 用户权益过期异常]", rightsDO.getId(), e);
+            }
+        }
+        return count;
+    }
+
+    /**
+     * @param rightsDO
+     */
+    @Override
+    public void expireRightsBySystem(AdminUserRightsDO rightsDO) {
+        // 更新 AdminUserRightsDO 状态为过期
+        int updateCount = adminUserRightsMapper.updateByIdAndStatus(rightsDO.getId(), rightsDO.getStatus(),
+                new AdminUserRightsDO().setStatus(AdminUserRightsStatusEnum.EXPIRE.getType()));
+        if (updateCount == 0) {
+            throw exception(USER_RIGHTS_EXPIRE_FAIL_STATUS_NOT_ENABLE);
+        }
     }
 
     /**
@@ -355,6 +394,17 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
         return deductRightsList;
 
+    }
+
+
+
+    /**
+     * 获得自身的代理对象，解决 AOP 生效问题
+     *
+     * @return 自己
+     */
+    private AdminUserRightsServiceImpl getSelf() {
+        return SpringUtil.getBean(getClass());
     }
 
 }

@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.json.JSONUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
@@ -23,7 +24,6 @@ import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_EXISTS;
 
 /**
@@ -225,7 +226,6 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     /**
      * 设置默认等级
-     *
      */
     @Override
     public void setInitLevel() {
@@ -239,7 +239,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (Objects.isNull(levelConfigDO)) {
             throw exception(LEVEL_NOT_EXISTS);
         }
-        List<AdminUserDO>  userDOS = adminUserService.getUserList();
+        List<AdminUserDO> userDOS = adminUserService.getUserList();
         for (AdminUserDO adminUserDO : userDOS) {
             AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
             createReqVO.setUserId(adminUserDO.getId());
@@ -256,6 +256,47 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         }
 
 
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public int expireLevel() {
+
+        // 1. 查询过期的用户等级数据
+        List<AdminUserLevelDO> levelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeLt(
+                CommonStatusEnum.ENABLE.getStatus(), LocalDateTime.now());
+        if (CollUtil.isEmpty(levelDOS)) {
+            return 0;
+        }
+
+        // 2. 遍历执行，逐个取消
+        int count = 0;
+        for (AdminUserLevelDO levelDO : levelDOS) {
+            try {
+                getSelf().expireLevelBySystem(levelDO);
+                count++;
+            } catch (Throwable e) {
+                log.error("[expireLevelBySystem][levelDO({}) 用户等级过期异常]", levelDO.getId(), e);
+            }
+        }
+        return count;
+
+    }
+
+    /**
+     * @param levelDO
+     */
+    @Override
+    public void expireLevelBySystem(AdminUserLevelDO levelDO) {
+
+        // 更新 AdminUserLevelDO 状态为已关闭
+        int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(),
+                new AdminUserLevelDO().setStatus(CommonStatusEnum.DISABLE.getStatus()));
+        if (updateCount == 0) {
+            throw exception(LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE);
+        }
 
     }
 
@@ -282,6 +323,16 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             default:
                 return times;
         }
+    }
+
+
+    /**
+     * 获得自身的代理对象，解决 AOP 生效问题
+     *
+     * @return 自己
+     */
+    private AdminUserLevelServiceImpl getSelf() {
+        return SpringUtil.getBean(getClass());
     }
 
 
