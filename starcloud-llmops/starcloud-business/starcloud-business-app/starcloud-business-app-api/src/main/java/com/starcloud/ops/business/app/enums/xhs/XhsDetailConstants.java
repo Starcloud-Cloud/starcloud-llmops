@@ -53,12 +53,6 @@ public class XhsDetailConstants {
         return ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);
     }
 
-    public static void main(String[] args) {
-        String str = "35 哈哈哼哼发布了一篇小红书笔记，快来看吧！ \uD83D\uDE06 nB1VRQNyuujNVH4 \uD83D\uDE06 http://xhslink.com/WteXPx，复制本条信息，打开【小红书】App查看精彩内容！";
-        validNoteUrl(str);
-        System.out.println(parsingNoteId(str));
-    }
-
     /**
      * 解析小红noteId
      *
