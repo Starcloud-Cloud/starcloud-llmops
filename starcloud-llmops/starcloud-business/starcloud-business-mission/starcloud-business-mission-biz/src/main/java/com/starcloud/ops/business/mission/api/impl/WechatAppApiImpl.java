@@ -167,10 +167,12 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void abandonMission(AppAbandonMissionReqVO reqVO) {
+    public void  abandonMission(AppAbandonMissionReqVO reqVO) {
         String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO singleMissionDO = missionByUid(reqVO.getMissionUid());
         if (SingleMissionStatusEnum.settlement.getCode().equals(singleMissionDO.getStatus())
+                ||SingleMissionStatusEnum.complete.getCode().equals(singleMissionDO.getStatus())
+                ||SingleMissionStatusEnum.close.getCode().equals(singleMissionDO.getStatus())
                 || SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionDO.getStatus())) {
             throw exception(MISSION_CAN_NOT_ABANDON_STATUS, SingleMissionStatusEnum.valueOfCode(singleMissionDO.getStatus()));
         }
