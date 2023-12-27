@@ -148,11 +148,6 @@ public class WechatAppApiImpl implements WechatAppApi {
 
         AppNotificationRespVO notificationRespVO = notifyDetail(singleMissionDO.getNotificationUid());
         if (LocalDateTimeUtils.beforeNow(notificationRespVO.getEndTime())) {
-            SingleMissionDO missionDO = missionByUid(reqVO.getMissionUid());
-            missionDO.setStatus(SingleMissionStatusEnum.close.getCode());
-            missionDO.setCloseMsg("超时未发布链接");
-            missionDO.setUpdateTime(LocalDateTime.now());
-            singleMissionMapper.updateById(missionDO);
             throw exception(END_TIME_OVER);
         }
 
