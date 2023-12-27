@@ -55,4 +55,13 @@ public class AdminUserLevelController {
     }
 
 
+    @GetMapping("/setInitLevel")
+    @Operation(summary = "获得会员等级记录分页")
+    public CommonResult<Boolean> setInitLevel() {
+        adminUserLevelService.setInitLevel();
+        return success(Boolean.TRUE);
+    }
+
+
+
 }

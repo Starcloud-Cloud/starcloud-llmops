@@ -41,16 +41,16 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
             TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(giveRight.getRightsTimeRange());
             switch (timeRangeTypeEnum) {
                 case DAY:
-                    validEndTime = validStartTime.plusDays(giveRight.getLevelTimeNums());
+                    validEndTime = validStartTime.plusDays(giveRight.getRightsTimeNums());
                     break;
                 case WEEK:
-                    validEndTime = validStartTime.plusWeeks(giveRight.getLevelTimeNums());
+                    validEndTime = validStartTime.plusWeeks(giveRight.getRightsTimeNums());
                     break;
                 case MONTH:
-                    validEndTime = validStartTime.plusMonths(giveRight.getLevelTimeNums());
+                    validEndTime = validStartTime.plusMonths(giveRight.getRightsTimeNums());
                     break;
                 case YEAR:
-                    validEndTime = validStartTime.plusYears(giveRight.getLevelTimeNums());
+                    validEndTime = validStartTime.plusYears(giveRight.getRightsTimeNums());
                     break;
                 default:
                     throw new RuntimeException("产品权益信息设置异常，请联系管理员");
