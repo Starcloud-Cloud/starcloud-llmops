@@ -43,21 +43,15 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
     private SmsSendApi smsSendApi;
 
     @Override
-    @SneakyThrows(InterruptedException.class)
     public ServerRequestInfo requestDetail(String noteId) {
-        try {
-            return requestDetail0(noteId);
-        } catch (JSONException e) {
-            // 小红书偶尔点赞数返回 10+ 转int错误  重试一次
-            log.warn("{} 数据错误重试 {}", noteId, e.getMessage());
-            TimeUnit.MILLISECONDS.sleep(500);
-            return requestDetail0(noteId);
-        }
+        return requestDetail0(noteId, 0);
     }
 
-    public ServerRequestInfo requestDetail0(String noteId) {
+    @SneakyThrows(InterruptedException.class)
+    public ServerRequestInfo requestDetail0(String noteId, int retry) {
         String html = StringUtils.EMPTY;
         try {
+            long start = System.currentTimeMillis();
             html = xhsCilent.noteDetail(noteId);
             Document doc = Jsoup.parse(html);
             String jsonStr = doc.getElementsByTag(XhsDetailConstants.SCRIPT).last().html().replace(XhsDetailConstants.INITIAL_STATE, StringUtils.EMPTY);
@@ -76,7 +70,17 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
                     .getJSONObject(noteId)
                     .getObject(XhsDetailConstants.NOTE, NoteDetail.class);
             requestInfo.setNoteDetail(noteDetail);
+            long end = System.currentTimeMillis();
+            log.info("query note detail , rt = {} ms", end - start);
             return requestInfo;
+        } catch (JSONException e) {
+            if (retry == 0) {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } else {
+                log.warn("小红书数据json转换异常, {}", e.getMessage());
+                throw e;
+            }
+            return requestDetail0(noteId, retry++);
         } catch (ServiceException e) {
             log.warn("处理小红书数据异常, {}", e.getMessage());
             sendMessage(e.getMessage());

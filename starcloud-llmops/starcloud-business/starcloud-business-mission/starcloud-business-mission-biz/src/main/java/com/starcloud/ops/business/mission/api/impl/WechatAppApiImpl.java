@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.api.impl;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
@@ -144,6 +145,12 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (!claimedUser.equals(singleMissionDO.getClaimUserId())) {
             throw exception(MISSION_CAN_NOT_PUBLISH_USERID);
         }
+
+        AppNotificationRespVO notificationRespVO = notifyDetail(singleMissionDO.getNotificationUid());
+        if (LocalDateTimeUtils.beforeNow(notificationRespVO.getEndTime())) {
+            throw exception(END_TIME_OVER);
+        }
+
         XhsNoteDetailRespVO noteDetail = xhsNoteDetailService.remoteDetail(reqVO.getPublishUrl());
         SingleMissionRespVO singleMissionRespVO = SingleMissionConvert.INSTANCE.convert(singleMissionDO);
         singleMissionRespVO.getContent().validPostingContent(noteDetail);
@@ -155,10 +162,12 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void abandonMission(AppAbandonMissionReqVO reqVO) {
+    public void  abandonMission(AppAbandonMissionReqVO reqVO) {
         String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO singleMissionDO = missionByUid(reqVO.getMissionUid());
         if (SingleMissionStatusEnum.settlement.getCode().equals(singleMissionDO.getStatus())
+                ||SingleMissionStatusEnum.complete.getCode().equals(singleMissionDO.getStatus())
+                ||SingleMissionStatusEnum.close.getCode().equals(singleMissionDO.getStatus())
                 || SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionDO.getStatus())) {
             throw exception(MISSION_CAN_NOT_ABANDON_STATUS, SingleMissionStatusEnum.valueOfCode(singleMissionDO.getStatus()));
         }
@@ -239,6 +248,10 @@ public class WechatAppApiImpl implements WechatAppApi {
 
         if (SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
             respVO.setErrorMsg(missionDO.getSettlementMsg());
+        }
+
+        if (SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
+            respVO.setErrorMsg(missionDO.getCloseMsg());
         }
 
         respVO.setClaimLimit(NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit()));
