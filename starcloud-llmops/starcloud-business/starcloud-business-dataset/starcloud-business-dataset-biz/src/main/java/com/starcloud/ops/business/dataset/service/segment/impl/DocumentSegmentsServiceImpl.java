@@ -2,6 +2,7 @@ package com.starcloud.ops.business.dataset.service.segment.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -44,6 +45,8 @@ import com.starcloud.ops.business.log.api.embedding.EmbeddingReqDTO;
 import com.starcloud.ops.business.log.convert.LogEmbeddingConvert;
 import com.starcloud.ops.business.log.dal.dataobject.LogEmbeddingDO;
 import com.starcloud.ops.business.log.service.embmedding.LogEmbeddingService;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import com.starcloud.ops.llm.langchain.core.indexes.vectorstores.BasicVectorStore;
 import com.starcloud.ops.llm.langchain.core.model.embeddings.BasicEmbedding;
@@ -108,6 +111,9 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
 
     @Autowired
     private UserBenefitsService userBenefitsService;
+
+    @Resource
+    private AdminUserRightsApi adminUserRightsApi;
 
     @Autowired
     @Lazy
@@ -191,9 +197,7 @@ public class DocumentSegmentsServiceImpl implements DocumentSegmentsService {
         Long tenantId = TenantContextHolder.getTenantId();
         String creator = datasets.getCreator();
 
-        try {
-            userBenefitsService.allowExpendBenefits(BenefitsTypeEnums.COMPUTATIONAL_POWER.getCode(), Long.valueOf(creator));
-        } catch (Exception e) {
+        if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(creator), AdminUserRightsTypeEnum.MAGIC_BEAN, null)) {
             throw exception(USER_BENEFITS_NOT_ADEQUATE, creator);
         }
 
