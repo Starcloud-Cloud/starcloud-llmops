@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.xhs.crawler.impl;
 
-import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
@@ -81,7 +80,6 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
                 log.warn("小红书数据json转换异常, {}", e.getMessage());
                 throw e;
             }
-            log.info("小红书接口重试");
             return requestDetail0(noteId, retry++);
         } catch (ServiceException e) {
             log.warn("处理小红书数据异常, {}", e.getMessage());
@@ -99,7 +97,6 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
             Map<String, Object> templateParams = new HashMap<>();
             templateParams.put("errorMsg", errorMsg);
             templateParams.put("date", LocalDateTime.now());
-            templateParams.put("environment", SpringUtil.getActiveProfile());
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")

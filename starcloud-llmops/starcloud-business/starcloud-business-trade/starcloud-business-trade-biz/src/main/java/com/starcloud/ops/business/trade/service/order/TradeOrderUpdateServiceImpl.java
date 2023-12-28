@@ -6,11 +6,9 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
@@ -42,6 +40,7 @@ import com.starcloud.ops.business.trade.dal.mysql.order.TradeOrderItemMapper;
 import com.starcloud.ops.business.trade.dal.mysql.order.TradeOrderMapper;
 import com.starcloud.ops.business.trade.dal.redis.no.TradeNoRedisDAO;
 import com.starcloud.ops.business.trade.enums.delivery.DeliveryTypeEnum;
+import com.starcloud.ops.business.trade.enums.order.*;
 import com.starcloud.ops.business.trade.framework.order.config.TradeOrderProperties;
 import com.starcloud.ops.business.trade.framework.order.core.annotations.TradeOrderLog;
 import com.starcloud.ops.business.trade.framework.order.core.utils.TradeOrderLogUtils;
@@ -54,7 +53,6 @@ import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
-import com.starcloud.ops.business.trade.enums.order.*;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import lombok.extern.slf4j.Slf4j;
@@ -957,24 +955,13 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     /**
      * 订单钉钉消息通知
-     * #### 支付通知
-     * >   #####
-     * >   ###### 叮～～ 收到一笔新的支付订单，请注意查收
-     * {environmentName}
-     * > - 会员名称:{userName}
-     * > - 商品名称:{productName}
-     * > - 商品原价:{totalPrice} 元
-     * > - 优惠金额:{discountPrice} 元
-     * > - 支付金额:{payPrice} 元
-     * > - 支付时间:{payTime}
-     * >  ###### 魔法 AI发布 [支付提醒](https://www.mofaai.com.cn/)
      *
      * @param userId        用户 ID
      * @param productName   商品名称
      * @param totalPrice    商品金额
      * @param discountPrice 优惠金额
      * @param payPrice      支付金额
-     * @param totalPrice    支付时间
+     * @param payTime    支付时间
      */
     @TenantIgnore
     private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime) {
