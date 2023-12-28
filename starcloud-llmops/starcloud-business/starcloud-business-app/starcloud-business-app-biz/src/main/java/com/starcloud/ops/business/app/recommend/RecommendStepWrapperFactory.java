@@ -114,21 +114,21 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 默认生成内容步骤
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defMediaMatrixTitleStepWrapper() {
-        String name = MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_TITLE_NAME");
+    public static WorkflowStepWrapperRespVO defContentStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_TITLE_NAME"));
-        String defaultPrompt = "媒体矩阵标题";
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME"));
+        String defaultPrompt = "内容";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_TITLE_DESCRIPTION"));
-        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_TITLE_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defContentActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixTitleVariable());
         return stepWrapper;
     }
@@ -138,37 +138,17 @@ public class RecommendStepWrapperFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defMediaMatrixStartStepWrapper() {
-        String name = MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_START_NAME");
+    public static WorkflowStepWrapperRespVO defParagraphStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_START_NAME"));
-        String defaultPrompt = "媒体矩阵开头";
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
+        String defaultPrompt = "内容";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_START_DESCRIPTION"));
-        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_START_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixStartVariable());
-        return stepWrapper;
-    }
-
-    /**
-     * 默认生成文章摘要步骤
-     *
-     * @return WorkflowStepRespVO
-     */
-    public static WorkflowStepWrapperRespVO defMediaMatrixContentStepWrapper() {
-        String name = MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_CONTENT_NAME");
-        String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_CONTENT_NAME"));
-        String defaultPrompt = "媒体矩阵内容";
-        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField(field);
-        stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_CONTENT_DESCRIPTION"));
-        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_CONTENT_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defParagraphActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixContentVariable());
         return stepWrapper;
     }
@@ -178,17 +158,37 @@ public class RecommendStepWrapperFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defMediaMatrixEndStepWrapper() {
-        String name = MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_END_NAME");
+    public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_END_NAME"));
-        String defaultPrompt = "媒体矩阵结尾";
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
+        String defaultPrompt = "内容";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_END_DESCRIPTION"));
-        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MEDIA_MATRIX_END_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defAssembleActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixEndVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成文章摘要步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME"));
+        String defaultPrompt = "内容";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixEndVariable());
         return stepWrapper;
     }
@@ -210,10 +210,10 @@ public class RecommendStepWrapperFactory {
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
                 defDefaultTextCompletionStepWrapper(),
-                defMediaMatrixTitleStepWrapper(),
-                defMediaMatrixStartStepWrapper(),
-                defMediaMatrixContentStepWrapper(),
-                defMediaMatrixEndStepWrapper()
+                defContentStepWrapper(),
+                defParagraphStepWrapper(),
+                defAssembleStepWrapper(),
+                defPosterStepWrapper()
         );
     }
 
