@@ -1,8 +1,9 @@
-package com.starcloud.ops.business.app.domain.entity.workflow.action;
+package com.starcloud.ops.business.app.domain.entity.workflow.action.base;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -15,6 +16,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
+import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -24,7 +26,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -110,11 +114,19 @@ public abstract class BaseActionHandler<Q, R> {
     protected ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         log.info("Action 执行开始...");
         try {
+            Optional<String> property = scopeDataOperator.getTaskProperty();
+
+            AppProcessParser.ServiceTaskPropertyDTO serviceTaskPropertyDTO = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
+            context.setStepId(serviceTaskPropertyDTO.getStepId());
+
             this.appContext = context;
             Q request = this.parseInput();
 
             // 执行具体的步骤
             ActionResponse actionResponse = this.doExecute(request);
+
+            //设置到上下文中
+            this.appContext.setActionResponse(actionResponse);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {
@@ -184,5 +196,50 @@ public abstract class BaseActionHandler<Q, R> {
         }, inputCls);
     }
 
+
+    /**
+     * 因为 parseInput 内逻辑已经约定了Request实体，所以实体都放在这里，如果要新定义实体也需要复写parseInput
+     */
+
+    /**
+     * 请求实体
+     */
+    @Data
+    public static class Request {
+
+        /**
+         * 老参数直接传入
+         */
+        @Deprecated
+        private Map<String, Object> stepParams;
+
+
+        /**
+         * 后续新参数 都是一个个独立字段即可
+         */
+        private String prompt;
+
+
+        private Boolean enabledDateset = false;
+
+        /**
+         * 数据集支持
+         */
+        private List<String> datesetList;
+
+    }
+
+    /**
+     * 响应实体
+     */
+    @Data
+    public static class Response {
+
+        private String content;
+
+        public Response(String content) {
+            this.content = content;
+        }
+    }
 
 }

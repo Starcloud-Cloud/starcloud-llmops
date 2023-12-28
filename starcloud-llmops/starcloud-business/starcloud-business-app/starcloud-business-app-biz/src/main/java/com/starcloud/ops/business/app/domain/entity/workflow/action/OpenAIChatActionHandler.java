@@ -1,17 +1,13 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.json.JSONUtil;
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeResult;
-import cn.kstry.framework.core.annotation.NoticeSta;
-import cn.kstry.framework.core.annotation.ReqTaskParam;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
+import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
@@ -19,10 +15,8 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHa
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,11 +30,10 @@ import java.util.Optional;
  */
 @Slf4j
 @TaskComponent(name = "OpenAIChatActionHandler")
-public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionHandler.Request, OpenAIChatActionHandler.Response> {
+public class OpenAIChatActionHandler extends BaseActionHandler<BaseActionHandler.Request, BaseActionHandler.Response> {
 
 
-    @NoticeSta
-    @NoticeResult
+    @NoticeVar
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
@@ -146,45 +139,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         return actionResponse;
     }
 
-    /**
-     * 请求实体
-     */
-    @Data
-    public static class Request {
 
-        /**
-         * 老参数直接传入
-         */
-        @Deprecated
-        private Map<String, Object> stepParams;
-
-
-        /**
-         * 后续新参数 都是一个个独立字段即可
-         */
-        private String prompt;
-
-
-        private Boolean enabledDateset = false;
-
-        /**
-         * 数据集支持
-         */
-        private List<String> datesetList;
-
-    }
-
-    /**
-     * 响应实体
-     */
-    @Data
-    public static class Response {
-
-        private String content;
-
-        public Response(String content) {
-            this.content = content;
-        }
-    }
 
 }

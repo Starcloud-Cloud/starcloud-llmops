@@ -143,6 +143,7 @@ public class WorkflowV2Test extends BaseDbUnitTest {
         AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
 
         executeReqVO.setAppUid("77a466b2e70f48f9b61910105f5db0f7");
+        executeReqVO.setUserId(186L);
         executeReqVO.setAppReqVO(new AppReqVO());
         executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
 

@@ -50,8 +50,12 @@ public class AppProcessRegister implements DynamicProcess {
         //获取workflow执行类型
 
         app.getWorkflowConfig().getSteps();
-        
-        return parser.getProcessLink();
+
+        if (1 == 1) {
+            return parser.getFlowProcessLink();
+        } else {
+            return parser.getProcessLink();
+        }
     }
 
 }

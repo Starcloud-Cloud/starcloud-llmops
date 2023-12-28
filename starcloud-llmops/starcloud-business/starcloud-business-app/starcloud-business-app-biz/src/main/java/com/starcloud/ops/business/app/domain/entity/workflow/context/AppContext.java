@@ -48,6 +48,11 @@ public class AppContext {
     private static final String STEP_PREFIX = "STEP";
 
     /**
+     * 应用 UID, 每个应用的唯一标识
+     */
+    private String uid;
+
+    /**
      * 会话 UID
      */
     @NotBlank(message = "会话ID不能为空")
@@ -127,7 +132,9 @@ public class AppContext {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_IS_NULL);
         }
         this.conversationUid = IdUtil.simpleUUID();
+
         this.app = app;
+        this.uid = app.getUid();
         this.scene = scene;
         this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getField();
         this.userId = WebFrameworkUtils.getLoginUserId();
