@@ -169,4 +169,11 @@ public interface MemberUserService {
      * @return 更新结果
      */
     boolean updateUserPoint(Long userId, Integer point);
+
+    /**
+     * 修改用户分组
+     * @param memberUserId
+     * @param groupId
+     */
+    void updateUserGroup(Long memberUserId, Long groupId);
 }
