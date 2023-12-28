@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action.base;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -12,22 +10,19 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -38,7 +33,7 @@ import java.util.Optional;
 @Data
 @Slf4j
 @SuppressWarnings("all")
-public abstract class BaseActionHandler<Q, R> {
+public abstract class BaseActionHandler {
 
     /**
      * 扣除权益
@@ -63,11 +58,31 @@ public abstract class BaseActionHandler<Q, R> {
     private AppContext appContext;
 
     /**
-     * 执行具体的步骤
+     * 获取用户权益类型
+     *
+     * @return 权益类型
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract ActionResponse doExecute(Q request);
+    protected abstract AdminUserRightsTypeEnum getUserRightsType();
+
+    /**
+     * 获取当前handler消耗的权益点数
+     *
+     * @return 权益点数
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract Integer getCostPoints();
+
+    /**
+     * 执行具体的步骤
+     *
+     * @return 执行结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract ActionResponse doExecute();
 
     /**
      * 获取应用的UID
@@ -77,29 +92,22 @@ public abstract class BaseActionHandler<Q, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected String getAppUid() {
-        return this.getAppContext().getApp().getUid();
+        return Optional.ofNullable(this.getAppContext())
+                .map(AppContext::getApp)
+                .map(BaseAppEntity::getUid)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_REQUIRED));
     }
 
     /**
-     * 获取当前handler消耗的权益类型，如果返回自动扣除权益，返回null,则不处理权益扣除
+     * 获取应用执行模型
      *
-     * @return 权益类型
+     * @return 应用执行模型
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected BenefitsTypeEnums getBenefitsType() {
-        return BenefitsTypeEnums.COMPUTATIONAL_POWER;
+    protected String getAiModel() {
+        return Optional.ofNullable(this.getAppContext()).map(AppContext::getAiModel).orElse(null);
     }
-
-
-    /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected abstract Integer getCostPoints(Q request);
 
     /**
      * 流程执行器，action 执行入口
@@ -114,17 +122,17 @@ public abstract class BaseActionHandler<Q, R> {
     protected ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         log.info("Action 执行开始...");
         try {
-            Optional<String> property = scopeDataOperator.getTaskProperty();
+            if (Objects.isNull(context)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONTEXT_REQUIRED);
+            }
 
+            Optional<String> property = scopeDataOperator.getTaskProperty();
             AppProcessParser.ServiceTaskPropertyDTO serviceTaskPropertyDTO = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
             context.setStepId(serviceTaskPropertyDTO.getStepId());
-
+            // 设置到上下文中
             this.appContext = context;
-            Q request = this.parseInput();
-
             // 执行具体的步骤
-            ActionResponse actionResponse = this.doExecute(request);
-
+            ActionResponse actionResponse = this.doExecute();
             //设置到上下文中
             this.appContext.setActionResponse(actionResponse);
 
@@ -141,21 +149,19 @@ public abstract class BaseActionHandler<Q, R> {
                 throw ServiceExceptionUtil.exception(new ErrorCode(code, errorMsg));
             }
 
+            AdminUserRightsTypeEnum userRightsType = this.getUserRightsType();
+            Integer costPoints = actionResponse.getCostPoints();
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
-            if (this.getBenefitsType() != null && actionResponse.getCostPoints() > 0 && actionResponse.getTotalTokens() > 0) {
-                // 权益类型
-                BenefitsTypeEnums benefitsType = this.getBenefitsType();
-                // 权益点数
-                Integer costPoints = actionResponse.getCostPoints();
+            if (userRightsType != null && costPoints > 0) {
                 // 扣除权益
                 ADMIN_USER_RIGHTS_API.reduceRights(
                         context.getUserId(), // 用户ID
-                        AdminUserRightsTypeEnum.MAGIC_BEAN, // 权益类型
+                        userRightsType, // 权益类型
                         costPoints, // 权益点数
                         UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType(), // 业务类型
                         context.getConversationUid() // 会话ID
                 );
-                log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", benefitsType.getCode(), costPoints, context.getUserId(), context.getConversationUid());
+                log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", userRightsType.name(), costPoints, context.getUserId(), context.getConversationUid());
             }
 
             log.info("Action 执行成功...");
@@ -167,78 +173,6 @@ public abstract class BaseActionHandler<Q, R> {
         } catch (Exception exception) {
             log.error("Action 执行失败：异常信息: {}", exception.getMessage());
             throw exception;
-        }
-    }
-
-    /**
-     * 解析输入参数
-     *
-     * @return 输入参数
-     */
-    @SuppressWarnings("all")
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Q parseInput() {
-        Map<String, Object> stepParams = this.appContext.getContextVariablesValues();
-        // 将 MODEL 传入到 stepParams 中
-        stepParams.put("MODEL", this.appContext.getAiModel());
-        // 将 N 传入到 stepParams 中
-        stepParams.put("N", this.appContext.getN());
-
-        Type query = TypeUtil.getTypeArgument(this.getClass());
-        Class<Q> inputCls = (Class<Q>) query;
-        return BeanUtil.toBean(new HashMap<String, Object>() {
-            private static final long serialVersionUID = -5958990436311575905L;
-
-            {
-                put("stepParams", stepParams);
-            }
-        }, inputCls);
-    }
-
-
-    /**
-     * 因为 parseInput 内逻辑已经约定了Request实体，所以实体都放在这里，如果要新定义实体也需要复写parseInput
-     */
-
-    /**
-     * 请求实体
-     */
-    @Data
-    public static class Request {
-
-        /**
-         * 老参数直接传入
-         */
-        @Deprecated
-        private Map<String, Object> stepParams;
-
-
-        /**
-         * 后续新参数 都是一个个独立字段即可
-         */
-        private String prompt;
-
-
-        private Boolean enabledDateset = false;
-
-        /**
-         * 数据集支持
-         */
-        private List<String> datesetList;
-
-    }
-
-    /**
-     * 响应实体
-     */
-    @Data
-    public static class Response {
-
-        private String content;
-
-        public Response(String content) {
-            this.content = content;
         }
     }
 

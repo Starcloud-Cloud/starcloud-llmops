@@ -28,15 +28,13 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Open AI Chat 步骤实体
- *
  * @author nacoyer
  * @version 1.0.0
- * @since 2023-05-31
+ * @since 2021-06-22
  */
 @Slf4j
-@TaskComponent(name = "OpenAIChatActionHandler")
-public class OpenAIChatActionHandler extends BaseActionHandler {
+@TaskComponent(name = "ParagraphActionHandler")
+public class ParagraphActionHandler extends BaseActionHandler {
 
     /**
      * 流程执行器，action 执行入口
@@ -46,7 +44,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @NoticeVar
-    @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
+    @TaskService(name = "ParagraphActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         return super.execute(context, scopeDataOperator);
@@ -87,7 +85,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     protected ActionResponse doExecute() {
 
-        log.info("OpenAI ChatGPT Action 执行开始......");
+        log.info("段落生成 Action 执行开始......");
         StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
@@ -96,7 +94,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
+        log.info("段落生成 Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
 
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
@@ -118,7 +116,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         // 执行步骤
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
         ActionResponse response = convert(handlerResponse);
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        log.info("段落生成 Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
 
@@ -152,6 +150,4 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
         return actionResponse;
     }
-
-
 }

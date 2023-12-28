@@ -23,6 +23,11 @@ public interface ErrorCodeConstants {
     ErrorCode PROMPT_IS_REQUIRED = new ErrorCode(300000402, "Prompt是必须的，请检查后重试！");
 
     /**
+     * 应用执行上下文是必须的
+     */
+    ErrorCode APP_CONTEXT_REQUIRED = new ErrorCode(300000402, "应用执行上下文是必须的，请检查后重试！");
+
+    /**
      * MAX_TOKENS超出限制
      */
     ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在1～4000之间，请检查后重试！");

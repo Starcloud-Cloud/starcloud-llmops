@@ -60,7 +60,7 @@ public class WorkflowStepWrapper {
     private WorkflowStepEntity flowStep;
 
     /**
-     * 步骤变量,执行
+     * 提示词变量
      */
     private VariableEntity variable;
 

@@ -21,7 +21,7 @@ import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
-import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageStyleThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +53,7 @@ public class CreativeImageManager {
     private PosterService posterService;
 
     @Resource
-    private CreativeImageStyleThreadPoolHolder creativeImageStyleThreadPoolHolder;
+    private PosterTemplateThreadPoolHolder creativeImageStyleThreadPoolHolder;
 
     /**
      * 获取图片模板
