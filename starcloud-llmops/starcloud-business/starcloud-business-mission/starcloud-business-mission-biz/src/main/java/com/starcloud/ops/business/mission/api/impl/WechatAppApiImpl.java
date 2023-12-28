@@ -260,7 +260,7 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     public AppNotificationRespVO notifyDetail(String notificationUid) {
-        String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
+        Long claimedUserId = SecurityFrameworkUtils.getLoginUserId();
         NotificationCenterDO notificationCenterDO = notificationByUid(notificationUid);
         notificationCenterDO.setVisitNum((notificationCenterDO.getVisitNum() == null ? 0 : notificationCenterDO.getVisitNum()) + 1);
         notificationCenterMapper.updateById(notificationCenterDO);
@@ -278,7 +278,7 @@ public class WechatAppApiImpl implements WechatAppApi {
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
                 claimCount++;
-                if (Objects.equals(claimedUser, missionDO.getClaimUserId())) {
+                if (claimedUserId != null && Objects.equals(claimedUserId.toString(), missionDO.getClaimUserId())) {
                     currentUserNum++;
                     sj.add(missionDO.getUid());
                 }
@@ -297,6 +297,10 @@ public class WechatAppApiImpl implements WechatAppApi {
             respVO.setCanClaim(false);
         }
         if (claimCount == singleMissionDOList.size()) {
+            respVO.setCanClaim(false);
+        }
+
+        if (claimedUserId == null) {
             respVO.setCanClaim(false);
         }
 
