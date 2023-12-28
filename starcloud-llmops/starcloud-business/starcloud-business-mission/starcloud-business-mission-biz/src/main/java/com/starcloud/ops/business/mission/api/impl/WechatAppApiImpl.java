@@ -81,7 +81,7 @@ public class WechatAppApiImpl implements WechatAppApi {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         reqVO.setClaimUserId(loginUserId.toString());
         reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
-        reqVO.setCreator(Collections.singletonList(wechatUserBindService.getBindUser(loginUserId)));
+//        reqVO.setCreator(Collections.singletonList(wechatUserBindService.getBindUser(loginUserId)));
         Long count = notificationCenterMapper.appPageCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();
