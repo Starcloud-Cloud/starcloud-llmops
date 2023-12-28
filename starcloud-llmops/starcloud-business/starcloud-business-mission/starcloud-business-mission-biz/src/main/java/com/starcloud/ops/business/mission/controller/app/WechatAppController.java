@@ -50,7 +50,7 @@ public class WechatAppController {
 
     @GetMapping("/notify/detail/{notificationUid}")
     @Operation(summary = "小程序通告详情")
-    @PreAuthenticated
+    @PermitAll
     @OperateLog(enable = false)
     public CommonResult<AppNotificationRespVO> notifyDetail(@PathVariable("notificationUid") String notificationUid) {
         AppNotificationRespVO result = wechatAppApi.notifyDetail(notificationUid);
