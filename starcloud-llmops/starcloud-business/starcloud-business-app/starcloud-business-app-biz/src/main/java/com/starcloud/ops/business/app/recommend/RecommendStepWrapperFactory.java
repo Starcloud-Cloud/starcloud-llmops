@@ -129,7 +129,7 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defContentActionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixTitleVariable());
+        stepWrapper.setVariable(RecommendVariableFactory.defContentVariable());
         return stepWrapper;
     }
 
@@ -149,7 +149,7 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defParagraphActionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixContentVariable());
+        stepWrapper.setVariable(RecommendVariableFactory.defParagraphVariable());
         return stepWrapper;
     }
 
@@ -169,7 +169,7 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defAssembleActionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixEndVariable());
+        stepWrapper.setVariable(RecommendVariableFactory.defAssembleVariable());
         return stepWrapper;
     }
 
@@ -188,8 +188,9 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defMediaMatrixEndVariable());
+        stepWrapper.setFlowStep(null);
+        stepWrapper.setPosterStep(RecommendActionFactory.defPosterActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defPosterVariable());
         return stepWrapper;
     }
 

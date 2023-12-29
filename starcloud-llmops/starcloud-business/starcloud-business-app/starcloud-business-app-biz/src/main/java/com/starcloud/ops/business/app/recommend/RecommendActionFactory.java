@@ -2,6 +2,8 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.poster.PosterStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.poster.PosterStyleRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ContentActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
@@ -168,11 +170,10 @@ public class RecommendActionFactory {
     /**
      * 默认生成内容步骤
      *
-     * @param defaultPrompt 默认提示
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepRespVO defPosterActionStep(String defaultPrompt) {
-        WorkflowStepRespVO step = new WorkflowStepRespVO();
+    public static PosterStepRespVO defPosterActionStep() {
+        PosterStepRespVO step = new PosterStepRespVO();
         step.setName(MessageUtil.getMessage("POSTER_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("POSTER_ACTION_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
@@ -184,8 +185,23 @@ public class RecommendActionFactory {
         step.setIcon("poster");
         step.setTags(Collections.singletonList("Poster"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
+        step.setImageMaterials(Collections.emptyList());
+        step.setStyleList(Collections.singletonList(defPosterStyle()));
         return step;
+    }
+
+    /**
+     * 默认风格
+     *
+     * @return PosterStyleRespVO
+     */
+    public static PosterStyleRespVO defPosterStyle() {
+        PosterStyleRespVO style = new PosterStyleRespVO();
+        style.setId("STYLE_1");
+        style.setName("风格一");
+        style.setDescription("风格一");
+        style.setTemplateList(Collections.emptyList());
+        return style;
     }
 
 }

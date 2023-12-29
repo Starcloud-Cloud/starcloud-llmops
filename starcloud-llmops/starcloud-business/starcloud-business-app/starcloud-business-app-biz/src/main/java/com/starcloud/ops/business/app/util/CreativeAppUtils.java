@@ -6,7 +6,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -115,10 +114,10 @@ public class CreativeAppUtils {
         CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
 
-        Map<String, List<VariableItemDTO>> paramMap = planConfig.getParamMap();
-        List<VariableItemDTO> variableList = Optional.ofNullable(paramMap.get(scheme.getUid())).orElse(Lists.newArrayList());
+        Map<String, List<VariableItemRespVO>> paramMap = planConfig.getParamMap();
+        List<VariableItemRespVO> variableList = Optional.ofNullable(paramMap.get(scheme.getUid())).orElse(Lists.newArrayList());
 
-        List<VariableItemDTO> params = Lists.newArrayList();
+        List<VariableItemRespVO> params = Lists.newArrayList();
         params.add(ofInputVariableItem(NAME, scheme.getName()));
         params.add(ofInputVariableItem(TYPE, scheme.getType()));
         params.add(ofInputVariableItem(CATEGORY, scheme.getCategory()));
@@ -184,15 +183,15 @@ public class CreativeAppUtils {
      * @param variableList        创作计划配置变量
      * @return 处理后的文案
      */
-    public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemDTO> variableList) {
+    public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemRespVO> variableList) {
         String demand = copyWritingTemplate.getDemand();
         if (CollectionUtil.isEmpty(variableList)) {
             variableList = Optional.ofNullable(copyWritingTemplate.getVariables()).orElse(Lists.newArrayList());
         }
-        Map<String, VariableItemDTO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemDTO::getField, item -> item));
-        for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariables())) {
+        Map<String, VariableItemRespVO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemRespVO::getField, item -> item));
+        for (VariableItemRespVO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariables())) {
             String field = variableItem.getField();
-            VariableItemDTO variable = variableMap.getOrDefault(field, variableItem);
+            VariableItemRespVO variable = variableMap.getOrDefault(field, variableItem);
             Object value = variable.getValue();
             if (Objects.isNull(value)) {
                 value = Optional.ofNullable(variable.getDefaultValue()).orElse("");
@@ -512,8 +511,8 @@ public class CreativeAppUtils {
      * @param value 值
      * @return 文本变量
      */
-    private static VariableItemDTO ofInputVariableItem(String field, Object value) {
-        VariableItemDTO variableItem = new VariableItemDTO();
+    private static VariableItemRespVO ofInputVariableItem(String field, Object value) {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(field);
         variableItem.setLabel(field);
         variableItem.setDescription(field);
@@ -536,8 +535,8 @@ public class CreativeAppUtils {
      * @param value 值
      * @return 文本域变量
      */
-    private static VariableItemDTO ofTextAreaVariableItem(String field, Object value) {
-        VariableItemDTO variableItem = new VariableItemDTO();
+    private static VariableItemRespVO ofTextAreaVariableItem(String field, Object value) {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(field);
         variableItem.setLabel(field);
         variableItem.setDescription(field);
@@ -560,8 +559,8 @@ public class CreativeAppUtils {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemDTO ofInputVariable(String field, String label, Integer order, Integer count) {
-        VariableItemDTO variableItem = new VariableItemDTO();
+    public static VariableItemRespVO ofInputVariable(String field, String label, Integer order, Integer count) {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);

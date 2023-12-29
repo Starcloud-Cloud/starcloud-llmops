@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -406,13 +406,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             }
             CreativePlanImageExecuteDTO mainImageRequest = mainImageOptional.get();
             // 获取首图模板参数
-            List<VariableItemDTO> mainImageRequestParams = mainImageRequest.getParams();
+            List<VariableItemRespVO> mainImageRequestParams = mainImageRequest.getParams();
             // 获取首图模板参数中的图片类型参数
-            List<VariableItemDTO> mainImageStyleRequestParams = CreativeImageUtils.imageTypeVariableList(mainImageRequestParams);
+            List<VariableItemRespVO> mainImageStyleRequestParams = CreativeImageUtils.imageTypeVariableList(mainImageRequestParams);
             // 首图图片参数素材图片替换
             List<String> imageParamList = Lists.newArrayList();
             for (int j = 0; j < mainImageStyleRequestParams.size(); j++) {
-                VariableItemDTO variableItem = mainImageStyleRequestParams.get(j);
+                VariableItemRespVO variableItem = mainImageStyleRequestParams.get(j);
                 if (j == 0) {
                     String imageUrl = disperseImageUrlList.get(i);
                     variableItem.setValue(imageUrl);

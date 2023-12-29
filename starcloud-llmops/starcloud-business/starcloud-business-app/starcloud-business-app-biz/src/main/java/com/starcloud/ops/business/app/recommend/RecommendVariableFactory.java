@@ -77,11 +77,9 @@ public class RecommendVariableFactory {
      *
      * @return 变量
      */
-    public static VariableRespVO defMediaMatrixTitleVariable() {
+    public static VariableRespVO defContentVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(
-                RecommendVariableItemFactory.defMediaMatrixRefers()
-        ));
+        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
         return variable;
     }
 
@@ -90,11 +88,9 @@ public class RecommendVariableFactory {
      *
      * @return 变量
      */
-    public static VariableRespVO defMediaMatrixStartVariable() {
+    public static VariableRespVO defParagraphVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(
-                RecommendVariableItemFactory.defMediaMatrixRefers()
-        ));
+        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
         return variable;
     }
 
@@ -103,11 +99,9 @@ public class RecommendVariableFactory {
      *
      * @return 变量
      */
-    public static VariableRespVO defMediaMatrixContentVariable() {
+    public static VariableRespVO defAssembleVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(
-                RecommendVariableItemFactory.defMediaMatrixRefers()
-        ));
+        variable.setVariables(Collections.emptyList());
         return variable;
     }
 
@@ -116,11 +110,9 @@ public class RecommendVariableFactory {
      *
      * @return 变量
      */
-    public static VariableRespVO defMediaMatrixEndVariable() {
+    public static VariableRespVO defPosterVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(
-                RecommendVariableItemFactory.defMediaMatrixRefers()
-        ));
+        variable.setVariables(Collections.emptyList());
         return variable;
     }
 }

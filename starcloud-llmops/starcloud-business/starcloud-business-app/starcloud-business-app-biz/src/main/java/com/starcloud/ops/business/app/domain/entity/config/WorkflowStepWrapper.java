@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.config;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.domain.entity.poster.PosterStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -58,6 +59,11 @@ public class WorkflowStepWrapper {
      * 具体的步骤配置
      */
     private WorkflowStepEntity flowStep;
+
+    /**
+     * 海报步骤配置
+     */
+    private PosterStepEntity posterStep;
 
     /**
      * 提示词变量
