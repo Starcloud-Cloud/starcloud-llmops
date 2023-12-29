@@ -33,7 +33,7 @@ import java.util.Optional;
  * @since 2021-06-22
  */
 @Slf4j
-@TaskComponent(name = "ContentActionHandler")
+@TaskComponent
 public class ContentActionHandler extends BaseActionHandler {
 
     /**

@@ -35,7 +35,7 @@ import java.util.Optional;
  * @since 2023-05-31
  */
 @Slf4j
-@TaskComponent(name = "OpenAIChatActionHandler")
+@TaskComponent
 public class OpenAIChatActionHandler extends BaseActionHandler {
 
     /**

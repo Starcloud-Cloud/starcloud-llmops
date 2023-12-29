@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,7 +34,7 @@ import java.util.Optional;
 @Data
 @Slf4j
 @SuppressWarnings("all")
-public abstract class BaseActionHandler {
+public abstract class BaseActionHandler extends Object {
 
     /**
      * 扣除权益
@@ -118,8 +119,7 @@ public abstract class BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    @NoticeResult
-    protected ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+    public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         log.info("Action 执行开始...");
         try {
             if (Objects.isNull(context)) {
@@ -174,6 +174,19 @@ public abstract class BaseActionHandler {
             log.error("Action 执行失败：异常信息: {}", exception.getMessage());
             throw exception;
         }
+    }
+
+    /**
+     * 因为@Data重写了hasCode, equals, 导致子类比较都相等，所以这里改成继承object, 重写equals即可
+     * @param obj
+     * @return
+     */
+    @Override
+    public boolean equals(Object obj) {
+
+        boolean ff = super.equals(obj);
+        return ff;
+
     }
 
 }

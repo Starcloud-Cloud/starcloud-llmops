@@ -26,7 +26,7 @@ import java.util.Map;
  * @since 2021-06-22
  */
 @Slf4j
-@TaskComponent(name = "PosterActionHandler")
+@TaskComponent
 public class PosterActionHandler extends BaseActionHandler {
 
     /**

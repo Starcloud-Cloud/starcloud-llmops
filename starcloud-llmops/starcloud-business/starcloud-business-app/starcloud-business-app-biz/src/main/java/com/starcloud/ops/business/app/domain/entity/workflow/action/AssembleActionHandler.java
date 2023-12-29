@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2023-05-31
  */
 @Slf4j
-@TaskComponent(name = "AssembleActionHandler")
+@TaskComponent
 public class AssembleActionHandler extends BaseActionHandler {
 
     /**
