@@ -23,4 +23,7 @@ public class SingleMissionQueryReqVO {
     @Schema(description = "失败重试")
     private Boolean failRetry;
 
+    @Schema(description = "执行类型")
+    private String executeType;
+
 }
