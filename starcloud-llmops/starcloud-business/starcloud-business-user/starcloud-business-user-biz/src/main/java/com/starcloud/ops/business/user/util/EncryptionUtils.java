@@ -34,6 +34,10 @@ public class EncryptionUtils {
         return (aLong - ENCRYPTION_KEY + 1000000) % 1000000;
     }
 
+    public static Long decrypt(Long aLong) {
+        return (aLong - ENCRYPTION_KEY + 1000000) % 1000000;
+    }
+
     public static String decryptString(String encryptedString) throws Exception {
         byte[] keyBytes = KEY.getBytes(StandardCharsets.UTF_8);
         SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");

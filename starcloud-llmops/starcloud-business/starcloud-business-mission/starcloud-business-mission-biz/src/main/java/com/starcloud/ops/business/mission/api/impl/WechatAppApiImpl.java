@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.NotificationSortFieldEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
+import com.starcloud.ops.business.mission.api.WechatUserBindService;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
@@ -40,10 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -74,12 +72,16 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Resource
     private MemberUserService memberUserService;
 
+    @Resource
+    private WechatUserBindService wechatUserBindService;
+
 
     @Override
     public PageResult<AppNotificationRespVO> notifyPage(AppNotificationQueryReqVO reqVO) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         reqVO.setClaimUserId(loginUserId.toString());
         reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
+//        reqVO.setCreator(Collections.singletonList(wechatUserBindService.getBindUser(loginUserId)));
         Long count = notificationCenterMapper.appPageCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();

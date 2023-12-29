@@ -286,4 +286,8 @@ public class MemberUserServiceImpl implements MemberUserService {
         return true;
     }
 
+    @Override
+    public void updateUserGroup(Long memberUserId, Long groupId) {
+        memberUserMapper.updateGroup(memberUserId, groupId);
+    }
 }
