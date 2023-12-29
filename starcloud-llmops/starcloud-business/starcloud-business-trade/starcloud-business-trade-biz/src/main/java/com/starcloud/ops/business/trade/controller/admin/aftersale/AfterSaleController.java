@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.trade.controller.admin.aftersale.vo.*;
+import com.starcloud.ops.business.trade.controller.app.aftersale.vo.AppAfterSaleCreateReqVO;
 import com.starcloud.ops.business.trade.convert.aftersale.AfterSaleConvert;
 import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleDO;
 import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleLogDO;
@@ -143,5 +144,14 @@ public class AfterSaleController {
         log.info("[updateAfterRefund][notifyReqDTO({})]", notifyReqDTO);
         return success(true);
     }
+
+
+
+    @PostMapping(value = "/u/create")
+    @Operation(summary = "申请售后")
+    public CommonResult<Long> createAfterSale(@RequestBody AppAfterSaleCreateReqVO createReqVO) {
+        return success(afterSaleService.createAfterSale(getLoginUserId(), createReqVO));
+    }
+
 
 }
