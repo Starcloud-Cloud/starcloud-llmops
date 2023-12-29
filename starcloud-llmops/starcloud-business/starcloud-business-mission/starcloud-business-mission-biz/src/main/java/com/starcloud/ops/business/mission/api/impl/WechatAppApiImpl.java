@@ -94,7 +94,8 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Override
     public AppSingleMissionRespVO claimMission(AppClaimReqVO reqVO) {
         String lockKey = "claim_mission" + reqVO.getNotificationUid();
-        MemberUserDO user = memberUserService.getUser(SecurityFrameworkUtils.getLoginUserId());
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+//        MemberUserDO user = memberUserService.getUser(SecurityFrameworkUtils.getLoginUserId());
         RLock lock = redissonClient.getLock(lockKey);
         try {
             if (!lock.tryLock(3, 3, TimeUnit.SECONDS)) {
@@ -109,7 +110,7 @@ public class WechatAppApiImpl implements WechatAppApi {
             }
             ClaimLimitDTO claimLimit = NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit());
             List<SingleMissionDO> missionDOList = singleMissionMapper.listByNotification(reqVO.getNotificationUid());
-            long count = missionDOList.stream().filter(mission -> user.getId().equals(mission.getClaimUserId())).count();
+            long count = missionDOList.stream().filter(mission ->loginUserId.toString().equals(mission.getClaimUserId())).count();
             if (count >= claimLimit.getClaimNum()) {
                 throw exception(MORE_THAN_CLAIMED_NUM, claimLimit.getClaimNum());
             }
@@ -120,7 +121,7 @@ public class WechatAppApiImpl implements WechatAppApi {
                 throw exception(ALL_CLAIMED);
             }
             SingleMissionDO singleMissionDO = stayClaimMission.get();
-            singleMissionDO.setClaimUserId(user.getId().toString());
+            singleMissionDO.setClaimUserId(loginUserId.toString());
 //            singleMissionDO.setClaimUsername(user.getNickname());
             singleMissionDO.setClaimTime(LocalDateTime.now());
             singleMissionDO.setStatus(SingleMissionStatusEnum.claimed.getCode());
@@ -275,6 +276,8 @@ public class WechatAppApiImpl implements WechatAppApi {
                     || SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.complete.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
                 claimCount++;
