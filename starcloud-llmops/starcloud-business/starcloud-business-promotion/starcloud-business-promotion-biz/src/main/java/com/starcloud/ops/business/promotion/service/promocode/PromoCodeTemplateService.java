@@ -1,15 +1,11 @@
 package com.starcloud.ops.business.promotion.service.promocode;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplateCreateReqVO;
-import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplatePageReqVO;
-import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplateUpdateReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateCreateReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplatePageReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateUpdateReqVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
 import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeTypeEnum;
 
 import javax.validation.Valid;

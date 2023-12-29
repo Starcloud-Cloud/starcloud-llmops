@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template;
 
-import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplateBaseVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -7,10 +7,8 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.yulichang.toolkit.MPJWrappers;
-
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.PromoCodePageReqVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeDO;
-import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;

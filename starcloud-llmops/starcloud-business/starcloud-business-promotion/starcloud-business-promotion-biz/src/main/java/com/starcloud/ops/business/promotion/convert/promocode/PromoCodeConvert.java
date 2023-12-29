@@ -26,7 +26,7 @@ public interface PromoCodeConvert {
     // CouponRespDTO convert(PromoCodeDO bean);
 
     default PromoCodeDO convert(PromoCodeTemplateDO template, Long userId) {
-        PromoCodeDO promoCodeDO = new PromoCodeDO()
+        return new PromoCodeDO()
                 .setTemplateId(template.getId())
                 .setName(template.getName())
                 // .setTakeType(template.getTakeType())
@@ -39,7 +39,6 @@ public interface PromoCodeConvert {
                 // .setDiscountLimitPrice(template.getDiscountLimitPrice())
                 // .setStatus(CouponStatusEnum.UNUSED.getStatus())
                 .setUserId(userId);
-        return promoCodeDO;
     }
 
     CouponPageReqVO convert(AppPromoCodePageReqVO pageReqVO, Collection<Long> userIds);

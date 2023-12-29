@@ -2,7 +2,6 @@ package com.starcloud.ops.business.promotion.controller.admin.promocode.vo.templ
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplateBaseVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

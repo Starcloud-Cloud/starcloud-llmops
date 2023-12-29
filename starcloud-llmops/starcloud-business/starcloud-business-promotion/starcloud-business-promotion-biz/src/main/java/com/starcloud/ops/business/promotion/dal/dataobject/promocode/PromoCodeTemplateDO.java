@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.promotion.dal.dataobject.promocode;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
-import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -13,10 +11,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
-import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
-import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponTemplateValidityTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +18,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 优惠劵模板 DO

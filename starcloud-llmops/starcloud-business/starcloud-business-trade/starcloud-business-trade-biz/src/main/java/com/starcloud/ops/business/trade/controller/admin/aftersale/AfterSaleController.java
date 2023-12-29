@@ -17,7 +17,6 @@ import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.trade.service.aftersale.AfterSaleLogService;
 import com.starcloud.ops.business.trade.service.aftersale.AfterSaleService;
 import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
-import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
