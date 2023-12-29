@@ -111,7 +111,7 @@ public class CouponServiceImpl implements CouponService {
             throw exception(COUPON_NOT_EXISTS);
         }
         // 校验状态
-        if (ObjectUtil.notEqual(coupon.getTemplateId(), CouponStatusEnum.USED.getStatus())) {
+        if (ObjectUtil.notEqual(coupon.getStatus(), CouponStatusEnum.USED.getStatus())) {
             throw exception(COUPON_STATUS_NOT_USED);
         }
 
@@ -119,7 +119,7 @@ public class CouponServiceImpl implements CouponService {
         Integer status = LocalDateTimeUtils.beforeNow(coupon.getValidEndTime())
                 ? CouponStatusEnum.EXPIRE.getStatus() // 退还时可能已经过期了
                 : CouponStatusEnum.UNUSED.getStatus();
-        int updateCount = couponMapper.updateByIdAndStatus(id, CouponStatusEnum.UNUSED.getStatus(),
+        int updateCount = couponMapper.updateByIdAndStatus(id, CouponStatusEnum.USED.getStatus(),
                 new CouponDO().setStatus(status));
         if (updateCount == 0) {
             throw exception(COUPON_STATUS_NOT_USED);

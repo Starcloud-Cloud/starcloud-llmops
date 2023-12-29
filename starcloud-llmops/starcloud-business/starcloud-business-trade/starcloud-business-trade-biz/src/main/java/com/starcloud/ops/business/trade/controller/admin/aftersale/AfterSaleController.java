@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.trade.controller.admin.aftersale.vo.*;
+import com.starcloud.ops.business.trade.controller.app.aftersale.vo.AppAfterSaleCreateReqVO;
 import com.starcloud.ops.business.trade.convert.aftersale.AfterSaleConvert;
 import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleDO;
 import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleLogDO;
@@ -16,7 +17,6 @@ import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.trade.service.aftersale.AfterSaleLogService;
 import com.starcloud.ops.business.trade.service.aftersale.AfterSaleService;
 import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
-import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -143,5 +143,14 @@ public class AfterSaleController {
         log.info("[updateAfterRefund][notifyReqDTO({})]", notifyReqDTO);
         return success(true);
     }
+
+
+
+    @PostMapping(value = "/u/create")
+    @Operation(summary = "申请售后")
+    public CommonResult<Long> createAfterSale(@RequestBody AppAfterSaleCreateReqVO createReqVO) {
+        return success(afterSaleService.createAfterSale(getLoginUserId(), createReqVO));
+    }
+
 
 }

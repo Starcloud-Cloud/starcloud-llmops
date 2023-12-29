@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupPageReqVO;
 import cn.iocoder.yudao.module.member.dal.dataobject.group.MemberGroupDO;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -27,5 +29,11 @@ public interface MemberGroupMapper extends BaseMapperX<MemberGroupDO> {
 
     default List<MemberGroupDO> selectListByStatus(Integer status) {
         return selectList(MemberGroupDO::getStatus, status);
+    }
+
+    default MemberGroupDO selectListByName(String name) {
+        LambdaQueryWrapper<MemberGroupDO> wrapper = Wrappers.lambdaQuery(MemberGroupDO.class)
+                .eq(MemberGroupDO::getName, name);
+        return selectOne(wrapper);
     }
 }
