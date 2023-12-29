@@ -337,13 +337,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             preSettlement0(singleMissionRespVO);
         } catch (Exception e) {
             log.warn("预结算异常 {}", singleMissionRespVO.getUid(), e);
-            SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
-            modifyReqVO.setStatus(SingleMissionStatusEnum.pre_settlement_error.getCode());
-            modifyReqVO.setUid(singleMissionRespVO.getUid());
-            modifyReqVO.setRunTime(LocalDateTime.now());
-            modifyReqVO.setPreSettlementMsg(e.getMessage());
-            modifyReqVO.setPreSettlementTime(LocalDateTime.now());
-            update(modifyReqVO);
+            throw e;
         }
     }
 
@@ -370,13 +364,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             updateSettlement(singleMissionRespVO.getUid(), singleMissionRespVO.getEstimatedAmount());
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
-            SingleMissionModifyReqVO modifyReqVO = new SingleMissionModifyReqVO();
-            modifyReqVO.setStatus(SingleMissionStatusEnum.settlement_error.getCode());
-            modifyReqVO.setUid(singleMissionRespVO.getUid());
-            modifyReqVO.setRunTime(LocalDateTime.now());
-            modifyReqVO.setSettlementMsg(e.getMessage());
-            modifyReqVO.setSettlementTime(LocalDateTime.now());
-            update(modifyReqVO);
+            throw e;
         } finally {
             TenantContextHolder.clear();
         }
@@ -443,6 +431,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void retry(Long singleMissionId) {
         SingleMissionRespVO singleMissionRespVO = getById(singleMissionId);
         NotificationCenterDO notificationCenterDO = notificationCenterService.getByUid(singleMissionRespVO.getNotificationUid());
