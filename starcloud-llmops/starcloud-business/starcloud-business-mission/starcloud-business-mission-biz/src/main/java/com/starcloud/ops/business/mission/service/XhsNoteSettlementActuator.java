@@ -21,6 +21,20 @@ public class XhsNoteSettlementActuator {
     @Resource
     private RedissonClient redissonClient;
 
+    public void execute(Long singleMissionId, String executeType) {
+        switch (executeType) {
+            case "pre-settlement":
+                preSettlement(singleMissionId);
+                break;
+            case "settlement":
+                settlement(singleMissionId);
+                break;
+            case "retry":
+                retry(singleMissionId);
+                break;
+        }
+    }
+
     /**
      * 小红书发帖任务预结算
      *
@@ -36,7 +50,6 @@ public class XhsNoteSettlementActuator {
             log.info("{} 开始预结算", singleMissionId);
             SingleMissionRespVO singleMissionRespVO = singleMissionService.getById(singleMissionId);
             if (!SingleMissionStatusEnum.published.getCode().equals(singleMissionRespVO.getStatus())
-                    && !SingleMissionStatusEnum.pre_settlement_error.getCode().equals(singleMissionRespVO.getStatus())
                     && !SingleMissionStatusEnum.pre_settlement.getCode().equals(singleMissionRespVO.getStatus())) {
                 log.warn("{} 状态不允许预结算 {}", singleMissionId, singleMissionRespVO.getStatus());
                 return;
@@ -70,8 +83,6 @@ public class XhsNoteSettlementActuator {
             }
 
             if (!SingleMissionStatusEnum.published.getCode().equals(singleMissionRespVO.getStatus())
-                    && !SingleMissionStatusEnum.pre_settlement_error.getCode().equals(singleMissionRespVO.getStatus())
-                    && !SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionRespVO.getStatus())
                     && !SingleMissionStatusEnum.pre_settlement.getCode().equals(singleMissionRespVO.getStatus())) {
                 log.warn("{} 状态不允许结算 {}", singleMissionId, singleMissionRespVO.getStatus());
                 return;
@@ -82,7 +93,21 @@ public class XhsNoteSettlementActuator {
         } finally {
             lock.unlock();
         }
+    }
 
+    private void retry(Long singleMissionId) {
+        RLock lock = redissonClient.getLock("retry-" + singleMissionId);
+        if (!lock.tryLock()) {
+            log.warn("{} 正在重试中", singleMissionId);
+            return;
+        }
+        try {
+            singleMissionService.retry(singleMissionId);
+        } catch (Exception e) {
+            log.warn("重试异常", e);
+        } finally {
+            lock.unlock();
+        }
     }
 
 

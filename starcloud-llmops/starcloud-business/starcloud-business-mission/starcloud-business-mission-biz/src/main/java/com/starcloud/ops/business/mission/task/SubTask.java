@@ -7,6 +7,8 @@ import java.util.List;
 @Data
 public class SubTask {
 
+    private String executeType;
+
     private List<Long> singleMissionIdList;
 
 }

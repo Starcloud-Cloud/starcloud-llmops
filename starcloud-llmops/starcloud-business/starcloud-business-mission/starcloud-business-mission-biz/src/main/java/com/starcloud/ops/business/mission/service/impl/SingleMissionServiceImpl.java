@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.member.enums.point.MemberPointBizTypeEnum;
@@ -133,11 +134,14 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(new ErrorCode(500, "认领人不能为空")));
             Assert.notBlank(reqVO.getClaimUsername(), "认领人不能为空");
 //            missionDO.setClaimUsername(reqVO.getClaimUsername());
-            missionDO.setClaimUserId(Optional.ofNullable(reqVO.getClaimUserId()).orElse("0"));
+//            missionDO.setClaimUserId(Optional.ofNullable(reqVO.getClaimUserId()).orElse("0"));
+            Assert.notBlank(reqVO.getClaimUserId(), "认领人不能为空");
+            missionDO.setClaimUserId(reqVO.getClaimUserId());
             LocalDateTime claimTime = Optional.ofNullable(reqVO.getClaimTime()).orElse(LocalDateTime.now());
             missionDO.setClaimTime(claimTime);
         } else if (SingleMissionStatusEnum.published.getCode().equals(reqVO.getStatus())) {
             XhsDetailConstants.validNoteUrl(reqVO.getPublishUrl());
+            Assert.notBlank(missionDO.getClaimUserId(), "认领人不能为空");
             missionDO.setPublishUrl(reqVO.getPublishUrl());
             LocalDateTime publishTime = Optional.ofNullable(reqVO.getPublishTime()).orElse(LocalDateTime.now());
             missionDO.setPublishTime(publishTime);
@@ -264,6 +268,24 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     }
 
     @Override
+    public List<Long> retryIds(SingleMissionQueryReqVO reqVO) {
+        return singleMissionMapper.retryIds(reqVO);
+    }
+
+    @Override
+    public List<Long> executeIds(SingleMissionQueryReqVO reqVO) {
+        switch (reqVO.getExecuteType()) {
+            case "pre-settlement":
+                return selectIds(reqVO);
+            case "settlement":
+                return selectSettlementIds(reqVO);
+            case "retry":
+                return retryIds(reqVO);
+        }
+        return null;
+    }
+
+    @Override
     public void validBudget(NotificationCenterDO notificationCenterDO) {
         List<SingleMissionDO> missionList = singleMissionMapper.getByNotificationUid(notificationCenterDO.getUid());
         if (CollectionUtils.isEmpty(missionList)) {
@@ -327,10 +349,11 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                     && SingleMissionStatusEnum.pre_settlement_error.getCode().equals(singleMissionRespVO.getStatus())) {
                 // 预结算
                 preSettlement(singleMissionRespVO);
-                singleMissionRespVO = getById(singleMissionRespVO.getId());
+                return;
             }
             int amount = singleMissionRespVO.getEstimatedAmount().intValue();
             String claimUserId = singleMissionRespVO.getClaimUserId();
+            Assert.notBlank(claimUserId,"认领人id不存在");
             memberPointRecordService.createPointRecord(Long.valueOf(claimUserId), amount, MemberPointBizTypeEnum.MISSION_SETTLEMENT, singleMissionRespVO.getUid());
             updateSettlement(singleMissionRespVO.getUid(), singleMissionRespVO.getEstimatedAmount());
         } catch (Exception e) {
@@ -403,6 +426,19 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             updateList.add(missionDO);
         }
         singleMissionMapper.updateBatch(updateList, updateList.size());
+    }
+
+    @Override
+    public void retry(Long singleMissionId) {
+        SingleMissionRespVO singleMissionRespVO = getById(singleMissionId);
+        NotificationCenterDO notificationCenterDO = notificationCenterService.getByUid(singleMissionRespVO.getNotificationUid());
+        if (LocalDateTimeUtils.beforeNow(notificationCenterDO.getEndTime())) {
+            // 结算
+            settlement(singleMissionRespVO);
+        } else {
+            // 预结算
+            preSettlement(singleMissionRespVO);
+        }
     }
 
     private String pictureConvert(String str) {
