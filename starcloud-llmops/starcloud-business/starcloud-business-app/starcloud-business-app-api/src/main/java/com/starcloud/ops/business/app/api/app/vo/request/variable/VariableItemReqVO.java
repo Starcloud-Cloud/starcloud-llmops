@@ -107,6 +107,12 @@ public class VariableItemReqVO implements Serializable {
     @Schema(description = "变量选项")
     private List<Option> options;
 
+    /**
+     * 数量
+     */
+    @Schema(description = "数量")
+    private Integer count;
+
     public void setType(String type) {
         if (StringUtil.isBlank(type)) {
             this.type = AppVariableTypeEnum.TEXT.name();

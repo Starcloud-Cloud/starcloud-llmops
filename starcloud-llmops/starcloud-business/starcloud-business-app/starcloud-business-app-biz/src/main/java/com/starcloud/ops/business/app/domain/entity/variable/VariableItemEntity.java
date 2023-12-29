@@ -89,6 +89,11 @@ public class VariableItemEntity {
     private List<Option> options;
 
     /**
+     * 数量
+     */
+    private Integer count;
+
+    /**
      * 变量校验规则
      */
     @JsonIgnore

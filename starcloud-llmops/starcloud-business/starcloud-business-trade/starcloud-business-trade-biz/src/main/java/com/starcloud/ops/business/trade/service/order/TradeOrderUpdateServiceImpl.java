@@ -1,20 +1,26 @@
 package com.starcloud.ops.business.trade.service.order;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderDeliveryReqVO;
@@ -34,6 +40,7 @@ import com.starcloud.ops.business.trade.dal.mysql.order.TradeOrderItemMapper;
 import com.starcloud.ops.business.trade.dal.mysql.order.TradeOrderMapper;
 import com.starcloud.ops.business.trade.dal.redis.no.TradeNoRedisDAO;
 import com.starcloud.ops.business.trade.enums.delivery.DeliveryTypeEnum;
+import com.starcloud.ops.business.trade.enums.order.*;
 import com.starcloud.ops.business.trade.framework.order.config.TradeOrderProperties;
 import com.starcloud.ops.business.trade.framework.order.core.annotations.TradeOrderLog;
 import com.starcloud.ops.business.trade.framework.order.core.utils.TradeOrderLogUtils;
@@ -46,7 +53,6 @@ import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
-import com.starcloud.ops.business.trade.enums.order.*;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import lombok.extern.slf4j.Slf4j;
@@ -56,10 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.*;
@@ -100,13 +103,23 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     @Resource
     private PayOrderApi payOrderApi;
-//    @Resource
+    //    @Resource
 //    private MemberAddressApi addressApi;
     @Resource
     private ProductCommentApi productCommentApi;
 
     @Resource
     private TradeOrderProperties tradeOrderProperties;
+
+    // =================== 钉钉通知 ===================
+    @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
+    private AdminUserService userService;
+
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     // =================== Order ===================
 
@@ -286,9 +299,18 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         PayOrderRespDTO payOrder = orderResult.getValue();
 
         // 2. 更新 TradeOrderDO 状态为已支付，等待发货
-        int updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),
-                new TradeOrderDO().setStatus(TradeOrderStatusEnum.UNDELIVERED.getStatus()).setPayStatus(true)
-                        .setPayTime(LocalDateTime.now()).setPayChannelCode(payOrder.getChannelCode()));
+        int updateCount = 0;
+        //判断是否需要发货
+        if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
+            updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),
+                    new TradeOrderDO().setStatus(TradeOrderStatusEnum.COMPLETED.getStatus()).setPayStatus(true)
+                            .setPayTime(LocalDateTime.now()).setPayChannelCode(payOrder.getChannelCode()));
+        } else {
+            updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),
+                    new TradeOrderDO().setStatus(TradeOrderStatusEnum.UNDELIVERED.getStatus()).setPayStatus(true)
+                            .setPayTime(LocalDateTime.now()).setPayChannelCode(payOrder.getChannelCode()));
+        }
+
         if (updateCount == 0) {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
@@ -298,12 +320,15 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
 
         // 4. 记录订单日志
-        Integer afterStatus= TradeOrderStatusEnum.UNDELIVERED.getStatus();
-        if (DeliveryTypeEnum.AUTO.getType().equals(order.getDeliveryType())){
-            afterStatus =TradeOrderStatusEnum.COMPLETED.getStatus();
+        Integer afterStatus = TradeOrderStatusEnum.UNDELIVERED.getStatus();
+        if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
+            afterStatus = TradeOrderStatusEnum.COMPLETED.getStatus();
         }
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
-        TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.MEMBER.getValue());
+        TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
+
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
+
     }
 
     /**
@@ -926,6 +951,44 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      */
     private TradeOrderUpdateServiceImpl getSelf() {
         return SpringUtil.getBean(getClass());
+    }
+
+    /**
+     * 订单钉钉消息通知
+     *
+     * @param userId        用户 ID
+     * @param productName   商品名称
+     * @param totalPrice    商品金额
+     * @param discountPrice 优惠金额
+     * @param payPrice      支付金额
+     * @param payTime    支付时间
+     */
+    @TenantIgnore
+    private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime) {
+
+        try {
+            AdminUserDO user = userService.getUser(userId);
+
+            Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+
+            templateParams.put("environmentName", environmentName);
+            templateParams.put("userName", user.getNickname());
+            templateParams.put("productName", productName);
+            templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(totalPrice));
+            templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
+            templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
+            templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
+
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("DING_TALK_PAY_NOTIFY_01")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("系统支付通知信息发送失败", e);
+        }
+
     }
 
 }

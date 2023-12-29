@@ -203,4 +203,12 @@ public class SmsTemplateServiceImpl implements SmsTemplateService {
         return ReUtil.findAllGroup1(PATTERN_PARAMS, content);
     }
 
+
+    @Override
+    @Cacheable(cacheNames = RedisKeyConstants.SMS_TEMPLATE, key = "#apiTemplateId",
+            unless = "#result == null")
+    public SmsTemplateDO getSmsTemplateByApiTemplateIdFromCache(String apiTemplateId) {
+        return smsTemplateMapper.selectByTemplateId(apiTemplateId);
+    }
+
 }

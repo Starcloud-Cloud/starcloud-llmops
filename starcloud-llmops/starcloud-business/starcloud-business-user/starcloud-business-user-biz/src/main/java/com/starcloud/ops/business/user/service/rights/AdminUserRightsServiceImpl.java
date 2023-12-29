@@ -1,9 +1,8 @@
 package com.starcloud.ops.business.user.service.rights;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -27,7 +26,6 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.time.temporal.ValueRange;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -135,6 +133,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
             record.setValidStartTime(LocalDateTime.now());
             record.setValidEndTime(LocalDateTime.now().plusMonths(1));
+        }else {
+            record.setValidStartTime(validStartTime);
+            record.setValidEndTime(validEndTime);
         }
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -263,8 +264,39 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      *
      */
     @Override
-    public void expireRights() {
+    public Integer expireRights() {
 
+        // 1. 查询过期的权益订单
+        List<AdminUserRightsDO> rightsDOS = adminUserRightsMapper.selectListByStatusAndValidTimeLt(
+                AdminUserRightsStatusEnum.EXPIRE.getType(),LocalDateTime.now());
+        if (CollUtil.isEmpty(rightsDOS)) {
+            return 0;
+        }
+
+        // 2. 遍历执行，逐个取消
+        int count = 0;
+        for (AdminUserRightsDO rightsDO : rightsDOS) {
+            try {
+                getSelf().expireRightsBySystem(rightsDO);
+                count++;
+            } catch (Throwable e) {
+                log.error("[expireRightsBySystem][rightsDO({}) 用户权益过期异常]", rightsDO.getId(), e);
+            }
+        }
+        return count;
+    }
+
+    /**
+     * @param rightsDO
+     */
+    @Override
+    public void expireRightsBySystem(AdminUserRightsDO rightsDO) {
+        // 更新 AdminUserRightsDO 状态为过期
+        int updateCount = adminUserRightsMapper.updateByIdAndStatus(rightsDO.getId(), rightsDO.getStatus(),
+                new AdminUserRightsDO().setStatus(AdminUserRightsStatusEnum.EXPIRE.getType()));
+        if (updateCount == 0) {
+            throw exception(USER_RIGHTS_EXPIRE_FAIL_STATUS_NOT_ENABLE);
+        }
     }
 
     /**
@@ -355,6 +387,17 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
         return deductRightsList;
 
+    }
+
+
+
+    /**
+     * 获得自身的代理对象，解决 AOP 生效问题
+     *
+     * @return 自己
+     */
+    private AdminUserRightsServiceImpl getSelf() {
+        return SpringUtil.getBean(getClass());
     }
 
 }

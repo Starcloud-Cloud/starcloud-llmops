@@ -4,6 +4,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * 基础 action 实体类
  *
@@ -12,7 +14,9 @@ import lombok.Data;
  * @since 2023-06-13
  */
 @Data
-public abstract class BaseActionEntity {
+public abstract class BaseActionEntity implements Serializable {
+
+    private static final long serialVersionUID = 5119088828710920771L;
 
     /**
      * 动作名称

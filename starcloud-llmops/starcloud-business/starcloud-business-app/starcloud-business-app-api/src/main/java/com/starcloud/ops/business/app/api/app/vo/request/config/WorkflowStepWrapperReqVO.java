@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.app.vo.request.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.request.action.WorkflowStepReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.poster.PosterStepReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -62,6 +63,13 @@ public class WorkflowStepWrapperReqVO implements Serializable {
     @Schema(description = "具体的步骤配置")
     @Valid
     private WorkflowStepReqVO flowStep;
+
+    /**
+     * 海报步骤配置
+     */
+    @Schema(description = "海报步骤配置")
+    @Valid
+    private PosterStepReqVO posterStep;
 
     /**
      * 步骤变量

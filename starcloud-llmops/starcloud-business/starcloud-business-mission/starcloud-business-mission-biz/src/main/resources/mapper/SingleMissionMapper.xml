@@ -20,6 +20,25 @@
         </if>
     </select>
 
+    <select id="selectSettlementIds" resultType="java.lang.Long">
+        select m.id
+        from llm_single_mission m
+        inner join llm_notification n on m.notification_Uid = n.uid
+        where m.deleted = false
+        and n.start_time &lt; now()
+        and m.status in ('published','pre_settlement','pre_settlement_error','settlement_error','claimed')
+        and (m.settlement_time is null or (m.settlement_time &lt; DATE_SUB(NOW(), INTERVAL 6 hour) and m.settlement_time &gt; DATE_SUB(NOW(), INTERVAL 3 day)))
+        and (m.run_time is null or (m.run_time &lt; DATE_SUB(NOW(), INTERVAL 6 hour) and m.run_time &gt; DATE_SUB(NOW(), INTERVAL 3 day)))
+        and n.end_time &lt;= now()
+        <if test="reqVO.singleMissionType != null and reqVO.singleMissionType != ''">
+            and n.type = #{reqVO.singleMissionType} and m.type = #{reqVO.singleMissionType}
+        </if>
+        order by m.update_time
+        <if test="reqVO.limitSize != null and reqVO.limitSize > 0">
+            limit #{reqVO.limitSize}
+        </if>
+    </select>
+
     <select id="pageCount" resultType="java.lang.Long">
         select count(*)
         from llm_single_mission
@@ -126,6 +145,9 @@
             <choose>
                 <when test="reqVO.singleMissionStatus == 'published'">
                     and m.status in ('published','pre_settlement')
+                </when>
+                <when test="reqVO.singleMissionStatus == 'pre_settlement_error'">
+                    and m.status in ('pre_settlement_error','settlement_error')
                 </when>
                 <otherwise>
                     and m.status = #{reqVO.singleMissionStatus}

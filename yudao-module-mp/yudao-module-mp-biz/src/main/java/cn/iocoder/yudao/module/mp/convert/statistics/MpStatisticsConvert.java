@@ -11,8 +11,12 @@ import me.chanjar.weixin.mp.bean.datacube.WxDataCubeUserSummary;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Mapper
@@ -27,7 +31,7 @@ public interface MpStatisticsConvert {
     List<MpStatisticsUpstreamMessageRespVO> convertList03(List<WxDataCubeMsgResult> list);
 
     @Mappings({
-            @Mapping(source = "refDate", target = "refDate", dateFormat = "yyyy-MM-dd"),
+            @Mapping(source = "refDate", target = "refDate", qualifiedByName = "parseDate"),
             @Mapping(source = "msgUser", target = "messageUser"),
             @Mapping(source = "msgCount", target = "messageCount"),
     })
@@ -35,6 +39,12 @@ public interface MpStatisticsConvert {
 
     List<MpStatisticsInterfaceSummaryRespVO> convertList04(List<WxDataCubeInterfaceResult> list);
 
-    @Mapping(source = "refDate", target = "refDate", dateFormat = "yyyy-MM-dd")
+    @Mapping(source = "refDate", target = "refDate", qualifiedByName = "parseDate")
     MpStatisticsInterfaceSummaryRespVO convert(WxDataCubeInterfaceResult bean);
+
+    @Named("parseDate")
+    default LocalDateTime parseDate(String string) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return LocalDate.parse(string, dateTimeFormatter).atStartOfDay();
+    }
 }

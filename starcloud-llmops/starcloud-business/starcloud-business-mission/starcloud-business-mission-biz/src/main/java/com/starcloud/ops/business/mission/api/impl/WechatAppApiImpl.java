@@ -3,6 +3,7 @@ package com.starcloud.ops.business.mission.api.impl;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
@@ -144,6 +145,12 @@ public class WechatAppApiImpl implements WechatAppApi {
         if (!claimedUser.equals(singleMissionDO.getClaimUserId())) {
             throw exception(MISSION_CAN_NOT_PUBLISH_USERID);
         }
+
+        AppNotificationRespVO notificationRespVO = notifyDetail(singleMissionDO.getNotificationUid());
+        if (LocalDateTimeUtils.beforeNow(notificationRespVO.getEndTime())) {
+            throw exception(END_TIME_OVER);
+        }
+
         XhsNoteDetailRespVO noteDetail = xhsNoteDetailService.remoteDetail(reqVO.getPublishUrl());
         SingleMissionRespVO singleMissionRespVO = SingleMissionConvert.INSTANCE.convert(singleMissionDO);
         singleMissionRespVO.getContent().validPostingContent(noteDetail);
@@ -155,10 +162,12 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void abandonMission(AppAbandonMissionReqVO reqVO) {
+    public void  abandonMission(AppAbandonMissionReqVO reqVO) {
         String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO singleMissionDO = missionByUid(reqVO.getMissionUid());
         if (SingleMissionStatusEnum.settlement.getCode().equals(singleMissionDO.getStatus())
+                ||SingleMissionStatusEnum.complete.getCode().equals(singleMissionDO.getStatus())
+                ||SingleMissionStatusEnum.close.getCode().equals(singleMissionDO.getStatus())
                 || SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionDO.getStatus())) {
             throw exception(MISSION_CAN_NOT_ABANDON_STATUS, SingleMissionStatusEnum.valueOfCode(singleMissionDO.getStatus()));
         }
@@ -241,13 +250,17 @@ public class WechatAppApiImpl implements WechatAppApi {
             respVO.setErrorMsg(missionDO.getSettlementMsg());
         }
 
+        if (SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
+            respVO.setErrorMsg(missionDO.getCloseMsg());
+        }
+
         respVO.setClaimLimit(NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit()));
         return respVO;
     }
 
     @Override
     public AppNotificationRespVO notifyDetail(String notificationUid) {
-        String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
+        Long claimedUserId = SecurityFrameworkUtils.getLoginUserId();
         NotificationCenterDO notificationCenterDO = notificationByUid(notificationUid);
         notificationCenterDO.setVisitNum((notificationCenterDO.getVisitNum() == null ? 0 : notificationCenterDO.getVisitNum()) + 1);
         notificationCenterMapper.updateById(notificationCenterDO);
@@ -265,7 +278,7 @@ public class WechatAppApiImpl implements WechatAppApi {
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())) {
                 claimCount++;
-                if (Objects.equals(claimedUser, missionDO.getClaimUserId())) {
+                if (claimedUserId != null && Objects.equals(claimedUserId.toString(), missionDO.getClaimUserId())) {
                     currentUserNum++;
                     sj.add(missionDO.getUid());
                 }
@@ -284,6 +297,10 @@ public class WechatAppApiImpl implements WechatAppApi {
             respVO.setCanClaim(false);
         }
         if (claimCount == singleMissionDOList.size()) {
+            respVO.setCanClaim(false);
+        }
+
+        if (claimedUserId == null) {
             respVO.setCanClaim(false);
         }
 
