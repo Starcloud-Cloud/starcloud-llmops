@@ -366,6 +366,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             TenantContextHolder.setTenantId(user.getTenantId());
             memberPointRecordService.createPointRecord(user.getId(), amount, MemberPointBizTypeEnum.MISSION_SETTLEMENT, singleMissionRespVO.getUid());
             TenantContextHolder.clear();
+            TenantContextHolder.setIgnore(true);
             updateSettlement(singleMissionRespVO.getUid(), singleMissionRespVO.getEstimatedAmount());
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
