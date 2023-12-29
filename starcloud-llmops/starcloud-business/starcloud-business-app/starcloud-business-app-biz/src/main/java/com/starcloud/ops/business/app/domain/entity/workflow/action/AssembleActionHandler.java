@@ -15,6 +15,8 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
 /**
  * 拼接文本 action
  *
@@ -75,7 +77,7 @@ public class AssembleActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
 
         //获取所有上游信息
-        this.getAppContext();
+        final Map<String, Object> objectMap = this.getAppContext().getContextVariablesValues();
 
         log.info("执行开始: 请求参数：\n{}");
 

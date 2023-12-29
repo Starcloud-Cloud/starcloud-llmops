@@ -101,8 +101,8 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
-        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
+        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", 1000));
+        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", 0.7d));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
