@@ -7,9 +7,12 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
 import cn.iocoder.yudao.module.member.enums.point.MemberPointBizTypeEnum;
 import cn.iocoder.yudao.module.member.service.point.MemberPointRecordService;
+import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
@@ -70,6 +73,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Resource
     private MemberPointRecordService memberPointRecordService;
+
+    @Resource
+    private MemberUserService memberUserService;
 
 
     @Override
@@ -354,7 +360,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             int amount = singleMissionRespVO.getEstimatedAmount().intValue();
             String claimUserId = singleMissionRespVO.getClaimUserId();
             Assert.notBlank(claimUserId,"认领人id不存在");
-            memberPointRecordService.createPointRecord(Long.valueOf(claimUserId), amount, MemberPointBizTypeEnum.MISSION_SETTLEMENT, singleMissionRespVO.getUid());
+            MemberUserDO user = memberUserService.getUser(Long.valueOf(claimUserId));
+            Assert.notNull(user,"认领人不存在");
+            TenantContextHolder.setIgnore(false);
+            TenantContextHolder.setTenantId(user.getTenantId());
+            memberPointRecordService.createPointRecord(user.getId(), amount, MemberPointBizTypeEnum.MISSION_SETTLEMENT, singleMissionRespVO.getUid());
+            TenantContextHolder.clear();
             updateSettlement(singleMissionRespVO.getUid(), singleMissionRespVO.getEstimatedAmount());
         } catch (Exception e) {
             log.warn("结算异常 {}", singleMissionRespVO.getUid(), e);
