@@ -3,7 +3,7 @@ package com.starcloud.ops.business.trade.service.order.handler;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.util.collection.SetUtils;
-import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
@@ -13,10 +13,7 @@ import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 优惠劵的 {@link TradeOrderHandler} 实现类
@@ -47,10 +44,8 @@ public class TradeCouponOrderHandler implements TradeOrderHandler {
        orderItems.stream().forEach(itemDO->{
            ProductSpuRespDTO spu = productSpuApi.getSpu(itemDO.getSpuId());
            if (CollUtil.isNotEmpty(spu.getGiveCouponTemplateIds())){
-               List<String> collect = spu.getGiveCouponTemplateIds().stream().map(Object::toString).collect(Collectors.toList());
-
-               collect.forEach(coupon->{
-                   couponApi.addCoupon(Long.parseLong(coupon),SetUtils.asSet(itemDO.getUserId()));});
+               List<Long> ids1 = JSON.parseArray(JSON.toJSONString(spu.getGiveCouponTemplateIds()), Long.class);
+               ids1.forEach(coupon->  couponApi.addCoupon(coupon,SetUtils.asSet(itemDO.getUserId())));
            }
        });
     }

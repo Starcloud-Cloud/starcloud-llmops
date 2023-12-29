@@ -91,4 +91,6 @@ public interface SmsTemplateService {
      */
     String formatSmsTemplateContent(String content, Map<String, Object> params);
 
+    SmsTemplateDO getSmsTemplateByApiTemplateIdFromCache(String apiTemplateId);
+
 }

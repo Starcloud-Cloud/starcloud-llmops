@@ -34,7 +34,7 @@ public class WechatAppController {
 
     @GetMapping("/metadata")
     @Operation(summary = "获取通告中心元数据", description = "获取通告中心元数据")
-    @PreAuthenticated
+    @PermitAll
     public CommonResult<Map<String, Object>> metadata() {
         return CommonResult.success(centerService.metadata());
     }
@@ -50,7 +50,7 @@ public class WechatAppController {
 
     @GetMapping("/notify/detail/{notificationUid}")
     @Operation(summary = "小程序通告详情")
-    @PreAuthenticated
+    @PermitAll
     @OperateLog(enable = false)
     public CommonResult<AppNotificationRespVO> notifyDetail(@PathVariable("notificationUid") String notificationUid) {
         AppNotificationRespVO result = wechatAppApi.notifyDetail(notificationUid);
