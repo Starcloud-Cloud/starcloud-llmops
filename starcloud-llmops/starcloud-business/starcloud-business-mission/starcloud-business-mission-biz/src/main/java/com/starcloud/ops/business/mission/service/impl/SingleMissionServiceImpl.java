@@ -376,6 +376,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             modifyReqVO.setSettlementMsg(e.getMessage());
             modifyReqVO.setSettlementTime(LocalDateTime.now());
             update(modifyReqVO);
+        } finally {
+            TenantContextHolder.clear();
         }
     }
 
