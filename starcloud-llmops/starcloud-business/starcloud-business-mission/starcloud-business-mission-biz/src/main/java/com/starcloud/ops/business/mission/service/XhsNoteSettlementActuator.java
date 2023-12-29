@@ -102,6 +102,7 @@ public class XhsNoteSettlementActuator {
             return;
         }
         try {
+            log.info("{} 开始重试", singleMissionId);
             singleMissionService.retry(singleMissionId);
         } catch (Exception e) {
             log.warn("重试异常", e);
