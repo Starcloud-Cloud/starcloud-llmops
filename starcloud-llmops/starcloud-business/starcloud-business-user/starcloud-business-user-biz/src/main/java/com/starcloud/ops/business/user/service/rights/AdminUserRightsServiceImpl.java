@@ -268,7 +268,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 1. 查询过期的权益订单
         List<AdminUserRightsDO> rightsDOS = adminUserRightsMapper.selectListByStatusAndValidTimeLt(
-                AdminUserRightsStatusEnum.EXPIRE.getType(),LocalDateTime.now());
+                AdminUserRightsStatusEnum.NORMAL.getType(),LocalDateTime.now());
         if (CollUtil.isEmpty(rightsDOS)) {
             return 0;
         }
