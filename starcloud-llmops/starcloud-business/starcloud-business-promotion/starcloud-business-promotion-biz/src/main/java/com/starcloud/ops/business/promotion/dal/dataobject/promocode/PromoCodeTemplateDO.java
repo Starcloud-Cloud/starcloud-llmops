@@ -99,11 +99,10 @@ public class PromoCodeTemplateDO extends BaseDO {
     // ========== 统计信息 END ==========
 
     // ========== 权益相关字段 =========
-    /**兑换码
-     *
+    /**
+     * 兑换码
      */
-    @TableField(typeHandler = LongListTypeHandler.class)
-    private List<Long> couponValues;
+    private Long couponTemplateId;
 
     /**
      * 属性数组，JSON 格式

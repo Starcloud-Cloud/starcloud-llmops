@@ -5,7 +5,7 @@ import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.templa
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplatePageReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateUpdateReqVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
-import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeTypeEnum;
+import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -87,7 +87,7 @@ public interface PromoCodeTemplateService {
      * @param codeType 领取方式
      * @return 兑换码模板列表
      */
-    List<PromoCodeTemplateDO> getTemplateListByCodeType(PromoCodeTypeEnum codeType);
+    List<PromoCodeTemplateDO> getTemplateListByCodeType(PromotionCodeTypeEnum codeType);
 
     /**
      * 获得兑换码模板列表

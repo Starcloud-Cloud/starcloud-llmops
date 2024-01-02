@@ -40,11 +40,6 @@ public class PromoCodeTemplateBaseVO {
     @NotNull(message = "兑换码编号不能为空")
     private String code;
 
-    @Schema(description = "兑换码状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "春节送送送")
-    @NotNull(message = "兑换码状态不能为空")
-    private Integer status;
-
-
     @Schema(description = "发行总量", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024") // -1 - 则表示不限制发放数量
     @NotNull(message = "发行总量不能为空")
     private Integer totalCount;
@@ -68,8 +63,8 @@ public class PromoCodeTemplateBaseVO {
     private LocalDateTime validEndTime;
 
 
-    @Schema(description = "商品范围编号的数组", example = "[1, 3]")
-    private List<Long> couponValues;
+    @Schema(description = "优惠券编号", example = "1")
+    private Long couponTemplateId;
 
     @Schema(description = "权益参数")
     private GiveRightsDTO giveRights;
