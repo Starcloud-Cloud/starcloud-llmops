@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
@@ -21,7 +22,7 @@ import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
-import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageStyleThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ public class CreativeImageManager {
     private PosterService posterService;
 
     @Resource
-    private CreativeImageStyleThreadPoolHolder creativeImageStyleThreadPoolHolder;
+    private PosterTemplateThreadPoolHolder creativeImageStyleThreadPoolHolder;
 
     /**
      * 获取图片模板
@@ -65,7 +66,7 @@ public class CreativeImageManager {
         return CollectionUtil.emptyIfNull(templates).stream().map(item -> {
             List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
             int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
-            List<VariableItemDTO> variables = params.stream().map(param -> {
+            List<VariableItemRespVO> variables = params.stream().map(param -> {
                 Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
                 if ("image".equals(param.getType())) {
                     return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), order);
@@ -74,7 +75,7 @@ public class CreativeImageManager {
                 } else {
                     return null;
                 }
-            }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemDTO::getOrder)).collect(Collectors.toList());
+            }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
 
             CreativeImageTemplateDTO response = new CreativeImageTemplateDTO();
             response.setId(item.getId());
@@ -112,7 +113,7 @@ public class CreativeImageManager {
                             .map(templateItem -> {
                                 List<PosterParam> params = CollectionUtil.emptyIfNull(templateItem.getParams());
                                 int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
-                                List<VariableItemDTO> variables = params.stream()
+                                List<VariableItemRespVO> variables = params.stream()
                                         .map(param -> {
                                             Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
                                             if ("image".equals(param.getType())) {
@@ -122,8 +123,7 @@ public class CreativeImageManager {
                                             } else {
                                                 return null;
                                             }
-                                        }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemDTO::getOrder)).collect(Collectors.toList());
-
+                                        }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
                                 CreativeImageTemplateDTO template = new CreativeImageTemplateDTO();
                                 template.setId(templateItem.getId());
                                 template.setName(templateItem.getLabel());

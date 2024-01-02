@@ -11,10 +11,7 @@ import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.exception.KstryException;
-import cn.kstry.framework.core.monitor.MonitorTracking;
-import cn.kstry.framework.core.monitor.NodeTracking;
-import cn.kstry.framework.core.monitor.NoticeTracking;
-import cn.kstry.framework.core.monitor.RecallStory;
+import cn.kstry.framework.core.monitor.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -358,6 +355,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
+
         this.createAppMessage((messageCreateRequest) -> {
 
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
@@ -373,11 +371,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAiModel(appContext.getAiModel());
 
-            // actionResponse 不为空说明已经执行成功
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
+            appContext.setActionResponse(actionResponse);
+
+            // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
                 // 将执行结果数据更新到 app
-                appContext.setActionResponse(actionResponse);
                 AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
                 messageCreateRequest.setStatus(LogStatusEnum.SUCCESS.name());
                 messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
@@ -495,11 +494,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
+    private <T> T getTracking(List<FieldTracking> noticeTrackingList, Class<T> clazz) {
         String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
         return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
-                .filter(noticeTracking -> noticeTracking.getFieldName().equals(field))
+                .filter(noticeTracking -> noticeTracking.getSourceName().equals(field))
                 .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
                 .findFirst().orElse(null);
     }

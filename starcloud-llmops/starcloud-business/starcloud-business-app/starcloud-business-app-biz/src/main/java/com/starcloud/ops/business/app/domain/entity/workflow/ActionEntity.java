@@ -15,6 +15,8 @@ import lombok.Data;
 @Data
 public class ActionEntity extends BaseActionEntity {
 
+    private static final long serialVersionUID = -5714733426396289571L;
+
     /**
      * 获取 value
      *

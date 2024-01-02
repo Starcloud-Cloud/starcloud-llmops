@@ -197,7 +197,7 @@ public class AppUtils {
      * @return 字段
      */
     public static String obtainField(String name) {
-        return name.replace(" ", "_").toUpperCase();
+        return name;
     }
 
     /**

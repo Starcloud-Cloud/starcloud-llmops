@@ -81,11 +81,11 @@ public class AppController {
         return CommonResult.success(appService.getRecommendApp(uid));
     }
 
-    @GetMapping("/stepList")
+    @GetMapping("/stepList/{type}")
     @Operation(summary = "获取步骤列表", description = "获取步骤列表")
     @ApiOperationSupport(order = 60, author = "nacoyer")
-    public CommonResult<List<WorkflowStepWrapperRespVO>> stepList() {
-        return CommonResult.success(appService.stepList());
+    public CommonResult<List<WorkflowStepWrapperRespVO>> stepList(@PathVariable("type") String type) {
+        return CommonResult.success(appService.stepList(type));
     }
 
     @GetMapping("/page")
