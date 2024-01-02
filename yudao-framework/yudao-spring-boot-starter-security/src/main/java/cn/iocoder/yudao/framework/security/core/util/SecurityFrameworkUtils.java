@@ -3,6 +3,7 @@ package cn.iocoder.yudao.framework.security.core.util;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import java.util.Collections;
  *
  * @author 芋道源码
  */
+@Slf4j
 public class SecurityFrameworkUtils {
 
     /**
@@ -73,6 +75,7 @@ public class SecurityFrameworkUtils {
     public static void setAuthentication(Authentication authentication) {
         SecurityContext context = SecurityContextHolder.getContext();
         if (context == null) {
+            log.warn("setAuthentication is fail, context is null");
             return;
         }
         context.setAuthentication(authentication);
