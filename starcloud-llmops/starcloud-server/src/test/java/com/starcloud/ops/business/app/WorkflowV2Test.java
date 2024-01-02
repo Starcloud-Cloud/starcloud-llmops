@@ -29,9 +29,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.misc.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -158,43 +164,92 @@ public class WorkflowV2Test extends BaseDbUnitTest {
 
     }
 
-
     @Test
-    public void fireByAppTest() {
+    public void spelTest() {
+        // 创建spel表达式分析器
+        ExpressionParser parser = new SpelExpressionParser();
 
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO());
+        ParserContext parserContext = new ParserContext() {
+            @Override
+            public boolean isTemplate() {
+                return true;
+            }
+
+            @Override
+            public String getExpressionPrefix() {
+                return "{";
+            }
+
+            @Override
+            public String getExpressionSuffix() {
+                return "}";
+            }
+        };
+
+
+        HashMap<String, Object> params = new HashMap<>();
+
+
+        List<HashMap> content = Arrays.asList(
+
+                new HashMap() {{
+                    put("title", "title1");
+                    put("content", "content1");
+                }},
+                new HashMap() {{
+                    put("title", "title2");
+                    put("content", "content2");
+                }},
+                new HashMap() {{
+                    put("title", "title3");
+                    put("content", "content3");
+                }}
+        );
+
+        StandardEvaluationContext context = new StandardEvaluationContext(new Root());
+        context.setVariable("_OUT", new HashMap() {{
+
+            put("开头", "123");
+            put("段落", content);
+
+        }});
+
+        // 输入表达式
+        Expression exp = parser.parseExpression("{STEP['开头'][key1]}", parserContext);
+        // 获取表达式的输出结果，getValue入参是返回参数的类型
+        String value = exp.getValue(context, String.class);
+        System.out.println(value);
 
     }
 
-    @Test
-    public void fireByAppStepTest() {
-        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+    @Data
+    public static class Root {
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title");
-    }
+        private HashMap STEP = new HashMap<String, Object>() {{
+            put("开头", new HashMap<String, Object>() {{
+                put("key1", "vvv");
+                put("key2", "XXXXX");
+            }});
 
+            put("段落", Arrays.asList(
 
-    @Test
-    public void fireByAppStepStreamTest() {
-        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+                    new HashMap() {{
+                        put("title", "title1");
+                        put("content", "content1");
+                    }},
+                    new HashMap() {{
+                        put("title", "title2");
+                        put("content", "content2");
+                    }},
+                    new HashMap() {{
+                        put("title", "title3");
+                        put("content", "content3");
+                    }}
+            ));
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", mockHttpServletResponse);
+        }};
 
-    }
-
-
-    @Test
-    public void fireByAppStepContentTest() {
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "content");
-    }
-
-
-    @Test
-    public void fireByAppStepRequestIdTest() {
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", "requestId-test");
     }
 
 }
