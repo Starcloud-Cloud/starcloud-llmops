@@ -83,7 +83,7 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     protected Long getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
 
         AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
-        //获取当前用户部门ID,只能获取一个无法实现多团队功能
+        //获取当前用户部门ID,只能获取用户当前激活的部门
         Long deptId = adminUserRespDTO.getDeptId();
         //找到部门的管理员
         DeptDO deptDO = deptService.getDept(deptId);
