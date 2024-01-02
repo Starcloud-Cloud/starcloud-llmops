@@ -13,6 +13,7 @@
 // import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 // import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeTypeEnum;
 // import com.starcloud.ops.business.promotion.dal.mysql.promocode.PromoCodeTemplateMapper;
+// import com.starcloud.ops.business.promotion.service.coupon.CouponTemplateService;
 // import org.springframework.stereotype.Service;
 // import org.springframework.validation.annotation.Validated;
 //
@@ -38,13 +39,16 @@
 //
 //     @Resource
 //     private ProductCategoryApi productCategoryApi;
+//
+//     @Resource
+//     private  CouponTemplateService couponTemplateService;
 //     @Resource
 //     private ProductSpuApi productSpuApi;
 //
 //     @Override
 //     public Long createPromoCodeTemplate(PromoCodeTemplateCreateReqVO createReqVO) {
 //         // 校验商品范围
-//         validateProductScope(createReqVO.getProductScope(), createReqVO.getProductScopeValues());
+//         validateCoupon(createReqVO.getCodeType(), createReqVO.getCouponValues(),createReqVO.getTotalCount(),createReqVO.getTakeLimitCount());
 //         // 插入
 //         PromoCodeTemplateDO PromoCodeTemplate = PromoCodeTemplateConvert.INSTANCE.convert(createReqVO)
 //                 .setStatus(CommonStatusEnum.ENABLE.getStatus());
@@ -62,7 +66,7 @@
 //             // throw exception(PromoCode_TEMPLATE_TOTAL_COUNT_TOO_SMALL, PromoCodeTemplate.getTakeCount());
 //         }
 //         // 校验商品范围
-//         validateProductScope(updateReqVO.getProductScope(), updateReqVO.getProductScopeValues());
+//         validateCoupon(updateReqVO.getProductScope(), updateReqVO.getProductScopeValues());
 //
 //         // 更新
 //         PromoCodeTemplateDO updateObj = PromoCodeTemplateConvert.INSTANCE.convert(updateReqVO);
@@ -93,7 +97,8 @@
 //         return PromoCodeTemplate;
 //     }
 //
-//     private void validateProductScope(Integer productScope, List<Long> productScopeValues) {
+//     private void validateCoupon(Integer codeType, List<Long> productScopeValues) {
+//         if (PromoCodeTypeEnum.ADMIN)
 //         if (Objects.equals(PromotionProductScopeEnum.SPU.getScope(), productScope)) {
 //             productSpuApi.validateSpuList(productScopeValues);
 //         } else if (Objects.equals(PromotionProductScopeEnum.CATEGORY.getScope(), productScope)) {
@@ -104,6 +109,17 @@
 //     @Override
 //     public PromoCodeTemplateDO getTemplate(Long id) {
 //         return PromoCodeTemplateMapper.selectById(id);
+//     }
+//
+//     /**
+//      * 获得兑换码模板
+//      *
+//      * @param code 兑换码编号
+//      * @return 兑换码模板
+//      */
+//     @Override
+//     public PromoCodeTemplateDO getTemplate(String code) {
+//         return PromoCodeTemplateMapper.selectTemplateByCode(code);
 //     }
 //
 //     @Override
@@ -118,7 +134,7 @@
 //
 //     @Override
 //     public List<PromoCodeTemplateDO> getTemplateListByCodeType(PromoCodeTypeEnum takeType) {
-//         return PromoCodeTemplateMapper.selectListByTakeType(takeType.getValue());
+//         return PromoCodeTemplateMapper.selectListByCodeType(takeType.getValue());
 //     }
 //
 //     @Override

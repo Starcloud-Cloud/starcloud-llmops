@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,16 +45,13 @@ public class InvitationRecordsController {
         return success(true);
     }
 
-
-
-
     @GetMapping("/get")
     @Operation(summary = "获得邀请记录")
     // @PreAuthorize("@ss.hasPermission('llm:invitation-records:query')")
     public CommonResult<Boolean> getInvitationRecords() {
         Long inviteUserId = SecurityFrameworkUtils.getLoginUserId();
         // 获取当天的邀请记录
-        List<com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
+        List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
         if (todayInvitations.size() % 2 == 0) {
             log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益",todayInvitations.size() , todayInvitations.size());
             benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);

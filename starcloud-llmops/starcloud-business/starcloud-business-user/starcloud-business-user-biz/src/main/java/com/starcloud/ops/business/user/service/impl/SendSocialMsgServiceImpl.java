@@ -15,7 +15,7 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
-import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import lombok.extern.slf4j.Slf4j;

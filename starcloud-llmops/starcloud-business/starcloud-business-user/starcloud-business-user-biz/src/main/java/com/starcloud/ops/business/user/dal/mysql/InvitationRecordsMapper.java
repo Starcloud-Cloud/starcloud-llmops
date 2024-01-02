@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.starcloud.ops.business.user.controller.admin.invitationrecords.vo.InvitationRecordsPageReqVO;
-import com.starcloud.ops.business.user.dal.dataObject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

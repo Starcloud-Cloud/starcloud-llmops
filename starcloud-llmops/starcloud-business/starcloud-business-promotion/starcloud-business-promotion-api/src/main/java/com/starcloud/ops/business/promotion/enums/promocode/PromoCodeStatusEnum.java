@@ -9,15 +9,15 @@ import java.util.Arrays;
 /**
  * 优惠劵状态枚举
  *
- * @author 芋道源码
+ * @author Cusack Alan
  */
 @AllArgsConstructor
 @Getter
 public enum PromoCodeStatusEnum implements IntArrayValuable {
 
-    UNUSED(1, "未使用"),
-    USED(2, "已使用"),
-    EXPIRE(3, "已过期"),
+    ENABLE(1, "启用"),
+    CLOSE(2, "关闭"),
+    EXPIRE(3, "过期"),
     ;
 
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(PromoCodeStatusEnum::getStatus).toArray();

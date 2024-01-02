@@ -102,11 +102,4 @@ public interface PromoCodeMapper extends BaseMapperX<PromoCodeDO> {
                 //                 .apply(productScopeValuesFindInSetFunc.apply(categoryIds)))));
     }
 
-    default List<PromoCodeDO> selectListByStatusAndValidEndTimeLe(Integer status, LocalDateTime validEndTime) {
-        return selectList(new LambdaQueryWrapperX<PromoCodeDO>()
-                // .eq(PromoCodeDO::getStatus, status)
-                .le(PromoCodeDO::getValidEndTime, validEndTime)
-        );
-    }
-
 }

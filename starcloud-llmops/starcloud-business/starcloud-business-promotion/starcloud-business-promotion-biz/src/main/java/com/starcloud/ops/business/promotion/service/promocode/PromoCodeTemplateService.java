@@ -4,7 +4,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateCreateReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplatePageReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateUpdateReqVO;
-import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
 import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeTypeEnum;
 
@@ -57,6 +56,15 @@ public interface PromoCodeTemplateService {
      */
     PromoCodeTemplateDO getTemplate(Long id);
 
+
+    /**
+     * 获得兑换码模板
+     *
+     * @param code 兑换码编号
+     * @return 兑换码模板
+     */
+    PromoCodeTemplateDO getTemplate(String code);
+
     /**
      * 获得兑换码模板分页
      *
@@ -79,7 +87,7 @@ public interface PromoCodeTemplateService {
      * @param codeType 领取方式
      * @return 兑换码模板列表
      */
-    List<CouponTemplateDO> getTemplateListByCodeType(PromoCodeTypeEnum codeType);
+    List<PromoCodeTemplateDO> getTemplateListByCodeType(PromoCodeTypeEnum codeType);
 
     /**
      * 获得兑换码模板列表
@@ -90,7 +98,7 @@ public interface PromoCodeTemplateService {
      * @param count             查询数量
      * @return 兑换码模板列表
      */
-    List<CouponTemplateDO> getTemplateList(List<Integer> canTakeTypes, Integer productScope,
+    List<PromoCodeTemplateDO> getTemplateList(List<Integer> canTakeTypes, Integer productScope,
                                            Long productScopeValue, Integer count);
 
     /**
@@ -99,6 +107,6 @@ public interface PromoCodeTemplateService {
      * @param ids 兑换码模版编号
      * @return 兑换码模版列表
      */
-    List<CouponTemplateDO> getTemplateList(Collection<Long> ids);
+    List<PromoCodeTemplateDO> getTemplateList(Collection<Long> ids);
 
 }
