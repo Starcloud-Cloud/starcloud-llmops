@@ -112,7 +112,12 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defPosterVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.emptyList());
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defPosterModeVariable(),
+                RecommendVariableItemFactory.defPosterStyleVariable(),
+                RecommendVariableItemFactory.defPosterMaterialVariable(),
+                RecommendVariableItemFactory.defPosterContentVariable()
+        ));
         return variable;
     }
 }

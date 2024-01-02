@@ -2,8 +2,6 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.poster.PosterStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.poster.PosterStyleRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ContentActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
@@ -172,8 +170,8 @@ public class RecommendActionFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static PosterStepRespVO defPosterActionStep() {
-        PosterStepRespVO step = new PosterStepRespVO();
+    public static WorkflowStepRespVO defPosterActionStep() {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("POSTER_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("POSTER_ACTION_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
@@ -185,23 +183,9 @@ public class RecommendActionFactory {
         step.setIcon("poster");
         step.setTags(Collections.singletonList("Poster"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setImageMaterials(Collections.emptyList());
-        step.setStyleList(Collections.singletonList(defPosterStyle()));
+        step.setVariable(null);
         return step;
     }
 
-    /**
-     * 默认风格
-     *
-     * @return PosterStyleRespVO
-     */
-    public static PosterStyleRespVO defPosterStyle() {
-        PosterStyleRespVO style = new PosterStyleRespVO();
-        style.setId("STYLE_1");
-        style.setName("风格一");
-        style.setDescription("风格一");
-        style.setTemplateList(Collections.emptyList());
-        return style;
-    }
 
 }
