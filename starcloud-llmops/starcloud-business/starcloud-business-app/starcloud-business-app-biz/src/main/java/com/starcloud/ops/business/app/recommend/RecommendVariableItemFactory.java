@@ -386,6 +386,7 @@ public class RecommendVariableItemFactory {
         variableItem.setIsShow(Boolean.TRUE);
         variableItem.addOption(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
         variableItem.addOption(CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name());
+        variableItem.addOption(CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name());
         return variableItem;
     }
 
