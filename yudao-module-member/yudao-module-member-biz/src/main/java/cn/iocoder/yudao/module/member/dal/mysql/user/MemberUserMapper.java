@@ -78,6 +78,13 @@ public interface MemberUserMapper extends BaseMapperX<MemberUserDO> {
         update(null, lambdaUpdateWrapper);
     }
 
+    default void updateGroup(Long id, Long groupId) {
+        LambdaUpdateWrapper<MemberUserDO> lambdaUpdateWrapper = new LambdaUpdateWrapper<MemberUserDO>()
+                .set(MemberUserDO::getGroupId, groupId)
+                .eq(MemberUserDO::getId, id);
+        update(lambdaUpdateWrapper);
+    }
+
     /**
      * 更新用户积分（减少）
      *

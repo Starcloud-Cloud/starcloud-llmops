@@ -101,7 +101,7 @@
         COUNT(case WHEN m.`claim_user_id` = #{reqVO.claimUserId} THEN 1 end ) as currentUserNum
         from llm_notification n
         LEFT JOIN llm_single_mission m ON m.notification_Uid = n.uid
-        where n.deleted = false and n.end_time &gt; now() and n.status = 'published'
+        where n.deleted = false and m.deleted = false and n.end_time &gt; now() and n.status = 'published'
         <if test="reqVO.open != null">
             and n.open = #{reqVO.open}
         </if>

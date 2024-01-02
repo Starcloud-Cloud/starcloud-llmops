@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -161,13 +162,14 @@ public class DraftServiceImpl implements DraftService {
                         long end = System.currentTimeMillis();
                         draftDO.setAnalysisTime(end - start);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                        updateDo(draftDO, distinctKeys);
+                        updateScore(draftDO);
+                        updateById(draftDO);
                     } catch (Exception e) {
                         log.error("analysis keyword error", e);
                         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+                        updateById(draftDO);
                     }
-                    updateDo(draftDO, distinctKeys);
-                    updateScore(draftDO);
-                    updateById(draftDO);
                 });
             }
             return ListingDraftConvert.INSTANCE.convert(draftDO);
@@ -690,7 +692,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void updateById(ListingDraftDO draftDO) {
-        draftDO.setUpdateTime(null);
+        draftDO.setUpdateTime(LocalDateTime.now());
         draftMapper.updateById(draftDO);
     }
 

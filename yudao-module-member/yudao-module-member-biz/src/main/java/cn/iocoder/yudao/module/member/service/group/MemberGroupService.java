@@ -49,6 +49,14 @@ public interface MemberGroupService {
     MemberGroupDO getGroup(Long id);
 
     /**
+     * 获得用户分组
+     *
+     * @param name
+     * @return
+     */
+    MemberGroupDO saveGroup(String name);
+
+    /**
      * 获得用户分组列表
      *
      * @param ids 编号

@@ -115,6 +115,11 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
             response = client.execute(request);
         }
         if (!response.isSuccess()) { // 不成功，例如说订单不存在
+
+            // 明确不存在的情况，订单不存在 暂时不做处理
+            if (ObjectUtils.equalsAny(response.getSubCode(), "TRADE_NOT_EXIST", "ACQ.TRADE_NOT_EXIST")) {
+                return PayOrderRespDTO.waitingOf(null,response.getBody(),outTradeNo, response);
+            }
             return PayOrderRespDTO.closedOf(response.getSubCode(), response.getSubMsg(),
                     outTradeNo, response);
         }

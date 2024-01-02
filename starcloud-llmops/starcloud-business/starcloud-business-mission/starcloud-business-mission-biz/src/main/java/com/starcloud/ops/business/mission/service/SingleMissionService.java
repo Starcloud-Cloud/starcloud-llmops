@@ -74,6 +74,20 @@ public interface SingleMissionService {
     List<Long> selectSettlementIds(@Valid SingleMissionQueryReqVO reqVO);
 
     /**
+     * 重试 id
+     * @param reqVO
+     * @return
+     */
+    List<Long> retryIds(@Valid SingleMissionQueryReqVO reqVO);
+
+    /**
+     * 执行 id
+     * @param reqVO
+     * @return
+     */
+    List<Long> executeIds(@Valid SingleMissionQueryReqVO reqVO);
+
+    /**
      * 校验预算金额
      */
     void validBudget(NotificationCenterDO notificationCenterDO);
@@ -107,4 +121,10 @@ public interface SingleMissionService {
      * 导入
      */
     void importSettlement(List<SingleMissionImportVO> importVOList);
+
+    /**
+     * 重试
+     * @param singleMissionId
+     */
+    void retry(Long singleMissionId);
 }
