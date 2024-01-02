@@ -52,7 +52,7 @@ public class ThreadWithContext {
             TenantContextHolder.setTenantId(tenantId);
             RequestContextHolder.setRequestAttributes(requestAttributes);
 
-            SecurityContextHolder.setAuthentication(authentication);
+            SecurityFrameworkUtils.setAuthentication(authentication);
 
             UserContextHolder.setUserId(userId);
             runFunction.run();
