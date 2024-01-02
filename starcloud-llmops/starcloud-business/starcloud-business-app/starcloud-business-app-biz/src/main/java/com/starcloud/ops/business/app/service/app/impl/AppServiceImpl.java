@@ -144,7 +144,7 @@ public class AppServiceImpl implements AppService {
         if (!IEnumable.contains(type, AppTypeEnum.class)) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
         }
-        if (AppTypeEnum.COMMON.name().equalsIgnoreCase(type) && AppTypeEnum.SYSTEM.name().equalsIgnoreCase(type)) {
+        if (AppTypeEnum.COMMON.name().equalsIgnoreCase(type) || AppTypeEnum.SYSTEM.name().equalsIgnoreCase(type)) {
             return RecommendStepWrapperFactory.defCommonStepWrapperList();
         }
         // 应用为媒体矩阵且为管理员
