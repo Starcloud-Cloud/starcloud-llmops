@@ -6,7 +6,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
@@ -105,10 +105,10 @@ public class CreativeImageUtils {
                 Map<String, Object> params = Maps.newHashMap();
                 // 图片集合，用于替换图片。
                 List<String> imageList = Lists.newArrayList();
-                List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
-                List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
+                List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+                List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
 
-                for (VariableItemDTO variableItem : variableItemList) {
+                for (VariableItemRespVO variableItem : variableItemList) {
                     if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
                         // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                         params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
@@ -160,7 +160,7 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphTitle(Map<String, Object> params, VariableItemDTO variableItem, List<ParagraphDTO> paragraphList) {
+    private static void paragraphTitle(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
@@ -182,7 +182,7 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphContent(Map<String, Object> params, VariableItemDTO variableItem, List<ParagraphDTO> paragraphList) {
+    private static void paragraphContent(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
@@ -245,7 +245,7 @@ public class CreativeImageUtils {
             imageExecuteRequest.setIsMain(i == 0);
             imageExecuteRequest.setId(posterTemplate.getId());
             imageExecuteRequest.setName(posterTemplate.getName());
-            List<VariableItemDTO> params = transformParams(posterTemplate, useImageList);
+            List<VariableItemRespVO> params = transformParams(posterTemplate, useImageList);
             int size = (int) params.stream().filter(item -> PARAGRAPH_TITLE.contains(item.getField())).count();
             paragraphParamCountList.add(size);
             imageExecuteRequest.setParams(params);
@@ -340,11 +340,11 @@ public class CreativeImageUtils {
      * @param posterVariableList 海报模板变量
      * @return 合并后的海报模板变量
      */
-    public static List<VariableItemDTO> mergeVariables(List<VariableItemDTO> variableList, List<VariableItemDTO> posterVariableList) {
-        Map<String, VariableItemDTO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemDTO::getField, Function.identity()));
-        for (VariableItemDTO variableItem : posterVariableList) {
+    public static List<VariableItemRespVO> mergeVariables(List<VariableItemRespVO> variableList, List<VariableItemRespVO> posterVariableList) {
+        Map<String, VariableItemRespVO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
+        for (VariableItemRespVO variableItem : posterVariableList) {
             if (!IMAGE.equalsIgnoreCase(variableItem.getType()) && variableMap.containsKey(variableItem.getField())) {
-                VariableItemDTO variable = variableMap.get(variableItem.getField());
+                VariableItemRespVO variable = variableMap.get(variableItem.getField());
                 if (Objects.nonNull(variable.getValue())) {
                     variableItem.setValue(variable.getValue());
                 }
@@ -360,14 +360,14 @@ public class CreativeImageUtils {
      * @param useImageList 使用的图片
      * @return 执行参数
      */
-    private static List<VariableItemDTO> transformParams(CreativeImageTemplateDTO template, List<String> useImageList) {
-        List<VariableItemDTO> params = Lists.newArrayList();
+    private static List<VariableItemRespVO> transformParams(CreativeImageTemplateDTO template, List<String> useImageList) {
+        List<VariableItemRespVO> params = Lists.newArrayList();
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
-        List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(template.getVariables());
-        List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
-        for (VariableItemDTO variableItem : variableItemList) {
-            VariableItemDTO item = SerializationUtils.clone(variableItem);
+        List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(template.getVariables());
+        List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
+        for (VariableItemRespVO variableItem : variableItemList) {
+            VariableItemRespVO item = SerializationUtils.clone(variableItem);
             if (IMAGE.equalsIgnoreCase(item.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 item.setValue(randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
@@ -391,9 +391,9 @@ public class CreativeImageUtils {
         Map<String, Object> params = Maps.newHashMap();
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
-        List<VariableItemDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
-        List<VariableItemDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
-        for (VariableItemDTO variableItem : variableItemList) {
+        List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+        List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
+        for (VariableItemRespVO variableItem : variableItemList) {
             if (force && IMAGE.equalsIgnoreCase(variableItem.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                 params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
@@ -430,8 +430,8 @@ public class CreativeImageUtils {
         List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
         int titleIndex = 1, contentIndex = 1;
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
-            List<VariableItemDTO> params = imageRequest.getParams();
-            for (VariableItemDTO param : params) {
+            List<VariableItemRespVO> params = imageRequest.getParams();
+            for (VariableItemRespVO param : params) {
                 if ("TEXT".equalsIgnoreCase(param.getType())) {
                     if (PARAGRAPH_TITLE.contains(param.getField())) {
                         builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
@@ -455,7 +455,7 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 图片类型变量
      */
-    public static List<VariableItemDTO> imageTypeVariableList(List<VariableItemDTO> variableItemList) {
+    public static List<VariableItemRespVO> imageTypeVariableList(List<VariableItemRespVO> variableItemList) {
         return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> IMAGE.equalsIgnoreCase(item.getType())).collect(Collectors.toList());
     }
 
@@ -465,7 +465,7 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 非图片类型变量
      */
-    public static List<VariableItemDTO> otherTypeVariableList(List<VariableItemDTO> variableItemList) {
+    public static List<VariableItemRespVO> otherTypeVariableList(List<VariableItemRespVO> variableItemList) {
         return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> !IMAGE.equalsIgnoreCase(item.getType())).collect(Collectors.toList());
     }
 
@@ -524,8 +524,8 @@ public class CreativeImageUtils {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemDTO ofImageVariable(String field, String label, Integer order) {
-        VariableItemDTO variableItem = new VariableItemDTO();
+    public static VariableItemRespVO ofImageVariable(String field, String label, Integer order) {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);

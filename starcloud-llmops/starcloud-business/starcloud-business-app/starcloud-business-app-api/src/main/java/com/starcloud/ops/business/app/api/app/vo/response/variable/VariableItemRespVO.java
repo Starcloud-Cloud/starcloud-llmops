@@ -103,6 +103,12 @@ public class VariableItemRespVO implements Serializable {
     private List<Option> options;
 
     /**
+     * 数量
+     */
+    @Schema(description = "数量")
+    private Integer count;
+
+    /**
      * 添加选项
      *
      * @param label label

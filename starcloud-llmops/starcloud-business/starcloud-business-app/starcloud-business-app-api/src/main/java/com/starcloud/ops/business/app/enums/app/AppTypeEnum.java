@@ -32,6 +32,11 @@ public enum AppTypeEnum implements IEnumable<Integer> {
      */
     COMMON(1, "普通应用", "Common App"),
 
+    /**
+     * 媒体矩阵
+     */
+    MEDIA_MATRIX(2, "媒体矩阵","Media Matrix App")
+
     ;
 
     /**

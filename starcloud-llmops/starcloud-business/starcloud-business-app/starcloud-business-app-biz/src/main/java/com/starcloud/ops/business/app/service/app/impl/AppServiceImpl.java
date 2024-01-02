@@ -35,6 +35,7 @@ import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -136,8 +137,21 @@ public class AppServiceImpl implements AppService {
      * @return 步骤列表
      */
     @Override
-    public List<WorkflowStepWrapperRespVO> stepList() {
-        return Collections.singletonList(RecommendStepWrapperFactory.defDefaultTextCompletionStepWrapper());
+    public List<WorkflowStepWrapperRespVO> stepList(String type) {
+        if (StringUtils.isBlank(type)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_REQUIRED);
+        }
+        if (!IEnumable.contains(type, AppTypeEnum.class)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
+        }
+        if (AppTypeEnum.COMMON.name().equalsIgnoreCase(type) && AppTypeEnum.SYSTEM.name().equalsIgnoreCase(type)) {
+            return RecommendStepWrapperFactory.defCommonStepWrapperList();
+        }
+        // 应用为媒体矩阵且为管理员
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(type) && UserUtils.isAdmin()) {
+            return RecommendStepWrapperFactory.defMediaMatrixStepWrapperList();
+        }
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
     }
 
     /**

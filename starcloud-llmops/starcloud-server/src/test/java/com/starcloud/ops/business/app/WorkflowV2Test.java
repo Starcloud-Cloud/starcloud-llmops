@@ -10,17 +10,19 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import cn.kstry.framework.core.engine.StoryEngine;
+import com.google.common.collect.Sets;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.AppWorkflowService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,13 +35,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+
+/**
+ * 多step功能执行测试
+ */
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
-public class WorkflowTest extends BaseDbUnitTest {
+public class WorkflowV2Test extends BaseDbUnitTest {
 
 
     @MockBean
@@ -138,13 +143,14 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
 
-        executeReqVO.setAppUid("2196b6cce43f41679e15487d79bde823");
+        executeReqVO.setAppUid("77a466b2e70f48f9b61910105f5db0f7");
+        executeReqVO.setUserId(186L);
         executeReqVO.setAppReqVO(new AppReqVO());
-        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
 
         SseEmitter emitter = new SseEmitter(60000L);
 
-        executeReqVO.setSseEmitter(emitter);
+        //executeReqVO.setSseEmitter(emitter);
 
         AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
 

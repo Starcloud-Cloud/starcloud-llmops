@@ -71,4 +71,53 @@ public class RecommendVariableFactory {
         ));
         return variable;
     }
+
+    /**
+     * 媒体矩阵标题变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defContentVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
+        return variable;
+    }
+
+    /**
+     * 媒体矩阵开头变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defParagraphVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
+        return variable;
+    }
+
+    /**
+     * 媒体矩阵内容变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defAssembleVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        return variable;
+    }
+
+    /**
+     * 媒体矩阵开头变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defPosterVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defPosterModeVariable(),
+                RecommendVariableItemFactory.defPosterStyleVariable(),
+                RecommendVariableItemFactory.defPosterMaterialVariable(),
+                RecommendVariableItemFactory.defPosterContentVariable()
+        ));
+        return variable;
+    }
 }

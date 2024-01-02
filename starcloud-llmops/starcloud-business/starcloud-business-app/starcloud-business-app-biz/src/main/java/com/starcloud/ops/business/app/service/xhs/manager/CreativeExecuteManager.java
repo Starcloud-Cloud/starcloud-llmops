@@ -9,7 +9,7 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -136,7 +136,7 @@ public class CreativeExecuteManager {
                     CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), CreativeContentTypeEnum.PICTURE.getCode());
                     Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                             .stream()
-                            .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
                                 if (CreativeAppUtils.PARAGRAPH_DEMAND.equals(item.getField())) {
                                     return CreativeImageUtils.handlerParagraphDemand(business);
                                 }
@@ -152,7 +152,7 @@ public class CreativeExecuteManager {
                 } else {
                     Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                             .stream()
-                            .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
                                 if (Objects.isNull(item.getValue())) {
                                     return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
                                 }
@@ -199,7 +199,7 @@ public class CreativeExecuteManager {
                     CreativePlanAppExecuteDTO appExecuteRequest = executeParams.getAppExecuteRequest();
                     Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                             .stream()
-                            .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
                                 if (Objects.isNull(item.getValue())) {
                                     return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
                                 }
