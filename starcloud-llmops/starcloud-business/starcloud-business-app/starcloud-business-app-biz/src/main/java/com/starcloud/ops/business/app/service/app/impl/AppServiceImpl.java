@@ -84,7 +84,7 @@ public class AppServiceImpl implements AppService {
         // AI 模型
         metadata.put("aiModel", AppUtils.aiModelList());
         // 应用类型
-        metadata.put("type", AppTypeEnum.options());
+        metadata.put("type", AppTypeEnum.options(UserUtils.isAdmin()));
         return metadata;
     }
 
