@@ -86,19 +86,19 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
         //获取当前用户部门ID,只能获取一个无法实现多团队功能
         Long deptId = adminUserRespDTO.getDeptId();
         //找到部门的管理员
-        DeptDO deptDOS = deptService.getDept(deptId);
-        if (deptDOS != null) {
+        DeptDO deptDO = deptService.getDept(deptId);
+        if (deptDO != null) {
             //部门管理员不是当前用户，获取管理员ID
-            if (deptDOS.getLeaderUserId() == null) {
+            if (deptDO.getLeaderUserId() == null) {
                 //之前数据没配置, 这里做兼容处理
                 return currentUserId;
             } else {
 
-                if (!deptDOS.getLeaderUserId().equals(currentUserId)) {
+                if (!deptDO.getLeaderUserId().equals(currentUserId)) {
                     //判断管理员是否还有权益
-                    if (super.calculateUserRightsEnough(deptDOS.getLeaderUserId(), rightsType, rightAmount)) {
-                        log.info("权益切换：当前用户[]切换到部门负责人[]", currentUserId, deptDOS.getLeaderUserId());
-                        return deptDOS.getLeaderUserId();
+                    if (super.calculateUserRightsEnough(deptDO.getLeaderUserId(), rightsType, rightAmount)) {
+                        log.info("权益切换：当前用户[{}]切换到部门[{}]负责人[{}]", currentUserId, deptDO.getName(), deptDO.getLeaderUserId());
+                        return deptDO.getLeaderUserId();
                     }
                 }
             }
