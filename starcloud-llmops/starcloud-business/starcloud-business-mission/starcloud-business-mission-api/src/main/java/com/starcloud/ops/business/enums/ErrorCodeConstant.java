@@ -64,4 +64,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode  CLAIM_TIME_END =  new ErrorCode(700020009,"认领时间结束，请领取其他任务");
 
+    ErrorCode  END_TIME_OVER =  new ErrorCode(700020010,"任务时间结束");
+
 }

@@ -91,6 +91,10 @@ public interface SingleMissionMapper extends BaseMapperX<SingleMissionDO> {
 
     List<Long> selectIds(@Param("reqVO") SingleMissionQueryReqVO reqVO);
 
+    List<Long> selectSettlementIds(@Param("reqVO") SingleMissionQueryReqVO reqVO);
+
+    List<Long> retryIds(@Param("reqVO") SingleMissionQueryReqVO reqVO);
+
 
     Long pageCount(@Param("reqVO") SinglePageQueryReqVO reqVO);
 

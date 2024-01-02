@@ -2,9 +2,12 @@ package com.starcloud.ops.business.user.api.rights;
 
 import cn.hutool.core.lang.Assert;
 
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -30,9 +33,30 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     private AdminUserRightsService adminUserRightsService;
 
     @Override
-    public void addRights(Long userId, Integer magicBean, Integer magicImage, LocalDateTime validStartTime, LocalDateTime validEndTime,
+    public void addRights(Long userId, Integer magicBean, Integer magicImage,Integer rightsTimeNums, Integer rightsTimeRange,
                           Integer bizType, String bizId) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
+
+        LocalDateTime validStartTime = LocalDateTime.now();
+        LocalDateTime validEndTime;
+        TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(rightsTimeRange);
+        switch (timeRangeTypeEnum) {
+            case DAY:
+                validEndTime = validStartTime.plusDays(rightsTimeNums);
+                break;
+            case WEEK:
+                validEndTime = validStartTime.plusWeeks(rightsTimeNums);
+                break;
+            case MONTH:
+                validEndTime = validStartTime.plusMonths(rightsTimeNums);
+                break;
+            case YEAR:
+                validEndTime = validStartTime.plusYears(rightsTimeNums);
+                break;
+            default:
+                throw new RuntimeException("产品权益信息设置异常，请联系管理员");
+
+        }
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);

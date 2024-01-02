@@ -163,6 +163,12 @@
             <version>${starcloud.revision}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user-api</artifactId>
+            <version>${starcloud.revision}</version>
+            <scope>compile</scope>
+        </dependency>
 
 
     </dependencies>

@@ -25,6 +25,11 @@
             <artifactId>yudao-module-member-biz</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
 
     </dependencies>
 

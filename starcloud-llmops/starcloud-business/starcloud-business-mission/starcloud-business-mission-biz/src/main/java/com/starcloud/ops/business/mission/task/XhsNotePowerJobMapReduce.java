@@ -24,7 +24,6 @@ import java.util.List;
 
 @Slf4j
 @Component
-
 public class XhsNotePowerJobMapReduce extends BaseMapReduceTask {
 
     @Resource
@@ -55,7 +54,7 @@ public class XhsNotePowerJobMapReduce extends BaseMapReduceTask {
         XhsTaskContentParams xhsTaskContentParams = JSON.parseObject(params, XhsTaskContentParams.class);
         SingleMissionQueryReqVO queryReqVO = SingleMissionConvert.INSTANCE.convert(xhsTaskContentParams);
 
-        List<Long> ids = singleMissionService.selectIds(queryReqVO);
+        List<Long> ids = singleMissionService.executeIds(queryReqVO);
         if (CollectionUtils.isEmpty(ids)) {
             return new BaseTaskResult(true, "未找到待执行的任务");
         }
@@ -64,6 +63,7 @@ public class XhsNotePowerJobMapReduce extends BaseMapReduceTask {
         for (Long id : ids) {
             SubTask subTask = new SubTask();
             subTask.setSingleMissionIdList(Collections.singletonList(id));
+            subTask.setExecuteType(xhsTaskContentParams.getExecuteType());
             subTasks.add(subTask);
         }
         try {
@@ -78,7 +78,7 @@ public class XhsNotePowerJobMapReduce extends BaseMapReduceTask {
     public BaseTaskResult runSub(SubTask subTask) {
         List<Long> singleMissionIdList = subTask.getSingleMissionIdList();
         for (Long missionId : singleMissionIdList) {
-            settlementActuator.preSettlement(missionId);
+            settlementActuator.execute(missionId, subTask.getExecuteType());
         }
         return new BaseTaskResult(true, "SUB_PROCESS_SUCCESS");
     }

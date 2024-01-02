@@ -16,6 +16,9 @@ import cn.iocoder.yudao.framework.sms.core.client.dto.SmsTemplateRespDTO;
 import cn.iocoder.yudao.framework.sms.core.client.impl.AbstractSmsClient;
 import cn.iocoder.yudao.framework.sms.core.enums.SmsTemplateAuditStatusEnum;
 import cn.iocoder.yudao.framework.sms.core.property.SmsChannelProperties;
+import cn.iocoder.yudao.module.system.api.sms.SmsTemplateApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.template.SmsTemplateConfigRespDTO;
+import lombok.AllArgsConstructor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,10 +32,16 @@ import java.util.Objects;
  *
  * @author 芋道源码
  */
+//@AllArgsConstructor
 public class DebugDingTalkSmsClient extends AbstractSmsClient {
 
-    public DebugDingTalkSmsClient(SmsChannelProperties properties) {
+
+    private final SmsTemplateApi smsTemplateApi;
+
+
+    public DebugDingTalkSmsClient(SmsChannelProperties properties, SmsTemplateApi smsTemplateApi) {
         super(properties);
+        this.smsTemplateApi = smsTemplateApi;
         Assert.notEmpty(properties.getApiKey(), "apiKey 不能为空");
         Assert.notEmpty(properties.getApiSecret(), "apiSecret 不能为空");
     }
@@ -47,10 +56,13 @@ public class DebugDingTalkSmsClient extends AbstractSmsClient {
         // 构建请求
         String url = buildUrl("robot/send");
         Map<String, Object> params = new HashMap<>();
-        params.put("msgtype", "text");
-        String content = String.format("【模拟短信】\n手机号：%s\n短信日志编号：%d\n模板参数：%s",
-                mobile, sendLogId, MapUtils.convertMap(templateParams));
-        params.put("text", MapUtil.builder().put("content", content).build());
+//        params.put("msgtype", "text");
+        params.put("msgtype", "markdown");
+//        String content = String.format("【模拟短信】\n手机号：%s\n短信日志编号：%d\n模板参数：%s",
+//                mobile, sendLogId, MapUtils.convertMap(templateParams));
+        String content =  BuildMsgContent(apiTemplateId,templateParams);
+        params.put("markdown", MapUtil.builder().put("title", "通知").put("text", content).build());
+//        params.put("text", MapUtil.builder().put("content", content).build());
         // 执行请求
         String responseText = HttpUtil.post(url, JsonUtils.toJsonString(params));
         // 解析结果
@@ -91,6 +103,11 @@ public class DebugDingTalkSmsClient extends AbstractSmsClient {
     public SmsTemplateRespDTO getSmsTemplate(String apiTemplateId) {
         return new SmsTemplateRespDTO().setId(apiTemplateId).setContent("")
                 .setAuditStatus(SmsTemplateAuditStatusEnum.SUCCESS.getStatus()).setAuditReason("");
+    }
+    private String BuildMsgContent(String apiTemplateId,List<KeyValue<String, Object>> templateParams){
+        SmsTemplateConfigRespDTO smsTemplate = smsTemplateApi.getSmsTemplateByApiTemplateId(apiTemplateId);
+        return StrUtil.format(smsTemplate.getContent(), MapUtils.convertMap(templateParams));
+
     }
 
 }

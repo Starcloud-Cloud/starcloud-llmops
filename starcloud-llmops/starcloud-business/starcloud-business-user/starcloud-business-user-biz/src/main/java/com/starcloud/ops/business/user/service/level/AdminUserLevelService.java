@@ -60,6 +60,21 @@ public interface AdminUserLevelService {
 
     /**
      * 设置默认等级
+     *
      */
+    @Deprecated
     void setInitLevel();
+
+    /**
+     * 【系统】自动过期用户等级
+     *
+     * @return 过期数量
+     */
+    int expireLevel();
+
+    /**
+     * 【系统】 过期用户等级操作
+     * @param levelDO
+     */
+    void expireLevelBySystem(AdminUserLevelDO levelDO);
 }
