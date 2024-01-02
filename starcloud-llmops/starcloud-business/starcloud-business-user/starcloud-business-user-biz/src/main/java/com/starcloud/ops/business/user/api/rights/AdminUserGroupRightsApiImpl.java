@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.api.rights;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
@@ -82,9 +83,10 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
      */
     protected Long getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
 
-        log.info("getDeptRightsUserId: {}", currentUserId);
-
         AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
+
+        log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+
         //获取当前用户部门ID,只能获取用户当前激活的部门
         Long deptId = adminUserRespDTO.getDeptId();
         //找到部门的管理员
