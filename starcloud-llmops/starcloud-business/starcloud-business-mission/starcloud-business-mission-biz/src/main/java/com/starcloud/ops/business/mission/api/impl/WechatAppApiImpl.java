@@ -79,7 +79,7 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Override
     public PageResult<AppNotificationRespVO> notifyPage(AppNotificationQueryReqVO reqVO) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        reqVO.setClaimUserId(loginUserId.toString());
+        reqVO.setClaimUserId(loginUserId == null ? "-1" : loginUserId.toString());
         reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
 //        reqVO.setCreator(Collections.singletonList(wechatUserBindService.getBindUser(loginUserId)));
         Long count = notificationCenterMapper.appPageCount(reqVO);
