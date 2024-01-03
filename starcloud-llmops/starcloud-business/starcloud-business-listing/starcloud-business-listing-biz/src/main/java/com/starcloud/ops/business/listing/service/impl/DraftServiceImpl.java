@@ -192,7 +192,7 @@ public class DraftServiceImpl implements DraftService {
         }
         ListingDraftConvert.INSTANCE.update(reqVO, draftDO);
         draftDO.setVersion(1);
-
+        updateById(draftDO);
         if (CollectionUtils.isNotEmpty(reqVO.getKeys())) {
             DraftOperationReqVO operationReqVO = new DraftOperationReqVO();
             operationReqVO.setUid(reqVO.getUid());
@@ -204,7 +204,6 @@ public class DraftServiceImpl implements DraftService {
             updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
         }
 
-        updateById(draftDO);
         return ListingDraftConvert.INSTANCE.convert(draftDO);
     }
 
