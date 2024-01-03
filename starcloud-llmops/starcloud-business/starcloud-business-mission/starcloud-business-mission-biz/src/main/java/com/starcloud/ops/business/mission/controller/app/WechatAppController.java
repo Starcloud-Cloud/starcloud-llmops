@@ -41,7 +41,7 @@ public class WechatAppController {
 
     @PostMapping("/notify/page")
     @Operation(summary = "小程序通告列表")
-    @PreAuthenticated
+    @PermitAll
     @OperateLog(enable = false)
     public CommonResult<PageResult<AppNotificationRespVO>> notifyPage(@Valid @RequestBody AppNotificationQueryReqVO reqVO) {
         PageResult<AppNotificationRespVO> result = wechatAppApi.notifyPage(reqVO);
