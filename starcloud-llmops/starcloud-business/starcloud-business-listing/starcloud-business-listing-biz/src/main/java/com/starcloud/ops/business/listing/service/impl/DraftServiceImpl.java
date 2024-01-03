@@ -47,6 +47,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -155,20 +157,25 @@ public class DraftServiceImpl implements DraftService {
                 keywordBindService.addDraftKeyword(distinctKeys, draftDO.getId());
                 draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
                 updateById(draftDO);
-                executor.execute(() -> {
-                    try {
-                        long start = System.currentTimeMillis();
-                        keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
-                        long end = System.currentTimeMillis();
-                        draftDO.setAnalysisTime(end - start);
-                        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-                        updateDo(draftDO, distinctKeys);
-                        updateScore(draftDO);
-                        updateById(draftDO);
-                    } catch (Exception e) {
-                        log.error("analysis keyword error", e);
-                        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
-                        updateById(draftDO);
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        executor.execute(() -> {
+                            try {
+                                long start = System.currentTimeMillis();
+                                keywordBindService.analysisKeyword(distinctKeys, draftDO.getEndpoint());
+                                long end = System.currentTimeMillis();
+                                draftDO.setAnalysisTime(end - start);
+                                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                                updateDo(draftDO, distinctKeys);
+                                updateScore(draftDO);
+                                updateById(draftDO);
+                            } catch (Exception e) {
+                                log.error("analysis keyword error", e);
+                                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+                                updateById(draftDO);
+                            }
+                        });
                     }
                 });
             }
@@ -250,20 +257,25 @@ public class DraftServiceImpl implements DraftService {
         updateScore(draftDO);
         updateById(draftDO);
 
-        executor.execute(() -> {
-            try {
-                long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(newKey, draftDO.getEndpoint());
-                long end = System.currentTimeMillis();
-                draftDO.setAnalysisTime(end - start);
-                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-            } catch (Exception e) {
-                log.error("analysis error", e);
-                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                executor.execute(() -> {
+                    try {
+                        long start = System.currentTimeMillis();
+                        keywordBindService.analysisKeyword(newKey, draftDO.getEndpoint());
+                        long end = System.currentTimeMillis();
+                        draftDO.setAnalysisTime(end - start);
+                        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                    } catch (Exception e) {
+                        log.error("analysis error", e);
+                        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+                    }
+                    updateDo(draftDO, allKeys);
+                    updateScore(draftDO);
+                    updateById(draftDO);
+                });
             }
-            updateDo(draftDO, allKeys);
-            updateScore(draftDO);
-            updateById(draftDO);
         });
     }
 
@@ -395,20 +407,25 @@ public class DraftServiceImpl implements DraftService {
         List<String> keys = keywordBindMapper.getByDraftId(draftDO.getId()).stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList());
         draftDO.setStatus(AnalysisStatusEnum.ANALYSIS.name());
         updateById(draftDO);
-        executor.execute(() -> {
-            try {
-                long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
-                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-                long end = System.currentTimeMillis();
-                draftDO.setAnalysisTime(end - start);
-                updateDo(draftDO, keys);
-                updateScore(draftDO);
-                updateById(draftDO);
-            } catch (Exception e) {
-                log.error("refresh error", e);
-                draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
-                updateById(draftDO);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                executor.execute(() -> {
+                    try {
+                        long start = System.currentTimeMillis();
+                        keywordBindService.analysisKeyword(keys, draftDO.getEndpoint());
+                        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                        long end = System.currentTimeMillis();
+                        draftDO.setAnalysisTime(end - start);
+                        updateDo(draftDO, keys);
+                        updateScore(draftDO);
+                        updateById(draftDO);
+                    } catch (Exception e) {
+                        log.error("refresh error", e);
+                        draftDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+                        updateById(draftDO);
+                    }
+                });
             }
         });
     }
