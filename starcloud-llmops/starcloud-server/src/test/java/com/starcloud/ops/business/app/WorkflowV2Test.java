@@ -216,7 +216,7 @@ public class WorkflowV2Test extends BaseDbUnitTest {
         }});
 
         // 输入表达式
-        Expression exp = parser.parseExpression("{STEP['开头'][key1]}", parserContext);
+        Expression exp = parser.parseExpression("测试：{STEP['开头']['key2']['_OUT']}。。", parserContext);
         // 获取表达式的输出结果，getValue入参是返回参数的类型
         String value = exp.getValue(context, String.class);
         System.out.println(value);
@@ -229,7 +229,10 @@ public class WorkflowV2Test extends BaseDbUnitTest {
         private HashMap STEP = new HashMap<String, Object>() {{
             put("开头", new HashMap<String, Object>() {{
                 put("key1", "vvv");
-                put("key2", "XXXXX");
+                put("key2", new HashMap(){{
+                    put("xxx", "123");
+                    put("_OUT", 77);
+                }});
             }});
 
             put("段落", Arrays.asList(

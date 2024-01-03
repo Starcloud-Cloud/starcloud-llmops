@@ -187,7 +187,16 @@ public class AppContext {
 
             String filedKey = StrUtil.replace(entrySet.getKey(), this.stepId + ".", "");
             filedKey = StrUtil.replace(filedKey, this.stepId, "");
-            fieldVariables.put(filedKey, StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues));
+
+            //做一次字符串替换， {}会被替换掉
+            String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
+
+            //做一次spel，spel 语法会被替换掉
+
+            //allVariablesValues 转换为 #root
+
+            fieldVariables.put(filedKey, val);
+
         });
 
         return fieldVariables;
