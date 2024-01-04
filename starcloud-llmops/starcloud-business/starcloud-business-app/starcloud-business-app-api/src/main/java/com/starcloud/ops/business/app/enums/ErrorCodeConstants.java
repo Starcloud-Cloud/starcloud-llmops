@@ -329,6 +329,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010512, "应用执行获取扣除魔力值数值异常！");
 
+    /**
+     * 海报执行步骤不存在或者当前步骤不支持海报生成
+     */
+    ErrorCode EXECUTE_APP_STEP_NON_EXISTENT_OR_NOT_SUPPORT = new ErrorCode(31010513, "海报执行步骤不存在或者当前步骤不支持海报生成（{}）！");
+
     // ========== 应用市场执行错误码 310 200 xxx ==========
 
     /**

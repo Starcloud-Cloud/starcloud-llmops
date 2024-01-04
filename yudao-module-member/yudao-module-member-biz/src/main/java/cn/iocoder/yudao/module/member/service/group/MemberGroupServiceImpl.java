@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.member.service.group;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupCreateReqVO;
 import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupPageReqVO;
@@ -80,6 +81,19 @@ public class MemberGroupServiceImpl implements MemberGroupService {
     @Override
     public MemberGroupDO getGroup(Long id) {
         return memberGroupMapper.selectById(id);
+    }
+
+    @Override
+    public MemberGroupDO saveGroup(String name) {
+        MemberGroupDO memberGroupDO = memberGroupMapper.selectListByName(name);
+        if (memberGroupDO == null) {
+            memberGroupDO = new MemberGroupDO();
+            memberGroupDO.setName(name);
+            memberGroupDO.setRemark("wx-app");
+            memberGroupDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+            memberGroupMapper.insert(memberGroupDO);
+        }
+        return memberGroupDO;
     }
 
     @Override

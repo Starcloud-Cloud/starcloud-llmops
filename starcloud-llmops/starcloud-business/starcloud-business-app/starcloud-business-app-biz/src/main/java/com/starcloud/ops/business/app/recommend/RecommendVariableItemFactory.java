@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -357,6 +358,93 @@ public class RecommendVariableItemFactory {
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 海报模式变量
+     *
+     * @return VariableItemRespVO
+     */
+    public static VariableItemRespVO defPosterModeVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("POSTER_MODE");
+        variableItem.setLabel(MessageUtil.getMessage("POSTER_MODE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("POSTER_MODE_DESCRIPTION"));
+        variableItem.setDefaultValue(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
+        variableItem.setValue(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.addOption(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
+        variableItem.addOption(CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name());
+        variableItem.addOption(CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name());
+        return variableItem;
+    }
+
+    /**
+     * 海报风格变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterStyleVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("POSTER_STYLE");
+        variableItem.setLabel(MessageUtil.getMessage("POSTER_STYLE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("POSTER_STYLE_DESCRIPTION"));
+        variableItem.setDefaultValue("{}");
+        variableItem.setValue("{}");
+        variableItem.setOrder(2);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 海报素材变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterMaterialVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("POSTER_MATERIAL");
+        variableItem.setLabel(MessageUtil.getMessage("POSTER_MATERIAL_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("POSTER_MATERIAL_DESCRIPTION"));
+        variableItem.setDefaultValue("[]");
+        variableItem.setValue("[]");
+        variableItem.setOrder(3);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 海报内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterContentVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("POSTER_CONTENT");
+        variableItem.setLabel(MessageUtil.getMessage("POSTER_CONTENT_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("POSTER_CONTENT_DESCRIPTION"));
+        variableItem.setDefaultValue("{}");
+        variableItem.setValue("{}");
+        variableItem.setOrder(4);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
