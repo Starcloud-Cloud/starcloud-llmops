@@ -57,9 +57,8 @@ public interface PromoCodeService {
      * 使用兑换码 【优惠码】
      * 优惠码与订单相关 仅可以在下单时获取
      *
-     * @param id      兑换码编号
-     * @param userId  用户编号
-     * @param orderId 订单编号
+     * @param code   兑换码编号
+     * @param userId 用户编号
      */
     Long useCouponPromoCode(String code, Long userId);
 

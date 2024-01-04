@@ -2,7 +2,6 @@ package com.starcloud.ops.business.promotion.api.coupon;
 
 
 import com.starcloud.ops.business.promotion.api.coupon.dto.CouponTemplateRespDTO;
-import com.starcloud.ops.business.promotion.convert.coupon.CouponConvert;
 import com.starcloud.ops.business.promotion.convert.coupon.CouponTemplateConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
 import com.starcloud.ops.business.promotion.service.coupon.CouponTemplateService;

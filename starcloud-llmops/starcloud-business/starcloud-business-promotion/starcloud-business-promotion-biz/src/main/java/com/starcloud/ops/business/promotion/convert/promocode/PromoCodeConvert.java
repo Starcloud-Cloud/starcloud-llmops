@@ -2,10 +2,12 @@ package com.starcloud.ops.business.promotion.convert.promocode;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.coupon.CouponPageReqVO;
-import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.*;
+import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.AppPromoCodeMatchRespVO;
+import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.AppPromoCodePageReqVO;
+import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.AppPromoCodeRespVO;
+import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.PromoCodePageItemRespVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponStatusEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

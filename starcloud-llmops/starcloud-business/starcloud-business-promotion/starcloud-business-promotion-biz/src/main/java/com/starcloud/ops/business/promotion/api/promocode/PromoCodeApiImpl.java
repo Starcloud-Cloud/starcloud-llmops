@@ -1,15 +1,8 @@
 package com.starcloud.ops.business.promotion.api.promocode;
 
 
-import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponUseReqDTO;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponValidReqDTO;
-import com.starcloud.ops.business.promotion.convert.coupon.CouponConvert;
-import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
 import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
-import com.starcloud.ops.business.promotion.service.coupon.CouponService;
 import com.starcloud.ops.business.promotion.service.promocode.PromoCodeService;
 import com.starcloud.ops.business.promotion.service.promocode.PromoCodeTemplateService;
 import org.springframework.stereotype.Service;
@@ -17,7 +10,6 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * 优惠劵 API 实现类

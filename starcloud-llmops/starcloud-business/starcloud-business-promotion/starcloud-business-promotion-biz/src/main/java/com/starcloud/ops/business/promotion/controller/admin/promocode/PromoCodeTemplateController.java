@@ -2,24 +2,12 @@ package com.starcloud.ops.business.promotion.controller.admin.promocode;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;
-import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
-import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
-import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.*;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.*;
-import com.starcloud.ops.business.promotion.controller.app.coupon.vo.template.AppCouponTemplatePageReqVO;
-import com.starcloud.ops.business.promotion.controller.app.coupon.vo.template.AppCouponTemplateRespVO;
-import com.starcloud.ops.business.promotion.convert.coupon.CouponTemplateConvert;
 import com.starcloud.ops.business.promotion.convert.promocode.PromoCodeTemplateConvert;
-import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
-import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
-import com.starcloud.ops.business.promotion.service.promocode.PromoCodeService;
 import com.starcloud.ops.business.promotion.service.promocode.PromoCodeTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -27,13 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 
 @Tag(name = "管理后台 - 兑换码模板")
 @RestController

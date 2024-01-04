@@ -5,18 +5,13 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
-import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
-import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.PromoCodePageReqVO;
-import com.starcloud.ops.business.promotion.convert.coupon.CouponConvert;
 import com.starcloud.ops.business.promotion.convert.promocode.PromoCodeConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
 import com.starcloud.ops.business.promotion.dal.mysql.promocode.PromoCodeMapper;
 import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
-import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeStatusEnum;
-import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeTemplateValidityTypeEnum;
 import com.starcloud.ops.business.promotion.service.coupon.CouponService;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
@@ -28,11 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.*;
 
 /**

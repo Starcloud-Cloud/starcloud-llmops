@@ -1,12 +1,5 @@
 package com.starcloud.ops.business.promotion.api.promocode;
 
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponUseReqDTO;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponValidReqDTO;
-
-import javax.validation.Valid;
-import java.util.Set;
-
 /**
  * 兑换码 API 接口
  *
@@ -17,7 +10,7 @@ public interface PromoCodeApi {
     /**
      * 【会员】使用优惠码
      *
-     * @param templateId
+     * @param code
      * @param userId
      * @return 优惠劵
      */

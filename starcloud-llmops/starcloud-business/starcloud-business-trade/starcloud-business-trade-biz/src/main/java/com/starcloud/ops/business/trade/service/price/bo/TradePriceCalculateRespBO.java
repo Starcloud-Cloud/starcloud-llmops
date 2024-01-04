@@ -1,13 +1,10 @@
 package com.starcloud.ops.business.trade.service.price.bo;
 
 import com.starcloud.ops.business.product.api.property.dto.ProductPropertyValueDetailRespDTO;
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderTypeEnum;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**

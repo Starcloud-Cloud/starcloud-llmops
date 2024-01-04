@@ -23,8 +23,6 @@ import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
-import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
-import com.starcloud.ops.business.promotion.api.promocode.PromoCodeApi;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderDeliveryReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderRemarkReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderUpdateAddressReqVO;
