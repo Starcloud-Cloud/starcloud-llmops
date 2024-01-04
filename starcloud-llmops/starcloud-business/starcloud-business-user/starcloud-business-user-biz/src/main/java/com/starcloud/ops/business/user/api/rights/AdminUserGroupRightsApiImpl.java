@@ -86,8 +86,12 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
 
         AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
 
-        log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
-
+        if (adminUserRespDTO == null) {
+            log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+            return currentUserId;
+        } else {
+            log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+        }
         //获取当前用户部门ID,只能获取用户当前激活的部门
         Long deptId = adminUserRespDTO.getDeptId();
         //找到部门的管理员
