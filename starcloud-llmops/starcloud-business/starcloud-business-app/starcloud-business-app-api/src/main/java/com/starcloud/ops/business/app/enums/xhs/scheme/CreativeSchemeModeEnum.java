@@ -25,7 +25,7 @@ public enum CreativeSchemeModeEnum implements IEnumable<Integer> {
     /**
      * 自定义
      */
-    CUSTOM_IMAGE_TEXT(3, "自定义", AppMarketTagTypeEnum.XIAO_HONG_SHU_WRITING);
+    CUSTOM_IMAGE_TEXT(3, "自定义", AppMarketTagTypeEnum.XIAO_HONG_SHU_CUSTOM_WRITING);
 
     /**
      * 类型编码
