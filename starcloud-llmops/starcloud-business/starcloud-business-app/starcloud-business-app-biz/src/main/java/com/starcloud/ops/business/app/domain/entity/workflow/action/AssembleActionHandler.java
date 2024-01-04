@@ -79,6 +79,13 @@ public class AssembleActionHandler extends BaseActionHandler {
         //获取所有上游信息
         final Map<String, Object> objectMap = this.getAppContext().getContextVariablesValues();
 
+
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
+        //获取到 参考文案
+        String json = (String) params.get("格式要求");
+
+
         log.info("执行开始: 请求参数：\n{}");
 
         ActionResponse response = null;

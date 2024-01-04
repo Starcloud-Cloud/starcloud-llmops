@@ -487,6 +487,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
+
             if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(scheme.getMode())) {
                 CustomCreativeSchemeConfigDTO customConfiguration = scheme.getCustomConfiguration();
                 customConfiguration.validate(scheme.getName(), scheme.getMode());
@@ -495,6 +496,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 List<CreativeSchemeStepDTO> steps = customConfiguration.getSteps();
                 Optional<CreativeSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> CollectionUtil.isEmpty(item.getImageStyles())).findFirst();
 
+                //不需要必须有具体的action
                 if (!posterStepOptional.isPresent()) {
                     throw ServiceExceptionUtil.exception(new ErrorCode(1, "自定义创作方案必须包含海报步骤"));
                 }

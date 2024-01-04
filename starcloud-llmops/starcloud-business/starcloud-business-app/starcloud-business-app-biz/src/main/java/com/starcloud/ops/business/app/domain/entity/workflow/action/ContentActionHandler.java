@@ -89,11 +89,36 @@ public class ContentActionHandler extends BaseActionHandler {
         StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
+
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
+        //获取到 参考文案
+        String json = (String) params.get("参考文案");
+
+        //生成模式
+        String type = (String) params.get("type");
+
+        //prompt
+        String prompt = (String) params.get("prompt");
+
+
+        /**
+         * 随机模式
+         * 拿到参考文案JSON。
+         *
+         * AI仿写模式
+         * 找出4个 + (用户的要求) 特定prompt，生成一个。
+         *
+         * AI自定义
+         * 用户的要求) 特定的prompt，生成一个。
+         */
+
+
         //获取前端传的完整字段（老结构）
         Long userId = this.getAppContext().getUserId();
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
         log.info("内容生成 Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
 
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());

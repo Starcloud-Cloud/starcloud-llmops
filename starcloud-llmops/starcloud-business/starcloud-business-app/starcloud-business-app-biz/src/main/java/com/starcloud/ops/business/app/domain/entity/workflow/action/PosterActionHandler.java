@@ -99,14 +99,23 @@ public class PosterActionHandler extends BaseActionHandler {
 
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
 
+        //@todo 找上游的段落节点，然后获取节点参数 和 结果 》 step
+
+        //
+
         // 图片类型参数
         String posterMode = String.valueOf(params.getOrDefault("POSTER_MODE", CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name()));
         // 海报模版参数
-        String posterStyle = String.valueOf(params.getOrDefault("POSTER_STYLE", "{}"));
+        String posterStyle = String.valueOf(params.getOrDefault("STEP.CODE.POSTER_STYLE", "{}"));
         // 海报素材参数
         String posterMaterial = String.valueOf(params.getOrDefault("POSTER_MATERIAL", "[]"));
         // 海报内容参数
         String posterContent = String.valueOf(params.getOrDefault("POSTER_CONTENT", "{}"));
+
+        //posterContent 转成 DTO
+
+        //判断上游需要几张图片？
+
 
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);

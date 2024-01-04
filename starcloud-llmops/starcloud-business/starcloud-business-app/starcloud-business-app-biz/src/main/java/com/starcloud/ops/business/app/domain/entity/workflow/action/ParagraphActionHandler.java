@@ -7,6 +7,7 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -21,6 +22,7 @@ import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -36,6 +38,8 @@ import java.util.Optional;
 @TaskComponent
 public class ParagraphActionHandler extends BaseActionHandler {
 
+    public static final String DL = "Dl";
+
     /**
      * 流程执行器，action 执行入口
      *
@@ -47,6 +51,29 @@ public class ParagraphActionHandler extends BaseActionHandler {
     @TaskService(name = "ParagraphActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+
+
+
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
+        String json = (String) params.get("PROMPT");
+
+
+        //获取到 参考文案
+        String json = (String) params.get("参考文案");
+
+        //生成模式
+        String type = (String) params.get("type");
+
+        //prompt
+        String prompt = (String) params.get("prompt");
+
+        //段落数量
+        String size = (String) params.get("段落数量");
+
+
+
+
         return super.execute(context, scopeDataOperator);
     }
 
