@@ -366,6 +366,8 @@ public interface AppConvert {
         return appRespVO;
     }
 
+    AppReqVO convertRequest(AppRespVO appResponse);
+
     /**
      * 构建 actionIcons
      *

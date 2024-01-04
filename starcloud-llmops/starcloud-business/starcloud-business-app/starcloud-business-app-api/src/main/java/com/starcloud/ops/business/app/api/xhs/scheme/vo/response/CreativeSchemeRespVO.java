@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -84,6 +86,13 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作方案配置信息")
     private CreativeSchemeConfigDTO configuration;
+
+    /**
+     * 自定义创作方案配置信息
+     */
+    @Valid
+    @Schema(description = "自定义创作方案配置信息")
+    private CustomCreativeSchemeConfigDTO customConfiguration;
 
     /**
      * 创作方案图片

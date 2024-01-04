@@ -9,10 +9,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -54,9 +56,16 @@ public interface CreativeSchemeConvert {
         if (CollectionUtil.isNotEmpty(request.getRefers())) {
             creativeScheme.setRefers(JSONUtil.toJsonStr(request.getRefers()));
         }
-        if (request.getConfiguration() != null) {
-            creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
+        if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(request.getMode())) {
+            if (request.getConfiguration() != null) {
+                creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
+            }
+        } else {
+            if (request.getCustomConfiguration() != null) {
+                creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getCustomConfiguration()));
+            }
         }
+
         creativeScheme.setUseImages(JSONUtil.toJsonStr(request.getUseImages()));
         creativeScheme.setExample(JSONUtil.toJsonStr(request.getExample()));
         creativeScheme.setCreateTime(LocalDateTime.now());
@@ -98,7 +107,11 @@ public interface CreativeSchemeConvert {
             creativeSchemeResponse.setRefers(JSONUtil.toBean(creativeScheme.getRefers(), typeReference, Boolean.TRUE));
         }
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
-            creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
+            if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(creativeScheme.getMode())) {
+                creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
+            } else {
+                creativeSchemeResponse.setCustomConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CustomCreativeSchemeConfigDTO.class));
+            }
         }
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
             TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {
