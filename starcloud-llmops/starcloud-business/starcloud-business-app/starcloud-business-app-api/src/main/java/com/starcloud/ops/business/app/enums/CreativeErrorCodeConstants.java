@@ -122,6 +122,11 @@ public interface CreativeErrorCodeConstants {
     ErrorCode SCHEME_CONFIGURATION_NOT_NULL = new ErrorCode(720100115, "创作方案模板配置不能为空！创作方案名称: {}）！");
 
     /**
+     * 创作方案应用UID不能为空
+     */
+    ErrorCode SCHEME_APP_UID_REQUIRED = new ErrorCode(720100115, "创作方案应用UID不能为空！创作方案名称: {}）！");
+
+    /**
      * 创作方案文案模板不能为空
      */
     ErrorCode SCHEME_COPY_WRITING_TEMPLATE_NOT_NULL = new ErrorCode(720100116, "创作方案文案模板不能为空！创作方案名称: {}）！");

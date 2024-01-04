@@ -89,6 +89,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
             }
+
             if (CreativeContentTypeEnum.COPY_WRITING.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
             } else if (CreativeContentTypeEnum.PICTURE.getCode().equalsIgnoreCase(type)) {

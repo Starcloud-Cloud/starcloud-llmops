@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto;
 
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -49,6 +50,12 @@ public class CreativePlanExecuteDTO implements java.io.Serializable {
      */
     @Schema(description = "小红书图片请求数据")
     private CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest;
+
+    /**
+     * 小红书应用响应数据
+     */
+    @Schema(description = "小红书应用响应数据")
+    private AppRespVO appResponse;
 
     /**
      * 小红书应用请求数据

@@ -6,7 +6,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
+import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -19,14 +21,18 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -44,6 +50,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -592,4 +599,61 @@ public class CreativeAppUtils {
         return content.toString();
     }
 
+    public static AppRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration,
+                                                  List<String> imageUrlList,
+                                                  AppRespVO appResponse,
+                                                  Map<String, CreativeImageTemplateDTO> posterMap,
+                                                  Integer index) {
+
+        String appUid = customConfiguration.getAppUid();
+        List<CreativeSchemeStepDTO> schemeSteps = customConfiguration.getSteps();
+
+        // 工作流配置信息
+        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+
+        List<WorkflowStepWrapperRespVO> stepWrappers = workflowConfig.getSteps();
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrappers) {
+            String field = stepWrapper.getField();
+            Optional<CreativeSchemeStepDTO> stepOptional = schemeSteps.stream().filter(item -> field.equals(item.getId())).findFirst();
+            if (!stepOptional.isPresent()) {
+                continue;
+            }
+
+            CreativeSchemeStepDTO schemeStep = stepOptional.get();
+            Map<String, Object> schemeVariableMap = toAppVariableMap(schemeStep, imageUrlList, index);
+
+            stepWrapper.putVariable(schemeVariableMap);
+
+        }
+        workflowConfig.setSteps(stepWrappers);
+        appResponse.setWorkflowConfig(workflowConfig);
+        return appResponse;
+    }
+
+    public static Map<String, Object> toAppVariableMap(CreativeSchemeStepDTO schemeStep, List<String> imageUrlList, Integer index) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("REFERS", JSONUtil.toJsonStr(handlerReferences(schemeStep.getRefers())));
+        map.put("GENERATE_MODE", schemeStep.getGenerateMode());
+        map.put("REQUIREMENT", handlerRequirement(schemeStep.getRequirement(), schemeStep.getVariables()));
+        map.put("PARAGRAPH_COUNT", schemeStep.getParagraphCount());
+        map.put("POSTER_MATERIAL", JSONUtil.toJsonStr(imageUrlList));
+        map.put("POSTER_STYLE", JSONUtil.toJsonStr(schemeStep.getImageStyles().get(index)));
+        return map;
+    }
+
+    /**
+     * 处理需求文本，变量填充等
+     *
+     * @param requirement  文案生成模板
+     * @param variableList 创作计划配置变量
+     * @return 处理后的文案
+     */
+    public static String handlerRequirement(String requirement, List<VariableItemDTO> variableList) {
+        for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(variableList)) {
+            String field = variableItem.getField();
+            Object value = Optional.ofNullable(variableItem.getValue()).orElse("");
+            requirement = requirement.replace("{" + field + "}", String.valueOf(value));
+        }
+        return requirement;
+    }
 }
