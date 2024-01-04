@@ -265,8 +265,8 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
 
     // =================签约================================
 
-    protected abstract void doUnifiedPayAgreement(PayAgreementUnifiedReqDTO reqDTO)
-            throws Throwable;
+    // protected abstract void doUnifiedPayAgreement(PayAgreementUnifiedReqDTO reqDTO)
+    //         throws Throwable;
 
 
 
