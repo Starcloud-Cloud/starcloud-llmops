@@ -127,7 +127,7 @@ public interface ErrorCodeConstants {
 
 
     // ========== 优惠劵模板 1-013-021-000 ==========
-    ErrorCode PROMO_CODE_TEMPLATE_NOT_EXISTS = new ErrorCode(1_013_021_000, " 兑换码模板不存在");
+    ErrorCode PROMO_CODE_TEMPLATE_NOT_EXISTS = new ErrorCode(1_013_021_000, "兑换码不存在");
 
 
     ErrorCode PROMO_CODE_TEMPLATE_TOTAL_COUNT_TOO_SMALL = new ErrorCode(1_013_021_001, "发放数量不能小于已领取数量({})");
@@ -138,6 +138,9 @@ public interface ErrorCodeConstants {
 
     ErrorCode PROMO_CODE_TEMPLATE_WITH_COUPON_DATE_TYPE = new ErrorCode(1_013_021_006, "兑换码仅限绑定非固定日期的优惠券");
     ErrorCode PROMO_CODE_TEMPLATE_NO_EQUAL_COUPON_LIMIT = new ErrorCode(1_013_021_007, "兑换码限制条件和优惠券需要一致");
+
+
+    ErrorCode PROMO_CODE_TEMPLATE_LIMIT = new ErrorCode(1_013_021_008, "当前兑换码您已经使用了{}次，没办法使用喽!");
 
 
     // ========== 优惠劵 1-013-005-000 ==========

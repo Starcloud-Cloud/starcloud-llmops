@@ -49,9 +49,10 @@ public interface PromoCodeTemplateMapper extends BaseMapperX<PromoCodeTemplateDO
         return selectList(PromoCodeTemplateDO::getCodeType, codeType);
     }
 
-    default PromoCodeTemplateDO selectTemplateByCode(String code) {
+    default PromoCodeTemplateDO selectTemplateByCode(String code, Integer codeType) {
         LambdaQueryWrapper<PromoCodeTemplateDO> wrapper = Wrappers.lambdaQuery(PromoCodeTemplateDO.class)
                 .eq(PromoCodeTemplateDO::getCode, code)
+                .eq(PromoCodeTemplateDO::getCodeType, codeType)
                 .eq(PromoCodeTemplateDO::getStatus, PromoCodeStatusEnum.ENABLE);
         return selectOne(wrapper);
     }

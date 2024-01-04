@@ -1,23 +1,18 @@
 package com.starcloud.ops.business.promotion.service.promocode;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import com.starcloud.ops.business.product.api.category.ProductCategoryApi;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
-
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateCreateReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplatePageReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplateUpdateReqVO;
 import com.starcloud.ops.business.promotion.convert.promocode.PromoCodeTemplateConvert;
 import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
-import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
-import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import com.starcloud.ops.business.promotion.dal.mysql.promocode.PromoCodeTemplateMapper;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
+import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponTemplateValidityTypeEnum;
 import com.starcloud.ops.business.promotion.service.coupon.CouponTemplateService;
 import org.springframework.stereotype.Service;
@@ -26,7 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.*;
@@ -54,8 +48,10 @@ public class PromoCodeTemplateServiceImpl implements PromoCodeTemplateService {
 
     @Override
     public Long createPromoCodeTemplate(PromoCodeTemplateCreateReqVO createReqVO) {
-        // 校验商品范围
+        // 校验优惠码的有效性
         validateCoupon(createReqVO.getCodeType(), createReqVO.getCouponTemplateId(), createReqVO.getTotalCount(), createReqVO.getTakeLimitCount());
+        // 校验权益码的有效性
+
         // 插入
         PromoCodeTemplateDO PromoCodeTemplate = PromoCodeTemplateConvert.INSTANCE.convert(createReqVO)
                 .setStatus(CommonStatusEnum.ENABLE.getStatus());
@@ -68,12 +64,9 @@ public class PromoCodeTemplateServiceImpl implements PromoCodeTemplateService {
     public void updatePromoCodeTemplate(PromoCodeTemplateUpdateReqVO updateReqVO) {
         // 校验存在
         PromoCodeTemplateDO PromoCodeTemplate = validatePromoCodeTemplateExists(updateReqVO.getId());
-        // 校验发放数量不能过小
-        if (updateReqVO.getTotalCount() < PromoCodeTemplate.getTakeCount()) {
-            // throw exception(PromoCode_TEMPLATE_TOTAL_COUNT_TOO_SMALL, PromoCodeTemplate.getTakeCount());
-        }
-        // 校验商品范围
-        validateCoupon(updateReqVO.getProductScope(), updateReqVO.getProductScopeValues());
+        // 校验优惠码的有效性
+        validateCoupon(updateReqVO.getCodeType(), updateReqVO.getCouponTemplateId(), updateReqVO.getTotalCount(), updateReqVO.getTakeLimitCount());
+        // 校验权益码的有效性
 
         // 更新
         PromoCodeTemplateDO updateObj = PromoCodeTemplateConvert.INSTANCE.convert(updateReqVO);
@@ -99,13 +92,14 @@ public class PromoCodeTemplateServiceImpl implements PromoCodeTemplateService {
     private PromoCodeTemplateDO validatePromoCodeTemplateExists(Long id) {
         PromoCodeTemplateDO PromoCodeTemplate = PromoCodeTemplateMapper.selectById(id);
         if (PromoCodeTemplate == null) {
-            throw exception(PromoCode_TEMPLATE_NOT_EXISTS);
+            throw exception(PROMO_CODE_TEMPLATE_NOT_EXISTS);
         }
         return PromoCodeTemplate;
     }
 
     /**
      * 优惠码校验
+     *
      * @param codeType
      * @param couponTemplateId
      * @param totalCount
@@ -149,8 +143,8 @@ public class PromoCodeTemplateServiceImpl implements PromoCodeTemplateService {
      * @return 兑换码模板
      */
     @Override
-    public PromoCodeTemplateDO getTemplate(String code) {
-        return PromoCodeTemplateMapper.selectTemplateByCode(code);
+    public PromoCodeTemplateDO getTemplate(String code, Integer codeType) {
+        return PromoCodeTemplateMapper.selectTemplateByCode(code, codeType);
     }
 
     @Override
@@ -169,9 +163,9 @@ public class PromoCodeTemplateServiceImpl implements PromoCodeTemplateService {
     }
 
     @Override
-    public List<PromoCodeTemplateDO> getTemplateList(List<Integer> canTakeTypes, Integer productScope,
+    public List<PromoCodeTemplateDO> getTemplateList(List<Integer> codeTypes, Integer productScope,
                                                      Long productScopeValue, Integer count) {
-        return PromoCodeTemplateMapper.selectList(canTakeTypes, productScope, productScopeValue, count);
+        return PromoCodeTemplateMapper.selectList(codeTypes, productScope, productScopeValue, count);
     }
 
     @Override

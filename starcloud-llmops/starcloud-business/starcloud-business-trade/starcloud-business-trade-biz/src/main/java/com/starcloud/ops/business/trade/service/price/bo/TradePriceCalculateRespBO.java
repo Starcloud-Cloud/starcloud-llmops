@@ -67,6 +67,12 @@ public class TradePriceCalculateRespBO {
      */
     private Long bargainActivityId;
 
+
+    /**
+     * 优惠码
+     */
+    private String promoCode;
+
     /**
      * 订单价格
      */

@@ -220,7 +220,10 @@ public interface TradeOrderConvert {
                 .setSeckillActivityId(settlementReqVO.getSeckillActivityId())
                 .setBargainRecordId(settlementReqVO.getBargainRecordId())
                 .setCombinationActivityId(settlementReqVO.getCombinationActivityId())
-                .setCombinationHeadId(settlementReqVO.getCombinationHeadId());
+                .setCombinationHeadId(settlementReqVO.getCombinationHeadId())
+                // 兑换码 -优惠码
+                .setPromoCode(settlementReqVO.getPromoCode())
+                ;
         // 商品项的构建
         Map<Long, CartDO> cartMap = convertMap(cartList, CartDO::getId);
         for (AppTradeOrderSettlementReqVO.Item item : settlementReqVO.getItems()) {

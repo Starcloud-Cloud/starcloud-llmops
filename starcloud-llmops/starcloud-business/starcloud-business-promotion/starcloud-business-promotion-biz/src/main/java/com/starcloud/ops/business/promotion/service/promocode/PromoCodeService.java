@@ -56,7 +56,7 @@ public interface PromoCodeService {
      * @param userId  用户编号
      * @param orderId 订单编号
      */
-    void usePromoCode(Long id, Long userId, Long orderId);
+    Long useCouponPromoCode(String code, Long userId);
 
     /**
      * 使用兑换码 【权益码】
@@ -64,5 +64,5 @@ public interface PromoCodeService {
      * @param id     兑换码编号
      * @param userId 用户编号
      */
-    void usePromoCode(Long id, Long userId);
+    void usePromoCode(String code, Long userId);
 }

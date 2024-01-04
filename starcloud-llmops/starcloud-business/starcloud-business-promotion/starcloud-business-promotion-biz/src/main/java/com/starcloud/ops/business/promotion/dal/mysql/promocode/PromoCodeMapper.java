@@ -60,10 +60,10 @@ public interface PromoCodeMapper extends BaseMapperX<PromoCodeDO> {
         );
     }
 
-    default Long selectCountByUserIdAndStatus(Long userId, Integer status) {
+    default Long selectCountByUserId(Long userId, Long templateId) {
         return selectCount(new LambdaQueryWrapperX<PromoCodeDO>()
                 .eq(PromoCodeDO::getUserId, userId)
-                // .eq(PromoCodeDO::getStatus, status)
+                .eq(PromoCodeDO::getTemplateId, templateId)
         );
     }
 

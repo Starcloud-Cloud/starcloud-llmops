@@ -15,6 +15,8 @@ import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.promocode.PromoCodeApi;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.*;
 import com.starcloud.ops.business.trade.controller.app.order.vo.*;
 import com.starcloud.ops.business.trade.controller.app.order.vo.item.AppTradeOrderItemCommentCreateReqVO;
@@ -84,6 +86,11 @@ public class TradeOrderController {
 
     @Resource
     private AdminUserService adminUserService;
+
+
+    @Resource
+    private PromoCodeApi promoCodeApi;
+
 
     @GetMapping("/page")
     @Operation(summary = "获得交易订单分页")
@@ -218,10 +225,12 @@ public class TradeOrderController {
     @Operation(summary = "系统会员-创建订单")
     @PreAuthenticated
     public CommonResult<AppTradeOrderCreateRespVO> createOrder(@Valid @RequestBody AppTradeOrderCreateReqVO createReqVO) {
+        Long userId = getLoginUserId();
         createReqVO.getItems().stream().forEach(item -> {
             validateProductLimit(item.getSkuId());
         });
-        TradeOrderDO order = tradeOrderUpdateService.createOrder(getLoginUserId(), getClientIP(), createReqVO, createReqVO.getTerminal());
+        createReqVO = BuildPromoCodeAndCoupon(createReqVO,userId);
+        TradeOrderDO order = tradeOrderUpdateService.createOrder(userId, getClientIP(), createReqVO, createReqVO.getTerminal());
         return success(new AppTradeOrderCreateRespVO().setId(order.getId()).setPayOrderId(order.getPayOrderId()));
     }
 
@@ -365,6 +374,21 @@ public class TradeOrderController {
 
             }
         }
+    }
+
+
+    private AppTradeOrderCreateReqVO BuildPromoCodeAndCoupon(AppTradeOrderCreateReqVO createReqVO,Long userId) {
+        if (createReqVO.getPromoCode() == null){
+            return createReqVO;
+        }
+        // 使用兑换码中的权益码  自动领取优惠券
+        Long couponId= promoCodeApi.usePromoCode(createReqVO.getPromoCode(), userId);
+
+        // 设置优惠券
+        createReqVO.setCouponId(couponId);
+        createReqVO.setPromoCode(null);
+        return createReqVO;
+
     }
 
 

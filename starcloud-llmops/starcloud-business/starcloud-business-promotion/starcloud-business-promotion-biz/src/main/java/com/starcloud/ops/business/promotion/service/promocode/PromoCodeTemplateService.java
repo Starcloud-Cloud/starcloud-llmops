@@ -63,7 +63,7 @@ public interface PromoCodeTemplateService {
      * @param code 兑换码编号
      * @return 兑换码模板
      */
-    PromoCodeTemplateDO getTemplate(String code);
+    PromoCodeTemplateDO getTemplate(String code, Integer codeType);
 
     /**
      * 获得兑换码模板分页

@@ -62,4 +62,6 @@ public interface CouponConvert {
 
     List<AppCouponMatchRespVO> convertList(List<CouponDO> list);
 
+    AppCouponMatchRespVO convertList(CouponDO list);
+
 }
