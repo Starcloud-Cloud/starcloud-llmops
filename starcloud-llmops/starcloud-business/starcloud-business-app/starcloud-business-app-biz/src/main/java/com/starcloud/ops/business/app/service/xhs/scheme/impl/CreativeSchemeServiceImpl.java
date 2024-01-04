@@ -8,8 +8,8 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
@@ -174,7 +174,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         query.setIsAdmin(UserUtils.isAdmin());
         List<CreativeSchemeRespVO> list = list(query);
         return CollectionUtil.emptyIfNull(list).stream().map(item -> {
-            List<VariableItemDTO> variable = Optional.ofNullable(item.getConfiguration()).map(CreativeSchemeConfigDTO::getCopyWritingTemplate).map(CreativeSchemeCopyWritingTemplateDTO::getVariables).orElse(Lists.newArrayList());
+            List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration()).map(CreativeSchemeConfigDTO::getCopyWritingTemplate).map(CreativeSchemeCopyWritingTemplateDTO::getVariables).orElse(Lists.newArrayList());
             CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
             option.setUid(item.getUid());
             option.setName(item.getName());
@@ -528,14 +528,14 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                 CreativeImageTemplateDTO posterTemplate = CreativeImageUtils.mergeTemplate(template, posterMap);
 
                 // 海报模板参数构建
-                List<VariableItemDTO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariables());
+                List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariables());
                 Map<String, Object> params = Maps.newHashMap();
                 List<String> imageParamList = Lists.newArrayList();
                 // 获取第主图模板的参数
                 if (j == 0) {
-                    List<VariableItemDTO> mainImageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
+                    List<VariableItemRespVO> mainImageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
                     for (int k = 0; k < mainImageVariableList.size(); k++) {
-                        VariableItemDTO variableItem = mainImageVariableList.get(k);
+                        VariableItemRespVO variableItem = mainImageVariableList.get(k);
                         if (k == 0) {
                             String imageUrl = disperseImageUrlList.get(i);
                             params.put(variableItem.getField(), imageUrl);
@@ -544,8 +544,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageVariableList.size()));
                         }
                     }
-                    List<VariableItemDTO> mainOtherVariableList = CreativeImageUtils.otherTypeVariableList(variables);
-                    for (VariableItemDTO variableItem : mainOtherVariableList) {
+                    List<VariableItemRespVO> mainOtherVariableList = CreativeImageUtils.otherTypeVariableList(variables);
+                    for (VariableItemRespVO variableItem : mainOtherVariableList) {
                         if ("TEXT".equals(variableItem.getType())) {
                             if (Objects.isNull(variableItem.getValue()) ||
                                     ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
@@ -564,8 +564,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         }
                     }
                 } else {
-                    List<VariableItemDTO> imageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
-                    for (VariableItemDTO variableItem : variables) {
+                    List<VariableItemRespVO> imageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
+                    for (VariableItemRespVO variableItem : variables) {
                         if ("IMAGE".equals(variableItem.getType())) {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, imageVariableList.size()));
                         } else {

@@ -10,6 +10,7 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * App 配置实体类
@@ -41,4 +42,12 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     @Schema(description = "模版变量")
     private VariableRespVO variable;
 
+    public void putVariable(String stepId, Map<String, Object> variable) {
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (stepId.equals(step.getField())) {
+                step.putVariable(variable);
+                break;
+            }
+        }
+    }
 }

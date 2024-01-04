@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto;
 
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -53,6 +54,6 @@ public class CreativePlanAppExecuteDTO implements java.io.Serializable {
      * 应用生成参数
      */
     @Schema(description = "应用生成参数")
-    private List<VariableItemDTO> params;
+    private List<VariableItemRespVO> params;
 
 }

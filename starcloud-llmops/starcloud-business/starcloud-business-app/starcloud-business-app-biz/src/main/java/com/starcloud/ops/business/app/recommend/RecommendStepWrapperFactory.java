@@ -1,8 +1,12 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.MessageUtil;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -109,5 +113,107 @@ public class RecommendStepWrapperFactory {
         return stepWrapper;
     }
 
+    /**
+     * 默认生成内容步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defContentStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME"));
+        String defaultPrompt = "内容";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defContentActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defContentVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成文章摘要步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defParagraphStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
+        String defaultPrompt = "内容";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defParagraphActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defParagraphVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成文章摘要步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
+        String defaultPrompt = "内容";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defAssembleActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defAssembleVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成文章摘要步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
+        String field = AppUtils.obtainField(name);
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(null);
+        stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defPosterVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 通用步骤
+     *
+     * @return 通用步骤
+     */
+    public static List<WorkflowStepWrapperRespVO> defCommonStepWrapperList() {
+        return Collections.singletonList(defDefaultTextCompletionStepWrapper());
+    }
+
+    /**
+     * 媒体矩阵步骤
+     *
+     * @return 媒体矩阵步骤
+     */
+    public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
+        return Arrays.asList(
+                defDefaultTextCompletionStepWrapper(),
+                defContentStepWrapper(),
+                defParagraphStepWrapper(),
+                defAssembleStepWrapper(),
+                defPosterStepWrapper()
+        );
+    }
 
 }

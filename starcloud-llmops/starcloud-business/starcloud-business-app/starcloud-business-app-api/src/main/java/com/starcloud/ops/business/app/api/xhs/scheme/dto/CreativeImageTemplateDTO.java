@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -58,6 +59,6 @@ public class CreativeImageTemplateDTO implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    private List<VariableItemDTO> variables;
+    private List<VariableItemRespVO> variables;
 
 }

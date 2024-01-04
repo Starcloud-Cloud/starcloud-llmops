@@ -2,8 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.json.JSONUtil;
 import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeResult;
-import cn.kstry.framework.core.annotation.NoticeSta;
+import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
@@ -12,17 +11,18 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
+import com.starcloud.ops.business.app.util.CostPointUtils;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,12 +35,17 @@ import java.util.Optional;
  * @since 2023-05-31
  */
 @Slf4j
-@TaskComponent(name = "OpenAIChatActionHandler")
-public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionHandler.Request, OpenAIChatActionHandler.Response> {
+@TaskComponent
+public class OpenAIChatActionHandler extends BaseActionHandler {
 
-
-    @NoticeSta
-    @NoticeResult
+    /**
+     * 流程执行器，action 执行入口
+     *
+     * @param context           上下文
+     * @param scopeDataOperator 作用域数据操作器
+     * @return 执行结果
+     */
+    @NoticeVar
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
@@ -48,21 +53,26 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     }
 
     /**
+     * 获取用户权益类型
+     *
+     * @return 权益类型
+     */
+    @Override
+    protected AdminUserRightsTypeEnum getUserRightsType() {
+        return AdminUserRightsTypeEnum.MAGIC_BEAN;
+    }
+
+    /**
      * 获取当前handler消耗的权益点数
      *
-     * @param request 请求参数
      * @return 权益点数
      */
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected Integer getCostPoints(Request request) {
-        Map<String, Object> params = request.getStepParams();
-        String aiModel = String.valueOf(Optional.ofNullable(params.get("MODEL")).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
-        if (ModelTypeEnum.GPT_4_TURBO.getName().equals(aiModel)) {
-            return 30;
-        }
-        return 1;
+    protected Integer getCostPoints() {
+        String aiModel = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        return CostPointUtils.obtainMagicBeanCostPoint(aiModel);
     }
 
     /**
@@ -75,23 +85,24 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute(Request request) {
+    protected ActionResponse doExecute() {
 
-        log.info("OpenAI ChatGPT Action 执行开始: 请求参数：\n{}", JSONUtil.parse(request).toStringPretty());
+        log.info("OpenAI ChatGPT Action 执行开始......");
         StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
         //获取前端传的完整字段（老结构）
-        Map<String, Object> params = request.getStepParams();
         Long userId = this.getAppContext().getUserId();
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
 
-        String model = String.valueOf(params.getOrDefault("MODEL", ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
-        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
-        Integer n = Integer.valueOf(params.getOrDefault("N", 1).toString());
+        Integer maxTokens = Integer.valueOf((Integer) params.getOrDefault("MAX_TOKENS", 1000));
+        Double temperature = Double.valueOf((Double) params.getOrDefault("TEMPERATURE", 0.7d));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
@@ -101,15 +112,12 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
         handlerRequest.setN(n);
-        // 数据集支持
-        if (request.getEnabledDateset()) {
-            handlerRequest.setDocsUid(request.getDatesetList());
-        }
+
         // 构建请求
         HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
         // 执行步骤
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
-        ActionResponse response = convert(handlerResponse, request);
+        ActionResponse response = convert(handlerResponse);
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
@@ -118,13 +126,12 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
      * 转换响应结果
      *
      * @param handlerResponse 响应结果
-     * @param request         请求参数
      * @return 转换后的响应结果
      */
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(HandlerResponse handlerResponse, Request request) {
+    private ActionResponse convert(HandlerResponse handlerResponse) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(handlerResponse.getSuccess());
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
@@ -142,49 +149,9 @@ public class OpenAIChatActionHandler extends BaseActionHandler<OpenAIChatActionH
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
         // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints(request) : 0);
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
         return actionResponse;
     }
 
-    /**
-     * 请求实体
-     */
-    @Data
-    public static class Request {
-
-        /**
-         * 老参数直接传入
-         */
-        @Deprecated
-        private Map<String, Object> stepParams;
-
-
-        /**
-         * 后续新参数 都是一个个独立字段即可
-         */
-        private String prompt;
-
-
-        private Boolean enabledDateset = false;
-
-        /**
-         * 数据集支持
-         */
-        private List<String> datesetList;
-
-    }
-
-    /**
-     * 响应实体
-     */
-    @Data
-    public static class Response {
-
-        private String content;
-
-        public Response(String content) {
-            this.content = content;
-        }
-    }
 
 }

@@ -27,6 +27,9 @@ public class AppTradeOrderSettlementReqVO {
     @Schema(description = "优惠劵编号", example = "1024")
     private Long couponId;
 
+    @Schema(description = "优惠码", example = "1024")
+    private String promoCode;
+
     @Schema(description = "是否使用积分", requiredMode = Schema.RequiredMode.REQUIRED, example = "true")
     @NotNull(message = "是否使用积分不能为空")
     private Boolean pointStatus;

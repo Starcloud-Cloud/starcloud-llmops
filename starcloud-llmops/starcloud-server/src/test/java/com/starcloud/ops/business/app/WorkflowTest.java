@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import cn.kstry.framework.core.engine.StoryEngine;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -60,6 +61,9 @@ public class WorkflowTest extends BaseDbUnitTest {
 
     @Autowired
     private AppWorkflowService appWorkflowService;
+
+    @MockBean
+    private AdminUserService adminUserService;
 
 
     final String appId = "appId-test";

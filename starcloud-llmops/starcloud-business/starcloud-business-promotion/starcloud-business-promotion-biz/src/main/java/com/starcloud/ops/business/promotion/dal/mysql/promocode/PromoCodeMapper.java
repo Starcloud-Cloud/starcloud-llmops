@@ -60,10 +60,10 @@ public interface PromoCodeMapper extends BaseMapperX<PromoCodeDO> {
         );
     }
 
-    default Long selectCountByUserIdAndStatus(Long userId, Integer status) {
+    default Long selectCountByUserId(Long userId, Long templateId) {
         return selectCount(new LambdaQueryWrapperX<PromoCodeDO>()
                 .eq(PromoCodeDO::getUserId, userId)
-                // .eq(PromoCodeDO::getStatus, status)
+                .eq(PromoCodeDO::getTemplateId, templateId)
         );
     }
 
@@ -100,13 +100,6 @@ public interface PromoCodeMapper extends BaseMapperX<PromoCodeDO> {
                 //                 .apply(productScopeValuesFindInSetFunc.apply(spuIds)))
                 //         .or(ww -> ww.eq(PromoCodeDO::getProductScope, PromotionProductScopeEnum.CATEGORY.getScope()) // 商品范围三：满足指定分类
                 //                 .apply(productScopeValuesFindInSetFunc.apply(categoryIds)))));
-    }
-
-    default List<PromoCodeDO> selectListByStatusAndValidEndTimeLe(Integer status, LocalDateTime validEndTime) {
-        return selectList(new LambdaQueryWrapperX<PromoCodeDO>()
-                // .eq(PromoCodeDO::getStatus, status)
-                .le(PromoCodeDO::getValidEndTime, validEndTime)
-        );
     }
 
 }

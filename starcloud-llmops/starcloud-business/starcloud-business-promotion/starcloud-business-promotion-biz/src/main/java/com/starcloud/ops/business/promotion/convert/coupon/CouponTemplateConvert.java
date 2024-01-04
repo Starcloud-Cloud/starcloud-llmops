@@ -2,6 +2,7 @@ package com.starcloud.ops.business.promotion.convert.coupon;
 
 import cn.hutool.core.map.MapUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponTemplateRespDTO;
 import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplateCreateReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplatePageReqVO;
 import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.CouponTemplateRespVO;
@@ -37,6 +38,8 @@ public interface CouponTemplateConvert {
 
     PageResult<AppCouponTemplateRespVO> convertAppPage(PageResult<CouponTemplateDO> pageResult);
 
+
+    AppCouponTemplateRespVO convertApp(CouponTemplateDO bean);
     List<AppCouponTemplateRespVO> convertAppList(List<CouponTemplateDO> list);
 
     default PageResult<AppCouponTemplateRespVO> convertAppPage(PageResult<CouponTemplateDO> pageResult, Map<Long, Boolean> userCanTakeMap) {
@@ -57,5 +60,8 @@ public interface CouponTemplateConvert {
             template.setCanTake(MapUtil.getBool(userCanTakeMap, template.getId(), false));
         }
     }
+
+
+    CouponTemplateRespDTO convert01(CouponTemplateDO bean);
 
 }

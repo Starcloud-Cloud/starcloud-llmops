@@ -65,7 +65,7 @@ public interface AppService {
      *
      * @return 步骤列表
      */
-    List<WorkflowStepWrapperRespVO> stepList();
+    List<WorkflowStepWrapperRespVO> stepList(String type);
 
     /**
      * 分页查询应用列表

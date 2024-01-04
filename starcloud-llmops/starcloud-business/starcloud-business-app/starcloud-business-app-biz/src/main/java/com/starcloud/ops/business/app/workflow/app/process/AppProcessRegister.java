@@ -45,8 +45,17 @@ public class AppProcessRegister implements DynamicProcess {
         AppEntity app = this.appEntityMap.get(startId);
         AppProcessParser parser = new AppProcessParser(app);
         this.appEntityMap.remove(startId);
-        
-        return parser.getProcessLink();
+
+
+        //获取workflow执行类型
+
+        app.getWorkflowConfig().getSteps();
+
+        if (1 == 1) {
+            return parser.getFlowProcessLink();
+        } else {
+            return parser.getProcessLink();
+        }
     }
 
 }

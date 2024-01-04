@@ -21,7 +21,9 @@ public enum CreativeContentTypeEnum implements IEnumable<String> {
     /**
      * 文字
      */
-    COPY_WRITING("copy_writing", "文字模板");
+    COPY_WRITING("copy_writing", "文字模板"),
+
+    ALL("all", "全部");
 
     /**
      * 类型编码

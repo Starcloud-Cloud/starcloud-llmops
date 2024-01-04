@@ -9,7 +9,8 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -20,9 +21,14 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
@@ -83,6 +89,59 @@ public class CreativeExecuteManager {
     @Resource
     private CreativeImageCreativeThreadPoolHolder creativeImageCreativeThreadPoolHolder;
 
+    public Map<Long, Boolean> executeAppALl(List<CreativeContentDO> contentList, Boolean force) {
+
+        return null;
+    }
+
+    public Map<Long, Boolean> executeApp(CreativeContentDO content, Boolean force) {
+        String lockKey = "creative-content-app-" + content.getId();
+        RLock lock = redissonClient.getLock(lockKey);
+        if (lock != null && !lock.tryLock()) {
+            log.warn("创作中心：生成内容和图片正在执行中，重复调用(内容ID：{})！", content.getId());
+
+        }
+
+        try {
+            LocalDateTime start = LocalDateTime.now();
+            log.info("创作中心：生成内容和图片失败：{}，{}", content.getId(), start);
+            Integer maxRetry = getMaxRetry(force);
+            // 获取最新的创作内容并且校验
+            CreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
+            try {
+                CreativePlanExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativePlanExecuteDTO.class);
+                AppRespVO appResponse = creativePlanExecute.getAppResponse();
+
+                AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
+                appExecuteRequest.setAppUid(appResponse.getUid());
+                appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+                appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
+                appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
+                AppEntity entity = (AppEntity) AppFactory.factory(appExecuteRequest);
+                entity.execute(appExecuteRequest);
+
+            } catch (Exception exception) {
+                log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
+                throw exception;
+            }
+
+        } catch (ServiceException exception) {
+            log.error("创作中心：生成内容和图片失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
+
+
+        } catch (Exception exception) {
+            log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
+
+        } finally {
+            if (lock != null) {
+                lock.unlock();
+                log.info("创作中心：生成内容和图片解锁成功：{}", lockKey);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * 批量执行文案生成任务
      *
@@ -136,7 +195,7 @@ public class CreativeExecuteManager {
                     CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), CreativeContentTypeEnum.PICTURE.getCode());
                     Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                             .stream()
-                            .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
                                 if (CreativeAppUtils.PARAGRAPH_DEMAND.equals(item.getField())) {
                                     return CreativeImageUtils.handlerParagraphDemand(business);
                                 }
@@ -152,7 +211,7 @@ public class CreativeExecuteManager {
                 } else {
                     Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                             .stream()
-                            .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
                                 if (Objects.isNull(item.getValue())) {
                                     return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
                                 }
@@ -199,7 +258,7 @@ public class CreativeExecuteManager {
                     CreativePlanAppExecuteDTO appExecuteRequest = executeParams.getAppExecuteRequest();
                     Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                             .stream()
-                            .collect(Collectors.toMap(VariableItemDTO::getField, item -> {
+                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
                                 if (Objects.isNull(item.getValue())) {
                                     return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
                                 }

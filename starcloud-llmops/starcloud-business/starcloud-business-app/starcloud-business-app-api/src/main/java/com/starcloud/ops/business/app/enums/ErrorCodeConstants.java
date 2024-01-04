@@ -23,6 +23,11 @@ public interface ErrorCodeConstants {
     ErrorCode PROMPT_IS_REQUIRED = new ErrorCode(300000402, "Prompt是必须的，请检查后重试！");
 
     /**
+     * 应用执行上下文是必须的
+     */
+    ErrorCode APP_CONTEXT_REQUIRED = new ErrorCode(300000402, "应用执行上下文是必须的，请检查后重试！");
+
+    /**
      * MAX_TOKENS超出限制
      */
     ErrorCode MAX_TOKENS_OUT_OF_LIMIT = new ErrorCode(300000403, "最大返回Tokens超出限制（{}）需要在1～4000之间，请检查后重试！");
@@ -100,6 +105,11 @@ public interface ErrorCodeConstants {
      * 不支持的应用类型
      */
     ErrorCode APP_TYPE_NONSUPPORT = new ErrorCode(300100153, "不支持的应用类型，请检查后重试（{}）！");
+
+    /**
+     * 应用类型是必填的
+     */
+    ErrorCode APP_TYPE_REQUIRED = new ErrorCode(300100153, "应用类型是必填的！");
 
     // ========== 应用市场错误码 300 200 xxx ==========
 
@@ -318,6 +328,11 @@ public interface ErrorCodeConstants {
      * 执行结果不存在
      */
     ErrorCode EXECUTE_APP_GET_COST_FAILURE = new ErrorCode(31010512, "应用执行获取扣除魔力值数值异常！");
+
+    /**
+     * 海报执行步骤不存在或者当前步骤不支持海报生成
+     */
+    ErrorCode EXECUTE_APP_STEP_NON_EXISTENT_OR_NOT_SUPPORT = new ErrorCode(31010513, "海报执行步骤不存在或者当前步骤不支持海报生成（{}）！");
 
     // ========== 应用市场执行错误码 310 200 xxx ==========
 

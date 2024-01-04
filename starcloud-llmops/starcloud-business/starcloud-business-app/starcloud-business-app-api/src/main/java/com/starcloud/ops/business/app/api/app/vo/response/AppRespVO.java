@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -188,5 +189,9 @@ public class AppRespVO implements Serializable {
 
     @Schema(description = "租户Id")
     private Long tenantId;
+
+    public void putVariable(String stepId, Map<String, Object> variable) {
+        this.workflowConfig.putVariable(stepId, variable);
+    }
 
 }

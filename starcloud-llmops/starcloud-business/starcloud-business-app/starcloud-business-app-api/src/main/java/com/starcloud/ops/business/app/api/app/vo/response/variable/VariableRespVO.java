@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 应用请求 action 请求对象
@@ -30,4 +32,12 @@ public class VariableRespVO implements Serializable {
      */
     @Schema(description = "应用变量")
     private List<VariableItemRespVO> variables;
+
+    public void putVariable(Map<String, Object> variable) {
+        for (VariableItemRespVO item : variables) {
+            if (variable.containsKey(item.getField())) {
+                item.setValue(Optional.ofNullable(variable.get(item.getField())).orElse(""));
+            }
+        }
+    }
 }

@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -55,12 +56,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Resource
     private AdminUserLevelConfigService levelConfigService;
 
-    @Resource
-    private PermissionService permissionService;
 
     @Resource
     private AdminUserService adminUserService;
 
+    @Resource
+    private PermissionService permissionService;
     @Resource
     private RoleService roleService;
 
@@ -109,16 +110,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
         }
         adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        adminUserLevelDO.setDescription(StrUtil.format(AdminUserLevelBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(adminUserLevelDO);
-        // 获取当前用户角色
-        Set<Long> userRoleIdListByUserId = permissionService.getUserRoleIdListByUserId(createReqVO.getUserId());
 
-        userRoleIdListByUserId.add(levelConfig.getRoleId());
-        // 重新设置用户角色
-        permissionService.assignUserRole(createReqVO.getUserId(), userRoleIdListByUserId);
-
-
+        // 设置等级中绑定的角色
+        getSelf().buildUserRole(adminUserLevelDO.getUserId(), levelConfig.getRoleId(), null);
     }
 
     /**
@@ -270,8 +267,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int expireLevel() {
-
         // 1. 查询过期的用户等级数据
         List<AdminUserLevelDO> levelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeLt(
                 CommonStatusEnum.ENABLE.getStatus(), LocalDateTime.now());
@@ -297,7 +294,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      * @param levelDO
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void expireLevelBySystem(AdminUserLevelDO levelDO) {
+        AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(levelDO.getLevelId());
+
+        // 移除过期等级中绑定的角色
+        getSelf().buildUserRole(levelDO.getUserId(), null, levelConfig.getRoleId());
 
         // 更新 AdminUserLevelDO 状态为已关闭
         int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(),
@@ -305,7 +307,6 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (updateCount == 0) {
             throw exception(LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE);
         }
-
     }
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
@@ -341,6 +342,23 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      */
     private AdminUserLevelServiceImpl getSelf() {
         return SpringUtil.getBean(getClass());
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public void buildUserRole(Long userId, Long incrRoleId, Long decrRoleCode) {
+        // 获取当前用户角色
+        Set<Long> userRoles = permissionService.getUserRoleIdListByUserId(userId);
+
+        if (decrRoleCode != null && userRoles.contains(decrRoleCode)) {
+            userRoles.remove(decrRoleCode);
+        }
+        if (incrRoleId != null) {
+            userRoles.add(incrRoleId);
+        }
+
+        // 重新设置用户角色
+        permissionService.assignUserRole(userId, userRoles);
     }
 
 

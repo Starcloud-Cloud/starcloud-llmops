@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.poster.PosterStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -46,6 +47,11 @@ public class AppContext {
      * 步骤前缀
      */
     private static final String STEP_PREFIX = "STEP";
+
+    /**
+     * 应用 UID, 每个应用的唯一标识
+     */
+    private String uid;
 
     /**
      * 会话 UID
@@ -127,7 +133,9 @@ public class AppContext {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_EXECUTE_APP_IS_NULL);
         }
         this.conversationUid = IdUtil.simpleUUID();
+
         this.app = app;
+        this.uid = app.getUid();
         this.scene = scene;
         this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getField();
         this.userId = WebFrameworkUtils.getLoginUserId();
