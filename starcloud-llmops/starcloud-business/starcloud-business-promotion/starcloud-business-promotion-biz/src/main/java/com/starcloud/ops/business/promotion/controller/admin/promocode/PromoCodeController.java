@@ -36,7 +36,7 @@ import java.util.Objects;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.PROMO_CODE_TEMPLATE_NOT_EXISTS;
+import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.*;
 
 @Tag(name = "管理后台 - 兑换码")
 @RestController
@@ -81,7 +81,6 @@ public class PromoCodeController {
     }
 
 
-
     //======================ADMIN ==========USER==========================
     @PostMapping("/u/use_rights_code")
     @Operation(summary = "使用权益码")
@@ -109,6 +108,13 @@ public class PromoCodeController {
         if (Objects.isNull(template)) {
             throw exception(PROMO_CODE_TEMPLATE_NOT_EXISTS);
         }
+
+        Integer useCount = promoCodeService.getUseCount(template.getId(), userId);
+
+        if (useCount >= template.getTakeLimitCount()) {
+            throw exception(PROMO_CODE_TEMPLATE_LIMIT, useCount);
+        }
+
 
         // 2. 检查是否可以继续领取
         CouponTemplateDO couponTemplate = couponTemplateService.getCouponTemplate(template.getCouponTemplateId());
@@ -146,8 +152,11 @@ public class PromoCodeController {
 
         if (canTakeAgain) {
             return success(CouponTemplateConvert.INSTANCE.convertApp(couponTemplate));
+        } else {
+            throw exception(PROMO_CODE_NOT_EXISTS);
         }
-        return success(null);
+
+        // return success(null);
 
     }
 

@@ -1,8 +1,13 @@
 package com.starcloud.ops.business.promotion.service.promocode;
 
+import cn.hutool.core.map.MapUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.PromoCodePageReqVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeDO;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * 兑换码 Service 接口
@@ -65,4 +70,19 @@ public interface PromoCodeService {
      * @param userId 用户编号
      */
     void usePromoCode(String code, Long userId);
+
+    default Integer getUseCount(Long templateId, Long userId) {
+        Map<Long, Integer> map = getUseCountMapByTemplateIds(Collections.singleton(templateId), userId);
+        return MapUtil.getInt(map, templateId, 0);
+    }
+
+
+    /**
+     * 统计会员领取优惠券的数量
+     *
+     * @param templateIds 优惠券模板编号列表
+     * @param userId      用户编号
+     * @return 领取优惠券的数量
+     */
+    Map<Long, Integer> getUseCountMapByTemplateIds(Collection<Long> templateIds, Long userId);
 }

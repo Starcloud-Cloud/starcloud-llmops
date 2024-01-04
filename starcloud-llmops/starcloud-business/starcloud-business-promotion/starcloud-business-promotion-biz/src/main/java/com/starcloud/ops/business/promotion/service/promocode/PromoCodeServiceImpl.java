@@ -29,8 +29,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
@@ -175,6 +174,21 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         }
 
 
+    }
+
+    /**
+     * 统计会员领取优惠券的数量
+     *
+     * @param templateIds 优惠券模板编号列表
+     * @param userId      用户编号
+     * @return 领取优惠券的数量
+     */
+    @Override
+    public Map<Long, Integer> getUseCountMapByTemplateIds(Collection<Long> templateIds, Long userId) {
+        if (CollUtil.isEmpty(templateIds)) {
+            return Collections.emptyMap();
+        }
+        return promoCodeMapper.selectCountByUserIdAndTemplateIdIn(userId, templateIds);
     }
 
 
