@@ -129,9 +129,16 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
         if ((CollectionUtil.isEmpty(refers))) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_REFERS_NOT_EMPTY, name);
         }
-        if (Objects.isNull(configuration)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
+        if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(mode)) {
+            if (Objects.isNull(configuration)) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
+            }
+        } else {
+            if (Objects.isNull(customConfiguration)) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
+            }
         }
+
         configuration.validate(name, mode);
     }
 
