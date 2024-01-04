@@ -37,6 +37,9 @@ public class UserExcelVO {
     @DictFormat(DictTypeConstants.COMMON_STATUS)
     private Integer status;
 
+    @ExcelProperty("注册时间")
+    private LocalDateTime createTime;
+
     @ExcelProperty("最后登录IP")
     private String loginIp;
 

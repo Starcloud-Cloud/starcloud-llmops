@@ -29,6 +29,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -191,18 +193,23 @@ public class DictServiceImpl implements DictService {
         Long count = keywordBindMapper.selectCount(KeywordBindDO::getDictId, dictDO.getId());
         dictDO.setCount(count);
         updateById(dictDO);
-        executor.execute(() -> {
-            try {
-                long start = System.currentTimeMillis();
-                keywordBindService.analysisKeyword(analysisKeys, dictDO.getEndpoint());
-                long end = System.currentTimeMillis();
-                dictDO.setAnalysisTime(end - start);
-                dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
-                updateById(dictDO);
-            } catch (Exception e) {
-                log.error("分析关键词失败", e);
-                dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
-                updateById(dictDO);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                executor.execute(() -> {
+                    try {
+                        long start = System.currentTimeMillis();
+                        keywordBindService.analysisKeyword(analysisKeys, dictDO.getEndpoint());
+                        long end = System.currentTimeMillis();
+                        dictDO.setAnalysisTime(end - start);
+                        dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_END.name());
+                        updateById(dictDO);
+                    } catch (Exception e) {
+                        log.error("分析关键词失败", e);
+                        dictDO.setStatus(AnalysisStatusEnum.ANALYSIS_ERROR.name());
+                        updateById(dictDO);
+                    }
+                });
             }
         });
     }

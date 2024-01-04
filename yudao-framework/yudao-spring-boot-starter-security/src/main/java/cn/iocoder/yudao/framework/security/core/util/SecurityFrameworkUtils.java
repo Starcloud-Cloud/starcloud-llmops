@@ -3,6 +3,7 @@ package cn.iocoder.yudao.framework.security.core.util;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import java.util.Collections;
  *
  * @author 芋道源码
  */
+@Slf4j
 public class SecurityFrameworkUtils {
 
     /**
@@ -26,13 +28,14 @@ public class SecurityFrameworkUtils {
      */
     public static final String AUTHORIZATION_BEARER = "Bearer";
 
-    private SecurityFrameworkUtils() {}
+    private SecurityFrameworkUtils() {
+    }
 
     /**
      * 从请求中，获得认证 Token
      *
-     * @param request 请求
-     * @param headerName 认证 Token 对应的 Header 名字
+     * @param request       请求
+     * @param headerName    认证 Token 对应的 Header 名字
      * @param parameterName 认证 Token 对应的 Parameter 名字
      * @return 认证 Token
      */
@@ -64,6 +67,20 @@ public class SecurityFrameworkUtils {
         return context.getAuthentication();
     }
 
+
+    /**
+     * 2024-1-02 df
+     * @param authentication
+     */
+    public static void setAuthentication(Authentication authentication) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        if (context == null) {
+            log.warn("setAuthentication is fail, context is null");
+            return;
+        }
+        context.setAuthentication(authentication);
+    }
+
     /**
      * 获取当前用户
      *
@@ -93,7 +110,7 @@ public class SecurityFrameworkUtils {
      * 设置当前用户
      *
      * @param loginUser 登录用户
-     * @param request 请求
+     * @param request   请求
      */
     public static void setLoginUser(LoginUser loginUser, HttpServletRequest request) {
         // 创建 Authentication，并设置到上下文

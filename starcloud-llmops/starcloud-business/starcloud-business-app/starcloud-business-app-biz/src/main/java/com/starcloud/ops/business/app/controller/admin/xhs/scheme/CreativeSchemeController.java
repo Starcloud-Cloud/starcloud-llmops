@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
@@ -15,6 +16,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeL
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
@@ -49,6 +51,9 @@ public class CreativeSchemeController {
     private CreativeSchemeService creativeSchemeService;
 
     @Resource
+    private CreativeAppManager creativeAppManager;
+
+    @Resource
     private CreativeImageManager creativeImageManager;
 
     @GetMapping("/metadata")
@@ -56,6 +61,13 @@ public class CreativeSchemeController {
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<Map<String, Object>> metadata() {
         return CommonResult.success(creativeSchemeService.metadata());
+    }
+
+    @GetMapping("/appList/{model}")
+    @Operation(summary = "获取应用列表", description = "获取应用列表")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<List<AppMarketRespVO>> appList(@PathVariable(value = "model") String model) {
+        return CommonResult.success(creativeAppManager.appMarketplaceList(model));
     }
 
     @GetMapping("/templateGroupByType")

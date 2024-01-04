@@ -1,14 +1,19 @@
 package com.starcloud.ops.business.app.service.Task;
 
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 
@@ -40,10 +45,15 @@ public class ThreadWithContext {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         Long userId = UserContextHolder.getUserId();
 
+        Authentication authentication = SecurityFrameworkUtils.getAuthentication();
+
         threadPoolExecutor.execute(() -> {
             TenantContextHolder.setIgnore(false);
             TenantContextHolder.setTenantId(tenantId);
             RequestContextHolder.setRequestAttributes(requestAttributes);
+
+            SecurityFrameworkUtils.setAuthentication(authentication);
+
             UserContextHolder.setUserId(userId);
             runFunction.run();
             UserContextHolder.clear();

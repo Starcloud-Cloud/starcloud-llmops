@@ -35,9 +35,7 @@ public enum AppTypeEnum implements IEnumable<Integer> {
     /**
      * 媒体矩阵
      */
-    MEDIA_MATRIX(2, "媒体矩阵","Media Matrix App")
-
-    ;
+    MEDIA_MATRIX(2, "媒体矩阵", "Media Matrix App");
 
     /**
      * 应用类型Code
@@ -71,14 +69,23 @@ public enum AppTypeEnum implements IEnumable<Integer> {
      *
      * @return 应用类型 Option 列表
      */
-    public static List<Option> options() {
+    public static List<Option> options(Boolean admin) {
         boolean isChina = Locale.CHINA.equals(LocaleContextHolder.getLocale());
-        return Arrays.stream(values()).sorted(Comparator.comparingInt(AppTypeEnum::getCode)).map(item -> {
-            Option option = new Option();
-            option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
-            option.setValue(item.name());
-            return option;
-        }).collect(Collectors.toList());
+        if (admin) {
+            return Arrays.stream(values()).sorted(Comparator.comparingInt(AppTypeEnum::getCode)).map(item -> {
+                Option option = new Option();
+                option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
+                option.setValue(item.name());
+                return option;
+            }).collect(Collectors.toList());
+        } else {
+            return Arrays.stream(values()).filter(item -> !MEDIA_MATRIX.equals(item)).sorted(Comparator.comparingInt(AppTypeEnum::getCode)).map(item -> {
+                Option option = new Option();
+                option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
+                option.setValue(item.name());
+                return option;
+            }).collect(Collectors.toList());
+        }
     }
 
 }

@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * App 步骤实体包装类
@@ -63,4 +64,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     private VariableRespVO variable;
 
 
+    public void putVariable(Map<String, Object> variable) {
+        this.variable.putVariable(variable);
+    }
 }
