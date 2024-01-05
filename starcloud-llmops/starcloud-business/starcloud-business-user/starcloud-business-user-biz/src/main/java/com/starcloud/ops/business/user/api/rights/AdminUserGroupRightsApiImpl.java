@@ -44,9 +44,6 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     private DeptService deptService;
 
     @Autowired
-    private AdminUserService adminUserService;
-
-    @Autowired
     private AdminUserApi adminUserApi;
 
     @Override
@@ -85,12 +82,11 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     protected Long getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
 
         try {
-
             AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
 
             if (adminUserRespDTO == null) {
                 log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
-                //return currentUserId;
+                return currentUserId;
             } else {
                 log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
             }
@@ -122,6 +118,7 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
 
 
         return currentUserId;
+
     }
 
 }

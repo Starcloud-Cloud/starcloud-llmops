@@ -28,10 +28,10 @@ public class AppProcessParser implements ConfigResource {
     private final String resourceName;
 
 
-    @Override
-    public ResourceTypeEnum getResourceType() {
-        return ResourceTypeEnum.DYNAMIC_PROCESS;
-    }
+//    @Override
+//    public ResourceTypeEnum getResourceType() {
+//        return ResourceTypeEnum.DYNAMIC_PROCESS;
+//    }
 
     public AppProcessParser(AppEntity app) {
         this.app = app;
@@ -54,7 +54,9 @@ public class AppProcessParser implements ConfigResource {
 
         List<WorkflowStepWrapper> stepWrappers = CollectionUtil.defaultIfEmpty(this.app.getWorkflowConfig().getSteps(), new ArrayList<>());
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
-            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getName()).build();
+            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getName())
+                    .property(JSONUtil.toJsonStr(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
+                    .build();
 
             processLink.end();
         }
