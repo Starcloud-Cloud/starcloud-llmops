@@ -38,12 +38,25 @@ public interface CouponApi {
 
 
     /**
-     * 校验优惠劵
+     * 【管理员发放】领取优惠劵
      *
      * @param templateId 校验请求
      * @param userIds 校验请求
      * @return 优惠劵
      */
     void addCoupon(Long templateId, Set<Long> userIds);
+
+    /**
+     * 【会员领取】领取优惠劵
+     *
+     * @param templateId
+     * @param userId
+     * @return 优惠劵
+     */
+    void addCoupon(Long templateId, Long userId);
+
+
+
+
 
 }

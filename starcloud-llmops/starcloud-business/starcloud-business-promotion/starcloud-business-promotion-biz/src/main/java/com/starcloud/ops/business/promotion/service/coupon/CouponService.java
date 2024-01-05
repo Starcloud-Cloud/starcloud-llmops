@@ -96,6 +96,15 @@ public interface CouponService {
     void takeCoupon(Long templateId, Set<Long> userIds, CouponTakeTypeEnum takeType);
 
     /**
+     * 领取优惠券
+     *
+     * @param templateId 优惠券模板编号
+     * @param userId     用户编号列表
+     * @param takeType   领取方式
+     */
+    Long takeCoupon(Long templateId, Long userId, CouponTakeTypeEnum takeType);
+
+    /**
      * 【管理员】给用户发送优惠券
      *
      * @param templateId 优惠券模板编号

@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
@@ -64,6 +66,12 @@ public class WorkflowTest extends BaseDbUnitTest {
 
     @MockBean
     private AdminUserService adminUserService;
+
+    @MockBean
+    private DeptService deptService;
+
+    @MockBean
+    private AdminUserApi adminUserApi;
 
 
     final String appId = "appId-test";
@@ -138,9 +146,10 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
 
-        executeReqVO.setAppUid("2196b6cce43f41679e15487d79bde823");
+        executeReqVO.setAppUid("dd4239ef688d42d4b2515c6214e71a79");
         executeReqVO.setAppReqVO(new AppReqVO());
-        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+        executeReqVO.setUserId(186L);
+        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
 
         SseEmitter emitter = new SseEmitter(60000L);
 

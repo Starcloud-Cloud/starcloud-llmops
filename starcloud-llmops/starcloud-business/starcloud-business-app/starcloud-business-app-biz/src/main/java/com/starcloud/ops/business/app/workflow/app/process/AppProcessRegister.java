@@ -51,11 +51,7 @@ public class AppProcessRegister implements DynamicProcess {
 
         app.getWorkflowConfig().getSteps();
 
-        if (1 == 1) {
-            return parser.getFlowProcessLink();
-        } else {
-            return parser.getProcessLink();
-        }
+        return parser.getProcessLink();
     }
 
 }

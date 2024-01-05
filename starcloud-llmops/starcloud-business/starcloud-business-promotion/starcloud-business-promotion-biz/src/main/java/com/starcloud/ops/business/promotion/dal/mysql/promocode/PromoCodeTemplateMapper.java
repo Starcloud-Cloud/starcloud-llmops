@@ -7,8 +7,10 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template.PromoCodeTemplatePageReqVO;
 import com.starcloud.ops.business.promotion.dal.dataobject.promocode.PromoCodeTemplateDO;
+import com.starcloud.ops.business.promotion.enums.promocode.PromoCodeStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
@@ -45,6 +47,14 @@ public interface PromoCodeTemplateMapper extends BaseMapperX<PromoCodeTemplateDO
 
     default List<PromoCodeTemplateDO> selectListByCodeType(Integer codeType) {
         return selectList(PromoCodeTemplateDO::getCodeType, codeType);
+    }
+
+    default PromoCodeTemplateDO selectTemplateByCode(String code, Integer codeType) {
+        LambdaQueryWrapper<PromoCodeTemplateDO> wrapper = Wrappers.lambdaQuery(PromoCodeTemplateDO.class)
+                .eq(PromoCodeTemplateDO::getCode, code)
+                .eq(PromoCodeTemplateDO::getCodeType, codeType)
+                .eq(PromoCodeTemplateDO::getStatus, PromoCodeStatusEnum.ENABLE);
+        return selectOne(wrapper);
     }
 
     default List<PromoCodeTemplateDO> selectList(List<Integer> canTakeTypes, Integer productScope, Long productScopeValue, Integer count) {

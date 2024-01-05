@@ -125,4 +125,29 @@ public interface ErrorCodeConstants {
     ErrorCode DIY_PAGE_NOT_EXISTS = new ErrorCode(1_013_018_000, "装修页面不存在");
     ErrorCode DIY_PAGE_NAME_USED = new ErrorCode(1_013_018_001, "装修页面名称({})已经被使用");
 
+
+    // ========== 优惠劵模板 1-013-021-000 ==========
+    ErrorCode PROMO_CODE_TEMPLATE_NOT_EXISTS = new ErrorCode(1_013_021_000, "兑换码不存在");
+
+
+    ErrorCode PROMO_CODE_TEMPLATE_TOTAL_COUNT_TOO_SMALL = new ErrorCode(1_013_021_001, "发放数量不能小于已领取数量({})");
+    ErrorCode PROMO_CODE_TEMPLATE_NOT_ENOUGH = new ErrorCode(1_013_021_002, "当前剩余数量不够领取");
+    ErrorCode PROMO_CODE_TEMPLATE_USER_ALREADY_TAKE = new ErrorCode(1_013_021_003, "用户已领取过此优惠券");
+    ErrorCode PROMO_CODE_TEMPLATE_EXPIRED = new ErrorCode(1_013_021_004, "兑换码已过期");
+    ErrorCode PROMO_CODE_TEMPLATE_CANNOT_TAKE = new ErrorCode(1_013_021_005, "领取方式不正确");
+
+    ErrorCode PROMO_CODE_TEMPLATE_WITH_COUPON_DATE_TYPE = new ErrorCode(1_013_021_006, "兑换码仅限绑定非固定日期的优惠券");
+    ErrorCode PROMO_CODE_TEMPLATE_NO_EQUAL_COUPON_LIMIT = new ErrorCode(1_013_021_007, "兑换码限制条件和优惠券需要一致");
+
+
+    ErrorCode PROMO_CODE_TEMPLATE_LIMIT = new ErrorCode(1_013_021_008, "当前兑换码您已经使用了{}次，没办法使用喽!");
+
+
+    // ========== 优惠劵 1-013-005-000 ==========
+    ErrorCode PROMO_CODE_NOT_EXISTS = new ErrorCode(1_013_022_000, "优惠券不存在");
+    ErrorCode PROMO_CODE_DELETE_FAIL_USED = new ErrorCode(1_013_022_001, "回收优惠劵失败，优惠劵已被使用");
+    ErrorCode PROMO_CODE_STATUS_NOT_UNUSED = new ErrorCode(1_013_022_002, "优惠劵不处于待使用状态");
+    ErrorCode PROMO_CODE_VALID_TIME_NOT_NOW = new ErrorCode(1_013_022_003, "优惠券不在使用时间范围内");
+    ErrorCode PROMO_CODE_STATUS_NOT_USED = new ErrorCode(1_013_022_004, "优惠劵不是已使用状态");
+
 }

@@ -1,11 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.json.JSONUtil;
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeVar;
-import cn.kstry.framework.core.annotation.ReqTaskParam;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
+import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,6 +42,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @NoticeVar
+    @NoticeResult
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
