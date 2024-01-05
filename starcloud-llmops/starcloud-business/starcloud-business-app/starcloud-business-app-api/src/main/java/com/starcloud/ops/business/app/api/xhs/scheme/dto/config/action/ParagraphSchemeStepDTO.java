@@ -2,21 +2,48 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * 创作方案 段落节点配置
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2021-06-22
  */
 @Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
 
+    private static final long serialVersionUID = 6843541753056072604L;
 
+    /**
+     * 创作方案生成模式
+     */
+    @Schema(description = "创作方案生成模式")
+    private String model;
+
+    /**
+     * 创作方案参考内容
+     */
+    @Schema(description = "创作方案参考内容")
+    private List<CreativeSchemeReferenceDTO> refers;
+
+    /**
+     * 创作方案步骤生成的段落数
+     */
+    @Schema(description = "创作方案步骤生成的段落数")
+    private Integer paragraphCount;
 
     /**
      * 创作方案步骤要求
@@ -24,26 +51,17 @@ public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
     @Schema(description = "创作方案步骤要求")
     private String requirement;
 
-    @Schema(description = "创作方案参考内容")
-    private List<CreativeSchemeReferenceDTO> refers;
-
-    //生成模式
-    private String type;
-
+    /**
+     * 创作方案步骤变量
+     */
     @Schema(description = "创作方案步骤变量")
     private List<VariableItemDTO> variables;
-
-
-    /**
-     * 生成的段落数
-     */
-    private Integer size;
 
     /**
      * 转换到应用参数
      */
     @Override
-    public void convertApp(WorkflowStepWrapperRespVO workflowStepWrapperRespVO) {
+    public void convertAppStepWrapper(WorkflowStepWrapperRespVO stepWrapper) {
 
         //处理随机，让应用step 执行时不需要处理过多的业务逻辑
 
@@ -51,18 +69,28 @@ public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
 
         //
 
-        workflowStepWrapperRespVO.getVariable().getVariables().add(
-                VariableItemRespVO.ofTextVariable(ParagraphActionHandler.DL, this.getRequirement())
-        );
-
     }
 
     /**
      * 转换到创作方案参数
      */
     @Override
-    public void convertCreative() {
+    public void convertCreativeSchemeStep() {
 
+    }
+
+    /**
+     * 转换为 map
+     *
+     * @return map
+     */
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put(CreativeConstants.GENERATE_MODEL, model);
+        map.put(CreativeConstants.REFERS, refers);
+        map.put(CreativeConstants.PARAGRAPH_COUNT, paragraphCount);
+        map.put(CreativeConstants.REQUIREMENT, requirement);
+        return map;
     }
 
 

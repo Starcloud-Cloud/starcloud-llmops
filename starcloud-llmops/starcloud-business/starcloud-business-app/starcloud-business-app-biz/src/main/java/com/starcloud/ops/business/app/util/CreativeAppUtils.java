@@ -33,7 +33,6 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeRe
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -621,7 +620,7 @@ public class CreativeAppUtils {
         List<WorkflowStepWrapperRespVO> stepWrappers = workflowConfig.getSteps();
         for (WorkflowStepWrapperRespVO stepWrapper : stepWrappers) {
 
-            schemeStepDTOS.get(0).convertApp(stepWrapper);
+            schemeStepDTOS.get(0).convertAppStepWrapper(stepWrapper);
 
             String field = stepWrapper.getField();
             Optional<CreativeSchemeStepDTO> stepOptional = schemeSteps.stream().filter(item -> field.equals(item.getId())).findFirst();

@@ -130,9 +130,9 @@ public class WorkflowStepWrapper {
     public void setActionResponse(String stepId, ActionResponse response) {
         if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
             ActionResponse actionResponse = this.flowStep.getResponse();
-            response.setType(Optional.of(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
-            response.setStyle(Optional.of(actionResponse).map(ActionResponse::getStyle).orElse(AppStepResponseStyleEnum.TEXTAREA.name()));
-            response.setIsShow(Optional.of(actionResponse).map(ActionResponse::getIsShow).orElse(Boolean.TRUE));
+            response.setType(Optional.ofNullable(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
+            response.setStyle(Optional.ofNullable(actionResponse).map(ActionResponse::getStyle).orElse(AppStepResponseStyleEnum.TEXTAREA.name()));
+            response.setIsShow(Optional.ofNullable(actionResponse).map(ActionResponse::getIsShow).orElse(Boolean.TRUE));
             this.flowStep.setResponse(response);
         }
     }
