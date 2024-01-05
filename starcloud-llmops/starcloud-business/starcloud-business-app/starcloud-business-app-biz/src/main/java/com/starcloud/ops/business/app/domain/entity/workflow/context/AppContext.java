@@ -137,7 +137,7 @@ public class AppContext {
         this.app = app;
         this.uid = app.getUid();
         this.scene = scene;
-        this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getField();
+        this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getStepCode();
         this.userId = WebFrameworkUtils.getLoginUserId();
     }
 
