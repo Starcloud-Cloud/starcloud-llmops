@@ -18,6 +18,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -128,6 +129,9 @@ public class WorkflowStepWrapper {
     @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
+        if (StringUtils.isBlank(stepId) || Objects.isNull(response)) {
+            return;
+        }
         if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
             ActionResponse actionResponse = this.flowStep.getResponse();
             response.setType(Optional.ofNullable(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
