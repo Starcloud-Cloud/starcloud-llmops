@@ -142,6 +142,18 @@ public class AppContext {
     }
 
     /**
+     * 根据 stepId 获取 actionResponse
+     *
+     * @return 根据 stepId 获取 step
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public ActionResponse getStepResponse(String stepId) {
+
+        return this.getStepWrapper(stepId).getFlowStep().getResponse();
+    }
+
+    /**
      * 根据 stepId 获取 stepWrapper
      *
      * @return 根据 stepId 获取 step

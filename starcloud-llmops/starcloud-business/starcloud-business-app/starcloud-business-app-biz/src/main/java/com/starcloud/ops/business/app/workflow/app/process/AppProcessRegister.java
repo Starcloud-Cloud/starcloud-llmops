@@ -5,6 +5,7 @@ import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.dynamic.creator.DynamicProcess;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -39,17 +40,14 @@ public class AppProcessRegister implements DynamicProcess {
     @Override
     public Optional<ProcessLink> getProcessLink(String startId) {
 
-        //find appInstance
-        // AppEntity app = AppFactory.factory(startId);
-
         AppEntity app = this.appEntityMap.get(startId);
         AppProcessParser parser = new AppProcessParser(app);
         this.appEntityMap.remove(startId);
 
-
         //获取workflow执行类型
-
-        app.getWorkflowConfig().getSteps();
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(app.getType())) {
+            return parser.getFlowProcessLink();
+        }
 
         return parser.getProcessLink();
     }
