@@ -81,14 +81,12 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
      */
     protected Long getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
 
-
         try {
-
             AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
 
             if (adminUserRespDTO == null) {
                 log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
-                //return currentUserId;
+                return currentUserId;
             } else {
                 log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
             }
