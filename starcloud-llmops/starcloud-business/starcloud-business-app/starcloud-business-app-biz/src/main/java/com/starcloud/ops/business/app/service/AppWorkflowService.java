@@ -269,13 +269,13 @@ public class AppWorkflowService {
      * @param <T>             类型
      * @return 追踪
      */
-    private <T> T getTracking(List<FieldTracking> noticeTrackings, Class<T> cls) {
+    private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
 
         String clsName = cls.getSimpleName();
 
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
 
-        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getSourceName().equals(field)).map(noticeTracking -> {
+        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getFieldName().equals(field)).map(noticeTracking -> {
             return JSON.parseObject(noticeTracking.getValue(), cls);
         }).findFirst().orElse(null);
     }
