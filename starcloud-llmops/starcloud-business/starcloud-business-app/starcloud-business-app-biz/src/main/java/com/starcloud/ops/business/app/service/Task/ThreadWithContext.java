@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import com.alibaba.ttl.TtlRunnable;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
@@ -47,10 +48,10 @@ public class ThreadWithContext {
 
         Authentication authentication = SecurityFrameworkUtils.getAuthentication();
 
-        threadPoolExecutor.execute(() -> {
+        TtlRunnable task = TtlRunnable.get(() -> {
             TenantContextHolder.setIgnore(false);
             TenantContextHolder.setTenantId(tenantId);
-            RequestContextHolder.setRequestAttributes(requestAttributes);
+            RequestContextHolder.setRequestAttributes(requestAttributes, true);
 
             SecurityFrameworkUtils.setAuthentication(authentication);
 
@@ -60,6 +61,8 @@ public class ThreadWithContext {
             TenantContextHolder.clear();
             RequestContextHolder.resetRequestAttributes();
         });
+
+        threadPoolExecutor.execute(task);
     }
 
 }
