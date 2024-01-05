@@ -194,6 +194,8 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Transactional(rollbackFor = Exception.class)
     @TradeOrderLog(operateType = TradeOrderOperateTypeEnum.MEMBER_CREATE)
     public TradeOrderDO createOrder(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO, Integer terminal) {
+
+
         // 1.1 价格计算
         TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, createReqVO);
 
@@ -217,6 +219,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         afterCreateTradeOrder(order, orderItems, createReqVO);
         return order;
     }
+
 
     private TradeOrderDO buildTradeOrder(Long userId, String clientIp, AppTradeOrderCreateReqVO createReqVO,
                                          TradePriceCalculateRespBO calculateRespBO, Integer terminal) {

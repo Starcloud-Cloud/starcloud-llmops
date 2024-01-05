@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientConfig;
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundRespDTO;
@@ -259,5 +260,15 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
         }
         throw new PayException(ex);
     }
+
+
+
+    // =================签约================================
+
+    // protected abstract void doUnifiedPayAgreement(PayAgreementUnifiedReqDTO reqDTO)
+    //         throws Throwable;
+
+
+
 
 }

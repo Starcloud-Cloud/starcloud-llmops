@@ -176,6 +176,23 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
+    public Long takeCoupon(Long templateId, Long userId, CouponTakeTypeEnum takeType) {
+        CouponTemplateDO template = couponTemplateService.getCouponTemplate(templateId);
+        // 1. 过滤掉达到领取限制的用户
+        removeTakeLimitUser(CollUtil.newHashSet(userId), template);
+        // 2. 校验优惠劵是否可以领取
+        validateCouponTemplateCanTake(template, CollUtil.newHashSet(userId), takeType);
+
+        // 3. 批量保存优惠劵
+        CouponDO convert = CouponConvert.INSTANCE.convert(template, userId);
+        couponMapper.insert(convert);
+
+        // 3. 增加优惠劵模板的领取数量
+        couponTemplateService.updateCouponTemplateTakeCount(templateId, 1);
+        return convert.getId();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void takeCouponByRegister(Long userId) {
         List<CouponTemplateDO> templates = couponTemplateService.getCouponTemplateListByTakeType(CouponTakeTypeEnum.REGISTER);

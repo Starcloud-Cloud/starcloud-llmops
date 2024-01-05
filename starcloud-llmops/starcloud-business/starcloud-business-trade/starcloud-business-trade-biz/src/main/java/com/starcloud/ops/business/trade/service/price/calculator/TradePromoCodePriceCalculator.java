@@ -4,10 +4,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-
-import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponValidReqDTO;
+import com.starcloud.ops.business.promotion.api.coupon.CouponTemplateApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponTemplateRespDTO;
+import com.starcloud.ops.business.promotion.api.promocode.PromoCodeApi;
 import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
 import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
@@ -33,45 +32,45 @@ import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.PRICE_CA
  * @author 芋道源码
  */
 @Component
-@Order(TradePriceCalculator.ORDER_COUPON)
-public class TradeCouponPriceCalculator implements TradePriceCalculator {
+@Order(TradePriceCalculator.ORDER_PROMO_CODE)
+public class TradePromoCodePriceCalculator implements TradePriceCalculator {
 
     @Resource
-    private CouponApi couponApi;
+    private PromoCodeApi promoCodeApi;
+
+    @Resource
+    private CouponTemplateApi couponTemplateApi;
+
 
     @Override
     public void calculate(TradePriceCalculateReqBO param, TradePriceCalculateRespBO result) {
         // 1.1 校验优惠劵
-        if (param.getCouponId() == null) {
+        if (param.getPromoCode() == null) {
             return;
         }
-
-        if (param.getPromoCode() != null) {
-            return;
-        }
-        CouponRespDTO coupon = couponApi.validateCoupon(new CouponValidReqDTO()
-                .setId(param.getCouponId()).setUserId(param.getUserId()));
-        Assert.notNull(coupon, "校验通过的优惠劵({})，不能为空", param.getCouponId());
+        Long promoCodeTemplate = promoCodeApi.getPromoCodeTemplate(param.getPromoCode() );
+        CouponTemplateRespDTO couponTemplate = couponTemplateApi.getCouponTemplate(promoCodeTemplate);
+        Assert.notNull(couponTemplate, "校验通过的优惠劵({})，不能为空", param.getCouponId());
         // 1.2 只有【普通】订单，才允许使用优惠劵
         if (ObjectUtil.notEqual(result.getType(), TradeOrderTypeEnum.NORMAL.getType())) {
             throw exception(PRICE_CALCULATE_COUPON_NOT_MATCH_NORMAL_ORDER);
         }
 
         // 2.1 获得匹配的商品 SKU 数组
-        List<TradePriceCalculateRespBO.OrderItem> orderItems = filterMatchCouponOrderItems(result, coupon);
+        List<TradePriceCalculateRespBO.OrderItem> orderItems = filterMatchCouponOrderItems(result, couponTemplate);
         if (CollUtil.isEmpty(orderItems)) {
             throw exception(COUPON_NO_MATCH_SPU);
         }
         // 2.2 计算是否满足优惠劵的使用金额
         Integer totalPayPrice = TradePriceCalculatorHelper.calculateTotalPayPrice(orderItems);
-        if (totalPayPrice < coupon.getUsePrice()) {
+        if (totalPayPrice < couponTemplate.getUsePrice()) {
             throw exception(COUPON_NO_MATCH_MIN_PRICE);
         }
 
         // 3.1 计算可以优惠的金额
-        Integer couponPrice = getCouponPrice(coupon, totalPayPrice);
+        Integer couponPrice = getCouponPrice(couponTemplate, totalPayPrice);
         Assert.isTrue(couponPrice < totalPayPrice,
-                "优惠劵({}) 的优惠金额({})，不能大于订单总金额({})", coupon.getId(), couponPrice, totalPayPrice);
+                "优惠劵({}) 的优惠金额({})，不能大于订单总金额({})", couponTemplate.getId(), couponPrice, totalPayPrice);
         // 3.2 计算分摊的优惠金额
         List<Integer> divideCouponPrices = TradePriceCalculatorHelper.dividePrice(orderItems, couponPrice);
 
@@ -79,7 +78,7 @@ public class TradeCouponPriceCalculator implements TradePriceCalculator {
         result.setCouponId(param.getCouponId());
         // 4.2 记录优惠明细
         TradePriceCalculatorHelper.addPromotion(result, orderItems,
-                param.getCouponId(), coupon.getName(), PromotionTypeEnum.COUPON.getType(),
+                param.getCouponId(), couponTemplate.getName(), PromotionTypeEnum.COUPON.getType(),
                 StrUtil.format("优惠劵：省 {} 元", TradePriceCalculatorHelper.formatPrice(couponPrice)),
                 divideCouponPrices);
         // 4.3 更新 SKU 优惠金额
@@ -91,7 +90,7 @@ public class TradeCouponPriceCalculator implements TradePriceCalculator {
         TradePriceCalculatorHelper.recountAllPrice(result);
     }
 
-    private Integer getCouponPrice(CouponRespDTO coupon, Integer totalPayPrice) {
+    private Integer getCouponPrice(CouponTemplateRespDTO coupon, Integer totalPayPrice) {
         if (PromotionDiscountTypeEnum.PRICE.getType().equals(coupon.getDiscountType())) { // 减价
             return coupon.getDiscountPrice();
         } else if (PromotionDiscountTypeEnum.PERCENT.getType().equals(coupon.getDiscountType())) { // 打折
@@ -110,7 +109,7 @@ public class TradeCouponPriceCalculator implements TradePriceCalculator {
      * @return 订单项（商品）列表
      */
     private List<TradePriceCalculateRespBO.OrderItem> filterMatchCouponOrderItems(TradePriceCalculateRespBO result,
-                                                                                  CouponRespDTO coupon) {
+                                                                                  CouponTemplateRespDTO coupon) {
         Predicate<TradePriceCalculateRespBO.OrderItem> matchPredicate = TradePriceCalculateRespBO.OrderItem::getSelected;
         if (PromotionProductScopeEnum.SPU.getScope().equals(coupon.getProductScope())) {
             matchPredicate = matchPredicate // 额外加如下条件

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.service.price.bo;
 
 import com.starcloud.ops.business.trade.enums.delivery.DeliveryTypeEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.Valid;
@@ -29,6 +30,12 @@ public class TradePriceCalculateReqBO {
      * 对应 CouponDO 的 id 编号
      */
     private Long couponId;
+
+    /**
+     * 优惠码
+     */
+    @Schema(description = "优惠码", example = "1024")
+    private String promoCode;
 
     /**
      * 是否使用积分

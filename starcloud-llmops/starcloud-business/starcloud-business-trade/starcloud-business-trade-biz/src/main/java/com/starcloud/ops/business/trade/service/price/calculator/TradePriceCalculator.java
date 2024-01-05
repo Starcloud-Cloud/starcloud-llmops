@@ -21,7 +21,11 @@ public interface TradePriceCalculator {
 
     int ORDER_DISCOUNT_ACTIVITY = 10;
     int ORDER_REWARD_ACTIVITY = 20;
+
+    int ORDER_PROMO_CODE = 29;
     int ORDER_COUPON = 30;
+
+
     int ORDER_POINT_USE = 40;
     /**
      * 快递运费的计算

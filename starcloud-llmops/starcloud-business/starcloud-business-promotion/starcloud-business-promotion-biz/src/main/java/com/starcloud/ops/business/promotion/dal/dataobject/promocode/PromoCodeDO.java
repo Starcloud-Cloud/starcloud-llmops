@@ -1,19 +1,10 @@
 package com.starcloud.ops.business.promotion.dal.dataobject.promocode;
 
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
-import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -22,8 +13,8 @@ import java.time.LocalDateTime;
  *
  * @author 芋道源码
  */
-@TableName(value = "promotion_coupon", autoResultMap = true)
-@KeySequence("promotion_coupon_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@TableName(value = "promotion_code", autoResultMap = true)
+@KeySequence("promotion_code_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PromoCodeDO extends BaseDO {
