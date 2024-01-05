@@ -56,6 +56,9 @@ public class ThreadWithContext {
             SecurityFrameworkUtils.setAuthentication(authentication);
 
             UserContextHolder.setUserId(userId);
+
+            log.info("asyncExecute_user: {} {}", SecurityFrameworkUtils.getLoginUserId(), TenantContextHolder.getTenantId());
+
             runFunction.run();
             UserContextHolder.clear();
             TenantContextHolder.clear();
