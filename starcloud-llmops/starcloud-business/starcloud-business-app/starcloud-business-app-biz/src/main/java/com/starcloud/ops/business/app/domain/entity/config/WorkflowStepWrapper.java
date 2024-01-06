@@ -75,7 +75,7 @@ public class WorkflowStepWrapper {
     @JsonIgnore
     @JSONField(serialize = false)
     public void validate() {
-        this.field = AppUtils.obtainField(this.name);
+        //this.field = AppUtils.obtainField(this.name);
         this.flowStep.validate();
     }
 
