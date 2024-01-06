@@ -81,40 +81,70 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
      */
     protected Long getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
 
-        try {
-            AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
+        AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
 
-            if (adminUserRespDTO == null) {
-                log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+        if (adminUserRespDTO == null) {
+            log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+            //return currentUserId;
+        } else {
+            log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+        }
+
+        //获取当前用户部门ID,只能获取用户当前激活的部门
+        Long deptId = adminUserRespDTO.getDeptId();
+        //找到部门的管理员
+        DeptDO deptDO = deptService.getDept(deptId);
+        if (deptDO != null) {
+            //部门管理员不是当前用户，获取管理员ID
+            if (deptDO.getLeaderUserId() == null) {
+                //之前数据没配置, 这里做兼容处理
                 return currentUserId;
             } else {
-                log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
-            }
 
-            //获取当前用户部门ID,只能获取用户当前激活的部门
-            Long deptId = adminUserRespDTO.getDeptId();
-            //找到部门的管理员
-            DeptDO deptDO = deptService.getDept(deptId);
-            if (deptDO != null) {
-                //部门管理员不是当前用户，获取管理员ID
-                if (deptDO.getLeaderUserId() == null) {
-                    //之前数据没配置, 这里做兼容处理
-                    return currentUserId;
-                } else {
-
-                    if (!deptDO.getLeaderUserId().equals(currentUserId)) {
-                        //判断管理员是否还有权益
-                        if (super.calculateUserRightsEnough(deptDO.getLeaderUserId(), rightsType, rightAmount)) {
-                            log.info("权益切换：当前用户[{}]切换到部门[{}]负责人[{}]", currentUserId, deptDO.getName(), deptDO.getLeaderUserId());
-                            return deptDO.getLeaderUserId();
-                        }
+                if (!deptDO.getLeaderUserId().equals(currentUserId)) {
+                    //判断管理员是否还有权益
+                    if (super.calculateUserRightsEnough(deptDO.getLeaderUserId(), rightsType, rightAmount)) {
+                        log.info("权益切换：当前用户[{}]切换到部门[{}]负责人[{}]", currentUserId, deptDO.getName(), deptDO.getLeaderUserId());
+                        return deptDO.getLeaderUserId();
                     }
                 }
             }
-
-        } catch (Exception e) {
-            log.warn("getDeptRightsUserId getUser is fail: {}", e.getMessage(), e);
         }
+
+//        try {
+//            AdminUserRespDTO adminUserRespDTO = adminUserApi.getUser(currentUserId);
+//
+//            if (adminUserRespDTO == null) {
+//                log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+//                return currentUserId;
+//            } else {
+//                log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
+//            }
+//
+//            //获取当前用户部门ID,只能获取用户当前激活的部门
+//            Long deptId = adminUserRespDTO.getDeptId();
+//            //找到部门的管理员
+//            DeptDO deptDO = deptService.getDept(deptId);
+//            if (deptDO != null) {
+//                //部门管理员不是当前用户，获取管理员ID
+//                if (deptDO.getLeaderUserId() == null) {
+//                    //之前数据没配置, 这里做兼容处理
+//                    return currentUserId;
+//                } else {
+//
+//                    if (!deptDO.getLeaderUserId().equals(currentUserId)) {
+//                        //判断管理员是否还有权益
+//                        if (super.calculateUserRightsEnough(deptDO.getLeaderUserId(), rightsType, rightAmount)) {
+//                            log.info("权益切换：当前用户[{}]切换到部门[{}]负责人[{}]", currentUserId, deptDO.getName(), deptDO.getLeaderUserId());
+//                            return deptDO.getLeaderUserId();
+//                        }
+//                    }
+//                }
+//            }
+//
+//        } catch (Exception e) {
+//            log.warn("getDeptRightsUserId getUser is fail: {}", e.getMessage(), e);
+//        }
 
 
         return currentUserId;

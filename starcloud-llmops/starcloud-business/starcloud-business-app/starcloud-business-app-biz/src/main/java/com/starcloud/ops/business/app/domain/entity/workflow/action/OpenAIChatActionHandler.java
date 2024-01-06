@@ -42,7 +42,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @NoticeVar
-    @NoticeResult
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
