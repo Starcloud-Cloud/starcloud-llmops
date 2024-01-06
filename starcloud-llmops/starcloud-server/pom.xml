@@ -17,6 +17,11 @@
     <dependencies>
 
         <dependency>
+            <groupId>com.github.Starcloud-Cloud</groupId>
+            <artifactId>java-langchain</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-share</artifactId>
             <version>${starcloud.revision}</version>
