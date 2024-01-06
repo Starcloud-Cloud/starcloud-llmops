@@ -37,6 +37,7 @@ public class WorkflowStepWrapper {
     /**
      * 步骤 field
      */
+    @Deprecated
     private String field;
 
     /**
