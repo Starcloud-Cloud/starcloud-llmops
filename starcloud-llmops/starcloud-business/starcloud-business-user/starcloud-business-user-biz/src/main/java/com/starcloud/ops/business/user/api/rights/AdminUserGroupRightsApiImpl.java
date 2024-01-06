@@ -85,7 +85,7 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
 
         if (adminUserRespDTO == null) {
             log.warn("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
-            //return currentUserId;
+            return currentUserId;
         } else {
             log.info("getDeptRightsUserId: {} {}", currentUserId, JSONUtil.toJsonPrettyStr(adminUserRespDTO));
         }
