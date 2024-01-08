@@ -153,7 +153,7 @@ public class StarUserServiceImpl implements StarUserService {
                 log.warn("计算邀请码异常", e);
             }
         }
-        String url = getUrl();
+        String url = getOrigin();
         String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getOrigin() + "/login";
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
