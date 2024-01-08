@@ -30,13 +30,37 @@ public abstract class BaseSchemeStepEntity implements java.io.Serializable {
     private String name;
 
     /**
-     * 转换到应用参数
+     * 组装为应用步骤信息
+     *
+     * @param stepWrapper 应用步骤
      */
-    public abstract void convertAppStepWrapper(WorkflowStepWrapperRespVO stepWrapper);
+    protected abstract void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper);
 
     /**
-     * 转换到创作方案参数
+     * 组装为方案步骤信息
+     *
+     * @param stepWrapper 应用步骤
      */
-    public abstract void convertCreativeSchemeStep();
+    protected abstract void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper);
+
+    /**
+     * 组装为应用步骤信息
+     *
+     * @param stepWrapper 应用步骤
+     */
+    public void transformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
+        this.doTransformAppStep(stepWrapper);
+    }
+
+    /**
+     * 组装为方案步骤信息
+     *
+     * @param stepWrapper 应用步骤
+     */
+    public void transformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
+        this.code = stepWrapper.getFlowStep().getHandler();
+        this.name = stepWrapper.getName();
+        this.doTransformSchemeStep(stepWrapper);
+    }
 
 }

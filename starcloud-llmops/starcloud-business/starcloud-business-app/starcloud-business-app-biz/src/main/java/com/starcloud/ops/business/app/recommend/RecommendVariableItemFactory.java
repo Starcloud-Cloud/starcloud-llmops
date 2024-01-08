@@ -4,8 +4,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -353,7 +353,7 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defMediaMatrixGenerateVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("GENERATE_MODEL");
+        variableItem.setField(CreativeConstants.GENERATE_MODE);
         variableItem.setLabel("生成模式");
         variableItem.setDescription("生成模式");
         variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
@@ -377,7 +377,7 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defMediaMatrixRefers() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("REFERS");
+        variableItem.setField(CreativeConstants.REFERS);
         variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
         variableItem.setDefaultValue(StringUtils.EMPTY);
@@ -398,7 +398,7 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defMediaMatrixParagraphCount() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("PARAGRAPH_COUNT");
+        variableItem.setField(CreativeConstants.PARAGRAPH_COUNT);
         variableItem.setLabel("生成段落数量");
         variableItem.setDescription("生成段落数量");
         variableItem.setDefaultValue(4);
@@ -419,7 +419,7 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defMediaMatrixRequirement() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("REQUIREMENT");
+        variableItem.setField(CreativeConstants.REQUIREMENT);
         variableItem.setLabel("用户要求");
         variableItem.setDescription("用户要求");
         variableItem.setDefaultValue(StringUtils.EMPTY);
@@ -440,7 +440,7 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defPosterStyleVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_STYLE");
+        variableItem.setField(CreativeConstants.POSTER_STYLE);
         variableItem.setLabel(MessageUtil.getMessage("POSTER_STYLE_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("POSTER_STYLE_DESCRIPTION"));
         variableItem.setDefaultValue("{}");

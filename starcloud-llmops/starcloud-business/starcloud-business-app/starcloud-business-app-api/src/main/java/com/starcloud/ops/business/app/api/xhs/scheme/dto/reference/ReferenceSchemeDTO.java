@@ -70,7 +70,7 @@ public class ReferenceSchemeDTO implements java.io.Serializable {
      * 参考图片
      */
     @Schema(description = "图片")
-    private List<ReferenceImageDTO> images;
+    private List<ReferenceImageDTO> imageList;
 
 
 }

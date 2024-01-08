@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,7 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -56,30 +59,33 @@ public class ParagraphSchemeStepEntity extends BaseSchemeStepEntity {
     @Schema(description = "创作方案步骤变量")
     private List<VariableItemDTO> variableList;
 
+
     /**
-     * 转换到应用参数
+     * 组装为应用步骤信息
+     *
+     * @param stepWrapper 应用步骤
      */
     @Override
-    public void convertAppStepWrapper(WorkflowStepWrapperRespVO stepWrapper) {
-
-        //处理随机，让应用step 执行时不需要处理过多的业务逻辑
-
-        //处理 从参考段落（很多）随机取出 N条
-
-        //
-
+    protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put(CreativeConstants.REFERS, this.referList);
+        variableMap.put(CreativeConstants.GENERATE_MODE, this.model);
+        variableMap.put(CreativeConstants.PARAGRAPH_COUNT, this.paragraphCount);
+        variableMap.put(CreativeConstants.REQUIREMENT, this.requirement);
+        stepWrapper.putVariable(variableMap);
     }
 
     /**
-     * 转换到创作方案参数
+     * 组装为方案步骤信息
+     *
+     * @param stepWrapper 应用步骤
      */
     @Override
-    public void convertCreativeSchemeStep() {
-        this.model = CreativeSchemeGenerateModeEnum.RANDOM.name();
+    protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
+        this.model = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
         this.referList = Collections.emptyList();
         this.paragraphCount = 4;
         this.requirement = "";
         this.variableList = Collections.emptyList();
     }
-
 }

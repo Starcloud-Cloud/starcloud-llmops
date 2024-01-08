@@ -21,22 +21,22 @@ public class SchemeStepFactory {
         String handler = step.getHandler();
         if (ContentActionHandler.class.getSimpleName().equals(handler)) {
             ContentSchemeStepEntity contentSchemeStep = new ContentSchemeStepEntity();
-            contentSchemeStep.convertCreativeSchemeStep();
+            contentSchemeStep.transformSchemeStep(stepWrapper);
             return contentSchemeStep;
         }
         if (ParagraphActionHandler.class.getSimpleName().equals(handler)) {
             ParagraphSchemeStepEntity paragraphSchemeStep = new ParagraphSchemeStepEntity();
-            paragraphSchemeStep.convertCreativeSchemeStep();
+            paragraphSchemeStep.transformSchemeStep(stepWrapper);
             return paragraphSchemeStep;
         }
         if (AssembleActionHandler.class.getSimpleName().equals(handler)) {
             AssembleSchemeStepEntity assembleSchemeStep = new AssembleSchemeStepEntity();
-            assembleSchemeStep.convertCreativeSchemeStep();
+            assembleSchemeStep.transformSchemeStep(stepWrapper);
             return assembleSchemeStep;
         }
         if (PosterActionHandler.class.getSimpleName().equals(handler)) {
             PosterSchemeStepEntity posterSchemeStep = new PosterSchemeStepEntity();
-            posterSchemeStep.convertCreativeSchemeStep();
+            posterSchemeStep.transformSchemeStep(stepWrapper);
             return posterSchemeStep;
         }
         throw new RuntimeException("步骤流程不支持");

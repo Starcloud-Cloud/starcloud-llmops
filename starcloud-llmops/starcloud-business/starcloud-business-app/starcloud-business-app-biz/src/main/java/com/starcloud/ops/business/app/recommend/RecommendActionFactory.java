@@ -183,7 +183,7 @@ public class RecommendActionFactory {
         step.setIcon("poster");
         step.setTags(Collections.singletonList("Poster"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(null);
+        step.setVariable(RecommendVariableFactory.defEmptyVariable());
         return step;
     }
 

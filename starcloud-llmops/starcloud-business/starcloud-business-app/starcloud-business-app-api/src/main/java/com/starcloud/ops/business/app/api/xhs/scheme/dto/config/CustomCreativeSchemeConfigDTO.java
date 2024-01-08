@@ -51,7 +51,7 @@ public class CustomCreativeSchemeConfigDTO implements java.io.Serializable {
     /**
      * 抽象的 创作方案 流程节点配置
      */
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "code")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "code")
     private List<BaseSchemeStepDTO> steps;
 
     public void validate(String name, String mode) {

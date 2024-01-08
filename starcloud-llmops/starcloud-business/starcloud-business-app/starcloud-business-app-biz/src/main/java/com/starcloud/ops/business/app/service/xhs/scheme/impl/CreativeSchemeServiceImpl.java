@@ -45,6 +45,7 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
@@ -115,6 +116,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         Map<String, Object> metadata = Maps.newHashMap();
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
         metadata.put("refersSource", CreativeSchemeRefersSourceEnum.options());
+        metadata.put("mode", CreativeSchemeModeEnum.options());
+        metadata.put("generateMode", CreativeSchemeGenerateModeEnum.options());
         return metadata;
     }
 

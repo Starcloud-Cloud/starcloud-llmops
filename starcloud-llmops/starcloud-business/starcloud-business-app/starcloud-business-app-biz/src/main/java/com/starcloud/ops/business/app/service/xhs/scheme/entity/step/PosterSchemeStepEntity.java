@@ -31,23 +31,24 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
     @Schema(description = "创作方案步骤图片风格")
     private List<PosterStyleEntity> styleList;
 
+
     /**
-     * 转换到应用参数
+     * 组装为应用步骤信息
      *
-     * @param stepWrapper
+     * @param stepWrapper 应用步骤
      */
     @Override
-    public void convertAppStepWrapper(WorkflowStepWrapperRespVO stepWrapper) {
+    protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
 
     }
 
     /**
-     * 转换到创作方案参数
+     * 组装为方案步骤信息
+     *
+     * @param stepWrapper 应用步骤
      */
     @Override
-    public void convertCreativeSchemeStep() {
+    protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
         this.styleList = Collections.emptyList();
     }
-
-
 }

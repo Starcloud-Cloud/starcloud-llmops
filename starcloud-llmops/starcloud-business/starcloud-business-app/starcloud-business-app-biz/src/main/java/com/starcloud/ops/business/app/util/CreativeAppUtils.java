@@ -175,7 +175,7 @@ public class CreativeAppUtils {
             ReferenceSchemeDTO reference = new ReferenceSchemeDTO();
             reference.setTitle(item.getTitle());
             reference.setContent(item.getContent());
-            reference.setImages(null);
+            reference.setImageList(null);
             reference.setLink(null);
             reference.setSource(null);
             reference.setId(null);

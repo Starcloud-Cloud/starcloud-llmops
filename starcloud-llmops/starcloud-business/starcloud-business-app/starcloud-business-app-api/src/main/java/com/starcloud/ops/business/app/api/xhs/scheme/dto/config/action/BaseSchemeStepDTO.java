@@ -20,7 +20,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "BaseSchemeStepDTO", description = "方案步骤")
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "code")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "code")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ContentSchemeStepDTO.class, name = "ContentActionHandler"),
         @JsonSubTypes.Type(value = ParagraphSchemeStepDTO.class, name = "ParagraphActionHandler"),

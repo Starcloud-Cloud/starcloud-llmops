@@ -15,6 +15,17 @@ import java.util.Collections;
 public class RecommendVariableFactory {
 
     /**
+     * 空变量
+     *
+     * @return VariableRespVO
+     */
+    public static VariableRespVO defEmptyVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        return variable;
+    }
+
+    /**
      * Open AI Chat Completion 默认变量
      *
      * @param defaultPrompt 默认提示

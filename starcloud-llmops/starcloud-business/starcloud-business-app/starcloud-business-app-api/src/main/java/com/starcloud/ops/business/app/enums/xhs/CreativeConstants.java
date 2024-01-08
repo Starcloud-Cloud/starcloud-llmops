@@ -10,7 +10,7 @@ public interface CreativeConstants {
     /**
      * 生成模式
      */
-    String GENERATE_MODEL = "GENERATE_MODEL";
+    String GENERATE_MODE = "GENERATE_MODE";
 
     /**
      * 参考内容
@@ -26,5 +26,10 @@ public interface CreativeConstants {
      * 生成要求
      */
     String REQUIREMENT = "REQUIREMENT";
+
+    /**
+     * 海报风格
+     */
+    String POSTER_STYLE = "POSTER_STYLE";
 
 }

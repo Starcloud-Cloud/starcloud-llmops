@@ -186,7 +186,6 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(null);
         stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep());
         stepWrapper.setVariable(RecommendVariableFactory.defPosterVariable());
         return stepWrapper;
