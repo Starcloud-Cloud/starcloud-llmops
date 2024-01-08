@@ -49,8 +49,34 @@ yudao:
   info:
     base-package: cn.iocoder.yudao.module
 
+# 日志文件配置
+logging:
+  level:
+    # 配置自己写的 MyBatis Mapper 打印日志
+    cn.iocoder.yudao.module.bpm.dal.mysql: debug
+    cn.iocoder.yudao.module.infra.dal.mysql: debug
+    cn.iocoder.yudao.module.infra.dal.mysql.job.JobLogMapper: INFO # 配置 JobLogMapper 的日志级别为 info
+    cn.iocoder.yudao.module.pay.dal.mysql: debug
+    cn.iocoder.yudao.module.pay.dal.mysql.notify.PayNotifyTaskMapper: INFO # 配置 JobLogMapper 的日志级别为 info
+    cn.iocoder.yudao.module.system.dal.mysql: debug
+    cn.iocoder.yudao.module.tool.dal.mysql: debug
+    cn.iocoder.yudao.module.member.dal.mysql: debug
+    cn.iocoder.yudao.module.trade.dal.mysql: debug
+    cn.iocoder.yudao.module.promotion.dal.mysql: debug
+
 
 kstry:
+#  thread:
+#    pool:
+#      core-size: 0 # Kstry 线程池核心线程数。 默认：CPU核心数>2时取CPU核心数，否则取2
+#      max-size: 0 #  Kstry 线程池最大线程数。 默认：核心线程数*2
+#      keep-alive-time: 10 # Kstry 线程池空闲存活时间。 默认：10分钟，单位：分钟
+#      queue-size: 5000 # Kstry 线程池阻塞队列长度。  默认：10000
+#      shutdown-await: 3000 # 调用线程池 shutdown() 之后，时隔几毫秒后check关闭状态。 默认：3000，单位：毫秒
+#      shutdown-now-await: 3000 # 调用线程池 shutdown() 失败之后再调用 shutdownNow() 时隔几毫秒后check关闭状态。 默认：5000，单位：毫秒
+#      monitor:
+#        enable: true # 是否开启线程池的监控日志。 默认：true
+#        delay: 5000 # 线程池监控日志打印间隔时间。 默认：10000ms，单位：毫秒
   story:
     tracking:
       log: true # 是否打印回溯log，默认为 false
