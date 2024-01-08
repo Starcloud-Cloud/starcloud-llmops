@@ -137,8 +137,20 @@ public class AppContext {
         this.app = app;
         this.uid = app.getUid();
         this.scene = scene;
-        this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getField();
+        this.stepId = app.getWorkflowConfig().getFirstStepWrapper().getStepCode();
         this.userId = WebFrameworkUtils.getLoginUserId();
+    }
+
+    /**
+     * 根据 stepId 获取 actionResponse
+     *
+     * @return 根据 stepId 获取 step
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public ActionResponse getStepResponse(String stepId) {
+
+        return this.getStepWrapper(stepId).getFlowStep().getResponse();
     }
 
     /**

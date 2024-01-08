@@ -302,7 +302,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
-        ActionResponse result = fire.getResult();
+        /**
+         * 因为执行到最后 stepId 就是最后的节点
+         */
+        ActionResponse result =  appContext.getStepResponse(appContext.getStepId());
+
         if (Objects.isNull(result)) {
             log.error("应用工作流执行异常(ActionResponse 结果为空): 步骤 ID: {}", appContext.getStepId());
             throw exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT);

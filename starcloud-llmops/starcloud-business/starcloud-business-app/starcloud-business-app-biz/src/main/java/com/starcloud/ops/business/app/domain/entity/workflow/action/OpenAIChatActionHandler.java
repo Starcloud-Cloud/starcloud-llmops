@@ -42,7 +42,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @NoticeVar
-    @NoticeResult
     @TaskService(name = "OpenAIChatActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
@@ -98,8 +97,8 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", 1000));
-        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", 0.7d));
+        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
+        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7d"));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();

@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
@@ -75,6 +77,13 @@ public class WorkflowV2Test extends BaseDbUnitTest {
 
     @MockBean
     private AdminUserService adminUserService;
+
+    @MockBean
+    private DeptService deptService;
+
+    @MockBean
+    private AdminUserApi adminUserApi;
+
 
 
     final String appId = "appId-test";
