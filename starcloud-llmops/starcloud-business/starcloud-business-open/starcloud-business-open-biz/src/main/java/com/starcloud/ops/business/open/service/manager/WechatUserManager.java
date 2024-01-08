@@ -74,17 +74,17 @@ public class WechatUserManager {
                 .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                 .socialType(socialUserDO.getType()).build();
         socialUserService.bindWechatUser(socialUserDO, socialUserBind);
-
+        Long inviteUserid = 0L;
         try {
             String inviteCode = redisTemplate.boundValueOps(wxMessage.getTicket() + "_inviteCode").get();
             if (StringUtils.isNotBlank(inviteCode)) {
-                Long inviteUserid = EncryptionUtils.decrypt(inviteCode);
-                starUserService.addBenefits(userId, inviteUserid);
+                inviteUserid = EncryptionUtils.decrypt(inviteCode);
             }
+
         } catch (Exception e) {
             log.warn("获取邀请用户失败，currentUser={}", userId, e);
         }
-
+        starUserService.addBenefits(userId, inviteUserid);
     }
 
 
