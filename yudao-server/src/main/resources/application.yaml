@@ -195,7 +195,7 @@ yudao:
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，无法携带租户编号
       - /admin-api/llm/auth/activation/*
 #      - /admin-api/system/auth/login # 登录
-      - /admin-api/system/auth/refresh-token # 刷新缓存
+#      - /admin-api/system/auth/refresh-token # 刷新缓存
       - /admin-api/llm/wechat/open/** # 微信回调
       - /admin-api/system/auth/logout # 登出
       - /admin-api/llm/communication/code/**  # 发送验证码
