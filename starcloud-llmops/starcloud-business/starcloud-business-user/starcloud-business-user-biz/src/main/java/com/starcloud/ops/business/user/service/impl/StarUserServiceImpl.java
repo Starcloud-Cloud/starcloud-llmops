@@ -103,15 +103,6 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private RecoverPasswordMapper recoverPasswordMapper;
 
-    @Autowired
-    private UserRoleMapper userRoleMapper;
-
-//    @Autowired
-//    private PermissionProducer permissionProducer;
-
-//    @Autowired
-//    private UserBenefitsService benefitsService;
-
     @Resource
     private InvitationRecordsService invitationRecordsService;
 
@@ -123,18 +114,15 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private SendUserMsgService sendUserMsgService;
 
-
-    @Autowired
-    private RoleMapper roleMapper;
     @Resource
     private SendSocialMsgService sendSocialMsgService;
-
 
     @Resource
     private AdminUserLevelService adminUserLevelService;
 
     @Resource
     private AdminUserRightsService adminUserRightsService;
+
     @Resource
     private AdminUserTagService adminUserTagService;
 
@@ -143,16 +131,8 @@ public class StarUserServiceImpl implements StarUserService {
 
 
 
-    @Value("${starcloud-llm.role.code:mofaai_free}")
-    private String roleCode;
-
-    @Value("${starcloud-llm.tenant.id:2}")
-    private Long tenantId;
-
-
     @Override
     @Transactional(rollbackFor = Exception.class)
-//    @Cacheable(value = RedisKeyConstants.MENU_ROLE_ID_LIST, key = "#menuId")
     public boolean register(RegisterRequest request) {
         validateEmailAndUsername(request.getUsername(), request.getEmail());
         String activationCode = IdUtil.getSnowflakeNextIdStr();
@@ -166,15 +146,9 @@ public class StarUserServiceImpl implements StarUserService {
                 .registerIp(ServletUtils.getClientIP()).build();
 
         if (request.getInviteCode() != null) {
-//            String userName = null;
             try {
-//                userName = EncryptionUtils.decryptString(request.getInviteCode());
                 Long inviteUserId = EncryptionUtils.decrypt(request.getInviteCode());
                 registerUserDO.setInviteUserId(inviteUserId);
-//                AdminUserDO userDO = adminUserMapper.selectByUsername(userName);
-//                if (userDO != null) {
-//                    registerUserDO.setInviteUserId(userDO.getId());
-//                }
             } catch (Exception e) {
                 log.warn("计算邀请码异常", e);
             }
@@ -187,19 +161,14 @@ public class StarUserServiceImpl implements StarUserService {
         UserDTO userDTO = UserDTO.builder().username(registerUserDO.getUsername())
                 .email(registerUserDO.getEmail())
                 .password(registerUserDO.getPassword())
-                .parentDeptId(2L)
+                // 父部门id与租户id保持一致 ！！！
+                .parentDeptId(TenantContextHolder.getTenantId())
+                .tenantId(TenantContextHolder.getTenantId())
                 .userStatus(CommonStatusEnum.DISABLE.getStatus()).build();
         Long userId = createNewUser(userDTO);
         registerUserDO.setUserId(userId);
-        mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
         int insert = registerUserMapper.insert(registerUserDO);
-//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-//            @Override
-//            public void afterCommit() {
-//                permissionProducer.sendUserRoleRefreshMessage();
-//            }
-//
-//        });
+        mailSendService.sendSingleMail(request.getEmail(), 1L, UserTypeEnum.ADMIN.getValue(), "register_temp", map);
         return insert > 0;
     }
 
@@ -211,6 +180,7 @@ public class StarUserServiceImpl implements StarUserService {
     @Override
     public void addBenefits(Long currentUserId, Long inviteUserId) {
         try {
+            Long tenantId = TenantContextHolder.getTenantId();
             if (inviteUserId != null && inviteUserId > 0) {
 
                 // 增加邀请记录
@@ -273,14 +243,14 @@ public class StarUserServiceImpl implements StarUserService {
             registerUserMapper.updateById(registerUserDO);
             throw exception(OPERATE_TIME_OUT);
         }
-
+        TenantContextHolder.setTenantId(registerUserDO.getTenantId());
+        TenantContextHolder.setIgnore(false);
         AdminUserDO userDO = new AdminUserDO().setId(registerUserDO.getUserId()).setStatus(CommonStatusEnum.ENABLE.getStatus());
         int i = adminUserMapper.updateById(userDO);
         if (i <= 0) {
             throw exception(ACTIVATION_USER_ERROR);
         }
-        TenantContextHolder.setTenantId(tenantId);
-        TenantContextHolder.setIgnore(false);
+
         addBenefits(registerUserDO.getUserId(), registerUserDO.getInviteUserId());
         TenantContextHolder.setIgnore(true);
         registerUserDO.setStatus(1);
@@ -295,7 +265,7 @@ public class StarUserServiceImpl implements StarUserService {
         deptDO.setName(userDTO.getUsername() + "_space");
         deptDO.setEmail(userDTO.getEmail());
         deptDO.setStatus(0);
-        deptDO.setTenantId(tenantId);
+        deptDO.setTenantId(userDTO.getTenantId());
         deptMapper.insert(deptDO);
 
         Long deptId = deptDO.getId();
@@ -306,28 +276,16 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setStatus(userDTO.getUserStatus());
         userDO.setNickname(userDTO.getUsername());
         userDO.setPassword(userDTO.getPassword());
-        userDO.setTenantId(tenantId);
+        userDO.setTenantId(userDTO.getTenantId());
         userDO.setMobile(userDTO.getMobile());
         adminUserMapper.insert(userDO);
 
-//        RoleDO roleDO = roleMapper.selectByCode(roleCode, tenantId);
-//        if (roleDO == null) {
-//            throw exception(ROLE_NOT_EXIST);
-//        }
-
         // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
-        TenantUtils.execute(tenantId, () -> {
+        TenantUtils.execute(userDTO.getTenantId(), () -> {
             adminUserLevelService.createInitLevelRecord(userDO.getId());
             adminUserTagService.addNewUserTag(userDO.getId());
         });
 
-//        UserRoleDO userRoleDO = new UserRoleDO();
-//        userRoleDO.setRoleId(roleDO.getId());
-//        userRoleDO.setUserId(userDO.getId());
-//        userRoleDO.setCreator(userDO.getUsername());
-//        userRoleDO.setUpdater(userDO.getUpdater());
-////        userRoleDO.setTenantId(userDO.getTenantId());
-//        userRoleMapper.insert(userRoleDO);
         return userDO.getId();
     }
 
@@ -470,7 +428,6 @@ public class StarUserServiceImpl implements StarUserService {
 
         Map<String, Object> map = new HashMap<>();
         map.put("recoverUrl", recoverUrl);
-        mailSendService.sendSingleMail(request.getEmail(), userDO.getId(), UserTypeEnum.ADMIN.getValue(), "recover_temp", map);
 
         RecoverPasswordDO recoverPasswordDO = new RecoverPasswordDO();
         recoverPasswordDO.setUserId(userDO.getId());
@@ -480,6 +437,7 @@ public class StarUserServiceImpl implements StarUserService {
         recoverPasswordDO.setEmail(request.getEmail());
         recoverPasswordDO.setStatus(0);
         recoverPasswordMapper.insert(recoverPasswordDO);
+        mailSendService.sendSingleMail(request.getEmail(), userDO.getId(), UserTypeEnum.ADMIN.getValue(), "recover_temp", map);
         return true;
     }
 
@@ -577,27 +535,24 @@ public class StarUserServiceImpl implements StarUserService {
     }
 
     private void validateEmailAndUsername(String username, String email) {
-        DataPermissionUtils.executeIgnore(() -> {
-            AdminUserDO user = adminUserMapper.selectByUsername(username);
-            if (user != null) {
-                throw exception(USER_USERNAME_EXISTS);
-            }
-            user = adminUserMapper.selectByEmail(email);
-            if (user != null) {
-                throw exception(USER_EMAIL_EXISTS);
-            }
+        AdminUserDO user = adminUserMapper.selectByUsername(username);
+        if (user != null) {
+            throw exception(USER_USERNAME_EXISTS);
+        }
+        user = adminUserMapper.selectByEmail(email);
+        if (user != null) {
+            throw exception(USER_EMAIL_EXISTS);
+        }
 
-            RegisterUserDO registerUserDO = registerUserMapper.selectByUsername(username);
-            // 注册时间30分钟内
-            if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
-                throw exception(USER_USERNAME_EXISTS);
-            }
-            registerUserDO = registerUserMapper.selectByEmail(email);
-            if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
-                throw exception(USER_EMAIL_EXISTS);
-            }
-
-        });
+        RegisterUserDO registerUserDO = registerUserMapper.selectByUsername(username);
+        // 注册时间30分钟内
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+            throw exception(USER_USERNAME_EXISTS);
+        }
+        registerUserDO = registerUserMapper.selectByEmail(email);
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+            throw exception(USER_EMAIL_EXISTS);
+        }
     }
 
     private Boolean validateIsNewUser(LocalDateTime RegisterTime,Long userId) {
