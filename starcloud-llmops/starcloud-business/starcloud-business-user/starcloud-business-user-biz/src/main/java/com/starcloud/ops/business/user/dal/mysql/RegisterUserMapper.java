@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.user.dal.mysql;
 
-import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;

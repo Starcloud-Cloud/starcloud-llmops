@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.open.service.handler;
 
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.open.service.WechatService;
+import com.starcloud.ops.business.open.service.manager.WechatUserManager;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -13,6 +15,7 @@ import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -39,6 +42,9 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     @Resource
     private WechatService wechatService;
 
+    @Resource
+    private WechatUserManager wechatUserManager;
+
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信扫描事件，内容：{}", wxMessage);
@@ -46,6 +52,16 @@ public class WeChatScanHandler implements WxMpMessageHandler {
             return null;
         }
         WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
+
+        String tenantId = redisTemplate.boundValueOps(wxMessage.getTicket() + "_tenantId").get();
+        if (StringUtils.isNotBlank(tenantId)) {
+            TenantContextHolder.setTenantId(Long.valueOf(tenantId));
+        }
+        // 用户不存在重新注册
+        if (!wechatUserManager.socialExist(wxMpUser.getOpenId())) {
+            wechatUserManager.createSocialUser(wxMpUser, wxMessage);
+        }
+
         mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
 

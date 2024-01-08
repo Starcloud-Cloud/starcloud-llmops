@@ -50,7 +50,7 @@ public class StarUserController {
     @PostMapping("/register")
     @PermitAll
     @Operation(summary = "邮箱注册帐号", description = "邮箱注册帐号")
-    @TenantIgnore
+//    @TenantIgnore
     @OperateLog(enable = false)
     public CommonResult<Boolean> register(@RequestBody @Valid RegisterRequest request) {
         return CommonResult.success(llmUserService.register(request));
@@ -77,7 +77,7 @@ public class StarUserController {
     @PostMapping("/recover/password")
     @PermitAll
     @Operation(summary = "忘记密码邮箱修改", description = "忘记密码邮箱修改")
-    @TenantIgnore
+//    @TenantIgnore
     @OperateLog(enable = false)
     public CommonResult<Boolean> recoverPassword(@RequestBody @Valid RecoverPasswordRequest request) {
         return CommonResult.success(llmUserService.recoverPassword(request));
@@ -86,7 +86,7 @@ public class StarUserController {
     @GetMapping("/recover/check/{verificationCode}")
     @PermitAll
     @Operation(summary = "验证code是否过期", description = "验证code是否过期")
-    @TenantIgnore
+//    @TenantIgnore
     @OperateLog(enable = false)
     public CommonResult<Boolean> checkCode(@PathVariable("verificationCode") String verificationCode) {
         return CommonResult.success(llmUserService.checkCode(verificationCode));
@@ -95,7 +95,7 @@ public class StarUserController {
     @PostMapping("/change/password")
     @PermitAll
     @Operation(summary = "修改密码", description = "修改密码")
-    @TenantIgnore
+//    @TenantIgnore
     @OperateLog(enable = false)
     public CommonResult<Boolean> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         return CommonResult.success(llmUserService.changePassword(request));
@@ -116,7 +116,7 @@ public class StarUserController {
 
     @PutMapping("/user/update")
     @Operation(summary = "修改用户个人信息", description = "修改用户个人信息")
-    @TenantIgnore
+//    @TenantIgnore
     public CommonResult<Boolean> updateUserProfile(@RequestBody @Valid UserProfileUpdateRequest request) {
         return CommonResult.success(llmUserService.updateUserProfile(request));
     }
@@ -124,7 +124,7 @@ public class StarUserController {
 
     @PutMapping("/user/notify_expiring")
     @Operation(summary = "用户过期提醒", description = "用户过期提醒")
-    @TenantIgnore
+//    @TenantIgnore
     public CommonResult<AdminUserNotifyExpiringRespVO> NotifyExpiring() {
         AdminUserNotifyExpiringRespVO adminUserNotifyExpiringRespVO = new AdminUserNotifyExpiringRespVO();
         NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = adminUserLevelService.notifyExpiringLevel(getLoginUserId());
