@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +13,8 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * App 步骤实体包装类
@@ -66,5 +71,13 @@ public class WorkflowStepWrapperRespVO implements Serializable {
 
     public void putVariable(Map<String, Object> variable) {
         this.variable.putVariable(variable);
+    }
+
+    public Map<String, Object> getVariableItemMap() {
+        return Optional.ofNullable(this.getVariable())
+                .map(VariableRespVO::getVariables)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED))
+                .stream()
+                .collect(Collectors.toMap(VariableItemRespVO::getField, VariableItemRespVO::getValue));
     }
 }

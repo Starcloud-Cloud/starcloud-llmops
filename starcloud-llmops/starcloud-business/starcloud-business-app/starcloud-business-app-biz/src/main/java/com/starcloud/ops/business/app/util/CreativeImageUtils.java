@@ -13,8 +13,8 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -203,12 +203,12 @@ public class CreativeImageUtils {
      * @param style 图片模板列表
      * @return 图片执行参数
      */
-    public static CreativePlanImageStyleExecuteDTO getCreativeImageStyleExecute(CreativeImageStyleDTO style, List<String> useImageList, Map<String, CreativeImageTemplateDTO> posterMap) {
+    public static CreativePlanImageStyleExecuteDTO getCreativeImageStyleExecute(PosterStyleDTO style, List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
         // 图片参数信息
         List<CreativePlanImageExecuteDTO> imageExecuteRequestList = Lists.newArrayList();
-        List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         for (int i = 0; i < templateList.size(); i++) {
-            CreativeImageTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
+            PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
             CreativePlanImageExecuteDTO imageExecuteRequest = new CreativePlanImageExecuteDTO();
             imageExecuteRequest.setIndex(i + 1);
             imageExecuteRequest.setIsMain(i == 0);
@@ -231,15 +231,15 @@ public class CreativeImageUtils {
      * @param style 图片模板列表
      * @return 图片执行参数
      */
-    public static CreativePlanImageStyleExecuteDTO getCreativeImageStyleExecute(CreativeImageStyleDTO style, List<String> useImageList,
-                                                                                Integer paragraphCount, Map<String, CreativeImageTemplateDTO> posterMap) {
+    public static CreativePlanImageStyleExecuteDTO getCreativeImageStyleExecute(PosterStyleDTO style, List<String> useImageList,
+                                                                                Integer paragraphCount, Map<String, PosterTemplateDTO> posterMap) {
         // 图片参数信息
         List<CreativePlanImageExecuteDTO> imageExecuteRequestList = Lists.newArrayList();
-        List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         // 图片参数配置的总段落数
         List<Integer> paragraphParamCountList = new ArrayList<>();
         for (int i = 0; i < templateList.size(); i++) {
-            CreativeImageTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
+            PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
             CreativePlanImageExecuteDTO imageExecuteRequest = new CreativePlanImageExecuteDTO();
             imageExecuteRequest.setIndex(i + 1);
             imageExecuteRequest.setIsMain(i == 0);
@@ -313,7 +313,7 @@ public class CreativeImageUtils {
      * @param posterMap 海报模板集合，最新的海报模板
      * @return 合并后的海报模板
      */
-    public static CreativeImageTemplateDTO mergeTemplate(CreativeImageTemplateDTO template, Map<String, CreativeImageTemplateDTO> posterMap) {
+    public static PosterTemplateDTO mergeTemplate(PosterTemplateDTO template, Map<String, PosterTemplateDTO> posterMap) {
         if (Objects.isNull(template)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST);
         }
@@ -322,14 +322,14 @@ public class CreativeImageUtils {
             log.warn("海报模板不存在: 模板名称：{}, 模板ID：{}!", template.getName(), template.getId());
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST, template.getName());
         }
-        CreativeImageTemplateDTO posterTemplate = posterMap.get(template.getId());
+        PosterTemplateDTO posterTemplate = posterMap.get(template.getId());
         if (Objects.isNull(posterTemplate)) {
             log.warn("海报模板不存在: 模板名称：{}, 模板ID：{}!", template.getName(), template.getId());
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_IMAGE_TEMPLATE_NOT_EXIST, template.getName());
         }
 
         // 非图片类型参数如果有值，则覆盖
-        posterTemplate.setVariables(mergeVariables(CollectionUtil.emptyIfNull(template.getVariables()), CollectionUtil.emptyIfNull(posterTemplate.getVariables())));
+        posterTemplate.setVariableList(mergeVariables(CollectionUtil.emptyIfNull(template.getVariableList()), CollectionUtil.emptyIfNull(posterTemplate.getVariableList())));
         return posterTemplate;
     }
 
@@ -360,11 +360,11 @@ public class CreativeImageUtils {
      * @param useImageList 使用的图片
      * @return 执行参数
      */
-    private static List<VariableItemRespVO> transformParams(CreativeImageTemplateDTO template, List<String> useImageList) {
+    private static List<VariableItemRespVO> transformParams(PosterTemplateDTO template, List<String> useImageList) {
         List<VariableItemRespVO> params = Lists.newArrayList();
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
-        List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(template.getVariables());
+        List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(template.getVariableList());
         List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
         for (VariableItemRespVO variableItem : variableItemList) {
             VariableItemRespVO item = SerializationUtils.clone(variableItem);

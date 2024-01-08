@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -15,6 +18,15 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(name = "BaseSchemeStepDTO", description = "方案步骤")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "code")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ContentSchemeStepDTO.class, name = "ContentActionHandler"),
+        @JsonSubTypes.Type(value = ParagraphSchemeStepDTO.class, name = "ParagraphActionHandler"),
+        @JsonSubTypes.Type(value = AssembleSchemeStepDTO.class, name = "AssembleActionHandler"),
+        @JsonSubTypes.Type(value = PosterSchemeStepDTO.class, name = "PosterActionHandler")
+})
 public abstract class BaseSchemeStepDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 5401242096922842719L;
@@ -28,15 +40,5 @@ public abstract class BaseSchemeStepDTO implements java.io.Serializable {
      * 名称
      */
     private String name;
-
-    /**
-     * 转换到应用参数
-     */
-    public abstract void convertAppStepWrapper(WorkflowStepWrapperRespVO stepWrapper);
-
-    /**
-     * 转换到创作方案参数
-     */
-    public abstract void convertCreativeSchemeStep();
 
 }

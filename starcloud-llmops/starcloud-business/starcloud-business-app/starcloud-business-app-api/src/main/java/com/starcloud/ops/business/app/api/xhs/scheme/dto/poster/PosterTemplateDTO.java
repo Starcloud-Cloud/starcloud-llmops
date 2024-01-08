@@ -1,7 +1,6 @@
-package com.starcloud.ops.business.app.api.xhs.scheme.dto;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto.poster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -25,7 +24,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "CreativeImageTemplateDTO", description = "创作中心图片模板对象")
-public class CreativeImageTemplateDTO implements java.io.Serializable {
+public class PosterTemplateDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 20366484377479364L;
 
@@ -59,6 +58,6 @@ public class CreativeImageTemplateDTO implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    private List<VariableItemRespVO> variables;
+    private List<VariableItemRespVO> variableList;
 
 }

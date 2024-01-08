@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
@@ -346,6 +347,30 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 生成图片的数量
+     *
+     * @return VariableItemRespVO
+     */
+    public static VariableItemRespVO defMediaMatrixGenerateVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("GENERATE_MODEL");
+        variableItem.setLabel("生成模式");
+        variableItem.setDescription("生成模式");
+        variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setOrder(100);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.RANDOM.getLabel(), CreativeSchemeGenerateModeEnum.RANDOM.name());
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_PARODY.getLabel(), CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_CUSTOM.getLabel(), CreativeSchemeGenerateModeEnum.AI_CUSTOM.name());
+        return variableItem;
+    }
+
+    /**
      * 参考内容变量
      *
      * @return 参考内容变量
@@ -357,7 +382,7 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
-        variableItem.setOrder(1);
+        variableItem.setOrder(101);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
@@ -367,26 +392,44 @@ public class RecommendVariableItemFactory {
     }
 
     /**
-     * 海报模式变量
+     * 参考内容变量
      *
-     * @return VariableItemRespVO
+     * @return 参考内容变量
      */
-    public static VariableItemRespVO defPosterModeVariable() {
+    public static VariableItemRespVO defMediaMatrixParagraphCount() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_MODE");
-        variableItem.setLabel(MessageUtil.getMessage("POSTER_MODE_LABEL"));
-        variableItem.setDescription(MessageUtil.getMessage("POSTER_MODE_DESCRIPTION"));
-        variableItem.setDefaultValue(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
-        variableItem.setValue(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
-        variableItem.setOrder(1);
+        variableItem.setField("PARAGRAPH_COUNT");
+        variableItem.setLabel("生成段落数量");
+        variableItem.setDescription("生成段落数量");
+        variableItem.setDefaultValue(4);
+        variableItem.setValue(4);
+        variableItem.setOrder(102);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
-        variableItem.addOption(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
-        variableItem.addOption(CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name());
-        variableItem.addOption(CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name());
+        return variableItem;
+    }
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defMediaMatrixRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("REQUIREMENT");
+        variableItem.setLabel("用户要求");
+        variableItem.setDescription("用户要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(103);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
 

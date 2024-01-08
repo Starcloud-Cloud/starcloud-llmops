@@ -60,7 +60,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
 
 
         //获取到 参考文案
-        String json = (String) params.get("参考文案");
+        //String json = (String) params.get("参考文案");
 
         //生成模式
         String type = (String) params.get("type");

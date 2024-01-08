@@ -8,7 +8,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
@@ -102,7 +102,7 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
         creativeSchemeResponse.setMode(creativeScheme.getMode());
         if (StringUtils.isNotBlank(creativeScheme.getRefers())) {
-            TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
+            TypeReference<List<ReferenceSchemeDTO>> typeReference = new TypeReference<List<ReferenceSchemeDTO>>() {
             };
             creativeSchemeResponse.setRefers(JSONUtil.toBean(creativeScheme.getRefers(), typeReference, Boolean.TRUE));
         }

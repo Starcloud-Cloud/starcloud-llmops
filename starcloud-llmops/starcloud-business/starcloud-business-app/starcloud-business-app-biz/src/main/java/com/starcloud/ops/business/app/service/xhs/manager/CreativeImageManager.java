@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
@@ -14,11 +13,10 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
@@ -61,8 +59,8 @@ public class CreativeImageManager {
      *
      * @return 图片模板
      */
-    public List<CreativeImageTemplateDTO> templates() {
-        List<PosterTemplateDTO> templates = posterService.templates();
+    public List<PosterTemplateDTO> templates() {
+        List<com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO> templates = posterService.templates();
         return CollectionUtil.emptyIfNull(templates).stream().map(item -> {
             List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
             int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
@@ -77,11 +75,11 @@ public class CreativeImageManager {
                 }
             }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
 
-            CreativeImageTemplateDTO response = new CreativeImageTemplateDTO();
+            PosterTemplateDTO response = new PosterTemplateDTO();
             response.setId(item.getId());
             response.setName(item.getLabel());
             response.setExample(item.getTempUrl());
-            response.setVariables(variables);
+            response.setVariableList(variables);
             response.setImageNumber(imageNumber);
             return response;
         }).collect(Collectors.toList());
@@ -92,9 +90,9 @@ public class CreativeImageManager {
      *
      * @return 图片模板 Map
      */
-    public Map<String, CreativeImageTemplateDTO> mapTemplate() {
+    public Map<String, PosterTemplateDTO> mapTemplate() {
         if (CollectionUtils.isNotEmpty(templates())) {
-            return templates().stream().collect(Collectors.toMap(CreativeImageTemplateDTO::getId, Function.identity()));
+            return templates().stream().collect(Collectors.toMap(PosterTemplateDTO::getId, Function.identity()));
         }
         return Maps.newHashMap();
     }
@@ -109,7 +107,7 @@ public class CreativeImageManager {
         return CollectionUtil.emptyIfNull(templateTypeList).stream()
                 .map(item -> {
                     // 获取模板列表
-                    List<CreativeImageTemplateDTO> templateList = CollectionUtil.emptyIfNull(item.getList()).stream()
+                    List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(item.getList()).stream()
                             .map(templateItem -> {
                                 List<PosterParam> params = CollectionUtil.emptyIfNull(templateItem.getParams());
                                 int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
@@ -124,11 +122,11 @@ public class CreativeImageManager {
                                                 return null;
                                             }
                                         }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
-                                CreativeImageTemplateDTO template = new CreativeImageTemplateDTO();
+                                PosterTemplateDTO template = new PosterTemplateDTO();
                                 template.setId(templateItem.getId());
                                 template.setName(templateItem.getLabel());
                                 template.setExample(templateItem.getTempUrl());
-                                template.setVariables(variables);
+                                template.setVariableList(variables);
                                 template.setImageNumber(imageNumber);
                                 return template;
                             }).collect(Collectors.toList());
@@ -165,8 +163,8 @@ public class CreativeImageManager {
             }
 
             // 获取海报图片模板
-            List<CreativeImageTemplateDTO> posterTemplates = templates();
-            Optional<CreativeImageTemplateDTO> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), id)).findFirst();
+            List<PosterTemplateDTO> posterTemplates = templates();
+            Optional<PosterTemplateDTO> optional = CollectionUtil.emptyIfNull(posterTemplates).stream().filter(item -> StringUtils.equals(item.getId(), id)).findFirst();
             if (!optional.isPresent()) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_NOT_SUPPORTED, request.getName());
             }

@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -24,12 +23,10 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModify
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeImageTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
@@ -482,34 +479,34 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 查询并且校验创作方案是否存在
         List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
         // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
-        Map<String, CreativeImageTemplateDTO> posterMap = creativeImageManager.mapTemplate();
+        Map<String, PosterTemplateDTO> posterMap = creativeImageManager.mapTemplate();
 
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
 
             if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(scheme.getMode())) {
-                CustomCreativeSchemeConfigDTO customConfiguration = scheme.getCustomConfiguration();
-                customConfiguration.validate(scheme.getName(), scheme.getMode());
-                AppRespVO appRespVO = appService.get(customConfiguration.getAppUid());
-
-                List<CreativeSchemeStepDTO> steps = customConfiguration.getSteps();
-                Optional<CreativeSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> CollectionUtil.isEmpty(item.getImageStyles())).findFirst();
-
-                //不需要必须有具体的action
-                if (!posterStepOptional.isPresent()) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(1, "自定义创作方案必须包含海报步骤"));
-                }
-
-                CreativeSchemeStepDTO schemeStep = posterStepOptional.get();
-                for (int i = 0; i < CollectionUtil.emptyIfNull(schemeStep.getImageStyles()).size(); i++) {
-                    AppRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, planConfig.getImageUrlList(), appRespVO, posterMap, i);
-                    CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
-                    planExecute.setSchemeUid(scheme.getUid());
-                    planExecute.setSchemeMode(scheme.getMode());
-                    planExecute.setAppResponse(app);
-                    list.add(planExecute);
-                }
+//                CustomCreativeSchemeConfigDTO customConfiguration = scheme.getCustomConfiguration();
+//                customConfiguration.validate(scheme.getName(), scheme.getMode());
+//                AppRespVO appRespVO = appService.get(customConfiguration.getAppUid());
+//
+//                List<CreativeSchemeStepDTO> steps = customConfiguration.getSteps();
+//                Optional<CreativeSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> CollectionUtil.isEmpty(item.getImageStyles())).findFirst();
+//
+//                //不需要必须有具体的action
+//                if (!posterStepOptional.isPresent()) {
+//                    throw ServiceExceptionUtil.exception(new ErrorCode(1, "自定义创作方案必须包含海报步骤"));
+//                }
+//
+//                CreativeSchemeStepDTO schemeStep = posterStepOptional.get();
+//                for (int i = 0; i < CollectionUtil.emptyIfNull(schemeStep.getImageStyles()).size(); i++) {
+//                    AppRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, planConfig.getImageUrlList(), appRespVO, posterMap, i);
+//                    CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+//                    planExecute.setSchemeUid(scheme.getUid());
+//                    planExecute.setSchemeMode(scheme.getMode());
+//                    planExecute.setAppResponse(app);
+//                    list.add(planExecute);
+//                }
                 continue;
             }
             CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
@@ -519,8 +516,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO app = creativeAppManager.getExecuteApp(scheme.getMode());
             // 获取应用执行参数
             CreativePlanAppExecuteDTO appExecute = CreativeAppUtils.getXhsAppExecuteRequest(scheme, planConfig, app.getUid());
-            for (CreativeImageStyleDTO style : imageTemplate.getStyleList()) {
-                List<CreativeImageTemplateDTO> templateList = style.getTemplateList();
+            for (PosterStyleDTO style : imageTemplate.getStyleList()) {
+                List<PosterTemplateDTO> templateList = style.getTemplateList();
                 AppValidate.notEmpty(templateList, CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());
 
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();

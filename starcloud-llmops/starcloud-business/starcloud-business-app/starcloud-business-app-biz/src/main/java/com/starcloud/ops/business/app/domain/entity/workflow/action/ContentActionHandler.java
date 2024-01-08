@@ -99,7 +99,7 @@ public class ContentActionHandler extends BaseActionHandler {
         String type = (String) params.get("type");
 
         //prompt
-        String prompt = (String) params.get("prompt");
+        //String prompt = (String) params.get("prompt");
 
 
         /**

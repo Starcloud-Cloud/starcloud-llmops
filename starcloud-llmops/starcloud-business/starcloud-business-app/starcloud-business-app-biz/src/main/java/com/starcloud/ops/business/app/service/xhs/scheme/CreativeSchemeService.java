@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.scheme;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -29,6 +30,13 @@ public interface CreativeSchemeService {
      * @return 创作方案元数据
      */
     Map<String, Object> metadata();
+
+    /**
+     * 获取创作方案配置
+     *
+     * @return 创作方案配置
+     */
+    List<CustomCreativeSchemeConfigDTO>configurationList(String model);
 
     /**
      * 获取创作方案详情

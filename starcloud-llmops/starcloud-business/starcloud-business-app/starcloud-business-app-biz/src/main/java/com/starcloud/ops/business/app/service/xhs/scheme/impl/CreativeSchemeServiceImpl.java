@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
@@ -19,13 +20,15 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteReques
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeImageTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -35,6 +38,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeR
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
+import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -49,6 +53,8 @@ import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreative
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.SchemeStepFactory;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
@@ -110,6 +116,40 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
         metadata.put("refersSource", CreativeSchemeRefersSourceEnum.options());
         return metadata;
+    }
+
+    /**
+     * 获取创作方案配置
+     *
+     * @return 创作方案配置
+     */
+    @Override
+    public List<CustomCreativeSchemeConfigDTO> configurationList(String model) {
+        List<AppMarketRespVO> appList = creativeAppManager.appMarketplaceList(model);
+        List<CustomCreativeSchemeConfigDTO> customConfigurationList = Lists.newArrayList();
+        for (AppMarketRespVO appMarketResponse : appList) {
+            // 获取所有步骤
+            List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
+                    .map(WorkflowConfigRespVO::getSteps)
+                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+
+            // 构建创作方案步骤
+            List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
+            for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+                BaseSchemeStepEntity schemeStep = SchemeStepFactory.factory(stepWrapper);
+                schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
+            }
+
+            // 构建创作方案配置
+            CustomCreativeSchemeConfigDTO customConfiguration = new CustomCreativeSchemeConfigDTO();
+            customConfiguration.setAppUid(appMarketResponse.getUid());
+            customConfiguration.setAppName(appMarketResponse.getName());
+            customConfiguration.setVersion(appMarketResponse.getVersion());
+            customConfiguration.setSteps(schemeStepList);
+            customConfigurationList.add(customConfiguration);
+        }
+
+        return customConfigurationList;
     }
 
     /**
@@ -500,16 +540,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         // 随机打散图片素材列表
         List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, copyWritingList.size());
         // Poster海报模板 Map
-        Map<String, CreativeImageTemplateDTO> posterMap = creativeImageManager.mapTemplate();
+        Map<String, PosterTemplateDTO> posterMap = creativeImageManager.mapTemplate();
         // 图片模板风格列表
-        List<CreativeImageStyleDTO> styleList = Optional.ofNullable(request.getConfiguration()).map(CreativeSchemeConfigDTO::getImageTemplate).map(CreativeSchemeImageTemplateDTO::getStyleList).orElseThrow(() -> ServiceExceptionUtil.exception(CreativeErrorCodeConstants.STYLE_IMAGE_TEMPLATE_NOT_EMPTY));
+        List<PosterStyleDTO> styleList = Optional.ofNullable(request.getConfiguration()).map(CreativeSchemeConfigDTO::getImageTemplate).map(CreativeSchemeImageTemplateDTO::getStyleList).orElseThrow(() -> ServiceExceptionUtil.exception(CreativeErrorCodeConstants.STYLE_IMAGE_TEMPLATE_NOT_EMPTY));
 
         List<CreativeSchemeExampleRequest> resultList = Lists.newArrayList();
 
         for (int i = 0; i < copyWritingList.size(); i++) {
             // 随机获取一个图片样式
-            CreativeImageStyleDTO creativeImageStyle = styleList.get(RandomUtil.randomInt(styleList.size()));
-            List<CreativeImageTemplateDTO> templateList = creativeImageStyle.getTemplateList();
+            PosterStyleDTO creativeImageStyle = styleList.get(RandomUtil.randomInt(styleList.size()));
+            List<PosterTemplateDTO> templateList = creativeImageStyle.getTemplateList();
             if (CollectionUtil.isEmpty(templateList)) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY);
             }
@@ -524,11 +564,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
             for (int j = 0; j < templateList.size(); j++) {
                 // 根据模板ID获取海报模板以及参数信息
-                CreativeImageTemplateDTO template = templateList.get(j);
-                CreativeImageTemplateDTO posterTemplate = CreativeImageUtils.mergeTemplate(template, posterMap);
+                PosterTemplateDTO template = templateList.get(j);
+                PosterTemplateDTO posterTemplate = CreativeImageUtils.mergeTemplate(template, posterMap);
 
                 // 海报模板参数构建
-                List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariables());
+                List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
                 Map<String, Object> params = Maps.newHashMap();
                 List<String> imageParamList = Lists.newArrayList();
                 // 获取第主图模板的参数

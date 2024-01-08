@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
@@ -82,7 +82,7 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "创作方案参考内容不能为空！")
     @Schema(description = "创作方案参考内容")
-    private List<CreativeSchemeReferenceDTO> refers;
+    private List<ReferenceSchemeDTO> refers;
 
     /**
      * 创作方案配置信息

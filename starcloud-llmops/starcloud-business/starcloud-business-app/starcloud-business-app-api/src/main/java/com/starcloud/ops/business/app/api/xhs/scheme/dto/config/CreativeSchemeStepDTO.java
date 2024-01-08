@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config;
 
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,7 +41,7 @@ public class CreativeSchemeStepDTO implements java.io.Serializable {
      * 创作方案参考
      */
     @Schema(description = "创作方案参考内容")
-    private List<CreativeSchemeReferenceDTO> refers;
+    private List<ReferenceSchemeDTO> refers;
 
     /**
      * 创作方案步骤生成模式
@@ -71,7 +71,7 @@ public class CreativeSchemeStepDTO implements java.io.Serializable {
      * 创作方案步骤图片风格
      */
     @Schema(description = "创作方案步骤图片风格")
-    private List<CreativeImageStyleDTO> imageStyles;
+    private List<PosterStyleDTO> imageStyles;
 
     public void validate(String name, String mode) {
 

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto.config;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,19 +36,23 @@ public class CustomCreativeSchemeConfigDTO implements java.io.Serializable {
     @Schema(description = "创作应用UID")
     private String appUid;
 
-    private Integer version;
+    /**
+     * 应用名称
+     */
+    @Schema(description = "创作应用名称")
+    private String appName;
 
     /**
-     * 创作方案步骤
+     * 应用版本号
      */
-    @Schema(description = "创作方案步骤")
-    private List<CreativeSchemeStepDTO> steps;
-
+    @Schema(description = "创作应用版本号")
+    private Integer version;
 
     /**
      * 抽象的 创作方案 流程节点配置
      */
-    private List<BaseSchemeStepDTO> stepConfig;
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "code")
+    private List<BaseSchemeStepDTO> steps;
 
     public void validate(String name, String mode) {
         if (StrUtil.isBlank(name)) {
@@ -56,6 +61,6 @@ public class CustomCreativeSchemeConfigDTO implements java.io.Serializable {
         if (CollectionUtil.isEmpty(steps)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
         }
-        steps.forEach(step -> step.validate(name, mode));
+        //steps.forEach(step -> step.validate(name, mode));
     }
 }

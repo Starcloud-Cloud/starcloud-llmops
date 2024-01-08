@@ -79,7 +79,11 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defContentVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
+                RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRequirement()
+        ));
         return variable;
     }
 
@@ -90,7 +94,12 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defParagraphVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
+                RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixParagraphCount(),
+                RecommendVariableItemFactory.defMediaMatrixRequirement()
+        ));
         return variable;
     }
 
@@ -101,7 +110,7 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defAssembleVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.emptyList());
+        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRequirement()));
         return variable;
     }
 
@@ -112,11 +121,8 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defPosterVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defPosterModeVariable(),
-                RecommendVariableItemFactory.defPosterStyleVariable(),
-                RecommendVariableItemFactory.defPosterMaterialVariable(),
-                RecommendVariableItemFactory.defPosterContentVariable()
+        variable.setVariables(Collections.singletonList(
+                RecommendVariableItemFactory.defPosterStyleVariable()
         ));
         return variable;
     }

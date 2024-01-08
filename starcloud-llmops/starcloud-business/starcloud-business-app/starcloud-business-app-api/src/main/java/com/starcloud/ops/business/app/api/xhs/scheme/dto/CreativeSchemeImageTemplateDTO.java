@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -34,7 +35,7 @@ public class CreativeSchemeImageTemplateDTO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "图片生成模板：图片风格不能为空")
     @Schema(description = "图片生成风格List")
-    private List<CreativeImageStyleDTO> styleList;
+    private List<PosterStyleDTO> styleList;
 
     /**
      * 校验
