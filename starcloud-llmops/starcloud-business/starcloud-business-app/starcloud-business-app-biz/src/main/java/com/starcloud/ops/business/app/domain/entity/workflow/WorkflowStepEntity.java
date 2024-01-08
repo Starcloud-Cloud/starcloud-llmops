@@ -64,7 +64,9 @@ public class WorkflowStepEntity extends ActionEntity {
     @JsonIgnore
     @JSONField(serialize = false)
     public void validate() {
-        this.variable.validate();
+        if (this.variable != null) {
+            this.variable.validate();
+        }
     }
 
 }
