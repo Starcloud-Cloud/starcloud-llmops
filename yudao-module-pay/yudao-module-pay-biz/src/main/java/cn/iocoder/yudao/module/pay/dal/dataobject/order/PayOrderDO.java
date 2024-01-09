@@ -49,6 +49,13 @@ public class PayOrderDO extends BaseDO {
      */
     private String channelCode;
 
+    /**
+     * 签约 ID
+     *
+     * 枚举 {@link PayChannelEnum}
+     */
+    private Long signId;
+
     // ========== 商户相关字段 ==========
 
     /**

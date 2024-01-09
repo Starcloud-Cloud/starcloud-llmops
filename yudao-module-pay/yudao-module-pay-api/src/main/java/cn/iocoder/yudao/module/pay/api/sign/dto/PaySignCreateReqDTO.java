@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.pay.api.order.dto;
+package cn.iocoder.yudao.module.pay.api.sign.dto;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * 支付单创建 Request DTO
  */
 @Data
-public class PayOrderCreateReqDTO implements Serializable {
+public class PaySignCreateReqDTO implements Serializable {
 
     public static final int SUBJECT_MAX_LENGTH = 32;
 
@@ -33,8 +33,8 @@ public class PayOrderCreateReqDTO implements Serializable {
     /**
      * 商户订单编号
      */
-    @NotEmpty(message = "商户订单编号不能为空")
-    private String merchantOrderId;
+    @NotEmpty(message = "商户签约单编号不能为空")
+    private String merchantSignId;
     /**
      * 商品标题
      */
@@ -62,10 +62,21 @@ public class PayOrderCreateReqDTO implements Serializable {
     @NotNull(message = "支付过期时间不能为空")
     private LocalDateTime expireTime;
 
-    /**
-     * 签约 ID
-     */
-    private Long signId;
+    // ========== 签约相关字段 ==========
 
+    /**
+     * 首次签约价格
+     */
+    @DecimalMin(value = "0", inclusive = false, message = "支付金额必须大于零")
+    private Integer firstPrice;
+    /**
+     * 通知商户签约结果的回调状态
+     */
+
+    private Integer period;
+    /**
+     * 签约 有效周期
+     */
+    private String periodUnit;
 
 }

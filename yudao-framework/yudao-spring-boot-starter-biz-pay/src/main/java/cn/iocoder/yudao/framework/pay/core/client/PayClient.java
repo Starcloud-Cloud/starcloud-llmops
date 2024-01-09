@@ -56,13 +56,6 @@ public interface PayClient {
      */
     PayOrderRespDTO getOrder(String outTradeNo);
 
-    /**
-     * 获得签约信息
-     *
-     * @param outTradeNo 外部订单号
-     * @return 支付订单信息
-     */
-    PayOrderRespDTO getSign(String outTradeNo);
 
     // ============ 退款相关 ==========
 
@@ -125,30 +118,32 @@ public interface PayClient {
     // ==================签约==================
 
 
-    // /**
-    //  * 调用支付渠道，统一下单
-    //  *
-    //  * @param reqDTO 下单信息
-    //  * @return 支付订单信息
-    //  */
-    // PayAgreementRespDTO unifiedAgreement(PayAgreementUnifiedReqDTO reqDTO);
-    //
-    //
-    // /**
-    //  * 解析 Agreement 回调数据
-    //  *
-    //  * @param params HTTP 回调接口 content type 为 application/x-www-form-urlencoded 的所有参数
-    //  * @param body HTTP 回调接口的 request body
-    //  * @return 支付订单信息
-    //  */
-    // PayAgreementRespDTO parseAgreementNotify(Map<String, String> params, String body);
-    //
-    // /**
-    //  * 获得签约信息
-    //  *
-    //  * @param outAgreementNo 外部订单号
-    //  * @return 支付订单信息
-    //  */
-    // PayAgreementRespDTO getAgreement(String outAgreementNo);
+    /**
+     * 调用支付渠道，统一签约
+     *
+     * @param reqDTO 签约信息
+     * @return 签约订单信息
+     */
+    PayAgreementRespDTO unifiedAgreement(PayAgreementUnifiedReqDTO reqDTO);
+
+
+    /**
+     * 解析 Agreement 回调数据
+     *
+     * @param params HTTP 回调接口 content type 为 application/x-www-form-urlencoded 的所有参数
+     * @param body HTTP 回调接口的 request body
+     * @return 签约信息
+     */
+    PayAgreementRespDTO parseAgreementNotify(Map<String, String> params, String body);
+
+    /**
+     * 获得签约信息
+     *
+     * @param outAgreementNo 外部订单号
+     * @return 签约订单信息
+     */
+    PayAgreementRespDTO getAgreement(String outAgreementNo);
+
+
 
 }

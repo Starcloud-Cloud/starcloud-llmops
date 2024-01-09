@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.PayClientConfig;
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
@@ -131,18 +132,6 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
     }
 
 
-    /**
-     * 获得签约信息
-     *
-     * @param outTradeNo 外部订单号
-     * @return 支付订单信息
-     */
-    @Override
-    public PayOrderRespDTO getSign(String outTradeNo) {
-        // FIXME: 2023/11/28  获取签约结果
-        return null;
-    }
-
     protected abstract PayOrderRespDTO doGetOrder(String outTradeNo)
             throws Throwable;
 
@@ -267,6 +256,60 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
 
     // protected abstract void doUnifiedPayAgreement(PayAgreementUnifiedReqDTO reqDTO)
     //         throws Throwable;
+
+    @Override
+    public final PayAgreementRespDTO unifiedAgreement(PayAgreementUnifiedReqDTO reqDTO) {
+        ValidationUtils.validate(reqDTO);
+        // 执行统一下单
+        PayAgreementRespDTO resp;
+        try {
+            resp = doUnifiedAgreement(reqDTO);
+        } catch (ServiceException ex) { // 业务异常，都是实现类已经翻译，所以直接抛出即可
+            throw ex;
+        } catch (Throwable ex) {
+            // 系统异常，则包装成 PayException 异常抛出
+            log.error("[unifiedOrder][客户端({}) request({}) 发起支付异常]",
+                    getId(), toJsonString(reqDTO), ex);
+            throw buildPayException(ex);
+        }
+        return resp;
+    }
+
+    protected abstract PayAgreementRespDTO doUnifiedAgreement(PayAgreementUnifiedReqDTO reqDTO)
+            throws Throwable;
+
+    @Override
+    public final PayAgreementRespDTO parseAgreementNotify(Map<String, String> params, String body) {
+        try {
+            return doParseAgreementNotify(params, body);
+        } catch (ServiceException ex) { // 业务异常，都是实现类已经翻译，所以直接抛出即可
+            throw ex;
+        } catch (Throwable ex) {
+            log.error("[parseOrderNotify][客户端({}) params({}) body({}) 解析失败]",
+                    getId(), params, body, ex);
+            throw buildPayException(ex);
+        }
+    }
+
+    protected abstract PayAgreementRespDTO doParseAgreementNotify(Map<String, String> params, String body)
+            throws Throwable;
+
+    @Override
+    public final PayAgreementRespDTO getAgreement(String outAgreementNo) {
+        try {
+            return doGetAgreement(outAgreementNo);
+        } catch (ServiceException ex) { // 业务异常，都是实现类已经翻译，所以直接抛出即可
+            throw ex;
+        } catch (Throwable ex) {
+            log.error("[getAgreement][客户端({}) outAgreementNo({}) 查询签约单异常]",
+                    getId(), outAgreementNo, ex);
+            throw buildPayException(ex);
+        }
+    }
+
+
+    protected abstract PayAgreementRespDTO doGetAgreement(String outAgreementNo)
+            throws Throwable;
 
 
 

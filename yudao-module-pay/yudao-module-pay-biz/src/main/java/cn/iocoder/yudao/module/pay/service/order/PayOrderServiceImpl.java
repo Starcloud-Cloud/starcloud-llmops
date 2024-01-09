@@ -139,6 +139,10 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setChannelId(channel.getId()).setChannelCode(channel.getCode())
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
         orderExtensionMapper.insert(orderExtension);
+        // 如果是签约 则直接返回扩展单号
+        if (reqVO.getIsSign() && Objects.nonNull(order.getSignId())) {
+            return new PayOrderSubmitRespVO().setDisplayContent(no);
+        }
 
         // 3. 调用三方接口
         PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO, userIp)
@@ -150,7 +154,6 @@ public class PayOrderServiceImpl implements PayOrderService {
                 // 订单相关字段
                 .setPrice(order.getPrice()).setExpireTime(order.getExpireTime());
         PayOrderRespDTO unifiedOrderResp = client.unifiedOrder(unifiedOrderReqDTO);
-
         // 4. 如果调用直接支付成功，则直接更新支付单状态为成功。例如说：付款码支付，免密支付时，就直接验证支付成功
         if (unifiedOrderResp != null) {
             getSelf().notifyOrder(channel, unifiedOrderResp);

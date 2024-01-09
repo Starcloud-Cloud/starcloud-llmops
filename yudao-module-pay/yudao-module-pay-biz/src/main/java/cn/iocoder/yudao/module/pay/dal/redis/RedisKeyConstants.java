@@ -24,4 +24,6 @@ public interface RedisKeyConstants {
      */
     String PAY_NO = "pay_no:";
 
+    String SIGN_NO = "pay_no:";
+
 }

@@ -56,7 +56,6 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Resource
     private AdminUserLevelConfigService levelConfigService;
 
-
     @Resource
     private AdminUserService adminUserService;
 
@@ -105,10 +104,10 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         }
         AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
-        if (getLoginUserId() == null) {
-            adminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
-            adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
-        }
+        // if (getLoginUserId() == null) {
+        adminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
+        adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
+        // }
         adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
         adminUserLevelDO.setDescription(StrUtil.format(AdminUserLevelBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
         // 3.0 添加会员等级记录

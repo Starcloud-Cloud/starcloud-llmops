@@ -62,9 +62,9 @@ public interface PayOrderConvert {
     PayOrderDO convert(PayOrderCreateReqDTO bean);
 
     @Mapping(target = "id", ignore = true)
-    PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp);
+     PayOrderExtensionDO convert(PayOrderSubmitReqVO bean, String userIp);
 
-    PayOrderUnifiedReqDTO convert2(PayOrderSubmitReqVO reqVO, String userIp);
+     PayOrderUnifiedReqDTO convert2(PayOrderSubmitReqVO reqVO, String userIp);
 
     @Mapping(source = "order.status", target = "status")
     PayOrderSubmitRespVO convert(PayOrderDO order, cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO respDTO);

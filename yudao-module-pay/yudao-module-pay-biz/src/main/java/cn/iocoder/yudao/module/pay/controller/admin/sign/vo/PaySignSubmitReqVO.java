@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.pay.controller.admin.order.vo;
+package cn.iocoder.yudao.module.pay.controller.admin.sign.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Schema(description = "管理后台 - 支付订单提交 Request VO")
 @Data
-public class PayOrderSubmitReqVO {
+public class PaySignSubmitReqVO {
 
     @Schema(description = "支付单编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
     @NotNull(message = "支付单编号不能为空")
@@ -29,8 +29,5 @@ public class PayOrderSubmitReqVO {
     @Schema(description = "回跳地址")
     @URL(message = "回跳地址的格式必须是 URL")
     private String returnUrl;
-
-    @NotNull(message = "是否签约")
-    private Boolean isSign;
 
 }
