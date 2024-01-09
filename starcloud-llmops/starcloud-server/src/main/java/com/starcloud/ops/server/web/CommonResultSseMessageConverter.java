@@ -96,6 +96,7 @@ public class CommonResultSseMessageConverter implements HttpMessageConverter<Com
         // 构建 StreamResult 对象
         BaseStreamResult result = BaseStreamResult.of(Boolean.FALSE, commonResult.getCode(), commonResult.getMsg());
         result.setBizUid(commonResult.getBizUid());
+        result.setScene(commonResult.getScene());
         // 结构和 SseEmitter 的 send() 方法一致
         StringBuilder sb = new StringBuilder("data:");
         sb.append(JSONUtil.toJsonStr(result));
