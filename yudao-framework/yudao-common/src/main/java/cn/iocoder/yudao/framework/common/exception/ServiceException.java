@@ -23,6 +23,11 @@ public final class ServiceException extends RuntimeException {
     private String message;
 
     /**
+     * 业务UID
+     */
+    private String bizUid;
+
+    /**
      * 空构造方法，避免反序列化问题
      */
     public ServiceException() {
