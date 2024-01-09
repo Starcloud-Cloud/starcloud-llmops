@@ -222,7 +222,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         } catch (ServiceException exception) {
             log.error("聊天执行异常(ServerException): 错误信息: {}", exception.getMessage());
             // ServiceException 时候将消息UID传入exception中
-            exception.setBizUid(request.getScene() + "_" + request.getAppUid());
+            exception.setBizUid(request.getAppUid());
+            exception.setScene(request.getScene());
             throw exception;
         }
 
