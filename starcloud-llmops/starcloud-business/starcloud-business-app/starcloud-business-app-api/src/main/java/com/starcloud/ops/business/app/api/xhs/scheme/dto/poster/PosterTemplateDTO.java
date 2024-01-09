@@ -43,6 +43,18 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private String name;
 
     /**
+     * 应用UID
+     */
+    @Schema(description = "图片序号")
+    private Integer index;
+
+    /**
+     * 是否是主图
+     */
+    @Schema(description = "是否是主图")
+    private Boolean isMain;
+
+    /**
      * 图片数量
      */
     @Schema(description = "图片数量")

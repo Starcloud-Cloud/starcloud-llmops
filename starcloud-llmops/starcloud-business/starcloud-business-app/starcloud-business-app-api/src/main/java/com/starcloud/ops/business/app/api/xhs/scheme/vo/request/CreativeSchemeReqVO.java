@@ -5,8 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -18,7 +18,6 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Objects;
 
@@ -80,21 +79,18 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
      * 创作方案参考
      */
     @Valid
-    @NotEmpty(message = "创作方案参考内容不能为空！")
     @Schema(description = "创作方案参考内容")
     private List<ReferenceSchemeDTO> refers;
 
     /**
      * 创作方案配置信息
      */
-    @Valid
     @Schema(description = "创作方案配置信息")
     private CreativeSchemeConfigDTO configuration;
 
     /**
      * 自定义创作方案配置信息
      */
-    @Valid
     @Schema(description = "自定义创作方案配置信息")
     private CustomCreativeSchemeConfigDTO customConfiguration;
 
@@ -126,10 +122,10 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
         if (!IEnumable.contains(mode, CreativeSchemeModeEnum.class)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_MODE_NOT_SUPPORTED, mode, name);
         }
-        if ((CollectionUtil.isEmpty(refers))) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_REFERS_NOT_EMPTY, name);
-        }
         if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(mode)) {
+            if ((CollectionUtil.isEmpty(refers))) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_REFERS_NOT_EMPTY, name);
+            }
             if (Objects.isNull(configuration)) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
             }

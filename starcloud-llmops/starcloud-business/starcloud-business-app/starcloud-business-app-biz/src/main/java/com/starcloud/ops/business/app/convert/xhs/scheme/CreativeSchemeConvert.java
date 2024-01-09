@@ -8,12 +8,17 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -62,7 +67,8 @@ public interface CreativeSchemeConvert {
             }
         } else {
             if (request.getCustomConfiguration() != null) {
-                creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getCustomConfiguration()));
+                CustomCreativeSchemeConfigDTO customConfig = handlerCustomConfiguration(request.getCustomConfiguration());
+                creativeScheme.setConfiguration(JSONUtil.toJsonStr(customConfig));
             }
         }
 
@@ -72,6 +78,18 @@ public interface CreativeSchemeConvert {
         creativeScheme.setUpdateTime(LocalDateTime.now());
         creativeScheme.setDeleted(Boolean.FALSE);
         return creativeScheme;
+    }
+
+    default CustomCreativeSchemeConfigDTO handlerCustomConfiguration(CustomCreativeSchemeConfigDTO customConfiguration) {
+
+        List<BaseSchemeStepDTO> steps = customConfiguration.getSteps();
+        for (BaseSchemeStepDTO step : steps) {
+            if (PosterActionHandler.class.getSimpleName().equals(step.getCode())) {
+                PosterSchemeStepDTO posterStyle = (PosterSchemeStepDTO) step;
+            }
+        }
+
+        return customConfiguration;
     }
 
     /**

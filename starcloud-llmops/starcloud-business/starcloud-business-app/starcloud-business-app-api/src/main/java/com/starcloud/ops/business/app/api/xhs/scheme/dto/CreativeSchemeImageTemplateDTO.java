@@ -33,7 +33,6 @@ public class CreativeSchemeImageTemplateDTO implements java.io.Serializable {
      * 图片生成模板：图片风格
      */
     @Valid
-    @NotEmpty(message = "图片生成模板：图片风格不能为空")
     @Schema(description = "图片生成风格List")
     private List<PosterStyleDTO> styleList;
 

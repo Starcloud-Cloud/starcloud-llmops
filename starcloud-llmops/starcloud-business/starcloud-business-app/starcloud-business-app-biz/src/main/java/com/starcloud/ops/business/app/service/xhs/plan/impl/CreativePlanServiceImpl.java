@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -12,6 +13,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -41,6 +43,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
@@ -395,9 +398,22 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
 
                 for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+                    // 图片处理
+                    if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                        VariableRespVO variable = stepWrapper.getVariable();
+                        List<VariableItemRespVO> variables = variable.getVariables();
+                        Map<String, Object> variableMap = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, VariableItemRespVO::getValue));
+                        String postStyleString = String.valueOf(variableMap.getOrDefault(CreativeConstants.POSTER_STYLE, ""));
 
+                        PosterStyleDTO posterStyle = JSONUtil.toBean(postStyleString, PosterStyleDTO.class);
+                        List<PosterTemplateDTO> templateList = posterStyle.getTemplateList();
+
+
+                    }
                 }
 
+                workflowConfig.setSteps(stepWrapperList);
+                appResponse.setWorkflowConfig(workflowConfig);
 
                 appCreateRequest.setPlanUid(plan.getUid());
                 appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
