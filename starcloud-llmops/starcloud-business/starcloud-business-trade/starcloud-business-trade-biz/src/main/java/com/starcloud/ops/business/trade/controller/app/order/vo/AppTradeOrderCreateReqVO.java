@@ -3,7 +3,6 @@ package com.starcloud.ops.business.trade.controller.app.order.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.validation.constraints.AssertTrue;
 

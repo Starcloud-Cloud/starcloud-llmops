@@ -151,7 +151,7 @@ public class TradeOrderDO extends BaseDO {
     private LocalDateTime payTime;
     /**
      * 支付渠道
-     *
+     * <p>
      * 对应 PayChannelEnum 枚举
      */
     private String payChannelCode;
