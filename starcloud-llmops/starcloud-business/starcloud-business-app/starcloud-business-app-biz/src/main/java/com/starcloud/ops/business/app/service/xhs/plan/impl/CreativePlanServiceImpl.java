@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
@@ -383,6 +385,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
                 CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
                 AppRespVO appResponse = executeParam.getAppResponse();
+                if (appResponse == null) {
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
+                }
+                WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+                if (workflowConfig == null) {
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL);
+                }
+                List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+
+                for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+
+                }
+
 
                 appCreateRequest.setPlanUid(plan.getUid());
                 appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
