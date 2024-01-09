@@ -21,19 +21,20 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -41,7 +42,9 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatMessage;
@@ -50,7 +53,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -599,55 +602,50 @@ public class CreativeAppUtils {
         return content.toString();
     }
 
-    public static AppRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration,
-                                                  List<String> imageUrlList,
-                                                  AppRespVO appResponse,
-                                                  Map<String, PosterTemplateDTO> posterMap,
-                                                  Integer index) {
+    public static AppRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration, AppRespVO appResponse) {
+        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(customConfiguration.getSteps());
+        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = steps.stream()
+                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
 
-//        String appUid = customConfiguration.getAppUid();
-//        List<CreativeSchemeStepDTO> schemeSteps = customConfiguration.getSteps();
-//
-//        // 工作流配置信息
-//        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
-//
-//        //遍历 schemeSteps
-//
-//        List<BaseSchemeStepDTO>  schemeStepDTOS =  customConfiguration.getStepConfig();
-//
-//
-//
-//        List<WorkflowStepWrapperRespVO> stepWrappers = workflowConfig.getSteps();
-//        for (WorkflowStepWrapperRespVO stepWrapper : stepWrappers) {
-//
-//            schemeStepDTOS.get(0).convertAppStepWrapper(stepWrapper);
-//
-//            String field = stepWrapper.getField();
-//            Optional<CreativeSchemeStepDTO> stepOptional = schemeSteps.stream().filter(item -> field.equals(item.getId())).findFirst();
-//            if (!stepOptional.isPresent()) {
-//                continue;
-//            }
-//
-//            CreativeSchemeStepDTO schemeStep = stepOptional.get();
-//            Map<String, Object> schemeVariableMap = toAppVariableMap(schemeStep, imageUrlList, index);
-//
-//            stepWrapper.putVariable(schemeVariableMap);
-//
-//        }
-//        workflowConfig.setSteps(stepWrappers);
-//        appResponse.setWorkflowConfig(workflowConfig);
+        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
+            if (!stepEntityOptional.isPresent()) {
+                continue;
+            }
+            BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
+            schemeStepEntity.transformAppStep(stepWrapper);
+        }
+        workflowConfig.setSteps(stepWrapperList);
+        appResponse.setWorkflowConfig(workflowConfig);
         return appResponse;
     }
 
-    public static Map<String, Object> toAppVariableMap(CreativeSchemeStepDTO schemeStep, List<String> imageUrlList, Integer index) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("REFERS", JSONUtil.toJsonStr(handlerReferences(schemeStep.getRefers())));
-        map.put("GENERATE_MODE", schemeStep.getGenerateMode());
-        map.put("REQUIREMENT", handlerRequirement(schemeStep.getRequirement(), schemeStep.getVariables()));
-        map.put("PARAGRAPH_COUNT", schemeStep.getParagraphCount());
-        map.put("POSTER_MATERIAL", JSONUtil.toJsonStr(imageUrlList));
-        map.put("POSTER_STYLE", JSONUtil.toJsonStr(schemeStep.getImageStyles().get(index)));
-        return map;
+    public static AppRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
+                                                   PosterStyleDTO posterStyle,
+                                                   AppRespVO appResponse) {
+
+        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
+                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
+
+        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(posterStyle)));
+            } else {
+                Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
+                if (!stepEntityOptional.isPresent()) {
+                    continue;
+                }
+                BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
+                schemeStepEntity.transformAppStep(stepWrapper);
+            }
+        }
+        workflowConfig.setSteps(stepWrapperList);
+        appResponse.setWorkflowConfig(workflowConfig);
+        return appResponse;
     }
 
     /**
@@ -665,4 +663,6 @@ public class CreativeAppUtils {
         }
         return requirement;
     }
+
+
 }

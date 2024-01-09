@@ -20,7 +20,7 @@ public abstract class BaseSchemeStepEntity implements java.io.Serializable {
     private static final long serialVersionUID = 5401242096922842719L;
 
     /**
-     * 唯一
+     * 对应应用 step 的 handler
      */
     private String code;
 

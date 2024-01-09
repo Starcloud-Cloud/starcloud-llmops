@@ -217,7 +217,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         query.setIsAdmin(UserUtils.isAdmin());
         List<CreativeSchemeRespVO> list = list(query);
         return CollectionUtil.emptyIfNull(list).stream().map(item -> {
-            List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration()).map(CreativeSchemeConfigDTO::getCopyWritingTemplate).map(CreativeSchemeCopyWritingTemplateDTO::getVariables).orElse(Lists.newArrayList());
+            List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration())
+                    .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
+                    .map(CreativeSchemeCopyWritingTemplateDTO::getVariables)
+                    .orElse(Lists.newArrayList());
             CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
             option.setUid(item.getUid());
             option.setName(item.getName());

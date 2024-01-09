@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -498,14 +497,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 List<BaseSchemeStepDTO> steps = customConfiguration.getSteps();
                 Optional<BaseSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
 
-                //不需要必须有具体的action
+                // 如果没有海报步骤，直接创建一个执行参数
                 if (!posterStepOptional.isPresent()) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(1, "自定义创作方案必须包含海报步骤"));
+                    AppRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, SerializationUtils.clone(appRespVO));
+                    CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+                    planExecute.setSchemeUid(scheme.getUid());
+                    planExecute.setSchemeMode(scheme.getMode());
+                    planExecute.setAppResponse(app);
+                    list.add(planExecute);
                 }
 
+                // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
                 PosterSchemeStepDTO schemeStep = (PosterSchemeStepDTO) posterStepOptional.get();
-                for (int i = 0; i < CollectionUtil.emptyIfNull(schemeStep.getStyleList()).size(); i++) {
-                    AppRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, planConfig.getImageUrlList(), appRespVO, posterMap, i);
+                for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(schemeStep.getStyleList())) {
+                    AppRespVO app = CreativeAppUtils.transformCustomExecute(steps, posterStyle, SerializationUtils.clone(appRespVO));
                     CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                     planExecute.setSchemeUid(scheme.getUid());
                     planExecute.setSchemeMode(scheme.getMode());

@@ -10,6 +10,7 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -59,5 +60,20 @@ public class PosterTemplateEntity implements java.io.Serializable {
      */
     @Schema(description = "图片模板变量")
     private List<VariableItemEntity> variableList;
+
+    /**
+     * 获取主图模板
+     *
+     * @return 主图模板
+     */
+    public static PosterTemplateEntity ofMain() {
+        PosterTemplateEntity posterTemplate = new PosterTemplateEntity();
+        posterTemplate.setId("");
+        posterTemplate.setName("首图");
+        posterTemplate.setImageNumber(0);
+        posterTemplate.setExample("");
+        posterTemplate.setVariableList(Collections.emptyList());
+        return posterTemplate;
+    }
 
 }

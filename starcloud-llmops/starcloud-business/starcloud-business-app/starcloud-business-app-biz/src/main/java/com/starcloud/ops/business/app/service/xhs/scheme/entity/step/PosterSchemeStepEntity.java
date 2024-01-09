@@ -49,6 +49,6 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        this.styleList = Collections.emptyList();
+        this.styleList = Collections.singletonList(PosterStyleEntity.ofOne());
     }
 }
