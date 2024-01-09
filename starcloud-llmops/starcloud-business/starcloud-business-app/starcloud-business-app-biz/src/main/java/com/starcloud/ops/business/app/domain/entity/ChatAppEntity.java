@@ -5,6 +5,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
@@ -215,8 +216,15 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected JsonData doExecute(ChatRequestVO request) {
+        try {
+            this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_BEAN, request.getUserId());
 
-        this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_BEAN, request.getUserId());
+        } catch (ServiceException exception) {
+            log.error("聊天执行异常(ServerException): 错误信息: {}", exception.getMessage());
+            // ServiceException 时候将消息UID传入exception中
+            exception.setBizUid(request.getScene() + "_" + request.getAppUid());
+            throw exception;
+        }
 
         return executeChat(request, request.getUserId());
     }
