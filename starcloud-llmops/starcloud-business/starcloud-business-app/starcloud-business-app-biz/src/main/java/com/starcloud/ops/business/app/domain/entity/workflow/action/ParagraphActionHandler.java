@@ -10,6 +10,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -25,9 +26,7 @@ import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author nacoyer
@@ -51,29 +50,6 @@ public class ParagraphActionHandler extends BaseActionHandler {
     @TaskService(name = "ParagraphActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-
-
-
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-
-        String json = (String) params.get("PROMPT");
-
-
-        //获取到 参考文案
-        //String json = (String) params.get("参考文案");
-
-        //生成模式
-        String type = (String) params.get("type");
-
-        //prompt
-        String prompt = (String) params.get("prompt");
-
-        //段落数量
-        String size = (String) params.get("段落数量");
-
-
-
-
         return super.execute(context, scopeDataOperator);
     }
 
@@ -113,36 +89,13 @@ public class ParagraphActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
 
         log.info("段落生成 Action 执行开始......");
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
-        OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
-        //获取前端传的完整字段（老结构）
-        Long userId = this.getAppContext().getUserId();
-        Long endUser = this.getAppContext().getEndUserId();
-        String conversationId = this.getAppContext().getConversationUid();
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("段落生成 Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
+        List<ParagraphDTO> paragraphDTOList = new ArrayList<>();
 
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
-        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7"));
+        paragraphDTOList.add(ParagraphDTO.of("段落1", "段落1内容111！！！"));
+        paragraphDTOList.add(ParagraphDTO.of("段落2", "段落1内容22222！！！"));
 
-        // 构建请求
-        OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
-        handlerRequest.setModel(model);
-        handlerRequest.setPrompt(prompt);
-        handlerRequest.setMaxTokens(maxTokens);
-        handlerRequest.setTemperature(temperature);
-        handlerRequest.setN(n);
-
-        // 构建请求
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
-        // 执行步骤
-        HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
-        ActionResponse response = convert(handlerResponse);
+        ActionResponse response = convert(paragraphDTOList);
         log.info("段落生成 Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
@@ -156,25 +109,12 @@ public class ParagraphActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(HandlerResponse handlerResponse) {
+    private ActionResponse convert(List<ParagraphDTO> paragraphDTOList) {
         ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(handlerResponse.getSuccess());
-        actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
-        actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
-        actionResponse.setType(handlerResponse.getType());
-        actionResponse.setIsShow(true);
-        actionResponse.setMessage(handlerResponse.getMessage());
-        actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
-        actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
-        actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
-        actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
-        actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
-        actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
-        actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
+        actionResponse.setSuccess(true);
+        actionResponse.setAnswer(JSONUtil.toJsonStr(paragraphDTOList));
+        actionResponse.setOutput(JsonData.of(paragraphDTOList));
+
         return actionResponse;
     }
 }

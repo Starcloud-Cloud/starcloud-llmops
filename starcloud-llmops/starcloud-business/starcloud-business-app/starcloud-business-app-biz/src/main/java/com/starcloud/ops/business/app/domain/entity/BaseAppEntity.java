@@ -632,7 +632,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
-        workflowConfig.setActionResponse(stepId, response);
+        if (response != null) {
+            workflowConfig.setActionResponse(stepId, response);
+        }
     }
 
     /**

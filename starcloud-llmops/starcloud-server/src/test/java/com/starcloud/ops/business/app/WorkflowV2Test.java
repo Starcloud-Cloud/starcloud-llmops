@@ -187,7 +187,7 @@ public class WorkflowV2Test extends BaseDbUnitTest {
 
             @Override
             public String getExpressionPrefix() {
-                return "{";
+                return "#{";
             }
 
             @Override
@@ -197,7 +197,9 @@ public class WorkflowV2Test extends BaseDbUnitTest {
         };
 
 
-        HashMap<String, Object> params = new HashMap<>();
+        HashMap<String, Object> rootMap = new HashMap<>();
+
+        rootMap.put("STEP.开头._OUT", "77882323");
 
 
         List<HashMap> content = Arrays.asList(
@@ -216,18 +218,15 @@ public class WorkflowV2Test extends BaseDbUnitTest {
                 }}
         );
 
-        StandardEvaluationContext context = new StandardEvaluationContext(new Root());
-        context.setVariable("_OUT", new HashMap() {{
-
-            put("开头", "123");
-            put("段落", content);
-
-        }});
+        StandardEvaluationContext context = new StandardEvaluationContext(rootMap);
+        context.setVariable("STEP.段落._OUT", "3333");
+        context.setVariable("STEP.TTT._DATA", "3333");
+        context.setVariable("_DATA", "3333");
 
         // 输入表达式
-        Expression exp = parser.parseExpression("测试：{STEP['开头']['key2']['_OUT']}。。", parserContext);
+        Expression exp = parser.parseExpression("测试：{STEP.开头._OUT}。。#{['STEP.开头._OUT']}", parserContext);
         // 获取表达式的输出结果，getValue入参是返回参数的类型
-        String value = exp.getValue(context, String.class);
+        Object value = exp.getValue(context);
         System.out.println(value);
 
     }
@@ -235,7 +234,20 @@ public class WorkflowV2Test extends BaseDbUnitTest {
     @Data
     public static class Root {
 
+        private String TTT = "333";
+
         private HashMap STEP = new HashMap<String, Object>() {{
+            put("开头._OUT", "outttt");
+
+            put("段落._OUT", "tttt\n xxxxx\n 4444444\n");
+
+            put("段落._DATA", new ArrayList<String>(){{
+                add("tttt");
+                add("xxxxx");
+                add("4444444 #{STEP['段落._DATA'][0]}");
+
+            }});
+
             put("开头", new HashMap<String, Object>() {{
                 put("key1", "vvv");
                 put("key2", new HashMap(){{

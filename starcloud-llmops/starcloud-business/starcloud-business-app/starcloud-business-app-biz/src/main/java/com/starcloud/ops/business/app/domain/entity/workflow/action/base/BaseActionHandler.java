@@ -130,11 +130,11 @@ public abstract class BaseActionHandler extends Object {
             AppProcessParser.ServiceTaskPropertyDTO serviceTaskPropertyDTO = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
             context.setStepId(serviceTaskPropertyDTO.getStepId());
             // 设置到上下文中
-            this.appContext = context;
+            this.setAppContext(context);
             // 执行具体的步骤
             ActionResponse actionResponse = this.doExecute();
             //设置到上下文中
-            this.appContext.setActionResponse(actionResponse);
+            this.getAppContext().setActionResponse(actionResponse);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {

@@ -102,7 +102,9 @@ public class WorkflowStepWrapper {
         Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
         String key = VariableEntity.generateKey(prefixKey, this.getField());
         Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, key);
+
         variableMap.put(VariableEntity.generateKey(prefixKey, this.getField(), "_OUT"), this.flowStep.getValue());
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getField(), "_DATA"), this.flowStep.getOutput());
         return variableMap;
 
     }
@@ -130,9 +132,11 @@ public class WorkflowStepWrapper {
     public void setActionResponse(String stepId, ActionResponse response) {
         if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
             ActionResponse actionResponse = this.flowStep.getResponse();
+
             response.setType(Optional.ofNullable(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
             response.setStyle(Optional.ofNullable(actionResponse).map(ActionResponse::getStyle).orElse(AppStepResponseStyleEnum.TEXTAREA.name()));
             response.setIsShow(Optional.ofNullable(actionResponse).map(ActionResponse::getIsShow).orElse(Boolean.TRUE));
+
             this.flowStep.setResponse(response);
         }
     }

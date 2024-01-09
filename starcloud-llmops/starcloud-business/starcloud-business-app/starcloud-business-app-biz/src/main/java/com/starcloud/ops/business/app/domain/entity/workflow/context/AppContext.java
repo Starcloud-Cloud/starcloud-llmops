@@ -20,16 +20,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * App 上下文
@@ -42,6 +42,28 @@ import java.util.Optional;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppContext {
+
+
+    private static ExpressionParser SpelParser = new SpelExpressionParser();
+
+
+    private static ParserContext ParserContext = new ParserContext() {
+        @Override
+        public boolean isTemplate() {
+            return true;
+        }
+
+        @Override
+        public String getExpressionPrefix() {
+            return "#{";
+        }
+
+        @Override
+        public String getExpressionSuffix() {
+            return "}";
+        }
+    };
+
 
     /**
      * 步骤前缀
@@ -203,13 +225,12 @@ public class AppContext {
 
             //做一次字符串替换， {}会被替换掉
             String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
-
             //做一次spel，spel 语法会被替换掉
+            StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
+            Expression exp = SpelParser.parseExpression(val, ParserContext);
+            Object value = exp.getValue(context);
 
-            //allVariablesValues 转换为 #root
-
-            fieldVariables.put(filedKey, val);
-
+            fieldVariables.put(filedKey, value);
         });
 
         return fieldVariables;
@@ -226,5 +247,4 @@ public class AppContext {
     public void setActionResponse(ActionResponse response) {
         this.app.setActionResponse(this.stepId, response);
     }
-
 }

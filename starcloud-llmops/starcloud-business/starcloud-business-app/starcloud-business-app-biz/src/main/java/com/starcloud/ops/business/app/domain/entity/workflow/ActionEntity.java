@@ -24,8 +24,19 @@ public class ActionEntity extends BaseActionEntity {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public Object getValue() {
-        return ObjectUtil.isNotEmpty(this.getResponse()) ? this.getResponse().getAnswer() : null;
+    public String getValue() {
+        return ObjectUtil.isNotEmpty(this.getResponse()) ? this.getResponse().getAnswer() : "";
+    }
+
+    /**
+     * 获取 value
+     *
+     * @return value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getOutput() {
+        return ObjectUtil.isNotEmpty(this.getResponse()) ? ObjectUtil.isNotEmpty(this.getResponse().getOutput()) ? this.getResponse().getOutput().getData() : null : null;
     }
 
     /**
