@@ -216,6 +216,7 @@ public class GlobalExceptionHandler {
         log.info("[serviceExceptionHandler]", ex);
         CommonResult<?> result = CommonResult.error(ex.getCode(), ex.getMessage());
         result.setBizUid(ex.getBizUid());
+        result.setScene(ex.getScene());
         return result;
     }
 

@@ -156,6 +156,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
             String messageUid = this.createAppMessageLog(request, exception);
             // ServiceException 时候将消息UID传入exception中
+            exception.setScene(request.getScene());
             exception.setBizUid(messageUid);
             throw exception;
         } catch (Exception exception) {
