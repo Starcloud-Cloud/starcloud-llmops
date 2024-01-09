@@ -36,6 +36,11 @@ public class CommonResult<T> implements Serializable {
     private String msg;
 
     /**
+     * 业务标识
+     */
+    private String bizUid;
+
+    /**
      * 将传入的 result 对象，转换成另外一个泛型结果的对象
      *
      * 因为 A 方法返回的 CommonResult 对象，不满足调用其的 B 方法的返回，所以需要进行转换。

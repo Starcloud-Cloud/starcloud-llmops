@@ -95,6 +95,7 @@ public class CommonResultSseMessageConverter implements HttpMessageConverter<Com
     public void write(@NotNull CommonResult commonResult, MediaType mediaType, @NotNull HttpOutputMessage outputMessage) throws IOException {
         // 构建 StreamResult 对象
         BaseStreamResult result = BaseStreamResult.of(Boolean.FALSE, commonResult.getCode(), commonResult.getMsg());
+        result.setBizUid(commonResult.getBizUid());
         // 结构和 SseEmitter 的 send() 方法一致
         StringBuilder sb = new StringBuilder("data:");
         sb.append(JSONUtil.toJsonStr(result));

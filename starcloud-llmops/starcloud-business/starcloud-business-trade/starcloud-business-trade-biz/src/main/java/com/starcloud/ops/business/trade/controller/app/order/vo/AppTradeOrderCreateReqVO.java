@@ -3,7 +3,6 @@ package com.starcloud.ops.business.trade.controller.app.order.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.validation.constraints.AssertTrue;
 
@@ -16,6 +15,9 @@ public class AppTradeOrderCreateReqVO extends AppTradeOrderSettlementReqVO {
 
     @Schema(description ="订单来源", example = "订单来源 20 =》H5 网页")
     private Integer terminal;
+
+    @Schema(description ="订单创建来源", example = "具体创建来源")
+    private String from;
 
 
     @AssertTrue(message = "配送方式不能为空")

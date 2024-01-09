@@ -74,6 +74,11 @@ public class TradeOrderDO extends BaseDO {
      * 用户 IP
      */
     private String userIp;
+
+    /**
+     *  创建订单来源
+     */
+    private String orderFrom;
     /**
      * 用户备注
      */
@@ -146,7 +151,7 @@ public class TradeOrderDO extends BaseDO {
     private LocalDateTime payTime;
     /**
      * 支付渠道
-     *
+     * <p>
      * 对应 PayChannelEnum 枚举
      */
     private String payChannelCode;
