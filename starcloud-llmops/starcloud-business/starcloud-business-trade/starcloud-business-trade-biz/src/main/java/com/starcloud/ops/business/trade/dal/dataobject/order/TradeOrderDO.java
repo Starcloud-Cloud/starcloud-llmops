@@ -74,6 +74,11 @@ public class TradeOrderDO extends BaseDO {
      * 用户 IP
      */
     private String userIp;
+
+    /**
+     *  创建订单来源
+     */
+    private String orderFrom;
     /**
      * 用户备注
      */

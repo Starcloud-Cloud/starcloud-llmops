@@ -17,6 +17,9 @@ public class AppTradeOrderCreateReqVO extends AppTradeOrderSettlementReqVO {
     @Schema(description ="订单来源", example = "订单来源 20 =》H5 网页")
     private Integer terminal;
 
+    @Schema(description ="订单创建来源", example = "具体创建来源")
+    private String from;
+
 
     @AssertTrue(message = "配送方式不能为空")
     @JsonIgnore
