@@ -26,7 +26,9 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWriti
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
@@ -34,6 +36,7 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -602,7 +605,7 @@ public class CreativeAppUtils {
         return content.toString();
     }
 
-    public static AppRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration, AppRespVO appResponse) {
+    public static AppMarketRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration, AppMarketRespVO appResponse) {
         List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(customConfiguration.getSteps());
         Map<String, BaseSchemeStepEntity> schemeStepEntityMap = steps.stream()
                 .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
@@ -622,18 +625,29 @@ public class CreativeAppUtils {
         return appResponse;
     }
 
-    public static AppRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
+    public static AppMarketRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
                                                    PosterStyleDTO posterStyle,
-                                                   AppRespVO appResponse) {
+                                                   AppMarketRespVO appResponse,
+                                                   List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
 
         Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
                 .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
 
         WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
         List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+        // 段落步骤。
+        Optional<BaseSchemeStepDTO> paragraphOptional = schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
         for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
             if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
-                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(posterStyle)));
+                PosterStyleDTO style;
+                if (!paragraphOptional.isPresent()) {
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, posterMap);
+                } else {
+                    ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO)paragraphOptional.get();
+                    Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount, posterMap);
+                }
+                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(style)));
             } else {
                 Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
                 if (!stepEntityOptional.isPresent()) {
