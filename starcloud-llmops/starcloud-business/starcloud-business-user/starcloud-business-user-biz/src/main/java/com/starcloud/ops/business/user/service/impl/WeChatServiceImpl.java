@@ -10,11 +10,7 @@ import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
-import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
-import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
-import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
@@ -22,14 +18,12 @@ import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
+import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.starcloud.ops.business.user.controller.admin.vo.QrCodeTicketVO;
 import com.starcloud.ops.business.user.convert.QrCodeConvert;
 import com.starcloud.ops.business.user.pojo.request.ScanLoginRequest;
-import com.starcloud.ops.business.user.service.StarUserService;
 import com.starcloud.ops.business.user.service.WeChatService;
-import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -67,22 +61,22 @@ public class WeChatServiceImpl implements WeChatService {
     private OAuth2TokenService oauth2TokenService;
 
     @Autowired
-    private SocialUserBindMapper socialUserBindMapper;
-
-    @Autowired
     private AdminUserMapper userMapper;
 
     @Autowired
-    private SocialUserMapper socialUserMapper;
+    private SocialUserService socialUserService;
 
 
     @Override
     public QrCodeTicketVO qrCodeCreate(String inviteCode) {
         try {
+            Long tenantId = TenantContextHolder.getTenantId();
             Long loginUserId = WebFrameworkUtils.getLoginUserId();
             WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket("login", 60 * 5);
             String url = wxMpService.getQrcodeService().qrCodePictureUrl(wxMpQrCodeTicket.getTicket());
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
+            redisTemplate.boundValueOps(ticketVO.getTicket() + "_tenantId").set(tenantId.toString(), 10, TimeUnit.MINUTES);
+
             ticketVO.setUrl(url);
             if (StringUtils.isNotBlank(inviteCode)) {
                 redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode, 10, TimeUnit.MINUTES);
@@ -108,26 +102,13 @@ public class WeChatServiceImpl implements WeChatService {
         if (StringUtils.isBlank(openId)) {
             return null;
         }
-        SocialUserDO socialUserDO = socialUserMapper.selectOne(new LambdaQueryWrapper<SocialUserDO>()
-                .eq(SocialUserDO::getType, SocialTypeEnum.WECHAT_MP.getType())
-                .eq(SocialUserDO::getOpenid, openId)
-                .eq(SocialUserDO::getDeleted, 0)
-        );
-        if (socialUserDO == null) {
-            return null;
-        }
-
-        SocialUserBindDO socialUserBindDO = socialUserBindMapper.selectByUserTypeAndSocialUserId(UserTypeEnum.ADMIN.getValue(), socialUserDO.getId());
-        if (socialUserBindDO == null) {
-            return null;
-        }
-        return socialUserBindDO.getUserId();
+        AdminUserDO socialUser = socialUserService.getSocialUser(openId, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
+        return socialUser.getId();
     }
 
     @Override
     public AuthLoginRespVO createTokenAfterLoginSuccess(Long userId) {
         AdminUserDO userDO = userMapper.selectById(userId);
-        TenantContextHolder.setTenantId(userDO.getTenantId());
         createLoginLog(userId, userDO.getUsername(), LoginLogTypeEnum.LOGIN_SOCIAL, LoginResultEnum.SUCCESS);
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(userId, UserTypeEnum.ADMIN.getValue(),
                 OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);

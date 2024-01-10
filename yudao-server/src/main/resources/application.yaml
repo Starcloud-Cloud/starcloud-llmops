@@ -193,10 +193,10 @@ yudao:
       - /admin-api/pay/notify/** # 支付回调通知，不携带租户编号
       - /jmreport/* # 积木报表，无法携带租户编号
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，无法携带租户编号
-      - /admin-api/llm/auth/**   # llm 注册，找回密码 无法携带租户编号
-      - /admin-api/system/auth/login # 登录
-      - /admin-api/system/auth/refresh-token # 刷新缓存
-      - /admin-api/llm/wechat/** # 微信回调
+      - /admin-api/llm/auth/activation/*
+#      - /admin-api/system/auth/login # 登录
+#      - /admin-api/system/auth/refresh-token # 刷新缓存
+      - /admin-api/llm/wechat/open/** # 微信回调
       - /admin-api/system/auth/logout # 登出
       - /admin-api/llm/communication/code/**  # 发送验证码
       - /admin-api/llm/worktool/callback/**   # 平台回调
@@ -217,11 +217,13 @@ yudao:
       - system_sms_log
       - system_sensitive_word
       - system_oauth2_client
-      - system_oauth2_access_token
+#      - system_oauth2_access_token
       - system_mail_account
       - system_mail_template
       - system_mail_log
       - system_notify_template
+      - llm_recover_password
+      - mp_account
       - infra_codegen_column
       - infra_codegen_table
       - infra_test_demo

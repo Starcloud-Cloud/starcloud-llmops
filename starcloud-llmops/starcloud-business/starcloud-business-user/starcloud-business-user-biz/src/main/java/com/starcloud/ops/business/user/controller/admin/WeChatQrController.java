@@ -9,7 +9,6 @@ import com.starcloud.ops.business.user.pojo.request.ScanLoginRequest;
 import com.starcloud.ops.business.user.service.WeChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +34,7 @@ public class WeChatQrController {
         return CommonResult.success(weChatService.qrCodeCreate(inviteCode));
     }
 
-    @Operation(summary = "获取公共号二维码")
+    @Operation(summary = "扫码登录")
     @PostMapping("/qr/login")
     @PermitAll
     @OperateLog(enable = false)

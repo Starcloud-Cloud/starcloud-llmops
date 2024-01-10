@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
@@ -87,5 +88,12 @@ public interface SocialUserService {
      * @return 社交用户分页
      */
     PageResult<SocialUserDO> getSocialUserPage(SocialUserPageReqVO pageReqVO);
+
+    /**
+     * 绑定公共号用户
+     * @param socialUserDO
+     * @param socialUserBindDO
+     */
+    void bindWechatUser(SocialUserDO socialUserDO, SocialUserBindDO socialUserBindDO);
 
 }

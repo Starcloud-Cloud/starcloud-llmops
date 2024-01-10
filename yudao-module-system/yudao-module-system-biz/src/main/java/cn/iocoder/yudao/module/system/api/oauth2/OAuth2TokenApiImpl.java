@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.system.api.oauth2;
 
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.oauth2.dto.OAuth2AccessTokenCheckRespDTO;
 import cn.iocoder.yudao.module.system.api.oauth2.dto.OAuth2AccessTokenCreateReqDTO;
 import cn.iocoder.yudao.module.system.api.oauth2.dto.OAuth2AccessTokenRespDTO;
@@ -29,6 +30,7 @@ public class OAuth2TokenApiImpl implements OAuth2TokenApi {
     }
 
     @Override
+    @TenantIgnore
     public OAuth2AccessTokenCheckRespDTO checkAccessToken(String accessToken) {
         return OAuth2TokenConvert.INSTANCE.convert(oauth2TokenService.checkAccessToken(accessToken));
     }
