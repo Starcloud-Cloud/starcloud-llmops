@@ -372,14 +372,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         this.initAppConversationLog(request);
 
         try {
-            log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore());
+            log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
             this.validate(request);
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
                 try {
 
-                    log.info("应用异步执行-threadExecutor：权益扣除用户, 日志记录用户 ID：{}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore());
+                    log.info("应用异步执行-threadExecutor：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
 
                     this.beforeExecute(request);
                     this.doAsyncExecute(request);
