@@ -180,4 +180,10 @@ public class SocialUserServiceImpl implements SocialUserService {
         return socialUserMapper.selectPage(pageReqVO);
     }
 
+    @Override
+    public void bindWechatUser(SocialUserDO socialUserDO, SocialUserBindDO socialUserBindDO) {
+        socialUserMapper.insert(socialUserDO);
+        socialUserBindDO.setSocialUserId(socialUserDO.getId());
+        socialUserBindMapper.insert(socialUserBindDO);
+    }
 }
