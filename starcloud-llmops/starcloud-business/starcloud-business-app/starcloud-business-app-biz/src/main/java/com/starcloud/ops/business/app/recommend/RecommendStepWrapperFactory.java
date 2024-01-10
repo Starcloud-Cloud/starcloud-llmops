@@ -112,7 +112,9 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
-        stepWrapper.setVariable(null);
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        stepWrapper.setVariable(variable);
         return stepWrapper;
     }
 
