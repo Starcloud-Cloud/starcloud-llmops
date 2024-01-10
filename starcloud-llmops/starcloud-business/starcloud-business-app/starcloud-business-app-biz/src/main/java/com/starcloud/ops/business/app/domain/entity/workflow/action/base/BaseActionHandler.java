@@ -134,7 +134,7 @@ public abstract class BaseActionHandler extends Object {
             // 执行具体的步骤
             ActionResponse actionResponse = this.doExecute();
             //设置到上下文中
-            this.getAppContext().setActionResponse(actionResponse);
+            context.setActionResponse(actionResponse);
 
             // 执行结果校验, 如果失败，抛出异常
             if (!actionResponse.getSuccess()) {

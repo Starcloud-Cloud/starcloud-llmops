@@ -201,8 +201,20 @@ public class AppContext {
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues() {
 
+        return this.getContextVariablesValues(this.getStepId());
+    }
+
+    /**
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Map<String, Object> getContextVariablesValues(String stepId) {
+
         // 获取当前步骤前的所有变量的值
-        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.stepId);
+        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
 
         Map<String, Object> allVariablesValues = MapUtil.newHashMap();
 
@@ -213,28 +225,42 @@ public class AppContext {
             allVariablesValues.putAll(Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()));
         });
 
-        WorkflowStepWrapper wrapper = this.getStepWrapper(this.stepId);
+        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
         //当前步骤的所有变量
         Map<String, Object> variables = wrapper.getContextVariablesValues(null);
 
         Map<String, Object> fieldVariables = new HashMap<>();
         Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
-            String filedKey = StrUtil.replace(entrySet.getKey(), this.stepId + ".", "");
+            String filedKey = StrUtil.replace(entrySet.getKey(), stepId + ".", "");
             filedKey = StrUtil.replace(filedKey, this.stepId, "");
 
-            //做一次字符串替换， {}会被替换掉
-            String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
-            //做一次spel，spel 语法会被替换掉
-            StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
-            Expression exp = SpelParser.parseExpression(val, ParserContext);
-            Object value = exp.getValue(context);
+            Object value = entrySet.getValue();
+            if (value != null) {
+                //做一次字符串替换， {}会被替换掉
+                String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
+                //做一次spel，spel 语法会被替换掉
+                StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
+                Expression exp = SpelParser.parseExpression(val, ParserContext);
+                value = exp.getValue(context);
+            }
 
             fieldVariables.put(filedKey, value);
         });
 
         return fieldVariables;
 
+    }
+
+    /**
+     * 执行成功后，响应更新
+     *
+     * @param response 响应
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setActionResponse(String stepId, ActionResponse response) {
+        this.app.setActionResponse(stepId, response);
     }
 
     /**

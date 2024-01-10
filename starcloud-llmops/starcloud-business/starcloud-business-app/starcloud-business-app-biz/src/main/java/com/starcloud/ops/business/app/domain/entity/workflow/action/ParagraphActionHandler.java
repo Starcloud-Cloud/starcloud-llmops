@@ -96,6 +96,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         paragraphDTOList.add(ParagraphDTO.of("段落2", "段落1内容22222！！！"));
 
         ActionResponse response = convert(paragraphDTOList);
+
         log.info("段落生成 Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
@@ -114,6 +115,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setSuccess(true);
         actionResponse.setAnswer(JSONUtil.toJsonStr(paragraphDTOList));
         actionResponse.setOutput(JsonData.of(paragraphDTOList));
+        actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
 
         return actionResponse;
     }

@@ -305,7 +305,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         /**
          * 因为执行到最后 stepId 就是最后的节点
          */
-        ActionResponse result =  appContext.getStepResponse(appContext.getStepId());
+        ActionResponse result = appContext.getStepResponse(appContext.getStepId());
 
         if (Objects.isNull(result)) {
             log.error("应用工作流执行异常(ActionResponse 结果为空): 步骤 ID: {}", appContext.getStepId());
@@ -343,7 +343,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking).orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
-                    this.createAppMessageLog(appContext, nodeTracking);
+                    //把业务的异常传入进来
+                    this.createAppMessageLog(appContext, nodeTracking, story.getException());
                 }
             }
             log.info("应用执行回调结束...");
@@ -358,12 +359,18 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
+    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking, Optional<Throwable> storyException) {
 
         this.createAppMessage((messageCreateRequest) -> {
 
+            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
+            appContext.setActionResponse(nodeTracking.getNodeName(), actionResponse);
+
+            //此时 appContext.getStepId(); 是最后一个执行成功的step
+            String stepId = nodeTracking.getNodeName();
+
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
-            messageCreateRequest.setAppStep(appContext.getStepId());
+            messageCreateRequest.setAppStep(stepId);
             messageCreateRequest.setEndUser(appContext.getEndUser());
             messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
@@ -375,14 +382,15 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAiModel(appContext.getAiModel());
 
-            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
-            appContext.setActionResponse(actionResponse);
+            AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
+            // 获取step变量
+            Map<String, Object> variables = appContext.getContextVariablesValues(nodeTracking.getNodeName());
+            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
-                // 将执行结果数据更新到 app
-                AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
-                messageCreateRequest.setStatus(LogStatusEnum.SUCCESS.name());
+
+                messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
                 messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
                 messageCreateRequest.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
@@ -396,27 +404,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 return;
             }
 
-            // 说明执行失败
-            ModelTypeEnum modelType = TokenCalculator.fromName(appContext.getAiModel());
-            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
-            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
-
-            // 获取所有变量
-            Map<String, Object> variables = appContext.getContextVariablesValues();
+            // 说明执行handler时异常
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
+            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
             messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
-            messageCreateRequest.setMessage(String.valueOf(variables.getOrDefault("PROMPT", "")));
-            messageCreateRequest.setMessageTokens(0);
-            messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
-            messageCreateRequest.setAnswer("");
-            messageCreateRequest.setAnswerTokens(0);
-            messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
-            messageCreateRequest.setTotalPrice(new BigDecimal("0"));
             messageCreateRequest.setCostPoints(0);
-            Optional<Throwable> taskExceptionOptional = Optional.ofNullable(nodeTracking.getTaskException());
-            if (taskExceptionOptional.isPresent()) {
-                Throwable throwable = taskExceptionOptional.get();
+
+            if (storyException.isPresent()) {
+                Throwable throwable = storyException.get();
                 messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(throwable));
                 messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
                 if (throwable instanceof KstryException) {

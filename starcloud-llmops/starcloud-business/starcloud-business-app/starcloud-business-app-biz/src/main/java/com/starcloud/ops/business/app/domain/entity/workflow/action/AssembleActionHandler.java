@@ -106,6 +106,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         actionResponse.setSuccess(true);
         actionResponse.setAnswer(str);
         actionResponse.setOutput(JsonData.of(str));
+        actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
 
         return actionResponse;
     }
