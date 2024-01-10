@@ -13,9 +13,9 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -195,6 +195,105 @@ public class CreativeImageUtils {
             }
         }
         params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
+    }
+
+    /**
+     * 获取小红书批量图片执行参数
+     *
+     * @param style 图片模板列表
+     */
+    public static PosterStyleDTO handlerPosterStyleExecute(PosterStyleDTO style, List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
+
+        List<PosterTemplateDTO> list = new ArrayList<>();
+        // 图片参数信息
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        for (int i = 0; i < templateList.size(); i++) {
+            PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
+            posterTemplate.setIndex(i + 1);
+            posterTemplate.setIsMain(i == 0);
+            posterTemplate.setId(posterTemplate.getId());
+            posterTemplate.setName(posterTemplate.getName());
+            posterTemplate.setVariableList(transformParams(posterTemplate, useImageList));
+            list.add(posterTemplate);
+        }
+        PosterStyleDTO posterStyle = new PosterStyleDTO();
+        posterStyle.setId(style.getId());
+        posterStyle.setName(style.getName());
+        posterStyle.setTemplateList(list);
+        return posterStyle;
+    }
+
+    /**
+     * 获取小红书批量图片执行参数
+     *
+     * @param style 图片模板列表
+     * @return 图片执行参数
+     */
+    public static PosterStyleDTO handlerPosterStyleExecute(PosterStyleDTO style, List<String> useImageList,
+                                                           Integer paragraphCount, Map<String, PosterTemplateDTO> posterMap) {
+        // 图片参数信息
+        List<PosterTemplateDTO> list = Lists.newArrayList();
+
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        // 图片参数配置的总段落数
+        List<Integer> paragraphParamCountList = new ArrayList<>();
+        for (int i = 0; i < templateList.size(); i++) {
+            PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
+            posterTemplate.setIndex(i + 1);
+            posterTemplate.setIsMain(i == 0);
+            posterTemplate.setId(posterTemplate.getId());
+            posterTemplate.setName(posterTemplate.getName());
+            List<VariableItemRespVO> params = transformParams(posterTemplate, useImageList);
+            int size = (int) params.stream().filter(item -> PARAGRAPH_TITLE.contains(item.getField())).count();
+            paragraphParamCountList.add(size);
+            posterTemplate.setVariableList(params);
+
+            list.add(posterTemplate);
+        }
+
+        List<PosterTemplateDTO> imageList = Lists.newArrayList();
+        // paragraphParamCountList 依次相加 stream 方式
+        int total = paragraphParamCountList.stream().mapToInt(Integer::intValue).sum();
+        if (total == paragraphCount) {
+            imageList = list;
+        } else if (total > paragraphCount) {
+            // 超过段落数，截取
+            int sumCount = 0;
+            for (int i = 0; i < paragraphParamCountList.size(); i++) {
+                if (i == paragraphParamCountList.size() - 1 && paragraphParamCountList.get(i) == 0) {
+                    imageList.add(list.get(i));
+                }
+                if (sumCount > paragraphCount) {
+                    continue;
+                }
+                sumCount += paragraphParamCountList.get(i);
+                imageList.add(list.get(i));
+            }
+        } else {
+            // 少于段落数，补充，获取作为复制的基数索引
+            imageList.addAll(list);
+            // 获取需要补充的数量
+            int diff = paragraphCount - total;
+            // 获取需要复制的元素的索引。
+            int index = getNextNonZeroIndex(paragraphParamCountList);
+            // 获取需要复制的元素
+            PosterTemplateDTO imageExecuteRequest = list.get(index);
+            // 复制元素
+            while (diff > 0) {
+                PosterTemplateDTO copyImageExecuteRequest = SerializationUtils.clone(imageExecuteRequest);
+                // 在 index 索引后面添加复制的元素
+                imageList.add(index + 1, copyImageExecuteRequest);
+                // diff 扣除复制的元素的数量
+                diff -= paragraphParamCountList.get(index);
+            }
+        }
+
+        // 图片风格执行参数
+        PosterStyleDTO imageStyleExecuteRequest = new PosterStyleDTO();
+        imageStyleExecuteRequest.setId(style.getId());
+        imageStyleExecuteRequest.setName(style.getName());
+        imageStyleExecuteRequest.setTemplateList(imageList);
+        return imageStyleExecuteRequest;
     }
 
     /**
@@ -537,5 +636,14 @@ public class CreativeImageUtils {
         variableItem.setIsShow(Boolean.FALSE);
         variableItem.setOptions(Lists.newArrayList());
         return variableItem;
+    }
+
+    public static List<PosterTemplateDTO> handlerImageTemplate(List<PosterTemplateDTO> posterTemplateList) {
+        for (int i = 0; i < posterTemplateList.size(); i++) {
+            PosterTemplateDTO posterTemplate = posterTemplateList.get(i);
+            posterTemplate.setIsMain(i == 0);
+            posterTemplate.setIndex(i + 1);
+        }
+        return posterTemplateList;
     }
 }

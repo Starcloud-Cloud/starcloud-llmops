@@ -5,6 +5,7 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
@@ -110,7 +111,7 @@ public interface CreativeSchemeConvert {
             if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(creativeScheme.getMode())) {
                 creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
             } else {
-                creativeSchemeResponse.setCustomConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CustomCreativeSchemeConfigDTO.class));
+                creativeSchemeResponse.setCustomConfiguration(JsonUtils.parseObject(creativeScheme.getConfiguration(), CustomCreativeSchemeConfigDTO.class));
             }
         }
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {

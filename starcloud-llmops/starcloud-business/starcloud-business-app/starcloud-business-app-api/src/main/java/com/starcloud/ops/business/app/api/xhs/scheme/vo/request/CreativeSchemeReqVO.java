@@ -137,4 +137,8 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
         }
     }
 
+    public static void main(String[] args) {
+
+
+    }
 }

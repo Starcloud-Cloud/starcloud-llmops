@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -110,7 +111,7 @@ public class CreativeExecuteManager {
             CreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
             try {
                 CreativePlanExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativePlanExecuteDTO.class);
-                AppRespVO appResponse = creativePlanExecute.getAppResponse();
+                AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
 
                 AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
                 appExecuteRequest.setAppUid(appResponse.getUid());
