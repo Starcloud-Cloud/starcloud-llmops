@@ -79,7 +79,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     @Override
-    @TenantIgnore
     public Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force) {
         log.info("开始执行 {} 任务 {}", type, ids);
         try {
