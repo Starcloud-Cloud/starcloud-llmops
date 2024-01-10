@@ -29,4 +29,11 @@ public class PosterSchemeStepDTO extends BaseSchemeStepDTO {
     @Schema(description = "创作方案步骤图片风格")
     private List<PosterStyleDTO> styleList;
 
+    /**
+     * 校验
+     */
+    @Override
+    public void validate() {
+
+    }
 }

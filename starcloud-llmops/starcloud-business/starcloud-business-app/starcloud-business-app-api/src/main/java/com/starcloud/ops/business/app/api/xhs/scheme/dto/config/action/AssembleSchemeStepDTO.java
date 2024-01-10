@@ -25,4 +25,11 @@ public class AssembleSchemeStepDTO extends BaseSchemeStepDTO {
     @Schema(description = "创作方案步骤要求")
     private String requirement;
 
+    /**
+     * 校验
+     */
+    @Override
+    public void validate() {
+
+    }
 }

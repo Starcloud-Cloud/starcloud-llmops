@@ -73,11 +73,4 @@ public class WorkflowStepWrapperRespVO implements Serializable {
         this.variable.putVariable(variable);
     }
 
-    public Map<String, Object> getVariableItemMap() {
-        return Optional.ofNullable(this.getVariable())
-                .map(VariableRespVO::getVariables)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED))
-                .stream()
-                .collect(Collectors.toMap(VariableItemRespVO::getField, VariableItemRespVO::getValue));
-    }
 }

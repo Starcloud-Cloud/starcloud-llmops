@@ -555,7 +555,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(scheme.getMode())) {
                 CustomCreativeSchemeConfigDTO customConfiguration = scheme.getCustomConfiguration();
-                customConfiguration.validate(scheme.getName(), scheme.getMode());
+                customConfiguration.validate();
                 AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
 
                 List<BaseSchemeStepDTO> steps = customConfiguration.getSteps();

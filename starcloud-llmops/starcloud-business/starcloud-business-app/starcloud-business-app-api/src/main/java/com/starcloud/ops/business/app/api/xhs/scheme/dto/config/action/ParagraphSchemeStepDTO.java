@@ -53,4 +53,11 @@ public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
     @Schema(description = "创作方案步骤变量")
     private List<VariableItemDTO> variableList;
 
+    /**
+     * 校验
+     */
+    @Override
+    public void validate() {
+
+    }
 }

@@ -53,13 +53,16 @@ public class CustomCreativeSchemeConfigDTO implements java.io.Serializable {
      */
     private List<BaseSchemeStepDTO> steps;
 
-    public void validate(String name, String mode) {
-        if (StrUtil.isBlank(name)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_APP_UID_REQUIRED, name);
+    /**
+     * 验证
+     */
+    public void validate() {
+        if (StrUtil.isBlank(appUid)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_APP_UID_REQUIRED);
         }
         if (CollectionUtil.isEmpty(steps)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL);
         }
-        //steps.forEach(step -> step.validate(name, mode));
+        steps.forEach(BaseSchemeStepDTO::validate);
     }
 }

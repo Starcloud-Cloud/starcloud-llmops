@@ -134,6 +134,7 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
             if (Objects.isNull(customConfiguration)) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL, name);
             }
+            customConfiguration.validate();
         }
     }
 
