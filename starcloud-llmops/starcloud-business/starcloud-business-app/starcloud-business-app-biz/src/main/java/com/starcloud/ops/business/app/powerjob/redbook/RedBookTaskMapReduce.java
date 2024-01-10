@@ -105,6 +105,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 subTask.setRunType(params.getRunType());
                 subTask.setRedBookIdList(longs);
                 subTask.setTenantId(planUidGroup.get(planUid).get(0).getTenantId());
+                log.info("tenantId={}",planUidGroup.get(planUid).get(0).getTenantId());
                 subTasks.add(subTask);
             }
         }
