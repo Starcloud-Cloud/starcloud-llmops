@@ -122,7 +122,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     public BaseTaskResult runSub(BaseTaskContext powerJobTaskContext, SubTask subTask) {
         try {
             TenantContextHolder.setIgnore(false);
-            TenantContextHolder.setTenantId(subTask.tenantId);
+            TenantContextHolder.setTenantId(subTask.getTenantId());
             List<Long> redBookTask = subTask.getRedBookIdList();
             Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
 
