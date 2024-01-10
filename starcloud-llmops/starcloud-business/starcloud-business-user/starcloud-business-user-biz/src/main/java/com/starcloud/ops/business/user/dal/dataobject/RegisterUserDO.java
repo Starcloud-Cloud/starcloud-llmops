@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.dal.dataobject;
 
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @TableName("llm_register_users")
 @KeySequence("llm_register_users")
 @Builder
-public class RegisterUserDO {
+public class RegisterUserDO extends TenantBaseDO {
 
 
     @TableId
