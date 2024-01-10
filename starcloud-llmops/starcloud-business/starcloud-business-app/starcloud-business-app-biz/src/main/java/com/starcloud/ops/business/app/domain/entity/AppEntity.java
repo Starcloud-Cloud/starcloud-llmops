@@ -493,11 +493,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
+    private <T> T getTracking(List<FieldTracking> noticeTrackingList, Class<T> clazz) {
         String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
         return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
-                .filter(noticeTracking -> noticeTracking.getFieldName().equals(field))
+                .filter(noticeTracking -> noticeTracking.getSourceName().equals(field))
                 .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
                 .findFirst().orElse(null);
     }

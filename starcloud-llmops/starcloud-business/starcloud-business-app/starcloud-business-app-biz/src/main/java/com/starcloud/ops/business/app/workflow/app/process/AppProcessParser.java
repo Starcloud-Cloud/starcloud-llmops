@@ -28,10 +28,10 @@ public class AppProcessParser implements ConfigResource {
     private final String resourceName;
 
 
-//    @Override
-//    public ResourceTypeEnum getResourceType() {
-//        return ResourceTypeEnum.DYNAMIC_PROCESS;
-//    }
+    @Override
+    public ResourceTypeEnum getResourceType() {
+        return ResourceTypeEnum.DYNAMIC_PROCESS;
+    }
 
     public AppProcessParser(AppEntity app) {
         this.app = app;

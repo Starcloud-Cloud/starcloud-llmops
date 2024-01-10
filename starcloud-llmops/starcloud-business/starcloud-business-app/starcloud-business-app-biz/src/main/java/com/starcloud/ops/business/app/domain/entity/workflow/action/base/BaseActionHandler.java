@@ -5,6 +5,8 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.annotation.NoticeResult;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
@@ -120,7 +122,7 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-        log.info("Action 执行开始...");
+        log.info("Action[{}]执行开始，当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
         try {
             if (Objects.isNull(context)) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONTEXT_REQUIRED);
@@ -178,6 +180,7 @@ public abstract class BaseActionHandler extends Object {
 
     /**
      * 因为@Data重写了hasCode, equals, 导致子类比较都相等，所以这里改成继承object, 重写equals即可
+     *
      * @param obj
      * @return
      */

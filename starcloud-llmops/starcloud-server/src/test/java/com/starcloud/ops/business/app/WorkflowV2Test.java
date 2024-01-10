@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import cn.kstry.framework.core.engine.StoryEngine;
 import com.google.common.collect.Sets;
+import com.starcloud.ops.BaseUserContextTest;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -22,7 +23,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.AppWorkflowService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.misc.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -50,107 +51,13 @@ import java.util.*;
  * 多step功能执行测试
  */
 @Slf4j
-@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
-@ExtendWith(MockitoExtension.class)
-public class WorkflowV2Test extends BaseDbUnitTest {
-
-
-    @MockBean
-    private PermissionApi permissionApi;
-
-    @MockBean
-    private DictDataService dictDataService;
-
-    @MockBean
-    private RoleService roleService;
-
-    @MockBean
-    private PermissionService permissionService;
-
+public class WorkflowV2Test extends BaseUserContextTest {
 
     @Autowired
     private StoryEngine storyEngine;
 
-
-    @Autowired
-    private AppWorkflowService appWorkflowService;
-
-    @MockBean
-    private AdminUserService adminUserService;
-
-    @MockBean
-    private DeptService deptService;
-
-    @MockBean
-    private AdminUserApi adminUserApi;
-
-
-
     final String appId = "appId-test";
 
-    final String requestId = "appId-request-xxx-id";
-
-    final String stepId = "title";
-
-    @Test
-    public void demoTest() {
-
-        log.info("hahahahhaha");
-    }
-
-    @BeforeEach
-    public void before() {
-
-        AppEntity appEntity = new AppEntity();
-
-        appEntity.setUid(appId);
-        appEntity.setName("ppId-test name");
-        appEntity.setModel(AppModelEnum.CHAT.name());
-
-        WorkflowConfigEntity appConfigEntity = new WorkflowConfigEntity();
-
-        List<WorkflowStepWrapper> appStepWrappers = new ArrayList<>();
-
-
-        appStepWrappers.add(createAppStep("title"));
-        appStepWrappers.add(createAppStep("content"));
-        appStepWrappers.add(createAppStep("summarize"));
-
-        appConfigEntity.setSteps(appStepWrappers);
-        appEntity.setWorkflowConfig(appConfigEntity);
-
-
-        //Mockito.mockStatic(AppFactory.class);
-//        Mockito.when(AppFactory.factory(appId)).thenReturn(appEntity);
-//
-//
-//        Mockito.when(AppFactory.factory(appId, new AppReqVO())).thenReturn(appEntity);
-//
-//        Mockito.when(AppFactory.factory(appId, new AppReqVO(), stepId)).thenReturn(appEntity);
-
-
-        Mockito.mockStatic(SecurityFrameworkUtils.class);
-        Mockito.when(SecurityFrameworkUtils.getLoginUserId()).thenReturn(1L);
-
-    }
-
-
-    private WorkflowStepWrapper createAppStep(String title) {
-
-        WorkflowStepWrapper appStepWrapper = new WorkflowStepWrapper();
-
-        WorkflowStepEntity appStepEntity = new WorkflowStepEntity();
-
-        appStepEntity.setName("chatgpt api");
-        appStepEntity.setType("OpenAIChatActionHandler");
-        appStepEntity.setHandler("OpenAIChatActionHandler");
-
-        appStepWrapper.setName(title);
-        appStepWrapper.setField(title);
-        appStepWrapper.setFlowStep(appStepEntity);
-
-        return appStepWrapper;
-    }
 
     @Test
     public void testRunTest() {
@@ -162,6 +69,8 @@ public class WorkflowV2Test extends BaseDbUnitTest {
         executeReqVO.setUserId(186L);
         executeReqVO.setAppReqVO(new AppReqVO());
         executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
+
+        executeReqVO.setTenantId(2L);
 
         SseEmitter emitter = new SseEmitter(60000L);
 
@@ -241,7 +150,7 @@ public class WorkflowV2Test extends BaseDbUnitTest {
 
             put("段落._OUT", "tttt\n xxxxx\n 4444444\n");
 
-            put("段落._DATA", new ArrayList<String>(){{
+            put("段落._DATA", new ArrayList<String>() {{
                 add("tttt");
                 add("xxxxx");
                 add("4444444 #{STEP['段落._DATA'][0]}");
@@ -250,7 +159,7 @@ public class WorkflowV2Test extends BaseDbUnitTest {
 
             put("开头", new HashMap<String, Object>() {{
                 put("key1", "vvv");
-                put("key2", new HashMap(){{
+                put("key2", new HashMap() {{
                     put("xxx", "123");
                     put("_OUT", 77);
                 }});
