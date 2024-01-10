@@ -38,6 +38,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -152,6 +153,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             // 返回结果
             ImageRespVO imageRespVO = new ImageRespVO();
             imageRespVO.setConversationUid(request.getConversationUid());
+            imageRespVO.setBizUid(Optional.ofNullable(appMessage).map(LogAppMessageCreateReqVO::getUid).orElse(""));
+            imageRespVO.setScene(request.getScene());
             imageRespVO.setResponse(imageResponse);
             return imageRespVO;
         } catch (ServiceException exception) {
@@ -167,6 +170,9 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 messageRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
+            exception.setScene(request.getScene());
+            // ServiceException 时候将消息UID传入exception中
+            exception.setBizUid(Optional.ofNullable(appMessage).map(LogAppMessageCreateReqVO::getUid).orElse(""));
             throw exception;
         } catch (Exception exception) {
             log.error("处理图片失败，错误码：{}, 错误信息：{}", Integer.toString(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode()), exception.getMessage());

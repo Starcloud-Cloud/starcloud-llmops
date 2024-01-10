@@ -43,6 +43,16 @@ public class BaseStreamResult implements Serializable {
     private String type;
 
     /**
+     * 消息UID
+     */
+    private String bizUid;
+
+    /**
+     * 场景
+     */
+    private String scene;
+
+    /**
      * 获取 流结果
      *
      * @param code    code

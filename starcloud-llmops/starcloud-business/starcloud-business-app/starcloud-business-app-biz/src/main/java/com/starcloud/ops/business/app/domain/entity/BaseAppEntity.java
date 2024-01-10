@@ -335,6 +335,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         } catch (ServiceException exception) {
             log.error("应用执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
+            exception.setScene(request.getScene());
+
             this.afterExecute(request, exception);
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
