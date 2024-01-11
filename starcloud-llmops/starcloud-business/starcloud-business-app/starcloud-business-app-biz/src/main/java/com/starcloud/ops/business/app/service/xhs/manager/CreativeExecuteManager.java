@@ -9,7 +9,6 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
@@ -23,6 +22,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -33,7 +33,7 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
-import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.executor.PosterStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -88,11 +88,46 @@ public class CreativeExecuteManager {
     private CreativeImageManager creativeImageManager;
 
     @Resource
-    private CreativeImageCreativeThreadPoolHolder creativeImageCreativeThreadPoolHolder;
+    private PosterStyleThreadPoolHolder posterStyleThreadPoolHolder;
 
     public Map<Long, Boolean> executeAppALl(List<CreativeContentDO> contentList, Boolean force) {
+        Map<Long, Boolean> result = new HashMap<>(contentList.size());
 
-        return null;
+        if (CollectionUtil.isEmpty(contentList)) {
+            log.warn("创作中心：小红书应用生成执行：参数为空！应用生成结束");
+            return Collections.emptyMap();
+        }
+
+        // 获取异步Future
+        ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
+        List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
+        for (CreativeContentDO content : contentList) {
+            CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(content, force), executor);
+            imageFutureList.add(future);
+        }
+        // 合并任务
+        CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(imageFutureList.toArray(new CompletableFuture[0]));
+        // 等待所有任务执行完成并且获取执行结果
+        CompletableFuture<List<XhsImageCreativeExecuteResponse>> allFuture = allOfFuture
+                .thenApply(v -> imageFutureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        // 获取执行结果
+        List<XhsImageCreativeExecuteResponse> responses = allFuture.join();
+        // 处理执行结果
+        Map<String, CreativeContentDO> map = contentList.stream().collect(Collectors.toMap(CreativeContentDO::getUid, Function.identity()));
+        for (XhsImageCreativeExecuteResponse response : responses) {
+            CreativeContentDO content = map.get(response.getContentUid());
+            if (Objects.isNull(content)) {
+                continue;
+            }
+            if (response.getSuccess()) {
+                result.put(content.getId(), true);
+            } else {
+                result.put(content.getId(), false);
+            }
+        }
+
+        log.info("创作中心：小红书图片生成执行：图片生成结束");
+        return result;
     }
 
     public Map<Long, Boolean> executeApp(CreativeContentDO content, Boolean force) {
@@ -119,7 +154,10 @@ public class CreativeExecuteManager {
                 appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
                 appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
                 AppEntity entity = (AppEntity) AppFactory.factory(appExecuteRequest);
-                entity.execute(appExecuteRequest);
+                AppExecuteRespVO response = entity.execute(appExecuteRequest);
+
+
+
 
             } catch (Exception exception) {
                 log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
@@ -323,7 +361,7 @@ public class CreativeExecuteManager {
         }
 
         // 获取异步Future
-        ThreadPoolExecutor executor = creativeImageCreativeThreadPoolHolder.executor();
+        ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
         List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
         for (CreativeContentDO content : contentList) {
             CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(content, force), executor);

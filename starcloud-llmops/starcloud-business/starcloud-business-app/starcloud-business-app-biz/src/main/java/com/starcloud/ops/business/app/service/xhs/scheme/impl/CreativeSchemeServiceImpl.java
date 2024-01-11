@@ -52,7 +52,7 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
-import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.executor.PosterStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
@@ -106,7 +106,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     private AppDictionaryService appDictionaryService;
 
     @Resource
-    private CreativeImageCreativeThreadPoolHolder creativeImageCreativeThreadPoolHolder;
+    private PosterStyleThreadPoolHolder posterStyleThreadPoolHolder;
 
     /**
      * 获取创作方案元数据
@@ -485,7 +485,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         log.info("开始生成图片示例....");
         List<Throwable> exceptions = Lists.newArrayList();
         List<CompletableFuture<CreativeSchemeExampleDTO>> futures = Lists.newArrayList();
-        ThreadPoolExecutor executor = creativeImageCreativeThreadPoolHolder.executor();
+        ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
         for (CreativeSchemeExampleRequest schemeExampleRequest : schemeExampleRequests) {
             CompletableFuture<CreativeSchemeExampleDTO> future = CompletableFuture.
                     supplyAsync(() -> singleImageExample(schemeExampleRequest), executor)
