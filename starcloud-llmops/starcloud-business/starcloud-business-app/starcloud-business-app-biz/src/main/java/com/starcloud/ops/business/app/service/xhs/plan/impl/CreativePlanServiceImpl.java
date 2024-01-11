@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -34,6 +33,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchem
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
@@ -50,7 +50,6 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
-import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
@@ -80,8 +79,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -544,21 +545,35 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 配置信息
         CreativePlanConfigDTO planConfig = plan.getConfig();
         planConfig.validate();
+
+        // 获取方案配置列表
+        List<CreativeSchemeListOptionRespVO> schemeListConfiguration = CollectionUtil.emptyIfNull(planConfig.getSchemeList());
+        Map<String, CreativeSchemeListOptionRespVO> schemeMap = schemeListConfiguration.stream().collect(Collectors.toMap(CreativeSchemeListOptionRespVO::getUid, Function.identity()));
+
         // 查询并且校验创作方案是否存在
-        List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
+        List<CreativeSchemeRespVO> schemeList = getSchemeList(new ArrayList<>(schemeMap.keySet()));
         // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
         Map<String, PosterTemplateDTO> posterMap = creativeImageManager.mapTemplate();
 
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
+            // 获取计划应用配置
+            CreativeSchemeListOptionRespVO listOptionResponse = schemeMap.get(scheme.getUid());
+            if (Objects.isNull(listOptionResponse)) {
+                continue;
+            }
 
+            // 自定义配置模式情况
             if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(scheme.getMode())) {
+                // 获取自定义配置并且校验
                 CustomCreativeSchemeConfigDTO customConfiguration = scheme.getCustomConfiguration();
                 customConfiguration.validate();
+                // 查询应用信息
                 AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
-
-                List<BaseSchemeStepDTO> steps = customConfiguration.getSteps();
+                // 获取自定义配置的步骤列表，并且合并计划参数。
+                List<BaseSchemeStepDTO> steps = CreativeAppUtils.mergeSchemeStepVariableList(customConfiguration.getSteps(), listOptionResponse);
+                // 获取海报步骤
                 Optional<BaseSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
 
                 // 如果没有海报步骤，直接创建一个执行参数
@@ -583,13 +598,16 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 }
                 continue;
             }
+
+            // 非自定义配置模式情况
             CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
             configuration.validate(scheme.getName(), scheme.getMode());
-            CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
+
             // 查询并且校验应用是否存在
             AppMarketRespVO app = creativeAppManager.getExecuteApp(scheme.getMode());
             // 获取应用执行参数
-            CreativePlanAppExecuteDTO appExecute = CreativeAppUtils.getXhsAppExecuteRequest(scheme, planConfig, app.getUid());
+            CreativePlanAppExecuteDTO appExecute = CreativeAppUtils.getXhsAppExecuteRequest(scheme, listOptionResponse, app.getUid());
+            CreativeSchemeImageTemplateDTO imageTemplate = configuration.getImageTemplate();
             for (PosterStyleDTO style : imageTemplate.getStyleList()) {
                 List<PosterTemplateDTO> templateList = style.getTemplateList();
                 AppValidate.notEmpty(templateList, CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY, style.getName());

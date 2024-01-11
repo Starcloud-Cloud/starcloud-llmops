@@ -1,5 +1,9 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.poster;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -49,5 +53,15 @@ public class PosterStyleDTO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "请选择图片模板！")
     private List<PosterTemplateDTO> templateList;
+
+    public void validate() {
+        if (StrUtil.isBlank(id)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "风格ID不能为空"));
+        }
+        if (CollectionUtil.isEmpty(templateList)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(720100401, "请选择图片模板！"));
+        }
+        templateList.forEach(PosterTemplateDTO::validate);
+    }
 
 }

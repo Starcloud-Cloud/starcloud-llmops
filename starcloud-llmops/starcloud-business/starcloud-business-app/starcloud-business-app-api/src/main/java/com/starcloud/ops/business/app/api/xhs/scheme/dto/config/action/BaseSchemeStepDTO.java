@@ -46,4 +46,9 @@ public abstract class BaseSchemeStepDTO implements java.io.Serializable {
      */
     public abstract void validate();
 
+    /**
+     * 简化
+     */
+    public abstract void easy();
+
 }

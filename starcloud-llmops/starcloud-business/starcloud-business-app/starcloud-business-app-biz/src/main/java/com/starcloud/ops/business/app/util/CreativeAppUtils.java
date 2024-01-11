@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -25,12 +24,16 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ContentSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
@@ -61,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -122,13 +126,12 @@ public class CreativeAppUtils {
      * @param appUid     应用UID
      * @return 应用执行参数
      */
-    public static CreativePlanAppExecuteDTO getXhsAppExecuteRequest(CreativeSchemeRespVO scheme, CreativePlanConfigDTO planConfig, String appUid) {
+    public static CreativePlanAppExecuteDTO getXhsAppExecuteRequest(CreativeSchemeRespVO scheme, CreativeSchemeListOptionRespVO listOptionResponse, String appUid) {
 
         CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
 
-        Map<String, List<VariableItemRespVO>> paramMap = planConfig.getParamMap();
-        List<VariableItemRespVO> variableList = Optional.ofNullable(paramMap.get(scheme.getUid())).orElse(Lists.newArrayList());
+        List<VariableItemRespVO> variableList = CollectionUtil.emptyIfNull(listOptionResponse.getVariables());
 
         List<VariableItemRespVO> params = Lists.newArrayList();
         params.add(ofInputVariableItem(NAME, scheme.getName()));
@@ -626,9 +629,9 @@ public class CreativeAppUtils {
     }
 
     public static AppMarketRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
-                                                   PosterStyleDTO posterStyle,
-                                                   AppMarketRespVO appResponse,
-                                                   List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
+                                                         PosterStyleDTO posterStyle,
+                                                         AppMarketRespVO appResponse,
+                                                         List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
 
         Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
                 .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
@@ -643,7 +646,7 @@ public class CreativeAppUtils {
                 if (!paragraphOptional.isPresent()) {
                     style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, posterMap);
                 } else {
-                    ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO)paragraphOptional.get();
+                    ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) paragraphOptional.get();
                     Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
                     style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount, posterMap);
                 }
@@ -679,4 +682,50 @@ public class CreativeAppUtils {
     }
 
 
+    public static List<BaseSchemeStepDTO> mergeSchemeStepVariableList(List<BaseSchemeStepDTO> steps, CreativeSchemeListOptionRespVO listOptionResponse) {
+        List<BaseSchemeStepDTO> planStepList = listOptionResponse.getSteps();
+        if (CollectionUtil.isEmpty(planStepList)) {
+            return steps;
+        }
+
+        Map<String, BaseSchemeStepDTO> stepMap = planStepList.stream().collect(Collectors.toMap(BaseSchemeStepDTO::getName, Function.identity()));
+
+        List<BaseSchemeStepDTO> result = new ArrayList<>();
+
+        for (BaseSchemeStepDTO step : steps) {
+            if ((step instanceof AssembleSchemeStepDTO) || (step instanceof PosterSchemeStepDTO)) {
+                result.add(step);
+                continue;
+            }
+            if (!stepMap.containsKey(step.getName()) || Objects.isNull(stepMap.get(step.getName()))) {
+                result.add(step);
+                continue;
+            }
+
+            if (step instanceof ContentSchemeStepDTO) {
+                ContentSchemeStepDTO contentSchemeStep = (ContentSchemeStepDTO) step;
+                ContentSchemeStepDTO schemeStep = (ContentSchemeStepDTO) stepMap.get(step.getName());
+                contentSchemeStep.setVariableList(mergeVariable(contentSchemeStep.getVariableList(), schemeStep.getVariableList()));
+                result.add(contentSchemeStep);
+            }
+            if (step instanceof ParagraphSchemeStepDTO) {
+                ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) step;
+                ParagraphSchemeStepDTO schemeStep = (ParagraphSchemeStepDTO) stepMap.get(step.getName());
+                paragraphSchemeStep.setVariableList(mergeVariable(paragraphSchemeStep.getVariableList(), schemeStep.getVariableList()));
+                result.add(paragraphSchemeStep);
+            }
+        }
+
+        return result;
+    }
+
+    private static List<VariableItemDTO> mergeVariable(List<VariableItemDTO> variableList, List<VariableItemDTO> variables) {
+        Map<String, Object> variableMap = variables.stream().collect(Collectors.toMap(VariableItemDTO::getField, VariableItemDTO::getValue));
+        for (VariableItemDTO variableItemDTO : CollectionUtil.emptyIfNull(variableList)) {
+            if (variableMap.containsKey(variableItemDTO.getField()) && Objects.nonNull(variableItemDTO.getValue())) {
+                variableItemDTO.setValue(variableMap.get(variableItemDTO.getField()));
+            }
+        }
+        return variableList;
+    }
 }

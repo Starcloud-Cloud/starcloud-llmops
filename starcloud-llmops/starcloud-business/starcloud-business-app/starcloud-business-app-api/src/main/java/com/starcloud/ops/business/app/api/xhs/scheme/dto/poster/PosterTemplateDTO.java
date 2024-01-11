@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.poster;
 
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -72,4 +75,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     @Schema(description = "图片模板变量")
     private List<VariableItemRespVO> variableList;
 
+    /**
+     * 校验
+     */
+    public void validate() {
+        if (StrUtil.isBlank(id)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "海报ID不能为空！"));
+        }
+    }
 }

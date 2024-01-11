@@ -26,7 +26,9 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDT
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
@@ -217,14 +219,31 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         query.setIsAdmin(UserUtils.isAdmin());
         List<CreativeSchemeRespVO> list = list(query);
         return CollectionUtil.emptyIfNull(list).stream().map(item -> {
-            List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration())
-                    .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
-                    .map(CreativeSchemeCopyWritingTemplateDTO::getVariables)
-                    .orElse(Lists.newArrayList());
             CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
+
+            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(item.getMode())) {
+                List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
+                List<BaseSchemeStepDTO> steps = item.getCustomConfiguration().getSteps();
+                for (BaseSchemeStepDTO step : steps) {
+                    if (step instanceof AssembleSchemeStepDTO || (step instanceof PosterSchemeStepDTO)) {
+                        continue;
+                    }
+                    step.easy();
+                    schemeStepList.add(step);
+                }
+                option.setSteps(schemeStepList);
+
+            } else {
+                List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration())
+                        .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
+                        .map(CreativeSchemeCopyWritingTemplateDTO::getVariables)
+                        .orElse(Lists.newArrayList());
+                option.setVariables(variable);
+            }
+
             option.setUid(item.getUid());
             option.setName(item.getName());
-            option.setVariables(variable);
+            option.setMode(item.getMode());
             option.setDescription(item.getDescription());
             option.setCreateTime(item.getCreateTime());
             return option;
