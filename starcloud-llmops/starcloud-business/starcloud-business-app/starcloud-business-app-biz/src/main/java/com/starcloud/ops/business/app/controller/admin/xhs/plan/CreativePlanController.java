@@ -12,7 +12,10 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanStatusReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -137,13 +140,13 @@ public class CreativePlanController {
     @PostMapping("/test1")
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 80, author = "nacoyer")
-    public CommonResult<Boolean> test1(@Validated @RequestBody List<Long> ids) {
+    public CommonResult<AppExecuteRespVO> test1(@Validated @RequestBody List<Long> ids) {
         AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
 
-        executeReqVO.setAppUid("e2582f423f4f40fb95b25596a7856226");
+        executeReqVO.setAppUid("b190d6b601b44dd08ea3505de6c928ba");
         executeReqVO.setUserId(186L);
-        executeReqVO.setAppReqVO(new AppReqVO());
-        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
+        executeReqVO.setAppReqVO(null);
+        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
 
         executeReqVO.setTenantId(2L);
 
@@ -151,10 +154,10 @@ public class CreativePlanController {
 
         //executeReqVO.setSseEmitter(emitter);
 
-        AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
+        AppMarketEntity entity = (AppMarketEntity)AppFactory.factory(executeReqVO);
 
-        app.execute(executeReqVO);
-        return CommonResult.success(true);
+        AppExecuteRespVO execute = entity.execute(executeReqVO);
+        return CommonResult.success(execute);
     }
 
 

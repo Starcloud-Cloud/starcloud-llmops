@@ -41,7 +41,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_CLAIMED;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_GREATER_RETRY;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
 
 /**
  * @author nacoyer
@@ -94,6 +97,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
             } else if (CreativeContentTypeEnum.PICTURE.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executePicture(contentList, force);
+            } else if (CreativeContentTypeEnum.ALL.getCode().equalsIgnoreCase(type)) {
+                return xlsCreativeExecuteManager.executeAppALl(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
             }
