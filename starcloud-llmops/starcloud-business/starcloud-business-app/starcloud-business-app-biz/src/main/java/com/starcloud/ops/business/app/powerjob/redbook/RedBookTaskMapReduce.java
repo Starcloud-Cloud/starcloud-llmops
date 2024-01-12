@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -103,6 +104,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 subTask.setPlanUid(planUid);
                 subTask.setRunType(params.getRunType());
                 subTask.setRedBookIdList(longs);
+                subTask.setTenantId(planUidGroup.get(planUid).get(0).getTenantId());
+                log.info("tenantId={}",planUidGroup.get(planUid).get(0).getTenantId());
                 subTasks.add(subTask);
             }
         }
@@ -119,7 +122,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     //单操作任务执行入口
     public BaseTaskResult runSub(BaseTaskContext powerJobTaskContext, SubTask subTask) {
         try {
-
+            TenantContextHolder.setIgnore(false);
+            TenantContextHolder.setTenantId(subTask.getTenantId());
             List<Long> redBookTask = subTask.getRedBookIdList();
             Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
 
@@ -193,6 +197,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         //DTO对象
         private List<Long> redBookIdList;
+
+        private Long tenantId;
 
 
         /**

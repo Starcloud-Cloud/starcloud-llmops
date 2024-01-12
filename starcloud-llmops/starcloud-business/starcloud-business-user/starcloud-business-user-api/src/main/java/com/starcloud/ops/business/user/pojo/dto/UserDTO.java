@@ -18,4 +18,6 @@ public class UserDTO {
     private Integer userStatus;
 
     private String mobile;
+
+    private Long tenantId;
 }

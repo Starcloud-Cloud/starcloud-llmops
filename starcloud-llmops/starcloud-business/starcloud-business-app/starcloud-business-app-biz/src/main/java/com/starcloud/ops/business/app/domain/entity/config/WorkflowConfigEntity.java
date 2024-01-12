@@ -71,7 +71,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> (item.getName().equals(stepId) || item.getField().equals(stepId)))
+                .filter(item -> item.getStepCode().equals(stepId))
                 .findFirst()
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, stepId));
     }

@@ -9,7 +9,6 @@ import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.exception.KstryException;
-import cn.kstry.framework.core.monitor.FieldTracking;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
 import cn.kstry.framework.core.monitor.NoticeTracking;
@@ -269,13 +268,13 @@ public class AppWorkflowService {
      * @param <T>             类型
      * @return 追踪
      */
-    private <T> T getTracking(List<FieldTracking> noticeTrackings, Class<T> cls) {
+    private <T> T getTracking(List<NoticeTracking> noticeTrackings, Class<T> cls) {
 
         String clsName = cls.getSimpleName();
 
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
 
-        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getSourceName().equals(field)).map(noticeTracking -> {
+        return Optional.ofNullable(noticeTrackings).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getFieldName().equals(field)).map(noticeTracking -> {
             return JSON.parseObject(noticeTracking.getValue(), cls);
         }).findFirst().orElse(null);
     }

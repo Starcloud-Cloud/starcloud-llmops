@@ -11,7 +11,10 @@ import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.exception.KstryException;
-import cn.kstry.framework.core.monitor.*;
+import cn.kstry.framework.core.monitor.MonitorTracking;
+import cn.kstry.framework.core.monitor.NodeTracking;
+import cn.kstry.framework.core.monitor.NoticeTracking;
+import cn.kstry.framework.core.monitor.RecallStory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,6 +32,7 @@ import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
@@ -148,9 +152,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             } else {
                 request.setStepId(appContext.getStepId());
             }
-        } catch (ServerException exception) {
+        } catch (ServiceException exception) {
             log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
-            this.createAppMessageLog(request, exception);
+            String messageUid = this.createAppMessageLog(request, exception);
+            // ServiceException 时候将消息UID传入exception中
+            exception.setScene(request.getScene());
+            exception.setBizUid(messageUid);
             throw exception;
         } catch (Exception exception) {
             log.error("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
@@ -302,7 +309,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
         }
 
-        ActionResponse result = fire.getResult();
+        /**
+         * 因为执行到最后 stepId 就是最后的节点
+         */
+        ActionResponse result = appContext.getStepResponse(appContext.getStepId());
+
         if (Objects.isNull(result)) {
             log.error("应用工作流执行异常(ActionResponse 结果为空): 步骤 ID: {}", appContext.getStepId());
             throw exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT);
@@ -436,8 +447,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void createAppMessageLog(AppExecuteReqVO request, Exception exception) {
-        this.createAppMessage((messageCreateRequest) -> {
+    private String createAppMessageLog(AppExecuteReqVO request, Exception exception) {
+        LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageCreateRequest) -> {
             // 构建应用上下文
             AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
             if (StringUtils.isNotBlank(request.getStepId())) {
@@ -481,6 +492,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(exception));
 
         });
+        return Optional.ofNullable(appMessage).map(LogAppMessageCreateReqVO::getUid).orElse("");
     }
 
     /**
@@ -494,11 +506,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private <T> T getTracking(List<FieldTracking> noticeTrackingList, Class<T> clazz) {
+    private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
         String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
         return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
-                .filter(noticeTracking -> noticeTracking.getSourceName().equals(field))
+                .filter(noticeTracking -> noticeTracking.getFieldName().equals(field))
                 .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
                 .findFirst().orElse(null);
     }
