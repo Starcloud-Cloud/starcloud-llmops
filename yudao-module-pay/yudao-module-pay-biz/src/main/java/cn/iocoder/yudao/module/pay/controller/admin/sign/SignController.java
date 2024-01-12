@@ -56,7 +56,7 @@ public class SignController {
     @PreAuthorize("@ss.hasPermission('pay:sign:update')")
     public CommonResult<String> updateSign(@Valid @RequestBody PaySignSubmitReqVO updateReqVO) {
         PaySignSubmitRespVO paySignSubmitRespVO = paySignService.submitSign(updateReqVO, getClientIP());
-        return success("alipays://platformapi/startApp?appId=60000157&orderStr="+paySignSubmitRespVO.getDisplayContent());
+        return success(paySignSubmitRespVO.getDisplayContent());
     }
 
     @DeleteMapping("/delete")
@@ -97,5 +97,14 @@ public class SignController {
         ExcelUtils.write(response, "支付签约.xls", "数据", SignRespVO.class,
                 BeanUtils.toBean(list, SignRespVO.class));
     }
+
+
+    @GetMapping("/syncSignPay")
+    @Operation(summary = "签约支付")
+    // @PreAuthorize("@ss.hasPermission('pay:sign:export')")
+    public CommonResult<Integer> syncSignPay() throws IOException {
+        return success(  paySignService.syncSignPay());
+    }
+
 
 }

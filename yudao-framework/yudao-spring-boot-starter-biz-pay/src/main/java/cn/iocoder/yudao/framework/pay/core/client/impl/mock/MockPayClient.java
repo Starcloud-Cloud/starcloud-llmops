@@ -90,6 +90,22 @@ public class MockPayClient extends AbstractPayClient<NonePayClientConfig> {
     }
 
     /**
+     * @param reqDTO
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    protected PayAgreementRespDTO doUnifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    @Override
+    public PayOrderRespDTO doUnifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+
+    /**
      * @param params
      * @param body
      * @return

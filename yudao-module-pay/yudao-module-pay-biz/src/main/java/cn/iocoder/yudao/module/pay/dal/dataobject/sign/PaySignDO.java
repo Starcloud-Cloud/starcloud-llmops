@@ -50,6 +50,7 @@ public class PaySignDO extends BaseDO {
      * 签约号
      */
     private String no;
+
     /**
      * 支付时间
      */
@@ -101,7 +102,15 @@ public class PaySignDO extends BaseDO {
     /**
      * 费率价格
      */
-    private Double channelFeePrice;
+    private Integer channelFeePrice;
+
+    /**
+     * 费率价格
+     */
+    private String channelSignNo;
+
+    private String channelUserId;
+
     /**
      * 签约状态
      */

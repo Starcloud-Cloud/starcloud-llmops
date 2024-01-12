@@ -199,6 +199,16 @@ public class WalletPayClient extends AbstractPayClient<NonePayClientConfig> {
         throw new UnsupportedOperationException("待实现");
     }
 
+    protected PayAgreementRespDTO doUnifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    @Override
+    public PayOrderRespDTO doUnifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+
     /**
      * @param params
      * @param body

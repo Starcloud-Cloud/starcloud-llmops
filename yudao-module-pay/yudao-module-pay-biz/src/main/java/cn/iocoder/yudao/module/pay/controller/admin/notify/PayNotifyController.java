@@ -1,10 +1,12 @@
 package cn.iocoder.yudao.module.pay.controller.admin.notify;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundRespDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.notify.vo.PayNotifyTaskDetailRespVO;
@@ -19,6 +21,7 @@ import cn.iocoder.yudao.module.pay.service.channel.PayChannelService;
 import cn.iocoder.yudao.module.pay.service.notify.PayNotifyService;
 import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
 import cn.iocoder.yudao.module.pay.service.refund.PayRefundService;
+import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +60,9 @@ public class PayNotifyController {
     @Resource
     private PayChannelService channelService;
 
+    @Resource
+    private PaySignService paySignService;
+
     @PostMapping(value = "/order/{channelId}")
     @Operation(summary = "支付渠道的统一【支付】回调")
     @PermitAll
@@ -72,8 +79,19 @@ public class PayNotifyController {
         }
 
         // 2. 解析通知数据
-        PayOrderRespDTO notify = payClient.parseOrderNotify(params, body);
-        orderService.notifyOrder(channelId, notify);
+        // https://1707-240e-391-edc-3d80-45c2-8ecd-7752-bd35.ngrok-free.app
+        Map<String, String> bodyObj = HttpUtil.decodeParamMap(body, StandardCharsets.UTF_8);
+        if (bodyObj.containsKey("trade_status")){
+            PayOrderRespDTO notify = payClient.parseOrderNotify(params, body);
+            orderService.notifyOrder(channelId, notify);
+        }
+
+        if (bodyObj.containsKey("agreement_no")){
+            PayAgreementRespDTO notify = payClient.parseAgreementNotify(params, body);
+            paySignService.notifySignStatus(channelId,notify);
+        }
+
+
         return "success";
     }
 

@@ -36,6 +36,16 @@ public enum PaySignStatusEnum implements IntArrayValuable {
      * @param status 状态
      * @return 是否支付成功
      */
+    public static boolean isWaiting(Integer status) {
+        return Objects.equals(status, WAITING.getStatus());
+    }
+
+    /**
+     * 判断是否支付成功
+     *
+     * @param status 状态
+     * @return 是否支付成功
+     */
     public static boolean isSuccess(Integer status) {
         return Objects.equals(status, SUCCESS.getStatus());
     }

@@ -258,7 +258,7 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
     //         throws Throwable;
 
     @Override
-    public final PayAgreementRespDTO unifiedAgreement(PayAgreementUnifiedReqDTO reqDTO) {
+    public final PayAgreementRespDTO unifiedPayAgreement(PayAgreementUnifiedReqDTO reqDTO) {
         ValidationUtils.validate(reqDTO);
         // 执行统一下单
         PayAgreementRespDTO resp;
@@ -279,6 +279,27 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
             throws Throwable;
 
     @Override
+    public final PayAgreementRespDTO unifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO) {
+        ValidationUtils.validate(reqDTO);
+        // 执行统一下单
+        PayAgreementRespDTO resp;
+        try {
+            resp = doUnifiedPageAgreement(reqDTO);
+        } catch (ServiceException ex) { // 业务异常，都是实现类已经翻译，所以直接抛出即可
+            throw ex;
+        } catch (Throwable ex) {
+            // 系统异常，则包装成 PayException 异常抛出
+            log.error("[unifiedOrder][客户端({}) request({}) 发起支付异常]",
+                    getId(), toJsonString(reqDTO), ex);
+            throw buildPayException(ex);
+        }
+        return resp;
+    }
+
+    protected abstract PayAgreementRespDTO doUnifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO)
+            throws Throwable;
+
+    @Override
     public final PayAgreementRespDTO parseAgreementNotify(Map<String, String> params, String body) {
         try {
             return doParseAgreementNotify(params, body);
@@ -290,6 +311,28 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
             throw buildPayException(ex);
         }
     }
+
+
+    @Override
+    public final PayOrderRespDTO unifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) {
+        ValidationUtils.validate(reqDTO);
+        // 执行统一退款
+        PayOrderRespDTO resp;
+        try {
+            resp = doUnifiedAgreementPay(reqDTO);
+        } catch (ServiceException ex) { // 业务异常，都是实现类已经翻译，所以直接抛出即可
+            throw ex;
+        } catch (Throwable ex) {
+            // 系统异常，则包装成 PayException 异常抛出
+            log.error("[unifiedAgreementPay][客户端({}) request({}) 发起签约扣款异常]",
+                    getId(), toJsonString(reqDTO), ex);
+            throw buildPayException(ex);
+        }
+        return resp;
+    }
+
+    protected abstract PayOrderRespDTO doUnifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) throws Throwable;
+
 
     protected abstract PayAgreementRespDTO doParseAgreementNotify(Map<String, String> params, String body)
             throws Throwable;

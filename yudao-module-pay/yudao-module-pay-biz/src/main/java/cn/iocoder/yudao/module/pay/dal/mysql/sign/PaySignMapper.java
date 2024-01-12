@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.pay.dal.mysql.sign;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -10,6 +11,7 @@ import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderExportReqVO
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderPageReqVO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignDO;
+import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.ibatis.annotations.Mapper;
 import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.*;
@@ -73,6 +75,13 @@ public interface PaySignMapper extends BaseMapperX<PaySignDO> {
                 .eq(PaySignDO::getStatus, status)
                 .lt(PaySignDO::getExpireTime, expireTime));
     }
+
+
+    default List<PaySignDO> selectIsSignSuccess() {
+        return selectList(new LambdaQueryWrapper<PaySignDO>()
+                .eq(PaySignDO::getStatus, PaySignStatusEnum.SUCCESS.getStatus()));
+    }
+
 
     // default PageResult<PayOrderDO> selectPage(PayOrderPageReqVO reqVO) {
     //     return selectPage(reqVO, new LambdaQueryWrapperX<PayOrderDO>()

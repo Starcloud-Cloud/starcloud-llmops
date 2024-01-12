@@ -466,7 +466,7 @@ public class PayOrderServiceImpl implements PayOrderService {
             // 1.1 查询支付订单信息
             PayClient payClient = channelService.getPayClient(orderExtension.getChannelId());
             if (payClient == null) {
-                log.error("[syncOrder][渠道编号({}) 找不到对应的支付客户端]", orderExtension.getChannelId());
+                log.error("[syncSign][渠道编号({}) 找不到对应的支付客户端]", orderExtension.getChannelId());
                 return false;
             }
             PayOrderRespDTO respDTO = payClient.getOrder(orderExtension.getNo());
@@ -476,7 +476,7 @@ public class PayOrderServiceImpl implements PayOrderService {
             // 2. 如果是已支付，则返回 true
             return PayOrderStatusRespEnum.isSuccess(respDTO.getStatus());
         } catch (Throwable e) {
-            log.error("[syncOrder][orderExtension({}) 同步支付状态异常]", orderExtension.getId(), e);
+            log.error("[syncSign][orderExtension({}) 同步支付状态异常]", orderExtension.getId(), e);
             return false;
         }
     }

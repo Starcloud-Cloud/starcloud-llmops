@@ -11,6 +11,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class PayAgreementUnifiedReqDTO {
      *
      * 对应 PayOrderExtensionDO 的 no 字段
      */
-    @NotEmpty(message = "外部订单编号不能为空")
+    // @NotEmpty(message = "外部订单编号不能为空")
     private String outTradeNo;
 
     /**
@@ -80,7 +81,7 @@ public class PayAgreementUnifiedReqDTO {
     private Long period;
 
     @NotNull(message = "固定扣款时间不能为空")
-    private LocalDateTime executeTime;
+    private LocalDate executeTime;
 
     @NotNull(message = "签约价格不能为空")
     @DecimalMin(value = "0", inclusive = false, message = "签约价格必须大于零")

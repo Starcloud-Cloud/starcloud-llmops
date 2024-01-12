@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.framework.pay.core.client.dto.agreement;
 
+import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.exception.PayException;
 import cn.iocoder.yudao.framework.pay.core.enums.agreement.PayAgreementStatusRespEnum;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderDisplayModeEnum;
@@ -85,15 +86,21 @@ public class PayAgreementRespDTO {
     }
 
     /**
-     * 创建【WAITING】状态的订单返回
+     * 创建【WAITING】状态的签约单返回
+     *
+     * @param displayContent     内容
+     * @param channelAgreementNo 商户签约号
+     * @param outTradeNo         交易单号
+     * @param rawData            原始数据
+     * @return
      */
-    public static PayAgreementRespDTO waitingSignOf(String channelAgreementNo, String displayContent, Object rawData) {
+    public static PayAgreementRespDTO waitingSignOf(String displayContent, String channelAgreementNo, String outTradeNo, Object rawData) {
         PayAgreementRespDTO respDTO = new PayAgreementRespDTO();
         respDTO.status = PayAgreementStatusRespEnum.WAITING.getStatus();
 
         respDTO.displayContent = displayContent;
-        // 相对通用的字段
         respDTO.channelAgreementNo = channelAgreementNo;
+        respDTO.outTradeNo = outTradeNo;
         respDTO.rawData = rawData;
         return respDTO;
     }
@@ -149,7 +156,7 @@ public class PayAgreementRespDTO {
     }
 
     public static PayAgreementRespDTO failOf(String channelErrorCode, String channelErrorMsg,
-                                             String outTradeNo,String externalAgreementNo, Object rawData) {
+                                             String outTradeNo, String externalAgreementNo, Object rawData) {
         PayAgreementRespDTO respDTO = new PayAgreementRespDTO();
         respDTO.status = PayOrderStatusRespEnum.CLOSED.getStatus();
         respDTO.channelErrorCode = channelErrorCode;

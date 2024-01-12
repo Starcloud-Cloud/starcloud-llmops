@@ -2,10 +2,13 @@ package cn.iocoder.yudao.module.pay.service.sign;
 
 import javax.validation.*;
 
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.*;
 import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+
+import java.time.LocalDateTime;
 
 /**
  * 支付签约
@@ -68,4 +71,19 @@ public interface PaySignService {
      */
     PageResult<PaySignDO> getSignPage(SignPageReqVO pageReqVO);
 
+    int syncSign(LocalDateTime minCreateTime);
+
+    /**
+     * 同步签约支付
+     * @return
+     */
+    int syncSignPay();
+
+    /**
+     * 同步签约状态
+     * @return
+     */
+    int syncSignStatus();
+
+    void notifySignStatus(Long channelId,PayAgreementRespDTO respDTO);
 }

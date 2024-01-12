@@ -502,6 +502,17 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         throw new UnsupportedOperationException("待实现");
     }
 
+    @Override
+    public PayAgreementRespDTO doUnifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    @Override
+    public PayOrderRespDTO doUnifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+
 
     @Override
     public PayAgreementRespDTO doParseAgreementNotify(Map<String, String> params, String body) throws Throwable {
