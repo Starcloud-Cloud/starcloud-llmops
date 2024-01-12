@@ -88,7 +88,22 @@ public class RecommendVariableFactory {
      *
      * @return 变量
      */
-    public static VariableRespVO defContentVariable() {
+    public static VariableRespVO defTitleVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
+                RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRequirement()
+        ));
+        return variable;
+    }
+
+    /**
+     * 媒体矩阵自定义内容变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defCustomVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),

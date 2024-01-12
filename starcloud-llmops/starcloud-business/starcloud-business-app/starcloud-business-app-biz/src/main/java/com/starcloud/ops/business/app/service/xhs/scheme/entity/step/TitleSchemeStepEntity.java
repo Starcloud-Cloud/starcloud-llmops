@@ -1,15 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author nacoyer
@@ -20,15 +15,9 @@ import java.util.Map;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ParagraphSchemeStepEntity extends StandardSchemeStepEntity {
+public class TitleSchemeStepEntity extends StandardSchemeStepEntity {
 
-    private static final long serialVersionUID = 6843541753056072604L;
-
-    /**
-     * 创作方案步骤生成的段落数
-     */
-    @Schema(description = "创作方案步骤生成的段落数")
-    private Integer paragraphCount;
+    private static final long serialVersionUID = -1503267053868950469L;
 
     /**
      * 组装为应用步骤信息
@@ -38,9 +27,6 @@ public class ParagraphSchemeStepEntity extends StandardSchemeStepEntity {
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         super.doTransformAppStep(stepWrapper);
-        Map<String, Object> params = new HashMap<>();
-        params.put(CreativeConstants.PARAGRAPH_COUNT, this.paragraphCount);
-        stepWrapper.putVariable(params);
     }
 
     /**
@@ -51,6 +37,5 @@ public class ParagraphSchemeStepEntity extends StandardSchemeStepEntity {
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
         super.doTransformSchemeStep(stepWrapper);
-        this.paragraphCount = 4;
     }
 }

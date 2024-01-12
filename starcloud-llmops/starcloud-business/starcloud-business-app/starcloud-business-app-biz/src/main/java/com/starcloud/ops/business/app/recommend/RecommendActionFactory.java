@@ -3,10 +3,11 @@ package com.starcloud.ops.business.app.recommend;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.ContentActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -102,18 +103,41 @@ public class RecommendActionFactory {
      * @param defaultPrompt 默认提示
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepRespVO defContentActionStep(String defaultPrompt) {
+    public static WorkflowStepRespVO defTitleActionStep(String defaultPrompt) {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName(MessageUtil.getMessage("CONTENT_ACTION_NAME"));
-        step.setDescription(MessageUtil.getMessage("CONTENT_ACTION_DESCRIPTION"));
+        step.setName(MessageUtil.getMessage("TITLE_ACTION_NAME"));
+        step.setDescription(MessageUtil.getMessage("TITLE_ACTION_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
-        step.setHandler(ContentActionHandler.class.getSimpleName());
+        step.setHandler(TitleActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defTextResponse());
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
         step.setIcon("open-ai");
-        step.setTags(Collections.singletonList("Content"));
+        step.setTags(Collections.singletonList("Title"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
+        return step;
+    }
+
+    /**
+     * 默认生成内容步骤
+     *
+     * @param defaultPrompt 默认提示
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepRespVO defCustomActionStep(String defaultPrompt) {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName(MessageUtil.getMessage("CUSTOM_ACTION_NAME"));
+        step.setDescription(MessageUtil.getMessage("CUSTOM_ACTION_DESCRIPTION"));
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(CustomActionHandler.class.getSimpleName());
+        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("open-ai");
+        step.setTags(Collections.singletonList("Custom"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
         return step;

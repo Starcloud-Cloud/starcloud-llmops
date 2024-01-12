@@ -18,7 +18,6 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRespo
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
@@ -26,9 +25,9 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ContentSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.StandardSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
@@ -50,6 +49,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
@@ -122,7 +122,7 @@ public class CreativeAppUtils {
      * 获取小红书应用执行参数
      *
      * @param scheme     创作任务
-     * @param planConfig 计划配置
+     * @param listOptionResponse 计划配置
      * @param appUid     应用UID
      * @return 应用执行参数
      */
@@ -191,6 +191,26 @@ public class CreativeAppUtils {
             return reference;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * 处理参考内容
+     *
+     * @param referenceList 处理参考内容
+     * @return 参考内容
+     */
+    public static List<ReferenceSchemeEntity> handlerReferencesEntity(List<ReferenceSchemeEntity> referenceList) {
+        return CollectionUtil.emptyIfNull(referenceList).stream().map(item -> {
+            ReferenceSchemeEntity reference = new ReferenceSchemeEntity();
+            reference.setTitle(item.getTitle());
+            reference.setContent(item.getContent());
+            reference.setImageList(null);
+            reference.setLink(null);
+            reference.setSource(null);
+            reference.setId(null);
+            return reference;
+        }).collect(Collectors.toList());
+    }
+
 
     /**
      * 处理需求文本，变量填充等
@@ -702,17 +722,11 @@ public class CreativeAppUtils {
                 continue;
             }
 
-            if (step instanceof ContentSchemeStepDTO) {
-                ContentSchemeStepDTO contentSchemeStep = (ContentSchemeStepDTO) step;
-                ContentSchemeStepDTO schemeStep = (ContentSchemeStepDTO) stepMap.get(step.getName());
+            if (step instanceof StandardSchemeStepDTO) {
+                StandardSchemeStepDTO contentSchemeStep = (StandardSchemeStepDTO) step;
+                StandardSchemeStepDTO schemeStep = (StandardSchemeStepDTO) stepMap.get(step.getName());
                 contentSchemeStep.setVariableList(mergeVariable(contentSchemeStep.getVariableList(), schemeStep.getVariableList()));
                 result.add(contentSchemeStep);
-            }
-            if (step instanceof ParagraphSchemeStepDTO) {
-                ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) step;
-                ParagraphSchemeStepDTO schemeStep = (ParagraphSchemeStepDTO) stepMap.get(step.getName());
-                paragraphSchemeStep.setVariableList(mergeVariable(paragraphSchemeStep.getVariableList(), schemeStep.getVariableList()));
-                result.add(paragraphSchemeStep);
             }
         }
 

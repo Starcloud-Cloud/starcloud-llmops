@@ -1,16 +1,20 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
+import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +29,9 @@ import java.util.Map;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ContentSchemeStepEntity extends BaseSchemeStepEntity {
+public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
 
-    private static final long serialVersionUID = -1503267053868950469L;
+    private static final long serialVersionUID = 2298470913179114149L;
 
     /**
      * 创作方案生成模式
@@ -53,7 +57,6 @@ public class ContentSchemeStepEntity extends BaseSchemeStepEntity {
     @Schema(description = "创作方案步骤变量")
     private List<VariableItemDTO> variableList;
 
-
     /**
      * 组装为应用步骤信息
      *
@@ -62,9 +65,22 @@ public class ContentSchemeStepEntity extends BaseSchemeStepEntity {
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.REFERS, this.referList);
+        List<ReferenceSchemeEntity> referenceSchemeList = CreativeAppUtils.handlerReferencesEntity(this.referList);
+        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(this.model)) {
+            List<ReferenceSchemeEntity> referList = new ArrayList<>();
+            if (referenceSchemeList.size() <= 4) {
+                referList = referenceSchemeList;
+            } else {
+                for (int i = 0; i < 4; i++) {
+                    referList.add(referenceSchemeList.get(RandomUtil.randomInt(referenceSchemeList.size())));
+                }
+            }
+            variableMap.put(CreativeConstants.REFERS, JSONUtil.toJsonStr(referList));
+        } else {
+            variableMap.put(CreativeConstants.REFERS, JSONUtil.toJsonStr(referenceSchemeList));
+        }
         variableMap.put(CreativeConstants.GENERATE_MODE, this.model);
-        variableMap.put(CreativeConstants.REQUIREMENT, this.requirement);
+        variableMap.put(CreativeConstants.REQUIREMENT, CreativeAppUtils.handlerRequirement(this.requirement, this.variableList));
         stepWrapper.putVariable(variableMap);
     }
 
@@ -80,4 +96,5 @@ public class ContentSchemeStepEntity extends BaseSchemeStepEntity {
         this.requirement = "";
         this.variableList = Collections.emptyList();
     }
+
 }

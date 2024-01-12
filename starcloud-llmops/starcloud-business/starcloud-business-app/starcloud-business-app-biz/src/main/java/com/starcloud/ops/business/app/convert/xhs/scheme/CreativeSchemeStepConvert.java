@@ -2,14 +2,16 @@ package com.starcloud.ops.business.app.convert.xhs.scheme;
 
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ContentSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.CustomSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.TitleSchemeStepDTO;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.AssembleSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.ContentSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.CustomSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.ParagraphSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.PosterSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.TitleSchemeStepEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -30,8 +32,11 @@ public interface CreativeSchemeStepConvert {
      * @return 转换方案步骤DTO
      */
     default BaseSchemeStepDTO convert(BaseSchemeStepEntity schemeStep) {
-        if (schemeStep instanceof ContentSchemeStepEntity) {
-            return convertContent((ContentSchemeStepEntity) schemeStep);
+        if (schemeStep instanceof TitleSchemeStepEntity) {
+            return convertTitle((TitleSchemeStepEntity) schemeStep);
+        }
+        if (schemeStep instanceof CustomSchemeStepEntity) {
+            return convertContent((CustomSchemeStepEntity) schemeStep);
         }
         if (schemeStep instanceof ParagraphSchemeStepEntity) {
             return convertParagraph((ParagraphSchemeStepEntity) schemeStep);
@@ -46,12 +51,20 @@ public interface CreativeSchemeStepConvert {
     }
 
     /**
+     * 标题方案实体转换为标题方案DTO
+     *
+     * @param schemeStep 标题方案实体
+     * @return 标题方案DTO
+     */
+    TitleSchemeStepDTO convertTitle(TitleSchemeStepEntity schemeStep);
+
+    /**
      * 内容方案实体转换为内容方案DTO
      *
      * @param schemeStep 内容方案实体
      * @return 内容方案DTO
      */
-    ContentSchemeStepDTO convertContent(ContentSchemeStepEntity schemeStep);
+    CustomSchemeStepDTO convertContent(CustomSchemeStepEntity schemeStep);
 
     /**
      * 段落方案实体转换为段落方案DTO
@@ -84,8 +97,11 @@ public interface CreativeSchemeStepConvert {
      * @return 方案步骤实体
      */
     default BaseSchemeStepEntity convert(BaseSchemeStepDTO schemeStep) {
-        if (schemeStep instanceof ContentSchemeStepDTO) {
-            return convertContent((ContentSchemeStepDTO) schemeStep);
+        if (schemeStep instanceof TitleSchemeStepDTO) {
+            return convertTitle((TitleSchemeStepDTO) schemeStep);
+        }
+        if (schemeStep instanceof CustomSchemeStepDTO) {
+            return convertContent((CustomSchemeStepDTO) schemeStep);
         }
         if (schemeStep instanceof ParagraphSchemeStepDTO) {
             return convertParagraph((ParagraphSchemeStepDTO) schemeStep);
@@ -100,12 +116,20 @@ public interface CreativeSchemeStepConvert {
     }
 
     /**
+     * 标题方案DTO转换为标题方案实体
+     *
+     * @param schemeStep schemeStep
+     * @return 标题实体
+     */
+    TitleSchemeStepEntity convertTitle(TitleSchemeStepDTO schemeStep);
+
+    /**
      * 内容方案DTO转换为内容方案实体
      *
      * @param schemeStep 内容方案DTO
      * @return 内容方案实体
      */
-    ContentSchemeStepEntity convertContent(ContentSchemeStepDTO schemeStep);
+    CustomSchemeStepEntity convertContent(CustomSchemeStepDTO schemeStep);
 
     /**
      * 段落方案DTO转换为段落方案实体

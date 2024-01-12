@@ -24,9 +24,9 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ContentSchemeStepDTO extends BaseSchemeStepDTO {
+public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
 
-    private static final long serialVersionUID = -1503267053868950469L;
+    private static final long serialVersionUID = 2298470913179114149L;
 
     /**
      * 创作方案生成模式
@@ -77,5 +77,4 @@ public class ContentSchemeStepDTO extends BaseSchemeStepDTO {
         this.referList = null;
         this.requirement = null;
     }
-
 }

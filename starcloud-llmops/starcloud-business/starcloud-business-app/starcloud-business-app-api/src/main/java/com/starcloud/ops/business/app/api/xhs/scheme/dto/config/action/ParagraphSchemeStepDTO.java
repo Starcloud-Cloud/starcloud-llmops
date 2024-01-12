@@ -1,19 +1,13 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -25,21 +19,9 @@ import java.util.Objects;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
+public class ParagraphSchemeStepDTO extends StandardSchemeStepDTO {
 
     private static final long serialVersionUID = 6843541753056072604L;
-
-    /**
-     * 创作方案生成模式
-     */
-    @Schema(description = "创作方案生成模式")
-    private String model;
-
-    /**
-     * 创作方案参考内容
-     */
-    @Schema(description = "创作方案参考内容")
-    private List<ReferenceSchemeDTO> referList;
 
     /**
      * 创作方案步骤生成的段落数
@@ -48,33 +30,13 @@ public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
     private Integer paragraphCount;
 
     /**
-     * 创作方案步骤要求
-     */
-    @Schema(description = "创作方案步骤要求")
-    private String requirement;
-
-    /**
-     * 创作方案步骤变量
-     */
-    @Schema(description = "创作方案步骤变量")
-    private List<VariableItemDTO> variableList;
-
-    /**
      * 校验
      */
     @Override
     public void validate() {
-        if (StrUtil.isBlank(model)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成模式不能为空！"));
-        }
-        if (!CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model) && CollectionUtil.isEmpty(referList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
-        }
+        super.validate();
         if (Objects.isNull(paragraphCount) || paragraphCount <= 0) {
             throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "段落数不能为空或者不能小于0！"));
-        }
-        if (StrUtil.isBlank(requirement)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成要求不能为空！"));
         }
     }
 
@@ -83,10 +45,8 @@ public class ParagraphSchemeStepDTO extends BaseSchemeStepDTO {
      */
     @Override
     public void easy() {
-        this.model = null;
-        this.referList = null;
+        super.easy();
         this.paragraphCount = null;
-        this.requirement = null;
     }
 
 }

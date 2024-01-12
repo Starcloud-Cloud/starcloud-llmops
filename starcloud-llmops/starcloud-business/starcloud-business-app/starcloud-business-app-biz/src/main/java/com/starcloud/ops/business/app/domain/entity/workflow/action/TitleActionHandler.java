@@ -34,7 +34,7 @@ import java.util.Optional;
  */
 @Slf4j
 @TaskComponent
-public class ContentActionHandler extends BaseActionHandler {
+public class TitleActionHandler extends BaseActionHandler {
 
     /**
      * 流程执行器，action 执行入口
@@ -44,7 +44,7 @@ public class ContentActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @NoticeVar
-    @TaskService(name = "ContentActionHandler", invoke = @Invoke(timeout = 180000))
+    @TaskService(name = "TitleActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         return super.execute(context, scopeDataOperator);

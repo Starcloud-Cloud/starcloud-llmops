@@ -420,8 +420,8 @@ public class RecommendVariableItemFactory {
     public static VariableItemRespVO defMediaMatrixRequirement() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.REQUIREMENT);
-        variableItem.setLabel("用户要求");
-        variableItem.setDescription("用户要求");
+        variableItem.setLabel("文案生成要求");
+        variableItem.setDescription("文案生成要求");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(103);

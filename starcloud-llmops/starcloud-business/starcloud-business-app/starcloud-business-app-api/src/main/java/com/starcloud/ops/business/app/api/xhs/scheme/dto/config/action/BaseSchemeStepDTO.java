@@ -22,7 +22,8 @@ import lombok.ToString;
 @Schema(name = "BaseSchemeStepDTO", description = "方案步骤")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "code", visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ContentSchemeStepDTO.class, name = "ContentActionHandler"),
+        @JsonSubTypes.Type(value = TitleSchemeStepDTO.class, name = "TitleSchemeStepDTO"),
+        @JsonSubTypes.Type(value = CustomSchemeStepDTO.class, name = "CustomSchemeStepDTO"),
         @JsonSubTypes.Type(value = ParagraphSchemeStepDTO.class, name = "ParagraphActionHandler"),
         @JsonSubTypes.Type(value = AssembleSchemeStepDTO.class, name = "AssembleActionHandler"),
         @JsonSubTypes.Type(value = PosterSchemeStepDTO.class, name = "PosterActionHandler")

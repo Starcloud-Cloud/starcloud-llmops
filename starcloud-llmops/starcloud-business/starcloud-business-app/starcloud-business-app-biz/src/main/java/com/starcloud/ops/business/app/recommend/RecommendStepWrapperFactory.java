@@ -123,18 +123,38 @@ public class RecommendStepWrapperFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defContentStepWrapper() {
-        String name = MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME");
+    public static WorkflowStepWrapperRespVO defTitleStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME"));
-        String defaultPrompt = "内容";
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME"));
+        String defaultPrompt = "直接输出```媒体矩阵标题```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_DESCRIPTION"));
-        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defContentActionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defContentVariable());
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defTitleActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defTitleVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成内容步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
+        String defaultPrompt = "直接输出```媒体矩阵自定义内容```";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defCustomActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defCustomVariable());
         return stepWrapper;
     }
 
@@ -147,7 +167,7 @@ public class RecommendStepWrapperFactory {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
         String field = AppUtils.obtainField(name);
         String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
-        String defaultPrompt = "内容";
+        String defaultPrompt = "直接输出```媒体矩阵段落```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -167,7 +187,7 @@ public class RecommendStepWrapperFactory {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
         String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
-        String defaultPrompt = "内容";
+        String defaultPrompt = "直接输出```媒体矩阵组装```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -212,8 +232,8 @@ public class RecommendStepWrapperFactory {
      */
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
-                defDefaultTextCompletionStepWrapper(),
-                defContentStepWrapper(),
+                defTitleStepWrapper(),
+                defCustomStepWrapper(),
                 defParagraphStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
