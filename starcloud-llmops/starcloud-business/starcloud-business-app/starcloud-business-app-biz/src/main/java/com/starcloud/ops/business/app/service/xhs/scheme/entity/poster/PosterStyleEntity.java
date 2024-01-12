@@ -59,7 +59,7 @@ public class PosterStyleEntity implements java.io.Serializable {
     public static PosterStyleEntity ofOne() {
         PosterStyleEntity posterStyle = new PosterStyleEntity();
         posterStyle.setId("STYLE_1");
-        posterStyle.setName("风格1");
+        posterStyle.setName("风格 1");
         posterStyle.setTemplateList(Collections.singletonList(PosterTemplateEntity.ofMain()));
         return posterStyle;
     }
