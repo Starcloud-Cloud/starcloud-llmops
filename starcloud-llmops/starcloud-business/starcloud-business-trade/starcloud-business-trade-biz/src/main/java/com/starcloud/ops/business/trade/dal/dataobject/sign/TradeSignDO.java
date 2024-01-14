@@ -9,17 +9,15 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.brokerage.BrokerageUserDO;
-import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryExpressDO;
 import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryPickUpStoreDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
-import com.starcloud.ops.business.trade.enums.delivery.DeliveryTypeEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderCancelTypeEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderRefundStatusEnum;
-import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderTypeEnum;
 import com.starcloud.ops.business.trade.enums.sign.TradeSignStatusEnum;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,6 +52,13 @@ public class TradeSignDO extends BaseDO {
      * 例如说，1146347329394184195
      */
     private String no;
+
+    /**
+     * 订单类型
+     *
+     * 枚举 {@link TradeOrderTypeEnum}
+     */
+    private Integer type;
     /**
      * 签约记录单来源
      *
@@ -70,6 +75,11 @@ public class TradeSignDO extends BaseDO {
      * 用户 IP
      */
     private String userIp;
+
+    /**
+     *  创建来源
+     */
+    private String signFrom;
     /**
      * 用户备注
      */
@@ -80,15 +90,10 @@ public class TradeSignDO extends BaseDO {
      * 枚举 {@link TradeSignStatusEnum}
      */
     private Integer status;
-
     /**
-     * 首次签约完成时间
+     * 购买的商品数量
      */
-    private LocalDateTime finishTime;
-    /**
-     * 签约取消时间
-     */
-    private LocalDateTime cancelTime;
+    private Integer productCount;
     /**
      * 取消类型
      *
@@ -114,11 +119,7 @@ public class TradeSignDO extends BaseDO {
      */
     private Long brokerageUserId;
 
-    // ========== 价格 + 支付基本信息 ==========
 
-    // 价格文档 - 淘宝：https://open.taobao.com/docV3.htm?docId=108471&docType=1
-    // 价格文档 - 京东到家：https://openo2o.jddj.com/api/getApiDetail/182/4d1494c5e7ac4679bfdaaed950c5bc7f.htm
-    // 价格文档 - 有赞：https://doc.youzanyun.com/detail/API/0/906
 
     /**
      * 支付签约编号
@@ -132,11 +133,29 @@ public class TradeSignDO extends BaseDO {
      * true - 已经支付过
      * false - 没有支付过
      */
-    private Boolean payStatus;
+    private Boolean paySignStatus;
+
     /**
      * 付款时间
      */
-    private LocalDateTime payTime;
+    private LocalDate payTime;
+
+
+
+
+    /**
+     * 首次签约完成时间
+     */
+    private LocalDateTime finishTime;
+    /**
+     * 签约取消时间
+     */
+    private LocalDateTime cancelTime;
+
+
+
+
+
     /**
      * 支付渠道
      *
@@ -172,7 +191,7 @@ public class TradeSignDO extends BaseDO {
      * - {@link #discountPrice}
      * + {@link #adjustPrice}
      */
-    private Integer payPrice;
+    private Integer signPrice;
 
 
 
@@ -197,7 +216,7 @@ public class TradeSignDO extends BaseDO {
     /**
      * 退款金额，单位：分
      *
-     * 注意，退款并不会影响 {@link #payPrice} 实际支付金额
+     * 注意，退款并不会影响 {@link #signPrice} 实际支付金额
      * 也就说，一个签约最终产生多少金额的收入 = payPrice - refundPrice
      */
     private Integer refundPrice;
