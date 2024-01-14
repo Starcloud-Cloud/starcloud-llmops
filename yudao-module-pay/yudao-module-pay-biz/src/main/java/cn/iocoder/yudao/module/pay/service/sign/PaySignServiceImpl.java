@@ -2,11 +2,11 @@ package cn.iocoder.yudao.module.pay.service.sign;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
+import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;
 import cn.iocoder.yudao.framework.pay.core.client.PayClient;
 import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementUnifiedReqDTO;
@@ -109,6 +109,7 @@ public class PaySignServiceImpl implements PaySignService {
 
         // 创建支付交易单
         sign = PaySignConvert.INSTANCE.convert(reqDTO).setAppId(app.getId())
+                .setPayTime(buildSignPayTime(LocalDate.now()))
                 // 商户相关字段
                 .setNotifyUrl(app.getOrderNotifyUrl())
                 // 订单相关字段
@@ -149,7 +150,7 @@ public class PaySignServiceImpl implements PaySignService {
                 // 商户相关的字段
                 // .setOutTradeNo(payOrderSubmitRespVO.getDisplayContent()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 // 订单相关字段
-                .setTotalAmount(signDO.getFirstPrice())
+                .setTotalAmount(signDO.getPrice())
                 .setSubject(signDO.getSubject() + "包月服务")
                 .setBody(signDO.getBody())
                 .setExpireTime(signDO.getExpireTime())
@@ -242,6 +243,9 @@ public class PaySignServiceImpl implements PaySignService {
     public int syncSignPay() {
         // 1.0 获取签约成功的记录
         List<PaySignDO> paySignDOS = paySignMapper.selectIsSignSuccess();
+        if (paySignDOS.isEmpty()) {
+            return 0;
+        }
         List<PaySignDO> waitePaySigns = paySignDOS
                 .stream()
                 .filter(paySignDO ->
@@ -249,6 +253,9 @@ public class PaySignServiceImpl implements PaySignService {
                                 .isIn(LocalDate.now().atStartOfDay(), paySignDO.getPayTime().minusDays(5L).atStartOfDay(),
                                         LocalDateTimeUtil.endOfDay(paySignDO.getPayTime().atStartOfDay())))
                 .collect(Collectors.toList());
+        if (waitePaySigns.isEmpty()) {
+            return 0;
+        }
 
         // 2. 遍历执行扣款
         int count = 0;
@@ -279,15 +286,25 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     /**
-     * @param respDTO
+     * @param channelId
+     * @param notify
      */
     @Override
-    public void notifySignStatus(Long channelId, PayAgreementRespDTO respDTO) {
+    public void notifySignStatus(Long channelId, PayAgreementRespDTO notify) {
         // 校验支付渠道是否有效
         PayChannelDO channel = channelService.validPayChannel(channelId);
-        // 更新支付订单为已支付
-        TenantUtils.execute(channel.getTenantId(), () -> getSelf().notifySignSuccess(channel, respDTO));
+
+        // 情况一：支付成功的回调
+        if (PayOrderStatusRespEnum.isSuccess(notify.getStatus())) {
+            notifySignSuccess(channel, notify);
+            return;
+        }
+        // 情况二：支付失败的回调
+        if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
+            notifySignClosed(channel, notify);
+        }
     }
+
 
     private boolean syncSignPay(PaySignDO waitePaySign) {
         try {
@@ -309,7 +326,7 @@ public class PaySignServiceImpl implements PaySignService {
 
             return PayOrderStatusRespEnum.isSuccess(respDTO.getStatus());
         } catch (Throwable e) {
-            log.error("[syncSignPay][PaySignDO({}) 同步签约支付状态异常]", waitePaySign.getId(), e);
+            log.error("[syncSignPay][PaySignDO({}) 签约支付状态异常]", waitePaySign.getId(), e);
             return false;
         }
     }
@@ -332,10 +349,10 @@ public class PaySignServiceImpl implements PaySignService {
             notifySignPaySuccess(signDO, channel, notify);
             return;
         }
-        // 情况二：支付失败的回调
-        if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
-            notifySignPayClosed(channel, notify);
-        }
+        //// 情况二：支付失败的回调
+        //if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
+        //    notifySignPayClosed(channel, notify);
+        //}
     }
 
     private void notifySignPaySuccess(PaySignDO signDO, PayChannelDO channel, PayOrderRespDTO notify) {
@@ -357,11 +374,6 @@ public class PaySignServiceImpl implements PaySignService {
         return true;
     }
 
-    private void notifySignPayClosed(PayChannelDO channel, PayOrderRespDTO notify) {
-
-    }
-
-
     private PayOrderUnifiedReqDTO createSignPayOrder(PaySignDO signDO) {
 
         // 创建支付 获取支付单号
@@ -369,10 +381,10 @@ public class PaySignServiceImpl implements PaySignService {
                 new PayOrderCreateReqDTO()
                         .setAppId(signDO.getAppId())
                         .setUserIp(signDO.getUserIp())
-                        .setMerchantOrderId(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                        .setMerchantOrderId(signDO.getId() + "_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                         .setSubject(signDO.getSubject())
                         .setBody(signDO.getBody())
-                        .setPrice(signDO.getFirstPrice())
+                        .setPrice(signDO.getPrice())
                         .setExpireTime(signDO.getExpireTime())
                         .setSignId(signDO.getId()));
 
@@ -392,6 +404,7 @@ public class PaySignServiceImpl implements PaySignService {
                 .setUserIp(order.getUserIp())
                 // 商户相关的字段
                 .setOutTradeNo(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
+                .setAgreementNo(signDO.getChannelSignNo())
                 .setSubject(order.getSubject())
                 .setBody(order.getBody())
                 .setNotifyUrl(genChannelOrderNotifyUrl(channel))
@@ -446,21 +459,22 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
     private void notifySignClosed(PayChannelDO channel, PayAgreementRespDTO notify) {
-        updateSignExtensionClosed(channel, notify);
+        PaySignExtensionDO paySignExtensionDO = updateSignExtensionClosed(channel, notify);
+        updateSignClosed(channel, paySignExtensionDO, notify);
     }
 
-    private void updateSignExtensionClosed(PayChannelDO channel, PayAgreementRespDTO notify) {
+    private PaySignExtensionDO updateSignExtensionClosed(PayChannelDO channel, PayAgreementRespDTO notify) {
         // 1. 查询 PayOrderExtensionDO
-        PaySignExtensionDO signExtensionDO = paySignExtensionMapper.selectByNo(notify.getOutTradeNo());
+        PaySignExtensionDO signExtensionDO = paySignExtensionMapper.selectByNo(notify.getAgreementNo());
         if (signExtensionDO == null) {
             throw exception(PAY_SIGN_NOT_EXISTS);
         }
-        if (PayOrderStatusEnum.isClosed(signExtensionDO.getStatus())) { // 如果已经是关闭，直接返回，不用重复更新
+        if (PaySignStatusEnum.isClosed(signExtensionDO.getStatus())) { // 如果已经是关闭，直接返回，不用重复更新
             log.info("[updateSignExtensionClosed][signExtension({}) 已经是签约关闭，无需更新]", signExtensionDO.getId());
-            return;
+            return signExtensionDO;
         }
 
-        if (ObjectUtil.notEqual(signExtensionDO.getStatus(), PayOrderStatusEnum.WAITING.getStatus())) { // 校验状态，必须是待支付
+        if (!ObjectUtils.equalsAny(signExtensionDO.getStatus(), PaySignStatusEnum.WAITING.getStatus(), PaySignStatusEnum.SUCCESS.getStatus())) { // 校验状态，必须是待支付
             throw exception(PAY_SIGN_STATUS_IS_NOT_WAITING);
         }
 
@@ -472,6 +486,7 @@ public class PaySignServiceImpl implements PaySignService {
             throw exception(PAY_SIGN_STATUS_IS_NOT_WAITING);
         }
         log.info("[updateSignExtensionClosed][signExtension({}) 更新为支付关闭]", signExtensionDO.getId());
+        return signExtensionDO;
     }
 
     public void notifySignSuccess(PayChannelDO channel, PayAgreementRespDTO notify) {
@@ -482,10 +497,6 @@ public class PaySignServiceImpl implements PaySignService {
         if (paid) { // 如果之前已经成功回调，则直接返回，不用重复记录支付通知记录；例如说：支付平台重复回调
             return;
         }
-        //
-        // // 3. 插入支付通知记录
-        // notifyService.createPayNotifyTask(PayNotifyTypeEnum.ORDER.getType(),
-        //         orderExtension.getOrderId());
     }
 
     /**
@@ -529,7 +540,32 @@ public class PaySignServiceImpl implements PaySignService {
         if (updateCounts == 0) { // 校验状态，必须是待支付
             throw exception(PAY_SIGN_STATUS_IS_NOT_WAITING);
         }
-        log.info("[updateOrderExtensionSuccess][order({}) 更新为已支付]", signDO.getId());
+        log.info("[updateSignSuccess][sign({}) 更新为签约成功]", signDO.getId());
+        return false;
+    }
+
+
+    private Boolean updateSignClosed(PayChannelDO channel, PaySignExtensionDO signExtensionDO, PayAgreementRespDTO notify) {
+        // 1. 判断 PayOrderDO 是否处于待支付
+        PaySignDO signDO = paySignMapper.selectById(signExtensionDO.getSignId());
+        if (signDO == null) {
+            throw exception(PAY_SIGN_NOT_EXISTS);
+        }
+        if (PaySignStatusEnum.isClosed(signDO.getStatus()) // 如果已经是成功，直接返回，不用重复更新
+                && Objects.equals(signDO.getExtensionId(), signExtensionDO.getId())) {
+            log.info("[updateSignClosed][sign({}) 已经是已关闭签约，无需更新]", signDO.getId());
+            return true;
+        }
+        // 2. 更新 PayOrderDO
+        int updateCounts = paySignMapper.updateByIdAndStatus(signDO.getId(), PaySignStatusEnum.SUCCESS.getStatus(),
+                PaySignDO.builder()
+                        .status(PayOrderStatusEnum.CLOSED.getStatus())
+                        .closeTime(notify.getInvalidTime())
+                        .build());
+        if (updateCounts == 0) { // 校验状态，必须是成功
+            throw exception(PAY_SIGN_IS_CLOSE);
+        }
+        log.info("[updateSignClosed][sign({}) 更新为已关闭]", signDO.getId());
         return false;
     }
 

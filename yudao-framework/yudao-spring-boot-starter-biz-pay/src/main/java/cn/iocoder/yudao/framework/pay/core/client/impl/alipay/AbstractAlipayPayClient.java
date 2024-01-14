@@ -482,6 +482,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         model.setSubject(reqDTO.getSubject());
         model.setBody(reqDTO.getBody());
         model.setTotalAmount(formatAmount(reqDTO.getPrice()));
+        model.setProductCode("GENERAL_WITHHOLDING");
         // model.setScene("bar_code"); // 签约扣款无需支付场景
 
         // 1.2 构建 AlipayTradePayRequest 请求
@@ -533,11 +534,17 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         Assert.notNull(status, (Supplier<Throwable>) () -> {
             throw new IllegalArgumentException(StrUtil.format("body({}) 的【签约状态】 不正确", body));
         });
+
+        LocalDateTime signTime =null;
         LocalDateTime invalidTime =null;
         if (bodyObj.containsKey("unsign_time")) {
             invalidTime = parseTime(URLDecoder.decode(bodyObj.get("unsign_time"), "UTF-8"));
         }
-        return PayAgreementRespDTO.of(status, bodyObj.get("agreement_no"), bodyObj.get("auth_app_id"),  parseTime(URLDecoder.decode(bodyObj.get("sign_time"),"UTF-8")),
+        if (bodyObj.containsKey("sign_time")) {
+            signTime = parseTime(URLDecoder.decode(bodyObj.get("sign_time"), "UTF-8"));
+        }
+
+        return PayAgreementRespDTO.of(status, bodyObj.get("agreement_no"), bodyObj.get("merchant_app_id"),  signTime,
                 invalidTime, bodyObj.get("external_agreement_no"), body);
     }
 

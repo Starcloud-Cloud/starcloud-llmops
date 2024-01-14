@@ -98,6 +98,7 @@ public interface ErrorCodeConstants {
     ErrorCode PAY_SIGN_STATUS_IS_NOT_WAITING = new ErrorCode(1_007_010_003, "签约订单不处于待签约");
 
     ErrorCode PAY_SIGN_IS_EXPIRED = new ErrorCode(1_007_010_004, "当前签约的支付订单已经过期");
+    ErrorCode PAY_SIGN_IS_CLOSE = new ErrorCode(1_007_010_005, "当前签约的支付订单已经关闭");
     ErrorCode PAY_SIGN_SUBMIT_CHANNEL_ERROR = new ErrorCode(1_007_002_005, "发起支付报错，错误码：{}，错误提示：{}");
     ErrorCode PAY_SIGN_REFUND_FAIL_STATUS_ERROR = new ErrorCode(1_007_002_006, "支付订单退款失败，原因：状态不是已支付或已退款");
 

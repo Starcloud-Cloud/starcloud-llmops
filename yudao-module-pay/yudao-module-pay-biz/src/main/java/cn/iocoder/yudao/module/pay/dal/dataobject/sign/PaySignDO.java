@@ -119,6 +119,11 @@ public class PaySignDO extends BaseDO {
      * 签约成功时间
      */
     private LocalDateTime contractTime;
+
+    /**
+     * 签约成功时间
+     */
+    private LocalDateTime closeTime;
     /**
      * 签约失效时间
      */
