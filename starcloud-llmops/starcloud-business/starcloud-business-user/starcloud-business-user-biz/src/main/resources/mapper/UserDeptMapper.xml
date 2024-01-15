@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper">
+    <select id="deptList" resultType="com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO">
+        select d.id as deptId, d.name as deptName
+        from system_user_dept a
+                 inner join system_dept d on a.dept_id = d.id
+        where a.deleted = false
+          and d.deleted = false
+          and a.user_id = #{userId}
+        order by a.id
+    </select>
+
+    <select id="userList" resultType="com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO">
+        select a.id          as userDeptId,
+               u.username    as username,
+               a.dept_role   as deptRole,
+               u.mobile      as mobile,
+               u.email       as email,
+               a.cost_points as costPoints,
+               a.image_count as imageCount
+        from system_user_dept a
+                 inner join system_users u on a.user_id = u.id
+        where a.deleted = false
+          and u.deleted = false
+          and a.dept_id = #{deptId}
+        order by u.id
+    </select>
+</mapper>
