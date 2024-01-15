@@ -30,4 +30,7 @@ public class UserDeptUpdateReqVO {
     @Size(max = 50, message = "邮箱长度不能超过50个字符")
     private String email;
 
+    @Schema(description = "部门头像")
+    private String avatar;
+
 }
