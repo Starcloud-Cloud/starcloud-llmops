@@ -13,4 +13,7 @@ public class UserDeptRespVO {
     @Schema(description = "部门名称")
     private String deptName;
 
+    @Schema(description = "部门头像")
+    private String avatar;
+
 }
