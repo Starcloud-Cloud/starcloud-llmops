@@ -151,7 +151,7 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Override
     public void removeUser(Long userDeptId) {
         UserDeptDO deleteUserDept = userDeptMapper.selectById(userDeptId);
-        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(deleteUserDept.getDeptId(),WebFrameworkUtils.getLoginUserId());
+        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(deleteUserDept.getDeptId(), WebFrameworkUtils.getLoginUserId());
         checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
 
         if (deleteUserDept == null) {
@@ -191,7 +191,11 @@ public class UserDeptServiceImpl implements UserDeptService {
         UserDeptRoleEnum deptRoleEnum = UserDeptRoleEnum.getByRoleCode(role);
 
         UserDeptDO updateUserDept = userDeptMapper.selectById(userDeptId);
-        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(updateUserDept.getDeptId(),WebFrameworkUtils.getLoginUserId());
+        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(updateUserDept.getDeptId(), WebFrameworkUtils.getLoginUserId());
+
+        if (Objects.equals(updateUserDept.getUserId(), WebFrameworkUtils.getLoginUserId())) {
+            return;
+        }
 
         checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
         UserDeptDO userDeptDO = userDeptMapper.selectById(userDeptId);

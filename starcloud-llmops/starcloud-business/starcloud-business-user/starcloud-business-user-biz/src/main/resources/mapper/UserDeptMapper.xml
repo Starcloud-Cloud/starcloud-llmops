@@ -25,6 +25,6 @@
         where a.deleted = false
           and u.deleted = false
           and a.dept_id = #{deptId}
-        order by u.id
+        order by a.id
     </select>
 </mapper>
