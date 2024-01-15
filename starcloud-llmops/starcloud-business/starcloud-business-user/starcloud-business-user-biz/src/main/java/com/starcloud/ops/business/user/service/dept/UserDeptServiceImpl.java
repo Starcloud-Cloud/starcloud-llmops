@@ -151,16 +151,12 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Override
     public void removeUser(Long userDeptId) {
         UserDeptDO deleteUserDept = userDeptMapper.selectById(userDeptId);
-        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(deleteUserDept.getDeptId(), WebFrameworkUtils.getLoginUserId());
-        checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
-
         if (deleteUserDept == null) {
             return;
         }
 
-        if (Objects.equals(deleteUserDept.getUserId(), WebFrameworkUtils.getLoginUserId())) {
-            return;
-        }
+        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(deleteUserDept.getDeptId(), WebFrameworkUtils.getLoginUserId());
+        checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
 
         if (deleteUserDept.getDeptRole() >= UserDeptRoleEnum.SUPER_ADMIN.getRoleCode()) {
             throw exception(SUPER_ADMIN_DELETED);
