@@ -150,10 +150,10 @@ public class UserDeptServiceImpl implements UserDeptService {
 
     @Override
     public void removeUser(Long userDeptId) {
-        UserDeptDO currentUserDept = userDeptMapper.selectById(userDeptId);
+        UserDeptDO deleteUserDept = userDeptMapper.selectById(userDeptId);
+        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(deleteUserDept.getDeptId(),WebFrameworkUtils.getLoginUserId());
         checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
 
-        UserDeptDO deleteUserDept = userDeptMapper.selectById(userDeptId);
         if (deleteUserDept == null) {
             return;
         }
@@ -190,7 +190,9 @@ public class UserDeptServiceImpl implements UserDeptService {
     public void updateRole(Long userDeptId, Integer role) {
         UserDeptRoleEnum deptRoleEnum = UserDeptRoleEnum.getByRoleCode(role);
 
-        UserDeptDO currentUserDept = userDeptMapper.selectById(userDeptId);
+        UserDeptDO updateUserDept = userDeptMapper.selectById(userDeptId);
+        UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(updateUserDept.getDeptId(),WebFrameworkUtils.getLoginUserId());
+
         checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
         UserDeptDO userDeptDO = userDeptMapper.selectById(userDeptId);
         if (userDeptDO == null) {
