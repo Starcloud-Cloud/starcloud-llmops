@@ -65,6 +65,9 @@ public class AdminUserInfoRespVO {
     @Schema(description = "用户权益")
     private List<Rights> rights;
 
+    @Schema(description = "部门 ID")
+    private Long deptId;
+
     @Schema(description = "系统用户会员 - 会员等级")
     @Data
     public static class Level {
