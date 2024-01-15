@@ -11,7 +11,7 @@ public class DeptUserRespVO {
     private Long userDeptId;
 
     @Schema(description = "用户id")
-    private String userId;
+    private Long userId;
 
     @Schema(description = "用户名")
     private String username;
