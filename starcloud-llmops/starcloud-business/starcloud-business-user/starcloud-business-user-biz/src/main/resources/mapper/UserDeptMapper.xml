@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper">
     <select id="deptList" resultType="com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO">
-        select d.id as deptId, d.name as deptName, a.avatar as avatar
+        select d.id as deptId, d.name as deptName, d.avatar as avatar
         from system_user_dept a
                  inner join system_dept d on a.dept_id = d.id
         where a.deleted = false
