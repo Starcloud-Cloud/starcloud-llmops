@@ -10,6 +10,9 @@ public class DeptUserRespVO {
     @Schema(description = "用户绑定id")
     private Long userDeptId;
 
+    @Schema(description = "用户id")
+    private String userId;
+
     @Schema(description = "用户名")
     private String username;
 
