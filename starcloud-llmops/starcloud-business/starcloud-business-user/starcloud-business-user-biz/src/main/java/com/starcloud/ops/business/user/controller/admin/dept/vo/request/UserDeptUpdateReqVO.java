@@ -33,4 +33,7 @@ public class UserDeptUpdateReqVO {
     @Schema(description = "部门头像")
     private String avatar;
 
+    @Schema(description = "父菜单 ID")
+    private Long parentId;
+
 }
