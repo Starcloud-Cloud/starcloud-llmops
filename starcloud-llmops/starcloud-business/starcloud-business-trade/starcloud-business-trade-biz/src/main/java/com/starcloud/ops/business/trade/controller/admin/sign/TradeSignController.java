@@ -63,8 +63,8 @@ public class TradeSignController {
 
     @Resource
     private TradeSignUpdateService tradeSignUpdateService;
-    @Resource
-    private TradeSignQueryService tradeSignQueryService;
+    // @Resource
+    // private TradeSignQueryService tradeSignQueryService;
 
     @Resource
     private ProductSkuApi productSkuApi;

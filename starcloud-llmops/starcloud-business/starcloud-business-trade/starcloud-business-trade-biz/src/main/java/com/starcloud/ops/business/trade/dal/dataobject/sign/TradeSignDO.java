@@ -155,7 +155,10 @@ public class TradeSignDO extends BaseDO {
 
 
 
-
+    /**
+     * 运费金额，单位：分
+     */
+    private Integer deliveryPrice;
     /**
      * 支付渠道
      *
@@ -192,6 +195,7 @@ public class TradeSignDO extends BaseDO {
      * + {@link #adjustPrice}
      */
     private Integer signPrice;
+
 
 
 
