@@ -8,9 +8,12 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
+import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.brokerage.BrokerageUserDO;
+import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryExpressDO;
 import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryPickUpStoreDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
+import com.starcloud.ops.business.trade.enums.delivery.DeliveryTypeEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderCancelTypeEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderRefundStatusEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderTypeEnum;
@@ -94,6 +97,15 @@ public class TradeSignDO extends BaseDO {
      * 购买的商品数量
      */
     private Integer productCount;
+
+    /**
+     * 首次签约完成时间
+     */
+    private LocalDateTime finishTime;
+    /**
+     * 签约取消时间
+     */
+    private LocalDateTime cancelTime;
     /**
      * 取消类型
      *
@@ -119,8 +131,6 @@ public class TradeSignDO extends BaseDO {
      */
     private Long brokerageUserId;
 
-
-
     /**
      * 支付签约编号
      *
@@ -136,29 +146,12 @@ public class TradeSignDO extends BaseDO {
     private Boolean paySignStatus;
 
     /**
-     * 付款时间
+     * 是否已支付
+     *
+     * true - 已经支付过
+     * false - 没有支付过
      */
     private LocalDate payTime;
-
-
-
-
-    /**
-     * 首次签约完成时间
-     */
-    private LocalDateTime finishTime;
-    /**
-     * 签约取消时间
-     */
-    private LocalDateTime cancelTime;
-
-
-
-
-    /**
-     * 运费金额，单位：分
-     */
-    private Integer deliveryPrice;
     /**
      * 支付渠道
      *
@@ -181,6 +174,10 @@ public class TradeSignDO extends BaseDO {
      */
     private Integer discountPrice;
     /**
+     * 运费金额，单位：分
+     */
+    private Integer deliveryPrice;
+    /**
      * 签约调价，单位：分
      *
      * 正数，加价；负数，减价
@@ -196,9 +193,52 @@ public class TradeSignDO extends BaseDO {
      */
     private Integer signPrice;
 
+    // ========== 收件 + 物流基本信息 ==========
+    /**
+     * 配送方式
+     *
+     * 枚举 {@link DeliveryTypeEnum}
+     */
+    private Integer deliveryType;
+    /**
+     * 发货物流公司编号
+     *
+     * 如果无需发货，则 logisticsId 设置为 0。原因是，不想再添加额外字段
+     *
+     * 关联 {@link DeliveryExpressDO#getId()}
+     */
+    private Long logisticsId;
+    /**
+     * 发货物流单号
+     *
+     * 如果无需发货，则 logisticsNo 设置 ""。原因是，不想再添加额外字段
+     */
+    private String logisticsNo;
+    /**
+     * 发货时间
+     */
+    private LocalDateTime deliveryTime;
 
-
-
+    /**
+     * 收货时间
+     */
+    private LocalDateTime receiveTime;
+    /**
+     * 收件人名称
+     */
+    private String receiverName;
+    /**
+     * 收件人手机
+     */
+    private String receiverMobile;
+    /**
+     * 收件人地区编号
+     */
+    private Integer receiverAreaId;
+    /**
+     * 收件人详细地址
+     */
+    private String receiverDetailAddress;
     /**
      * 自提门店编号
      *
@@ -237,12 +277,75 @@ public class TradeSignDO extends BaseDO {
      */
     private Integer couponPrice;
 
+    /**
+     * 使用的积分
+     */
+    private Integer usePoint;
+    /**
+     * 积分抵扣的金额，单位：分
+     *
+     * 对应 taobao 的 trade.point_fee 字段
+     */
+    private Integer pointPrice;
+    /**
+     * 赠送的积分
+     */
+    private Integer givePoint;
+    /**
+     * 退还的使用的积分
+     */
+    private Integer refundPoint;
+    /**
+     * VIP 减免金额，单位：分
+     */
+    private Integer vipPrice;
+
+    /**
+     * 秒杀活动编号
+     *
+     * 关联 SeckillActivityDO 的 id 字段
+     */
+    private Long seckillActivityId;
+
+    /**
+     * 砍价活动编号
+     *
+     * 关联 BargainActivityDO 的 id 字段
+     */
+    private Long bargainActivityId;
+    /**
+     * 砍价记录编号
+     *
+     * 关联 BargainRecordDO 的 id 字段
+     */
+    private Long bargainRecordId;
+
+    /**
+     * 拼团活动编号
+     *
+     * 关联 CombinationActivityDO 的 id 字段
+     */
+    private Long combinationActivityId;
+    /**
+     * 拼团团长编号
+     *
+     * 关联 CombinationRecordDO 的 headId 字段
+     */
+    private Long combinationHeadId;
+    /**
+     * 拼团记录编号
+     *
+     * 关联 CombinationRecordDO 的 id 字段
+     */
+    private Long combinationRecordId;
+
     // ========== 权益相关字段 =========
     /**
      * 属性，JSON 格式
      */
     @TableField(typeHandler = GiveRightsDTOTypeHandler.class)
     private List<GiveRightsDTO> giveRights;
+
 
     public static class GiveRightsDTOTypeHandler extends AbstractJsonTypeHandler<Object> {
 
@@ -257,6 +360,29 @@ public class TradeSignDO extends BaseDO {
         }
 
     }
+
+
+    /**
+     * 属性，JSON 格式
+     */
+    @TableField(typeHandler = SubscribeConfigDTOTypeHandler.class)
+    private SubscribeConfigDTO signConfigs;
+
+
+    public static class SubscribeConfigDTOTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, SubscribeConfigDTO.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
 
 
 

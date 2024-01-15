@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author 芋道源码
  */
-@TableName(value = "trade_order_item", autoResultMap = true)
+@TableName(value = "trade_sign_item", autoResultMap = true)
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
@@ -129,7 +129,7 @@ public class TradeSignItemDO extends BaseDO {
      * + {@link #adjustPrice}
      * - {@link #vipPrice}
      */
-    private Integer payPrice;
+    private Integer signPrice;
 
     // ========== 营销基本信息 ==========
 

@@ -69,10 +69,10 @@ public interface TradeSignConvert {
             @Mapping(source = "calculateRespBO.price.totalPrice", target = "totalPrice"),
             @Mapping(source = "calculateRespBO.price.discountPrice", target = "discountPrice"),
             @Mapping(source = "calculateRespBO.price.deliveryPrice", target = "deliveryPrice"),
-            // @Mapping(source = "calculateRespBO.price.couponPrice", target = "couponPrice"),
-            // @Mapping(source = "calculateRespBO.price.pointPrice", target = "pointPrice"),
-            // @Mapping(source = "calculateRespBO.price.vipPrice", target = "vipPrice"),
-            // @Mapping(source = "calculateRespBO.price.payPrice", target = "payPrice")
+            @Mapping(source = "calculateRespBO.price.couponPrice", target = "couponPrice"),
+            @Mapping(source = "calculateRespBO.price.pointPrice", target = "pointPrice"),
+            @Mapping(source = "calculateRespBO.price.vipPrice", target = "vipPrice"),
+            @Mapping(source = "calculateRespBO.price.payPrice", target = "signPrice")
     })
     TradeSignDO convert(Long userId, String userIp, AppTradeSignCreateReqVO createReqVO,
                         TradePriceCalculateRespBO calculateRespBO);
@@ -86,6 +86,7 @@ public interface TradeSignConvert {
             orderItem.setUserId(tradeSignDO.getUserId());
             orderItem.setAfterSaleStatus(TradeOrderItemAfterSaleStatusEnum.NONE.getStatus());
             orderItem.setCommentStatus(false);
+            // orderItem.setSignPrice(calculateRespBO.getPrice().getPayPrice());
             return orderItem;
         });
     }
@@ -116,7 +117,9 @@ public interface TradeSignConvert {
         createReqDTO.setSubject(subject);
         createReqDTO.setBody(subject); // TODO 芋艿：临时写死
         // 订单相关字段
-        createReqDTO.setPrice(tradeSignDO.getSignPrice()).setExpireTime(addTime(orderProperties.getPayExpireTime()));
+        createReqDTO.setPrice(tradeSignDO.getSignPrice())
+                .setExpireTime(addTime(orderProperties.getPayExpireTime()));
+        createReqDTO.setPeriod(tradeSignDO.getSignConfigs().getPeriod()).setPeriodUnit(tradeSignDO.getSignConfigs().getPeriodType());
         return createReqDTO;
     }
 

@@ -7,6 +7,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -64,6 +65,9 @@ public class PaySignCreateReqDTO implements Serializable {
 
     // ========== 签约相关字段 ==========
 
+    @NotNull(message = "支付时间不能为空")
+    private LocalDate payTime;
+
     /**
      * 首次签约价格
      */
@@ -77,6 +81,8 @@ public class PaySignCreateReqDTO implements Serializable {
     /**
      * 签约 有效周期
      */
-    private String periodUnit;
+    private Integer periodUnit;
+
+
 
 }

@@ -232,7 +232,8 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         order.setTerminal(terminal);
         // 支付 + 退款信息
         order.setAdjustPrice(0).setPayStatus(false);
-        order.setRefundStatus(TradeOrderRefundStatusEnum.NONE.getStatus()).setRefundPrice(0);
+        order.setRefundStatus(TradeOrderRefundStatusEnum.NONE.getStatus())
+                .setRefundPrice(0);
         // 物流信息
         order.setDeliveryType(createReqVO.getDeliveryType());
 //        if (Objects.equals(createReqVO.getDeliveryType(), DeliveryTypeEnum.EXPRESS.getType())) {

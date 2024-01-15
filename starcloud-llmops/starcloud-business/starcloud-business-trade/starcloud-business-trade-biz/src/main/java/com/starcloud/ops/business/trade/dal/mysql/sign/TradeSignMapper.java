@@ -4,11 +4,14 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.MPJLambdaWrapperX;
+import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderPageReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderPageReqVO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO;
+import com.starcloud.ops.business.trade.enums.sign.TradeSignStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
@@ -124,5 +127,12 @@ public interface TradeSignMapper extends BaseMapperX<TradeSignDO> {
     //            .eq(TradeOrderDO::getCombinationActivityId, combinationActivityId)
     //    );
     //}
+
+
+    default List<TradeSignDO> selectIsSignSuccess() {
+        return selectList(new LambdaQueryWrapper<TradeSignDO>()
+                .eq(TradeSignDO::getStatus, TradeSignStatusEnum.SIGNING.getStatus()));
+    }
+
 
 }
