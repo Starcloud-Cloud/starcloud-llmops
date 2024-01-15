@@ -21,4 +21,7 @@ public class DeptRespVO extends DeptBaseVO {
     @Schema(description = "邀请码")
     private String inviteCode;
 
+    @Schema(description = "部门头像")
+    private String avatar;
+
 }
