@@ -75,5 +75,19 @@ public interface ErrorCodeConstant {
     ErrorCode TAG_HAS_USER = new ErrorCode(2_004_006_002, "用户标签下存在用户，无法删除");
 
 
+    // 用户部门
+    ErrorCode NOT_IN_THIS_DEPT = new ErrorCode(2000500001, "用户未绑定此部门");
+
+    ErrorCode INSUFFICIENT_PERMISSIONS = new ErrorCode(2000500002, "部门权限不足");
+
+    ErrorCode INVALID_CODE = new ErrorCode(2000500003, "无效的邀请码");
+
+    ErrorCode DEPT_BIND_ERROR = new ErrorCode(2000500004, "绑定部门失败，请刷新后重试");
+
+    ErrorCode SUPER_ADMIN_DELETED = new ErrorCode(2000500005, "超级管理员不允许移除");
+
+    ErrorCode DEPT_ROLE_NOT_EXIST = new ErrorCode(2000500006, "部门角色不存在");
+
+
 
 }
