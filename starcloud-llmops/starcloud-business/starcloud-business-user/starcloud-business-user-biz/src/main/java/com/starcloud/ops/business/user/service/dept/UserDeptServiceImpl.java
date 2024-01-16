@@ -116,7 +116,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             Long deptId = Long.valueOf(split[0]);
             Long inviteUser = Long.valueOf(split[1]);
 
-            validDeptNum(WebFrameworkUtils.getLoginUserId());
+//            validDeptNum(WebFrameworkUtils.getLoginUserId());
 
             List<UserDeptDO> userDeptDOS = userDeptMapper.selectByDeptId(deptId);
             Optional<UserDeptDO> superUser = userDeptDOS.stream().filter(userDeptDO -> Objects.equals(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode(), userDeptDO.getDeptRole())).findAny();
