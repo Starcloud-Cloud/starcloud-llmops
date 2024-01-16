@@ -76,19 +76,23 @@ public interface ErrorCodeConstant {
 
 
     // 用户部门
-    ErrorCode NOT_IN_THIS_DEPT = new ErrorCode(2000500001, "用户未绑定此部门");
+    ErrorCode NOT_IN_THIS_DEPT = new ErrorCode(2000500001, "用户未绑定此空间");
 
-    ErrorCode INSUFFICIENT_PERMISSIONS = new ErrorCode(2000500002, "部门权限不足");
+    ErrorCode INSUFFICIENT_PERMISSIONS = new ErrorCode(2000500002, "空间权限不足");
 
     ErrorCode INVALID_CODE = new ErrorCode(2000500003, "无效的邀请码");
 
-    ErrorCode DEPT_BIND_ERROR = new ErrorCode(2000500004, "绑定部门失败，请刷新后重试");
+    ErrorCode DEPT_BIND_ERROR = new ErrorCode(2000500004, "绑定空间失败，请刷新后重试");
 
     ErrorCode SUPER_ADMIN_DELETED = new ErrorCode(2000500005, "超级管理员不允许移除");
 
-    ErrorCode DEPT_ROLE_NOT_EXIST = new ErrorCode(2000500006, "部门角色不存在");
+    ErrorCode DEPT_ROLE_NOT_EXIST = new ErrorCode(2000500006, "空间角色不存在");
 
     ErrorCode DELETE_ERROR = new ErrorCode(2000500007, "删除失败");
+
+    ErrorCode DEPT_IS_FULL =  new ErrorCode(2000500008, "空间人数超过 {} 个");
+
+    ErrorCode TOO_MANY_DEPT_NUM =  new ErrorCode(2000500009, "加入空间数超过 {} 个");
 
 
 

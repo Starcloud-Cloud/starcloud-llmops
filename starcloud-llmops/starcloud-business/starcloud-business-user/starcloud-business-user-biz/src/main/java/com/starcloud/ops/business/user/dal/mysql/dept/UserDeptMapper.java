@@ -39,6 +39,12 @@ public interface UserDeptMapper extends BaseMapperX<UserDeptDO> {
         return selectList(wrapper);
     }
 
+    default List<UserDeptDO> selectByDeptId(Long deptId) {
+        LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
+                .eq(UserDeptDO::getDeptId, deptId);
+        return selectList(wrapper);
+    }
+
 
 
     List<UserDeptRespVO> deptList(@Param("userId") Long userId);
