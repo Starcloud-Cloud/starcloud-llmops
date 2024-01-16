@@ -68,4 +68,10 @@ public class AppContextReqVO implements Serializable {
         return StrUtil.isNotBlank(this.endUser) ? Long.valueOf(this.endUser) : null;
     }
 
+
+    /**
+     * 租户ID，可设置
+     */
+    private Long tenantId;
+
 }
