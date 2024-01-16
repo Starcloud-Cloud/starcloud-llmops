@@ -110,6 +110,15 @@ public class TradeSignController {
         }
         return success(true);
     }
+
+
+    @GetMapping("/u/pay")
+    @Operation(summary = "系统会员-测试签约支付")
+    @Parameter(name = "id", description = "交易订单编号")
+    public CommonResult<Boolean>  testPay() {
+        tradeSignQueryService.executeAutoTradeSignPay();
+        return success(true);
+    }
 //
 //    @GetMapping("/u/get-detail")
 //    @Operation(summary = "系统会员-用户-获得交易订单")

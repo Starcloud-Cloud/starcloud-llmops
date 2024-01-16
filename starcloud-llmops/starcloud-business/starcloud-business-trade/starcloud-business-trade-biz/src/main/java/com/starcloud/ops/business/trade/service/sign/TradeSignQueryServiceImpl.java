@@ -3,6 +3,10 @@ package com.starcloud.ops.business.trade.service.sign;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
+import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
+import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderPageReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderSummaryRespVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderCreateReqVO;
@@ -49,6 +53,10 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
 
     @Resource
     private TradeOrderUpdateService tradeOrderUpdateService;
+
+    @Resource
+    private PayOrderApi payOrderApi;
+
 
 
     /**
@@ -105,6 +113,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         return count;
 
     }
+
     public Boolean autoTradeSignPay(TradeSignDO tradeSignDO){
         AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
 
@@ -121,9 +130,23 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         createReqVO.setPointStatus(false);
 
 
-        tradeOrderUpdateService.createOrder(tradeSignDO.getUserId(),tradeSignDO.getUserIp(),createReqVO,20);
+        TradeOrderDO order = tradeOrderUpdateService.createOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
 
 
-        return true;
+        PayOrderSubmitRespDTO payOrderSubmitRespDTO =
+                payOrderApi.submitSignPayOrder(
+                        new PayOrderSubmitReqDTO()
+                                .setId(order.getPayOrderId())
+                                .setChannelCode("alipay_pc")
+                                .setDisplayMode("url"), order.getUserIp());
+
+        if (PayOrderStatusRespEnum.isSuccess(payOrderSubmitRespDTO.getStatus())) {
+            tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
+            return true;
+        }
+        log.error("签约支付发起失败");
+
+
+        return false;
     }
 }

@@ -27,11 +27,13 @@ import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderExtensionDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignExtensionDO;
 import cn.iocoder.yudao.module.pay.dal.mysql.sign.PaySignExtensionMapper;
 import cn.iocoder.yudao.module.pay.dal.redis.no.PayNoRedisDAO;
+import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum;
 import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
 import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
 import cn.iocoder.yudao.module.pay.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.module.pay.service.app.PayAppService;
 import cn.iocoder.yudao.module.pay.service.channel.PayChannelService;
+import cn.iocoder.yudao.module.pay.service.notify.PayNotifyService;
 import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.google.common.annotations.VisibleForTesting;
@@ -91,6 +93,9 @@ public class PaySignServiceImpl implements PaySignService {
 
     @Resource
     private PayOrderService payOrderService;
+
+    @Resource
+    private PayNotifyService notifyService;
 
 
     @Override
@@ -159,7 +164,7 @@ public class PaySignServiceImpl implements PaySignService {
                 .setPeriodType(buildPeriodType(signDO.getPeriodUnit()))
                 .setPeriod(Long.valueOf(signDO.getPeriod()))
                 // .setExecuteTime(BuildExecuteTime(payProperties.getFixedDeductionTime()))
-                .setExecuteTime(buildSignPayTime(LocalDate.now(),TimeRangeTypeEnum.MONTH))
+                .setExecuteTime(buildSignPayTime(LocalDate.now(), TimeRangeTypeEnum.MONTH))
                 .setSingleAmount(signDO.getPrice())
                 .setSignNotifyUrl(genChannelSignNotifyUrl(channel));
         PayAgreementRespDTO unifiedAgreement = payClient.unifiedPageAgreement(unifiedReqDTO);
@@ -180,7 +185,7 @@ public class PaySignServiceImpl implements PaySignService {
 
     private String buildPeriodType(Integer periodUnit) {
         TimeRangeTypeEnum timeRange = TimeRangeTypeEnum.getByType(periodUnit);
-        switch (timeRange){
+        switch (timeRange) {
             case DAY:
                 return "DAY";
             case MONTH:
@@ -307,15 +312,19 @@ public class PaySignServiceImpl implements PaySignService {
         // 校验支付渠道是否有效
         PayChannelDO channel = channelService.validPayChannel(channelId);
 
-        // 情况一：支付成功的回调
-        if (PayOrderStatusRespEnum.isSuccess(notify.getStatus())) {
-            notifySignSuccess(channel, notify);
-            return;
-        }
-        // 情况二：支付失败的回调
-        if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
-            notifySignClosed(channel, notify);
-        }
+        // 更新支付订单为已支付
+        TenantUtils.execute(channel.getTenantId(), () -> {
+            // 情况一：签约成功的回调
+            if (PayOrderStatusRespEnum.isSuccess(notify.getStatus())) {
+                notifySignSuccess(channel, notify);
+                return;
+            }
+            // 情况二：签约失败的回调
+            if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
+                notifySignClosed(channel, notify);
+            }
+        });
+
     }
 
 
@@ -379,7 +388,7 @@ public class PaySignServiceImpl implements PaySignService {
     private Boolean updateSignPaySuccess(PaySignDO signDO, PayChannelDO channel, PayOrderRespDTO notify) {
 
         //  更新 PaySignDO
-        int updateCounts = paySignMapper.updateById(signDO.setPayTime(buildSignPayTime(signDO.getPayTime().plusMonths(1),TimeRangeTypeEnum.MONTH)));
+        int updateCounts = paySignMapper.updateById(signDO.setPayTime(buildSignPayTime(signDO.getPayTime().plusMonths(1), TimeRangeTypeEnum.MONTH)));
         if (updateCounts == 0) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_STATUS_IS_NOT_WAITING);
         }
@@ -474,6 +483,10 @@ public class PaySignServiceImpl implements PaySignService {
     private void notifySignClosed(PayChannelDO channel, PayAgreementRespDTO notify) {
         PaySignExtensionDO paySignExtensionDO = updateSignExtensionClosed(channel, notify);
         updateSignClosed(channel, paySignExtensionDO, notify);
+
+        // 3. 插入支付通知记录
+        notifyService.createPayNotifyTask(PayNotifyTypeEnum.SIGN_CLOSE.getType(),
+                paySignExtensionDO.getSignId());
     }
 
     private PaySignExtensionDO updateSignExtensionClosed(PayChannelDO channel, PayAgreementRespDTO notify) {
@@ -510,6 +523,10 @@ public class PaySignServiceImpl implements PaySignService {
         if (paid) { // 如果之前已经成功回调，则直接返回，不用重复记录支付通知记录；例如说：支付平台重复回调
             return;
         }
+
+        // 3. 插入支付通知记录
+        notifyService.createPayNotifyTask(PayNotifyTypeEnum.SIGN_SUCCESS.getType(),
+                signExtensionDO.getSignId());
     }
 
     /**
