@@ -118,6 +118,17 @@ public class AdminUserLevelConfigDO extends BaseDO {
          */
         private Integer usableSkillPlugin;
 
+        /**
+         *  可创建的团队数
+         */
+        private Integer usableTeams;
+
+
+        /**
+         *  团队可以添加的人数
+         */
+        private Integer usableTeamUsers;
+
     }
 
     public static class LevelConfigTypeHandler extends AbstractJsonTypeHandler<Object> {

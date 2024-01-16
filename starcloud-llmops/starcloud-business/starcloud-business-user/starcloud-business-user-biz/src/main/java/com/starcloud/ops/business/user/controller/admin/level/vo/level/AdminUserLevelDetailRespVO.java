@@ -68,6 +68,18 @@ public class AdminUserLevelDetailRespVO extends AdminUserLevelBaseVO {
          */
         private Integer usableSkillPlugin;
 
+        /**
+         *  可创建的团队数
+         */
+        private Integer usableTeams;
+
+
+        /**
+         *  团队可以添加的人数
+         */
+        private Integer usableTeamUsers;
+
+
     }
 
 
