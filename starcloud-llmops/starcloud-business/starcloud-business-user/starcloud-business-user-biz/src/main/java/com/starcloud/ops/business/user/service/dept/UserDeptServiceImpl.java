@@ -122,7 +122,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             List<UserDeptDO> userDeptDOS = userDeptMapper.selectByDeptId(deptId);
             Optional<UserDeptDO> superUser = userDeptDOS.stream().filter(userDeptDO -> Objects.equals(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode(), userDeptDO.getDeptRole())).findAny();
             if (!superUser.isPresent()) {
-                throw exception(DEPT_IS_FULL,1);
+                throw exception(DEPT_IS_FULL, 1);
             }
 
             AdminUserLevelDetailRespVO userLevelDetailRespVO = adminUserLevelService.getLevelList(superUser.get().getUserId()).get(0);
@@ -280,10 +280,14 @@ public class UserDeptServiceImpl implements UserDeptService {
             return;
         }
 
-        if (AdminUserRightsTypeEnum.MAGIC_BEAN.equals(rightsType)) {
-            userDeptMapper.recordAppRights(rightAmount,deptDO.getId());
-        } else if (AdminUserRightsTypeEnum.MAGIC_IMAGE.equals(rightsType)) {
-            userDeptMapper.recordImageRights(rightAmount,deptDO.getId());
+        try {
+            if (AdminUserRightsTypeEnum.MAGIC_BEAN.equals(rightsType)) {
+                userDeptMapper.recordAppRights(rightAmount, deptDO.getId());
+            } else if (AdminUserRightsTypeEnum.MAGIC_IMAGE.equals(rightsType)) {
+                userDeptMapper.recordImageRights(rightAmount, deptDO.getId());
+            }
+        } catch (Exception e) {
+            log.warn("记录扣点异常", e);
         }
     }
 
