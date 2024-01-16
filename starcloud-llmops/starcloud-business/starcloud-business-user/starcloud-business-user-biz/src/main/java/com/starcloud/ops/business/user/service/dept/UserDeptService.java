@@ -79,4 +79,11 @@ public interface UserDeptService {
      * @param createDeptReqVO
      */
     void createDept(CreateDeptReqVO createDeptReqVO);
+
+    /**
+     * 查询当前用户所在部门的超级管理员
+     * @param currentUserId
+     * @return
+     */
+    Long selectSuperAdminId(Long currentUserId);
 }
