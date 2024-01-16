@@ -126,7 +126,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
 
         log.info("autoTradeSignPay: {}", tradeSignDO);
 
-        List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getPaySignId());
+        List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getId());
 
         ArrayList<AppTradeOrderSettlementReqVO.Item> items = new ArrayList<>();
         for (TradeSignItemDO tradeSignItemDO : tradeSignItemDOS) {
