@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDT
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
+import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignRespDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.*;
 import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.PaySignSubmitReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.sign.vo.PaySignSubmitRespVO;
@@ -41,7 +42,7 @@ public interface PaySignConvert {
 
     PayOrderSubmitReqVO convert(PaySignSubmitReqVO reqVO);
 
-    PayOrderRespDTO convert2(PayOrderDO order);
+    PaySignRespDTO convert2(PaySignDO sign);
 
     default PayOrderDetailsRespVO convert(PayOrderDO order, PayOrderExtensionDO orderExtension, PayAppDO app) {
         PayOrderDetailsRespVO respVO = convertDetail(order);

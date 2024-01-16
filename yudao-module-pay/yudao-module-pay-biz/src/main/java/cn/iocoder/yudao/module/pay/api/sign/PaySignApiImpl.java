@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.pay.api.sign;
 
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignRespDTO;
+import cn.iocoder.yudao.module.pay.convert.sign.PaySignConvert;
 import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class PaySignApiImpl implements PaySignApi {
 
     @Override
     public PaySignRespDTO getSign(Long id) {
-        return null;
+        return PaySignConvert.INSTANCE.convert2(paySignService.getSign(id));
     }
 
     @Override
