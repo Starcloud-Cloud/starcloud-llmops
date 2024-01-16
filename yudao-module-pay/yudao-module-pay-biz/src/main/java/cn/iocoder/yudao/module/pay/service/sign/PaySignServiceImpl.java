@@ -225,6 +225,16 @@ public class PaySignServiceImpl implements PaySignService {
         return paySignMapper.selectById(id);
     }
 
+    /**
+     * 获得支付签约
+     *
+     * @return 支付签约
+     */
+    @Override
+    public PaySignDO getSignByMerchantSignId(Long appId, String merchantSignId) {
+        return paySignMapper.selectByAppIdAndMerchantSignId(appId,merchantSignId);
+    }
+
     @Override
     public PageResult<PaySignDO> getSignPage(SignPageReqVO pageReqVO) {
         return paySignMapper.selectPage(pageReqVO);
@@ -404,7 +414,8 @@ public class PaySignServiceImpl implements PaySignService {
                         .setBody(signDO.getBody())
                         .setPrice(signDO.getPrice())
                         .setExpireTime(signDO.getExpireTime())
-                        .setSignId(signDO.getId()));
+                        // .setSignId(signDO.getId())
+                );
 
         PayOrderDO order = payOrderService.getOrder(orderId);
         PayOrderSubmitRespVO payOrderSubmitRespVO = payOrderService.submitOrder(new PayOrderSubmitReqVO()

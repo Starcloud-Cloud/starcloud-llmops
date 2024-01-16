@@ -25,6 +25,7 @@ import cn.iocoder.yudao.module.pay.dal.dataobject.app.PayAppDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.channel.PayChannelDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderExtensionDO;
+import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignDO;
 import cn.iocoder.yudao.module.pay.dal.mysql.order.PayOrderExtensionMapper;
 import cn.iocoder.yudao.module.pay.dal.mysql.order.PayOrderMapper;
 import cn.iocoder.yudao.module.pay.dal.redis.no.PayNoRedisDAO;
@@ -34,8 +35,10 @@ import cn.iocoder.yudao.module.pay.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.module.pay.service.app.PayAppService;
 import cn.iocoder.yudao.module.pay.service.channel.PayChannelService;
 import cn.iocoder.yudao.module.pay.service.notify.PayNotifyService;
+import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -75,6 +78,11 @@ public class PayOrderServiceImpl implements PayOrderService {
     private PayChannelService channelService;
     @Resource
     private PayNotifyService notifyService;
+
+
+    @Resource
+    @Lazy
+    private PaySignService paySignService;
 
     @Override
     public PayOrderDO getOrder(Long id) {
@@ -123,6 +131,10 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus())
                 // 退款相关字段
                 .setRefundPrice(0);
+        if (Objects.nonNull(reqDTO.getTradeSignId())){
+            PaySignDO signDO = paySignService.getSignByMerchantSignId(reqDTO.getAppId(), String.valueOf(reqDTO.getTradeSignId()));
+            order.setSignId(signDO.getId());
+        }
         orderMapper.insert(order);
         return order.getId();
     }
@@ -186,15 +198,19 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
         orderExtensionMapper.insert(orderExtension);
 
-        // 3. 调用三方接口
-        PayOrderUnifiedReqDTO unifiedOrderReqDTO = PayOrderConvert.INSTANCE.convert2(reqVO, userIp)
+        PaySignDO sign = paySignService.getSign(order.getSignId());
+        PayOrderUnifiedReqDTO unifiedOrderReqDTO = new PayOrderUnifiedReqDTO()
+                .setUserIp(order.getUserIp())
                 // 商户相关的字段
                 .setOutTradeNo(orderExtension.getNo()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
-                .setSubject(order.getSubject()).setBody(order.getBody())
+                .setAgreementNo(sign.getChannelSignNo())
+                .setSubject(order.getSubject())
+                .setBody(order.getBody())
                 .setNotifyUrl(genChannelOrderNotifyUrl(channel))
-                .setReturnUrl(reqVO.getReturnUrl())
                 // 订单相关字段
-                .setPrice(order.getPrice()).setExpireTime(order.getExpireTime());
+                .setPrice(order.getPrice())
+                .setExpireTime(order.getExpireTime());
+
         PayOrderRespDTO unifiedOrderResp = client.unifiedAgreementPay(unifiedOrderReqDTO);
         // 4. 如果调用直接支付成功，则直接更新支付单状态为成功。例如说：付款码支付，免密支付时，就直接验证支付成功
         if (unifiedOrderResp == null) {

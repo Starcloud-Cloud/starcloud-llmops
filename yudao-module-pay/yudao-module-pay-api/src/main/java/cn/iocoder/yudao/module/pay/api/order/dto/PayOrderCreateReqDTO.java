@@ -65,7 +65,7 @@ public class PayOrderCreateReqDTO implements Serializable {
     /**
      * 签约 ID
      */
-    private Long signId;
+    private Long tradeSignId;
 
 
 }

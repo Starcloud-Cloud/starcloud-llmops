@@ -55,7 +55,6 @@ public interface PaySignMapper extends BaseMapperX<PaySignDO> {
 
 
 
-
     default Long selectCountByAppId(Long appId) {
         return selectCount(PaySignDO::getAppId, appId);
     }

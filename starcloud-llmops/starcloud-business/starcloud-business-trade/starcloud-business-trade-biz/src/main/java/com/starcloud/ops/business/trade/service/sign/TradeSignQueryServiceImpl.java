@@ -108,7 +108,12 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         // 2. 遍历执行扣款
         int count = 0;
         for (TradeSignDO waitePaySign : waitePaySigns) {
-            count += autoTradeSignPay(waitePaySign) ? 1 : 0;
+            try {
+                count += autoTradeSignPay(waitePaySign) ? 1 : 0;
+            }catch (Exception e){
+                log.error("签约失败");
+            }
+
         }
         return count;
 
@@ -128,9 +133,11 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         }
         createReqVO.setItems(items);
         createReqVO.setPointStatus(false);
+        createReqVO.setDeliveryType(3);
+        createReqVO.setTradeSignId(String.valueOf(tradeSignDO.getId()));
 
 
-        TradeOrderDO order = tradeOrderUpdateService.createOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
+        TradeOrderDO order = tradeOrderUpdateService.createSignOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
 
 
         PayOrderSubmitRespDTO payOrderSubmitRespDTO =

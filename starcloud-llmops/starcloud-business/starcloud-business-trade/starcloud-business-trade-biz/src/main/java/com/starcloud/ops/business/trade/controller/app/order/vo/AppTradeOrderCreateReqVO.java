@@ -19,6 +19,10 @@ public class AppTradeOrderCreateReqVO extends AppTradeOrderSettlementReqVO {
     @Schema(description ="订单创建来源", example = "具体创建来源")
     private String from;
 
+    @Schema(description ="签约 ID", example = "签约 ID")
+    private String tradeSignId;
+
+
 
     @AssertTrue(message = "配送方式不能为空")
     @JsonIgnore

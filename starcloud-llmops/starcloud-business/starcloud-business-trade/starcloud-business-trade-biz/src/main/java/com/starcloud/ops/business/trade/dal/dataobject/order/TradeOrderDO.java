@@ -346,6 +346,10 @@ public class TradeOrderDO extends BaseDO {
     @TableField(typeHandler = GiveRightsDTOTypeHandler.class)
     private List<GiveRightsDTO> giveRights;
 
+
+    private Long tradeSignId;
+
+
     public static class GiveRightsDTOTypeHandler extends AbstractJsonTypeHandler<Object> {
 
         @Override

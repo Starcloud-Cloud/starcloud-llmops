@@ -171,6 +171,18 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         return tradePriceService.calculatePrice(calculateReqBO);
     }
 
+    private TradePriceCalculateRespBO calculateSignPrice(Long userId, AppTradeOrderSettlementReqVO settlementReqVO) {
+        // 1. 如果来自购物车，则获得购物车的商品
+        List<CartDO> cartList = cartService.getCartList(userId,
+                convertSet(settlementReqVO.getItems(), AppTradeOrderSettlementReqVO.Item::getCartId));
+
+        // 2. 计算价格
+        TradePriceCalculateReqBO calculateReqBO = TradeOrderConvert.INSTANCE.convert(userId, settlementReqVO, cartList);
+        calculateReqBO.getItems().forEach(item -> Assert.isTrue(item.getSelected(), // 防御性编程，保证都是选中的
+                "商品({}) 未设置为选中", item.getSkuId()));
+        return tradePriceService.calculateSignPrice(calculateReqBO);
+    }
+
     /**
      * 计算订单价格
      *
@@ -195,7 +207,6 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @TradeOrderLog(operateType = TradeOrderOperateTypeEnum.MEMBER_CREATE)
     public TradeOrderDO createOrder(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO, Integer terminal) {
 
-
         // 1.1 价格计算
         TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, createReqVO);
 
@@ -213,6 +224,38 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 3. 保存订单
         tradeOrderMapper.insert(order);
         orderItems.forEach(orderItem -> orderItem.setOrderId(order.getId()));
+        tradeOrderItemMapper.insertBatch(orderItems);
+
+        // 4. 订单创建后的逻辑
+        afterCreateTradeOrder(order, orderItems, createReqVO);
+        return order;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @TradeOrderLog(operateType = TradeOrderOperateTypeEnum.MEMBER_CREATE)
+    public TradeOrderDO createSignOrder(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO, Integer terminal) {
+
+        // 1.1 价格计算
+        TradePriceCalculateRespBO calculateRespBO = calculateSignPrice(userId, createReqVO);
+
+        TradeRightsCalculateRespBO calculateRightsRespBO = calculateRights(userId, createReqVO);
+        // 1.2 构建订单
+        TradeOrderDO order = buildTradeOrder(userId, userIp, createReqVO, calculateRespBO, terminal);
+        // 1.3 设置订单权益组
+        order.setGiveRights(calculateRightsRespBO.getGiveRights());
+
+        List<TradeOrderItemDO> orderItems = buildTradeOrderItems(order, calculateRespBO);
+
+        // 2. 订单创建前的逻辑
+        tradeOrderHandlers.forEach(handler -> handler.beforeOrderCreate(order, orderItems));
+
+        // 3. 保存订单
+        tradeOrderMapper.insert(order);
+        orderItems.forEach(orderItem -> {
+            orderItem.setOrderId(order.getId());
+            orderItem.setSpuName(orderItem.getSpuName() + "(订阅)");
+        });
         tradeOrderItemMapper.insertBatch(orderItems);
 
         // 4. 订单创建后的逻辑
@@ -304,7 +347,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         // 2. 更新 TradeOrderDO 状态为已支付，等待发货
         int updateCount = 0;
-        //判断是否需要发货
+        // 判断是否需要发货
         if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
             updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),
                     new TradeOrderDO().setStatus(TradeOrderStatusEnum.COMPLETED.getStatus()).setPayStatus(true)
@@ -965,7 +1008,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      * @param totalPrice    商品金额
      * @param discountPrice 优惠金额
      * @param payPrice      支付金额
-     * @param payTime    支付时间
+     * @param payTime       支付时间
      */
     @TenantIgnore
     private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime) {

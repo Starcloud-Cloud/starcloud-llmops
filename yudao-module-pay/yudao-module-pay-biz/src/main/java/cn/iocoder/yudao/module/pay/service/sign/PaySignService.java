@@ -63,6 +63,11 @@ public interface PaySignService {
 
     /**
      * 获得支付签约
+     */
+    PaySignDO  getSignByMerchantSignId(Long appId, String merchantSignId);
+
+    /**
+     * 获得支付签约
      分页
      *
      * @param pageReqVO 分页查询
