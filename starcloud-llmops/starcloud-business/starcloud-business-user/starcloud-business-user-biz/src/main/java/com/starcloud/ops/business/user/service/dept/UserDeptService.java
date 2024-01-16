@@ -6,6 +6,8 @@ import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDept
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO;
+import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
 import java.util.List;
 
@@ -13,12 +15,14 @@ public interface UserDeptService {
 
     /**
      * 当前用户所在的部门列表
+     *
      * @return
      */
     List<UserDeptRespVO> deptList();
 
     /**
      * 当前部门下的所有用户
+     *
      * @return
      */
     List<DeptUserRespVO> userList(Long deptId);
@@ -32,6 +36,7 @@ public interface UserDeptService {
 
     /**
      * 部门详情
+     *
      * @param deptId
      * @return
      */
@@ -44,24 +49,28 @@ public interface UserDeptService {
 
     /**
      * 加入部门
+     *
      * @param inviteCode
      */
     void joinDept(String inviteCode);
 
     /**
      * 绑定新用户
+     *
      * @param reqVO
      */
     void create(CreateUserDeptReqVO reqVO);
 
     /**
      * 移除用户
+     *
      * @param userDeptId
      */
     void removeUser(Long userDeptId);
 
     /**
      * 邀请码获取部门简要信息
+     *
      * @param inviteCode
      * @return
      */
@@ -69,6 +78,7 @@ public interface UserDeptService {
 
     /**
      * 修改角色
+     *
      * @param userDeptId
      * @param role
      */
@@ -76,14 +86,25 @@ public interface UserDeptService {
 
     /**
      * 创建部门
+     *
      * @param createDeptReqVO
      */
     void createDept(CreateDeptReqVO createDeptReqVO);
 
     /**
      * 查询当前用户所在部门的超级管理员
+     *
      * @param currentUserId
      * @return
      */
-    Long selectSuperAdminId(Long currentUserId);
+    UserDeptDO selectSuperAdminId(Long currentUserId);
+
+    /**
+     * 记录消耗
+     *
+     * @param deptDO
+     * @param rightsType
+     * @param rightAmount
+     */
+    void recordRights(UserDeptDO deptDO, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
 }

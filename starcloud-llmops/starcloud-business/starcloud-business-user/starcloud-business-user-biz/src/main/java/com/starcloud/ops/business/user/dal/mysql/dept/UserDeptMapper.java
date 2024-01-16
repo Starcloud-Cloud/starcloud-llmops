@@ -18,8 +18,7 @@ public interface UserDeptMapper extends BaseMapperX<UserDeptDO> {
     default UserDeptDO selectByDeptAndUser(Long deptId, Long userId) {
         LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
                 .eq(UserDeptDO::getDeptId, deptId)
-                .eq(UserDeptDO::getUserId, userId)
-                ;
+                .eq(UserDeptDO::getUserId, userId);
         return selectOne(wrapper);
     }
 
@@ -27,8 +26,7 @@ public interface UserDeptMapper extends BaseMapperX<UserDeptDO> {
         LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
                 .eq(UserDeptDO::getDeptId, deptId)
                 .eq(UserDeptDO::getDeptRole, role.getRoleCode())
-                .last("limit 1")
-                ;
+                .last("limit 1");
         return selectOne(wrapper);
     }
 
@@ -45,7 +43,9 @@ public interface UserDeptMapper extends BaseMapperX<UserDeptDO> {
         return selectList(wrapper);
     }
 
+    void recordImageRights(@Param("rightAmount") Integer rightAmount, @Param("id") Long id);
 
+    void recordAppRights(@Param("rightAmount") Integer rightAmount, @Param("id") Long id);
 
     List<UserDeptRespVO> deptList(@Param("userId") Long userId);
 
