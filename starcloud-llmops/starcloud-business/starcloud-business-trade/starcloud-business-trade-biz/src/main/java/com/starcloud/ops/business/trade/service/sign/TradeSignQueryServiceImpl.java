@@ -4,6 +4,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
@@ -91,6 +92,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         List<TradeSignDO> tradeSignDOS = tradeSignMapper.selectIsSignSuccess();
 
         if (tradeSignDOS.isEmpty()){
+            log.info("executeAutoTradeSignPay start, selectIsSignSuccess is empty. TenantId[{}]", TenantContextHolder.getTenantId());
             return 0;
         }
 
