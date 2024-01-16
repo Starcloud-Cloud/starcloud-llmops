@@ -100,6 +100,8 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
                     log.info("权益切换：当前用户[{}]切换到部门负责人[{}]", currentUserId, userDeptDO.getUserId());
                     return userDeptDO;
                 }
+            } else {
+                return userDeptDO;
             }
         }
         return null;
