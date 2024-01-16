@@ -122,6 +122,8 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     public Boolean autoTradeSignPay(TradeSignDO tradeSignDO){
         AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
 
+        log.info("autoTradeSignPay: {}", tradeSignDO);
+
         List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getPaySignId());
 
         ArrayList<AppTradeOrderSettlementReqVO.Item> items = new ArrayList<>();
@@ -149,9 +151,11 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
 
         if (PayOrderStatusRespEnum.isSuccess(payOrderSubmitRespDTO.getStatus())) {
             tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
+            log.error("签约支付发起成功");
             return true;
         }
-        log.error("签约支付发起失败");
+
+        log.error("签约支付发起失败: {}", payOrderSubmitRespDTO);
 
 
         return false;
