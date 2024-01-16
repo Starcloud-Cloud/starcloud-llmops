@@ -14,6 +14,7 @@
     <select id="userList" resultType="com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO">
         select a.id          as userDeptId,
                u.username    as username,
+               u.nickname    as nickname,
                u.id          as userId,
                a.dept_role   as deptRole,
                u.mobile      as mobile,
