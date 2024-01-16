@@ -383,11 +383,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAiModel(appContext.getAiModel());
 
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
-            appContext.setActionResponse(actionResponse);
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
                 // 将执行结果数据更新到 app
+                appContext.setActionResponse(actionResponse);
                 AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
                 messageCreateRequest.setStatus(LogStatusEnum.SUCCESS.name());
                 messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
