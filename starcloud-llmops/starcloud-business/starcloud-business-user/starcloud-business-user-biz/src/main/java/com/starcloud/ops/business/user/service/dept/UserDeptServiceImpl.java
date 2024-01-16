@@ -19,6 +19,7 @@ import com.starcloud.ops.business.user.convert.dept.DeptConvert;
 import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -264,16 +265,26 @@ public class UserDeptServiceImpl implements UserDeptService {
     }
 
     @Override
-    public Long selectSuperAdminId(Long currentUserId) {
+    public UserDeptDO selectSuperAdminId(Long currentUserId) {
         AdminUserDO user = userService.getUser(currentUserId);
         if (user == null) {
             return null;
         }
         UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
-        if (userDeptDO == null) {
-            return null;
+        return userDeptDO;
+    }
+
+    @Override
+    public void recordRights(UserDeptDO deptDO, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
+        if (deptDO == null || deptDO.getId() == null) {
+            return;
         }
-        return userDeptDO.getUserId();
+
+        if (AdminUserRightsTypeEnum.MAGIC_BEAN.equals(rightsType)) {
+            userDeptMapper.recordAppRights(rightAmount,deptDO.getId());
+        } else if (AdminUserRightsTypeEnum.MAGIC_IMAGE.equals(rightsType)) {
+            userDeptMapper.recordImageRights(rightAmount,deptDO.getId());
+        }
     }
 
     private void validDeptNum(Long userId) {

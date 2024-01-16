@@ -28,4 +28,17 @@
           and a.dept_id = #{deptId}
         order by a.id
     </select>
+
+
+    <select id="recordImageRights">
+        update system_user_dept
+        set image_count = image_count + #{rightAmount}
+        where id = #{id}
+    </select>
+
+    <update id="recordAppRights">
+        update system_user_dept
+        set cost_points = cost_points + #{rightAmount}
+        where id = #{id}
+    </update>
 </mapper>
