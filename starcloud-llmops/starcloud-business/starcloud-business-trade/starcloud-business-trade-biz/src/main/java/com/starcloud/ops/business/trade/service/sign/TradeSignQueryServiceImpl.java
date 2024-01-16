@@ -111,7 +111,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             try {
                 count += autoTradeSignPay(waitePaySign) ? 1 : 0;
             }catch (Exception e){
-                log.error("签约失败");
+                log.error("签约失败", e.getMessage(), e);
             }
 
         }
