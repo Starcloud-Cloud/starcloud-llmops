@@ -14,10 +14,12 @@ import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDept
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.convert.dept.DeptConvert;
 import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -50,6 +53,9 @@ public class UserDeptServiceImpl implements UserDeptService {
 
     @Resource
     private UserDeptMapper userDeptMapper;
+
+    @Resource
+    private AdminUserLevelService adminUserLevelService;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -109,6 +115,20 @@ public class UserDeptServiceImpl implements UserDeptService {
         try {
             Long deptId = Long.valueOf(split[0]);
             Long inviteUser = Long.valueOf(split[1]);
+
+            validDeptNum(WebFrameworkUtils.getLoginUserId());
+
+            List<UserDeptDO> userDeptDOS = userDeptMapper.selectByDeptId(deptId);
+            Optional<UserDeptDO> superUser = userDeptDOS.stream().filter(userDeptDO -> Objects.equals(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode(), userDeptDO.getDeptRole())).findAny();
+            if (!superUser.isPresent()) {
+                throw exception(DEPT_IS_FULL,1);
+            }
+
+            AdminUserLevelDetailRespVO userLevelDetailRespVO = adminUserLevelService.getLevelList(superUser.get().getUserId()).get(0);
+            Integer usableTeamUsers = Optional.ofNullable(userLevelDetailRespVO).map(AdminUserLevelDetailRespVO::getLevelConfig).map(AdminUserLevelDetailRespVO.LevelConfig::getUsableTeamUsers).orElse(1);
+            if (usableTeamUsers <= userDeptDOS.size()) {
+                throw exception(DEPT_IS_FULL, usableTeamUsers);
+            }
 
             CreateUserDeptReqVO createUserDeptReqVO = CreateUserDeptReqVO.builder()
                     .deptId(deptId)
@@ -233,12 +253,36 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Transactional(rollbackFor = Exception.class)
     public void createDept(CreateDeptReqVO createDeptReqVO) {
         Long deptId = deptService.createDept(DeptConvert.INSTANCE.convert(createDeptReqVO));
+        validDeptNum(WebFrameworkUtils.getLoginUserId());
+
         CreateUserDeptReqVO createUserDeptReqVO = CreateUserDeptReqVO.builder()
                 .deptId(deptId)
                 .inviteUser(WebFrameworkUtils.getLoginUserId())
                 .userId(WebFrameworkUtils.getLoginUserId())
                 .deptRole(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode()).build();
         create(createUserDeptReqVO);
+    }
+
+    @Override
+    public Long selectSuperAdminId(Long currentUserId) {
+        AdminUserDO user = userService.getUser(currentUserId);
+        if (user == null) {
+            return null;
+        }
+        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
+        if (userDeptDO == null) {
+            return null;
+        }
+        return userDeptDO.getUserId();
+    }
+
+    private void validDeptNum(Long userId) {
+        AdminUserLevelDetailRespVO userLevelDetailRespVO = adminUserLevelService.getLevelList(userId).get(0);
+        Integer usableTeams = Optional.ofNullable(userLevelDetailRespVO).map(AdminUserLevelDetailRespVO::getLevelConfig).map(AdminUserLevelDetailRespVO.LevelConfig::getUsableTeams).orElse(1);
+        List<UserDeptDO> userDepts = userDeptMapper.selectByUserId(WebFrameworkUtils.getLoginUserId());
+        if (usableTeams <= userDepts.size()) {
+            throw exception(TOO_MANY_DEPT_NUM, usableTeams);
+        }
     }
 
     private void validBindDept(Long deptId) {
