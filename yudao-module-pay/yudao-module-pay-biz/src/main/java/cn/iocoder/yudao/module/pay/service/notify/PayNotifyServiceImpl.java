@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;
+import cn.iocoder.yudao.module.pay.api.notify.dto.PaySignNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayTransferNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.notify.vo.PayNotifyTaskPageReqVO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.notify.PayNotifyLogDO;
@@ -26,6 +27,7 @@ import cn.iocoder.yudao.module.pay.dal.mysql.notify.PayNotifyTaskMapper;
 import cn.iocoder.yudao.module.pay.dal.redis.notify.PayNotifyLockRedisDAO;
 import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyStatusEnum;
 import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum;
+import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
 import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
 import cn.iocoder.yudao.module.pay.service.refund.PayRefundService;
 import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
@@ -118,13 +120,13 @@ public class PayNotifyServiceImpl implements PayNotifyService {
                 break;
             case TRANSFER:
                 PayTransferDO transfer = transferService.getTransfer(task.getDataId());
-                task.setAppId(transfer.getAppId()).setMerchantTransferId(transfer.getMerchantTransferId())
+                task.setAppId(transfer.getAppId()).setMerchantSignId(transfer.getMerchantTransferId())
                         .setNotifyUrl(transfer.getNotifyUrl());
 
             case SIGN_SUCCESS:
             case SIGN_CLOSE:
                 PaySignDO sign = paySignService.getSign(task.getDataId());
-                task.setAppId(sign.getAppId()).setMerchantTransferId(sign.getMerchantSignId())
+                task.setAppId(sign.getAppId()).setMerchantSignId(sign.getMerchantSignId())
                         .setNotifyUrl(sign.getNotifyUrl());
                 break;
             default:
@@ -258,18 +260,44 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     private CommonResult<?> executeNotifyInvoke(PayNotifyTaskDO task) {
         // 拼接 body 参数
         Object request;
-        if (Objects.equals(task.getType(), PayNotifyTypeEnum.ORDER.getType())) {
-            request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
-                    .payOrderId(task.getDataId()).build();
-        } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.REFUND.getType())) {
-            request = PayRefundNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
-                    .payRefundId(task.getDataId()).build();
-        } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.TRANSFER.getType())) {
-            request = new PayTransferNotifyReqDTO().setMerchantTransferId(task.getMerchantTransferId())
-                    .setPayTransferId(task.getDataId());
-        } else {
-            throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
+        PayNotifyTypeEnum notifyType = PayNotifyTypeEnum.getByType(task.getType());
+        switch (notifyType){
+            case ORDER:
+                request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+                        .payOrderId(task.getDataId()).build();
+                break;
+            case REFUND:
+                request = PayRefundNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+                        .payRefundId(task.getDataId()).build();
+                break;
+            case TRANSFER:
+                request = new PayTransferNotifyReqDTO().setMerchantTransferId(task.getMerchantTransferId())
+                        .setPayTransferId(task.getDataId());
+                break;
+            case SIGN_SUCCESS:
+                request = new PaySignNotifyReqDTO().setMerchantSignId(task.getMerchantSignId())
+                        .setPaySignId(task.getDataId()).setStatus(PaySignStatusEnum.SUCCESS.getStatus());
+                break;
+            case SIGN_CLOSE:
+                request = new PaySignNotifyReqDTO().setMerchantSignId(task.getMerchantSignId())
+                        .setPaySignId(task.getDataId()).setStatus(PaySignStatusEnum.CLOSED.getStatus());
+
+                break;
+            default:
+                throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
         }
+        // if (Objects.equals(task.getType(), PayNotifyTypeEnum.ORDER.getType())) {
+        //     request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+        //             .payOrderId(task.getDataId()).build();
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.REFUND.getType())) {
+        //     request = PayRefundNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+        //             .payRefundId(task.getDataId()).build();
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.TRANSFER.getType())) {
+        //     request = new PayTransferNotifyReqDTO().setMerchantTransferId(task.getMerchantTransferId())
+        //             .setPayTransferId(task.getDataId());
+        // } else {
+        //     throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
+        // }
         // 拼接 header 参数
         Map<String, String> headers = new HashMap<>();
         TenantUtils.addTenantHeader(headers, task.getTenantId());

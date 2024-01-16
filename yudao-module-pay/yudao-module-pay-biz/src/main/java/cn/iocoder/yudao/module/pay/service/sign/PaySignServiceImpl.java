@@ -117,7 +117,7 @@ public class PaySignServiceImpl implements PaySignService {
                 .setAppId(app.getId())
                 .setPayTime(reqDTO.getPayTime())
                 // 商户相关字段
-                .setNotifyUrl(app.getOrderNotifyUrl())
+                .setNotifyUrl(app.getSignNotifyUrl())
                 // 订单相关字段
                 .setStatus(PaySignStatusEnum.WAITING.getStatus());
         paySignMapper.insert(sign);
@@ -195,10 +195,6 @@ public class PaySignServiceImpl implements PaySignService {
 
     }
 
-    private LocalDateTime BuildExecuteTime(Integer fixedDeductionTime) {
-        LocalDateTime currentDate = LocalDateTimeUtil.now();
-        return currentDate.withDayOfMonth(fixedDeductionTime);
-    }
 
 
     @Override
@@ -549,7 +545,7 @@ public class PaySignServiceImpl implements PaySignService {
             log.info("[updateOrderExtensionSuccess][order({}) 已经是已签约，无需更新]", signDO.getId());
             return true;
         }
-        if (!PaySignStatusEnum.WAITING.getStatus().equals(signDO.getStatus())) { // 校验状态，必须是待支付
+        if (!PaySignStatusEnum.WAITING.getStatus().equals(signDO.getStatus())) { // 校验状态，必须是待签约
             throw exception(PAY_SIGN_STATUS_IS_NOT_WAITING);
         }
 

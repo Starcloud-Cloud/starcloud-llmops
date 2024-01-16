@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
+import cn.iocoder.yudao.module.pay.api.notify.dto.PaySignNotifyReqDTO;
+import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
@@ -90,9 +92,9 @@ public class TradeSignController {
     @Operation(summary = "系统会员-用户-更新订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
     @PermitAll // 无需登录，安全由 PayDemoOrderService 内部校验实现
     @OperateLog(enable = false) // 禁用操作日志，因为没有操作人
-    public CommonResult<Boolean> updateSignStatus(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
-        tradeSignUpdateService.updateSignStatus(Long.valueOf(notifyReqDTO.getMerchantOrderId()),
-                notifyReqDTO.getPayOrderId(),true);
+    public CommonResult<Boolean> updateSignStatus(@RequestBody PaySignNotifyReqDTO notifyReqDTO) {
+        tradeSignUpdateService.updateSignStatus(Long.valueOf(notifyReqDTO.getMerchantSignId()),
+                notifyReqDTO.getPaySignId(), notifyReqDTO.getStatus() ==PaySignStatusEnum.CLOSED.getStatus());
         return success(true);
     }
 

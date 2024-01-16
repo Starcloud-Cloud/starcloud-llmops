@@ -121,6 +121,8 @@ public class AdminUserInfoRespVO {
         @Schema(description = "技能插件数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
         private Integer usableSkillPlugin;
 
+
+
     }
 
     @Schema(description = "系统用户会员- 会员权益")
