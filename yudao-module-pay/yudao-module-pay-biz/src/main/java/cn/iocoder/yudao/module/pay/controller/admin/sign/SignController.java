@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.pay.controller.admin.sign;
 
 
+import cn.hutool.core.io.FastByteArrayOutputStream;
+import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,8 +14,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 
+import javax.imageio.ImageIO;
 import javax.validation.*;
 import javax.servlet.http.*;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.io.IOException;
 
@@ -44,19 +48,25 @@ public class SignController {
     @Resource
     private PaySignService paySignService;
 
-    @PostMapping("/create")
-    @Operation(summary = "创建支付签约 ")
-    @PreAuthorize("@ss.hasPermission('pay:sign:create')")
+    @PostMapping("/create_sign")
+    @Operation(summary = "创建支付签约")
     public CommonResult<Long> createSign(@Valid @RequestBody PaySignCreateReqDTO createReqVO) {
         return success(paySignService.createSign(createReqVO));
     }
 
-    @PutMapping("/update")
-    @Operation(summary = "更新支付签约 ")
-    @PreAuthorize("@ss.hasPermission('pay:sign:update')")
-    public CommonResult<String> updateSign(@Valid @RequestBody PaySignSubmitReqVO updateReqVO) {
+    @PutMapping("/submit_sign")
+    @Operation(summary = "提交支付签约")
+    public CommonResult<String> updateSign(@Valid @RequestBody PaySignSubmitReqVO updateReqVO) throws IOException {
         PaySignSubmitRespVO paySignSubmitRespVO = paySignService.submitSign(updateReqVO, getClientIP());
-        return success(paySignSubmitRespVO.getDisplayContent());
+
+        // 生成二维码并指定宽高
+        BufferedImage generate = QrCodeUtil.generate(paySignSubmitRespVO.getDisplayContent(), 220, 220);
+        // 转换流信息写出
+        FastByteArrayOutputStream os = new FastByteArrayOutputStream();
+        ImageIO.write(generate, "jpg", os);
+        return success(Base64.getEncoder().encodeToString(os.toByteArray()));
+        //如果二维码要在前端显示需要转成Base64
+
     }
 
     @DeleteMapping("/delete")

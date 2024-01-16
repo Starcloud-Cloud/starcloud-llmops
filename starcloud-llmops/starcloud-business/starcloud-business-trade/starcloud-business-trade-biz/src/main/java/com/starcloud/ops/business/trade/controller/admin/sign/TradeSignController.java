@@ -2,32 +2,21 @@ package com.starcloud.ops.business.trade.controller.admin.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import com.google.common.collect.Maps;
 import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
-import com.starcloud.ops.business.promotion.api.promocode.PromoCodeApi;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignCreateReqVO;
+import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignCreateRespVO;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignSettlementReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.*;
-import com.starcloud.ops.business.trade.controller.app.order.vo.item.AppTradeOrderItemCommentCreateReqVO;
-import com.starcloud.ops.business.trade.controller.app.order.vo.item.AppTradeOrderItemRespVO;
-import com.starcloud.ops.business.trade.convert.order.TradeOrderConvert;
-import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryExpressDO;
-import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
-import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO;
-import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
-import com.starcloud.ops.business.trade.framework.order.config.TradeOrderProperties;
-import com.starcloud.ops.business.trade.service.delivery.DeliveryExpressService;
-import com.starcloud.ops.business.trade.service.order.TradeOrderLogService;
+import com.starcloud.ops.business.trade.enums.sign.TradeSignStatusEnum;
 import com.starcloud.ops.business.trade.service.sign.TradeSignQueryService;
 import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,8 +30,6 @@ import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -51,10 +38,9 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.ORDER_CREATE_FAIL_USER_LIMIT;
-import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.ORDER_NOT_FOUND;
+import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
-@Tag(name = "管理后台 - 交易订单")
+@Tag(name = "管理后台 - 交易签约")
 @RestController
 @RequestMapping("/llm/trade/sign")
 @Validated
@@ -63,8 +49,8 @@ public class TradeSignController {
 
     @Resource
     private TradeSignUpdateService tradeSignUpdateService;
-    // @Resource
-    // private TradeSignQueryService tradeSignQueryService;
+    @Resource
+    private TradeSignQueryService tradeSignQueryService;
 
     @Resource
     private ProductSkuApi productSkuApi;
@@ -73,21 +59,7 @@ public class TradeSignController {
     private ProductSpuApi productSpuApi;
 
     @Resource
-    private DeliveryExpressService deliveryExpressService;
-    @Resource
-    private TradeOrderLogService tradeOrderLogService;
-
-    @Resource
-    private TradeOrderProperties tradeOrderProperties;
-
-    @Resource
     private AdminUserService adminUserService;
-
-
-    @Resource
-    private PromoCodeApi promoCodeApi;
-
-
 
 
     //========================APP======ADMIN=====USER=========================
@@ -105,22 +77,37 @@ public class TradeSignController {
     @PostMapping("/u/create")
     @Operation(summary = "系统会员-创建签约")
     @PreAuthenticated
-    public CommonResult<AppTradeOrderCreateRespVO> createSign(@Valid @RequestBody AppTradeSignCreateReqVO createReqVO) {
+    public CommonResult<AppTradeSignCreateRespVO> createSign(@Valid @RequestBody AppTradeSignCreateReqVO createReqVO) {
         Long userId = getLoginUserId();
         createReqVO.getItems().stream().forEach(item -> {
             validateProductLimit(item.getSkuId());
         });
         TradeSignDO sign = tradeSignUpdateService.createSign(userId, getClientIP(), createReqVO, createReqVO.getTerminal());
-        return success(new AppTradeOrderCreateRespVO().setId(sign.getId()).setPayOrderId(sign.getPaySignId()));
+        return success(new AppTradeSignCreateRespVO().setId(sign.getId()).setPaySignId(sign.getPaySignId()));
     }
 
     @PostMapping("/u/update-paid")
     @Operation(summary = "系统会员-用户-更新订单为已支付") // 由 pay-module 支付服务，进行回调，可见 PayNotifyJob
     @PermitAll // 无需登录，安全由 PayDemoOrderService 内部校验实现
     @OperateLog(enable = false) // 禁用操作日志，因为没有操作人
-    public CommonResult<Boolean> updateOrderPaid(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
-        tradeSignUpdateService.updateOrderPaid(Long.valueOf(notifyReqDTO.getMerchantOrderId()),
-                notifyReqDTO.getPayOrderId());
+    public CommonResult<Boolean> updateSignStatus(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
+        tradeSignUpdateService.updateSignStatus(Long.valueOf(notifyReqDTO.getMerchantOrderId()),
+                notifyReqDTO.getPayOrderId(),true);
+        return success(true);
+    }
+
+
+    @GetMapping("/u/is-success")
+    @Operation(summary = "系统会员-判断是否签约成功")
+    @Parameter(name = "id", description = "交易订单编号")
+    public CommonResult<Boolean> validateOrderStatus(@RequestParam("id") Long id) {
+        TradeSignDO sign = tradeSignQueryService.getSign(getLoginUserId(), id);
+        if (Objects.isNull(sign)) {
+            throw exception(SIGN_NOT_FOUND);
+        }
+        if (sign.getStatus().equals(TradeSignStatusEnum.UN_SIGN.getStatus()) || sign.getStatus().equals(TradeSignStatusEnum.CANCELED.getStatus())) {
+            return success(false);
+        }
         return success(true);
     }
 //
@@ -210,21 +197,8 @@ public class TradeSignController {
 //
 //    // ========== 订单项 ==========
 //
-//    @GetMapping("/u/is-success")
-//    @Operation(summary = "系统会员-判断订单状态是否支付成功")
-//    @Parameter(name = "id", description = "交易订单编号")
-//    public CommonResult<Boolean> validateOrderStatus(@RequestParam("id") Long id) {
-//        Map<String, Long> orderCount = Maps.newLinkedHashMapWithExpectedSize(5);
-//        TradeOrderDO order = tradeSignQueryService.getOrder(getLoginUserId(), id);
-//        if (Objects.isNull(order)) {
-//            throw exception(ORDER_NOT_FOUND);
-//        }
-//        if (order.getStatus().equals(TradeOrderStatusEnum.UNPAID.getStatus()) || order.getStatus().equals(TradeOrderStatusEnum.CANCELED.getStatus())) {
-//            return success(false);
-//        }
-//        return success(true);
-//    }
-//
+
+    //
 //    @GetMapping("/u/item/get")
 //    @Operation(summary = "系统会员-获得交易订单项")
 //    @Parameter(name = "id", description = "交易订单项编号")
@@ -240,7 +214,7 @@ public class TradeSignController {
 //    }
 //
 //
-    private void validateProductLimit(Long skuId){
+    private void validateProductLimit(Long skuId) {
         ProductSkuRespDTO sku = productSkuApi.getSku(skuId);
         if (!Objects.isNull(sku)) {
             ProductSpuRespDTO spu = productSpuApi.getSpu(sku.getSpuId());

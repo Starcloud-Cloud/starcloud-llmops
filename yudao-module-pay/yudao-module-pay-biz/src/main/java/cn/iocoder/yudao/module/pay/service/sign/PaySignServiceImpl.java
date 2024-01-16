@@ -33,6 +33,7 @@ import cn.iocoder.yudao.module.pay.framework.pay.config.PayProperties;
 import cn.iocoder.yudao.module.pay.service.app.PayAppService;
 import cn.iocoder.yudao.module.pay.service.channel.PayChannelService;
 import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -94,7 +95,6 @@ public class PaySignServiceImpl implements PaySignService {
 
     @Override
     public Long createSign(PaySignCreateReqDTO reqDTO) {
-
         // 校验 App
         PayAppDO app = appService.validPayApp(reqDTO.getAppId());
 
@@ -108,8 +108,9 @@ public class PaySignServiceImpl implements PaySignService {
         }
 
         // 创建支付交易单
-        sign = PaySignConvert.INSTANCE.convert(reqDTO).setAppId(app.getId())
-                .setPayTime(buildSignPayTime(LocalDate.now()))
+        sign = PaySignConvert.INSTANCE.convert(reqDTO)
+                .setAppId(app.getId())
+                .setPayTime(reqDTO.getPayTime())
                 // 商户相关字段
                 .setNotifyUrl(app.getOrderNotifyUrl())
                 // 订单相关字段
@@ -155,10 +156,10 @@ public class PaySignServiceImpl implements PaySignService {
                 .setBody(signDO.getBody())
                 .setExpireTime(signDO.getExpireTime())
                 .setExternalAgreementNo(signExtensionDO.getNo())
-                .setPeriodType(signDO.getPeriodUnit())
+                .setPeriodType(buildPeriodType(signDO.getPeriodUnit()))
                 .setPeriod(Long.valueOf(signDO.getPeriod()))
                 // .setExecuteTime(BuildExecuteTime(payProperties.getFixedDeductionTime()))
-                .setExecuteTime(buildSignPayTime(LocalDate.now()))
+                .setExecuteTime(buildSignPayTime(LocalDate.now(),TimeRangeTypeEnum.MONTH))
                 .setSingleAmount(signDO.getPrice())
                 .setSignNotifyUrl(genChannelSignNotifyUrl(channel));
         PayAgreementRespDTO unifiedAgreement = payClient.unifiedPageAgreement(unifiedReqDTO);
@@ -175,6 +176,18 @@ public class PaySignServiceImpl implements PaySignService {
             signDO = paySignMapper.selectById(signDO.getId());
         }
         return PaySignConvert.INSTANCE.convert(signDO, unifiedAgreement);
+    }
+
+    private String buildPeriodType(Integer periodUnit) {
+        TimeRangeTypeEnum timeRange = TimeRangeTypeEnum.getByType(periodUnit);
+        switch (timeRange){
+            case DAY:
+                return "DAY";
+            case MONTH:
+                return "MONTH";
+        }
+        throw new RuntimeException("周期异常，请联系管理员");
+
     }
 
     private LocalDateTime BuildExecuteTime(Integer fixedDeductionTime) {
@@ -350,7 +363,7 @@ public class PaySignServiceImpl implements PaySignService {
             return;
         }
         //// 情况二：支付失败的回调
-        //if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
+        // if (PayOrderStatusRespEnum.isClosed(notify.getStatus())) {
         //    notifySignPayClosed(channel, notify);
         //}
     }
@@ -366,7 +379,7 @@ public class PaySignServiceImpl implements PaySignService {
     private Boolean updateSignPaySuccess(PaySignDO signDO, PayChannelDO channel, PayOrderRespDTO notify) {
 
         //  更新 PaySignDO
-        int updateCounts = paySignMapper.updateById(signDO.setPayTime(buildSignPayTime(signDO.getPayTime().plusMonths(1))));
+        int updateCounts = paySignMapper.updateById(signDO.setPayTime(buildSignPayTime(signDO.getPayTime().plusMonths(1),TimeRangeTypeEnum.MONTH)));
         if (updateCounts == 0) { // 校验状态，必须是待支付
             throw exception(PAY_ORDER_STATUS_IS_NOT_WAITING);
         }
@@ -677,9 +690,17 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
 
-    private LocalDate buildSignPayTime(LocalDate date) {
+    private LocalDate buildSignPayTime(LocalDate date, TimeRangeTypeEnum timeRange) {
         // 判断日期是否为每个月的28号以后
         if (date.getDayOfMonth() > 28) {
+            switch (timeRange) {
+                case DAY:
+                    // 如果是，则将日期设置为下个月的1号
+                    return date.plusDays(7);
+                case MONTH:
+                    // 如果是，则将日期设置为下个月的1号
+                    return date.plusMonths(1).withDayOfMonth(1);
+            }
             // 如果是，则将日期设置为下个月的1号
             return date.plusMonths(1).withDayOfMonth(1);
         }

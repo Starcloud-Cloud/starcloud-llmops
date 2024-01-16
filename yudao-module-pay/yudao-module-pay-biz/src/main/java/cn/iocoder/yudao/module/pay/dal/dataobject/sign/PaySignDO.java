@@ -94,7 +94,7 @@ public class PaySignDO extends BaseDO {
     /**
      * 签约 有效周期
      */
-    private String periodUnit;
+    private Integer periodUnit;
     /**
      * 费率
      */
