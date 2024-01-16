@@ -241,6 +241,19 @@ public class UserDeptServiceImpl implements UserDeptService {
         create(createUserDeptReqVO);
     }
 
+    @Override
+    public Long selectSuperAdminId(Long currentUserId) {
+        AdminUserDO user = userService.getUser(currentUserId);
+        if (user == null) {
+            return null;
+        }
+        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
+        if (userDeptDO == null) {
+            return null;
+        }
+        return userDeptDO.getUserId();
+    }
+
     private void validBindDept(Long deptId) {
         UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndUser(deptId, WebFrameworkUtils.getLoginUserId());
         if (userDeptDO == null) {
