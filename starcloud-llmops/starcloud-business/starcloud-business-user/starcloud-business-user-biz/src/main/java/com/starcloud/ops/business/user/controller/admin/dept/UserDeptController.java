@@ -4,6 +4,7 @@ package com.starcloud.ops.business.user.controller.admin.dept;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDeptUpdateReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO;
@@ -100,6 +101,13 @@ public class UserDeptController {
     @Operation(summary = "修改角色")
     public CommonResult<Boolean> updateRole(@PathVariable("userDeptId") Long userDeptId,@PathVariable("role") Integer role) {
         userDeptService.updateRole(userDeptId,role);
+        return CommonResult.success(true);
+    }
+
+    @PutMapping("/dept/create")
+    @Operation(summary = "创建新部门")
+    public CommonResult<Boolean> create(@Valid @RequestBody CreateDeptReqVO reqVO) {
+        userDeptService.createDept(reqVO);
         return CommonResult.success(true);
     }
 }

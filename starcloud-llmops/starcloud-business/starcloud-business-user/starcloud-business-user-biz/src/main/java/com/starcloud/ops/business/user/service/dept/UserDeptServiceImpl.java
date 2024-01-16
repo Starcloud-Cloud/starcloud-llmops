@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDeptUpdateReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
@@ -226,6 +227,18 @@ public class UserDeptServiceImpl implements UserDeptService {
         }
         userDeptDO.setDeptRole(deptRoleEnum.getRoleCode());
         userDeptMapper.updateById(userDeptDO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createDept(CreateDeptReqVO createDeptReqVO) {
+        Long deptId = deptService.createDept(DeptConvert.INSTANCE.convert(createDeptReqVO));
+        CreateUserDeptReqVO createUserDeptReqVO = CreateUserDeptReqVO.builder()
+                .deptId(deptId)
+                .inviteUser(WebFrameworkUtils.getLoginUserId())
+                .userId(WebFrameworkUtils.getLoginUserId())
+                .deptRole(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode()).build();
+        create(createUserDeptReqVO);
     }
 
     private void validBindDept(Long deptId) {

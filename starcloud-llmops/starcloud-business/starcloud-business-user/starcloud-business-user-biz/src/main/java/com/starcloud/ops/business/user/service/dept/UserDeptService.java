@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.service.dept;
 
+import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDeptUpdateReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
@@ -72,4 +73,10 @@ public interface UserDeptService {
      * @param role
      */
     void updateRole(Long userDeptId, Integer role);
+
+    /**
+     * 创建部门
+     * @param createDeptReqVO
+     */
+    void createDept(CreateDeptReqVO createDeptReqVO);
 }

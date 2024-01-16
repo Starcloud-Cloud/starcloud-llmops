@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.dto.DeptConfigDTO;
+import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDeptUpdateReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
@@ -30,6 +31,8 @@ public interface DeptConvert {
 
 
     DeptUpdateReqVO convert(UserDeptUpdateReqVO reqVO);
+
+    DeptDO convert(CreateDeptReqVO createDeptReqVO);
 
     default DeptConfigDTO convert(String config) {
         if (StringUtils.isBlank(config)) {
