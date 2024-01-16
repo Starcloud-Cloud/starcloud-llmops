@@ -20,6 +20,8 @@ public class TradeNoRedisDAO {
 
     public static final String TRADE_ORDER_NO_PREFIX = "TO";
 
+    public static final String TRADE_SIGN_NO_PREFIX = "SO";
+
     public static final String AFTER_SALE_NO_PREFIX = "r";
 
     @Resource

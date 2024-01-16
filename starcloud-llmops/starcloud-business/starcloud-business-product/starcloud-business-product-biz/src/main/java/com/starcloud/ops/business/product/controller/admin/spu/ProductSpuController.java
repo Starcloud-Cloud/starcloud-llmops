@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.product.controller.admin.spu.vo.*;
@@ -26,6 +27,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -152,6 +154,7 @@ public class ProductSpuController {
     }
 
     @GetMapping("/u/page")
+    @PermitAll
     @Operation(summary = "系统会员-获得商品 SPU 分页")
     public CommonResult<PageResult<AppProductSpuPageRespVO>> getSpuPage(@Valid AppProductSpuPageReqVO pageVO) {
         PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO);
@@ -163,6 +166,7 @@ public class ProductSpuController {
 
         // 拼接返回
         PageResult<AppProductSpuPageRespVO> voPageResult = ProductSpuConvert.INSTANCE.convertPageForGetSpuPage(pageResult);
+
         voPageResult.getList().stream().forEach(spu -> {
             List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId());
             spu.setSkus(ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus));

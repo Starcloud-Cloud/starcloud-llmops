@@ -6,6 +6,7 @@ import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
@@ -58,6 +59,25 @@ public class TradeRightsServiceImpl implements TradeRightsService {
         }
         calculateRespBO.setGiveRights(giveRights);
         return calculateRespBO;
+    }
+
+    /**
+     * 价格计算
+     *
+     * @param calculateReqBO 计算信息
+     * @return 计算结果
+     */
+    @Override
+    public SubscribeConfigDTO calculateSignConfigs(TradePriceCalculateReqBO calculateReqBO) {
+        // 1.1 获得商品 SKU 数组
+        List<ProductSkuRespDTO> skuList = checkSkuList(calculateReqBO);
+        // 1.2 获得商品 SPU 数组
+        List<ProductSpuRespDTO> spuList = checkSpuList(skuList);
+
+        // 2.0 设置权益相关字段
+        SubscribeConfigDTO subscribeConfigDTO = new SubscribeConfigDTO();
+        subscribeConfigDTO =spuList.get(0).getSubscribeConfig() ;
+        return subscribeConfigDTO;
     }
 
     private List<ProductSkuRespDTO> checkSkuList(TradePriceCalculateReqBO reqBO) {

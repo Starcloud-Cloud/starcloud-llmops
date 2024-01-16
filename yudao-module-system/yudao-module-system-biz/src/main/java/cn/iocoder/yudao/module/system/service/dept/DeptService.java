@@ -24,6 +24,8 @@ public interface DeptService {
      */
     Long createDept(DeptCreateReqVO reqVO);
 
+    Long createDept(DeptDO deptDO);
+
     /**
      * 更新部门
      *

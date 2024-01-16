@@ -65,6 +65,9 @@ public class AdminUserInfoRespVO {
     @Schema(description = "用户权益")
     private List<Rights> rights;
 
+    @Schema(description = "部门 ID")
+    private Long deptId;
+
     @Schema(description = "系统用户会员 - 会员等级")
     @Data
     public static class Level {
@@ -117,6 +120,19 @@ public class AdminUserInfoRespVO {
          */
         @Schema(description = "技能插件数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
         private Integer usableSkillPlugin;
+
+        /**
+         *  可创建的团队数
+         */
+        private Integer usableTeams;
+
+
+        /**
+         *  团队可以添加的人数
+         */
+        private Integer usableTeamUsers;
+
+
 
     }
 

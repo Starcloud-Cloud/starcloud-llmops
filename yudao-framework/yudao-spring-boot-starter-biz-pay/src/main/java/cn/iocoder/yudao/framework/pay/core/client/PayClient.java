@@ -43,7 +43,7 @@ public interface PayClient {
      * 解析 order 回调数据
      *
      * @param params HTTP 回调接口 content type 为 application/x-www-form-urlencoded 的所有参数
-     * @param body HTTP 回调接口的 request body
+     * @param body   HTTP 回调接口的 request body
      * @return 支付订单信息
      */
     PayOrderRespDTO parseOrderNotify(Map<String, String> params, String body);
@@ -56,20 +56,13 @@ public interface PayClient {
      */
     PayOrderRespDTO getOrder(String outTradeNo);
 
-    /**
-     * 获得签约信息
-     *
-     * @param outTradeNo 外部订单号
-     * @return 支付订单信息
-     */
-    PayOrderRespDTO getSign(String outTradeNo);
 
     // ============ 退款相关 ==========
 
     /**
      * 调用支付渠道，进行退款
      *
-     * @param reqDTO  统一退款请求信息
+     * @param reqDTO 统一退款请求信息
      * @return 退款信息
      */
     PayRefundRespDTO unifiedRefund(PayRefundUnifiedReqDTO reqDTO);
@@ -78,7 +71,7 @@ public interface PayClient {
      * 解析 refund 回调数据
      *
      * @param params HTTP 回调接口 content type 为 application/x-www-form-urlencoded 的所有参数
-     * @param body HTTP 回调接口的 request body
+     * @param body   HTTP 回调接口的 request body
      * @return 支付订单信息
      */
     PayRefundRespDTO parseRefundNotify(Map<String, String> params, String body);
@@ -86,7 +79,7 @@ public interface PayClient {
     /**
      * 获得退款订单信息
      *
-     * @param outTradeNo 外部订单号
+     * @param outTradeNo  外部订单号
      * @param outRefundNo 外部退款号
      * @return 退款订单信息
      */
@@ -104,7 +97,7 @@ public interface PayClient {
      * 获得转账订单信息
      *
      * @param outTradeNo 外部订单号
-     * @param type 转账类型
+     * @param type       转账类型
      * @return 转账信息
      */
     PayTransferRespDTO getTransfer(String outTradeNo, PayTransferTypeEnum type);
@@ -115,8 +108,8 @@ public interface PayClient {
      *
      * @param rawNotify 通知内容
      * @return 回调对象
-     *         1. {@link PayRefundNotifyRespDTO} 退款通知
-     *         2. {@link PayOrderNotifyRespDTO} 支付通知
+     * 1. {@link PayRefundNotifyRespDTO} 退款通知
+     * 2. {@link PayOrderNotifyRespDTO} 支付通知
      */
     default Object parseNotify(PayNotifyReqDTO rawNotify) {
         throw new UnsupportedOperationException("未实现 parseNotify 方法！");
@@ -125,30 +118,48 @@ public interface PayClient {
     // ==================签约==================
 
 
-    // /**
-    //  * 调用支付渠道，统一下单
-    //  *
-    //  * @param reqDTO 下单信息
-    //  * @return 支付订单信息
-    //  */
-    // PayAgreementRespDTO unifiedAgreement(PayAgreementUnifiedReqDTO reqDTO);
-    //
-    //
-    // /**
-    //  * 解析 Agreement 回调数据
-    //  *
-    //  * @param params HTTP 回调接口 content type 为 application/x-www-form-urlencoded 的所有参数
-    //  * @param body HTTP 回调接口的 request body
-    //  * @return 支付订单信息
-    //  */
-    // PayAgreementRespDTO parseAgreementNotify(Map<String, String> params, String body);
-    //
-    // /**
-    //  * 获得签约信息
-    //  *
-    //  * @param outAgreementNo 外部订单号
-    //  * @return 支付订单信息
-    //  */
-    // PayAgreementRespDTO getAgreement(String outAgreementNo);
+    /**
+     * 调用支付渠道，统一签约【支付并签约】
+     *
+     * @param reqDTO 签约信息
+     * @return 签约订单信息
+     */
+    PayAgreementRespDTO unifiedPayAgreement(PayAgreementUnifiedReqDTO reqDTO);
+
+
+    /**
+     * 调用支付渠道，统一签约【独立签约】
+     *
+     * @param reqDTO 签约信息
+     * @return 签约订单信息
+     */
+    PayAgreementRespDTO unifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO);
+
+
+    /**
+     * 调用支付渠道，统一执行签约扣款
+     * 形参:
+     * reqDTO – 签约信息
+     * 返回值: PayRefundRespDTO 签约订单信息
+     */
+    PayOrderRespDTO unifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO);
+
+    /**
+     * 解析 Agreement 回调数据
+     *
+     * @param params HTTP 回调接口 content type 为 application/x-www-form-urlencoded 的所有参数
+     * @param body   HTTP 回调接口的 request body
+     * @return 签约信息
+     */
+    PayAgreementRespDTO parseAgreementNotify(Map<String, String> params, String body);
+
+    /**
+     * 获得签约信息
+     *
+     * @param outAgreementNo 外部订单号
+     * @return 签约订单信息
+     */
+    PayAgreementRespDTO getAgreement(String outAgreementNo);
+
 
 }

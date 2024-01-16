@@ -43,6 +43,8 @@ public interface TradeOrderUpdateService {
      */
     TradeOrderDO createOrder(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO, Integer terminal);
 
+    TradeOrderDO createSignOrder(Long userId, String userIp, AppTradeOrderCreateReqVO createReqVO, Integer terminal);
+
     /**
      * 更新交易订单已支付
      *

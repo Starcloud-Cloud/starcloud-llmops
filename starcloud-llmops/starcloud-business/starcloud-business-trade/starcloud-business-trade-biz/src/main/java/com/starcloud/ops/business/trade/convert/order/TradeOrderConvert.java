@@ -61,6 +61,8 @@ public interface TradeOrderConvert {
             @Mapping(source = "createReqVO.couponId", target = "couponId"),
             @Mapping(target = "remark", ignore = true),
             @Mapping(source = "createReqVO.remark", target = "userRemark"),
+            @Mapping(source = "createReqVO.from", target = "orderFrom"),
+            @Mapping(source = "createReqVO.tradeSignId", target = "tradeSignId"),
             @Mapping(source = "calculateRespBO.price.totalPrice", target = "totalPrice"),
             @Mapping(source = "calculateRespBO.price.discountPrice", target = "discountPrice"),
             @Mapping(source = "calculateRespBO.price.deliveryPrice", target = "deliveryPrice"),
@@ -111,6 +113,7 @@ public interface TradeOrderConvert {
         createReqDTO.setBody(subject); // TODO 芋艿：临时写死
         // 订单相关字段
         createReqDTO.setPrice(order.getPayPrice()).setExpireTime(addTime(orderProperties.getPayExpireTime()));
+        createReqDTO.setTradeSignId(order.getTradeSignId());
         return createReqDTO;
     }
 

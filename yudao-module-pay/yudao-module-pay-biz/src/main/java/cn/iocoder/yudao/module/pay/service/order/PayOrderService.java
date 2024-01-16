@@ -3,6 +3,8 @@ package cn.iocoder.yudao.module.pay.service.order;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderExportReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderPageReqVO;
 import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderSubmitReqVO;
@@ -81,6 +83,10 @@ public interface PayOrderService {
      */
     PayOrderSubmitRespVO submitOrder(@Valid PayOrderSubmitReqVO reqVO,
                                      @NotEmpty(message = "提交 IP 不能为空") String userIp);
+
+
+    PayOrderSubmitRespDTO submitSignPayOrder(@Valid PayOrderSubmitReqDTO reqVO,
+                                             @NotEmpty(message = "提交 IP 不能为空") String userIp);
 
     /**
      * 通知支付单成功

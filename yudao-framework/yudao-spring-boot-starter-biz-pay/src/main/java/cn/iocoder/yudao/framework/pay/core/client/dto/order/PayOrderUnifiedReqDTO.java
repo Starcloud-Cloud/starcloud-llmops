@@ -100,6 +100,13 @@ public class PayOrderUnifiedReqDTO {
 
 
 
+    /**
+     * 支付宝商家扣款参数
+     */
+    private String agreementNo;
+
+
+
 
 
 }
