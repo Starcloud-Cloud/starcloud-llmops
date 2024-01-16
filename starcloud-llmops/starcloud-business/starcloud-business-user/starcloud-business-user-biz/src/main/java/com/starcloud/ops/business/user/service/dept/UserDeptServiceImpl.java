@@ -18,12 +18,14 @@ import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -84,13 +86,15 @@ public class UserDeptServiceImpl implements UserDeptService {
         }
         DeptRespVO respVO = DeptConvert.INSTANCE.convert(dept);
         respVO.setInviteCode(generateInviteCode(deptId));
+        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(deptId, UserDeptRoleEnum.SUPER_ADMIN);
+        respVO.setAdminUserId(userDeptDO.getUserId());
         return respVO;
     }
 
     @Override
     public void updateDept(UserDeptUpdateReqVO reqVO) {
         UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(reqVO.getId(), WebFrameworkUtils.getLoginUserId());
-        checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
+        checkPermissions(currentUserDept, UserDeptRoleEnum.SUPER_ADMIN);
         deptService.updateDept(DeptConvert.INSTANCE.convert(reqVO));
     }
 
@@ -149,6 +153,7 @@ public class UserDeptServiceImpl implements UserDeptService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void removeUser(Long userDeptId) {
         UserDeptDO deleteUserDept = userDeptMapper.selectById(userDeptId);
         if (deleteUserDept == null) {
@@ -156,10 +161,20 @@ public class UserDeptServiceImpl implements UserDeptService {
         }
 
         UserDeptDO currentUserDept = userDeptMapper.selectByDeptAndUser(deleteUserDept.getDeptId(), WebFrameworkUtils.getLoginUserId());
-        checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
+        checkPermissions(currentUserDept, UserDeptRoleEnum.SUPER_ADMIN);
 
         if (deleteUserDept.getDeptRole() >= UserDeptRoleEnum.SUPER_ADMIN.getRoleCode()) {
             throw exception(SUPER_ADMIN_DELETED);
+        }
+
+        AdminUserDO user = userService.getUser(deleteUserDept.getUserId());
+        if (user != null && Objects.equals(deleteUserDept.getDeptId(), user.getDeptId())) {
+            // 切换用户到其他空间
+            List<UserDeptDO> userDeptDOS = userDeptMapper.selectByUserId(deleteUserDept.getUserId());
+            if (CollectionUtils.isEmpty(userDeptDOS)) {
+                throw exception(DELETE_ERROR);
+            }
+            userService.updateUserDept(user.getId(), userDeptDOS.get(0).getDeptId());
         }
 
         userDeptMapper.deleteById(deleteUserDept.getId());
@@ -193,7 +208,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             return;
         }
 
-        checkPermissions(currentUserDept, UserDeptRoleEnum.ADMIN);
+        checkPermissions(currentUserDept, UserDeptRoleEnum.SUPER_ADMIN);
         UserDeptDO userDeptDO = userDeptMapper.selectById(userDeptId);
         if (userDeptDO == null) {
             // 用户不在空间中
@@ -205,7 +220,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             throw exception(INSUFFICIENT_PERMISSIONS);
         }
 
-        if (deptRoleEnum.getRoleCode() > currentUserDept.getDeptRole()) {
+        if (deptRoleEnum.getRoleCode() >= currentUserDept.getDeptRole()) {
             // 目标权限高于当前用户权限
             throw exception(INSUFFICIENT_PERMISSIONS);
         }
