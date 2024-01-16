@@ -3,6 +3,7 @@ package com.starcloud.ops.business.trade.dal.dataobject.order;
 import cn.iocoder.yudao.framework.common.enums.TerminalEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
@@ -34,7 +35,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TradeOrderDO extends BaseDO {
+public class TradeOrderDO extends TenantBaseDO {
 
     /**
      * 发货物流公司编号 - 空（无需发货）

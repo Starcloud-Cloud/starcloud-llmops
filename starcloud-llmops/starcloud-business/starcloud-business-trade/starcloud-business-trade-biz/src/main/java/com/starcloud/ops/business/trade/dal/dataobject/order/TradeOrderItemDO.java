@@ -2,6 +2,7 @@ package com.starcloud.ops.business.trade.dal.dataobject.order;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleDO;
 import com.starcloud.ops.business.trade.dal.dataobject.cart.CartDO;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderItemAfterSaleStatusEnum;
@@ -24,7 +25,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class TradeOrderItemDO extends BaseDO {
+public class TradeOrderItemDO extends TenantBaseDO {
 
     // ========== 订单项基本信息 ==========
     /**
