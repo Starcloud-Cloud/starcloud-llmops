@@ -34,7 +34,7 @@ public class AppResponseConverter {
         }
         List<WorkflowStepWrapperRespVO> steps = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
 
-        Optional<WorkflowStepWrapperRespVO> titleOption = steps.stream().filter(item -> !TitleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
+        Optional<WorkflowStepWrapperRespVO> titleOption = steps.stream().filter(item -> TitleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
         if (!titleOption.isPresent()) {
             throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "标题步骤未找到！"));
         }
@@ -45,7 +45,7 @@ public class AppResponseConverter {
         }
 
 
-        Optional<WorkflowStepWrapperRespVO> assembleOption = steps.stream().filter(item -> !AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
+        Optional<WorkflowStepWrapperRespVO> assembleOption = steps.stream().filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
         if (!assembleOption.isPresent()) {
             throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "组装步骤未找到！"));
         }
@@ -55,7 +55,7 @@ public class AppResponseConverter {
             throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "组装结果未找到！"));
         }
 
-        Optional<WorkflowStepWrapperRespVO> posterOption = steps.stream().filter(item -> !PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
+        Optional<WorkflowStepWrapperRespVO> posterOption = steps.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
         if (!posterOption.isPresent()) {
             throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "海报步骤未找到！"));
         }

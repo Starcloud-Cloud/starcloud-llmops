@@ -121,9 +121,9 @@ public class CreativeAppUtils {
     /**
      * 获取小红书应用执行参数
      *
-     * @param scheme     创作任务
+     * @param scheme             创作任务
      * @param listOptionResponse 计划配置
-     * @param appUid     应用UID
+     * @param appUid             应用UID
      * @return 应用执行参数
      */
     public static CreativePlanAppExecuteDTO getXhsAppExecuteRequest(CreativeSchemeRespVO scheme, CreativeSchemeListOptionRespVO listOptionResponse, String appUid) {
@@ -735,9 +735,18 @@ public class CreativeAppUtils {
 
     private static List<VariableItemDTO> mergeVariable(List<VariableItemDTO> variableList, List<VariableItemDTO> variables) {
         Map<String, Object> variableMap = variables.stream().collect(Collectors.toMap(VariableItemDTO::getField, VariableItemDTO::getValue));
-        for (VariableItemDTO variableItemDTO : CollectionUtil.emptyIfNull(variableList)) {
-            if (variableMap.containsKey(variableItemDTO.getField()) && Objects.nonNull(variableItemDTO.getValue())) {
-                variableItemDTO.setValue(variableMap.get(variableItemDTO.getField()));
+        for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(variableList)) {
+            // 如果存在变量，就覆盖
+            if (variableMap.containsKey(variableItem.getField())) {
+                Object value = variableMap.get(variableItem.getField());
+                if (Objects.nonNull(value)) {
+                    variableItem.setValue(value);
+                } else {
+                    // 如果变量值为空，就使用默认值
+                    variableItem.setValue(Objects.nonNull(variableItem.getValue()) ? variableItem.getValue() : variableItem.getDefaultValue());
+                }
+            } else {
+                variableItem.setValue(Objects.nonNull(variableItem.getValue()) ? variableItem.getValue() : variableItem.getDefaultValue());
             }
         }
         return variableList;

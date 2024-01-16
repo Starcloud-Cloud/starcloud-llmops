@@ -116,8 +116,8 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             response.setName(request.getName());
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
-            log.info("海报图片生成: 执行生成图片成功，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             response.setUrl(url);
+            log.info("海报图片生成: 执行生成图片成功，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             return response;
         } catch (ServiceException exception) {
             throw exception;

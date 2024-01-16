@@ -22,7 +22,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -99,18 +99,8 @@ public class PosterActionHandler extends BaseActionHandler {
 
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
 
-        //@todo 找上游的段落节点，然后获取节点参数 和 结果 》 step
-
-        //
-
-        // 图片类型参数
-        String posterMode = String.valueOf(params.getOrDefault("POSTER_MODE", CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name()));
         // 海报模版参数
-        String posterStyle = String.valueOf(params.getOrDefault("STEP.CODE.POSTER_STYLE", "{}"));
-        // 海报素材参数
-        String posterMaterial = String.valueOf(params.getOrDefault("POSTER_MATERIAL", "[]"));
-        // 海报内容参数
-        String posterContent = String.valueOf(params.getOrDefault("POSTER_CONTENT", "{}"));
+        String posterStyle = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_STYLE, "{}"));
 
         //posterContent 转成 DTO
 
@@ -120,12 +110,10 @@ public class PosterActionHandler extends BaseActionHandler {
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
         // 转为图片素材对象
-        List<String> posterMaterialList = JSONUtil.toList(posterMaterial, String.class);
 
         // 校验海报模版
         style.validate();
         // 处理海报模版参数
-        style.assemble(posterMode, posterMaterialList, posterContent);
 
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
@@ -148,6 +136,7 @@ public class PosterActionHandler extends BaseActionHandler {
             response.setErrorMsg(failure.getErrorMsg());
             response.setType(failure.getType());
             response.setIsShow(Boolean.TRUE);
+            response.setMessage(JSONUtil.toJsonStr(style));
             response.setStepConfig(JSONUtil.toJsonStr(style));
             response.setCostPoints(0);
             return response;
@@ -184,7 +173,7 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream()
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
                     .collect(Collectors.toMap(VariableItemEntity::getField, VariableItemEntity::getValue));
             handlerRequest.setParams(params);
 

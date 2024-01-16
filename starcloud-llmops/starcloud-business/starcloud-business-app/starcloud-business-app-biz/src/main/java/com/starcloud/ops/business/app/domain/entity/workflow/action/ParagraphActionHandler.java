@@ -115,6 +115,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
     private ActionResponse convert(List<ParagraphDTO> paragraphDTOList) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
+        actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
         actionResponse.setAnswer(JSONUtil.toJsonStr(paragraphDTOList));
         actionResponse.setOutput(JsonData.of(paragraphDTOList));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());

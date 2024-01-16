@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.CreativeAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.PosterImageDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -172,7 +173,33 @@ public class CreativeExecuteManager {
                 if (LogStatusEnum.ERROR.name().equals(logAppMessage.getStatus())) {
                     throw new ServiceException(350600110, "生成内容和图片失败，错误码：" + logAppMessage.getErrorCode() + ",错误信息：" + logAppMessage.getErrorMessage());
                 }
-                return buildResponse(logAppMessage, latestContent);
+                CreativeAppExecuteResponse result = buildResponse(logAppMessage, latestContent);
+
+                // 更新执行时间
+                LocalDateTime end = LocalDateTime.now();
+                long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+
+                CopyWritingContentDTO copyWritingContent = Optional.ofNullable(result.getCopyWritingContent())
+                        .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(350600110, "生成文案内容不存在！")));
+                List<PosterImageDTO> posterList = CollectionUtil.emptyIfNull(result.getPosterList());
+
+                CreativeContentDO updateContent = new CreativeContentDO();
+                updateContent.setId(latestContent.getId());
+                updateContent.setCopyWritingTitle(copyWritingContent.getTitle());
+                updateContent.setCopyWritingContent(copyWritingContent.getContent());
+                updateContent.setCopyWritingCount(Optional.ofNullable(copyWritingContent.getContent()).orElse("").length());
+                updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWritingContent));
+                updateContent.setPictureContent(JSONUtil.toJsonStr(posterList));
+                updateContent.setPictureNum(posterList.size());
+                updateContent.setStartTime(start);
+                updateContent.setEndTime(end);
+                updateContent.setExecuteTime(executeTime);
+                updateContent.setStatus(CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode());
+                updateContent.setUpdateTime(end);
+                updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+                creativeContentMapper.updateById(updateContent);
+
+                return result;
             } catch (Exception exception) {
                 log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
                 updateFailure(latestContent.getId(), start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
@@ -437,7 +464,7 @@ public class CreativeExecuteManager {
             }
         }
 
-        log.info("创作中心：小红书图片生成执行：图片生成结束");
+        log.info("创作中心：小红书应用执行：文案内容和图片生成结束");
         return result;
     }
 

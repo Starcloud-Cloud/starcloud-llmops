@@ -74,7 +74,7 @@ public class PosterTemplateEntity implements Serializable {
      * 海报模板变量
      */
     @Schema(description = "海报模板变量")
-    private List<VariableItemEntity> variables;
+    private List<VariableItemEntity> variableList;
 
     /**
      * 校验
@@ -83,7 +83,7 @@ public class PosterTemplateEntity implements Serializable {
         if (StringUtils.isBlank(id)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_ID_REQUIRED);
         }
-        if (CollectionUtil.isEmpty(this.variables)) {
+        if (CollectionUtil.isEmpty(this.variableList)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
         }
     }
