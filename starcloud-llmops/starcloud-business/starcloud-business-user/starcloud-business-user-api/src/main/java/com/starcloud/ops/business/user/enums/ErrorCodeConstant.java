@@ -88,6 +88,8 @@ public interface ErrorCodeConstant {
 
     ErrorCode DEPT_ROLE_NOT_EXIST = new ErrorCode(2000500006, "部门角色不存在");
 
+    ErrorCode DELETE_ERROR = new ErrorCode(2000500007, "删除失败");
+
 
 
 }

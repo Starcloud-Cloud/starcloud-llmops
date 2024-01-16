@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.controller.admin.dept.vo.request;
 
 import cn.iocoder.yudao.framework.common.validation.Mobile;
+import com.starcloud.ops.business.user.controller.admin.dept.vo.dto.DeptConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -35,5 +36,11 @@ public class UserDeptUpdateReqVO {
 
     @Schema(description = "父菜单 ID")
     private Long parentId;
+
+    @Schema(description = "部门描述")
+    private String description;
+
+    @Schema(description = "部门配置")
+    private DeptConfigDTO config;
 
 }

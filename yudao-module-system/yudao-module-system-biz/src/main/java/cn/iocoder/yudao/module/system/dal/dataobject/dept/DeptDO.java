@@ -69,4 +69,14 @@ public class DeptDO extends TenantBaseDO {
      */
     private String avatar;
 
+    /**
+     * 部门描述
+     */
+    private String description;
+
+    /**
+     * 部门配置
+     */
+    private String config;
+
 }
