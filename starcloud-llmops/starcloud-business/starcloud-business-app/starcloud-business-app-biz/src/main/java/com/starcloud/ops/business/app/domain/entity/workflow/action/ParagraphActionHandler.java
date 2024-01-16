@@ -93,7 +93,9 @@ public class ParagraphActionHandler extends BaseActionHandler {
         List<ParagraphDTO> paragraphDTOList = new ArrayList<>();
 
         paragraphDTOList.add(ParagraphDTO.of("段落1", "段落1内容111！！！"));
-        paragraphDTOList.add(ParagraphDTO.of("段落2", "段落1内容22222！！！"));
+        paragraphDTOList.add(ParagraphDTO.of("段落2", "段落3内容22222！！！"));
+        paragraphDTOList.add(ParagraphDTO.of("段落3", "段落3内容33333！！！"));
+        paragraphDTOList.add(ParagraphDTO.of("段落4", "段落4内容33333！！！"));
 
         ActionResponse response = convert(paragraphDTOList);
 

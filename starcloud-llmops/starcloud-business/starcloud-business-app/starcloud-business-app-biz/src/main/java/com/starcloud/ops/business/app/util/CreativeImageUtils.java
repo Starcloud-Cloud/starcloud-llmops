@@ -239,8 +239,8 @@ public class CreativeImageUtils {
         List<Integer> paragraphParamCountList = new ArrayList<>();
         for (int i = 0; i < templateList.size(); i++) {
             PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
-            posterTemplate.setIndex(i + 1);
             posterTemplate.setIsMain(i == 0);
+            posterTemplate.setIndex(i + 1);
             posterTemplate.setId(posterTemplate.getId());
             posterTemplate.setName(posterTemplate.getName());
             List<VariableItemRespVO> params = transformParams(posterTemplate, useImageList);
@@ -428,8 +428,15 @@ public class CreativeImageUtils {
         }
 
         // 非图片类型参数如果有值，则覆盖
-        posterTemplate.setVariableList(mergeVariables(CollectionUtil.emptyIfNull(template.getVariableList()), CollectionUtil.emptyIfNull(posterTemplate.getVariableList())));
-        return posterTemplate;
+        PosterTemplateDTO merge = new PosterTemplateDTO();
+        merge.setId(template.getId());
+        merge.setName(template.getName());
+        merge.setExample(posterTemplate.getExample());
+        merge.setImageNumber(posterTemplate.getImageNumber());
+        merge.setVariableList(mergeVariables(CollectionUtil.emptyIfNull(template.getVariableList()), CollectionUtil.emptyIfNull(posterTemplate.getVariableList())));
+        merge.setIndex(null);
+        merge.setIsMain(null);
+        return merge;
     }
 
     /**
