@@ -114,7 +114,7 @@ public class AppMarketEntity extends AppEntity {
     @JSONField(serialize = false)
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
 
-        log.info("应用市场执行开始：{}", request);
+        log.info("应用市场执行开始......");
         AppExecuteRespVO appExecuteResponse = super.doExecute(request);
 
         log.info("应用市场执行，增加应用使用量开始：{}", appExecuteResponse);

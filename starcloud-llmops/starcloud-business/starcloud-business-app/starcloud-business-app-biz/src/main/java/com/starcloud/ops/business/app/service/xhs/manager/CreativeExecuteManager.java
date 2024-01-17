@@ -146,7 +146,7 @@ public class CreativeExecuteManager {
 
         try {
             LocalDateTime start = LocalDateTime.now();
-            log.info("创作中心：生成内容和图片失败：{}，{}", content.getId(), start);
+            log.info("创作中心：生成内容和图片开始：{}，{}", content.getId(), start);
             Integer maxRetry = getMaxRetry(force);
             // 获取最新的创作内容并且校验
             CreativeContentDO latestContent = getAppContent(content.getId(), start, maxRetry, force);

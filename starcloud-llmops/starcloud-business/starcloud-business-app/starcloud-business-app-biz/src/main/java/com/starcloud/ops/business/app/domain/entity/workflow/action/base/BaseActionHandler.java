@@ -122,7 +122,7 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-        log.info("Action[{}]执行开始，当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
+        log.info("Action[{}]执行开始，步骤：{}, 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getStepId(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
         try {
             if (Objects.isNull(context)) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONTEXT_REQUIRED);
@@ -166,14 +166,14 @@ public abstract class BaseActionHandler extends Object {
                 log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", userRightsType.name(), costPoints, context.getUserId(), context.getConversationUid());
             }
 
-            log.info("Action 执行成功...");
+            log.info("Action[{}] 执行成功, 步骤：{} ...", this.getClass().getSimpleName(), context.getStepId());
             return actionResponse;
         } catch (ServiceException exception) {
-            log.error("Action 执行异常：异常码: {}, 异常信息: {}", exception.getCode(), exception.getMessage());
+            log.error("Action[{}] 执行异常： 步骤：{}, 异常码: {}, 异常信息: {}", this.getClass().getSimpleName(), context.getStepId(), exception.getCode(), exception.getMessage());
             throw exception;
 
         } catch (Exception exception) {
-            log.error("Action 执行失败：异常信息: {}", exception.getMessage());
+            log.error("Action[{}] 执行失败：步骤: {}, 异常信息: {}", this.getClass().getSimpleName(), context.getStepId(), exception.getMessage());
             throw exception;
         }
     }
