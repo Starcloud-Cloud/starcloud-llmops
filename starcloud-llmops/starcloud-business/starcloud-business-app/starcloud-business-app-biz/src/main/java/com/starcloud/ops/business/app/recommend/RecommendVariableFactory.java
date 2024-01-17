@@ -182,7 +182,7 @@ public class RecommendVariableFactory {
     public static VariableRespVO defImitateVariable() {
         VariableRespVO variable = new VariableRespVO();
         // 生成模式
-        VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaMatrixGenerateVariable();
+        VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaImitateGenerateVariable();
         generateVariable.setOrder(1);
         generateVariable.setIsShow(Boolean.TRUE);
 
@@ -208,12 +208,12 @@ public class RecommendVariableFactory {
         // 参考标签
         VariableItemRespVO refersTag = RecommendVariableItemFactory.defMediaMatrixRefersTag();
         refersImitate.setOrder(6);
-        refersImitate.setIsShow(Boolean.FALSE);
+        refersImitate.setIsShow(Boolean.TRUE);
 
         // 参考图片
         VariableItemRespVO refersImage = RecommendVariableItemFactory.defMediaMatrixRefersImage();
         refersImitate.setOrder(7);
-        refersImitate.setIsShow(Boolean.FALSE);
+        refersImitate.setIsShow(Boolean.TRUE);
 
         // 生成要求
         VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
