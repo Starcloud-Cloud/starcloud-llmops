@@ -12,6 +12,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.poster.PosterStyleEntity;
 import com.starcloud.ops.business.app.domain.entity.poster.PosterTemplateEntity;
@@ -110,6 +111,11 @@ public class PosterActionHandler extends BaseActionHandler {
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
         // 转为图片素材对象
+
+
+        //往上找第一个段落配置，获取返回的值
+
+        List<ParagraphDTO> paragraphList = JSONUtil.toList(posterStyle, ParagraphDTO.class);
 
         // 校验海报模版
         style.validate();

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.poster.PosterStyleEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -217,8 +218,12 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setType(handlerResponse.getType());
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
+
         actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
+        
+        if (StrUtil.isNotBlank(handlerResponse.getAnswer())) {
+            actionResponse.setOutput(JsonData.of(JSONUtil.toList(handlerResponse.getAnswer(), ParagraphDTO.class)));
+        }
         actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
         actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
         actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
