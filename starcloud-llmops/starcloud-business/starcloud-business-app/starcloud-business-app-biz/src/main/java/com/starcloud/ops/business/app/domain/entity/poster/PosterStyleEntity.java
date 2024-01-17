@@ -18,6 +18,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -83,9 +84,9 @@ public class PosterStyleEntity implements Serializable {
      * @param paragraphList 段落内容
      */
     public void assemble(String title, List<ParagraphDTO> paragraphList) {
-        List<PosterTemplateEntity> list = this.templateList;
-
-        for (PosterTemplateEntity template : templateList) {
+        List<PosterTemplateEntity> templates = new ArrayList<>();
+        for (PosterTemplateEntity template : this.templateList) {
+            List<VariableItemEntity> variables = new ArrayList<>();
             List<VariableItemEntity> variableList = template.getVariableList();
             for (VariableItemEntity variableItem : variableList) {
                 // 只有主图才会替换标题和副标题
@@ -118,9 +119,12 @@ public class PosterStyleEntity implements Serializable {
                         }
                     }
                 }
+                variables.add(variableItem);
             }
-            template.setVariableList(variableList);
+            template.setVariableList(variables);
+            templates.add(template);
         }
+        this.templateList = templates;
     }
 
     /**
