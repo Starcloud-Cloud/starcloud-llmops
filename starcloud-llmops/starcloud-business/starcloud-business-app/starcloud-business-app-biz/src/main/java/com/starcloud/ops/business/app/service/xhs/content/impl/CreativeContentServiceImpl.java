@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContent
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -163,12 +164,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     @Override
-    public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO req) {
-        Long count = creativeContentMapper.selectCount(req);
+    public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
+        if (StringUtils.isBlank(query.getPlanUid())) {
+            throw exception(CreativeErrorCodeConstants.PLAN_UID_REQUIRED, query.getPlanUid());
+        }
+
+
+
+        Long count = creativeContentMapper.selectCount(query);
         if (count == null || count <= 0) {
             return PageResult.empty();
         }
-        List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(req, PageUtils.getStart(req), req.getPageSize());
+        List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
         return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
     }
 
