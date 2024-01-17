@@ -201,6 +201,6 @@ public interface TradeOrderUpdateService {
     void cancelPaidOrder(Long userId, Long orderId);
 
 
-    void updateOrder(TradeOrderDO bean);
+    void updateOrderTimeAndStatus(TradeOrderDO bean);
 
 }

@@ -60,7 +60,7 @@ public class SignController {
         PaySignSubmitRespVO paySignSubmitRespVO = paySignService.submitSign(updateReqVO, getClientIP());
 
         // 生成二维码并指定宽高
-        BufferedImage generate = QrCodeUtil.generate(paySignSubmitRespVO.getDisplayContent(), 220, 220);
+        BufferedImage generate = QrCodeUtil.generate(paySignSubmitRespVO.getDisplayContent(), 240, 240);
         // 转换流信息写出
         FastByteArrayOutputStream os = new FastByteArrayOutputStream();
         ImageIO.write(generate, "jpg", os);

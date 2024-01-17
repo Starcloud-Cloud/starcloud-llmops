@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -141,11 +143,13 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         TradeOrderDO order = tradeOrderQueryService.getOrderBySignPayTime(tradeSignDO.getId(), tradeSignDO.getPayTime());
         // 存在 -修改交易订单过期时间
         if (Objects.nonNull(order)){
-            // 重新设置交易过期时间
-            order.setCreateTime(LocalDateTimeUtil.now());
-            order.setUpdateTime(LocalDateTimeUtil.now());
-            order.setStatus(TradeOrderStatusEnum.UNPAID.getStatus());
-            tradeOrderUpdateService.updateOrder(order);
+
+            TradeOrderDO tradeOrderDO = (TradeOrderDO) new TradeOrderDO().setId(order.getId())
+                    .setStatus(TradeOrderStatusEnum.UNPAID.getStatus())
+                    // 重新设置交易过期时间
+                    .setCreateTime(LocalDateTimeUtil.now())
+                    .setUpdateTime(LocalDateTimeUtil.now());
+            tradeOrderUpdateService.updateOrderTimeAndStatus(tradeOrderDO);
             return order;
         }
         // 不存在 -构建签约交易订单
