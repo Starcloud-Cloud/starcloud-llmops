@@ -195,6 +195,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
                 log.info("段落内容生成 Action 执行结束: 生成模式: {}, 响应结果：\n {}", mode, JSONUtil.parse(response).toStringPretty());
 
             } catch (Exception e) {
+                log.error("生成段落内容解析失败!: {}", e.getMessage(), e);
                 return ActionResponse.failure("", "310100019", "生成段落内容解析失败！", params);
             }
 
