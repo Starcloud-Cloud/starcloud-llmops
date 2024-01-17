@@ -145,8 +145,6 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private TradeOrderApi tradeOrderApi;
 
-
-
     @Resource
     private UserDeptService userDeptService;
 
@@ -511,7 +509,7 @@ public class StarUserServiceImpl implements StarUserService {
         AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
-        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(),userId));
+        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(), userId));
         userDetailVO.setRegisterTime(userDO.getCreateTime());
         userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
         return userDetailVO;
@@ -584,8 +582,8 @@ public class StarUserServiceImpl implements StarUserService {
         }
     }
 
-    private Boolean validateIsNewUser(LocalDateTime RegisterTime,Long userId) {
-        if (tradeOrderApi.getSuccessOrderCount(userId)>0) {
+    private Boolean validateIsNewUser(LocalDateTime RegisterTime, Long userId) {
+        if (tradeOrderApi.getSuccessOrderCount(userId) > 0) {
             return false;
         }
 
