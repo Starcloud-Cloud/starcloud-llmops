@@ -549,9 +549,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取方案配置列表
         List<CreativeSchemeListOptionRespVO> schemeListConfiguration = CollectionUtil.emptyIfNull(planConfig.getSchemeList());
         Map<String, CreativeSchemeListOptionRespVO> schemeMap = schemeListConfiguration.stream().collect(Collectors.toMap(CreativeSchemeListOptionRespVO::getUid, Function.identity()));
-
+        
         // 查询并且校验创作方案是否存在
-        List<CreativeSchemeRespVO> schemeList = getSchemeList(new ArrayList<>(schemeMap.keySet()));
+        List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
         // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
         Map<String, PosterTemplateDTO> posterMap = creativeImageManager.mapTemplate();
 
