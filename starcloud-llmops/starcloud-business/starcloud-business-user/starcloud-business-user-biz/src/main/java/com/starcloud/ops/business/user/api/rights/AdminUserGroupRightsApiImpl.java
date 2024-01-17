@@ -56,7 +56,7 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
                              Integer bizType, String bizId) {
         UserDeptDO userDeptDO = this.getDeptRightsUserId(userId, rightsType, rightAmount);
-        userDeptService.recordRights(userDeptDO,rightsType,rightAmount);
+        userDeptService.recordRights(userDeptDO,userId, rightsType, rightAmount);
         Long deptUserId = Optional.ofNullable(userDeptDO).map(UserDeptDO::getUserId).orElse(userId);
         super.reduceRights(deptUserId, rightsType, rightAmount, bizType, bizId);
 
