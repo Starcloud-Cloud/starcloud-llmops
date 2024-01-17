@@ -5,12 +5,15 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.util.UserUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
@@ -99,6 +102,8 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
 
     List<CreativeContentDTO> pageSelect(@Param("req") CreativeContentPageReqVO req,
                                         @Param("start") Integer start, @Param("end") Integer end);
+
+    Page<CreativeContentDTO> allTypePage(IPage<CreativeContentDTO> page,  @Param("req") CreativeContentPageReqVO req);
 
 
     CreativeContentDTO detail(@Param("businessUid") String businessUid);

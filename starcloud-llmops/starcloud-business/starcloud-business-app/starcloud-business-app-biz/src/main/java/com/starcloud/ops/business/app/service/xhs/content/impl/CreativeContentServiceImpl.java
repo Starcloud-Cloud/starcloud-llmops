@@ -10,11 +10,16 @@ import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -23,6 +28,7 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMappe
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -169,14 +175,34 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(CreativeErrorCodeConstants.PLAN_UID_REQUIRED, query.getPlanUid());
         }
 
-
-
-        Long count = creativeContentMapper.selectCount(query);
-        if (count == null || count <= 0) {
-            return PageResult.empty();
+        CreativePlanRespVO plan = creativePlanService.get(query.getPlanUid());
+        CreativePlanConfigDTO config = plan.getConfig();
+        List<CreativeSchemeListOptionRespVO> schemeList = config.getSchemeList();
+        // 老数据
+        if (CollectionUtils.isEmpty(schemeList)) {
+            Long count = creativeContentMapper.selectCount(query);
+            if (count == null || count <= 0) {
+                return PageResult.empty();
+            }
+            List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
+            return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
         }
-        List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
-        return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
+
+        // 新数据，取第一条
+        CreativeSchemeListOptionRespVO schemeListOption = schemeList.get(0);
+        if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(schemeListOption.getMode())) {
+            Long count = creativeContentMapper.selectCount(query);
+            if (count == null || count <= 0) {
+                return PageResult.empty();
+            }
+            List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
+            return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
+        }
+
+        // 自定义类型
+        IPage<CreativeContentDTO> page = new Page<>(query.getPageNo(), query.getPageSize());
+        Page<CreativeContentDTO> allTypePage = creativeContentMapper.allTypePage(page, query);
+        return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(allTypePage.getRecords()), allTypePage.getTotal());
     }
 
     @Override

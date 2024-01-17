@@ -61,6 +61,56 @@
         order by pic.id limit #{start},#{end}
     </select>
     
+    <select id="allTypePage" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        SELECT
+        plan_uid AS planUid,
+        business_uid AS businessUid,
+        temp_uid AS copyWritingUid,
+        temp_uid AS pictureTempUid,
+        use_picture AS usePicture,
+        execute_params AS pictureParams,
+        execute_params AS copyWritingParams,
+        status AS pictureStatus,
+        status AS copyWritingStatus,
+        start_time AS pictureStartTime,
+        end_time AS pictureEndTime,
+        execute_time AS pictureExecuteTime,
+        start_time AS copyWritingStartTime,
+        end_time AS copyWritingEndTime,
+        execute_time AS copyWritingExecuteTime,
+        copy_writing_title AS copyWritingTitle,
+        copy_writing_content AS copyWritingContent,
+        picture_num AS pictureNum,
+        picture_content AS pictureContent,
+        error_msg AS pictureErrorMsg,
+        error_msg AS copyWritingErrorMsg,
+        retry_count AS pictureRetryCount,
+        retry_count AS copyWritingRetryCount,
+        copy_writing_count AS copyWritingCount,
+        extend AS pictureExtend,
+        extend AS copyWritingExtend,
+        claim AS claim,
+        liked AS liked
+        FROM llm_creative_content
+        WHERE type = 'all'
+        AND deleted = false
+        <if test="req.planUid != null and req.planUid != ''">
+            AND plan_uid = #{req.planUid}
+        </if>
+        <if test="req.schemeUid != null and req.schemeUid != ''">
+            AND scheme_uid = #{req.schemeUid}
+        </if>
+        <if test="req.claim != null ">
+            AND claim = #{req.claim}
+        </if>
+        <if test="req.status != null and req.status != ''">
+            AND status = #{req.status}
+        </if>
+        ORDER BY id
+    </select>
+    
+    
+    
     <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select
         <include refid="page_column"/>
