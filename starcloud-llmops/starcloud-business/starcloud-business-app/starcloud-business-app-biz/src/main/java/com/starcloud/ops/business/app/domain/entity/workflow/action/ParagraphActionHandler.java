@@ -181,17 +181,23 @@ public class ParagraphActionHandler extends BaseActionHandler {
                 return ActionResponse.failure("", "310100019", "生成段落内容为空！", params);
             }
 
-            List<ParagraphDTO> paragraphs = JSONUtil.toList(answer, ParagraphDTO.class);
-            if (CollectionUtil.isEmpty(paragraphs)) {
-                return ActionResponse.failure("", "310100019", "生成段落内容为空！", params);
-            }
-            if (paragraphs.size() != paragraphCount) {
-                return ActionResponse.failure("", "310100019", "生成的段落数量与要求的段落数量不一致！", params);
+            try {
+
+                List<ParagraphDTO> paragraphs = JSONUtil.toList(answer, ParagraphDTO.class);
+                if (CollectionUtil.isEmpty(paragraphs)) {
+                    return ActionResponse.failure("", "310100019", "生成段落内容为空！", params);
+                }
+                if (paragraphs.size() != paragraphCount) {
+                    return ActionResponse.failure("", "310100019", "生成的段落数量与要求的段落数量不一致！", params);
+                }
+
+                ActionResponse response = convert(handlerResponse);
+                log.info("段落内容生成 Action 执行结束: 生成模式: {}, 响应结果：\n {}", mode, JSONUtil.parse(response).toStringPretty());
+
+            } catch (Exception e) {
+                return ActionResponse.failure("", "310100019", "生成段落内容解析失败！", params);
             }
 
-            ActionResponse response = convert(handlerResponse);
-            log.info("段落内容生成 Action 执行结束: 生成模式: {}, 响应结果：\n {}", mode, JSONUtil.parse(response).toStringPretty());
-            return response;
         }
 
         // 不支持的生成模式
