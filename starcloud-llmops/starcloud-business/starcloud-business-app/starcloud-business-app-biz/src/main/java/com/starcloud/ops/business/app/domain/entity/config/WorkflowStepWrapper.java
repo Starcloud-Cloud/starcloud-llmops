@@ -100,11 +100,11 @@ public class WorkflowStepWrapper {
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String prefixKey) {
         Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
-        String key = VariableEntity.generateKey(prefixKey, this.getField());
+        String key = VariableEntity.generateKey(prefixKey, this.getStepCode());
         Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, key);
 
-        variableMap.put(VariableEntity.generateKey(prefixKey, this.getField(), "_OUT"), this.flowStep.getValue());
-        variableMap.put(VariableEntity.generateKey(prefixKey, this.getField(), "_DATA"), this.flowStep.getOutput());
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_OUT"), this.flowStep.getValue());
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_DATA"), this.flowStep.getOutput());
         return variableMap;
 
     }

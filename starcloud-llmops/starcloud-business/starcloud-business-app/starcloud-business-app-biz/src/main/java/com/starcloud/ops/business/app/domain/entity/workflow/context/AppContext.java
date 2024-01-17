@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.poster.PosterStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -202,6 +203,28 @@ public class AppContext {
     public Map<String, Object> getContextVariablesValues() {
 
         return this.getContextVariablesValues(this.getStepId());
+    }
+
+    /**
+     * 获取当前步骤前最后一个适配的handler的变量结果
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getStepResponseData(Class<? extends BaseActionHandler> actionHandler) {
+
+        // 获取当前步骤前的所有变量的值
+        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.getStepId());
+
+        Object data = Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).stream().filter(wrapper -> {
+            return actionHandler.getSimpleName().equals(wrapper.getFlowStep().getHandler());
+        }).findFirst().map(wrapper -> {
+            Map<String, Object> params = Optional.ofNullable(wrapper.getContextVariablesValues(null)).orElse(MapUtil.empty());
+            return params.getOrDefault(wrapper.getStepCode() + "._DATA", null);
+        }).orElse(null);
+
+        return data;
     }
 
     /**

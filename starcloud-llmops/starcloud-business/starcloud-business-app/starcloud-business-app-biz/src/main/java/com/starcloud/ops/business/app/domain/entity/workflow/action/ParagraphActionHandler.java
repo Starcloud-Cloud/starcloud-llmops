@@ -33,11 +33,7 @@ import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -219,11 +215,9 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
 
-        actionResponse.setAnswer(handlerResponse.getAnswer());
-        
-        if (StrUtil.isNotBlank(handlerResponse.getAnswer())) {
-            actionResponse.setOutput(JsonData.of(JSONUtil.toList(handlerResponse.getAnswer(), ParagraphDTO.class)));
-        }
+
+        this.writeLines(handlerResponse.getAnswer(), actionResponse);
+
         actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
         actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
         actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
@@ -258,6 +252,23 @@ public class ParagraphActionHandler extends BaseActionHandler {
         paragraph.setIsUseTitle(Boolean.FALSE);
         paragraph.setIsUseContent(Boolean.FALSE);
         paragraphMap.put(index, paragraph);
+    }
+
+
+    private static void writeLines(String str, ActionResponse actionResponse) {
+
+        List<ParagraphDTO> paragraphDTOList = new ArrayList<>();
+
+        if (StrUtil.isNotBlank(str)) {
+
+            paragraphDTOList = JSONUtil.toList(str, ParagraphDTO.class);
+            String answer = paragraphDTOList.stream().map(paragraphDTO -> {
+                return paragraphDTO.getParagraphTitle() + "\r\n" + paragraphDTO.getParagraphContent();
+            }).collect(Collectors.joining("\r\n\r\n"));
+
+            actionResponse.setAnswer(answer);
+            actionResponse.setOutput(JsonData.of(paragraphDTOList));
+        }
     }
 
 }

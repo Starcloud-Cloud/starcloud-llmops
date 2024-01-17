@@ -115,7 +115,7 @@ public class PosterActionHandler extends BaseActionHandler {
 
         //往上找第一个段落配置，获取返回的值
 
-        List<ParagraphDTO> paragraphList = JSONUtil.toList(posterStyle, ParagraphDTO.class);
+        List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);
 
         // 校验海报模版
         style.validate();
