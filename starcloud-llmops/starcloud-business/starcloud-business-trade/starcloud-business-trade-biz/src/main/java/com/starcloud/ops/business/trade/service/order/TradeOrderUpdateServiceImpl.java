@@ -939,6 +939,14 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     }
 
     /**
+     * @param bean
+     */
+    @Override
+    public void updateOrder(TradeOrderDO bean) {
+        tradeOrderMapper.updateById(bean);
+    }
+
+    /**
      * 创建单个订单的评论
      *
      * @param order 订单

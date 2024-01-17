@@ -20,7 +20,9 @@ import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignItemDO;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignItemMapper;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignMapper;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderItemAfterSaleStatusEnum;
+import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
 import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackRespDTO;
+import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.trade.service.order.TradeOrderUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
@@ -50,10 +53,11 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     @Resource
     private TradeSignItemMapper tradeSignItemMapper;
 
-
-
     @Resource
     private TradeOrderUpdateService tradeOrderUpdateService;
+
+    @Resource
+    private TradeOrderQueryService tradeOrderQueryService;
 
     @Resource
     private PayOrderApi payOrderApi;
@@ -122,28 +126,11 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     }
 
     public Boolean autoTradeSignPay(TradeSignDO tradeSignDO){
-        AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
 
-        log.info("autoTradeSignPay: {}", tradeSignDO);
-
-        List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getId());
-
-        ArrayList<AppTradeOrderSettlementReqVO.Item> items = new ArrayList<>();
-        for (TradeSignItemDO tradeSignItemDO : tradeSignItemDOS) {
-            AppTradeOrderSettlementReqVO.Item orderItem = new AppTradeOrderSettlementReqVO.Item();
-            orderItem.setSkuId(tradeSignItemDO.getSkuId());
-            orderItem.setCount(tradeSignItemDO.getCount());
-            items.add(orderItem);
-        }
-        createReqVO.setItems(items);
-        createReqVO.setPointStatus(false);
-        createReqVO.setDeliveryType(3);
-        createReqVO.setTradeSignId(String.valueOf(tradeSignDO.getId()));
-
-
-        TradeOrderDO order = tradeOrderUpdateService.createSignOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
-
-
+        log.info("[当前签约开始构建签约自动扣款][autoTradeSignPay]: {}", tradeSignDO);
+        // 构建交易订单
+        TradeOrderDO order = buildTradeOrder(tradeSignDO);
+        // 提交交易订单且发起支付
         PayOrderSubmitRespDTO payOrderSubmitRespDTO =
                 payOrderApi.submitSignPayOrder(
                         new PayOrderSubmitReqDTO()
@@ -156,10 +143,38 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             log.error("签约支付发起成功");
             return true;
         }
-
         log.error("签约支付发起失败: {}", payOrderSubmitRespDTO);
-
-
         return false;
+    }
+    public TradeOrderDO buildTradeOrder(TradeSignDO tradeSignDO){
+        // 判断当前用户是否存在当前扣款周期内的订单交易记录
+        TradeOrderDO order = tradeOrderQueryService.getOrderBySignPayTime(tradeSignDO.getId(), tradeSignDO.getPayTime());
+        // 存在 -修改交易订单过期时间
+        if (Objects.nonNull(order)){
+            // 重新设置交易过期时间
+            order.setCreateTime(LocalDateTimeUtil.now());
+            order.setUpdateTime(LocalDateTimeUtil.now());
+            order.setStatus(TradeOrderStatusEnum.UNPAID.getStatus());
+            tradeOrderUpdateService.updateOrder(order);
+            return order;
+        }
+        // 不存在 -构建签约交易订单
+        List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getId());
+
+        ArrayList<AppTradeOrderSettlementReqVO.Item> items = new ArrayList<>();
+        for (TradeSignItemDO tradeSignItemDO : tradeSignItemDOS) {
+            AppTradeOrderSettlementReqVO.Item orderItem = new AppTradeOrderSettlementReqVO.Item();
+            orderItem.setSkuId(tradeSignItemDO.getSkuId());
+            orderItem.setCount(tradeSignItemDO.getCount());
+            items.add(orderItem);
+        }
+
+        AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
+        createReqVO.setItems(items);
+        createReqVO.setPointStatus(false);
+        createReqVO.setDeliveryType(3);
+        createReqVO.setTradeSignId(String.valueOf(tradeSignDO.getId()));
+
+        return tradeOrderUpdateService.createSignOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
     }
 }
