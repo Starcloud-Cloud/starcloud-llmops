@@ -106,5 +106,5 @@ public interface UserDeptService {
      * @param rightsType
      * @param rightAmount
      */
-    void recordRights(UserDeptDO deptDO, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
+    void recordRights(UserDeptDO deptDO,Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
 }
