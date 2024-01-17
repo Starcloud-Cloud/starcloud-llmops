@@ -222,10 +222,10 @@ public class CreativeAppUtils {
     public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemRespVO> variableList) {
         String demand = copyWritingTemplate.getDemand();
         if (CollectionUtil.isEmpty(variableList)) {
-            variableList = Optional.ofNullable(copyWritingTemplate.getVariables()).orElse(Lists.newArrayList());
+            variableList = Optional.ofNullable(copyWritingTemplate.getVariableList()).orElse(Lists.newArrayList());
         }
         Map<String, VariableItemRespVO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemRespVO::getField, item -> item));
-        for (VariableItemRespVO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariables())) {
+        for (VariableItemRespVO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariableList())) {
             String field = variableItem.getField();
             VariableItemRespVO variable = variableMap.getOrDefault(field, variableItem);
             Object value = variable.getValue();

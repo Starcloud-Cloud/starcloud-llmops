@@ -236,7 +236,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             } else {
                 List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration())
                         .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
-                        .map(CreativeSchemeCopyWritingTemplateDTO::getVariables)
+                        .map(CreativeSchemeCopyWritingTemplateDTO::getVariableList)
                         .orElse(Lists.newArrayList());
                 option.setVariables(variable);
             }
