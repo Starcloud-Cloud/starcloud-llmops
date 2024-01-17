@@ -1,17 +1,21 @@
 package com.starcloud.ops.business.user.service.rights;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -115,28 +119,43 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, LocalDateTime validStartTime, LocalDateTime validEndTime, AdminUserRightsBizTypeEnum bizType, String bizId) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId) {
+
         if (magicBean == 0 || magicImage == 0) {
             return;
         }
 
-        // 3. 增加权益记录
+        if (bizType.isSystem()) {
+            timeNums = 1;
+            timeRange = TimeRangeTypeEnum.MONTH.getType();
+        }
+        LocalDateTime startTime = LocalDateTimeUtil.now();
+        LocalDateTime endTime;
+        // 判断当前是否存在相同等级配置
+        if (Objects.nonNull(LevelId)) {
+            AdminUserRightsDO latestExpirationByLevel = adminUserRightsMapper.findLatestExpirationByLevel(userId, LevelId);
+            if (latestExpirationByLevel != null) {
+                startTime = latestExpirationByLevel.getValidEndTime();
+            }
+        }
+        endTime = getSpecificTime(startTime, timeNums, timeRange);
+
+        // 1. 增加权益记录
         AdminUserRightsDO record = new AdminUserRightsDO()
-                .setUserId(userId).setBizId(bizId).setBizType(bizType.getType())
-                .setTitle(bizType.getName()).setDescription(StrUtil.format(bizType.getDescription(), magicBean, magicImage))
-                .setMagicBean(magicBean).setMagicImage(magicImage).setMagicBeanInit(magicBean).setMagicImageInit(magicImage)
+                .setUserId(userId)
+                .setBizId(bizId)
+                .setBizType(bizType.getType())
+                .setTitle(bizType.getName())
+                .setDescription(StrUtil.format(bizType.getDescription(), magicBean, magicImage))
+                .setMagicBean(magicBean)
+                .setMagicImage(magicImage)
+                .setMagicBeanInit(magicBean)
+                .setMagicImageInit(magicImage)
+                .setUserLevelId(LevelId)
+                .setValidStartTime(startTime)
+                .setValidEndTime(endTime)
                 .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
 
-        if (Objects.isNull(validStartTime) || Objects.isNull(validEndTime)) {
-            if (!bizType.isSystem()) {
-                throw exception(RIGHTS_VALID_TIME_NOT_EXISTS);
-            }
-            record.setValidStartTime(LocalDateTime.now());
-            record.setValidEndTime(LocalDateTime.now().plusMonths(1));
-        }else {
-            record.setValidStartTime(validStartTime);
-            record.setValidEndTime(validEndTime);
-        }
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
             record.setUpdater(String.valueOf(userId));
@@ -268,7 +287,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 1. 查询过期的权益订单
         List<AdminUserRightsDO> rightsDOS = adminUserRightsMapper.selectListByStatusAndValidTimeLt(
-                AdminUserRightsStatusEnum.NORMAL.getType(),LocalDateTime.now());
+                AdminUserRightsStatusEnum.NORMAL.getType(), LocalDateTime.now());
         if (CollUtil.isEmpty(rightsDOS)) {
             return 0;
         }
@@ -389,7 +408,24 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     }
 
+    public LocalDateTime getSpecificTime(LocalDateTime times, Integer timeNums, Integer TimeRange) {
+        Assert.notNull(times);
+        // 1.0 根据会员配置等级 获取会员配置信息
+        TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(TimeRange);
 
+        switch (timeRangeTypeEnum) {
+            case DAY:
+                return times.plusDays(timeNums);
+            case WEEK:
+                return times.plusWeeks(timeNums);
+            case MONTH:
+                return times.plusMonths(timeNums);
+            case YEAR:
+                return times.plusYears(timeNums);
+            default:
+                return times;
+        }
+    }
 
     /**
      * 获得自身的代理对象，解决 AOP 生效问题

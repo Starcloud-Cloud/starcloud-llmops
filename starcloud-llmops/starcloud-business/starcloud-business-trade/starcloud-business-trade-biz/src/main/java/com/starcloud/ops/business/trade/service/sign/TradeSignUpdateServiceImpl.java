@@ -194,6 +194,24 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     }
 
     /**
+     * 更新签约预计扣款时间
+     *
+     * @param id 交易订单编号
+     */
+    @Override
+    public void updatePayTime(Long id) {
+        TradeSignDO signDO = tradeSignMapper.selectById(id);
+        if (signDO == null){
+            throw exception(SIGN_NOT_FOUND);
+        }
+        Integer period = signDO.getSignConfigs().getPeriod();
+        Integer periodType = signDO.getSignConfigs().getPeriodType();
+
+        LocalDateTime payTime = TimeRangeTypeEnum.getTimeByRange(periodType, period, signDO.getPayTime().atStartOfDay());
+        tradeSignMapper.updateById(new TradeSignDO().setId(signDO.getId()).setPayTime(payTime.toLocalDate()));
+    }
+
+    /**
      * 计算订单价格
      *
      * @param userId          用户编号

@@ -8,12 +8,14 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
@@ -296,9 +298,32 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Transactional(rollbackFor = Exception.class)
     public void expireLevelBySystem(AdminUserLevelDO levelDO) {
         AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(levelDO.getLevelId());
+        // 注意：系统内存在多个角色 ID 对应同一等级数据
+        List<AdminUserLevelConfigDO> levelConfigDOS = levelConfigService.getListByRoleId(levelConfig.getRoleId());
 
-        // 移除过期等级中绑定的角色
-        getSelf().buildUserRole(levelDO.getUserId(), null, levelConfig.getRoleId());
+        levelConfigDOS.removeIf(config -> Objects.equals(config.getId(), levelDO.getLevelId()));
+        int count = 0;
+        if (!levelConfigDOS.isEmpty()){
+            List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
+
+            List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectList(Wrappers.lambdaQuery(AdminUserLevelDO.class)
+                    .eq(AdminUserLevelDO::getUserId, levelDO.getUserId())
+                    .in(AdminUserLevelDO::getLevelId, configIds)
+                    .eq(AdminUserLevelDO::getStatus, CommonStatusEnum.ENABLE.getStatus()));
+
+            if (!adminUserLevelDOS.isEmpty()) {
+                for (AdminUserLevelDO adminUserLevelDO : adminUserLevelDOS) {
+                    if (LocalDateTimeUtils.isBetween(adminUserLevelDO.getValidStartTime(), adminUserLevelDO.getValidEndTime())) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        if (count == 0) {
+            // 移除过期等级中绑定的角色
+            getSelf().buildUserRole(levelDO.getUserId(), null, levelConfig.getRoleId());
+        }
 
         // 更新 AdminUserLevelDO 状态为已关闭
         int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(),

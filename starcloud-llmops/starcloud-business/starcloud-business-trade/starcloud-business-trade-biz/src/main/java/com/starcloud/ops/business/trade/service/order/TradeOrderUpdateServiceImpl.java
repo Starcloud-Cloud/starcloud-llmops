@@ -55,8 +55,10 @@ import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateResp
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
+import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,6 +122,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     @Resource
     private DingTalkNoticeProperties dingTalkNoticeProperties;
+
+    @Resource
+    @Lazy
+    private TradeSignUpdateService tradeSignUpdateService;
 
     // =================== Order ===================
 
@@ -373,6 +379,11 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         }
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
+
+        // 如果是签约订单 则更新下次扣款时间
+        if (Objects.nonNull(order.getTradeSignId())) {
+            tradeSignUpdateService.updatePayTime(order.getTradeSignId());
+        }
 
         sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
 

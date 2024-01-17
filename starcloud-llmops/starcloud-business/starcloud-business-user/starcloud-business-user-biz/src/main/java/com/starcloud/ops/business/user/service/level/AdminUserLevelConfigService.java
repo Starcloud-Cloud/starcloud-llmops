@@ -89,6 +89,15 @@ public interface AdminUserLevelConfigService {
         return getLevelListByStatus(CommonStatusEnum.ENABLE.getStatus());
     }
 
+    /**
+     * 获得指定状态的会员等级列表
+     *
+     * @param roleId 状态
+     * @return 会员等级列表
+     */
+    List<AdminUserLevelConfigDO> getListByRoleId(Long roleId);
+
+
 //    /**
 //     * 修改会员的等级
 //     *

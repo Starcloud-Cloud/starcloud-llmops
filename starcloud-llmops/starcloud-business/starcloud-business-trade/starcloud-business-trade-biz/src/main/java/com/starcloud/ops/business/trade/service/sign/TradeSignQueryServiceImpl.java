@@ -139,7 +139,8 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
                                 .setDisplayMode("url"), order.getUserIp());
 
         if (PayOrderStatusRespEnum.isSuccess(payOrderSubmitRespDTO.getStatus())) {
-            tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
+
+            // tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
             log.error("签约支付发起成功");
             return true;
         }
