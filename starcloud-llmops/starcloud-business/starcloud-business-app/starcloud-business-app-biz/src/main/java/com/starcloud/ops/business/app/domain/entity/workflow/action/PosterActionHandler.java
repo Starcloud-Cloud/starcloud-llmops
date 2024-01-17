@@ -116,6 +116,11 @@ public class PosterActionHandler extends BaseActionHandler {
         //往上找第一个段落配置，获取返回的值
 
         List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);
+        String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
+        if (CollectionUtil.isNotEmpty(paragraphList)) {
+            // 处理海报模版参数
+            style.assemble(title, paragraphList);
+        }
 
         // 校验海报模版
         style.validate();

@@ -109,4 +109,8 @@ public class HandlerResponse<R> {
         return JSONUtil.toJsonStr(this.getOutput());
     }
 
+    public static void main(String[] args) {
+        String a = "";
+    }
+
 }

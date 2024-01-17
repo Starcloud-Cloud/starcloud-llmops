@@ -44,21 +44,21 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CreativeImageUtils {
 
-    private static final String IMAGE = "IMAGE";
-    private static final String TITLE = "TITLE";
-    private static final String SUB_TITLE = "SUB_TITLE";
-    private static final String TEXT_TITLE = "TEXT_TITLE";
-    private static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
-    private static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
-    private static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
-    private static final String PARAGRAPH_TWO_CONTENT = "PARAGRAPH_TWO_CONTENT";
-    private static final String PARAGRAPH_THREE_TITLE = "PARAGRAPH_THREE_TITLE";
-    private static final String PARAGRAPH_THREE_CONTENT = "PARAGRAPH_THREE_CONTENT";
-    private static final String PARAGRAPH_FOUR_TITLE = "PARAGRAPH_FOUR_TITLE";
-    private static final String PARAGRAPH_FOUR_CONTENT = "PARAGRAPH_FOUR_CONTENT";
+    public static final String IMAGE = "IMAGE";
+    public static final String TITLE = "TITLE";
+    public static final String SUB_TITLE = "SUB_TITLE";
+    public static final String TEXT_TITLE = "TEXT_TITLE";
+    public static final String PARAGRAPH_ONE_TITLE = "PARAGRAPH_ONE_TITLE";
+    public static final String PARAGRAPH_ONE_CONTENT = "PARAGRAPH_ONE_CONTENT";
+    public static final String PARAGRAPH_TWO_TITLE = "PARAGRAPH_TWO_TITLE";
+    public static final String PARAGRAPH_TWO_CONTENT = "PARAGRAPH_TWO_CONTENT";
+    public static final String PARAGRAPH_THREE_TITLE = "PARAGRAPH_THREE_TITLE";
+    public static final String PARAGRAPH_THREE_CONTENT = "PARAGRAPH_THREE_CONTENT";
+    public static final String PARAGRAPH_FOUR_TITLE = "PARAGRAPH_FOUR_TITLE";
+    public static final String PARAGRAPH_FOUR_CONTENT = "PARAGRAPH_FOUR_CONTENT";
 
-    private static final List<String> PARAGRAPH_TITLE = Arrays.asList(PARAGRAPH_ONE_TITLE, PARAGRAPH_TWO_TITLE, PARAGRAPH_THREE_TITLE, PARAGRAPH_FOUR_TITLE);
-    private static final List<String> PARAGRAPH_CONTENT = Arrays.asList(PARAGRAPH_ONE_CONTENT, PARAGRAPH_TWO_CONTENT, PARAGRAPH_THREE_CONTENT, PARAGRAPH_FOUR_CONTENT);
+    public static final List<String> PARAGRAPH_TITLE = Arrays.asList(PARAGRAPH_ONE_TITLE, PARAGRAPH_TWO_TITLE, PARAGRAPH_THREE_TITLE, PARAGRAPH_FOUR_TITLE);
+    public static final List<String> PARAGRAPH_CONTENT = Arrays.asList(PARAGRAPH_ONE_CONTENT, PARAGRAPH_TWO_CONTENT, PARAGRAPH_THREE_CONTENT, PARAGRAPH_FOUR_CONTENT);
 
     /**
      * 转换成执行参数
@@ -160,7 +160,7 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphTitle(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
+    public static void paragraphTitle(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
@@ -182,7 +182,7 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    private static void paragraphContent(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
+    public static void paragraphContent(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }

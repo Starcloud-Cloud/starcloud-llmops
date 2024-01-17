@@ -176,6 +176,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
             // 执行步骤
             HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
             String answer = handlerResponse.getAnswer();
+            log.info(answer);
             if (StrUtil.isBlank(answer)) {
                 return ActionResponse.failure("", "310100019", "生成段落内容为空！", params);
             }

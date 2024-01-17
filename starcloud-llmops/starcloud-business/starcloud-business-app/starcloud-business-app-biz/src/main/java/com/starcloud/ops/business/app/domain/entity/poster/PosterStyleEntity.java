@@ -3,19 +3,24 @@ package com.starcloud.ops.business.app.domain.entity.poster;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -75,27 +80,94 @@ public class PosterStyleEntity implements Serializable {
     /**
      * 组装
      *
-     * @param imageType          海报类型
-     * @param posterMaterialList 海报素材列表
-     * @param posterContent      海报内容
+     * @param paragraphList 段落内容
      */
-    public void assemble(String imageType, List<String> posterMaterialList, String posterContent) {
-        if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equalsIgnoreCase(imageType)) {
-            handleRandomImageText(posterMaterialList, posterContent);
-            return;
-        }
-        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equalsIgnoreCase(imageType)) {
-            handlePracticalImageText(posterMaterialList, posterContent);
-        }
+    public void assemble(String title, List<ParagraphDTO> paragraphList) {
+        List<PosterTemplateEntity> list = this.templateList;
 
+        for (PosterTemplateEntity template : templateList) {
+            List<VariableItemEntity> variableList = template.getVariableList();
+            for (VariableItemEntity variableItem : variableList) {
+                // 只有主图才会替换标题和副标题
+                if (template.getIsMain()) {
+                    if (Objects.isNull(variableItem.getValue()) || ((variableItem.getValue() instanceof String && StringUtils.isBlank((String) variableItem.getValue())))) {
+                        if (CreativeImageUtils.TITLE.equalsIgnoreCase(variableItem.getField())) {
+                            // todo 图片主标题
+                        } else if (CreativeImageUtils.SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                            // todo 图片副标题
+                        } else if (CreativeImageUtils.TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                            variableItem.setValue(title);
+                        } else if (CreativeImageUtils.PARAGRAPH_TITLE.contains(variableItem.getField())) {
+                            paragraphTitle(variableItem, paragraphList);
+                        } else if (CreativeImageUtils.PARAGRAPH_CONTENT.contains(variableItem.getField())) {
+                            paragraphContent(variableItem, paragraphList);
+                        } else {
+                            Object value = Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY);
+                            variableItem.setValue(value);
+                        }
+                    }
+                } else {
+                    if (Objects.isNull(variableItem.getValue()) || ((variableItem.getValue() instanceof String && StringUtils.isBlank((String) variableItem.getValue())))) {
+                        if (CreativeImageUtils.PARAGRAPH_TITLE.contains(variableItem.getField())) {
+                            paragraphTitle(variableItem, paragraphList);
+                        } else if (CreativeImageUtils.PARAGRAPH_CONTENT.contains(variableItem.getField())) {
+                            paragraphContent(variableItem, paragraphList);
+                        } else {
+                            Object value = Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY);
+                            variableItem.setValue(value);
+                        }
+                    }
+                }
+            }
+            template.setVariableList(variableList);
+        }
     }
 
-    private void handleRandomImageText(List<String> posterMaterialList, String posterContent) {
-
+    /**
+     * 段落标题
+     *
+     * @param variableItem  variableItem
+     * @param paragraphList paragraphList
+     */
+    private void paragraphTitle(VariableItemEntity variableItem, List<ParagraphDTO> paragraphList) {
+        if (CollectionUtil.isEmpty(paragraphList)) {
+            Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+            variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
+        }
+        for (ParagraphDTO paragraph : paragraphList) {
+            if (!paragraph.getIsUseTitle()) {
+                String title = Optional.ofNullable(paragraph.getParagraphTitle()).orElse(StringUtils.EMPTY);
+                variableItem.setValue(title);
+                paragraph.setIsUseTitle(true);
+                return;
+            }
+        }
+        Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+        variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
     }
 
-    private void handlePracticalImageText(List<String> posterMaterialList, String posterContent) {
+    /**
+     * 段落内容
+     *
+     * @param variableItem  variableItem
+     * @param paragraphList paragraphList
+     */
+    private void paragraphContent(VariableItemEntity variableItem, List<ParagraphDTO> paragraphList) {
 
+        if (CollectionUtil.isEmpty(paragraphList)) {
+            Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+            variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
+        }
+        for (ParagraphDTO paragraph : paragraphList) {
+            if (!paragraph.getIsUseContent()) {
+                String content = Optional.ofNullable(paragraph.getParagraphContent()).orElse(StringUtils.EMPTY);
+                variableItem.setValue(content);
+                paragraph.setIsUseContent(true);
+                return;
+            }
+        }
+        Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+        variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
     }
 
 }
