@@ -89,4 +89,21 @@ public interface ErrorCodeConstants {
     ErrorCode DEMO_TRANSFER_NOT_FOUND = new ErrorCode(1_007_901_001, "示例转账单不存在");
     ErrorCode DEMO_TRANSFER_FAIL_TRANSFER_ID_ERROR = new ErrorCode(1_007_901_002, "转账失败，转账单编号不匹配");
     ErrorCode DEMO_TRANSFER_FAIL_PRICE_NOT_MATCH = new ErrorCode(1_007_901_003, "转账失败，转账单金额不匹配");
+
+
+    // ========== 签约订单 1-007-010-001 ==========
+    ErrorCode PAY_SIGN_NOT_EXISTS = new ErrorCode(1-007-010-001, "签约记录不存在");
+
+    ErrorCode PAY_SIGN_STATUS_IS_SUCCESS = new ErrorCode(1_007_010_002, "当前签约已支付，请刷新页面");
+    ErrorCode PAY_SIGN_STATUS_IS_NOT_WAITING = new ErrorCode(1_007_010_003, "签约订单不处于待签约");
+
+    ErrorCode PAY_SIGN_IS_EXPIRED = new ErrorCode(1_007_010_004, "当前签约的支付订单已经过期");
+    ErrorCode PAY_SIGN_IS_CLOSE = new ErrorCode(1_007_010_005, "当前签约的支付订单已经关闭");
+    ErrorCode PAY_SIGN_SUBMIT_CHANNEL_ERROR = new ErrorCode(1_007_002_005, "发起支付报错，错误码：{}，错误提示：{}");
+    ErrorCode PAY_SIGN_REFUND_FAIL_STATUS_ERROR = new ErrorCode(1_007_002_006, "支付订单退款失败，原因：状态不是已支付或已退款");
+
+    // ========== ORDER 模块(拓展单) 1-007-003-000 ==========
+    ErrorCode PAY_SIGN_EXTENSION_NOT_FOUND = new ErrorCode(1_007_003_000, "支付交易拓展单不存在");
+    ErrorCode PAY_SIGN_EXTENSION_STATUS_IS_NOT_WAITING = new ErrorCode(1_007_003_001, "签约交易拓展单不处于待支付");
+    ErrorCode PAY_SIGN_EXTENSION_IS_PAID = new ErrorCode(1_007_003_002, "订单已支付，请等待支付结果");
 }

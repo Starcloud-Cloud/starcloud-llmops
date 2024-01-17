@@ -15,4 +15,8 @@ public class DeptUpdateReqVO extends DeptBaseVO {
     @NotNull(message = "部门编号不能为空")
     private Long id;
 
+
+    @Schema(description = "部门头像")
+    private String avatar;
+
 }

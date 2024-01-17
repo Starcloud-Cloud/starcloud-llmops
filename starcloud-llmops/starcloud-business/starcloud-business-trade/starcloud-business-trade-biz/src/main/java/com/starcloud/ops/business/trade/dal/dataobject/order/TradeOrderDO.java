@@ -3,6 +3,7 @@ package com.starcloud.ops.business.trade.dal.dataobject.order;
 import cn.iocoder.yudao.framework.common.enums.TerminalEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
@@ -34,7 +35,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TradeOrderDO extends BaseDO {
+public class TradeOrderDO extends TenantBaseDO {
 
     /**
      * 发货物流公司编号 - 空（无需发货）
@@ -74,6 +75,11 @@ public class TradeOrderDO extends BaseDO {
      * 用户 IP
      */
     private String userIp;
+
+    /**
+     *  创建订单来源
+     */
+    private String orderFrom;
     /**
      * 用户备注
      */
@@ -146,7 +152,7 @@ public class TradeOrderDO extends BaseDO {
     private LocalDateTime payTime;
     /**
      * 支付渠道
-     *
+     * <p>
      * 对应 PayChannelEnum 枚举
      */
     private String payChannelCode;
@@ -340,6 +346,10 @@ public class TradeOrderDO extends BaseDO {
      */
     @TableField(typeHandler = GiveRightsDTOTypeHandler.class)
     private List<GiveRightsDTO> giveRights;
+
+
+    private Long tradeSignId;
+
 
     public static class GiveRightsDTOTypeHandler extends AbstractJsonTypeHandler<Object> {
 

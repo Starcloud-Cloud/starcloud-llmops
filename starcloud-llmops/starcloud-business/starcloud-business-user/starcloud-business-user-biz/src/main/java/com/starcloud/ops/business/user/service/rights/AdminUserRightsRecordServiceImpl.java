@@ -80,10 +80,10 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
                 .setTitle(rightsBizTypeEnum.getName())
                 .setDescription(StrUtil.format(rightsBizTypeEnum.getDescription(), amount, rightsType.getName()))
                 .setRightsType(rightsType.getType()).setRightsAmount(amount);
-        if (getLoginUserId() == null) {
-            record.setCreator(String.valueOf(userId));
-            record.setUpdater(String.valueOf(userId));
-        }
+        // if (getLoginUserId() == null) {
+        record.setCreator(String.valueOf(userId));
+        record.setUpdater(String.valueOf(userId));
+        // }
         adminUserRightsRecordMapper.insert(record);
     }
 

@@ -56,17 +56,17 @@ public class UserContextHook implements ThreadSwitchHook<UserContextHook.UserCon
         SecurityFrameworkUtils.setAuthentication(context.getAuthentication());
     }
 
-    @Override
-    public void clear(UserContext context, ScopeDataQuery scopeDataQuery) {
-        if (ObjectUtils.isEmpty(context)) {
-            return;
-        }
-
-        TenantContextHolder.setIgnore(false);
-        TenantContextHolder.setTenantId(null);
-        SecurityFrameworkUtils.setAuthentication(null);
-
-    }
+//    @Override
+//    public void clear(UserContext context, ScopeDataQuery scopeDataQuery) {
+//        if (ObjectUtils.isEmpty(context)) {
+//            return;
+//        }
+//
+//        TenantContextHolder.setIgnore(false);
+//        TenantContextHolder.setTenantId(null);
+//        SecurityFrameworkUtils.setAuthentication(null);
+//
+//    }
 
     @Override
     public int getOrder() {

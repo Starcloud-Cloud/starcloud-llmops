@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.util.Comparator;
 import java.util.List;
@@ -67,6 +68,7 @@ public class ProductCategoryController {
 
     @GetMapping("/list")
     @Operation(summary = "获得商品分类列表")
+    @PermitAll
 //    @PreAuthorize("@ss.hasPermission('product:category:query')")
     public CommonResult<List<ProductCategoryRespVO>> getCategoryList(@Valid ProductCategoryListReqVO treeListReqVO) {
         List<ProductCategoryDO> list = categoryService.getEnableCategoryList(treeListReqVO);

@@ -30,4 +30,6 @@ public class PayOrderSubmitReqVO {
     @URL(message = "回跳地址的格式必须是 URL")
     private String returnUrl;
 
+    private Boolean isSign;
+
 }

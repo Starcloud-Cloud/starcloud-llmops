@@ -20,4 +20,12 @@ public interface TradePriceService {
      */
     TradePriceCalculateRespBO calculatePrice(@Valid TradePriceCalculateReqBO calculateReqDTO);
 
+    /**
+     * 价格计算
+     *
+     * @param calculateReqBO 计算信息
+     * @return 计算结果
+     */
+    TradePriceCalculateRespBO calculateSignPrice(@Valid TradePriceCalculateReqBO calculateReqBO);
+
 }

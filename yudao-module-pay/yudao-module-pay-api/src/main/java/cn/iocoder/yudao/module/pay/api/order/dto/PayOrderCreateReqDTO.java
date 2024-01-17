@@ -62,4 +62,10 @@ public class PayOrderCreateReqDTO implements Serializable {
     @NotNull(message = "支付过期时间不能为空")
     private LocalDateTime expireTime;
 
+    /**
+     * 签约 ID
+     */
+    private Long tradeSignId;
+
+
 }

@@ -13,20 +13,24 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;
+import cn.iocoder.yudao.module.pay.api.notify.dto.PaySignNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayTransferNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.controller.admin.notify.vo.PayNotifyTaskPageReqVO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.notify.PayNotifyLogDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.notify.PayNotifyTaskDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.refund.PayRefundDO;
+import cn.iocoder.yudao.module.pay.dal.dataobject.sign.PaySignDO;
 import cn.iocoder.yudao.module.pay.dal.dataobject.transfer.PayTransferDO;
 import cn.iocoder.yudao.module.pay.dal.mysql.notify.PayNotifyLogMapper;
 import cn.iocoder.yudao.module.pay.dal.mysql.notify.PayNotifyTaskMapper;
 import cn.iocoder.yudao.module.pay.dal.redis.notify.PayNotifyLockRedisDAO;
 import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyStatusEnum;
 import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum;
+import cn.iocoder.yudao.module.pay.enums.sign.PaySignStatusEnum;
 import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
 import cn.iocoder.yudao.module.pay.service.refund.PayRefundService;
+import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
 import cn.iocoder.yudao.module.pay.service.transfer.PayTransferService;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +85,10 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     private PayTransferService transferService;
 
     @Resource
+    @Lazy // 循环依赖，避免报错
+    private PaySignService paySignService;
+
+    @Resource
     private PayNotifyTaskMapper notifyTaskMapper;
     @Resource
     private PayNotifyLogMapper notifyLogMapper;
@@ -98,19 +106,53 @@ public class PayNotifyServiceImpl implements PayNotifyService {
         task.setStatus(PayNotifyStatusEnum.WAITING.getStatus()).setNextNotifyTime(LocalDateTime.now())
                 .setNotifyTimes(0).setMaxNotifyTimes(PayNotifyTaskDO.NOTIFY_FREQUENCY.length + 1);
         // 补充 appId + notifyUrl 字段
-        if (Objects.equals(task.getType(), PayNotifyTypeEnum.ORDER.getType())) {
-            PayOrderDO order = orderService.getOrder(task.getDataId()); // 不进行非空判断，有问题直接异常
-            task.setAppId(order.getAppId()).
-                    setMerchantOrderId(order.getMerchantOrderId()).setNotifyUrl(order.getNotifyUrl());
-        } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.REFUND.getType())) {
-            PayRefundDO refundDO = refundService.getRefund(task.getDataId());
-            task.setAppId(refundDO.getAppId())
-                    .setMerchantOrderId(refundDO.getMerchantOrderId()).setNotifyUrl(refundDO.getNotifyUrl());
-        } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.TRANSFER.getType())) {
-            PayTransferDO transfer = transferService.getTransfer(task.getDataId());
-            task.setAppId(transfer.getAppId()).setMerchantTransferId(transfer.getMerchantTransferId())
-                    .setNotifyUrl(transfer.getNotifyUrl());
+        PayNotifyTypeEnum notifyType = PayNotifyTypeEnum.getByType(task.getType());
+        switch (notifyType){
+            case ORDER:
+                PayOrderDO order = orderService.getOrder(task.getDataId()); // 不进行非空判断，有问题直接异常
+                task.setAppId(order.getAppId()).
+                        setMerchantOrderId(order.getMerchantOrderId()).setNotifyUrl(order.getNotifyUrl());
+                break;
+            case REFUND:
+                PayRefundDO refundDO = refundService.getRefund(task.getDataId());
+                task.setAppId(refundDO.getAppId())
+                        .setMerchantOrderId(refundDO.getMerchantOrderId()).setNotifyUrl(refundDO.getNotifyUrl());
+                break;
+            case TRANSFER:
+                PayTransferDO transfer = transferService.getTransfer(task.getDataId());
+                task.setAppId(transfer.getAppId()).setMerchantSignId(transfer.getMerchantTransferId())
+                        .setNotifyUrl(transfer.getNotifyUrl());
+
+            case SIGN_SUCCESS:
+            case SIGN_CLOSE:
+                PaySignDO sign = paySignService.getSign(task.getDataId());
+                task.setAppId(sign.getAppId()).setMerchantSignId(sign.getMerchantSignId())
+                        .setNotifyUrl(sign.getNotifyUrl());
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + notifyType);
         }
+        // if (Objects.equals(task.getType(), PayNotifyTypeEnum.ORDER.getType())) {
+        //     PayOrderDO order = orderService.getOrder(task.getDataId()); // 不进行非空判断，有问题直接异常
+        //     task.setAppId(order.getAppId()).
+        //             setMerchantOrderId(order.getMerchantOrderId()).setNotifyUrl(order.getNotifyUrl());
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.REFUND.getType())) {
+        //     PayRefundDO refundDO = refundService.getRefund(task.getDataId());
+        //     task.setAppId(refundDO.getAppId())
+        //             .setMerchantOrderId(refundDO.getMerchantOrderId()).setNotifyUrl(refundDO.getNotifyUrl());
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.TRANSFER.getType())) {
+        //     PayTransferDO transfer = transferService.getTransfer(task.getDataId());
+        //     task.setAppId(transfer.getAppId()).setMerchantTransferId(transfer.getMerchantTransferId())
+        //             .setNotifyUrl(transfer.getNotifyUrl());
+        // }else if (Objects.equals(task.getType(), PayNotifyTypeEnum.SIGN_SUCCESS.getType())) {
+        //     PayTransferDO transfer = transferService.getTransfer(task.getDataId());
+        //     task.setAppId(transfer.getAppId()).setMerchantTransferId(transfer.getMerchantTransferId())
+        //             .setNotifyUrl(transfer.getNotifyUrl());
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.SIGN_SUCCESS.getType())) {
+        //     PayTransferDO transfer = transferService.getTransfer(task.getDataId());
+        //     task.setAppId(transfer.getAppId()).setMerchantTransferId(transfer.getMerchantTransferId())
+        //             .setNotifyUrl(transfer.getNotifyUrl());
+        // }
 
         // 执行插入
         notifyTaskMapper.insert(task);
@@ -218,18 +260,44 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     private CommonResult<?> executeNotifyInvoke(PayNotifyTaskDO task) {
         // 拼接 body 参数
         Object request;
-        if (Objects.equals(task.getType(), PayNotifyTypeEnum.ORDER.getType())) {
-            request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
-                    .payOrderId(task.getDataId()).build();
-        } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.REFUND.getType())) {
-            request = PayRefundNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
-                    .payRefundId(task.getDataId()).build();
-        } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.TRANSFER.getType())) {
-            request = new PayTransferNotifyReqDTO().setMerchantTransferId(task.getMerchantTransferId())
-                    .setPayTransferId(task.getDataId());
-        } else {
-            throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
+        PayNotifyTypeEnum notifyType = PayNotifyTypeEnum.getByType(task.getType());
+        switch (notifyType){
+            case ORDER:
+                request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+                        .payOrderId(task.getDataId()).build();
+                break;
+            case REFUND:
+                request = PayRefundNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+                        .payRefundId(task.getDataId()).build();
+                break;
+            case TRANSFER:
+                request = new PayTransferNotifyReqDTO().setMerchantTransferId(task.getMerchantTransferId())
+                        .setPayTransferId(task.getDataId());
+                break;
+            case SIGN_SUCCESS:
+                request = new PaySignNotifyReqDTO().setMerchantSignId(task.getMerchantSignId())
+                        .setPaySignId(task.getDataId()).setStatus(PaySignStatusEnum.SUCCESS.getStatus());
+                break;
+            case SIGN_CLOSE:
+                request = new PaySignNotifyReqDTO().setMerchantSignId(task.getMerchantSignId())
+                        .setPaySignId(task.getDataId()).setStatus(PaySignStatusEnum.CLOSED.getStatus());
+
+                break;
+            default:
+                throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
         }
+        // if (Objects.equals(task.getType(), PayNotifyTypeEnum.ORDER.getType())) {
+        //     request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+        //             .payOrderId(task.getDataId()).build();
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.REFUND.getType())) {
+        //     request = PayRefundNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
+        //             .payRefundId(task.getDataId()).build();
+        // } else if (Objects.equals(task.getType(), PayNotifyTypeEnum.TRANSFER.getType())) {
+        //     request = new PayTransferNotifyReqDTO().setMerchantTransferId(task.getMerchantTransferId())
+        //             .setPayTransferId(task.getDataId());
+        // } else {
+        //     throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
+        // }
         // 拼接 header 参数
         Map<String, String> headers = new HashMap<>();
         TenantUtils.addTenantHeader(headers, task.getTenantId());

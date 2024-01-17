@@ -95,4 +95,9 @@ public interface ErrorCodeConstants {
     ErrorCode BROKERAGE_WITHDRAW_MIN_PRICE = new ErrorCode(1_011_008_002, "提现金额不能低于 {} 元");
     ErrorCode BROKERAGE_WITHDRAW_USER_BALANCE_NOT_ENOUGH = new ErrorCode(1_011_008_003, "您当前最多可提现 {} 元");
 
+
+    // ========== 分销提现 模块 1-011-010-000 ==========
+    ErrorCode SIGN_ITEM_NOT_FOUND = new ErrorCode(1_011_010_010, "交易订单项不存在");
+    ErrorCode SIGN_NOT_FOUND = new ErrorCode(1_011_010_011, "签约记录不存在");
+
 }

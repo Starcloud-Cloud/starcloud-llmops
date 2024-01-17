@@ -59,6 +59,21 @@ public class DeptServiceImpl implements DeptService {
     @Override
     @CacheEvict(cacheNames = RedisKeyConstants.DEPT_CHILDREN_ID_LIST,
             allEntries = true) // allEntries 清空所有缓存，因为操作一个部门，涉及到多个缓存
+    public Long createDept(DeptDO deptDO) {
+
+        // 校验父部门的有效性
+        validateParentDept(null, deptDO.getParentId());
+        // 校验部门名的唯一性
+        validateDeptNameUnique(null, deptDO.getParentId(), deptDO.getName());
+
+        // 插入部门
+        deptMapper.insert(deptDO);
+        return deptDO.getId();
+    }
+
+    @Override
+    @CacheEvict(cacheNames = RedisKeyConstants.DEPT_CHILDREN_ID_LIST,
+            allEntries = true) // allEntries 清空所有缓存，因为操作一个部门，涉及到多个缓存
     public void updateDept(DeptUpdateReqVO updateReqVO) {
         if (updateReqVO.getParentId() == null) {
             updateReqVO.setParentId(DeptDO.PARENT_ID_ROOT);

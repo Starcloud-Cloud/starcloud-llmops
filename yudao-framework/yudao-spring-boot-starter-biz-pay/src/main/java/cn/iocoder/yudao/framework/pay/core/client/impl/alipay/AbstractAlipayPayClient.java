@@ -5,9 +5,12 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundRespDTO;
@@ -15,12 +18,15 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundUnifiedReq
 import cn.iocoder.yudao.framework.pay.core.client.dto.transfer.PayTransferRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.transfer.PayTransferUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.impl.AbstractPayClient;
+import cn.iocoder.yudao.framework.pay.core.enums.agreement.PayAgreementStatusRespEnum;
+import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderDisplayModeEnum;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.pay.core.enums.transfer.PayTransferTypeEnum;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.AlipayResponse;
 import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.diagnosis.DiagnosisUtils;
 import com.alipay.api.domain.*;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
@@ -29,7 +35,12 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
@@ -37,6 +48,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_FORMATTER;
+import static cn.hutool.core.date.DatePattern.NORM_DATE_PATTERN;
 import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.*;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception0;
@@ -52,6 +64,8 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
 
     @Getter // 仅用于单测场景
     protected DefaultAlipayClient client;
+
+    private final String PC_TO_RQ = "alipays://platformapi/startapp?appId=60000157&appClearTop=false&startMultApp=YES&sign_params=";
 
     public AbstractAlipayPayClient(Long channelId, String channelCode, AlipayPayClientConfig config) {
         super(channelId, channelCode, config);
@@ -77,6 +91,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         return PayOrderRespDTO.closedOf(response.getSubCode(), response.getSubMsg(),
                 reqDTO.getOutTradeNo(), response);
     }
+
 
     @Override
     public PayOrderRespDTO doParseOrderNotify(Map<String, String> params, String body) throws Throwable {
@@ -118,7 +133,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
 
             // 明确不存在的情况，订单不存在 暂时不做处理
             if (ObjectUtils.equalsAny(response.getSubCode(), "TRADE_NOT_EXIST", "ACQ.TRADE_NOT_EXIST")) {
-                return PayOrderRespDTO.waitingOf(null,response.getBody(),outTradeNo, response);
+                return PayOrderRespDTO.waitingOf(null, response.getBody(), outTradeNo, response);
             }
             return PayOrderRespDTO.closedOf(response.getSubCode(), response.getSubMsg(),
                     outTradeNo, response);
@@ -137,6 +152,13 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
                 : ObjectUtils.equalsAny(tradeStatus, "TRADE_FINISHED", "TRADE_SUCCESS") ? PayOrderStatusRespEnum.SUCCESS.getStatus()
                 : Objects.equals("TRADE_CLOSED", tradeStatus) ? PayOrderStatusRespEnum.CLOSED.getStatus() : null;
     }
+
+    private static Integer parseAgreementStatus(String agreementStatus) {
+        return Objects.equals("NORMAL", agreementStatus) ? PayAgreementStatusRespEnum.SUCCESS.getStatus()
+                : ObjectUtils.equalsAny(agreementStatus, "UNSIGN", "TEMP", "STOP") ? PayAgreementStatusRespEnum.CLOSED.getStatus()
+                : PayAgreementStatusRespEnum.WAITING.getStatus();
+    }
+
 
     // ============ 退款相关 ==========
 
@@ -271,7 +293,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         if (!response.isSuccess()) {
             // 当出现 SYSTEM_ERROR, 转账可能成功也可能失败。 返回 WAIT 状态. 后续 job 会轮询，或相同 outBizNo 重新发起转账
             // 发现 outBizNo 相同 两次请求参数相同. 会返回 "PAYMENT_INFO_INCONSISTENCY", 不知道哪里的问题. 暂时返回 WAIT. 后续job 会轮询
-            if (ObjectUtils.equalsAny(response.getSubCode(),"PAYMENT_INFO_INCONSISTENCY", "SYSTEM_ERROR", "ACQ.SYSTEM_ERROR")) {
+            if (ObjectUtils.equalsAny(response.getSubCode(), "PAYMENT_INFO_INCONSISTENCY", "SYSTEM_ERROR", "ACQ.SYSTEM_ERROR")) {
                 return PayTransferRespDTO.waitingOf(null, reqDTO.getOutTransferNo(), response);
             }
             return PayTransferRespDTO.closedOf(response.getSubCode(), response.getSubMsg(),
@@ -295,7 +317,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         // 1.1 构建 AlipayFundTransCommonQueryModel
         AlipayFundTransCommonQueryModel model = new AlipayFundTransCommonQueryModel();
         model.setProductCode(type == PayTransferTypeEnum.BANK_CARD ? "TRANS_BANKCARD_NO_PWD" : "TRANS_ACCOUNT_NO_PWD");
-        model.setBizScene("DIRECT_TRANSFER"); //业务场景
+        model.setBizScene("DIRECT_TRANSFER"); // 业务场景
         model.setOutBizNo(outTradeNo);
         // 1.2 构建 AlipayFundTransCommonQueryRequest
         AlipayFundTransCommonQueryRequest request = new AlipayFundTransCommonQueryRequest();
@@ -340,8 +362,235 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         return LocalDateTimeUtil.format(time, NORM_DATETIME_FORMATTER);
     }
 
+    protected String formatExecuteTime(LocalDate time) {
+        return LocalDateTimeUtil.format(time, NORM_DATE_PATTERN);
+    }
+
+
     protected LocalDateTime parseTime(String str) {
         return LocalDateTimeUtil.parse(str, NORM_DATETIME_FORMATTER);
     }
+
+
+    // ==================签约==================
+    @Override
+    public PayAgreementRespDTO doUnifiedAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+
+        AlipayTradeAppPayRequest request = new AlipayTradeAppPayRequest();
+        AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
+
+        model.setOutTradeNo(reqDTO.getOutTradeNo());
+        model.setTotalAmount(formatAmount(reqDTO.getTotalAmount()));
+        model.setSubject(reqDTO.getSubject());
+        model.setBody(reqDTO.getBody());
+        // model.setProductCode("QUICK_MSECURITY_PAY");
+        model.setProductCode("GENERAL_WITHHOLDING");
+        model.setTimeExpire(formatTime(reqDTO.getExpireTime()));
+
+        // 签约基础信息
+        SignParams agreementSignParams = new SignParams();
+        agreementSignParams.setProductCode("GENERAL_WITHHOLDING");
+        agreementSignParams.setPersonalProductCode("CYCLE_PAY_AUTH_P");
+        agreementSignParams.setSignScene("INDUSTRY|MOFAAI");
+        agreementSignParams.setExternalAgreementNo(reqDTO.getExternalAgreementNo());
+
+        // 渠道参数
+        AccessParams accessParams = new AccessParams();
+        accessParams.setChannel("ALIPAYAPP");
+        agreementSignParams.setAccessParams(accessParams);
+
+        // 周期管控规则参数
+        PeriodRuleParams periodRuleParams = new PeriodRuleParams();
+        periodRuleParams.setPeriodType(reqDTO.getPeriodType());
+        periodRuleParams.setPeriod(reqDTO.getPeriod());
+        periodRuleParams.setExecuteTime(formatExecuteTime(reqDTO.getExecuteTime()));
+        periodRuleParams.setSingleAmount(formatAmount(reqDTO.getSingleAmount()));
+        agreementSignParams.setPeriodRuleParams(periodRuleParams);
+        // 异步回调地址
+        agreementSignParams.setSignNotifyUrl(reqDTO.getSignNotifyUrl());
+
+        model.setAgreementSignParams(agreementSignParams);
+        request.setBizModel(model);
+
+        AlipayTradeAppPayResponse response;
+        if (Objects.equals(config.getMode(), MODE_CERTIFICATE)) {
+            // 证书模式
+            response = client.certificateExecute(request);
+        } else {
+            response = client.sdkExecute(request);
+        }
+
+        // 2.2 处理结果
+        if (!response.isSuccess()) {
+            return buildClosedPayAgreementRespDTO(reqDTO, response);
+        }
+
+        return PayAgreementRespDTO.waitingSignOf(PC_TO_RQ + URLEncoder.encode(response.getBody(),"UTF-8" ), reqDTO.getExternalAgreementNo(), response.getTradeNo(), response);
+
+
+    }
+
+    @Override
+    public PayAgreementRespDTO doUnifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+
+        // 1.1 构建 AlipayUserAgreementPageSignRequest 请求
+        AlipayUserAgreementPageSignRequest request = new AlipayUserAgreementPageSignRequest();
+        AlipayUserAgreementPageSignModel model = new AlipayUserAgreementPageSignModel();
+
+        // 签约基础信息
+        model.setProductCode("GENERAL_WITHHOLDING");
+        model.setPersonalProductCode("CYCLE_PAY_AUTH_P");
+        model.setSignScene("INDUSTRY|MOFAAI");
+        model.setExternalAgreementNo(reqDTO.getExternalAgreementNo());
+
+        // 渠道参数
+        AccessParams accessParams = new AccessParams();
+        accessParams.setChannel("ALIPAYAPP");
+        model.setAccessParams(accessParams);
+
+        // 周期管控规则参数
+        PeriodRuleParams periodRuleParams = new PeriodRuleParams();
+        periodRuleParams.setPeriodType(reqDTO.getPeriodType());
+        periodRuleParams.setPeriod(reqDTO.getPeriod());
+        periodRuleParams.setExecuteTime(formatExecuteTime(reqDTO.getExecuteTime()));
+        periodRuleParams.setSingleAmount(formatAmount(reqDTO.getSingleAmount()));
+
+        model.setPeriodRuleParams(periodRuleParams);
+        request.setBizModel(model);
+
+        AlipayUserAgreementPageSignResponse response;
+        if (Objects.equals(config.getMode(), MODE_CERTIFICATE)) {
+            // 证书模式
+            response = client.certificateExecute(request);
+        } else {
+            response = client.sdkExecute(request);
+        }
+
+        // 2.2 处理结果
+        if (!response.isSuccess()) {
+            return buildClosedPayAgreementRespDTO(reqDTO, response);
+        }
+        return PayAgreementRespDTO.waitingSignOf(PC_TO_RQ + URLEncoder.encode(response.getBody(),"UTF-8" ), reqDTO.getExternalAgreementNo(), null, response);
+    }
+
+    @Override
+    public PayOrderRespDTO doUnifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) throws Throwable {
+        // 1.1 构建 AlipayTradePayModel 请求
+        AlipayTradePayModel model = new AlipayTradePayModel();
+        // ① 通用的参数
+        model.setOutTradeNo(reqDTO.getOutTradeNo());
+        model.setSubject(reqDTO.getSubject());
+        model.setBody(reqDTO.getBody());
+        model.setTotalAmount(formatAmount(reqDTO.getPrice()));
+        model.setProductCode("GENERAL_WITHHOLDING");
+        // model.setScene("bar_code"); // 签约扣款无需支付场景
+
+        // 1.2 构建 AlipayTradePayRequest 请求
+        AlipayTradePayRequest request = new AlipayTradePayRequest();
+        request.setBizModel(model);
+        request.setNotifyUrl(reqDTO.getNotifyUrl());
+        request.setReturnUrl(reqDTO.getReturnUrl());
+
+        AgreementParams agreementParams = new AgreementParams();
+        agreementParams.setAgreementNo(reqDTO.getAgreementNo());
+        model.setAgreementParams(agreementParams);
+
+        // 2.1 执行请求
+        AlipayTradePayResponse response;
+        if (Objects.equals(config.getMode(), MODE_CERTIFICATE)) {
+            // 证书模式
+            response = client.certificateExecute(request);
+        } else {
+            response = client.execute(request);
+        }
+        // 2.2 处理结果
+        if (!response.isSuccess()) {
+            return buildClosedPayOrderRespDTO(reqDTO, response);
+        }
+        if ("10000".equals(response.getCode())) { // 免密支付
+            LocalDateTime successTime = LocalDateTimeUtil.of(response.getGmtPayment());
+            return PayOrderRespDTO.successOf(response.getTradeNo(), response.getBuyerUserId(), successTime,
+                            response.getOutTradeNo(), response)
+                    .setDisplayMode(PayOrderDisplayModeEnum.BAR_CODE.getMode()).setDisplayContent("");
+        }
+        // 大额支付，需要用户输入密码，所以返回 waiting。此时，前端一般会进行轮询
+        return PayOrderRespDTO.waitingOf(PayOrderDisplayModeEnum.BAR_CODE.getMode(), "",
+                reqDTO.getOutTradeNo(), response);
+
+    }
+
+
+    @Override
+    public PayAgreementRespDTO doParseAgreementNotify(Map<String, String> params, String body) throws Throwable {
+        // 1. 校验回调数据
+        Map<String, String> bodyObj = HttpUtil.decodeParamMap(body, StandardCharsets.UTF_8);
+        AlipaySignature.rsaCheckV1(bodyObj, config.getAlipayPublicKey(),
+                StandardCharsets.UTF_8.name(), config.getSignType());
+
+        // 2. 解析订单的状态
+        // 额外说明：支付宝不仅仅支付成功会回调，再各种触发支付单数据变化时，都会进行回调，所以这里 status 的解析会写的比较复杂
+        Integer status = parseAgreementStatus(bodyObj.get("status"));
+
+        Assert.notNull(status, (Supplier<Throwable>) () -> {
+            throw new IllegalArgumentException(StrUtil.format("body({}) 的【签约状态】 不正确", body));
+        });
+
+        LocalDateTime signTime =null;
+        LocalDateTime invalidTime =null;
+        if (bodyObj.containsKey("unsign_time")) {
+            invalidTime = parseTime(URLDecoder.decode(bodyObj.get("unsign_time"), "UTF-8"));
+        }
+        if (bodyObj.containsKey("sign_time")) {
+            signTime = parseTime(URLDecoder.decode(bodyObj.get("sign_time"), "UTF-8"));
+        }
+
+        return PayAgreementRespDTO.of(status, bodyObj.get("agreement_no"), bodyObj.get("merchant_app_id"),  signTime,
+                invalidTime, bodyObj.get("external_agreement_no"), body);
+    }
+
+    @Override
+    protected PayAgreementRespDTO doGetAgreement(String externalAgreementNo) throws Throwable {
+        // 1.1 构建 AlipayUserAgreementQueryModel 请求
+        AlipayUserAgreementQueryModel model = new AlipayUserAgreementQueryModel();
+        model.setPersonalProductCode("CYCLE_PAY_AUTH_P");
+        model.setSignScene("INDUSTRY|MOFAAI");
+        model.setExternalAgreementNo(externalAgreementNo);
+
+        // 1.2 构建 AlipayTradeQueryRequest 请求
+        AlipayUserAgreementQueryRequest request = new AlipayUserAgreementQueryRequest();
+        request.setBizModel(model);
+
+        AlipayUserAgreementQueryResponse response;
+        if (Objects.equals(config.getMode(), MODE_CERTIFICATE)) {
+            // 证书模式
+            response = client.certificateExecute(request);
+        } else {
+            response = client.execute(request);
+        }
+        if (!response.isSuccess()) { // 不成功，例如说签约不存在
+
+            // 明确不存在的情况，订单不存在 暂时不做处理
+            if (ObjectUtils.equalsAny(response.getSubCode(), "USER_AGREEMENT_NOT_EXIST", "ACQ.USER_AGREEMENT_NOT_EXIST")) {
+                return PayAgreementRespDTO.failOf(response.getCode(), response.getSubMsg(), null, externalAgreementNo, response);
+            }
+            return PayAgreementRespDTO.failOf(response.getCode(), response.getSubMsg(),
+                    null, externalAgreementNo, response.getInvalidTime());
+        }
+        // 2.2 解析订单的状态
+        Integer status = parseAgreementStatus(response.getStatus());
+        Assert.notNull(status, () -> {
+            throw new IllegalArgumentException(StrUtil.format("body({}) 的【签约状态】不正确", response.getBody()));
+        });
+
+        return PayAgreementRespDTO.successOf("1", externalAgreementNo, LocalDateTimeUtil.parse(response.getSignTime()),
+                externalAgreementNo, response);
+    }
+
+    protected PayAgreementRespDTO buildClosedPayAgreementRespDTO(PayAgreementUnifiedReqDTO reqDTO, AlipayResponse response) {
+        Assert.isFalse(response.isSuccess());
+        return PayAgreementRespDTO.failOf(response.getSubCode(), response.getSubMsg(),
+                reqDTO.getOutTradeNo(), reqDTO.getExternalAgreementNo(), response);
+    }
+
 
 }

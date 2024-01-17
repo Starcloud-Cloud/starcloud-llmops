@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.framework.pay.core.client.impl.mock;
 
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
+import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderRespDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.order.PayOrderUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.dto.refund.PayRefundRespDTO;
@@ -74,6 +76,53 @@ public class MockPayClient extends AbstractPayClient<NonePayClientConfig> {
 
     @Override
     protected PayTransferRespDTO doGetTransfer(String outTradeNo, PayTransferTypeEnum type) {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    /**
+     * @param reqDTO
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    protected PayAgreementRespDTO doUnifiedAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    /**
+     * @param reqDTO
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    protected PayAgreementRespDTO doUnifiedPageAgreement(PayAgreementUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    @Override
+    public PayOrderRespDTO doUnifiedAgreementPay(PayOrderUnifiedReqDTO reqDTO) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+
+    /**
+     * @param params
+     * @param body
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    protected PayAgreementRespDTO doParseAgreementNotify(Map<String, String> params, String body) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
+    /**
+     * @param outTradeNo
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    protected PayAgreementRespDTO doGetAgreement(String outTradeNo) throws Throwable {
         throw new UnsupportedOperationException("待实现");
     }
 
