@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.util.Objects;
 
 /**
- * 会员积分的业务类型枚举
+ * 系统会员权益的业务类型枚举
  *
  * @author 芋道源码
  */

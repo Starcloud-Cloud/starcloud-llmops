@@ -156,7 +156,7 @@ public class AdminUserSignInRecordServiceImpl implements AdminUserSignInRecordSe
 
         // 4. 增加权益
         if (!ObjectUtils.equalsAny(record.getMagicBean(), null, 0)) {
-            adminUserRightsService.createRights(userId, record.getMagicBean(), record.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.SIGN, String.valueOf(record.getId()));
+            adminUserRightsService.createRights(userId, record.getMagicBean(), record.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.SIGN, String.valueOf(record.getId()),null);
         }
 
         return record;

@@ -1,38 +1,32 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
-import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderPageReqVO;
-import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderSummaryRespVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderCreateReqVO;
-import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderPageReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSettlementReqVO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
-import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignItemDO;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignItemMapper;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignMapper;
-import com.starcloud.ops.business.trade.enums.order.TradeOrderItemAfterSaleStatusEnum;
-import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackRespDTO;
+import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
+import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.trade.service.order.TradeOrderUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.singleton;
 
 /**
  * 交易订单【读】 Service 接口
@@ -50,10 +44,11 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     @Resource
     private TradeSignItemMapper tradeSignItemMapper;
 
-
-
     @Resource
     private TradeOrderUpdateService tradeOrderUpdateService;
+
+    @Resource
+    private TradeOrderQueryService tradeOrderQueryService;
 
     @Resource
     private PayOrderApi payOrderApi;
@@ -122,10 +117,42 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     }
 
     public Boolean autoTradeSignPay(TradeSignDO tradeSignDO){
-        AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
 
-        log.info("autoTradeSignPay: {}", tradeSignDO);
+        log.info("[当前签约开始构建签约自动扣款][autoTradeSignPay]: {}", tradeSignDO);
+        // 构建交易订单
+        TradeOrderDO order = buildTradeOrder(tradeSignDO);
+        // 提交交易订单且发起支付
+        PayOrderSubmitRespDTO payOrderSubmitRespDTO =
+                payOrderApi.submitSignPayOrder(
+                        new PayOrderSubmitReqDTO()
+                                .setId(order.getPayOrderId())
+                                .setChannelCode("alipay_pc")
+                                .setDisplayMode("url"), order.getUserIp());
 
+        if (PayOrderStatusRespEnum.isSuccess(payOrderSubmitRespDTO.getStatus())) {
+
+            // tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
+            log.error("签约支付发起成功");
+            return true;
+        }
+        log.error("签约支付发起失败: {}", payOrderSubmitRespDTO);
+        return false;
+    }
+    public TradeOrderDO buildTradeOrder(TradeSignDO tradeSignDO){
+        // 判断当前用户是否存在当前扣款周期内的订单交易记录
+        TradeOrderDO order = tradeOrderQueryService.getOrderBySignPayTime(tradeSignDO.getId(), tradeSignDO.getPayTime());
+        // 存在 -修改交易订单过期时间
+        if (Objects.nonNull(order)){
+
+            TradeOrderDO tradeOrderDO = (TradeOrderDO) new TradeOrderDO().setId(order.getId())
+                    .setStatus(TradeOrderStatusEnum.UNPAID.getStatus())
+                    // 重新设置交易过期时间
+                    .setCreateTime(LocalDateTimeUtil.now())
+                    .setUpdateTime(LocalDateTimeUtil.now());
+            tradeOrderUpdateService.updateOrderTimeAndStatus(tradeOrderDO);
+            return order;
+        }
+        // 不存在 -构建签约交易订单
         List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getId());
 
         ArrayList<AppTradeOrderSettlementReqVO.Item> items = new ArrayList<>();
@@ -135,31 +162,13 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             orderItem.setCount(tradeSignItemDO.getCount());
             items.add(orderItem);
         }
+
+        AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
         createReqVO.setItems(items);
         createReqVO.setPointStatus(false);
         createReqVO.setDeliveryType(3);
         createReqVO.setTradeSignId(String.valueOf(tradeSignDO.getId()));
 
-
-        TradeOrderDO order = tradeOrderUpdateService.createSignOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
-
-
-        PayOrderSubmitRespDTO payOrderSubmitRespDTO =
-                payOrderApi.submitSignPayOrder(
-                        new PayOrderSubmitReqDTO()
-                                .setId(order.getPayOrderId())
-                                .setChannelCode("alipay_pc")
-                                .setDisplayMode("url"), order.getUserIp());
-
-        if (PayOrderStatusRespEnum.isSuccess(payOrderSubmitRespDTO.getStatus())) {
-            tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
-            log.error("签约支付发起成功");
-            return true;
-        }
-
-        log.error("签约支付发起失败: {}", payOrderSubmitRespDTO);
-
-
-        return false;
+        return tradeOrderUpdateService.createSignOrder(tradeSignDO.getUserId(), tradeSignDO.getUserIp(), createReqVO, 20);
     }
 }

@@ -44,12 +44,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
+import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.pay.enums.ErrorCodeConstants.*;
 
 /**
@@ -135,6 +137,10 @@ public class PayOrderServiceImpl implements PayOrderService {
             PaySignDO signDO = paySignService.getSignByMerchantSignId(reqDTO.getAppId(), String.valueOf(reqDTO.getTradeSignId()));
             order.setSignId(signDO.getId());
         }
+        if(getLoginUserId() == null ){
+            order.setCreator(String.valueOf(reqDTO.getUserId()));
+            order.setUpdater(String.valueOf(reqDTO.getUserId()));
+        }
         orderMapper.insert(order);
         return order.getId();
     }
@@ -196,6 +202,10 @@ public class PayOrderServiceImpl implements PayOrderService {
                 .setOrderId(order.getId()).setNo(no)
                 .setChannelId(channel.getId()).setChannelCode(channel.getCode())
                 .setStatus(PayOrderStatusEnum.WAITING.getStatus());
+        if (getLoginUserId() == null){
+            orderExtension.setCreator(String.valueOf(order.getCreator()));
+            orderExtension.setUpdater(String.valueOf(order.getCreator()));
+        }
         orderExtensionMapper.insert(orderExtension);
 
         PaySignDO sign = paySignService.getSign(order.getSignId());

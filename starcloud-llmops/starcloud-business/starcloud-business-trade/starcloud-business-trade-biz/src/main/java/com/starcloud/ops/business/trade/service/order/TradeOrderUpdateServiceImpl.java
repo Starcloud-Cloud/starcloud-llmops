@@ -11,6 +11,7 @@ import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
@@ -20,6 +21,7 @@ import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
@@ -55,8 +57,10 @@ import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateResp
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
+import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +71,7 @@ import java.util.*;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.*;
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.minusTime;
+import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 /**
@@ -120,6 +125,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     @Resource
     private DingTalkNoticeProperties dingTalkNoticeProperties;
+
+    @Resource
+    @Lazy
+    private TradeSignUpdateService tradeSignUpdateService;
 
     // =================== Order ===================
 
@@ -250,8 +259,12 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 2. 订单创建前的逻辑
         tradeOrderHandlers.forEach(handler -> handler.beforeOrderCreate(order, orderItems));
 
-        // 3. 保存订单
-        tradeOrderMapper.insert(order);
+        if (getLoginUserId() == null){
+            order.setCreator(String.valueOf(userId));
+            order.setUpdater(String.valueOf(userId));
+        }
+            // 3. 保存订单
+            tradeOrderMapper.insert(order);
         orderItems.forEach(orderItem -> {
             orderItem.setOrderId(order.getId());
             orderItem.setSpuName(orderItem.getSpuName() + "(订阅)");
@@ -329,6 +342,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 创建支付单，用于后续的支付
         PayOrderCreateReqDTO payOrderCreateReqDTO = TradeOrderConvert.INSTANCE.convert(
                 order, orderItems, tradeOrderProperties);
+        payOrderCreateReqDTO.setUserId(order.getUserId());
         Long payOrderId = payOrderApi.createOrder(payOrderCreateReqDTO);
 
         // 更新到交易单上
@@ -373,6 +387,11 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         }
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
+
+        // 如果是签约订单 则更新下次扣款时间
+        if (Objects.nonNull(order.getTradeSignId())) {
+            tradeSignUpdateService.updatePayTime(order.getTradeSignId());
+        }
 
         sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
 
@@ -936,6 +955,15 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             throw exception(ORDER_NOT_FOUND);
         }
         cancelOrder0(order, TradeOrderCancelTypeEnum.MEMBER_CANCEL);
+    }
+
+    /**
+     * @param bean
+     */
+    @Override
+    public void updateOrderTimeAndStatus(TradeOrderDO bean) {
+        tradeOrderMapper.update(bean, new LambdaUpdateWrapper<TradeOrderDO>()
+                .eq(TradeOrderDO::getId, bean.getId()));
     }
 
     /**

@@ -200,4 +200,7 @@ public interface TradeOrderUpdateService {
      */
     void cancelPaidOrder(Long userId, Long orderId);
 
+
+    void updateOrderTimeAndStatus(TradeOrderDO bean);
+
 }

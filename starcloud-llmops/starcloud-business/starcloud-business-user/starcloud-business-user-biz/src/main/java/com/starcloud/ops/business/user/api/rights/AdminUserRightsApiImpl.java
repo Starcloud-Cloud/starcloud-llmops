@@ -34,34 +34,13 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
 
     @Override
     public void addRights(Long userId, Integer magicBean, Integer magicImage,Integer rightsTimeNums, Integer rightsTimeRange,
-                          Integer bizType, String bizId) {
+                          Integer bizType, String bizId, Long levelId) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
-
-        LocalDateTime validStartTime = LocalDateTime.now();
-        LocalDateTime validEndTime;
-        TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(rightsTimeRange);
-        switch (timeRangeTypeEnum) {
-            case DAY:
-                validEndTime = validStartTime.plusDays(rightsTimeNums);
-                break;
-            case WEEK:
-                validEndTime = validStartTime.plusWeeks(rightsTimeNums);
-                break;
-            case MONTH:
-                validEndTime = validStartTime.plusMonths(rightsTimeNums);
-                break;
-            case YEAR:
-                validEndTime = validStartTime.plusYears(rightsTimeNums);
-                break;
-            default:
-                throw new RuntimeException("产品权益信息设置异常，请联系管理员");
-
-        }
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, validStartTime, validEndTime, bizTypeEnum, bizId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, rightsTimeNums, rightsTimeRange, bizTypeEnum, bizId,levelId);
     }
 
     @Override

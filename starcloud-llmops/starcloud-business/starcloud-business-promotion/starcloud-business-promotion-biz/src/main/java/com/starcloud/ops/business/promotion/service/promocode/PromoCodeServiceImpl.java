@@ -166,7 +166,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         }
 
         if (giveRights.getGiveMagicBean() > 0 || giveRights.getGiveImage() > 0) {
-            adminUserRightsApi.addRights(userId, giveRights.getGiveMagicBean(), giveRights.getGiveImage(), giveRights.getRightsTimeNums(), giveRights.getRightsTimeRange(), AdminUserRightsBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
+            adminUserRightsApi.addRights(userId, giveRights.getGiveMagicBean(), giveRights.getGiveImage(), giveRights.getRightsTimeNums(), giveRights.getRightsTimeRange(), AdminUserRightsBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()),giveRights.getLevelId());
         }
 
 

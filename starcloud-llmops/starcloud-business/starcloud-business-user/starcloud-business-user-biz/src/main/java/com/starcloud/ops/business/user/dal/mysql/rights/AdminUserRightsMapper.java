@@ -5,8 +5,10 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -50,5 +52,14 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
         return update(update, new LambdaUpdateWrapper<AdminUserRightsDO>()
                 .eq(AdminUserRightsDO::getId, id).eq(AdminUserRightsDO::getStatus, status));
 
+    }
+
+
+    default AdminUserRightsDO findLatestExpirationByLevel(Long userId, Long levelId) {
+        return selectOne(new QueryWrapper<AdminUserRightsDO>()
+                .eq("user_id", userId)
+                .eq("user_level_id", levelId)
+                .orderByDesc("valid_end_time")
+                .last("limit 1"));
     }
 }

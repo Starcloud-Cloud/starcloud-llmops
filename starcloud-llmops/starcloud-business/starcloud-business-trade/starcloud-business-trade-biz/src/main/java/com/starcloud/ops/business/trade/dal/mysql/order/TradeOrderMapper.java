@@ -124,4 +124,13 @@ public interface TradeOrderMapper extends BaseMapperX<TradeOrderDO> {
         );
     }
 
+
+    default TradeOrderDO selectWithinContractPeriod(Long tradeSignId, LocalDateTime payTime) {
+        // 计算五天前的日期
+        LocalDateTime fiveDaysAgo = payTime.minusDays(5);
+        return selectOne(new LambdaUpdateWrapper<TradeOrderDO>()
+                .eq(TradeOrderDO::getTradeSignId, tradeSignId)
+                .between(TradeOrderDO::getCreateTime, fiveDaysAgo, payTime));
+    }
+
 }
