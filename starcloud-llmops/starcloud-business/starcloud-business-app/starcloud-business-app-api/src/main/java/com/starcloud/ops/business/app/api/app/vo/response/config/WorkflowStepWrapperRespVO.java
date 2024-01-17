@@ -1,19 +1,21 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +73,15 @@ public class WorkflowStepWrapperRespVO implements Serializable {
 
     public void putVariable(Map<String, Object> variable) {
         this.variable.putVariable(variable);
+    }
+
+    public VariableItemRespVO getVariable(String key) {
+        List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
+        Map<String, VariableItemRespVO> collect = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
+        if (collect.containsKey(key)) {
+            return collect.get(key);
+        }
+        return null;
     }
 
 }

@@ -107,6 +107,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
 
 
     CreativeContentDTO detail(@Param("businessUid") String businessUid);
+    CreativeContentDTO allTypeDetail(@Param("businessUid") String businessUid);
 
     List<CreativeContentDO> jobQuery(@Param("req") CreativeQueryReqVO queryReq);
 

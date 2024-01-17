@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,7 +86,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
 
         //获取到 参考文案
-        String json = (String) params.get(ASSEMBLE_TMP_KEY);
+        String json = (String) params.get(CreativeConstants.REQUIREMENT);
 
         ActionResponse response = convert(json);
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());

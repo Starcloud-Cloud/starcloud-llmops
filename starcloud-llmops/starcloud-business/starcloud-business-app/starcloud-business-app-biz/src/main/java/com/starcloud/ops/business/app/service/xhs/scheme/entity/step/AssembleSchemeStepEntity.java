@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,7 +11,10 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -50,6 +55,10 @@ public class AssembleSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        this.requirement = "";
+        VariableItemRespVO variable = stepWrapper.getVariable(CreativeConstants.REQUIREMENT);
+        if (variable != null) {
+            this.requirement = String.valueOf(variable.getValue());
+        }
+
     }
 }

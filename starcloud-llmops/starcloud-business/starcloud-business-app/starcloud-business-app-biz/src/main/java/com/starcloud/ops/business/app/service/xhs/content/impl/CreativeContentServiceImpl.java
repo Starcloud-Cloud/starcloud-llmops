@@ -354,7 +354,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private CreativeContentDTO byBusinessUid(String businessUid) {
         CreativeContentDTO detail = creativeContentMapper.detail(businessUid);
         if (detail == null) {
-            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+            detail = creativeContentMapper.allTypeDetail(businessUid);
+            if (detail == null) {
+                throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+            }
         }
         return detail;
     }
