@@ -149,10 +149,6 @@ public class StarUserServiceImpl implements StarUserService {
     private UserDeptService userDeptService;
 
 
-    @Resource
-    private UserDeptService userDeptService;
-
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean register(RegisterRequest request) {
