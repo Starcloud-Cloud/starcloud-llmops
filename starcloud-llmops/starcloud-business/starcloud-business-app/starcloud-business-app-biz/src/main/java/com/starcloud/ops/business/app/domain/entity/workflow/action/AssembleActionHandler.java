@@ -13,7 +13,6 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
-import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +29,6 @@ import java.util.Map;
 @Slf4j
 @TaskComponent
 public class AssembleActionHandler extends BaseActionHandler {
-
-
-    public static final String ASSEMBLE_TMP_KEY = "ASSEMBLE_TMP_KEY";
 
     /**
      * 流程执行器，action 执行入口
@@ -81,14 +77,12 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute() {
-
-        //获取所有上游信息
+        // 获取所有上游信息
         final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-
-        //获取到 参考文案
-        String json = (String) params.get(CreativeConstants.REQUIREMENT);
-
-        ActionResponse response = convert(json);
+        // 获取到参考文案
+        String assemble = (String) params.get(CreativeConstants.REQUIREMENT);
+        // 转换响应结果
+        ActionResponse response = convert(assemble);
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
@@ -102,14 +96,13 @@ public class AssembleActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(String str) {
+    private ActionResponse convert(String assemble) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
-        actionResponse.setAnswer(str);
-        actionResponse.setOutput(JsonData.of(str));
+        actionResponse.setAnswer(assemble);
+        actionResponse.setOutput(JsonData.of(assemble));
         actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
-
         return actionResponse;
     }
 
