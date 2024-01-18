@@ -54,7 +54,7 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage, LocalDateTime validStartTime ,LocalDateTime validEndTime, AdminUserRightsBizTypeEnum bizType, String bizId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage,  Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId,Long LevelId);
 
     /**
      * 校验权益是否可供扣除
