@@ -34,6 +34,7 @@ import com.alipay.api.response.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.internal.http.HttpMethod;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -425,7 +426,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
             return buildClosedPayAgreementRespDTO(reqDTO, response);
         }
 
-        return PayAgreementRespDTO.waitingSignOf(PC_TO_RQ + URLEncoder.encode(response.getBody(),"UTF-8" ), reqDTO.getExternalAgreementNo(), response.getTradeNo(), response);
+        return PayAgreementRespDTO.waitingSignOf(PC_TO_RQ + URLEncoder.encode(response.getBody(), "UTF-8"), reqDTO.getExternalAgreementNo(), response.getTradeNo(), response);
 
 
     }
@@ -445,7 +446,8 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
 
         // 渠道参数
         AccessParams accessParams = new AccessParams();
-        accessParams.setChannel("ALIPAYAPP");
+        accessParams.setChannel("QRCODEORSMS");
+        // accessParams.setChannel("ALIPAYAPP");
         model.setAccessParams(accessParams);
 
         // 周期管控规则参数
@@ -462,15 +464,20 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         if (Objects.equals(config.getMode(), MODE_CERTIFICATE)) {
             // 证书模式
             response = client.certificateExecute(request);
-        } else {
+        } else if("ALIPAYAPP".equals(accessParams.getChannel())){
             response = client.sdkExecute(request);
+        }else {
+            response = client.pageExecute(request, "get");
         }
-
         // 2.2 处理结果
         if (!response.isSuccess()) {
             return buildClosedPayAgreementRespDTO(reqDTO, response);
         }
-        return PayAgreementRespDTO.waitingSignOf(PC_TO_RQ + URLEncoder.encode(response.getBody(),"UTF-8" ), reqDTO.getExternalAgreementNo(), null, response);
+        String displayContent = response.getBody();
+        if ("ALIPAYAPP".equals(accessParams.getChannel())) {
+            displayContent = PC_TO_RQ + URLEncoder.encode(response.getBody(), "UTF-8");
+        }
+        return PayAgreementRespDTO.waitingSignOf(displayContent, reqDTO.getExternalAgreementNo(), null, response);
     }
 
     @Override
@@ -535,8 +542,8 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
             throw new IllegalArgumentException(StrUtil.format("body({}) 的【签约状态】 不正确", body));
         });
 
-        LocalDateTime signTime =null;
-        LocalDateTime invalidTime =null;
+        LocalDateTime signTime = null;
+        LocalDateTime invalidTime = null;
         if (bodyObj.containsKey("unsign_time")) {
             invalidTime = parseTime(URLDecoder.decode(bodyObj.get("unsign_time"), "UTF-8"));
         }
@@ -544,7 +551,7 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
             signTime = parseTime(URLDecoder.decode(bodyObj.get("sign_time"), "UTF-8"));
         }
 
-        return PayAgreementRespDTO.of(status, bodyObj.get("agreement_no"), bodyObj.get("merchant_app_id"),  signTime,
+        return PayAgreementRespDTO.of(status, bodyObj.get("agreement_no"), bodyObj.get("merchant_app_id"), signTime,
                 invalidTime, bodyObj.get("external_agreement_no"), body);
     }
 
