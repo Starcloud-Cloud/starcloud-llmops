@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.controller.admin.rights;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
@@ -12,6 +13,7 @@ import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdmi
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,6 +65,19 @@ public class AdminUserRightsController {
     @PreAuthenticated
     public CommonResult<PageResult<AppAdminUserRightsRespVO>> getPointRecordPage(@Valid PageParam pageVO) {
         PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(getLoginUserId(), pageVO);
+        // 优化显示内容
+        if (!pageResult.getList().isEmpty()){
+            pageResult.getList().forEach(rights->{
+                Integer status = LocalDateTimeUtils.isBetween(rights.getValidStartTime(),rights.getValidEndTime()) ?
+                        AdminUserRightsStatusEnum.NORMAL.getType()
+                        : LocalDateTimeUtils.beforeNow(rights.getValidStartTime())&& LocalDateTimeUtils.beforeNow(rights.getValidEndTime()) ?
+                        AdminUserRightsStatusEnum.EXPIRE.getType()
+                        : LocalDateTimeUtils.afterNow(rights.getValidStartTime())&& LocalDateTimeUtils.afterNow(rights.getValidEndTime())?
+                        AdminUserRightsStatusEnum.PENDING.getType():AdminUserRightsStatusEnum.CANCEL.getType();
+                rights.setStatus(status);
+            });
+        }
+
         return success(AdminUserRightsConvert.INSTANCE.convertPage02(pageResult));
     }
 

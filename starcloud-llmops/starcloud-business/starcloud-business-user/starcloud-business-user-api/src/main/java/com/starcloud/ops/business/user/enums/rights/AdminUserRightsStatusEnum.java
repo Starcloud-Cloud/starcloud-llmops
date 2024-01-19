@@ -19,6 +19,7 @@ public enum AdminUserRightsStatusEnum implements IntArrayValuable {
     NORMAL(0, "正常"),
     EXPIRE(1, "过期"),
     CANCEL(2, "取消"),
+    PENDING(3, "待生效"),
     ;
 
     /**

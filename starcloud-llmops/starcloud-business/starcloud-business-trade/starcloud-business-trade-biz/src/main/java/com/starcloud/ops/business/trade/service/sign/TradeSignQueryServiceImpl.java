@@ -1,12 +1,20 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
+import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderCreateReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSettlementReqVO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
@@ -23,9 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +59,11 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     @Resource
     private PayOrderApi payOrderApi;
 
+    @Resource
+    private AdminUserApi adminUserApi;
+
+    @Resource
+    private SmsSendApi smsSendApi;
 
 
     /**
@@ -130,13 +141,37 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
                                 .setDisplayMode("url"), order.getUserIp());
 
         if (PayOrderStatusRespEnum.isSuccess(payOrderSubmitRespDTO.getStatus())) {
-
             // tradeOrderUpdateService.updateOrderPaid(order.getId(),order.getPayOrderId());
             log.error("签约支付发起成功");
             return true;
         }
+        sendNotifySignPayFailMsg(tradeSignDO,payOrderSubmitRespDTO);
         log.error("签约支付发起失败: {}", payOrderSubmitRespDTO);
         return false;
+    }
+
+
+    @TenantIgnore
+    private void sendNotifySignPayFailMsg(TradeSignDO tradeSignDO,PayOrderSubmitRespDTO submitRespDTO) {
+        try {
+            AdminUserRespDTO user = adminUserApi.getUser(tradeSignDO.getUserId());
+
+            Map<String, Object> templateParams = new HashMap<>();
+
+            templateParams.put("userName", user.getNickname() );
+            templateParams.put("tradeSignId", tradeSignDO.getId());
+            templateParams.put("exception", submitRespDTO.getDisplayContent());
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("DING_TALK_PAY_NOTIFY_03")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("系统支付通知信息发送失败", e);
+        }
+
     }
     public TradeOrderDO buildTradeOrder(TradeSignDO tradeSignDO){
         // 判断当前用户是否存在当前扣款周期内的订单交易记录
