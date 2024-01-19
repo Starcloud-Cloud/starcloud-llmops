@@ -157,7 +157,7 @@ public class PaySignServiceImpl implements PaySignService {
                 // .setOutTradeNo(payOrderSubmitRespVO.getDisplayContent()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 // 订单相关字段
                 .setTotalAmount(signDO.getPrice())
-                .setSubject(signDO.getSubject() + "包月服务")
+                .setSubject(signDO.getSubject())
                 .setBody(signDO.getBody())
                 .setExpireTime(signDO.getExpireTime())
                 .setExternalAgreementNo(signExtensionDO.getNo())
@@ -196,7 +196,6 @@ public class PaySignServiceImpl implements PaySignService {
     }
 
 
-
     @Override
     public void updateSign(SignSaveReqVO updateReqVO) {
         // 校验存在
@@ -232,7 +231,7 @@ public class PaySignServiceImpl implements PaySignService {
      */
     @Override
     public PaySignDO getSignByMerchantSignId(Long appId, String merchantSignId) {
-        return paySignMapper.selectByAppIdAndMerchantSignId(appId,merchantSignId);
+        return paySignMapper.selectByAppIdAndMerchantSignId(appId, merchantSignId);
     }
 
     @Override
@@ -414,8 +413,8 @@ public class PaySignServiceImpl implements PaySignService {
                         .setBody(signDO.getBody())
                         .setPrice(signDO.getPrice())
                         .setExpireTime(signDO.getExpireTime())
-                        // .setSignId(signDO.getId())
-                );
+                // .setSignId(signDO.getId())
+        );
 
         PayOrderDO order = payOrderService.getOrder(orderId);
         PayOrderSubmitRespVO payOrderSubmitRespVO = payOrderService.submitOrder(new PayOrderSubmitReqVO()
