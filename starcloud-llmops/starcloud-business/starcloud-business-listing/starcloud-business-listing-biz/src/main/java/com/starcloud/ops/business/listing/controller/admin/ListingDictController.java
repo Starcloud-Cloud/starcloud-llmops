@@ -46,7 +46,7 @@ public class ListingDictController {
         return CommonResult.success(true);
     }
 
-    @DeleteMapping("/delete")
+    @PutMapping("/delete")
     @Operation(summary = "批量删除词库", description = "批量删除词库")
     public CommonResult<Boolean> delete(@RequestBody List<String> uids) {
         dictService.deleteDict(uids);
