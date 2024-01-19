@@ -38,7 +38,7 @@ public class AdminUserRightsRecordController {
     private AdminUserService adminUserService;
 
     @GetMapping("/page")
-    @Operation(summary = "获得用户积分记录分页")
+    @Operation(summary = "获得用户权益记录分页")
     @PreAuthorize("@ss.hasPermission('point:record:query')")
     public CommonResult<PageResult<AdminUserRightsRespVO>> getPointRecordPage(@Valid AdminUserRightsPageReqVO pageVO) {
         // 执行分页查询

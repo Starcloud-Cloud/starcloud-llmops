@@ -11,7 +11,6 @@ import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
@@ -25,6 +24,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
+import com.starcloud.ops.business.promotion.api.coupon.CouponTemplateApi;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderDeliveryReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderRemarkReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderUpdateAddressReqVO;
@@ -129,6 +129,11 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Resource
     @Lazy
     private TradeSignUpdateService tradeSignUpdateService;
+
+    // @Resource
+    // @Lazy
+    // private CouponTemplateApi couponTemplateApi;
+
 
     // =================== Order ===================
 
@@ -259,12 +264,12 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 2. 订单创建前的逻辑
         tradeOrderHandlers.forEach(handler -> handler.beforeOrderCreate(order, orderItems));
 
-        if (getLoginUserId() == null){
+        if (getLoginUserId() == null) {
             order.setCreator(String.valueOf(userId));
             order.setUpdater(String.valueOf(userId));
         }
-            // 3. 保存订单
-            tradeOrderMapper.insert(order);
+        // 3. 保存订单
+        tradeOrderMapper.insert(order);
         orderItems.forEach(orderItem -> {
             orderItem.setOrderId(order.getId());
             orderItem.setSpuName(orderItem.getSpuName() + "(订阅)");
@@ -393,7 +398,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             tradeSignUpdateService.updatePayTime(order.getTradeSignId());
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now());
 
     }
 
@@ -1046,6 +1051,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+
+            //
+            // couponTemplateApi.getCouponTemplate(1L);
+
 
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());
