@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.pay.service.notify;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -10,6 +11,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayRefundNotifyReqDTO;
@@ -32,6 +35,10 @@ import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
 import cn.iocoder.yudao.module.pay.service.refund.PayRefundService;
 import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
 import cn.iocoder.yudao.module.pay.service.transfer.PayTransferService;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -53,6 +60,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.addTime;
+import static cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum.ORDER;
 import static cn.iocoder.yudao.module.pay.framework.job.config.PayJobConfiguration.NOTIFY_THREAD_POOL_TASK_EXECUTOR;
 
 /**
@@ -99,6 +107,12 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     @Resource
     private PayNotifyLockRedisDAO notifyLockCoreRedisDAO;
 
+    @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
+    private AdminUserApi adminUserApi;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createPayNotifyTask(Integer type, Long dataId) {
@@ -107,7 +121,7 @@ public class PayNotifyServiceImpl implements PayNotifyService {
                 .setNotifyTimes(0).setMaxNotifyTimes(PayNotifyTaskDO.NOTIFY_FREQUENCY.length + 1);
         // 补充 appId + notifyUrl 字段
         PayNotifyTypeEnum notifyType = PayNotifyTypeEnum.getByType(task.getType());
-        switch (notifyType){
+        switch (notifyType) {
             case ORDER:
                 PayOrderDO order = orderService.getOrder(task.getDataId()); // 不进行非空判断，有问题直接异常
                 task.setAppId(order.getAppId()).
@@ -261,7 +275,7 @@ public class PayNotifyServiceImpl implements PayNotifyService {
         // 拼接 body 参数
         Object request;
         PayNotifyTypeEnum notifyType = PayNotifyTypeEnum.getByType(task.getType());
-        switch (notifyType){
+        switch (notifyType) {
             case ORDER:
                 request = PayOrderNotifyReqDTO.builder().merchantOrderId(task.getMerchantOrderId())
                         .payOrderId(task.getDataId()).build();
@@ -314,8 +328,8 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     /**
      * 处理并更新通知结果
      *
-     * @param task 通知任务
-     * @param invokeResult 通知结果
+     * @param task            通知任务
+     * @param invokeResult    通知结果
      * @param invokeException 通知异常
      * @return 最终任务的状态
      */
@@ -339,6 +353,9 @@ public class PayNotifyServiceImpl implements PayNotifyService {
         if (updateTask.getNotifyTimes() >= PayNotifyTaskDO.NOTIFY_FREQUENCY.length) {
             updateTask.setStatus(PayNotifyStatusEnum.FAILURE.getStatus());
             notifyTaskMapper.updateById(updateTask);
+            // 发起告警
+            sendNotifyFailMsg(task,invokeException);
+
             return updateTask.getStatus();
         }
         // 2.2 未超过最大回调次数
@@ -362,6 +379,77 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     @Override
     public List<PayNotifyLogDO> getNotifyLogList(Long taskId) {
         return notifyLogMapper.selectListByTaskId(taskId);
+    }
+
+
+    @TenantIgnore
+    private void sendNotifyFailMsg(PayNotifyTaskDO task, Throwable invokeException) {
+        try {
+            PayNotifyTypeEnum notifyTypeEnum = PayNotifyTypeEnum.getByType(task.getType());
+            String notifyType;
+            Long userId;
+            Long payId;
+            String tradeId;
+            switch (notifyTypeEnum) {
+                case ORDER:
+                    notifyType = PayNotifyTypeEnum.ORDER.getName();
+                    PayOrderDO order = orderService.getOrder(task.getDataId()); // 不进行非空判断，有问题直接异常
+                    userId = Long.valueOf(order.getCreator());
+                    payId = order.getId();
+                    tradeId = order.getMerchantOrderId();
+                    break;
+                case REFUND:
+                    notifyType = PayNotifyTypeEnum.REFUND.getName();
+                    PayRefundDO refundDO = refundService.getRefund(task.getDataId());
+                    userId = Long.valueOf(refundDO.getCreator());
+                    payId = refundDO.getId();
+                    tradeId = refundDO.getMerchantRefundId();
+                    break;
+                case TRANSFER:
+                    notifyType = PayNotifyTypeEnum.TRANSFER.getName();
+                    PayTransferDO transfer = transferService.getTransfer(task.getDataId());
+                    userId = Long.valueOf(transfer.getCreator());
+                    payId = transfer.getId();
+                    tradeId = transfer.getMerchantTransferId();
+                    break;
+                case SIGN_SUCCESS:
+                    notifyType = PayNotifyTypeEnum.SIGN_SUCCESS.getName();
+                    PaySignDO sign = paySignService.getSign(task.getDataId());
+                    userId = Long.valueOf(sign.getCreator());
+                    payId = sign.getId();
+                    tradeId = sign.getMerchantSignId();
+                    break;
+                case SIGN_CLOSE:
+                    notifyType = PayNotifyTypeEnum.SIGN_CLOSE.getName();
+                    PaySignDO sign2 = paySignService.getSign(task.getDataId());
+                    userId = Long.valueOf(sign2.getCreator());
+                    payId = sign2.getId();
+                    tradeId = sign2.getMerchantSignId();
+                    break;
+                default:
+                    throw new RuntimeException("未知的通知任务类型：" + JsonUtils.toJsonString(task));
+            }
+
+            // AdminUserRespDTO user = adminUserApi.getUser(userId);
+
+            Map<String, Object> templateParams = new HashMap<>();
+
+            templateParams.put("notifyType", notifyType + "异常");
+            templateParams.put("payId", payId);
+            templateParams.put("tradeId", tradeId);
+            templateParams.put("exception", invokeException != null ? ExceptionUtil.getRootCauseMessage(invokeException) :
+                    JsonUtils.toJsonString(null));
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("DING_TALK_PAY_NOTIFY_02")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("系统支付通知信息发送失败", e);
+        }
+
     }
 
     /**

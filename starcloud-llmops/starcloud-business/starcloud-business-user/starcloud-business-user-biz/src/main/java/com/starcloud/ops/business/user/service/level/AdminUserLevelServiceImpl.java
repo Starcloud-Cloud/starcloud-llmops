@@ -37,7 +37,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_EXISTS;
@@ -126,6 +125,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      * @param userId 用户 ID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void createInitLevelRecord(Long userId) {
         RoleDO role = roleService.getRoleByCode(roleCode);
 
@@ -205,11 +205,16 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             return notifyExpiringLevelRespVO;
         }
 
+        // 1.0 获取 7 天内过期的所有用户等级
+
+        // 判断是否存在生效的用户等级
+
         // 获取 7 天内即将过期的等级
         List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream()
                 .filter(level -> level.getValidEndTime().isBefore(nextWeek) && level.getValidEndTime().isAfter(today))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
+
         // 获取大于 7 天的用户等级
         List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream()
                 .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(nextWeek))
