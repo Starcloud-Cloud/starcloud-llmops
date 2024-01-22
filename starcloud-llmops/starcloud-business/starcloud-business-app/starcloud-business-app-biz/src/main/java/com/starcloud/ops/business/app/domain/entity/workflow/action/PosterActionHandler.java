@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -13,6 +14,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -27,8 +29,11 @@ import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterSty
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterVariableEntity;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
+import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.HumanMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -121,12 +126,24 @@ public class PosterActionHandler extends BaseActionHandler {
         Integer aiTitleCount = style.getTitleCountByModel(PosterVariableModelEnum.AI.name());
         // 找到标题配置，说明需要生成标题
         if (aiTitleCount > 0) {
+            this.getAppContext().putVariable(CreativeConstants.TITLE, title);
+            this.getAppContext().putVariable(CreativeConstants.CONTENT, content);
+            this.getAppContext().putVariable(CreativeConstants.GENERATE_COUNT, aiTitleCount);
+            this.getAppContext().putVariable(CreativeConstants.REQUIREMENT, "");
             OpenAIChatActionHandler openAIChatActionHandler = new OpenAIChatActionHandler();
             ActionResponse execute = openAIChatActionHandler.execute(this.getAppContext(), this.getScopeDataOperator());
             String answer = execute.getAnswer();
             // 处理海报模版参数
-
+            if (StrUtil.isNotBlank(answer)) {
+                List<PosterTitleDTO> titleList = JSONUtil.toList(answer, PosterTitleDTO.class);
+                style.assembleAiTitle(title, titleList);
+            }
         }
+
+        ChatVLQwen chatVLQwen = new ChatVLQwen();
+        String call = chatVLQwen.call(Arrays.asList(HumanMessage.ofTestImages("图片上画了什么？", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg", "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg")));
+        log.info("通义千问执行结果: {}", JSONUtil.toJsonStr(call));
+
 
         // 校验海报模版
         style.validate();

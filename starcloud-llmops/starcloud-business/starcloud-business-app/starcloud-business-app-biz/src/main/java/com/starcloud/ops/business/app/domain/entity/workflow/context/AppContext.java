@@ -300,4 +300,10 @@ public class AppContext {
     public void setActionResponse(ActionResponse response) {
         this.app.setActionResponse(this.stepId, response);
     }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String key, Object value) {
+        this.app.putVariable(this.stepId, key, value);
+    }
 }

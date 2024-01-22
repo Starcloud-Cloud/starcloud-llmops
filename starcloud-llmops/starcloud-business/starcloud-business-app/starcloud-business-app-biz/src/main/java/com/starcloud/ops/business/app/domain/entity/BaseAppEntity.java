@@ -645,6 +645,12 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         }
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String stepId, String key, Object value) {
+        this.workflowConfig.putVariable(stepId, key, value);
+    }
+
     /**
      * 异常
      *
@@ -665,4 +671,5 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
     }
+
 }

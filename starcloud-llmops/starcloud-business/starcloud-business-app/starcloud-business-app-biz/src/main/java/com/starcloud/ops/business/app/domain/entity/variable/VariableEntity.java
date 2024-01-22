@@ -98,4 +98,14 @@ public class VariableEntity {
             this.variables.forEach(VariableItemEntity::validate);
         }
     }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String key, Object value) {
+        for (VariableItemEntity variable : this.variables) {
+            if (variable.getField().equals(key)) {
+                variable.setValue(value);
+            }
+        }
+    }
 }

@@ -134,4 +134,9 @@ public class WorkflowStepWrapper {
         }
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String key, Object value) {
+        this.variable.putVariable(key, value);
+    }
 }

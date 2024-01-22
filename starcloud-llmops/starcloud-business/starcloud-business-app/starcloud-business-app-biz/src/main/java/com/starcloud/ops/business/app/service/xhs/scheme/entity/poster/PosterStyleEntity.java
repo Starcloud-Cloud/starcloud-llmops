@@ -4,7 +4,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterVariableModelEnum;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -53,6 +55,11 @@ public class PosterStyleEntity implements java.io.Serializable {
     private String name;
 
     /**
+     * 风格提示
+     */
+    private String prompt;
+
+    /**
      * 海报风格描述
      */
     @Schema(description = "海报风格描述")
@@ -76,6 +83,34 @@ public class PosterStyleEntity implements java.io.Serializable {
         for (PosterTemplateEntity template : this.templateList) {
             template.validate();
         }
+    }
+
+    /**
+     * 组装
+     *
+     * @param titleList 段落内容
+     */
+    public void assembleAiTitle(String title, List<PosterTitleDTO> titleList) {
+        List<PosterTemplateEntity> templates = new ArrayList<>();
+        for (PosterTemplateEntity template : this.templateList) {
+            List<PosterVariableEntity> variables = new ArrayList<>();
+            List<PosterVariableEntity> variableList = template.getVariableList();
+            for (PosterVariableEntity variableItem : variableList) {
+                if (PosterVariableModelEnum.AI.name().equals(variableItem.getModel())) {
+                    if (CreativeImageUtils.TITLE.equalsIgnoreCase(variableItem.getField())) {
+                        fillImgTitle(variableItem, titleList);
+                    } else if (CreativeImageUtils.SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                        fillImgSubTitle(variableItem, titleList);
+                    } else if (CreativeImageUtils.TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
+                        variableItem.setValue(title);
+                    }
+                }
+                variables.add(variableItem);
+            }
+            template.setVariableList(variables);
+            templates.add(template);
+        }
+        this.templateList = templates;
     }
 
     /**
@@ -135,6 +170,52 @@ public class PosterStyleEntity implements java.io.Serializable {
     public Integer getTitleCountByModel(String model) {
         return CollectionUtil.emptyIfNull(this.templateList).stream().map(item -> item.getVariableTitleListByModel(model))
                 .mapToInt(List::size).sum();
+    }
+
+    /**
+     * 段落标题
+     *
+     * @param variableItem variableItem
+     * @param titleList    paragraphList
+     */
+    private void fillImgTitle(PosterVariableEntity variableItem, List<PosterTitleDTO> titleList) {
+        if (CollectionUtil.isEmpty(titleList)) {
+            Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+            variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
+        }
+        for (PosterTitleDTO posterTitle : titleList) {
+            if (!posterTitle.getIsUseImgTitle()) {
+                String title = Optional.ofNullable(posterTitle.getImgTitle()).orElse(StringUtils.EMPTY);
+                variableItem.setValue(title);
+                posterTitle.setIsUseImgTitle(true);
+                return;
+            }
+        }
+        Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+        variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
+    }
+
+    /**
+     * 段落标题
+     *
+     * @param variableItem variableItem
+     * @param titleList    paragraphList
+     */
+    private void fillImgSubTitle(PosterVariableEntity variableItem, List<PosterTitleDTO> titleList) {
+        if (CollectionUtil.isEmpty(titleList)) {
+            Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+            variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
+        }
+        for (PosterTitleDTO posterTitle : titleList) {
+            if (!posterTitle.getIsUseImgSubTitle()) {
+                String title = Optional.ofNullable(posterTitle.getImgSubTitle()).orElse(StringUtils.EMPTY);
+                variableItem.setValue(title);
+                posterTitle.setIsUseImgSubTitle(true);
+                return;
+            }
+        }
+        Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
+        variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));
     }
 
     /**
