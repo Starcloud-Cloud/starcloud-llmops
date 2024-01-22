@@ -127,6 +127,12 @@ public class ListingGenerateRequest implements java.io.Serializable {
     private List<String> bulletPoints;
 
     /**
+     * 五点描述数量
+     */
+    @Schema(description = "五点描述数量")
+    private Integer bulletPointsCount;
+
+    /**
      * 对象转为 Map，key 为字段的名称，转为大写下划线，value 为属性值。
      *
      * @return Map
@@ -164,7 +170,9 @@ public class ListingGenerateRequest implements java.io.Serializable {
         if (CollectionUtil.isNotEmpty(this.bulletPoints)) {
             map.put("BULLET_POINTS", StrUtil.join(",", bulletPoints));
         }
-
+        if (this.bulletPointsCount != null) {
+            map.put("LIST_COUNT", String.valueOf(this.bulletPointsCount));
+        }
         return map;
     }
 
