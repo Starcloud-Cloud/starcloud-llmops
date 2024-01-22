@@ -447,25 +447,25 @@ public class RecommendVariableItemFactory {
         variableItem.setValue("{}");
         variableItem.setOrder(2);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
-        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
 
     /**
-     * 海报素材变量
+     * 标题变量
      *
      * @return 参考内容变量
      */
-    public static VariableItemRespVO defPosterMaterialVariable() {
+    public static VariableItemRespVO defPosterTitleVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_MATERIAL");
-        variableItem.setLabel(MessageUtil.getMessage("POSTER_MATERIAL_LABEL"));
-        variableItem.setDescription(MessageUtil.getMessage("POSTER_MATERIAL_DESCRIPTION"));
-        variableItem.setDefaultValue("[]");
-        variableItem.setValue("[]");
+        variableItem.setField("TITLE");
+        variableItem.setLabel(MessageUtil.getMessage("POSTER_TITLE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("POSTER_TITLE_DESCRIPTION"));
+        variableItem.setDefaultValue("");
+        variableItem.setValue("");
         variableItem.setOrder(3);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
@@ -482,11 +482,11 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defPosterContentVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_CONTENT");
+        variableItem.setField("CONTENT");
         variableItem.setLabel(MessageUtil.getMessage("POSTER_CONTENT_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("POSTER_CONTENT_DESCRIPTION"));
-        variableItem.setDefaultValue("{}");
-        variableItem.setValue("{}");
+        variableItem.setDefaultValue("");
+        variableItem.setValue("");
         variableItem.setOrder(4);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
@@ -495,4 +495,27 @@ public class RecommendVariableItemFactory {
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REQUIREMENT);
+        variableItem.setLabel("生成要求");
+        variableItem.setDescription("生成要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(104);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+
 }

@@ -68,10 +68,10 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
         List<ReferenceSchemeEntity> referenceSchemeList = CreativeAppUtils.handlerReferencesEntity(this.referList);
         if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(this.model)) {
             List<ReferenceSchemeEntity> referList = new ArrayList<>();
-            if (referenceSchemeList.size() <= 4) {
+            if (referenceSchemeList.size() <= 1) {
                 referList = referenceSchemeList;
             } else {
-                for (int i = 0; i < 4; i++) {
+                for (int i = 0; i < 1; i++) {
                     referList.add(referenceSchemeList.get(RandomUtil.randomInt(referenceSchemeList.size())));
                 }
             }

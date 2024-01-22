@@ -194,7 +194,7 @@ public class RecommendActionFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepRespVO defPosterActionStep() {
+    public static WorkflowStepRespVO defPosterActionStep(String defaultPrompt) {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("POSTER_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("POSTER_ACTION_DESCRIPTION"));
@@ -207,7 +207,7 @@ public class RecommendActionFactory {
         step.setIcon("poster");
         step.setTags(Collections.singletonList("Poster"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defEmptyVariable());
+        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
         return step;
     }
 

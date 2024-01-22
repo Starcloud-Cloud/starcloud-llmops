@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
@@ -37,10 +37,10 @@ public class PosterServiceImpl implements PosterService {
      * @return 模板列表
      */
     @Override
-    public List<PosterTemplateDTO> templates() {
-        PosterResponse<List<PosterTemplateDTO>> response = posterImageClient.templates();
+    public List<PosterTemplate> templates() {
+        PosterResponse<List<PosterTemplate>> response = posterImageClient.templates();
         validateResponse(response, "获取海报模板列表失败");
-        List<PosterTemplateDTO> templates = response.getData();
+        List<PosterTemplate> templates = response.getData();
         if (CollectionUtil.isEmpty(templates)) {
             return Collections.emptyList();
         }

@@ -33,6 +33,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchem
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
@@ -418,13 +419,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                         }
                         PosterTemplateDTO mainImageTemplate = mainImageOptional.get();
                         // 获取首图模板参数
-                        List<VariableItemRespVO> mainImageTemplateVariableList = mainImageTemplate.getVariableList();
+                        List<PosterVariableDTO> mainImageTemplateVariableList = mainImageTemplate.getVariableList();
                         // 获取首图模板参数中的图片类型参数
-                        List<VariableItemRespVO> mainImageStyleTemplateVariableList = CreativeImageUtils.imageTypeVariableList(mainImageTemplateVariableList);
+                        List<PosterVariableDTO> mainImageStyleTemplateVariableList = CreativeImageUtils.imageTypeVariableList(mainImageTemplateVariableList);
                         // 首图图片参数素材图片替换
                         List<String> imageParamList = Lists.newArrayList();
                         for (int j = 0; j < mainImageStyleTemplateVariableList.size(); j++) {
-                            VariableItemRespVO variableItem = mainImageStyleTemplateVariableList.get(j);
+                            PosterVariableDTO variableItem = mainImageStyleTemplateVariableList.get(j);
                             if (j == 0) {
                                 String imageUrl = disperseImageUrlList.get(i);
                                 variableItem.setValue(imageUrl);
@@ -495,13 +496,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 }
                 CreativePlanImageExecuteDTO mainImageRequest = mainImageOptional.get();
                 // 获取首图模板参数
-                List<VariableItemRespVO> mainImageRequestParams = mainImageRequest.getParams();
+                List<PosterVariableDTO> mainImageRequestParams = mainImageRequest.getParams();
                 // 获取首图模板参数中的图片类型参数
-                List<VariableItemRespVO> mainImageStyleRequestParams = CreativeImageUtils.imageTypeVariableList(mainImageRequestParams);
+                List<PosterVariableDTO> mainImageStyleRequestParams = CreativeImageUtils.imageTypeVariableList(mainImageRequestParams);
                 // 首图图片参数素材图片替换
                 List<String> imageParamList = Lists.newArrayList();
                 for (int j = 0; j < mainImageStyleRequestParams.size(); j++) {
-                    VariableItemRespVO variableItem = mainImageStyleRequestParams.get(j);
+                    PosterVariableDTO variableItem = mainImageStyleRequestParams.get(j);
                     if (j == 0) {
                         String imageUrl = disperseImageUrlList.get(i);
                         variableItem.setValue(imageUrl);
@@ -549,7 +550,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取方案配置列表
         List<CreativeSchemeListOptionRespVO> schemeListConfiguration = CollectionUtil.emptyIfNull(planConfig.getSchemeList());
         Map<String, CreativeSchemeListOptionRespVO> schemeMap = schemeListConfiguration.stream().collect(Collectors.toMap(CreativeSchemeListOptionRespVO::getUid, Function.identity()));
-        
+
         // 查询并且校验创作方案是否存在
         List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
         // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。

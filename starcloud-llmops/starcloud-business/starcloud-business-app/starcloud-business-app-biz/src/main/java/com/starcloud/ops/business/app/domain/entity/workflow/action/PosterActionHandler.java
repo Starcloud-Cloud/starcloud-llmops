@@ -14,9 +14,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterStyleEntity;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterTemplateEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -25,6 +22,9 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterVariableEntity;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -117,9 +117,25 @@ public class PosterActionHandler extends BaseActionHandler {
 
         List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);
         String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
+        // 找到段落配置，说明是段落模版
         if (CollectionUtil.isNotEmpty(paragraphList)) {
             // 处理海报模版参数
             style.assemble(title, paragraphList);
+        }
+
+        // 处理海报模版参数
+        Integer titleCount = style.getTitleCount();
+        // 找到标题配置，说明需要生成标题
+        if (titleCount > 0) {
+            // 获取整个拼接内容
+            String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
+
+
+            OpenAIChatActionHandler openAIChatActionHandler = new OpenAIChatActionHandler();
+            ActionResponse execute = openAIChatActionHandler.execute(this.getAppContext(), this.getScopeDataOperator());
+            String answer = execute.getAnswer();
+
+            // 处理海报模版参数
         }
 
         // 校验海报模版
@@ -185,7 +201,7 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
             Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                    .collect(Collectors.toMap(VariableItemEntity::getField, VariableItemEntity::getValue));
+                    .collect(Collectors.toMap(PosterVariableEntity::getField, PosterVariableEntity::getValue));
             handlerRequest.setParams(params);
 
             // 构建请求

@@ -1,17 +1,22 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.poster;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -62,6 +67,12 @@ public class PosterTemplateEntity implements java.io.Serializable {
     private Integer imageNumber;
 
     /**
+     * 海报模板描述
+     */
+    @Schema(description = "海报模板描述")
+    private String description;
+
+    /**
      * 示例图片
      */
     @Schema(description = "示例图片")
@@ -71,7 +82,30 @@ public class PosterTemplateEntity implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    private List<VariableItemEntity> variableList;
+    private List<PosterVariableEntity> variableList;
+
+    /**
+     * 校验
+     */
+    public void validate() {
+        if (StringUtils.isBlank(id)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_ID_REQUIRED);
+        }
+        if (CollectionUtil.isEmpty(this.variableList)) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
+        }
+    }
+
+    /**
+     * 获取变量为 标题 的变量列表
+     *
+     * @return 标题变量列表
+     */
+    public List<PosterVariableEntity> getVariableTitleList() {
+        return CollectionUtil.emptyIfNull(this.variableList).stream()
+                .filter(variableItem -> "TITLE".equals(variableItem.getField()))
+                .collect(Collectors.toList());
+    }
 
     /**
      * 获取主图模板
