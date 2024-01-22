@@ -132,8 +132,8 @@ public class PosterStyleEntity implements java.io.Serializable {
      *
      * @return 标题数量
      */
-    public Integer getTitleCount() {
-        return CollectionUtil.emptyIfNull(this.templateList).stream().map(PosterTemplateEntity::getVariableTitleList)
+    public Integer getTitleCountByModel(String model) {
+        return CollectionUtil.emptyIfNull(this.templateList).stream().map(item -> item.getVariableTitleListByModel(model))
                 .mapToInt(List::size).sum();
     }
 
@@ -167,7 +167,6 @@ public class PosterStyleEntity implements java.io.Serializable {
      * @param paragraphList paragraphList
      */
     private void paragraphContent(PosterVariableEntity variableItem, List<ParagraphDTO> paragraphList) {
-
         if (CollectionUtil.isEmpty(paragraphList)) {
             Object value = Optional.ofNullable(variableItem.getValue()).orElse(variableItem.getDefaultValue());
             variableItem.setValue(Optional.ofNullable(value).orElse(StringUtils.EMPTY));

@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterVariableModelEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
@@ -99,48 +100,36 @@ public class PosterActionHandler extends BaseActionHandler {
         log.info("海报生成 Action 执行开始......");
 
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-
         // 海报模版参数
         String posterStyle = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_STYLE, "{}"));
-
-        //posterContent 转成 DTO
-
-        //判断上游需要几张图片？
-
-
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
-        // 转为图片素材对象
 
-
-        //往上找第一个段落配置，获取返回的值
-
+        // 获取段落配置，如果有段落配置，则说明是段落模版
         List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);
+        // 获取生成的标题
         String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
+        // 获取整个拼接内容
+        String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
         // 找到段落配置，说明是段落模版
         if (CollectionUtil.isNotEmpty(paragraphList)) {
             // 处理海报模版参数
             style.assemble(title, paragraphList);
         }
 
-        // 处理海报模版参数
-        Integer titleCount = style.getTitleCount();
+        // AI 生成图片标题，副标题
+        Integer aiTitleCount = style.getTitleCountByModel(PosterVariableModelEnum.AI.name());
         // 找到标题配置，说明需要生成标题
-        if (titleCount > 0) {
-            // 获取整个拼接内容
-            String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
-
-
+        if (aiTitleCount > 0) {
             OpenAIChatActionHandler openAIChatActionHandler = new OpenAIChatActionHandler();
             ActionResponse execute = openAIChatActionHandler.execute(this.getAppContext(), this.getScopeDataOperator());
             String answer = execute.getAnswer();
-
             // 处理海报模版参数
+
         }
 
         // 校验海报模版
         style.validate();
-        // 处理海报模版参数
 
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();

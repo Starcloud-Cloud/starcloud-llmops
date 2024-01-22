@@ -34,6 +34,16 @@ public class PosterVariableDTO implements java.io.Serializable {
     private String field;
 
     /**
+     * 模式
+     */
+    private String model;
+
+    /**
+     * 提示词
+     */
+    private String prompt;
+
+    /**
      * 变量类型
      */
     private String type;

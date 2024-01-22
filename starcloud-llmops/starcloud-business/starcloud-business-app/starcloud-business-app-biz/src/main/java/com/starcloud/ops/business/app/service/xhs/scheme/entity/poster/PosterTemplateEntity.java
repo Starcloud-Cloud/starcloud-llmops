@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.xhs.scheme.entity.poster;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -59,7 +58,7 @@ public class PosterTemplateEntity implements java.io.Serializable {
      */
     @Schema(description = "是否是主图")
     private Boolean isMain;
-    
+
     /**
      * 图片数量
      */
@@ -101,9 +100,10 @@ public class PosterTemplateEntity implements java.io.Serializable {
      *
      * @return 标题变量列表
      */
-    public List<PosterVariableEntity> getVariableTitleList() {
+    public List<PosterVariableEntity> getVariableTitleListByModel(String model) {
         return CollectionUtil.emptyIfNull(this.variableList).stream()
                 .filter(variableItem -> "TITLE".equals(variableItem.getField()))
+                .filter(variableItem -> model.equals(variableItem.getModel()))
                 .collect(Collectors.toList());
     }
 
