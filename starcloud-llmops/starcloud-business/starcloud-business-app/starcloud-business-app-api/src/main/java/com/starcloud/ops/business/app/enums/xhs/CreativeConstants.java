@@ -32,4 +32,19 @@ public interface CreativeConstants {
      */
     String POSTER_STYLE = "POSTER_STYLE";
 
+    /**
+     * 标题
+     */
+    String TITLE = "TITLE";
+
+    /**
+     * 内容
+     */
+    String CONTENT = "CONTENT";
+
+    /**
+     * 生成数量
+     */
+    String GENERATE_COUNT = "GENERATE_COUNT";
+
 }

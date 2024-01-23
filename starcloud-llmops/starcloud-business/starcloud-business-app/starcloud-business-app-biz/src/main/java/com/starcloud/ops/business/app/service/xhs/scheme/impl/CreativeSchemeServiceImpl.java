@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchem
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -593,14 +594,14 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                 PosterTemplateDTO posterTemplate = CreativeImageUtils.mergeTemplate(template, posterMap);
 
                 // 海报模板参数构建
-                List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+                List<PosterVariableDTO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
                 Map<String, Object> params = Maps.newHashMap();
                 List<String> imageParamList = Lists.newArrayList();
                 // 获取第主图模板的参数
                 if (j == 0) {
-                    List<VariableItemRespVO> mainImageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
+                    List<PosterVariableDTO> mainImageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
                     for (int k = 0; k < mainImageVariableList.size(); k++) {
-                        VariableItemRespVO variableItem = mainImageVariableList.get(k);
+                        PosterVariableDTO variableItem = mainImageVariableList.get(k);
                         if (k == 0) {
                             String imageUrl = disperseImageUrlList.get(i);
                             params.put(variableItem.getField(), imageUrl);
@@ -609,8 +610,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageVariableList.size()));
                         }
                     }
-                    List<VariableItemRespVO> mainOtherVariableList = CreativeImageUtils.otherTypeVariableList(variables);
-                    for (VariableItemRespVO variableItem : mainOtherVariableList) {
+                    List<PosterVariableDTO> mainOtherVariableList = CreativeImageUtils.otherTypeVariableList(variables);
+                    for (PosterVariableDTO variableItem : mainOtherVariableList) {
                         if ("TEXT".equals(variableItem.getType())) {
                             if (Objects.isNull(variableItem.getValue()) ||
                                     ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
@@ -629,8 +630,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         }
                     }
                 } else {
-                    List<VariableItemRespVO> imageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
-                    for (VariableItemRespVO variableItem : variables) {
+                    List<PosterVariableDTO> imageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
+                    for (PosterVariableDTO variableItem : variables) {
                         if ("IMAGE".equals(variableItem.getType())) {
                             params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, imageVariableList.size()));
                         } else {

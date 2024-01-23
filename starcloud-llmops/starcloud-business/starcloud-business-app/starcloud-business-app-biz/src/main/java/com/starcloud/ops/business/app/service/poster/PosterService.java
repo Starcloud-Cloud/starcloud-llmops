@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.service.poster;
 
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 
@@ -20,7 +20,7 @@ public interface PosterService {
      *
      * @return 模板列表
      */
-    List<PosterTemplateDTO> templates();
+    List<PosterTemplate> templates();
 
     /**
      * 根据类型分组获取模板列表

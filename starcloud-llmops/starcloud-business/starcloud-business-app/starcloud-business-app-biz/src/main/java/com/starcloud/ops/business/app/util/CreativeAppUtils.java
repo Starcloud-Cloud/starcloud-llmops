@@ -30,6 +30,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSch
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.StandardSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
@@ -595,8 +596,8 @@ public class CreativeAppUtils {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemRespVO ofInputVariable(String field, String label, Integer order, Integer count) {
-        VariableItemRespVO variableItem = new VariableItemRespVO();
+    public static PosterVariableDTO ofInputVariable(String field, String label, Integer order, Integer count) {
+        PosterVariableDTO variableItem = new PosterVariableDTO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);

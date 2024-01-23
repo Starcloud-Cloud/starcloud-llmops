@@ -60,6 +60,8 @@ public abstract class BaseActionHandler extends Object {
      */
     private AppContext appContext;
 
+    private ScopeDataOperator scopeDataOperator;
+
     /**
      * 获取用户权益类型
      *
@@ -133,6 +135,7 @@ public abstract class BaseActionHandler extends Object {
             context.setStepId(serviceTaskPropertyDTO.getStepId());
             // 设置到上下文中
             this.setAppContext(context);
+            this.setScopeDataOperator(scopeDataOperator);
             // 执行具体的步骤
             ActionResponse actionResponse = this.doExecute();
             //设置到上下文中

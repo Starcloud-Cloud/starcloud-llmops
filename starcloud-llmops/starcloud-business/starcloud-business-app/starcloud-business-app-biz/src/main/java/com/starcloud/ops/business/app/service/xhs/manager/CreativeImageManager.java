@@ -15,8 +15,10 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteReques
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
@@ -60,11 +62,11 @@ public class CreativeImageManager {
      * @return 图片模板
      */
     public List<PosterTemplateDTO> templates() {
-        List<com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO> templates = posterService.templates();
+        List<PosterTemplate> templates = posterService.templates();
         return CollectionUtil.emptyIfNull(templates).stream().map(item -> {
             List<PosterParam> params = CollectionUtil.emptyIfNull(item.getParams());
             int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
-            List<VariableItemRespVO> variables = params.stream().map(param -> {
+            List<PosterVariableDTO> variables = params.stream().map(param -> {
                 Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
                 if ("image".equals(param.getType())) {
                     return CreativeImageUtils.ofImageVariable(param.getId(), param.getName(), order);
@@ -73,7 +75,7 @@ public class CreativeImageManager {
                 } else {
                     return null;
                 }
-            }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
+            }).filter(Objects::nonNull).sorted(Comparator.comparingInt(PosterVariableDTO::getOrder)).collect(Collectors.toList());
 
             PosterTemplateDTO response = new PosterTemplateDTO();
             response.setId(item.getId());
@@ -111,7 +113,7 @@ public class CreativeImageManager {
                             .map(templateItem -> {
                                 List<PosterParam> params = CollectionUtil.emptyIfNull(templateItem.getParams());
                                 int imageNumber = (int) params.stream().filter(param -> "image".equals(param.getType())).count();
-                                List<VariableItemRespVO> variables = params.stream()
+                                List<PosterVariableDTO> variables = params.stream()
                                         .map(param -> {
                                             Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
                                             if ("image".equals(param.getType())) {
@@ -121,7 +123,7 @@ public class CreativeImageManager {
                                             } else {
                                                 return null;
                                             }
-                                        }).filter(Objects::nonNull).sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
+                                        }).filter(Objects::nonNull).sorted(Comparator.comparingInt(PosterVariableDTO::getOrder)).collect(Collectors.toList());
                                 PosterTemplateDTO template = new PosterTemplateDTO();
                                 template.setId(templateItem.getId());
                                 template.setName(templateItem.getLabel());

@@ -11,7 +11,6 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -30,7 +29,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * App 上下文
@@ -295,5 +299,11 @@ public class AppContext {
     @JSONField(serialize = false)
     public void setActionResponse(ActionResponse response) {
         this.app.setActionResponse(this.stepId, response);
+    }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String key, Object value) {
+        this.app.putVariable(this.stepId, key, value);
     }
 }

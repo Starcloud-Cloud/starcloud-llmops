@@ -6,7 +6,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
@@ -16,6 +15,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -105,10 +105,10 @@ public class CreativeImageUtils {
                 Map<String, Object> params = Maps.newHashMap();
                 // 图片集合，用于替换图片。
                 List<String> imageList = Lists.newArrayList();
-                List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
-                List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
+                List<PosterVariableDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+                List<PosterVariableDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
 
-                for (VariableItemRespVO variableItem : variableItemList) {
+                for (PosterVariableDTO variableItem : variableItemList) {
                     if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
                         // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                         params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
@@ -160,7 +160,7 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    public static void paragraphTitle(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
+    public static void paragraphTitle(Map<String, Object> params, PosterVariableDTO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
@@ -182,7 +182,7 @@ public class CreativeImageUtils {
      * @param variableItem  变量
      * @param paragraphList 段落
      */
-    public static void paragraphContent(Map<String, Object> params, VariableItemRespVO variableItem, List<ParagraphDTO> paragraphList) {
+    public static void paragraphContent(Map<String, Object> params, PosterVariableDTO variableItem, List<ParagraphDTO> paragraphList) {
         if (CollectionUtil.isEmpty(paragraphList)) {
             params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
         }
@@ -243,7 +243,7 @@ public class CreativeImageUtils {
             posterTemplate.setIndex(i + 1);
             posterTemplate.setId(posterTemplate.getId());
             posterTemplate.setName(posterTemplate.getName());
-            List<VariableItemRespVO> params = transformParams(posterTemplate, useImageList);
+            List<PosterVariableDTO> params = transformParams(posterTemplate, useImageList);
             int size = (int) params.stream().filter(item -> PARAGRAPH_TITLE.contains(item.getField())).count();
             paragraphParamCountList.add(size);
             posterTemplate.setVariableList(params);
@@ -344,7 +344,7 @@ public class CreativeImageUtils {
             imageExecuteRequest.setIsMain(i == 0);
             imageExecuteRequest.setId(posterTemplate.getId());
             imageExecuteRequest.setName(posterTemplate.getName());
-            List<VariableItemRespVO> params = transformParams(posterTemplate, useImageList);
+            List<PosterVariableDTO> params = transformParams(posterTemplate, useImageList);
             int size = (int) params.stream().filter(item -> PARAGRAPH_TITLE.contains(item.getField())).count();
             paragraphParamCountList.add(size);
             imageExecuteRequest.setParams(params);
@@ -446,11 +446,11 @@ public class CreativeImageUtils {
      * @param posterVariableList 海报模板变量
      * @return 合并后的海报模板变量
      */
-    public static List<VariableItemRespVO> mergeVariables(List<VariableItemRespVO> variableList, List<VariableItemRespVO> posterVariableList) {
-        Map<String, VariableItemRespVO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
-        for (VariableItemRespVO variableItem : posterVariableList) {
+    public static List<PosterVariableDTO> mergeVariables(List<PosterVariableDTO> variableList, List<PosterVariableDTO> posterVariableList) {
+        Map<String, PosterVariableDTO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(PosterVariableDTO::getField, Function.identity()));
+        for (PosterVariableDTO variableItem : posterVariableList) {
             if (!IMAGE.equalsIgnoreCase(variableItem.getType()) && variableMap.containsKey(variableItem.getField())) {
-                VariableItemRespVO variable = variableMap.get(variableItem.getField());
+                PosterVariableDTO variable = variableMap.get(variableItem.getField());
                 if (Objects.nonNull(variable.getValue())) {
                     variableItem.setValue(variable.getValue());
                 }
@@ -466,14 +466,14 @@ public class CreativeImageUtils {
      * @param useImageList 使用的图片
      * @return 执行参数
      */
-    private static List<VariableItemRespVO> transformParams(PosterTemplateDTO template, List<String> useImageList) {
-        List<VariableItemRespVO> params = Lists.newArrayList();
+    private static List<PosterVariableDTO> transformParams(PosterTemplateDTO template, List<String> useImageList) {
+        List<PosterVariableDTO> params = Lists.newArrayList();
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
-        List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(template.getVariableList());
-        List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
-        for (VariableItemRespVO variableItem : variableItemList) {
-            VariableItemRespVO item = SerializationUtils.clone(variableItem);
+        List<PosterVariableDTO> variableItemList = CollectionUtil.emptyIfNull(template.getVariableList());
+        List<PosterVariableDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
+        for (PosterVariableDTO variableItem : variableItemList) {
+            PosterVariableDTO item = SerializationUtils.clone(variableItem);
             if (IMAGE.equalsIgnoreCase(item.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 item.setValue(randomImage(imageList, useImageList, imageVariableItemList.size()));
             } else {
@@ -497,9 +497,9 @@ public class CreativeImageUtils {
         Map<String, Object> params = Maps.newHashMap();
         // 图片集合，用于替换图片。
         List<String> imageList = Lists.newArrayList();
-        List<VariableItemRespVO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
-        List<VariableItemRespVO> imageVariableItemList = imageTypeVariableList(variableItemList);
-        for (VariableItemRespVO variableItem : variableItemList) {
+        List<PosterVariableDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
+        List<PosterVariableDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
+        for (PosterVariableDTO variableItem : variableItemList) {
             if (force && IMAGE.equalsIgnoreCase(variableItem.getType()) && CollectionUtil.isNotEmpty(useImageList)) {
                 // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
                 params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
@@ -536,8 +536,8 @@ public class CreativeImageUtils {
         List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
         int titleIndex = 1, contentIndex = 1;
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
-            List<VariableItemRespVO> params = imageRequest.getParams();
-            for (VariableItemRespVO param : params) {
+            List<PosterVariableDTO> params = imageRequest.getParams();
+            for (PosterVariableDTO param : params) {
                 if ("TEXT".equalsIgnoreCase(param.getType())) {
                     if (PARAGRAPH_TITLE.contains(param.getField())) {
                         builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
@@ -561,7 +561,7 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 图片类型变量
      */
-    public static List<VariableItemRespVO> imageTypeVariableList(List<VariableItemRespVO> variableItemList) {
+    public static List<PosterVariableDTO> imageTypeVariableList(List<PosterVariableDTO> variableItemList) {
         return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> IMAGE.equalsIgnoreCase(item.getType())).collect(Collectors.toList());
     }
 
@@ -571,7 +571,7 @@ public class CreativeImageUtils {
      * @param variableItemList 变量列表
      * @return 非图片类型变量
      */
-    public static List<VariableItemRespVO> otherTypeVariableList(List<VariableItemRespVO> variableItemList) {
+    public static List<PosterVariableDTO> otherTypeVariableList(List<PosterVariableDTO> variableItemList) {
         return CollectionUtil.emptyIfNull(variableItemList).stream().filter(item -> !IMAGE.equalsIgnoreCase(item.getType())).collect(Collectors.toList());
     }
 
@@ -630,8 +630,8 @@ public class CreativeImageUtils {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemRespVO ofImageVariable(String field, String label, Integer order) {
-        VariableItemRespVO variableItem = new VariableItemRespVO();
+    public static PosterVariableDTO ofImageVariable(String field, String label, Integer order) {
+        PosterVariableDTO variableItem = new PosterVariableDTO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);
@@ -645,12 +645,4 @@ public class CreativeImageUtils {
         return variableItem;
     }
 
-    public static List<PosterTemplateDTO> handlerImageTemplate(List<PosterTemplateDTO> posterTemplateList) {
-        for (int i = 0; i < posterTemplateList.size(); i++) {
-            PosterTemplateDTO posterTemplate = posterTemplateList.get(i);
-            posterTemplate.setIsMain(i == 0);
-            posterTemplate.setIndex(i + 1);
-        }
-        return posterTemplateList;
-    }
 }

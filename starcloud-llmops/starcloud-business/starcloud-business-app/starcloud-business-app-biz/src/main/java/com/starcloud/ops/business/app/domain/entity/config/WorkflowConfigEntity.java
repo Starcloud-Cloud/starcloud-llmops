@@ -113,4 +113,11 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         }
     }
 
+    public void putVariable(String stepId, String key, Object value) {
+        for (WorkflowStepWrapper step : this.steps) {
+            if (step.getName().equals(stepId)) {
+                step.putVariable(key, value);
+            }
+        }
+    }
 }

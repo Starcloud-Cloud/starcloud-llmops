@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
@@ -22,6 +23,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -235,6 +237,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         log.error("卖家精灵Cookie 失效，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")

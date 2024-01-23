@@ -15,7 +15,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -94,10 +93,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
 
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
-        Integer sumMagicBean = 0;
-        Integer sumMagicImage = 0;
-        Integer sumMagicBeanInit = 0;
-        Integer sumMagicImageInit = 0;
+        int sumMagicBean = 0;
+        int sumMagicImage = 0;
+        int sumMagicBeanInit = 0;
+        int sumMagicImageInit = 0;
         if (!validRightsList.isEmpty()) {
             sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
             sumMagicImage = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImage).sum();
@@ -254,21 +253,15 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         notifyExpiringRightsRespVO.setIsNotify(false);
 
         LocalDateTime today = LocalDateTime.now();
-        LocalDateTime nextWeek = today.plusDays(7);
+        // LocalDateTime nextWeek = today.plusDays(7);
+        // 获取有效的魔法豆
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, AdminUserRightsTypeEnum.MAGIC_BEAN);
         if (CollUtil.isEmpty(validRightsList)) {
             return notifyExpiringRightsRespVO;
         }
-        // 获取 7 天内即将过期的权益
-        List<AdminUserRightsDO> nextWeekExpiringRights = validRightsList.stream()
-                .filter(rights -> rights.getValidEndTime().isBefore(nextWeek) && rights.getValidEndTime().isAfter(today))
-                .collect(Collectors.toList());
-        if (CollUtil.isEmpty(nextWeekExpiringRights)) {
-            return notifyExpiringRightsRespVO;
-        }
 
         // 计算7 天内过期的魔法豆数量
-        int sumMagicBean = nextWeekExpiringRights.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
+        int sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
 
         notifyExpiringRightsRespVO.setName(AdminUserRightsTypeEnum.MAGIC_BEAN.getName());
         notifyExpiringRightsRespVO.setRightsType(AdminUserRightsTypeEnum.MAGIC_BEAN.name());

@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.feign;
 
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
@@ -27,7 +27,7 @@ public interface PosterImageClient {
      * @return 模板列表
      */
     @PostMapping(value = "/template/find-all-exclude-json")
-    PosterResponse<List<PosterTemplateDTO>> templates();
+    PosterResponse<List<PosterTemplate>> templates();
 
     /**
      * 根据类型分组获取模板列表

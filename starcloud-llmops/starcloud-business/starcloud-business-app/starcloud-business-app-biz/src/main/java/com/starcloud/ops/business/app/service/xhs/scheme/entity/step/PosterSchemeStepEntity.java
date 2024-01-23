@@ -31,7 +31,6 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
     @Schema(description = "创作方案步骤图片风格")
     private List<PosterStyleEntity> styleList;
 
-
     /**
      * 组装为应用步骤信息
      *

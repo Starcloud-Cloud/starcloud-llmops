@@ -15,7 +15,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterStyleEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -29,11 +28,13 @@ import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
-import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -105,48 +106,9 @@ public class ParagraphActionHandler extends BaseActionHandler {
         // 需要生成的段落数量
         Integer paragraphCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.PARAGRAPH_COUNT, "4")));
 
-
-        // 随机模式
+        // 段落生成不再支持随机获取模式
         if (CreativeSchemeGenerateModeEnum.RANDOM.name().equals(mode)) {
-            // 获取到参考文案
-            String refers = String.valueOf(params.get(CreativeConstants.REFERS));
-            if (StrUtil.isBlank(refers)) {
-                return ActionResponse.failure("", "310100019", "参考内容不能为空！", params);
-            }
-            List<ReferenceSchemeDTO> refersList = JSONUtil.toList(refers, ReferenceSchemeDTO.class);
-            if (CollectionUtil.isEmpty(refersList)) {
-                return ActionResponse.failure("", "310100019", "参考内容不能为空！", params);
-            }
-            if (paragraphCount < refersList.size()) {
-                return ActionResponse.failure("", "310100019", "参考内容数量不能少于段落数！", params);
-            }
-
-            Map<Integer, ParagraphDTO> paragraphMap = new HashMap<>();
-            for (int i = 0; i < paragraphCount; i++) {
-                randomParagraph(refersList, paragraphMap);
-            }
-            List<ParagraphDTO> paragraphs = paragraphMap.values().stream().collect(Collectors.toList());
-            ActionResponse actionResponse = new ActionResponse();
-            actionResponse.setSuccess(Boolean.TRUE);
-            actionResponse.setType(this.getClass().getSimpleName());
-            actionResponse.setIsShow(Boolean.TRUE);
-            actionResponse.setMessage("");
-            actionResponse.setAnswer(JSONUtil.toJsonStr(paragraphs));
-            actionResponse.setOutput(JsonData.of(paragraphs));
-            actionResponse.setMessageTokens(Long.valueOf(actionResponse.getMessage().length()));
-            actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, true));
-            actionResponse.setAnswerTokens(Long.valueOf(actionResponse.getAnswer().length()));
-            actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, false));
-            actionResponse.setTotalTokens(actionResponse.getMessageTokens() + actionResponse.getAnswerTokens());
-            BigDecimal totalPrice = new BigDecimal(String.valueOf(actionResponse.getMessageTokens())).multiply(actionResponse.getMessageUnitPrice())
-                    .add(new BigDecimal(String.valueOf(actionResponse.getAnswerTokens())).multiply(actionResponse.getAnswerUnitPrice()));
-            actionResponse.setTotalPrice(totalPrice);
-            actionResponse.setStepConfig(params);
-            // 权益点数, 成功正常扣除, 失败不扣除
-            actionResponse.setCostPoints(this.getCostPoints());
-            log.info("段落内容生成 Action 执行成功: 生成模式: {}, : 结果：\n{}", mode, JSONUtil.parse(actionResponse).toStringPretty());
-            return actionResponse;
-
+            return ActionResponse.failure("", "310100020", "不支持随机获取模式！", params);
         }
 
         // AI仿写模式
@@ -222,7 +184,6 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setType(handlerResponse.getType());
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
-
 
         this.writeLines(handlerResponse.getAnswer(), actionResponse);
 
