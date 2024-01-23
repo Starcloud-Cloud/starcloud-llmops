@@ -60,11 +60,15 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
         if (StrUtil.isBlank(model)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成模式不能为空！"));
         }
+        // 非自定义模式，参考文案不能为空
         if (!CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model) && CollectionUtil.isEmpty(referList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
         }
-        if (StrUtil.isBlank(requirement)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成要求不能为空！"));
+        // 非随机获取情况下，要求不能为空
+        if (!CreativeSchemeGenerateModeEnum.RANDOM.name().equals(model)) {
+            if (StrUtil.isBlank(requirement)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成要求不能为空！"));
+            }
         }
     }
 

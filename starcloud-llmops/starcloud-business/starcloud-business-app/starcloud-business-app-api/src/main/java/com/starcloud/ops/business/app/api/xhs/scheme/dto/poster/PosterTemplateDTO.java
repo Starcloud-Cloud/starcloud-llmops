@@ -81,5 +81,6 @@ public class PosterTemplateDTO implements java.io.Serializable {
         if (StrUtil.isBlank(id)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "海报ID不能为空！"));
         }
+        variableList.forEach(PosterVariableDTO::validate);
     }
 }

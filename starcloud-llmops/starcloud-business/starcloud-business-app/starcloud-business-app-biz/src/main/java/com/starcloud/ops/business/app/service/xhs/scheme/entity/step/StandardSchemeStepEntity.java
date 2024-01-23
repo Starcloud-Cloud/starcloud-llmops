@@ -71,7 +71,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
             if (referenceSchemeList.size() <= 1) {
                 referList = referenceSchemeList;
             } else {
-                for (int i = 0; i < 1; i++) {
+                for (int i = 0; i < 3; i++) {
                     referList.add(referenceSchemeList.get(RandomUtil.randomInt(referenceSchemeList.size())));
                 }
             }
