@@ -106,8 +106,5 @@ public class PosterVariableDTO implements java.io.Serializable {
         if (StrUtil.isBlank(field)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "变量field不能为空！"));
         }
-        if (StrUtil.isBlank(model)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100401, "变量生成模式不能为空！"));
-        }
     }
 }
