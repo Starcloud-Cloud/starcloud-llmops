@@ -652,7 +652,7 @@ public class CreativeAppUtils {
     public static AppMarketRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
                                                          PosterStyleDTO posterStyle,
                                                          AppMarketRespVO appResponse,
-                                                         List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
+                                                         List<String> useImageList) {
 
         Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
                 .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
@@ -665,11 +665,11 @@ public class CreativeAppUtils {
             if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
                 PosterStyleDTO style;
                 if (!paragraphOptional.isPresent()) {
-                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, posterMap);
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList);
                 } else {
                     ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) paragraphOptional.get();
                     Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
-                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount, posterMap);
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount);
                 }
                 stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(style)));
             } else {

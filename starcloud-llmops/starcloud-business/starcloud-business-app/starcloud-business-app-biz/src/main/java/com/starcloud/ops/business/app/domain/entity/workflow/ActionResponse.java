@@ -106,7 +106,7 @@ public class ActionResponse {
      */
     private Object stepConfig;
 
-    public static ActionResponse failure(String message, String errorCode, String errorMsg, Object stepConfig) {
+    public static ActionResponse failure(String errorCode, String errorMsg, Object stepConfig) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setErrorCode(errorCode);
@@ -114,7 +114,7 @@ public class ActionResponse {
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
         actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
         actionResponse.setIsShow(Boolean.TRUE);
-        actionResponse.setMessage(message);
+        actionResponse.setMessage(" ");
         actionResponse.setStepConfig(stepConfig);
         actionResponse.setCostPoints(0);
         return actionResponse;

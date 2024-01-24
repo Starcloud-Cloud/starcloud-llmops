@@ -18,6 +18,11 @@ public interface CreativeConstants {
     String REFERS = "REFERS";
 
     /**
+     * 参考内容
+     */
+    String REFERS_COUNT = "REFERS_COUNT";
+
+    /**
      * 段落数
      */
     String PARAGRAPH_COUNT = "PARAGRAPH_COUNT";

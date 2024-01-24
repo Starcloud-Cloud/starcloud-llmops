@@ -9,15 +9,11 @@ import lombok.Getter;
  * @since 2021-06-22
  */
 @Getter
-public enum PosterVariableModelEnum implements IEnumable<Integer> {
+public enum PosterTitleModeEnum implements IEnumable<Integer> {
 
-    USER(1, "用户填写"),
+    DEFAULT(1, "默认"),
 
-    VARIABLE(2, "变量替换"),
-
-    AI(3, "AI生成"),
-
-    MULTIMODAL(4, "AI多模态生成");
+    AI(2, "AI生成");
 
     /**
      * 类型编码
@@ -30,7 +26,7 @@ public enum PosterVariableModelEnum implements IEnumable<Integer> {
     private final String label;
 
 
-    PosterVariableModelEnum(Integer code, String label) {
+    PosterTitleModeEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
     }

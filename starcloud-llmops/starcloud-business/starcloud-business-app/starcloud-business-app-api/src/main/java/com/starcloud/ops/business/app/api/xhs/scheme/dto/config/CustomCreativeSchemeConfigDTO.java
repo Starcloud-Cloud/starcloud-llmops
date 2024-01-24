@@ -42,6 +42,12 @@ public class CustomCreativeSchemeConfigDTO implements java.io.Serializable {
     private String appName;
 
     /**
+     * 应用描述
+     */
+    @Schema(description = "创作应用描述")
+    private String description;
+
+    /**
      * 应用版本号
      */
     @Schema(description = "创作应用版本号")
