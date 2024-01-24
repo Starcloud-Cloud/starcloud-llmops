@@ -63,6 +63,18 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Integer imageNumber;
 
     /**
+     * 标题生成模式
+     */
+    @Schema(description = "标题生成模式")
+    private String titleGenerateMode;
+
+    /**
+     * 标题生成规则
+     */
+    @Schema(description = "标题生成要求")
+    private String titleGenerateRequirement;
+
+    /**
      * 示例图片
      */
     @Schema(description = "示例图片")

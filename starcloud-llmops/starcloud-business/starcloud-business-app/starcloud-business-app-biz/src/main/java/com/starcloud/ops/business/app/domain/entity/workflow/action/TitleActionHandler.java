@@ -193,7 +193,7 @@ public class TitleActionHandler extends BaseActionHandler {
 
         // 处理参考内容
         List<ReferenceSchemeDTO> handlerReferList = handlerReferList(referList, refersCount);
-        this.getAppContext().putVariable(refersKey, handlerReferList);
+        this.getAppContext().putVariable(refersKey, JSONUtil.toJsonStr(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();

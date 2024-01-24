@@ -66,6 +66,18 @@ public class PosterTemplateEntity implements java.io.Serializable {
     private Integer imageNumber;
 
     /**
+     * 标题生成模式
+     */
+    @Schema(description = "标题生成模式")
+    private String titleGenerateMode;
+
+    /**
+     * 标题生成规则
+     */
+    @Schema(description = "标题生成要求")
+    private String titleGenerateRequirement;
+
+    /**
      * 海报模板描述
      */
     @Schema(description = "海报模板描述")
@@ -103,7 +115,6 @@ public class PosterTemplateEntity implements java.io.Serializable {
     public List<PosterVariableEntity> getVariableTitleListByModel(String model) {
         return CollectionUtil.emptyIfNull(this.variableList).stream()
                 .filter(variableItem -> "TITLE".equals(variableItem.getField()))
-                .filter(variableItem -> model.equals(variableItem.getModel()))
                 .collect(Collectors.toList());
     }
 

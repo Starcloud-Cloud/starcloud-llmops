@@ -361,7 +361,7 @@ public class RecommendVariableItemFactory {
         variableItem.setOrder(100);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
-        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         variableItem.addOption(CreativeSchemeGenerateModeEnum.RANDOM.getLabel(), CreativeSchemeGenerateModeEnum.RANDOM.name());
@@ -384,7 +384,7 @@ public class RecommendVariableItemFactory {
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(101);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
@@ -413,7 +413,7 @@ public class RecommendVariableItemFactory {
     }
 
     /**
-     * 参考内容变量
+     * 生成段落数量
      *
      * @return 参考内容变量
      */
@@ -516,27 +516,5 @@ public class RecommendVariableItemFactory {
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
-
-    /**
-     * 参考内容变量
-     *
-     * @return 参考内容变量
-     */
-    public static VariableItemRespVO defPosterRequirement() {
-        VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.REQUIREMENT);
-        variableItem.setLabel("生成要求");
-        variableItem.setDescription("生成要求");
-        variableItem.setDefaultValue(StringUtils.EMPTY);
-        variableItem.setValue(StringUtils.EMPTY);
-        variableItem.setOrder(104);
-        variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
-        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
-        variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.TRUE);
-        return variableItem;
-    }
-
 
 }

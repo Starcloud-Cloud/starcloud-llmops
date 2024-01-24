@@ -47,12 +47,6 @@ public class PosterStyleDTO implements java.io.Serializable {
     private String name;
 
     /**
-     * 风格提示
-     */
-    @Schema(description = "风格提示")
-    private String prompt;
-
-    /**
      * 模板列表
      */
     @Schema(description = "模板列表")

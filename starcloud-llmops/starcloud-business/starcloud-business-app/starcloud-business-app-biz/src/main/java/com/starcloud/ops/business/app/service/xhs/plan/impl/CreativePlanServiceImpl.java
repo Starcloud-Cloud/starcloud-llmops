@@ -80,7 +80,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -551,22 +550,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<CreativeSchemeListOptionRespVO> schemeListConfiguration = CollectionUtil.emptyIfNull(planConfig.getSchemeList());
         Map<String, CreativeSchemeListOptionRespVO> schemeMap = schemeListConfiguration.stream().collect(Collectors.toMap(CreativeSchemeListOptionRespVO::getUid, Function.identity()));
 
-        // 查询并且校验创作方案是否存在
-        List<CreativeSchemeRespVO> schemeList = getSchemeList(planConfig.getSchemeUidList());
-        // 查询Poster模板Map，每一次都是获取最新的海报模板参数。避免海报模板修改无法感知。
-        Map<String, PosterTemplateDTO> posterMap = creativeImageManager.mapTemplate();
+        // 查询并且校验创作方案列表是否存在
+        List<CreativeSchemeRespVO> schemeList = getSchemeList(new ArrayList<>(schemeMap.keySet()));
+
+        // 获取最新的海报模板参数。避免海报模板修改无法感知
+        Map<String, PosterTemplateDTO> latestPosterMap = creativeImageManager.mapTemplate();
 
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         for (CreativeSchemeRespVO scheme : schemeList) {
             // 获取计划应用配置
             CreativeSchemeListOptionRespVO listOptionResponse = schemeMap.get(scheme.getUid());
-            if (Objects.isNull(listOptionResponse)) {
-                continue;
-            }
-
             // 自定义配置模式情况
-            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(scheme.getMode())) {
+            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(scheme.getMode())) {
                 // 获取自定义配置并且校验
                 CustomCreativeSchemeConfigDTO customConfiguration = scheme.getCustomConfiguration();
                 customConfiguration.validate();
@@ -590,7 +586,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
                 PosterSchemeStepDTO schemeStep = (PosterSchemeStepDTO) posterStepOptional.get();
                 for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(schemeStep.getStyleList())) {
-                    AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(steps, posterStyle, SerializationUtils.clone(appMarketRespVO), planConfig.getImageUrlList(), posterMap);
+                    PosterStyleDTO style = CreativeImageUtils.mergePosterTemplate(posterStyle, latestPosterMap);
+                    AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(steps, style, SerializationUtils.clone(appMarketRespVO), planConfig.getImageUrlList());
                     CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                     planExecute.setSchemeUid(scheme.getUid());
                     planExecute.setSchemeMode(scheme.getMode());
@@ -599,6 +596,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 }
                 continue;
             }
+
 
             // 非自定义配置模式情况
             CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
@@ -616,11 +614,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
                 if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(scheme.getMode())) {
                     planExecute.setParagraphCount(configuration.getParagraphCount());
-                    CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), configuration.getParagraphCount(), posterMap);
+                    CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), configuration.getParagraphCount(), latestPosterMap);
                     planExecute.setImageStyleExecuteRequest(styleExecute);
                 } else {
                     // 图片执行参数
-                    CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), posterMap);
+                    CreativePlanImageStyleExecuteDTO styleExecute = CreativeImageUtils.getCreativeImageStyleExecute(style, planConfig.getImageUrlList(), latestPosterMap);
                     planExecute.setImageStyleExecuteRequest(styleExecute);
                 }
                 planExecute.setSchemeUid(scheme.getUid());

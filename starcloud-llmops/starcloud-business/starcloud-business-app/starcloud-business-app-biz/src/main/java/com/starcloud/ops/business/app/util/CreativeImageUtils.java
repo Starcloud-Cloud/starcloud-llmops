@@ -202,24 +202,18 @@ public class CreativeImageUtils {
      *
      * @param style 图片模板列表
      */
-    public static PosterStyleDTO handlerPosterStyleExecute(PosterStyleDTO style, List<String> useImageList, Map<String, PosterTemplateDTO> posterMap) {
+    public static PosterStyleDTO handlerPosterStyleExecute(PosterStyleDTO style, List<String> useImageList) {
 
         List<PosterTemplateDTO> list = new ArrayList<>();
         // 图片参数信息
         List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
-        for (int i = 0; i < templateList.size(); i++) {
-            PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
-            posterTemplate.setIndex(i + 1);
-            posterTemplate.setIsMain(i == 0);
-            posterTemplate.setId(posterTemplate.getId());
-            posterTemplate.setName(posterTemplate.getName());
+        for (PosterTemplateDTO posterTemplate : templateList) {
             posterTemplate.setVariableList(transformParams(posterTemplate, useImageList));
             list.add(posterTemplate);
         }
         PosterStyleDTO posterStyle = new PosterStyleDTO();
         posterStyle.setId(style.getId());
         posterStyle.setName(style.getName());
-        posterStyle.setPrompt(style.getPrompt());
         posterStyle.setTemplateList(list);
         return posterStyle;
     }
@@ -231,24 +225,18 @@ public class CreativeImageUtils {
      * @return 图片执行参数
      */
     public static PosterStyleDTO handlerPosterStyleExecute(PosterStyleDTO style, List<String> useImageList,
-                                                           Integer paragraphCount, Map<String, PosterTemplateDTO> posterMap) {
+                                                           Integer paragraphCount) {
         // 图片参数信息
         List<PosterTemplateDTO> list = Lists.newArrayList();
 
         List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         // 图片参数配置的总段落数
         List<Integer> paragraphParamCountList = new ArrayList<>();
-        for (int i = 0; i < templateList.size(); i++) {
-            PosterTemplateDTO posterTemplate = mergeTemplate(templateList.get(i), posterMap);
-            posterTemplate.setIsMain(i == 0);
-            posterTemplate.setIndex(i + 1);
-            posterTemplate.setId(posterTemplate.getId());
-            posterTemplate.setName(posterTemplate.getName());
+        for (PosterTemplateDTO posterTemplate : templateList) {
             List<PosterVariableDTO> params = transformParams(posterTemplate, useImageList);
             int size = (int) params.stream().filter(item -> PARAGRAPH_TITLE.contains(item.getField())).count();
             paragraphParamCountList.add(size);
             posterTemplate.setVariableList(params);
-
             list.add(posterTemplate);
         }
 
@@ -293,7 +281,6 @@ public class CreativeImageUtils {
         PosterStyleDTO imageStyleExecuteRequest = new PosterStyleDTO();
         imageStyleExecuteRequest.setId(style.getId());
         imageStyleExecuteRequest.setName(style.getName());
-        imageStyleExecuteRequest.setPrompt(style.getPrompt());
         imageStyleExecuteRequest.setTemplateList(imageList);
         return imageStyleExecuteRequest;
     }
@@ -456,8 +443,6 @@ public class CreativeImageUtils {
                 if (Objects.nonNull(variable.getValue())) {
                     variableItem.setValue(variable.getValue());
                 }
-                variableItem.setModel(variable.getModel());
-                variableItem.setPrompt(variable.getPrompt());
             }
         }
         return posterVariableList;
@@ -649,4 +634,79 @@ public class CreativeImageUtils {
         return variableItem;
     }
 
+    /**
+     * 合并模板
+     *
+     * @param posterStyle     模板
+     * @param latestPosterMap 最新模板
+     * @return 合并后的模板
+     */
+    public static PosterStyleDTO mergePosterTemplate(PosterStyleDTO posterStyle, Map<String, PosterTemplateDTO> latestPosterMap) {
+
+        List<PosterTemplateDTO> templateList = posterStyle.getTemplateList();
+        if (CollectionUtil.isEmpty(templateList)) {
+            return posterStyle;
+        }
+
+        List<PosterTemplateDTO> templates = Lists.newArrayList();
+
+        for (int i = 0; i < templateList.size(); i++) {
+            PosterTemplateDTO posterTemplate = templateList.get(i);
+            // 获取最新模板
+            PosterTemplateDTO latestPosterTemplate = latestPosterMap.get(posterTemplate.getId());
+            // 如果模板不存在，跳过，不对应模板进行处理
+            if (Objects.isNull(latestPosterTemplate)) {
+                continue;
+            }
+            // 复制一份新模板
+            PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
+            // 处理变量信息
+            List<PosterVariableDTO> latestVariableList = CollectionUtil.emptyIfNull(latestPosterTemplate.getVariableList());
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+            // 获取图片数量
+            Integer latestImageNumber = (int) latestVariableList.stream().filter(item -> IMAGE.equals(item.getType())).count();
+            List<PosterVariableDTO> mergeVariableList = mergePosterVariableList(variableList, latestVariableList);
+            // 更新模板信息
+            template.setIndex(i + 1);
+            template.setIsMain(i == 0);
+            template.setExample(latestPosterTemplate.getExample());
+            template.setName(latestPosterTemplate.getName());
+            template.setImageNumber(latestImageNumber);
+            template.setVariableList(mergeVariableList);
+            templates.add(template);
+        }
+
+        posterStyle.setTemplateList(templates);
+        return posterStyle;
+    }
+
+    /**
+     * 合并海报模板变量列表
+     *
+     * @param variableList       variableList
+     * @param latestVariableList latestVariableList
+     * @return 合并之后的变量列表
+     */
+    private static List<PosterVariableDTO> mergePosterVariableList(List<PosterVariableDTO> variableList, List<PosterVariableDTO> latestVariableList) {
+        List<PosterVariableDTO> mergeVariableList = Lists.newArrayList();
+        // 以最新变量为主，进行合并变量，数据替换
+        Map<String, PosterVariableDTO> variableMap = variableList.stream().collect(Collectors.toMap(PosterVariableDTO::getField, Function.identity()));
+        for (PosterVariableDTO latestVariable : latestVariableList) {
+            // 复制一份新变量
+            PosterVariableDTO posterVariable = SerializationUtils.clone(latestVariable);
+            // 从map中获取变量
+            PosterVariableDTO variable = variableMap.get(latestVariable.getField());
+            // 如果变量不存在，直接放到新变量列表中
+            if (Objects.isNull(variable)) {
+                mergeVariableList.add(posterVariable);
+                continue;
+            }
+
+            // 更新变量信息的值
+            posterVariable.setValue(variable.getValue());
+            posterVariable.setDefaultValue(variable.getDefaultValue());
+            mergeVariableList.add(posterVariable);
+        }
+        return mergeVariableList;
+    }
 }
