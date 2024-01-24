@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -14,7 +13,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,20 +63,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         Map<String, Object> variableMap = new HashMap<>();
-        List<ReferenceSchemeEntity> referenceSchemeList = CreativeAppUtils.handlerReferencesEntity(this.referList);
-        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(this.model)) {
-            List<ReferenceSchemeEntity> referList = new ArrayList<>();
-            if (referenceSchemeList.size() <= 1) {
-                referList = referenceSchemeList;
-            } else {
-                for (int i = 0; i < 3; i++) {
-                    referList.add(referenceSchemeList.get(RandomUtil.randomInt(referenceSchemeList.size())));
-                }
-            }
-            variableMap.put(CreativeConstants.REFERS, JSONUtil.toJsonStr(referList));
-        } else {
-            variableMap.put(CreativeConstants.REFERS, JSONUtil.toJsonStr(referenceSchemeList));
-        }
+        variableMap.put(CreativeConstants.REFERS, JSONUtil.toJsonStr(this.referList));
         variableMap.put(CreativeConstants.GENERATE_MODE, this.model);
         variableMap.put(CreativeConstants.REQUIREMENT, CreativeAppUtils.handlerRequirement(this.requirement, this.variableList));
         stepWrapper.putVariable(variableMap);

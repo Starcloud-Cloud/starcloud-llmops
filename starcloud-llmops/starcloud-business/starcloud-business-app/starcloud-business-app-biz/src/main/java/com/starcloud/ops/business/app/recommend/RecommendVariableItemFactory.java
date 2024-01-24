@@ -396,6 +396,27 @@ public class RecommendVariableItemFactory {
      *
      * @return 参考内容变量
      */
+    public static VariableItemRespVO defMediaMatrixRefersCount() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REFERS_COUNT);
+        variableItem.setLabel("AI随机获取数量");
+        variableItem.setDescription("AI随机获取数量");
+        variableItem.setDefaultValue(3);
+        variableItem.setValue(3);
+        variableItem.setOrder(1040);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
     public static VariableItemRespVO defMediaMatrixParagraphCount() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.PARAGRAPH_COUNT);

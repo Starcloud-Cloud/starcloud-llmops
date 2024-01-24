@@ -150,6 +150,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             CustomCreativeSchemeConfigDTO customConfiguration = new CustomCreativeSchemeConfigDTO();
             customConfiguration.setAppUid(appMarketResponse.getUid());
             customConfiguration.setAppName(appMarketResponse.getName());
+            customConfiguration.setDescription(appMarketResponse.getDescription());
             customConfiguration.setVersion(appMarketResponse.getVersion());
             customConfiguration.setSteps(schemeStepList);
             customConfigurationList.add(customConfiguration);

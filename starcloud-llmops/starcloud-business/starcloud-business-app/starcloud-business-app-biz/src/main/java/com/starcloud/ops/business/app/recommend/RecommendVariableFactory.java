@@ -93,6 +93,7 @@ public class RecommendVariableFactory {
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
                 RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
                 RecommendVariableItemFactory.defMediaMatrixRequirement()
         ));
         return variable;
@@ -108,6 +109,7 @@ public class RecommendVariableFactory {
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
                 RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
                 RecommendVariableItemFactory.defMediaMatrixRequirement()
         ));
         return variable;
@@ -123,6 +125,7 @@ public class RecommendVariableFactory {
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
                 RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
                 RecommendVariableItemFactory.defMediaMatrixParagraphCount(),
                 RecommendVariableItemFactory.defMediaMatrixRequirement()
         ));
