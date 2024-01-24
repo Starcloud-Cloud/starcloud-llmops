@@ -98,7 +98,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         //总结用模型
         ChatOpenAI chatOpenAi = new ChatOpenAI();
         //16k 去总结
-        chatOpenAi.setModel(ModelTypeEnum.GPT_4_TURBO.getName());
+        chatOpenAi.setModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         chatOpenAi.setMaxTokens(400);
         chatOpenAi.setTemperature(0d);
 

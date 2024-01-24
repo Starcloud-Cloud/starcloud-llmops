@@ -57,6 +57,7 @@ public class PosterStyleEntity implements java.io.Serializable {
     /**
      * 风格提示
      */
+    @Schema(description = "风格提示")
     private String prompt;
 
     /**
