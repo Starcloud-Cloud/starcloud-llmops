@@ -219,6 +219,7 @@ public class CreativeImageUtils {
         PosterStyleDTO posterStyle = new PosterStyleDTO();
         posterStyle.setId(style.getId());
         posterStyle.setName(style.getName());
+        posterStyle.setPrompt(style.getPrompt());
         posterStyle.setTemplateList(list);
         return posterStyle;
     }
@@ -292,6 +293,7 @@ public class CreativeImageUtils {
         PosterStyleDTO imageStyleExecuteRequest = new PosterStyleDTO();
         imageStyleExecuteRequest.setId(style.getId());
         imageStyleExecuteRequest.setName(style.getName());
+        imageStyleExecuteRequest.setPrompt(style.getPrompt());
         imageStyleExecuteRequest.setTemplateList(imageList);
         return imageStyleExecuteRequest;
     }
@@ -454,6 +456,8 @@ public class CreativeImageUtils {
                 if (Objects.nonNull(variable.getValue())) {
                     variableItem.setValue(variable.getValue());
                 }
+                variableItem.setModel(variable.getModel());
+                variableItem.setPrompt(variable.getPrompt());
             }
         }
         return posterVariableList;

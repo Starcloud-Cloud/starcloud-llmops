@@ -243,13 +243,13 @@ public class PosterActionHandler extends BaseActionHandler {
                 try {
                     String imageUrl = String.valueOf(value);
                     BufferedImage bufferedImage = ImageIO.read(new URL(imageUrl));
-                    if (bufferedImage.getHeight() > 448 || bufferedImage.getWidth() > 448) {
+                    if ((bufferedImage.getHeight() * bufferedImage.getWidth()) > 448 * 448) {
                         // 缩放图片
                         BufferedImage scaledImage = scaleImage(bufferedImage, 448, 448);
                         String extension = ImageUploadUtils.getExtension(imageUrl);
-                        byte[] bytes = ImageUploadUtils.bufferedImageToByteArray(bufferedImage, extension);
+                        byte[] bytes = ImageUploadUtils.bufferedImageToByteArray(scaledImage, extension);
                         // 将图片上传到阿里云
-                        UploadImageInfoDTO imageInfoDTO = CreativeUploadUtils.uploadImage(IdUtil.fastSimpleUUID(), ImageUploadUtils.UPLOAD, bytes);
+                        UploadImageInfoDTO imageInfoDTO = CreativeUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + "." + extension, ImageUploadUtils.UPLOAD, bytes);
                         imageUrl = imageInfoDTO.getUrl();
 
                     }
@@ -262,6 +262,7 @@ public class PosterActionHandler extends BaseActionHandler {
             HumanMessage humanMessage = new HumanMessage(messages);
             // 调用通义千问VL模型
             ChatVLQwen chatVLQwen = new ChatVLQwen();
+            chatVLQwen.setModel("qwen-vl-chat-v1");
             String call = chatVLQwen.call(Arrays.asList(humanMessage));
 
             log.info("通义千问执行结果: {}", JSONUtil.toJsonStr(call));
