@@ -201,7 +201,7 @@ public class CreativeExecuteManager {
 
                 return result;
             } catch (Exception exception) {
-                log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
+                //log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
                 updateFailure(latestContent.getId(), start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
                 throw exception;
             }
@@ -231,7 +231,7 @@ public class CreativeExecuteManager {
             response.setPlanUid(content.getPlanUid());
             return response;
         }
-        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "生成结果转换异常！"));
+        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
     }
 
     /**
