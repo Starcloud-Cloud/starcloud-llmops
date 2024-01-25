@@ -39,5 +39,5 @@ public interface AdminUserRightsRecordService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRightsRecord(Long userId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode);
+    void createRightsRecord(Long userId, Long teamOwnerId, Long teamId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode);
 }

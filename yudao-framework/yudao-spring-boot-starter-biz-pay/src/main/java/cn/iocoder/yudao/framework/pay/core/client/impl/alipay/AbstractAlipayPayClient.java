@@ -1,12 +1,15 @@
 package cn.iocoder.yudao.framework.pay.core.client.impl.alipay;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;
 import cn.iocoder.yudao.framework.pay.core.client.dto.agreement.PayAgreementRespDTO;
@@ -41,11 +44,10 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_FORMATTER;
@@ -593,11 +595,63 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
                 externalAgreementNo, response);
     }
 
+
     protected PayAgreementRespDTO buildClosedPayAgreementRespDTO(PayAgreementUnifiedReqDTO reqDTO, AlipayResponse response) {
         Assert.isFalse(response.isSuccess());
         return PayAgreementRespDTO.failOf(response.getSubCode(), response.getSubMsg(),
                 reqDTO.getOutTradeNo(), reqDTO.getExternalAgreementNo(), response);
     }
 
+
+    @Override
+    protected PayAgreementRespDTO doUpdateAgreement(String agreementNo, String deductTime) throws Throwable {
+        // 1.1 构建 AlipayUserAgreementQueryModel 请求
+        AlipayUserAgreementExecutionplanModifyModel model = new AlipayUserAgreementExecutionplanModifyModel();
+
+        // SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        // sdf.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        //
+        // // model.setDeductTime(sdf.parse(deductTime));
+        // model.setDeductTime(DateUtil.parse(deductTime));
+        // model.setAgreementNo(agreementNo);
+        Map<String,String> requestMap = new HashMap<>();
+        requestMap.put("agreement_no",agreementNo);
+        requestMap.put("deduct_time",deductTime);
+        String requestJson = JSONUtil.toJsonStr(requestMap);
+        log.info("{}：周期扣款-修改协议执行计划入参：{}",agreementNo,requestJson);
+
+
+
+        // 1.2 构建 AlipayTradeQueryRequest 请求
+        AlipayUserAgreementExecutionplanModifyRequest request = new AlipayUserAgreementExecutionplanModifyRequest();
+        request.setBizContent(requestJson);
+
+        // request.setBizModel(model);
+
+        AlipayUserAgreementExecutionplanModifyResponse response;
+        if (Objects.equals(config.getMode(), MODE_CERTIFICATE)) {
+            // 证书模式
+            response = client.certificateExecute(request);
+        } else {
+            response = client.execute(request);
+        }
+        if (!response.isSuccess()) { // 不成功，例如说签约不存在
+
+            // // 明确不存在的情况，订单不存在 暂时不做处理
+            // if (ObjectUtils.equalsAny(response.getSubCode(), "USER_AGREEMENT_NOT_EXIST", "ACQ.USER_AGREEMENT_NOT_EXIST")) {
+            //     return PayAgreementRespDTO.failOf(response.getCode(), response.getSubMsg(), null, externalAgreementNo, response);
+            // }
+            return PayAgreementRespDTO.failOf(response.getCode(), response.getSubMsg(),
+                    null, agreementNo, deductTime);
+        }
+        // // 2.2 解析订单的状态
+        // Integer status = parseAgreementStatus(response.getStatus());
+        // Assert.notNull(status, () -> {
+        //     throw new IllegalArgumentException(StrUtil.format("body({}) 的【签约状态】不正确", response.getBody()));
+        // });
+
+        return PayAgreementRespDTO.successOf("1", null, null,
+                agreementNo, response);
+    }
 
 }

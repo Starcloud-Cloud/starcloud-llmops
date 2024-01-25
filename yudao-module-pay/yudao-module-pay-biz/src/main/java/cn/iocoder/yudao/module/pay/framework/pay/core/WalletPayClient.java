@@ -230,4 +230,9 @@ public class WalletPayClient extends AbstractPayClient<NonePayClientConfig> {
         throw new UnsupportedOperationException("待实现");
     }
 
+    @Override
+    protected PayAgreementRespDTO doUpdateAgreement(String outTradeNo,String deductTime) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
+
 }

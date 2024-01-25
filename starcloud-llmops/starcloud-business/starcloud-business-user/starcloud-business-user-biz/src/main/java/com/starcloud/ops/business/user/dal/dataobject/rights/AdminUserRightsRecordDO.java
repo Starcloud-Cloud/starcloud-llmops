@@ -55,6 +55,14 @@ public class AdminUserRightsRecordDO extends BaseDO {
      */
     private String title;
     /**
+     * 权益所属人 ID
+     */
+    private Long ownerId;
+    /**
+     * 团队 ID
+     */
+    private Long teamId;
+    /**
      * 积分描述
      */
     private String description;

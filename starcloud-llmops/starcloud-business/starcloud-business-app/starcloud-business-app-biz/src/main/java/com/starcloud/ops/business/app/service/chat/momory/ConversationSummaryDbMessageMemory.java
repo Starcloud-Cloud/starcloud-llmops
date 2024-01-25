@@ -95,9 +95,9 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         List<LogAppMessageDO> appMessageList = this.getLogAppMessage();
         this.initMessageHistory(appMessageList);
 
-        //总结用模型
+        // 总结用模型
         ChatOpenAI chatOpenAi = new ChatOpenAI();
-        //16k 去总结
+        // 16k 去总结
         chatOpenAi.setModel(ModelTypeEnum.GPT_4_TURBO.getName());
         chatOpenAi.setMaxTokens(400);
         chatOpenAi.setTemperature(0d);
@@ -116,7 +116,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     public List<BaseVariable> loadMemoryVariables() {
 
         ChatMessageHistory chatMessageHistory = this.getChatHistory();
-        //需要总结
+        // 需要总结
         if (this.checkNeedSummary(chatMessageHistory)) {
 
             List<BaseMessage> baseMessages = chatMessageHistory.limitMessage(1);
@@ -127,7 +127,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             if (CollectionUtil.isNotEmpty(baseMessages) && baseMessages.get(0) instanceof AIMessage) {
                 existingSummary = baseMessages.get(0).getContent();
 
-                //最后一次总结 + 剩余的 message
+                // 最后一次总结 + 剩余的 message
                 //@todo 后面会改成调用 应用市场的总结应用
                 int limit = 1 - CollectionUtil.size(chatMessageHistory.getMessages());
                 restMessages = chatMessageHistory.limitMessage(limit);
@@ -135,7 +135,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             } else {
 
-                //全部
+                // 全部
                 restMessages = chatMessageHistory.getMessages();
 
             }
@@ -155,8 +155,8 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             }
 
             log.info("success summary history, {} ms", end - start);
-            //简单拼接下内容
-            //因为message太长了，只好取上一次的总结内容
+            // 简单拼接下内容
+            // 因为message太长了，只好取上一次的总结内容
 
             this.createSummaryMessage(llmResult, existingSummary);
             String summary = llmResult.getText();
@@ -166,14 +166,14 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
                 ChatMessageHistory summaryChatMessageHistory = new ChatMessageHistory();
                 summaryChatMessageHistory.addMessage(new SystemMessage(summary));
-                //重制一个新的
+                // 重制一个新的
                 this.setChatHistory(summaryChatMessageHistory);
             }
         }
 
         //  //@todo 这里假设第一个是 总结，需要补上标识，对总结 message再次处理下
         if (CollectionUtil.isNotEmpty(chatMessageHistory.getMessages()) && chatMessageHistory.getMessages().get(0) instanceof AIMessage) {
-            //肯定是总结message
+            // 肯定是总结message
             chatMessageHistory.getMessages().get(0).setContent("Summary of the previous conversation ```" + chatMessageHistory.getMessages().get(0).getContent() + "```");
         }
 
@@ -215,7 +215,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
      */
     private void _saveChatToolCallContext(BaseLLMResult result) {
 
-        //只支持传入一个
+        // 只支持传入一个
         if (CollectionUtil.size(result.getGenerations()) > 2) {
             throw new IllegalArgumentException("saveContext is fail size Illegal: " + CollectionUtil.size(result.getGenerations()));
         }
@@ -229,19 +229,19 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                 HumanMessage humanMessage = (HumanMessage) humanGeneration.getChatMessage();
                 AIMessage aiMessage = (AIMessage) aiGeneration1.getChatMessage();
 
-                //llm返回函数调用
+                // llm返回函数调用
                 if (aiMessage.getAdditionalArgs().get("function_call") != null) {
                     this.createChatFunctionMessage(humanMessage.getContent(), aiMessage);
 
-                    //落盘成功后 加入到 memory
+                    // 落盘成功后 加入到 memory
                     this.getChatHistory().addMessage(humanMessage);
                     this.getChatHistory().addMessage(aiMessage);
 
                 } else {
-                    //普通对话返回
+                    // 普通对话返回
                     this.createChatMessage(humanMessage, aiMessage);
 
-                    //落盘成功后 加入到 memory
+                    // 落盘成功后 加入到 memory
                     this.getChatHistory().addMessage(humanMessage);
                     this.getChatHistory().addMessage(aiMessage);
                 }
@@ -252,22 +252,22 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             ChatGeneration chatGeneration = (ChatGeneration) result.getGenerations().get(0);
             BaseMessage currentMessage = chatGeneration.getChatMessage();
 
-            //函数执行记录
+            // 函数执行记录
             if (currentMessage instanceof FunctionMessage) {
                 FunctionMessage functionMessage = (FunctionMessage) currentMessage;
 
                 this.createFunctionCallMessage(chatGeneration, functionMessage);
 
-                //落盘成功后 加入到 memory
+                // 落盘成功后 加入到 memory
                 this.getChatHistory().addMessage(functionMessage);
 
             }
 
-            //llm根据函数返回结果生成最终回答
+            // llm根据函数返回结果生成最终回答
             if (currentMessage instanceof AIMessage) {
                 AIMessage aiMessage = (AIMessage) currentMessage;
 
-                //多次llm返回fun_call
+                // 多次llm返回fun_call
                 if (aiMessage.getAdditionalArgs().get("function_call") != null) {
 
                     this.createChatFunctionMessage("", aiMessage);
@@ -277,7 +277,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                     this.createFunDoneMessage(aiMessage);
                 }
 
-                //落盘成功后 加入到 memory
+                // 落盘成功后 加入到 memory
                 this.getChatHistory().addMessage(aiMessage);
             }
         }
@@ -299,10 +299,10 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         ChatGeneration chatGeneration = (ChatGeneration) result.getGenerations().get(0);
         AIMessage aiMessage = (AIMessage) chatGeneration.getChatMessage();
 
-        //普通对话返回
+        // 普通对话返回
         this.createChatMessage(humanMessage, aiMessage);
 
-        //落盘成功后 加入到 memory
+        // 落盘成功后 加入到 memory
         this.getChatHistory().addMessage(humanMessage);
         this.getChatHistory().addMessage(aiMessage);
     }
@@ -329,10 +329,10 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
 
-        //结构太深，无法把messageID 返回出去，所以在这里处理权益
+        // 结构太深，无法把messageID 返回出去，所以在这里处理权益
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         String model = llmParams.getOrDefault("model", "").toString();
-        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(),logVo.getUid());
+        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), null, null, AdminUserRightsTypeEnum.MAGIC_BEAN, computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(), logVo.getUid());
     }
 
     private void createChatFunctionMessage(String message, AIMessage aiMessage) {
@@ -357,7 +357,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         Map llmParams = (Map) aiMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         String model = llmParams.getOrDefault("model", "").toString();
-        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(),logVo.getUid());
+        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), null, null, AdminUserRightsTypeEnum.MAGIC_BEAN, computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(), logVo.getUid());
     }
 
 
@@ -386,7 +386,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         BigDecimal answerUnitPrice = BigDecimal.ZERO;
         BigDecimal totalPrice = BigDecimal.ZERO;
 
-        //获取技能执行的LLM相关统计（WebSearch2Doc 已经有了）
+        // 获取技能执行的LLM相关统计（WebSearch2Doc 已经有了）
         if (generation.getGenerationInfo() != null && generation.getGenerationInfo() instanceof FunctionsAgentAction) {
             FunctionsAgentAction functionsAgentAction = (FunctionsAgentAction) generation.getGenerationInfo();
             if (functionsAgentAction.getToolResponse() != null && functionsAgentAction.getToolResponse() instanceof HandlerResponse) {
@@ -444,7 +444,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         });
 
 
-        //工具调用权益
+        // 工具调用权益
 
     }
 
@@ -457,9 +457,9 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         String answer = aiMessage.getContent();
         Map llmParams = (Map) aiMessage.getAdditionalArgs().get("llm_params");
 
-        //取出上一条message，是 fun_message
+        // 取出上一条message，是 fun_message
         ChatMessage chatMessage = (com.theokanning.openai.completion.chat.ChatMessage) CollectionUtil.getLast((ArrayList) llmParams.getOrDefault("messages", new ArrayList<>()));
-        //上次函数调用的返回结果,fun执行结果
+        // 上次函数调用的返回结果,fun执行结果
         String message = String.valueOf(aiMessage.getAdditionalArgs().getOrDefault(AgentExecutor.AgentFinishInputKey, chatMessage.getContent()));
 
         LogAppMessageCreateReqVO logVo = this.getChatAppEntity().createAppMessage((reqVo) -> {
@@ -468,7 +468,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             this.updateLogAppMessageVO(aiMessage, messageCreateReqVO);
 
-            //无意义
+            // 无意义
             messageCreateReqVO.setMessage("");
             messageCreateReqVO.setAnswer(answer);
 
@@ -478,7 +478,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
         });
         String model = llmParams.getOrDefault("model", "").toString();
-        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), AdminUserRightsTypeEnum.MAGIC_BEAN,computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(),logVo.getUid());
+        adminUserRightsApi.reduceRights(Long.valueOf(logVo.getCreator()), null, null, AdminUserRightsTypeEnum.MAGIC_BEAN, computationalPower(model, logVo.getMessageTokens() + logVo.getAnswerTokens()).intValue(), UserRightSceneUtils.getUserRightsBizType(logVo.getFromScene()).getType(), logVo.getUid());
     }
 
 
@@ -550,12 +550,12 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     private void initMessageHistory(List<LogAppMessageDO> appMessageList) {
 
         ChatMessageHistory history = this.getChatHistory();
-        //没有历史数据
+        // 没有历史数据
         if (CollectionUtil.isEmpty(appMessageList)) {
             return;
         }
 
-        //取出最后一个总结
+        // 取出最后一个总结
         Optional<LogAppMessageDO> summaryMessageOptional = appMessageList.stream()
                 .filter(logAppMessageDO -> LogMessageTypeEnum.SUMMARY.name().equals(logAppMessageDO.getMsgType()))
                 .findFirst();
@@ -565,7 +565,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
             LogAppMessageDO summaryMessage = summaryMessageOptional.get();
             history.addMessage(new AIMessage(summaryMessage.getAnswer()));
 
-            //取总结之后的 message
+            // 取总结之后的 message
             appMessageList = appMessageList.stream().filter(m -> m.getId() > summaryMessage.getId()).collect(Collectors.toList());
         }
 
@@ -575,17 +575,17 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             for (LogAppMessageDO logAppMessageDO : appMessageList) {
 
-                //这里只初始化了 普通聊天内容
+                // 这里只初始化了 普通聊天内容
                 if (LogMessageTypeEnum.CHAT.name().equals(logAppMessageDO.getMsgType())) {
 
                     history.addUserMessage(logAppMessageDO.getMessage());
                     history.addAiMessage(logAppMessageDO.getAnswer());
                 }
 
-                //llm激活函数调用
+                // llm激活函数调用
                 if (LogMessageTypeEnum.CHAT_FUN.name().equals(logAppMessageDO.getMsgType())) {
 
-                    //还有二次调用的情况，只能在这判断。如果有说明是第一次，要增加userMessage
+                    // 还有二次调用的情况，只能在这判断。如果有说明是第一次，要增加userMessage
                     if (StrUtil.isNotBlank(logAppMessageDO.getMessage())) {
                         history.addUserMessage(logAppMessageDO.getMessage());
                     }
@@ -601,7 +601,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                     history.addMessage(aiMessage);
                 }
 
-                //函数调用
+                // 函数调用
                 if (LogMessageTypeEnum.FUN_CALL.name().equals(logAppMessageDO.getMsgType())) {
 
                     String tool = logAppMessageDO.getMessage();
@@ -612,7 +612,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
                     history.addMessage(functionMessage);
                 }
 
-                //LLM根据函数结果回答
+                // LLM根据函数结果回答
                 if (LogMessageTypeEnum.CHAT_DONE.name().equals(logAppMessageDO.getMsgType())) {
 
                     AIMessage aiMessage = new AIMessage(logAppMessageDO.getAnswer());

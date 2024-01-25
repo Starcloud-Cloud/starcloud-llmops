@@ -155,7 +155,7 @@ public abstract class BaseActionHandler extends Object {
             if (userRightsType != null && costPoints > 0) {
                 // 扣除权益
                 ADMIN_USER_RIGHTS_API.reduceRights(
-                        context.getUserId(), // 用户ID
+                        context.getUserId(),null,null, // 用户ID
                         userRightsType, // 权益类型
                         costPoints, // 权益点数
                         UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType(), // 业务类型

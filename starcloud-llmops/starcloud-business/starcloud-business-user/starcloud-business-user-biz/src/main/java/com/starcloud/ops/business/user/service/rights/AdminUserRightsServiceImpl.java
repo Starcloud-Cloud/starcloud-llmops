@@ -163,10 +163,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         if (magicBean > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+            adminUserRightsRecordService.createRightsRecord(userId, null, null, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
         if (magicImage > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+            adminUserRightsRecordService.createRightsRecord(userId, null, null, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
 
 
@@ -212,9 +212,11 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId) {
+    public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId) {
+
+        Long reduceUserId = Objects.isNull(teamOwnerId) ? userId : teamOwnerId;
         // 获取可用权益列表
-        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, rightsType);
+        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(reduceUserId, rightsType);
         if (validRightsList.isEmpty()) {
             if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_BEAN_NOT_ENOUGH);
@@ -237,7 +239,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .map(adminUserRightsDO -> adminUserRightsDO.getId().toString()) // 提取Id
                 .collect(Collectors.joining(",")); // 使用逗号连接
 
-        adminUserRightsRecordService.createRightsRecord(userId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
+        adminUserRightsRecordService.createRightsRecord(userId, teamOwnerId, teamId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
 
     }
 

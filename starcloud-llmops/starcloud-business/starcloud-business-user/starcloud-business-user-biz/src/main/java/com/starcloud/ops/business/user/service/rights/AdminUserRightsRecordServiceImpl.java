@@ -64,7 +64,7 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRightsRecord(Long userId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode) {
+    public void createRightsRecord(Long userId, Long teamOwnerId, Long teamId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode) {
         if (amount == 0) {
             return;
         }
@@ -77,7 +77,7 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
         // 3. 增加积分记录
         AdminUserRightsRecordDO record = new AdminUserRightsRecordDO()
                 .setUserId(userId).setBizCode(bizCode).setBizId(bizId).setBizType(bizType)
-                .setTitle(rightsBizTypeEnum.getName())
+                .setTitle(rightsBizTypeEnum.getName()).setOwnerId(teamOwnerId).setTeamId(teamId)
                 .setDescription(StrUtil.format(rightsBizTypeEnum.getDescription(), amount, rightsType.getName()))
                 .setRightsType(rightsType.getType()).setRightsAmount(amount);
         // if (getLoginUserId() == null) {
