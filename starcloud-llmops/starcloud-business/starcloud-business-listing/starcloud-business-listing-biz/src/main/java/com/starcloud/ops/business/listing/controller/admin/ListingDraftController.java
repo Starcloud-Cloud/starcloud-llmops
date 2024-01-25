@@ -79,7 +79,7 @@ public class ListingDraftController {
         ExcelUtils.write(response, prefix + "-导出草稿.xls", "草稿", DraftDetailExcelVO.class, export);
     }
 
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     @Operation(summary = "删除草稿", description = "删除草稿")
     public CommonResult<Boolean> delete(@RequestBody List<Long> ids) {
         draftService.delete(ids);
@@ -100,7 +100,7 @@ public class ListingDraftController {
         return CommonResult.success(true);
     }
 
-    @DeleteMapping("/key/remove")
+    @PostMapping("/key/remove")
     @Operation(summary = "删除关键词", description = "删除关键词")
     public CommonResult<Boolean> removeKeyword(@Valid @RequestBody DraftOperationReqVO reqVO) {
         draftService.removeKeyword(reqVO);
