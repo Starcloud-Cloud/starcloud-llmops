@@ -198,11 +198,12 @@ public class PosterActionHandler extends BaseActionHandler {
         List<PosterTemplateEntity> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
         for (PosterTemplateEntity posterTemplate : templateList) {
             // 默认模式生成
-            if (PosterTitleModeEnum.DEFAULT.name().equals(posterTemplate.getTitleGenerateMode())) {
+            String titleGenerateMode = Optional.ofNullable(posterTemplate.getTitleGenerateMode()).orElse(PosterTitleModeEnum.DEFAULT.name());
+            if (PosterTitleModeEnum.DEFAULT.name().equals(titleGenerateMode)) {
                 // todo 默认模式实现
 
 
-            } else if (PosterTitleModeEnum.AI.name().equals(posterTemplate.getTitleGenerateMode())) {
+            } else if (PosterTitleModeEnum.AI.name().equals(titleGenerateMode)) {
                 this.getAppContext().putVariable(CreativeConstants.TITLE, title);
                 this.getAppContext().putVariable(CreativeConstants.CONTENT, content);
                 this.getAppContext().putVariable(CreativeConstants.REQUIREMENT, posterTemplate.getTitleGenerateRequirement());
@@ -213,6 +214,8 @@ public class PosterActionHandler extends BaseActionHandler {
                 }
                 // 获取结果，并且进行变量替换
                 PosterTitleDTO posterTitle = response.getPosterTitle();
+
+                List<PosterVariableEntity> variables = new ArrayList<>();
                 // 变量替换
                 List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
                 for (PosterVariableEntity variable : variableList) {
@@ -222,13 +225,15 @@ public class PosterActionHandler extends BaseActionHandler {
                     if (CreativeImageUtils.SUB_TITLE.equals(variable.getField())) {
                         variable.setValue(posterTitle.getImgSubTitle());
                     }
+                    // 复制变量, 添加到模版列表中
+                    variables.add(SerializationUtils.clone(variable));
                 }
-                posterTemplate.setVariableList(variableList);
-                templates.add(SerializationUtils.clone(posterTemplate));
+                posterTemplate.setVariableList(variables);
             } else {
-                log.error("不支持的图片标题生成模式: {}", posterTemplate.getTitleGenerateMode());
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "不支持的图片标题生成模式: " + posterTemplate.getTitleGenerateMode()));
+                log.error("不支持的图片标题生成模式: {}", titleGenerateMode);
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "不支持的图片标题生成模式: " + titleGenerateMode));
             }
+            templates.add(SerializationUtils.clone(posterTemplate));
         }
         posterStyle.setTemplateList(templates);
     }
@@ -281,13 +286,13 @@ public class PosterActionHandler extends BaseActionHandler {
             }
 
             // 解析结果
-            if (!call.contains("标题：") || !call.contains("副标题：")) {
+            if (!call.contains("标题") || !call.contains("副标题")) {
                 return MultimodalPosterTitleResponse.failure("350400200", "标题生成格式不正确！", prompt, urlList);
             }
-            Integer titleIndex = call.indexOf("标题：");
-            Integer subTitleIndex = call.indexOf("副标题：");
-            String title = call.substring(titleIndex + 3, subTitleIndex);
-            String subTitle = call.substring(subTitleIndex + 4);
+            Integer titleIndex = call.indexOf("标题");
+            Integer subTitleIndex = call.indexOf("副标题");
+            String title = call.substring(titleIndex + 4, subTitleIndex);
+            String subTitle = call.substring(subTitleIndex + 5);
 
             PosterTitleDTO posterTitle = new PosterTitleDTO();
             posterTitle.setImgTitle(title);

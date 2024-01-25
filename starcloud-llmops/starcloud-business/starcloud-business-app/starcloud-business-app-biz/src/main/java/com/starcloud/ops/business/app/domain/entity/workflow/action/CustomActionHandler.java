@@ -344,10 +344,12 @@ public class CustomActionHandler extends BaseActionHandler {
      * @return 处理后的参考内容
      */
     private List<ReferenceSchemeDTO> handlerReferList(List<ReferenceSchemeDTO> refersList, Integer refersCount) {
-        List<ReferenceSchemeDTO> handlerReferList = new ArrayList<>();
+        // 为 refersList 添加 ID。ID为随机值，以防 refersList 无ID值
+        refersList = refersList.stream().peek(item -> item.setId(RandomUtil.randomLong())).collect(Collectors.toList());
+        List<ReferenceSchemeDTO> result = new ArrayList<>();
         // 如果参考内容数量小于需要的，直接返回数量
         if (refersList.size() <= refersCount) {
-            handlerReferList = refersList.stream().map(item -> {
+            result = refersList.stream().map(item -> {
                 ReferenceSchemeDTO reference = SerializationUtils.clone(item);
                 reference.setId(null);
                 reference.setSource(null);
@@ -358,18 +360,19 @@ public class CustomActionHandler extends BaseActionHandler {
                 return reference;
             }).collect(Collectors.toList());
         } else {
+            List<ReferenceSchemeDTO> recordList = new ArrayList<>();
             for (int i = 0; i < refersCount; i++) {
-                ReferenceSchemeDTO reference = SerializationUtils.clone(refersList.get(RandomUtil.randomInt(refersList.size())));
+                ReferenceSchemeDTO reference = SerializationUtils.clone(ActionUtils.randomReference(refersList, recordList));
                 reference.setId(null);
                 reference.setSource(null);
                 reference.setLink(null);
                 reference.setTagList(null);
                 reference.setImageList(null);
                 reference.setTitle(null);
-                handlerReferList.add(reference);
+                result.add(reference);
             }
         }
-        return handlerReferList;
+        return result;
     }
 
 }

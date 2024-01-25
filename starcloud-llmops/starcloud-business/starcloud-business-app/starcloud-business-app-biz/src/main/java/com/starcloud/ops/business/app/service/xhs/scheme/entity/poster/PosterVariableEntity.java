@@ -19,7 +19,9 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @EqualsAndHashCode
-public class PosterVariableEntity {
+public class PosterVariableEntity implements java.io.Serializable {
+
+    private static final long serialVersionUID = 6480659210329672254L;
 
     /**
      * 变量 label
