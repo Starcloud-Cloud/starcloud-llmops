@@ -375,17 +375,17 @@ public class RecommendVariableItemFactory {
      *
      * @return 参考内容变量
      */
-    public static VariableItemRespVO defMediaMatrixRefers() {
+    public static VariableItemRespVO defMediaMatrixRefersCount() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.REFERS);
-        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_LABEL"));
-        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
-        variableItem.setDefaultValue(StringUtils.EMPTY);
-        variableItem.setValue(StringUtils.EMPTY);
-        variableItem.setOrder(101);
+        variableItem.setField(CreativeConstants.REFERS_COUNT);
+        variableItem.setLabel("AI参考内容随机获取数量");
+        variableItem.setDescription("AI参考内容随机获取数量");
+        variableItem.setDefaultValue(3);
+        variableItem.setValue(3);
+        variableItem.setOrder(1040);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
-        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
@@ -396,16 +396,16 @@ public class RecommendVariableItemFactory {
      *
      * @return 参考内容变量
      */
-    public static VariableItemRespVO defMediaMatrixRefersCount() {
+    public static VariableItemRespVO defMediaMatrixRefers() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.REFERS_COUNT);
-        variableItem.setLabel("AI随机获取数量");
-        variableItem.setDescription("AI随机获取数量");
-        variableItem.setDefaultValue(3);
-        variableItem.setValue(3);
-        variableItem.setOrder(1040);
+        variableItem.setField(CreativeConstants.REFERS);
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(101);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
