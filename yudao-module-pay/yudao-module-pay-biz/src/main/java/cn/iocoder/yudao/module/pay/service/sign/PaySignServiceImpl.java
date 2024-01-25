@@ -164,7 +164,7 @@ public class PaySignServiceImpl implements PaySignService {
                 .setPeriodType(buildPeriodType(signDO.getPeriodUnit()))
                 .setPeriod(Long.valueOf(signDO.getPeriod()))
                 // .setExecuteTime(BuildExecuteTime(payProperties.getFixedDeductionTime()))
-                .setExecuteTime(buildSignPayTime(LocalDate.now(), TimeRangeTypeEnum.MONTH))
+                .setExecuteTime(signDO.getPayTime())
                 .setSingleAmount(signDO.getPrice())
                 .setSignNotifyUrl(genChannelSignNotifyUrl(channel));
         PayAgreementRespDTO unifiedAgreement = payClient.unifiedPageAgreement(unifiedReqDTO);
@@ -330,6 +330,38 @@ public class PaySignServiceImpl implements PaySignService {
             }
         });
 
+    }
+
+    /**
+     * 同步签约支付
+     *
+     * @param signNo
+     * @return
+     */
+    @Override
+    public Object getSignRecord(String signNo) {
+            PayClient payClient = channelService.getPayClient(22L);
+            if (payClient == null) {
+
+            }
+            PayAgreementRespDTO respDTO = payClient.getAgreement(signNo);
+           return respDTO.getRawData();
+    }
+
+    /**
+     * 同步签约支付
+     *
+     * @param signNo
+     * @return
+     */
+    @Override
+    public Object UpdateSign(String signNo,String deductTime) {
+        PayClient payClient = channelService.getPayClient(22L);
+        if (payClient == null) {
+
+        }
+        PayAgreementRespDTO respDTO = payClient.updateAgreement(signNo,deductTime);
+        return respDTO.getRawData();
     }
 
 

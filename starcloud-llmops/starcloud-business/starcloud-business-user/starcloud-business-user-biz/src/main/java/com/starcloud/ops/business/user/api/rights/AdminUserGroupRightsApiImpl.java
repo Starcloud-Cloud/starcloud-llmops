@@ -53,12 +53,12 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     private UserDeptService userDeptService;
 
     @Override
-    public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
+    public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
                              Integer bizType, String bizId) {
         UserDeptDO userDeptDO = this.getDeptRightsUserId(userId, rightsType, rightAmount);
-        userDeptService.recordRights(userDeptDO,userId, rightsType, rightAmount);
+        userDeptService.recordRights(userDeptDO, userId, rightsType, rightAmount);
         Long deptUserId = Optional.ofNullable(userDeptDO).map(UserDeptDO::getUserId).orElse(userId);
-        super.reduceRights(deptUserId, rightsType, rightAmount, bizType, bizId);
+        super.reduceRights(userId, deptUserId, userDeptDO.getDeptId(), rightsType, rightAmount, bizType, bizId);
 
     }
 
@@ -89,11 +89,11 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     protected UserDeptDO getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
         UserDeptDO userDeptDO = userDeptService.selectSuperAdminId(currentUserId);
         if (userDeptDO == null) {
-            //之前数据没配置, 这里做兼容处理
+            // 之前数据没配置, 这里做兼容处理
             return null;
         } else {
             if (!currentUserId.equals(userDeptDO.getUserId())) {
-                //判断管理员是否还有权益
+                // 判断管理员是否还有权益
                 if (super.calculateUserRightsEnough(userDeptDO.getUserId(), rightsType, rightAmount)) {
                     log.info("权益切换：当前用户[{}]切换到部门负责人[{}]", currentUserId, userDeptDO.getUserId());
                     return userDeptDO;

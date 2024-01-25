@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.TIME_RANGE_BIZ_NOT_SUPPORT;
@@ -50,6 +51,11 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
     @Override
     public void addAdminUserLevel(Long userId, Long levelId, Integer TimeNums, Integer timeRange,
                                   Integer bizType, String bizId) {
+
+        if (Objects.isNull(levelId) || levelId == 0) {
+            log.warn("会员等级 ID 不存在，直接返回，当前业务 ID 为{}", bizId);
+            return;
+        }
         // 2.0 计算会员有效期
         AdminUserLevelBizTypeEnum bizTypeEnum = AdminUserLevelBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {

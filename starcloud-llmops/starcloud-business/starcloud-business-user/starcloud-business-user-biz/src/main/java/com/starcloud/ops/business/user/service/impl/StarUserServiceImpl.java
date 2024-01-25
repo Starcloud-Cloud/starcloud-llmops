@@ -12,7 +12,6 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
@@ -39,10 +38,9 @@ import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
-import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.invitation.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.dataobject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
@@ -63,7 +61,6 @@ import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -219,9 +216,15 @@ public class StarUserServiceImpl implements StarUserService {
                     TenantUtils.execute(tenantId, () -> {
                         adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId),null);
                     });
-                    sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
-                            "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
-                                    "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
+
+                    try {
+                        sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
+                                "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
+                                        "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
+                    }catch (Exception e){
+                        log.error("邀请达人公众号信息发送失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
+                    }
+
                 }
 
             } else {

@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
@@ -102,10 +103,10 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         tradeSignDO.setGiveRights(calculateRightsRespBO.getGiveRights());
         // 1.3 设置订单权益组
         tradeSignDO.setSignConfigs(getProductSignConfig(userId, createReqVO));
-
+        // 设置预计扣款时间
         List<TradeSignItemDO> signItemDOS = buildTradeSignItems(tradeSignDO, calculateRespBO);
 
-        tradeSignDO.setPayTime(buildSignPayTime(LocalDate.now().plusDays(4),TimeRangeTypeEnum.getByType(tradeSignDO.getSignConfigs().getPeriodType())));
+        tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), 4, tradeSignDO.getSignConfigs().getPeriodType()));
 
         // 2. 保存记录
         tradeSignMapper.insert(tradeSignDO);
@@ -142,20 +143,20 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // // 2. 更新 TradeOrderDO 状态为已支付，等待发货
         TradeSignDO signDO = new TradeSignDO()
                 .setPayChannelCode(payOrder.getChannelCode());
-        if (closeSign){
+        if (closeSign) {
             signDO.setStatus(TradeSignStatusEnum.CANCELED.getStatus())
                     .setCancelTime(LocalDateTime.now());
-        }else {
+        } else {
             signDO.setStatus(TradeSignStatusEnum.SIGNING.getStatus())
                     .setFinishTime(LocalDateTime.now());
         }
         int updateCount = 0;
-           updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
-                   signDO );
+        updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
+                signDO);
 
 
         if (updateCount == 0) {
-           throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
+            throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
         // tradeSignQueryService.getSign()
         //
@@ -201,7 +202,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     @Override
     public void updatePayTime(Long id) {
         TradeSignDO signDO = tradeSignMapper.selectById(id);
-        if (signDO == null){
+        if (signDO == null) {
             throw exception(SIGN_NOT_FOUND);
         }
         Integer period = signDO.getSignConfigs().getPeriod();
@@ -313,7 +314,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         return TradeSignConvert.INSTANCE.convertList(tradeSignDO, calculateRespBO);
     }
 
-    private LocalDate buildSignPayTime(LocalDate date ,TimeRangeTypeEnum timeRange) {
+    private LocalDate buildSignPayTime(LocalDate date, TimeRangeTypeEnum timeRange) {
         // 判断日期是否为每个月的28号以后
         if (date.getDayOfMonth() > 28) {
             switch (timeRange) {
@@ -328,6 +329,29 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
             return date.plusMonths(1).withDayOfMonth(1);
         }
         return date;
+    }
+
+
+    public static LocalDate calculateExpectedPaymentDate(LocalDate payTime, Integer plusNums, Integer timeRange) {
+
+        if (TimeRangeTypeEnum.DAY.getType().equals(timeRange)) {
+            // 如果是，则将日期设置为下个月的1号
+            return payTime.plusDays(7);
+        }
+
+        if (plusNums == 0) {
+            return payTime; // 如果plusNums为0，直接返回payTime
+        }
+
+        LocalDate calculateTime = payTime.plusDays(plusNums);
+        if (calculateTime.getDayOfMonth() > 28) {
+            calculateTime = payTime.plusMonths(1).withDayOfMonth(1);
+        }
+
+        if (calculateTime.isAfter(payTime.plusDays(5))) {
+            calculateTime = calculateExpectedPaymentDate(payTime, plusNums - 1, timeRange); // 递归调用，并使用返回的结果替换calculateTime
+        }
+        return calculateTime;
     }
 
 

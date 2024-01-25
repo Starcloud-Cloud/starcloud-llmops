@@ -133,7 +133,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             // 扣除权益
             Integer costPoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
             adminUserRightsApi.reduceRights(
-                    request.getUserId(), // 用户ID
+                    request.getUserId(), null,null,// 用户ID
                     AdminUserRightsTypeEnum.MAGIC_IMAGE, // 权益类型
                     costPoints, // 权益点数
                     UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType(), // 业务类型

@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.product.controller.app.spu.vo;
 
+import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
+import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.controller.app.property.vo.value.AppProductPropertyValueDetailRespVO;
 import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -66,7 +68,9 @@ public class AppProductSpuPageRespVO {
     private List<Sku> skus;
 
 
-    private ProductSpuDO.SubscribeConfig subscribeConfig;
+    private GiveRightsDTO giveRights;
+
+    private SubscribeConfigDTO subscribeConfig;
 
     @Schema(description = "用户 App - 商品 SPU 明细的 SKU 信息")
     @Data

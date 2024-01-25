@@ -15,6 +15,8 @@ import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelConfigService;
+import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
@@ -40,6 +43,9 @@ public class AdminUserRightsController {
 
     @Resource
     private AdminUserRightsService adminUserRightsService;
+
+    @Resource
+    private AdminUserLevelConfigService adminUserLevelConfigService;
 
     @Resource
     private AdminUserService adminUserService;
@@ -77,15 +83,22 @@ public class AdminUserRightsController {
                 rights.setStatus(status);
             });
         }
+        PageResult<AppAdminUserRightsRespVO> result = AdminUserRightsConvert.INSTANCE.convertPage02(pageResult);
 
-        return success(AdminUserRightsConvert.INSTANCE.convertPage02(pageResult));
+        result.getList().stream().forEach(data->{
+            if (Objects.nonNull(data.getUserLevelId())) {
+                data.setLevelName(adminUserLevelConfigService.getLevelConfig(data.getUserLevelId()).getName());
+            }
+        });
+
+        return success(result);
     }
 
     @GetMapping("/u/reduceRights")
     @Operation(summary = "系统会员-权益扣减测试")
     @PreAuthenticated
     public CommonResult<Boolean> reduceRights() {
-        adminUserRightsService.reduceRights(getLoginUserId(), AdminUserRightsTypeEnum.MAGIC_BEAN, 1, AdminUserRightsBizTypeEnum.ADMIN_MINUS, "-1");
+        // adminUserRightsService.reduceRights(getLoginUserId(), AdminUserRightsTypeEnum.MAGIC_BEAN, 1, AdminUserRightsBizTypeEnum.ADMIN_MINUS, "-1");
         return success(Boolean.TRUE);
     }
 

@@ -2,7 +2,7 @@ package com.starcloud.ops.business.user.service;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.user.controller.admin.invitationrecords.vo.InvitationRecordsPageReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.invitation.InvitationRecordsDO;
 
 import java.util.Collection;
 import java.util.List;

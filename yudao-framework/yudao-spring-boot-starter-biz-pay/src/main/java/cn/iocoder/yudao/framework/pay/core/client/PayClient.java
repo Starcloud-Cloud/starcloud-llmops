@@ -161,5 +161,14 @@ public interface PayClient {
      */
     PayAgreementRespDTO getAgreement(String outAgreementNo);
 
+    /**
+     * 获得签约信息
+     *
+     * @param agreementNo 渠道签约编号
+     * @param deductTime 商户下一次扣款时间
+     * @return 签约订单信息
+     */
+    PayAgreementRespDTO updateAgreement(String agreementNo, String deductTime);
+
 
 }
