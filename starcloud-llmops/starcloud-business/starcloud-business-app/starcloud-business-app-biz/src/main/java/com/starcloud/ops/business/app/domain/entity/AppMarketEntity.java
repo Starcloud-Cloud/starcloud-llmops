@@ -117,7 +117,7 @@ public class AppMarketEntity extends AppEntity {
         log.info("应用市场执行开始......");
         AppExecuteRespVO appExecuteResponse = super.doExecute(request);
 
-        log.info("应用市场执行，增加应用使用量开始：{}", appExecuteResponse);
+        log.info("应用市场执行，增加应用使用量开始");
         if (appExecuteResponse != null) {
             AppOperateReqVO appOperateRequest = new AppOperateReqVO();
             appOperateRequest.setAppUid(this.getUid());
