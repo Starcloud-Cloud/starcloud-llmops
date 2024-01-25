@@ -260,7 +260,12 @@ public class PosterActionHandler extends BaseActionHandler {
                     .filter(item -> "IMAGE".equals(item.getType())).collect(Collectors.toList());
             // 处理需要上传的图片
             List<String> urlList = new ArrayList<>();
-            for (PosterVariableEntity imageVariable : imageVariableList) {
+            // 如果图片数量大于2，只取前2个，否则取全部
+            for (int i = 0; i < imageVariableList.size(); i++) {
+                if (i > 1) {
+                    break;
+                }
+                PosterVariableEntity imageVariable = imageVariableList.get(i);
                 Object value = imageVariable.getValue();
                 if (Objects.isNull(value)) {
                     continue;
@@ -291,8 +296,8 @@ public class PosterActionHandler extends BaseActionHandler {
             }
             Integer titleIndex = call.indexOf("标题");
             Integer subTitleIndex = call.indexOf("副标题");
-            String title = call.substring(titleIndex + 4, subTitleIndex);
-            String subTitle = call.substring(subTitleIndex + 5);
+            String title = call.substring(titleIndex + 3, subTitleIndex).trim();
+            String subTitle = call.substring(subTitleIndex + 4).trim();
 
             PosterTitleDTO posterTitle = new PosterTitleDTO();
             posterTitle.setImgTitle(title);
