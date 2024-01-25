@@ -108,7 +108,7 @@ public class ActionResponse {
 
     public static ActionResponse failure(String errorCode, String errorMsg, Object stepConfig) {
         ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(Boolean.TRUE);
+        actionResponse.setSuccess(Boolean.FALSE);
         actionResponse.setErrorCode(errorCode);
         actionResponse.setErrorMsg(errorMsg);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());

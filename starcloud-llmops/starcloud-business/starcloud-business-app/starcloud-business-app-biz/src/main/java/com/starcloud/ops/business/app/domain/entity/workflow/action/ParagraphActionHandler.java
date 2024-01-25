@@ -267,7 +267,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         try {
             paragraphs = JSONUtil.toList(answer, ParagraphDTO.class);
         } catch (Exception exception) {
-            log.error("生成段落结果解析失败!: {}", exception.getMessage(), exception);
+            log.error("生成段落结果解析失败!: {}, 原始数据：\n{}", exception.getMessage(), exception, answer);
             return ActionResponse.failure("310100019", "生成段落结果解析失败！", params);
         }
 
