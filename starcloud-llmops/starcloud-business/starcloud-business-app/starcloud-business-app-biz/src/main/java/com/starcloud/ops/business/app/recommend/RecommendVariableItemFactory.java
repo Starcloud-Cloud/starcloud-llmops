@@ -517,4 +517,25 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REQUIREMENT);
+        variableItem.setLabel("海报生成要求");
+        variableItem.setDescription("海报生成要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(1009);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
 }
