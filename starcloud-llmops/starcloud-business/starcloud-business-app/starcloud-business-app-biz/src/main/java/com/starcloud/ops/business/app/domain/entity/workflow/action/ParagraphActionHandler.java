@@ -128,38 +128,39 @@ public class ParagraphActionHandler extends BaseActionHandler {
         log.info("段落内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
         // 获取到参考内容
-        String refersKey = ActionUtils.getGenerateModeParamKey(generateMode, CreativeConstants.REFERS);
-        String refers = String.valueOf(params.getOrDefault(refersKey, "[]"));
+        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<ReferenceSchemeDTO> referList = JSONUtil.toList(refers, ReferenceSchemeDTO.class);
 
         // 需要交给 ChatGPT 的参考内容数量
-        String refersCountKey = ActionUtils.getGenerateModeParamKey(generateMode, CreativeConstants.REFERS_COUNT);
-        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(refersCountKey, "3")));
+        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
 
         // 处理参考内容
         List<ReferenceSchemeDTO> handlerReferList = handlerReferList(referList, refersCount);
-        this.getAppContext().putVariable(refersKey, JSONUtil.toJsonStr(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.REFERS, JSONUtil.toJsonStr(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
-
         log.info("段落内容生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JSONUtil.parse(params).toStringPretty());
 
-        // OpenAI 模型 和 生成数量 n 都是通过上下文传入。无法区别生成模式
+        // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
-
+        /*
+         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
+         * AI仿写为第一个 prompt
+         * AI自定义为第二个 prompt
+         */
         // 获取到 prompt
-        String promptKey = ActionUtils.getGenerateModeParamKey(generateMode, "PROMPT");
-        String prompt = String.valueOf(params.getOrDefault(promptKey, "hi, what you name?"));
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        prompt = promptList.get(0);
 
         // 获取到 maxTokens
-        String maxTokensKey = ActionUtils.getGenerateModeParamKey(generateMode, "MAX_TOKENS");
-        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault(maxTokensKey, "1000")));
+        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
 
         // 获取到 temperature
-        String temperatureKey = ActionUtils.getGenerateModeParamKey(generateMode, "TEMPERATURE");
-        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault(temperatureKey, "0.7")));
+        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
@@ -191,21 +192,25 @@ public class ParagraphActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
         log.info("段落内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
-        // OpenAI 模型 和 生成数量 n 都是通过上下文传入。无法区别生成模式
+        // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
-
+        /*
+         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
+         * AI仿写为第一个 prompt
+         * AI自定义为第二个 prompt
+         */
         // 获取到 prompt
-        String promptKey = ActionUtils.getGenerateModeParamKey(generateMode, "PROMPT");
-        String prompt = String.valueOf(params.getOrDefault(promptKey, "hi, what you name?"));
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        prompt = promptList.get(1);
 
         // 获取到 maxTokens
-        String maxTokensKey = ActionUtils.getGenerateModeParamKey(generateMode, "MAX_TOKENS");
-        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault(maxTokensKey, "1000")));
+        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
 
         // 获取到 temperature
-        String temperatureKey = ActionUtils.getGenerateModeParamKey(generateMode, "TEMPERATURE");
-        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault(temperatureKey, "0.7")));
+        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();

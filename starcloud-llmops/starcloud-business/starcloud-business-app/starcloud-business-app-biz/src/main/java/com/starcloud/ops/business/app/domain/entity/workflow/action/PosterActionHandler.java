@@ -200,8 +200,16 @@ public class PosterActionHandler extends BaseActionHandler {
             // 默认模式生成
             String titleGenerateMode = Optional.ofNullable(posterTemplate.getTitleGenerateMode()).orElse(PosterTitleModeEnum.DEFAULT.name());
             if (PosterTitleModeEnum.DEFAULT.name().equals(titleGenerateMode)) {
-                // todo 默认模式实现
-
+                List<PosterVariableEntity> variables = new ArrayList<>();
+                List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
+                for (PosterVariableEntity variable : variableList) {
+                    if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
+                        variable.setValue(title);
+                    }
+                    // 复制变量, 添加到模版列表中
+                    variables.add(SerializationUtils.clone(variable));
+                }
+                posterTemplate.setVariableList(variables);
 
             } else if (PosterTitleModeEnum.AI.name().equals(titleGenerateMode)) {
                 this.getAppContext().putVariable(CreativeConstants.TITLE, title);
@@ -224,6 +232,9 @@ public class PosterActionHandler extends BaseActionHandler {
                     }
                     if (CreativeImageUtils.SUB_TITLE.equals(variable.getField())) {
                         variable.setValue(posterTitle.getImgSubTitle());
+                    }
+                    if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
+                        variable.setValue(title);
                     }
                     // 复制变量, 添加到模版列表中
                     variables.add(SerializationUtils.clone(variable));

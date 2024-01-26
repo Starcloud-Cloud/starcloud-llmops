@@ -165,8 +165,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 业务uid
      */
     @Override
-    public List<CreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList) {
-        return creativeContentMapper.listGroupByBusinessUid(planUidList);
+    public List<CreativeContentBusinessPO> listGroupByPlanUid(List<String> planUidList) {
+        return creativeContentMapper.listGroupByPlanUid(planUidList);
     }
 
     @Override

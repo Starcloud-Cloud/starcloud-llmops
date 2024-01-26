@@ -13,7 +13,6 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryRe
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.util.UserUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
@@ -49,7 +48,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         return selectList(wrapper);
     }
 
-    List<CreativeContentBusinessPO> listGroupByBusinessUid(@Param("planUidList") List<String> planUidList);
+    List<CreativeContentBusinessPO> listGroupByPlanUid(@Param("planUidList") List<String> planUidList);
 
     default CreativeContentDO selectByType(String businessUid, String type) {
         LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class)

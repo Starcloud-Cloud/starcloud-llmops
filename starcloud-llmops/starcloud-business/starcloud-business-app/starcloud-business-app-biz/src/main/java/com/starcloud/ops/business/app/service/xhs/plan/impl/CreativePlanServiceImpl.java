@@ -155,7 +155,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             return PageResp.of(Collections.emptyList(), page.getTotal(), page.getCurrent(), page.getSize());
         }
         List<String> planUidList = records.stream().map(CreativePlanPO::getUid).collect(Collectors.toList());
-        List<CreativeContentBusinessPO> businessList = creativeContentService.listGroupByBusinessUid(planUidList);
+        List<CreativeContentBusinessPO> businessList = creativeContentService.listGroupByPlanUid(planUidList);
         Map<String, List<CreativeContentBusinessPO>> businessMap = businessList.stream().collect(Collectors.groupingBy(CreativeContentBusinessPO::getPlanUid));
 
         // 用户创建者ID列表。
@@ -168,15 +168,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
             // 总数
             List<CreativeContentBusinessPO> businessItemList = CollectionUtil.emptyIfNull(businessMap.get(item.getUid()));
-            // 全部成功才算成功
-            List<CreativeContentBusinessPO> successList = businessItemList.stream()
-                    .filter(businessItem -> businessItem.getSuccessCount() == CreativeContentTypeEnum.values().length).collect(Collectors.toList());
-            // 全部失败才算失败
-            List<CreativeContentBusinessPO> failureList = businessItemList.stream()
-                    .filter(businessItem -> businessItem.getFailureCount() != 0).collect(Collectors.toList());
+
+            int successCount = (int) businessItemList.stream()
+                    .filter(businessItem -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(businessItem.getStatus()))
+                    .count();
+
+            int failureCount = (int) businessItemList.stream()
+                    .filter(businessItem -> CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(businessItem.getStatus()))
+                    .count();
+
             response.setTotal(businessItemList.size());
-            response.setSuccessCount(successList.size());
-            response.setFailureCount(failureList.size());
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
             return response;
         }).collect(Collectors.toList());
 
