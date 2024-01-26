@@ -12,6 +12,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -97,5 +98,42 @@ public class NotifyMessageDO extends BaseDO {
      * 阅读时间
      */
     private LocalDateTime readTime;
+
+    /**
+     * 批次号
+     */
+    private String batchCode;
+
+    /**
+     * 短信发送状态
+     */
+    private Boolean smsSuccess;
+
+    /**
+     * 公众号发送状态
+     */
+    private Boolean mpSuccess;
+
+    /**
+     * 短信日志
+     */
+    private String smsLog;
+
+    /**
+     * 公众号日志
+     */
+    private String mpLog;
+
+    /**
+     * 发送任务状态
+     */
+    private Boolean sent;
+
+    /**
+     * 通知渠道  List<Integer>
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<Integer> mediaTypes;
+
 
 }

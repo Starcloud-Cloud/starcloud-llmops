@@ -7,6 +7,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * 站内信模版 Base VO，提供给添加、修改、详细的子 VO 使用
@@ -42,5 +43,8 @@ public class NotifyTemplateBaseVO {
 
     @Schema(description = "备注", example = "我是备注")
     private String remark;
+
+    @Schema(description = "通知渠道")
+    private List<Integer> mediaTypes;
 
 }

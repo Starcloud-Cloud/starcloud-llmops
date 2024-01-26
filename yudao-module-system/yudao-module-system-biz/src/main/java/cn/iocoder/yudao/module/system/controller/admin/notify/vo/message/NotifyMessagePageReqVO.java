@@ -33,4 +33,10 @@ public class NotifyMessagePageReqVO extends PageParam {
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime[] createTime;
 
+    @Schema(description = "短信发送成功")
+    private Boolean smsSuccess;
+
+    @Schema(description = "公众号发送成功")
+    private Boolean mpSuccess;
+
 }

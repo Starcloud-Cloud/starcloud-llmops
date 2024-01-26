@@ -94,6 +94,13 @@ public interface ErrorCodeConstant {
 
     ErrorCode TOO_MANY_DEPT_NUM =  new ErrorCode(2000500009, "加入空间数超过 {} 个");
 
+    // 用户通知
+
+    ErrorCode NOT_SUPPORTED_NOTIFY_MEDIA =  new ErrorCode(2000600001, "不支持的消息媒介 {}");
+
+    ErrorCode NOT_SUPPORTED_TEMPLATE_CODE =  new ErrorCode(2000600002, "不支持的模板类型 {}");
+
+    ErrorCode PARAMS_ERROR =  new ErrorCode(2000600003, "用户 {} 模板参数({})缺失");
 
 
 }

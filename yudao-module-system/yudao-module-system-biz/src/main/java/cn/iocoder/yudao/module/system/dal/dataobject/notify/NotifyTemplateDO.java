@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.util.List;
@@ -68,5 +69,11 @@ public class NotifyTemplateDO extends BaseDO {
      * 备注
      */
     private String remark;
+
+    /**
+     * 通知渠道
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<Integer> mediaTypes;
 
 }

@@ -27,8 +27,12 @@ public interface NotifyMessageService {
      * @param templateParams 模版参数
      * @return 站内信编号
      */
-    Long createNotifyMessage(Long userId, Integer userType,
+    Long createNotifyMessage(Long userId, Integer userType,String batchCode,
                              NotifyTemplateDO template, String templateContent, Map<String, Object> templateParams);
+
+    void createMessageBatch(List<NotifyMessageDO> notifyMessageDOS);
+
+    List<NotifyMessageDO> sendIds(int limit);
 
     /**
      * 获得站内信分页
@@ -93,5 +97,11 @@ public interface NotifyMessageService {
      * @return 更新到的条数
      */
     int updateAllNotifyMessageRead(Long userId, Integer userType);
+
+    /**
+     * 更新日志
+     * @param notifyMessageDO
+     */
+    void updateById(NotifyMessageDO notifyMessageDO);
 
 }
