@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
 import com.starcloud.ops.business.user.controller.admin.invitationrecords.vo.InvitationRecordsCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.invitationrecords.vo.InvitationRecordsRespVO;
-import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.invitation.InvitationRecordsDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.invitationrecords.vo.InvitationRecordsPageReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.invitation.InvitationRecordsDO;
 import com.starcloud.ops.business.user.dal.mysql.InvitationRecordsMapper;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import lombok.extern.slf4j.Slf4j;

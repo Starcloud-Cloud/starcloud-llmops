@@ -1099,4 +1099,40 @@ public class PayOrderServiceTest extends BaseDbAndRedisUnitTest {
                 "updateTime", "updater");
     }
 
+    @Test
+    public void testGetSianRecore() {
+        // mock 数据（PayOrderDO）
+        PayOrderDO order = randomPojo(PayOrderDO.class,
+                o -> o.setStatus(PayOrderStatusEnum.WAITING.getStatus())
+                        .setExpireTime(addTime(Duration.ofMinutes(-1))));
+        orderMapper.insert(order);
+        // mock 数据（PayOrderExtensionDO 等待中）
+        PayOrderExtensionDO orderExtension = randomPojo(PayOrderExtensionDO.class,
+                o -> o.setStatus(PayOrderStatusEnum.WAITING.getStatus())
+                        .setOrderId(order.getId()).setNo("P110")
+                        .setChannelId(10L));
+        orderExtensionMapper.insert(orderExtension);
+        // mock 方法（PayClient）
+        PayClient client = mock(PayClient.class);
+        when(channelService.getPayClient(eq(10L))).thenReturn(client);
+        // mock 方法（PayClient 关闭返回）
+        PayOrderRespDTO respDTO = randomPojo(PayOrderRespDTO.class,
+                o -> o.setStatus(PayOrderStatusEnum.CLOSED.getStatus()));
+        when(client.getOrder(eq("P110"))).thenReturn(respDTO);
+
+        // 调用
+        int count = orderService.expireOrder();
+        // 断言
+        assertEquals(count, 1);
+        // 断言 extension 变化
+        orderExtension.setStatus(PayOrderStatusEnum.CLOSED.getStatus())
+                .setChannelNotifyData(toJsonString(respDTO));
+        assertPojoEquals(orderExtension, orderExtensionMapper.selectOne(null),
+                "updateTime", "updater");
+        // 断言 order 变化
+        order.setStatus(PayOrderStatusEnum.CLOSED.getStatus());
+        assertPojoEquals(order, orderMapper.selectOne(null),
+                "updateTime", "updater");
+    }
+
 }

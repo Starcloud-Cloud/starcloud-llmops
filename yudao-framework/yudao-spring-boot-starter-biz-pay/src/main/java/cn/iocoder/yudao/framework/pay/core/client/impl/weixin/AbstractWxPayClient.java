@@ -524,4 +524,8 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         throw new UnsupportedOperationException("待实现");
     }
 
+    @Override
+    protected PayAgreementRespDTO doUpdateAgreement(String outTradeNo,String deductTime) throws Throwable {
+        throw new UnsupportedOperationException("待实现");
+    }
 }

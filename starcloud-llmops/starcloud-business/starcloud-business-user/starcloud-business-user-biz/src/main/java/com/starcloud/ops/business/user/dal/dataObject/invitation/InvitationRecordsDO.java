@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.dal.dataobject;
+package com.starcloud.ops.business.user.dal.dataobject.invitation;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;

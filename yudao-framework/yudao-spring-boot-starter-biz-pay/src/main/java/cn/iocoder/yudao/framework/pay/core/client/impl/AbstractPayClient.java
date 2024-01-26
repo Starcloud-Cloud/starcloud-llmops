@@ -14,6 +14,7 @@ import cn.iocoder.yudao.framework.pay.core.client.dto.transfer.PayTransferRespDT
 import cn.iocoder.yudao.framework.pay.core.client.dto.transfer.PayTransferUnifiedReqDTO;
 import cn.iocoder.yudao.framework.pay.core.client.exception.PayException;
 import cn.iocoder.yudao.framework.pay.core.enums.transfer.PayTransferTypeEnum;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -352,6 +353,24 @@ public abstract class AbstractPayClient<Config extends PayClientConfig> implemen
 
 
     protected abstract PayAgreementRespDTO doGetAgreement(String outAgreementNo)
+            throws Throwable;
+
+
+    @Override
+    public final PayAgreementRespDTO updateAgreement(String agreementNo, String deductTime)  {
+        try {
+            return doUpdateAgreement(agreementNo,deductTime);
+        } catch (ServiceException ex) { // 业务异常，都是实现类已经翻译，所以直接抛出即可
+            throw ex;
+        } catch (Throwable ex) {
+            log.error("[getAgreement][客户端({}) updateAgreement({}) 修改签约单异常]",
+                    getId(), agreementNo, ex);
+            throw buildPayException(ex);
+        }
+    }
+
+
+    protected abstract PayAgreementRespDTO doUpdateAgreement(String agreementNo, String deductTime)
             throws Throwable;
 
 

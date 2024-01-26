@@ -127,5 +127,21 @@ public class SignController {
         return success(  paySignService.syncSignPay());
     }
 
+    @GetMapping("/getSignRecord")
+    @Operation(summary = "获取签约信息")
+    // @PreAuthorize("@ss.hasPermission('pay:sign:export')")
+    public CommonResult<Object> getSign(@RequestParam("no")String no) throws IOException {
+        paySignService.getSignRecord(no);
+        return success(1);
+    }
+
+    @GetMapping("/updateSign")
+    @Operation(summary = "修改签约扣款日期")
+    // @PreAuthorize("@ss.hasPermission('pay:sign:export')")
+    public CommonResult<Object> updateSign(@RequestParam("no")String no,String deductTime) throws IOException {
+        paySignService.UpdateSign(no,deductTime);
+        return success(1);
+    }
+
 
 }
