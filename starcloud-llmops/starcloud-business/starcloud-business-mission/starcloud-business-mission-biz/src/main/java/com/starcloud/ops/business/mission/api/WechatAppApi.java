@@ -44,6 +44,8 @@ public interface WechatAppApi {
      */
     AppNotificationRespVO notifyDetail(String notificationUid);
 
+    AppNotificationRespVO notifyDetail(AppNotificationDetailReqVO reqVO);
+
     /**
      * 预结算记录
      */

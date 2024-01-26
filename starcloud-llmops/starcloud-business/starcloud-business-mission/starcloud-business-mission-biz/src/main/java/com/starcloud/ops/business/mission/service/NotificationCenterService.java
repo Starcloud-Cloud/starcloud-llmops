@@ -52,4 +52,10 @@ public interface NotificationCenterService {
      */
     Map<String, Object> metadata();
 
+    /**
+     * 刷新小程序二维码
+     * @param uid
+     * @return
+     */
+    String refreshQr(String uid);
 }

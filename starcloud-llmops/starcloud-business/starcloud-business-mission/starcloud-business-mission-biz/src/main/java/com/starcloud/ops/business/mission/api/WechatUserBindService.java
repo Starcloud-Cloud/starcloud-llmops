@@ -11,6 +11,8 @@ public interface WechatUserBindService {
      */
     void bindGroup(WechatUserBindReqVO reqVO);
 
+    void bindGroup(Long adminUserId, Long memberUserId);
+
     /**
      * 查询绑定的admin用户
      *

@@ -57,6 +57,15 @@ public class WechatAppController {
         return CommonResult.success(result);
     }
 
+    @PostMapping("/notify/detail")
+    @Operation(summary = "小程序通告详情")
+    @PermitAll
+    @OperateLog(enable = false)
+    public CommonResult<AppNotificationRespVO> notifyDetail(@Valid @RequestBody AppNotificationDetailReqVO reqVO) {
+        AppNotificationRespVO result = wechatAppApi.notifyDetail(reqVO);
+        return CommonResult.success(result);
+    }
+
     @PostMapping("/mission/claimed")
     @Operation(summary = "小程序已认领任务")
     @PreAuthenticated

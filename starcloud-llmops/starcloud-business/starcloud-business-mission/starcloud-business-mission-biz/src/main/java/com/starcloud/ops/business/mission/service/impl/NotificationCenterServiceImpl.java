@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.enums.*;
@@ -17,6 +18,7 @@ import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
+import com.starcloud.ops.business.mission.service.qr.MiniAppManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +49,11 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private MiniAppManager miniAppManager;
+
+    private static final String appPage = "pages/task-detail/index";
 
     @Override
     public Map<String, Object> metadata() {
@@ -180,6 +187,19 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         notificationCenterDO.setUpdateTime(LocalDateTime.now());
         notificationCenterMapper.update(notificationCenterDO);
         return NotificationCenterConvert.INSTANCE.convert(notificationCenterDO);
+    }
+
+    @Override
+    public String refreshQr(String uid) {
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        NotificationCenterDO notificationCenterDO = getByUid(uid);
+        String scene = notificationCenterDO.getId() + "&" + loginUserId;
+        String qrUrl = miniAppManager.generateQr(uid + ".jpg", scene, appPage);
+        notificationCenterDO.setAppQr(qrUrl);
+        notificationCenterDO.setUpdateTime(LocalDateTime.now());
+        notificationCenterDO.setUpdater(loginUserId.toString());
+        notificationCenterMapper.updateById(notificationCenterDO);
+        return qrUrl;
     }
 
     private void validName(String name) {

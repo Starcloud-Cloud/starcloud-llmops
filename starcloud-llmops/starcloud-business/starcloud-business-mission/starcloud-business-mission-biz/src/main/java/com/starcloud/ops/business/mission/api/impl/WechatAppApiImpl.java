@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
 import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -112,7 +113,7 @@ public class WechatAppApiImpl implements WechatAppApi {
             }
             ClaimLimitDTO claimLimit = NotificationCenterConvert.INSTANCE.toLimit(notificationCenterDO.getClaimLimit());
             List<SingleMissionDO> missionDOList = singleMissionMapper.listByNotification(reqVO.getNotificationUid());
-            long count = missionDOList.stream().filter(mission ->loginUserId.toString().equals(mission.getClaimUserId())).count();
+            long count = missionDOList.stream().filter(mission -> loginUserId.toString().equals(mission.getClaimUserId())).count();
             if (count >= claimLimit.getClaimNum()) {
                 throw exception(MORE_THAN_CLAIMED_NUM, claimLimit.getClaimNum());
             }
@@ -165,12 +166,12 @@ public class WechatAppApiImpl implements WechatAppApi {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void  abandonMission(AppAbandonMissionReqVO reqVO) {
+    public void abandonMission(AppAbandonMissionReqVO reqVO) {
         String claimedUser = SecurityFrameworkUtils.getLoginUserId().toString();
         SingleMissionDO singleMissionDO = missionByUid(reqVO.getMissionUid());
         if (SingleMissionStatusEnum.settlement.getCode().equals(singleMissionDO.getStatus())
-                ||SingleMissionStatusEnum.complete.getCode().equals(singleMissionDO.getStatus())
-                ||SingleMissionStatusEnum.close.getCode().equals(singleMissionDO.getStatus())
+                || SingleMissionStatusEnum.complete.getCode().equals(singleMissionDO.getStatus())
+                || SingleMissionStatusEnum.close.getCode().equals(singleMissionDO.getStatus())
                 || SingleMissionStatusEnum.settlement_error.getCode().equals(singleMissionDO.getStatus())) {
             throw exception(MISSION_CAN_NOT_ABANDON_STATUS, SingleMissionStatusEnum.valueOfCode(singleMissionDO.getStatus()));
         }
@@ -313,6 +314,25 @@ public class WechatAppApiImpl implements WechatAppApi {
         respVO.setClaimCount(claimCount);
         respVO.setCurrentUserNum(currentUserNum);
         return respVO;
+    }
+
+    @Override
+    public AppNotificationRespVO notifyDetail(AppNotificationDetailReqVO reqVO) {
+        NotificationCenterDO notificationCenterDO = notificationCenterMapper.selectById(reqVO.getId());
+        if (notificationCenterDO == null) {
+            throw exception(NOTIFICATION_NOT_EXISTS, reqVO.getId());
+        }
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+
+        if (reqVO.getInviteUser() != null && loginUserId != null) {
+            try {
+                wechatUserBindService.bindGroup(reqVO.getInviteUser(), loginUserId);
+            } catch (Exception e) {
+                log.warn("bind user error", e);
+            }
+        }
+
+        return notifyDetail(notificationCenterDO.getUid());
     }
 
     @Override

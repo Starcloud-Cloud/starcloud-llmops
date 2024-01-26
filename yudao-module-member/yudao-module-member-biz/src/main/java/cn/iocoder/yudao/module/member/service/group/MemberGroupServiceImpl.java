@@ -84,11 +84,11 @@ public class MemberGroupServiceImpl implements MemberGroupService {
     }
 
     @Override
-    public MemberGroupDO saveGroup(String name) {
-        MemberGroupDO memberGroupDO = memberGroupMapper.selectListByName(name);
+    public MemberGroupDO saveGroup(String username,Long userId) {
+        MemberGroupDO memberGroupDO = memberGroupMapper.selectByName(userId + "_");
         if (memberGroupDO == null) {
             memberGroupDO = new MemberGroupDO();
-            memberGroupDO.setName(name);
+            memberGroupDO.setName(userId + "_" + username);
             memberGroupDO.setRemark("wx-app");
             memberGroupDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
             memberGroupMapper.insert(memberGroupDO);

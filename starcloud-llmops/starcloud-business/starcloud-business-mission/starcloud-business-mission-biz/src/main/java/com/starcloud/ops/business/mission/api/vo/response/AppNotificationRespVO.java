@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 @Schema(description = "通告详情")
 public class AppNotificationRespVO {
 
+    @Schema(description = "通告id")
+    private Long id;
+
     @Schema(description = "uid")
     private String uid;
 

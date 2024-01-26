@@ -87,4 +87,7 @@ public class NotificationRespVO {
 
     @Schema(description = "是否公开")
     private Boolean open;
+
+    @Schema(description = "小程序二维码")
+    private String appQr;
 }

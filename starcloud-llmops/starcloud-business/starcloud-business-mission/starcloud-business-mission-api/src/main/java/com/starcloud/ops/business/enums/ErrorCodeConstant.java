@@ -66,4 +66,7 @@ public interface ErrorCodeConstant {
 
     ErrorCode  END_TIME_OVER =  new ErrorCode(700020010,"任务时间结束");
 
+    ErrorCode  GENERATE_QR_ERROR =  new ErrorCode(700020011,"生成小程序二维码失败 {}");
+
+
 }

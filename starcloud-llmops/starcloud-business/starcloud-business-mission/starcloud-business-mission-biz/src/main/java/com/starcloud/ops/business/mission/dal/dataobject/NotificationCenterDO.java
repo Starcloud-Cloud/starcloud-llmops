@@ -103,4 +103,9 @@ public class NotificationCenterDO extends TenantBaseDO {
      */
     private Boolean open;
 
+    /**
+     * 小程序二维码
+     */
+    private String appQr;
+
 }

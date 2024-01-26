@@ -23,7 +23,7 @@ public class WechatUserBindController {
     private WechatUserBindService wechatUserBindService;
 
     @PostMapping("/bind")
-    @Operation(summary = "小程序通告列表")
+    @Operation(summary = "绑定小程序用户")
     @PreAuthenticated
     public CommonResult<Boolean> notifyPage(@Valid @RequestBody WechatUserBindReqVO reqVO) {
         wechatUserBindService.bindGroup(reqVO);

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.mission.api.impl;
 
 import cn.hutool.core.util.ReUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.member.dal.dataobject.group.MemberGroupDO;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
 import cn.iocoder.yudao.module.member.service.group.MemberGroupService;
@@ -38,13 +39,17 @@ public class WechatUserBindServiceImpl implements WechatUserBindService {
     @Transactional(rollbackFor = Exception.class)
     public void bindGroup(WechatUserBindReqVO reqVO) {
         Long adminUserId = EncryptionUtils.decrypt(reqVO.getInviteCode());
+        bindGroup(adminUserId, WebFrameworkUtils.getLoginUserId());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void bindGroup(Long adminUserId, Long memberUserId) {
         AdminUserDO adminUserDO = adminUserService.getUser(adminUserId);
         if (adminUserDO == null) {
             throw exception(USER_NOT_EXISTS);
         }
-        String groupName = adminUserDO.getUsername() + "-" + adminUserId;
-        MemberGroupDO memberGroupDO = groupService.saveGroup(groupName);
-        Long memberUserId = SecurityFrameworkUtils.getLoginUserId();
+        MemberGroupDO memberGroupDO = groupService.saveGroup(adminUserDO.getUsername(), adminUserId);
         memberUserService.updateUserGroup(memberUserId, memberGroupDO.getId());
     }
 

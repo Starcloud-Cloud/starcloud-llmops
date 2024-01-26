@@ -75,4 +75,11 @@ public class NotificationCenterController {
         return CommonResult.success(respVO);
     }
 
+    @GetMapping("/qr/{uid}")
+    @Operation(summary = "小程序刷新二维码", description = "刷新二维码")
+    public CommonResult<String> refreshQr(@PathVariable("uid") String uid) {
+        String url = centerService.refreshQr(uid);
+        return CommonResult.success(url);
+    }
+
 }

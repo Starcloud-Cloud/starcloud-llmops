@@ -51,10 +51,9 @@ public interface MemberGroupService {
     /**
      * 获得用户分组
      *
-     * @param name
      * @return
      */
-    MemberGroupDO saveGroup(String name);
+    MemberGroupDO saveGroup(String username,Long userId);
 
     /**
      * 获得用户分组列表

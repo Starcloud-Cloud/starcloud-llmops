@@ -31,9 +31,9 @@ public interface MemberGroupMapper extends BaseMapperX<MemberGroupDO> {
         return selectList(MemberGroupDO::getStatus, status);
     }
 
-    default MemberGroupDO selectListByName(String name) {
+    default MemberGroupDO selectByName(String name) {
         LambdaQueryWrapper<MemberGroupDO> wrapper = Wrappers.lambdaQuery(MemberGroupDO.class)
-                .eq(MemberGroupDO::getName, name);
+                .likeRight(MemberGroupDO::getName, name);
         return selectOne(wrapper);
     }
 }
