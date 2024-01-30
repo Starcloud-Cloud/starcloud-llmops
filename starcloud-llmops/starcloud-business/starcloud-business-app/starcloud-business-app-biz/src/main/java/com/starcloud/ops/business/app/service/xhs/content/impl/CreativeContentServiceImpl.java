@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -79,9 +80,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     @Override
-    @TenantIgnore
     public Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force) {
-        log.info("开始执行 {} 任务 {}", type, ids);
+        log.info("开始执行 {} 任务 {}, {}, {}", type, ids, TenantContextHolder.isIgnore(), TenantContextHolder.getTenantId());
         try {
             List<CreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
                     .stream().filter(content -> !CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());

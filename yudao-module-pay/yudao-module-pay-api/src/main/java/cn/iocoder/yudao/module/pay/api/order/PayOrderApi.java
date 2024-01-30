@@ -2,6 +2,8 @@ package cn.iocoder.yudao.module.pay.api.order;
 
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
+import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
 
 import javax.validation.Valid;
 
@@ -36,5 +38,14 @@ public interface PayOrderApi {
      * @param payPrice   支付单价格
      */
     void updatePayOrderPrice(Long id, Integer payPrice);
+
+
+    /**
+     * 创建支付单
+     *
+     * @param reqDTO 创建请求
+     * @return 支付单编号
+     */
+    PayOrderSubmitRespDTO submitSignPayOrder(PayOrderSubmitReqDTO reqDTO, String userIp);
 
 }

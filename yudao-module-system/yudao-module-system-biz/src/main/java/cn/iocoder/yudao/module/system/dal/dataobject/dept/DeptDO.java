@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -62,5 +63,20 @@ public class DeptDO extends TenantBaseDO {
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
+
+    /**
+     * 部门头像
+     */
+    private String avatar;
+
+    /**
+     * 部门描述
+     */
+    private String description;
+
+    /**
+     * 部门配置
+     */
+    private String config;
 
 }

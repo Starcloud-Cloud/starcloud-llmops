@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
@@ -319,7 +320,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         this.initAppConversationLog(request);
 
         try {
-            log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
+            log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
             this.validate(request);
 
@@ -367,12 +368,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         this.initAppConversationLog(request);
 
         try {
-            log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, ", request.getUserId());
+            log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
             this.validate(request);
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
                 try {
+
+                    log.info("应用异步执行-threadExecutor：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
+
                     this.beforeExecute(request);
                     this.doAsyncExecute(request);
                     this.afterExecute(request, null);

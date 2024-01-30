@@ -12,6 +12,7 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
@@ -31,6 +32,7 @@ import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
@@ -43,6 +45,7 @@ import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
+import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
@@ -52,6 +55,7 @@ import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
 import com.starcloud.ops.business.user.service.InvitationRecordsService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.dept.UserDeptService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
@@ -103,6 +107,15 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private RecoverPasswordMapper recoverPasswordMapper;
 
+    @Autowired
+    private UserRoleMapper userRoleMapper;
+
+//    @Autowired
+//    private PermissionProducer permissionProducer;
+
+//    @Autowired
+//    private UserBenefitsService benefitsService;
+
     @Resource
     private InvitationRecordsService invitationRecordsService;
 
@@ -114,6 +127,9 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private SendUserMsgService sendUserMsgService;
 
+
+    @Autowired
+    private RoleMapper roleMapper;
     @Resource
     private SendSocialMsgService sendSocialMsgService;
 
@@ -129,6 +145,10 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private TradeOrderApi tradeOrderApi;
 
+
+
+    @Resource
+    private UserDeptService userDeptService;
 
 
     @Override
@@ -279,6 +299,15 @@ public class StarUserServiceImpl implements StarUserService {
         userDO.setTenantId(userDTO.getTenantId());
         userDO.setMobile(userDTO.getMobile());
         adminUserMapper.insert(userDO);
+
+        CreateUserDeptReqVO createUserDeptReqVO = CreateUserDeptReqVO.builder().deptId(deptId)
+                .userId(userDO.getId())
+                .inviteUser(userDO.getId())
+                .deptRole(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode()).build();
+        userDeptService.create(createUserDeptReqVO);
+
+        deptDO.setLeaderUserId(userDO.getId());
+        deptMapper.updateById(deptDO);
 
         // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
         TenantUtils.execute(userDTO.getTenantId(), () -> {

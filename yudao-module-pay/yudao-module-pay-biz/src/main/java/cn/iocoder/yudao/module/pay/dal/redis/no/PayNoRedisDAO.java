@@ -36,4 +36,15 @@ public class PayNoRedisDAO {
         return noPrefix + no;
     }
 
+
+    public String generateSignNO(String prefix) {
+        // 递增序号
+        String noPrefix = prefix + DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_PATTERN);
+        String key = RedisKeyConstants.SIGN_NO + noPrefix;
+        Long no = stringRedisTemplate.opsForValue().increment(key);
+        // 设置过期时间
+        stringRedisTemplate.expire(key, Duration.ofMinutes(1L));
+        return noPrefix + no;
+    }
+
 }

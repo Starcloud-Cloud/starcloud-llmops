@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @ConfigurationProperties(prefix = "yudao.pay")
 @Validated
@@ -14,6 +15,7 @@ public class PayProperties {
 
     private static final String ORDER_NO_PREFIX = "P";
     private static final String REFUND_NO_PREFIX = "R";
+    private static final String SIGN_PREFIX = "S";
 
     /**
      * 支付回调地址
@@ -37,6 +39,10 @@ public class PayProperties {
     @URL(message = "支付回调地址的格式必须是 URL")
     private String refundNotifyUrl;
 
+    @NotEmpty(message = "签约回调地址不能为空")
+    @URL(message = "签约回调地址的格式必须是 URL")
+    private String signNotifyUrl;
+
     /**
      * 支付订单 no 的前缀
      */
@@ -48,5 +54,14 @@ public class PayProperties {
      */
     @NotEmpty(message = "退款订单 no 的前缀不能为空")
     private String refundNoPrefix = REFUND_NO_PREFIX;
+
+    /**
+     * 签约订单 no 的前缀
+     */
+    @NotEmpty(message = "签约订单 no 的前缀不能为空")
+    private String signNoPrefix = SIGN_PREFIX;
+
+    @NotNull(message = "签约固定扣款时间")
+    private Integer fixedDeductionTime;
 
 }
