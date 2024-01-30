@@ -14,8 +14,8 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
-import com.starcloud.ops.business.user.dal.dataobject.invitation.InvitationRecordsDO;
-import com.starcloud.ops.business.user.service.InvitationRecordsService;
+import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
+import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
@@ -59,7 +59,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
     private DictDataService dictDataService;
 
     @Resource
-    private InvitationRecordsService invitationRecordsService;
+    private AdminUserInviteService adminUserInviteService;
 
     @Resource
     private MpMessageService messageService;
@@ -76,7 +76,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         if (CollectionUtils.isEmpty(socialUserList)) {
             return;
         }
-        List<InvitationRecordsDO> invitationRecords = invitationRecordsService.getInvitationRecords(inviteUserid);
+        List<AdminUserInviteDO> invitationRecords = adminUserInviteService.getInvitationRecords(inviteUserid);
 
         if (invitationRecords.size() <= 3) {
             log.info("用户: {} 已邀请了{}个人", inviteUserid, invitationRecords.size());

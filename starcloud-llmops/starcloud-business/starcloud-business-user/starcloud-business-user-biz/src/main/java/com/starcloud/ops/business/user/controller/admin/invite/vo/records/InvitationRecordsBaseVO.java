@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.controller.admin.invitationrecords.vo;
+package com.starcloud.ops.business.user.controller.admin.invite.vo.records;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

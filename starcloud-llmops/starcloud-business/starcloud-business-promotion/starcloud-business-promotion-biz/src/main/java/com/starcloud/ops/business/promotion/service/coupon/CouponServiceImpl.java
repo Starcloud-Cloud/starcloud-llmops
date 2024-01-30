@@ -167,12 +167,32 @@ public class CouponServiceImpl implements CouponService {
         removeTakeLimitUser(userIds, template);
         // 2. 校验优惠劵是否可以领取
         validateCouponTemplateCanTake(template, userIds, takeType);
+        // 3. 校验优惠劵是否仅最后一张生效
+        validateOnlyLastTakeEffect(template, userIds);
 
-        // 3. 批量保存优惠劵
+        // 4. 批量保存优惠劵
         couponMapper.insertBatch(convertList(userIds, userId -> CouponConvert.INSTANCE.convert(template, userId)));
 
-        // 3. 增加优惠劵模板的领取数量
+        // 5. 增加优惠劵模板的领取数量
         couponTemplateService.updateCouponTemplateTakeCount(templateId, userIds.size());
+    }
+
+    private void validateOnlyLastTakeEffect(CouponTemplateDO template, Set<Long> userIds) {
+
+        if (!template.getOnlyLastTakeEffect()) {
+            return;
+        }
+        List<CouponDO> allCoupons = couponMapper.selectListByTemplateIdAndEnable(template.getId());
+        if (allCoupons.isEmpty()) {
+            return;
+        }
+
+        userIds.stream()
+                .filter(userId -> !allCoupons.isEmpty())
+                .forEach(userId -> {
+                    List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(template.getId()));
+                    couponDOS.forEach(couponDO -> getSelf().expireCoupon(couponDO));
+                });
     }
 
     @Override
@@ -183,11 +203,13 @@ public class CouponServiceImpl implements CouponService {
         // 2. 校验优惠劵是否可以领取
         validateCouponTemplateCanTake(template, CollUtil.newHashSet(userId), takeType);
 
-        // 3. 批量保存优惠劵
+        // 3. 校验优惠劵是否仅最后一张生效
+        validateOnlyLastTakeEffect(template, Collections.singleton(userId));
+        // 4. 批量保存优惠劵
         CouponDO convert = CouponConvert.INSTANCE.convert(template, userId);
         couponMapper.insert(convert);
 
-        // 3. 增加优惠劵模板的领取数量
+        // 5. 增加优惠劵模板的领取数量
         couponTemplateService.updateCouponTemplateTakeCount(templateId, 1);
         return convert.getId();
     }
@@ -214,6 +236,14 @@ public class CouponServiceImpl implements CouponService {
         return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
                 matchReqVO.getPrice(), matchReqVO.getSpuIds(), matchReqVO.getCategoryIds());
+    }
+
+
+    @Override
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds,List<Long> categoryIds) {
+        return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
+                CouponStatusEnum.UNUSED.getStatus(),
+                price, spuIds, categoryIds).size();
     }
 
     @Override

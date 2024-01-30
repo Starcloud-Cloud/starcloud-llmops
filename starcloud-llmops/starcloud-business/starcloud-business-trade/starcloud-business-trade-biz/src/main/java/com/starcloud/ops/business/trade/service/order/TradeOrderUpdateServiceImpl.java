@@ -24,7 +24,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
-import com.starcloud.ops.business.promotion.api.coupon.CouponTemplateApi;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderDeliveryReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderRemarkReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderUpdateAddressReqVO;
@@ -231,6 +230,9 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         order.setGiveRights(calculateRightsRespBO.getGiveRights());
 
         List<TradeOrderItemDO> orderItems = buildTradeOrderItems(order, calculateRespBO);
+
+        // 2.0 订单创建前的验证
+        tradeOrderHandlers.forEach(handler -> handler.beforeOrderValidate(order, orderItems));
 
         // 2. 订单创建前的逻辑
         tradeOrderHandlers.forEach(handler -> handler.beforeOrderCreate(order, orderItems));

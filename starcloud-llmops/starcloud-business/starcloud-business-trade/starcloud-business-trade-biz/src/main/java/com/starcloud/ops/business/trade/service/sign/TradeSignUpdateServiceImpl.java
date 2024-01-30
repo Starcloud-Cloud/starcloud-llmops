@@ -16,7 +16,6 @@ import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSet
 import com.starcloud.ops.business.trade.convert.order.TradeOrderConvert;
 import com.starcloud.ops.business.trade.convert.sign.TradeSignConvert;
 import com.starcloud.ops.business.trade.dal.dataobject.cart.CartDO;
-import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignItemDO;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignItemMapper;
@@ -38,14 +37,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getSumValue;
-import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.DAY;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 @Service
@@ -208,7 +205,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         Integer period = signDO.getSignConfigs().getPeriod();
         Integer periodType = signDO.getSignConfigs().getPeriodType();
 
-        LocalDateTime payTime = TimeRangeTypeEnum.getTimeByRange(periodType, period, signDO.getPayTime().atStartOfDay());
+        LocalDateTime payTime = TimeRangeTypeEnum.getPlusTimeByRange(periodType, period, signDO.getPayTime().atStartOfDay());
         tradeSignMapper.updateById(new TradeSignDO().setId(signDO.getId()).setPayTime(payTime.toLocalDate()));
     }
 

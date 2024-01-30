@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.product.controller.admin.spu.vo.*;
@@ -32,11 +31,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.EXPORT;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
 
 @Tag(name = "星河云海 -管理后台 - 商品 SPU")
@@ -157,13 +156,12 @@ public class ProductSpuController {
     @PermitAll
     @Operation(summary = "系统会员-获得商品 SPU 分页")
     public CommonResult<PageResult<AppProductSpuPageRespVO>> getSpuPage(@Valid AppProductSpuPageReqVO pageVO) {
-        PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO);
-        List<ProductSpuDO> collect = pageResult.getList().stream().filter(sku -> sku.getRegisterDays() == -1).collect(Collectors.toList());
-        pageResult.setList(collect);
+        PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO,getLoginUserId());
+        // List<ProductSpuDO> collect = pageResult.getList().stream().filter(sku -> sku.getRegisterDays() == -1).collect(Collectors.toList());
+        // pageResult.setList(collect);
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }
-
         // 拼接返回
         PageResult<AppProductSpuPageRespVO> voPageResult = ProductSpuConvert.INSTANCE.convertPageForGetSpuPage(pageResult);
 

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.service;
+package com.starcloud.ops.business.user.service.user;
 
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
@@ -100,4 +100,13 @@ public interface StarUserService {
      * @return
      */
     AuthLoginRespVO createTokenAfterLoginSuccess(Long userId, String username, LoginLogTypeEnum logType);
+
+
+    /**
+     * 用户是否是新用户
+     * @param userId
+     * @param limitDay
+     * @return
+     */
+    Boolean isNewUser(Long userId, Long limitDay);
 }

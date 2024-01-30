@@ -181,6 +181,13 @@ public class ProductSpuDO extends BaseDO {
      * 赠送积分
      */
     private Integer giveIntegral;
+
+    /**
+     * 必须存在该优惠券才可以下单 如果为空 不做限制
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<Long> limitCouponTemplateIds;
+
     /**
      * 赠送的优惠劵编号的数组
      * <p>
