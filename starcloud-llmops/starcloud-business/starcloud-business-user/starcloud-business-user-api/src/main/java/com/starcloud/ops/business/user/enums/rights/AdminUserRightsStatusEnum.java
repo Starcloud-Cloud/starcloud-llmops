@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.util.Objects;
 
 /**
- * 会员积分的业务类型枚举
+ * 系统会员权益的业务类型枚举
  *
  * @author 芋道源码
  */
@@ -19,6 +19,7 @@ public enum AdminUserRightsStatusEnum implements IntArrayValuable {
     NORMAL(0, "正常"),
     EXPIRE(1, "过期"),
     CANCEL(2, "取消"),
+    PENDING(3, "待生效"),
     ;
 
     /**

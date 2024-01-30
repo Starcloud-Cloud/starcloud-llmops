@@ -44,5 +44,12 @@ public interface TradeSignUpdateService {
      */
     void updateSignStatus(Long id, Long paySignId, Boolean closeSign);
 
+    /**
+     * 更新签约预计扣款时间
+     *
+     * @param id 交易订单编号
+     */
+    void updatePayTime(Long id);
+
 
 }

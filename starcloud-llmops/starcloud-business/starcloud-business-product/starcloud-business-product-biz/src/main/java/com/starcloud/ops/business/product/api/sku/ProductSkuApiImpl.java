@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
@@ -50,5 +49,6 @@ public class ProductSkuApiImpl implements ProductSkuApi {
     public void updateSkuStock(ProductSkuUpdateStockReqDTO updateStockReqDTO) {
         productSkuService.updateSkuStock(updateStockReqDTO);
     }
+
 
 }

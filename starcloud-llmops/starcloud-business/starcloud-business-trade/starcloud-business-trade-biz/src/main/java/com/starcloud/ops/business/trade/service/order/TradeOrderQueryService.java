@@ -8,6 +8,7 @@ import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackRespDTO;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,9 +43,9 @@ public interface TradeOrderQueryService {
     /**
      * 获得指定用户，指定活动，指定状态的交易订单
      *
-     * @param userId     用户编号
+     * @param userId                用户编号
      * @param combinationActivityId 活动编号
-     * @param status     订单状态
+     * @param status                订单状态
      * @return 交易订单
      */
     TradeOrderDO getOrderByUserIdAndStatusAndCombination(Long userId, Long combinationActivityId, Integer status);
@@ -154,5 +155,14 @@ public interface TradeOrderQueryService {
      * @return 交易订单项数组
      */
     List<TradeOrderItemDO> getOrderItemListByOrderId(Collection<Long> orderIds);
+
+    /**
+     * 【系统】获取签约周期下的订单
+     *
+     * @param signId  签约ID
+     * @param signPayTime 签约预扣款时间
+     * @return 物流轨迹数组
+     */
+    TradeOrderDO getOrderBySignPayTime(Long signId, LocalDate signPayTime);
 
 }

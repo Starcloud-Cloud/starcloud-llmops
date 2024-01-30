@@ -12,7 +12,6 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
@@ -39,10 +38,9 @@ import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
-import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
+import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
 import com.starcloud.ops.business.user.dal.dataobject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
@@ -52,18 +50,18 @@ import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
-import com.starcloud.ops.business.user.service.InvitationRecordsService;
+import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
-import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.user.StarUserService;
 import com.starcloud.ops.business.user.service.dept.UserDeptService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
+import com.starcloud.ops.business.user.service.user.handler.UserRegisterHandler;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,7 +115,7 @@ public class StarUserServiceImpl implements StarUserService {
 //    private UserBenefitsService benefitsService;
 
     @Resource
-    private InvitationRecordsService invitationRecordsService;
+    private AdminUserInviteService adminUserInviteService;
 
     @Resource
     private AdminUserService userService;
@@ -145,10 +143,11 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private TradeOrderApi tradeOrderApi;
 
-
-
     @Resource
     private UserDeptService userDeptService;
+
+    @Resource
+    private List<UserRegisterHandler> userRegisterHandlers;
 
 
     @Override
@@ -204,32 +203,38 @@ public class StarUserServiceImpl implements StarUserService {
             if (inviteUserId != null && inviteUserId > 0) {
 
                 // 增加邀请记录
-                Long invitationId = invitationRecordsService.createInvitationRecords(inviteUserId, currentUserId);
+                Long invitationId = adminUserInviteService.createInvitationRecords(inviteUserId, currentUserId);
                 log.info("邀请记录添加成功，开始发送注册与邀请权益");
 
                 TenantUtils.execute(tenantId, () -> {
-                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId));
-                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId));
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId), null);
+                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId), null);
                 });
 
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
 
                 // 获取当天的邀请记录
-                List<InvitationRecordsDO> todayInvitations = invitationRecordsService.getTodayInvitations(inviteUserId);
+                List<AdminUserInviteDO> todayInvitations = adminUserInviteService.getTodayInvitations(inviteUserId);
                 if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
                     TenantUtils.execute(tenantId, () -> {
-                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId));
+                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId), null);
                     });
-                    sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
-                            "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
-                                    "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
+
+                    try {
+                        sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
+                                "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
+                                        "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
+                    } catch (Exception e) {
+                        log.error("邀请达人公众号信息发送失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
+                    }
+
                 }
 
             } else {
                 // 普通注册权益
                 TenantUtils.execute(tenantId, () -> {
-                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId));
+                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId), null);
                 });
             }
 
@@ -248,7 +253,10 @@ public class StarUserServiceImpl implements StarUserService {
         } catch (Exception e) {
             log.warn("解析邀请用户失败，currentUserId={},inviteCode={}", currentUserId, inviteCode, e);
         }
-        addBenefits(currentUserId, inviteUserid);
+        // 2.0 订单创建前的验证
+        Long finalInviteUserid = inviteUserid;
+        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(currentUserId), finalInviteUserid == null ? null : userService.getUser(finalInviteUserid)));
+        // addBenefits(currentUserId, inviteUserid);
     }
 
     @Override
@@ -270,8 +278,9 @@ public class StarUserServiceImpl implements StarUserService {
         if (i <= 0) {
             throw exception(ACTIVATION_USER_ERROR);
         }
+        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(registerUserDO.getUserId()), registerUserDO.getInviteUserId() == null ? null : userService.getUser(registerUserDO.getInviteUserId())));
 
-        addBenefits(registerUserDO.getUserId(), registerUserDO.getInviteUserId());
+        // addBenefits(registerUserDO.getUserId(), registerUserDO.getInviteUserId());
         TenantContextHolder.setIgnore(true);
         registerUserDO.setStatus(1);
         registerUserMapper.updateById(registerUserDO);
@@ -327,6 +336,24 @@ public class StarUserServiceImpl implements StarUserService {
                 OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);
         // 构建返回结果
         return AuthConvert.INSTANCE.convert(accessTokenDO);
+    }
+
+    /**
+     * 用户是否是新用户
+     *
+     * @param userId
+     * @param limitDay
+     * @return
+     */
+    @Override
+    public Boolean isNewUser(Long userId, Long limitDay) {
+        if (Objects.isNull(limitDay)) {
+            limitDay = 3L;
+        }
+        AdminUserDO userDO = adminUserMapper.selectById(userId);
+
+        // 注册时间3天内
+        return tradeOrderApi.getSuccessOrderCount(userId) <= 0 && userDO.getCreateTime().isAfter(LocalDateTime.now().minusDays(3));
     }
 
     private void createLoginLog(Long userId, String username,
@@ -511,7 +538,7 @@ public class StarUserServiceImpl implements StarUserService {
         AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
-        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(),userId));
+        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(), userId));
         userDetailVO.setRegisterTime(userDO.getCreateTime());
         userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
         return userDetailVO;
@@ -584,8 +611,8 @@ public class StarUserServiceImpl implements StarUserService {
         }
     }
 
-    private Boolean validateIsNewUser(LocalDateTime RegisterTime,Long userId) {
-        if (tradeOrderApi.getSuccessOrderCount(userId)>0) {
+    private Boolean validateIsNewUser(LocalDateTime RegisterTime, Long userId) {
+        if (tradeOrderApi.getSuccessOrderCount(userId) > 0) {
             return false;
         }
 

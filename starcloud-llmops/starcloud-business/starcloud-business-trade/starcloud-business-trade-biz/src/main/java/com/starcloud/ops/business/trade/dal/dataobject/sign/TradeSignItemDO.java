@@ -2,6 +2,7 @@ package com.starcloud.ops.business.trade.dal.dataobject.sign;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
@@ -25,7 +26,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class TradeSignItemDO extends BaseDO {
+public class TradeSignItemDO extends TenantBaseDO {
 
     // ========== 订单项基本信息 ==========
     /**

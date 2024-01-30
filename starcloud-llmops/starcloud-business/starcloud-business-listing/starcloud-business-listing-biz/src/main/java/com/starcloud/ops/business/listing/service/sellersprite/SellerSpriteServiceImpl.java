@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
@@ -9,6 +10,9 @@ import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.ColorScheme;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
@@ -22,6 +26,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,9 +186,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedPostRequest(String url, String requestData) {
 
-
         String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
-
         try {
             String result = HttpRequest.post(url).cookie(cookie)
                     .body(requestData)
@@ -235,6 +238,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         log.error("卖家精灵Cookie 失效，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")
@@ -244,6 +248,60 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             log.error("系统支付通知信息发送失败", e);
         }
 
+    }
+
+
+    public static void main(String[] args) {
+        Map<String,String> map = new HashMap();
+        //跳过下载浏览器，因为公司是内网，这个配置很重要
+        // map.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
+        // //跳过下载浏览器后配置浏览器位置
+        // map.put("PLAYWRIGHT_BROWSERS_PATH", "D:\\pw-browsers\\ms-playwright");
+        Playwright playwright = Playwright.create(new Playwright.CreateOptions().setEnv(map));
+        Browser browser = playwright.chromium().launch(
+                new BrowserType.LaunchOptions().setHeadless(false) //取消无头模式，我们才能看见浏览器操作
+                        .setSlowMo(100) //减慢执行速度，以免太快
+                        .setDevtools(false)); //打开浏览器开发者工具，默认不打开
+        // Browser browser = playwright.chromium().launch();
+        BrowserContext browserContext = browser.newContext(
+                new Browser.NewContextOptions().setColorScheme(ColorScheme.DARK) //设置浏览器主题，chromium设置了dark好像没用
+                        .setViewportSize(1200, 900) //设置浏览器打开后窗口大小
+        );
+        Page page = browserContext.newPage();
+        page.navigate("https://www.sellersprite.com/w/user/login");
+
+        page.pause();//暂停脚本
+
+    }
+    public String getCookie(){
+
+        // Playwright playwright = Playwright.create(new Playwright.CreateOptions().setEnv(map));
+        // Browser browser = playwright.chromium().launch(
+        //         new BrowserType.LaunchOptions().setHeadless(false) //取消无头模式，我们才能看见浏览器操作
+        //                 .setSlowMo(100) //减慢执行速度，以免太快
+        //                 .setDevtools(true)); //打开浏览器开发者工具，默认不打开
+        // // Browser browser = playwright.chromium().launch();
+        // BrowserContext browserContext = browser.newContext(
+        //         new Browser.NewContextOptions().setColorScheme(ColorScheme.DARK) //设置浏览器主题，chromium设置了dark好像没用
+        //                 .setViewportSize(1000, 500) //设置浏览器打开后窗口大小
+        // );
+
+
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                    .setHeadless(false));
+            BrowserContext context = browser.newContext();
+            Page page = context.newPage();
+
+            page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName("账号登录")).click();
+            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("手机号/邮箱/子账号")).click();
+            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("手机号/邮箱/子账号")).fill("17835411844");
+            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("密 码")).click();
+            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("密 码")).fill("alancusack");
+            page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("立即登录")).click();
+            page.goBack();
+        }
+        return "1";
     }
 
 

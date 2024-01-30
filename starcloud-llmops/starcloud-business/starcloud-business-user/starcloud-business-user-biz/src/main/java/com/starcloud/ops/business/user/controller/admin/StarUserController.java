@@ -13,7 +13,7 @@ import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
-import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.user.StarUserService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.tag.AdminUserTagService;

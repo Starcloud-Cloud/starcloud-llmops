@@ -79,6 +79,7 @@ public class ProductCategoryController {
 
 
     @GetMapping("/u/list")
+    @PermitAll
     @Operation(summary = "系统会员 - 获得商品分类列表")
     public CommonResult<List<AppCategoryRespVO>> getProductCategoryList() {
         List<ProductCategoryDO> list = categoryService.getEnableCategoryList();

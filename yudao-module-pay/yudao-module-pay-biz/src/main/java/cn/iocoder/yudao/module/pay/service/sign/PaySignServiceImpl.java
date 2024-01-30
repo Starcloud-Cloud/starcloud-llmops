@@ -157,14 +157,14 @@ public class PaySignServiceImpl implements PaySignService {
                 // .setOutTradeNo(payOrderSubmitRespVO.getDisplayContent()) // 注意，此处使用的是 PayOrderExtensionDO.no 属性！
                 // 订单相关字段
                 .setTotalAmount(signDO.getPrice())
-                .setSubject(signDO.getSubject() + "包月服务")
+                .setSubject(signDO.getSubject())
                 .setBody(signDO.getBody())
                 .setExpireTime(signDO.getExpireTime())
                 .setExternalAgreementNo(signExtensionDO.getNo())
                 .setPeriodType(buildPeriodType(signDO.getPeriodUnit()))
                 .setPeriod(Long.valueOf(signDO.getPeriod()))
                 // .setExecuteTime(BuildExecuteTime(payProperties.getFixedDeductionTime()))
-                .setExecuteTime(buildSignPayTime(LocalDate.now(), TimeRangeTypeEnum.MONTH))
+                .setExecuteTime(signDO.getPayTime())
                 .setSingleAmount(signDO.getPrice())
                 .setSignNotifyUrl(genChannelSignNotifyUrl(channel));
         PayAgreementRespDTO unifiedAgreement = payClient.unifiedPageAgreement(unifiedReqDTO);
@@ -194,7 +194,6 @@ public class PaySignServiceImpl implements PaySignService {
         throw new RuntimeException("周期异常，请联系管理员");
 
     }
-
 
 
     @Override
@@ -232,7 +231,7 @@ public class PaySignServiceImpl implements PaySignService {
      */
     @Override
     public PaySignDO getSignByMerchantSignId(Long appId, String merchantSignId) {
-        return paySignMapper.selectByAppIdAndMerchantSignId(appId,merchantSignId);
+        return paySignMapper.selectByAppIdAndMerchantSignId(appId, merchantSignId);
     }
 
     @Override
@@ -333,6 +332,38 @@ public class PaySignServiceImpl implements PaySignService {
 
     }
 
+    /**
+     * 同步签约支付
+     *
+     * @param signNo
+     * @return
+     */
+    @Override
+    public Object getSignRecord(String signNo) {
+            PayClient payClient = channelService.getPayClient(22L);
+            if (payClient == null) {
+
+            }
+            PayAgreementRespDTO respDTO = payClient.getAgreement(signNo);
+           return respDTO.getRawData();
+    }
+
+    /**
+     * 同步签约支付
+     *
+     * @param signNo
+     * @return
+     */
+    @Override
+    public Object UpdateSign(String signNo,String deductTime) {
+        PayClient payClient = channelService.getPayClient(22L);
+        if (payClient == null) {
+
+        }
+        PayAgreementRespDTO respDTO = payClient.updateAgreement(signNo,deductTime);
+        return respDTO.getRawData();
+    }
+
 
     private boolean syncSignPay(PaySignDO waitePaySign) {
         try {
@@ -414,8 +445,8 @@ public class PaySignServiceImpl implements PaySignService {
                         .setBody(signDO.getBody())
                         .setPrice(signDO.getPrice())
                         .setExpireTime(signDO.getExpireTime())
-                        // .setSignId(signDO.getId())
-                );
+                // .setSignId(signDO.getId())
+        );
 
         PayOrderDO order = payOrderService.getOrder(orderId);
         PayOrderSubmitRespVO payOrderSubmitRespVO = payOrderService.submitOrder(new PayOrderSubmitReqVO()

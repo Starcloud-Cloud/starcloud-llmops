@@ -99,6 +99,8 @@ public interface ProductSpuService {
      */
     PageResult<ProductSpuDO> getSpuPage(AppProductSpuPageReqVO pageReqVO);
 
+    PageResult<ProductSpuDO> getSpuPage(AppProductSpuPageReqVO pageReqVO,Long userId);
+
     /**
      * 获得商品 SPU 列表，提供给用户 App 使用
      *
@@ -154,4 +156,7 @@ public interface ProductSpuService {
      */
     ProductSpuDO getSpecialOfferSku();
 
+    void validateSpuAndCoupon(Long spuId, Long couponId);
+
+    void validateSpuRegisterLimit(Long userId,Long spuId);
 }

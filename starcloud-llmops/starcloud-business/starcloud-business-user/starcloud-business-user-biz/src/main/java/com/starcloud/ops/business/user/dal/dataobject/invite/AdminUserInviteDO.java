@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.dal.dataobject;
+package com.starcloud.ops.business.user.dal.dataobject.invite;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InvitationRecordsDO extends BaseDO {
+public class AdminUserInviteDO extends BaseDO {
 
     /**
      * 主键 ID

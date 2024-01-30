@@ -23,6 +23,7 @@ public class ProductSpuApiImpl implements ProductSpuApi {
     @Resource
     private ProductSpuService spuService;
 
+
     @Override
     public List<ProductSpuRespDTO> getSpuList(Collection<Long> ids) {
         return ProductSpuConvert.INSTANCE.convertList2(spuService.getSpuList(ids));
@@ -36,6 +37,22 @@ public class ProductSpuApiImpl implements ProductSpuApi {
     @Override
     public ProductSpuRespDTO getSpu(Long id) {
         return ProductSpuConvert.INSTANCE.convert02(spuService.getSpu(id));
+    }
+
+    /**
+     * 验证商品是否必须含有优惠券下单
+     *
+     * @param spuId    skuId
+     * @param couponId 优惠券 ID
+     */
+    @Override
+    public void validateSpuAndCoupon(Long spuId, Long couponId) {
+        spuService.validateSpuAndCoupon(spuId,couponId);
+    }
+
+    @Override
+    public void validateSpuRegisterLimit(Long userId,Long spuId) {
+        spuService.validateSpuRegisterLimit(userId,spuId);
     }
 
 }

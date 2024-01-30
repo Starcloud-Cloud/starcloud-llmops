@@ -5,6 +5,7 @@ import com.starcloud.ops.business.promotion.api.coupon.dto.CouponUseReqDTO;
 import com.starcloud.ops.business.promotion.api.coupon.dto.CouponValidReqDTO;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -55,6 +56,13 @@ public interface CouponApi {
      */
     void addCoupon(Long templateId, Long userId);
 
+    /**
+     * 发送新人优惠券
+     * @param userId
+     */
+    void takeCouponByRegister(Long userId);
+
+    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds);
 
 
 

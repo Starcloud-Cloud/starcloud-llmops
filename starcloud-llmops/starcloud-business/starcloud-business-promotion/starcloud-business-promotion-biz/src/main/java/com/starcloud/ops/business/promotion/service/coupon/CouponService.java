@@ -162,6 +162,17 @@ public interface CouponService {
     List<CouponDO> getMatchCouponList(Long userId, AppCouponMatchReqVO matchReqVO);
 
     /**
+     * 获取用户匹配的优惠券列表
+     *
+     * @param userId     用户编号
+     * @param price 匹配参数
+     * @param spuIds 匹配参数
+     * @param categoryIds 匹配参数
+     * @return 优惠券列表
+     */
+    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds,List<Long> categoryIds);
+
+    /**
      * 过期优惠券
      *
      * @return 过期数量

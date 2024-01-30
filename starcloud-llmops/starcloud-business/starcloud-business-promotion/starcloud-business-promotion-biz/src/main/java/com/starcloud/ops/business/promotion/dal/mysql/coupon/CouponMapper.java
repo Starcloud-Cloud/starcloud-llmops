@@ -10,6 +10,7 @@ import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponDO;
 import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.yulichang.toolkit.MPJWrappers;
+import com.starcloud.ops.business.promotion.enums.coupon.CouponStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
@@ -84,6 +85,12 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
         return convertMap(list, map -> MapUtil.getLong(map, templateIdAlias), map -> MapUtil.getInt(map, countAlias));
     }
 
+    default List<CouponDO> selectListByUserIdAndTemplateIdIn(Long userId, Collection<Long> templateIds) {
+        return selectList(new LambdaQueryWrapperX<CouponDO>()
+                .eq(CouponDO::getUserId, userId)
+                .in(CouponDO::getTemplateId, templateIds));
+    }
+
     default List<CouponDO> selectListByUserIdAndStatusAndUsePriceLeAndProductScope(
             Long userId, Integer status, Integer usePrice, List<Long> spuIds, List<Long> categoryIds) {
         Function<List<Long>, String> productScopeValuesFindInSetFunc = ids -> ids.stream()
@@ -104,6 +111,14 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
         return selectList(new LambdaQueryWrapperX<CouponDO>()
                 .eq(CouponDO::getStatus, status)
                 .le(CouponDO::getValidEndTime, validEndTime)
+        );
+    }
+
+    default List<CouponDO> selectListByTemplateIdAndEnable(Long templateId) {
+        return selectList(new LambdaQueryWrapperX<CouponDO>()
+                .eq(CouponDO::getTemplateId, templateId)
+                .eq(CouponDO::getStatus, CouponStatusEnum.UNUSED.getStatus())
+                .le(CouponDO::getValidEndTime, LocalDateTime.now())
         );
     }
 

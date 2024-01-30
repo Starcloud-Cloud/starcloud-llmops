@@ -40,4 +40,18 @@ public interface ProductSpuApi {
      */
     ProductSpuRespDTO getSpu(Long id);
 
+
+
+
+    /**
+     * 验证商品是否必须含有优惠券下单
+     *
+     * @param spuId    skuId
+     * @param couponId 优惠券 ID
+     */
+    void validateSpuAndCoupon(Long spuId, Long couponId);
+
+
+    void validateSpuRegisterLimit(Long userId,Long spuId);
+
 }

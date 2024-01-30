@@ -134,7 +134,7 @@ public class TradePriceServiceImpl implements TradePriceService {
 
             // 2.3 更新 SKU 的优惠金额
             orderItem.setDiscountPrice(discountPrice);
-            // TradePriceCalculatorHelper.recountPayPrice(orderItem);
+            TradePriceCalculatorHelper.recountPayPrice(orderItem);
         });
         TradePriceCalculatorHelper.recountAllPrice(result);
 

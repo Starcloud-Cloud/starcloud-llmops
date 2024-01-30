@@ -3,6 +3,7 @@ package com.starcloud.ops.business.trade.dal.dataobject.sign;
 import cn.iocoder.yudao.framework.common.enums.TerminalEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -37,7 +38,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TradeSignDO extends BaseDO {
+public class TradeSignDO extends TenantBaseDO {
 
     /**
      * 发货物流公司编号 - 空（无需发货）

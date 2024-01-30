@@ -12,6 +12,7 @@ import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEn
 import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
 import com.starcloud.ops.business.product.api.category.ProductCategoryApi;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -39,6 +40,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService {
     @Resource
     private ProductCategoryApi productCategoryApi;
     @Resource
+    @Lazy
     private ProductSpuApi productSpuApi;
 
     @Override

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.service.order;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -27,6 +28,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -246,6 +248,18 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             return Collections.emptyList();
         }
         return tradeOrderItemMapper.selectListByOrderId(orderIds);
+    }
+
+    /**
+     * 【系统】获取签约周期下的订单
+     *
+     * @param signId      签约ID
+     * @param signPayTime 签约预扣款时间
+     * @return 物流轨迹数组
+     */
+    @Override
+    public TradeOrderDO getOrderBySignPayTime(Long signId, LocalDate signPayTime) {
+        return tradeOrderMapper.selectWithinContractPeriod(signId,LocalDateTimeUtil.endOfDay(signPayTime.atStartOfDay()));
     }
 
     /**
