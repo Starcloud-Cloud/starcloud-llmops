@@ -42,6 +42,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContent
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -111,6 +112,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private AppMarketService appMarketService;
 
     /**
      * 上传图片
@@ -455,6 +459,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 appCreateRequest.setPlanUid(plan.getUid());
                 appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
                 appCreateRequest.setBusinessUid(businessUid);
+                appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
                 appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
                 appCreateRequest.setTempUid(appResponse.getUid());
 
@@ -464,6 +469,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 appPlanExecute.setSchemeMode(executeParam.getSchemeMode());
 
                 appCreateRequest.setExecuteParams(appPlanExecute);
+                appCreateRequest.setIsTest(Boolean.FALSE);
                 creativeContentCreateRequestList.add(appCreateRequest);
             } else {
                 // 1. 添加一条文案内容执行任务
@@ -472,12 +478,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 appCreateRequest.setPlanUid(plan.getUid());
                 appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
                 appCreateRequest.setBusinessUid(businessUid);
+                appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
                 appCreateRequest.setType(CreativeContentTypeEnum.COPY_WRITING.getCode());
                 appCreateRequest.setTempUid(appExecuteRequest.getUid());
                 CreativePlanExecuteDTO appPlanExecute = CreativePlanExecuteDTO.ofApp(appExecuteRequest);
                 appPlanExecute.setSchemeUid(executeParam.getSchemeUid());
                 appPlanExecute.setSchemeMode(executeParam.getSchemeMode());
                 appCreateRequest.setExecuteParams(appPlanExecute);
+                appCreateRequest.setIsTest(Boolean.FALSE);
                 creativeContentCreateRequestList.add(appCreateRequest);
 
                 // 添加一条图片执行任务
@@ -518,6 +526,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 imageCreateRequest.setPlanUid(plan.getUid());
                 imageCreateRequest.setSchemeUid(executeParam.getSchemeUid());
                 imageCreateRequest.setBusinessUid(businessUid);
+                imageCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
                 imageCreateRequest.setType(CreativeContentTypeEnum.PICTURE.getCode());
                 imageCreateRequest.setTempUid(tempUid);
                 CreativePlanExecuteDTO imagePlanExecute = CreativePlanExecuteDTO.ofImageStyle(imageStyleExecuteRequest);
@@ -528,15 +537,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 imagePlanExecute.setSchemeMode(executeParam.getSchemeMode());
                 imageCreateRequest.setExecuteParams(imagePlanExecute);
                 imageCreateRequest.setUsePicture(imageUrlList);
+                imageCreateRequest.setIsTest(Boolean.FALSE);
                 creativeContentCreateRequestList.add(imageCreateRequest);
             }
         }
         // 批量插入任务
         creativeContentService.create(creativeContentCreateRequestList);
     }
-
-    @Resource
-    private AppMarketService appMarketService;
 
     /**
      * 处理创作内容执行参数
@@ -572,7 +579,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 // 查询应用信息
                 AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
                 // 获取自定义配置的步骤列表，并且合并计划参数。
-                List<BaseSchemeStepDTO> steps = CreativeAppUtils.mergeSchemeStepVariableList(customConfiguration.getSteps(), listOptionResponse);
+                List<BaseSchemeStepDTO> steps = CreativeAppUtils.mergeSchemeStepVariableList(customConfiguration.getSteps(), listOptionResponse.getSteps());
                 // 获取海报步骤
                 Optional<BaseSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
 

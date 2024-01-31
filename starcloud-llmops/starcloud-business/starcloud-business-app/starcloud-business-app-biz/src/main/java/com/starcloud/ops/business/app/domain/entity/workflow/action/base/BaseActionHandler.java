@@ -7,11 +7,11 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.kstry.framework.core.annotation.NoticeResult;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -21,7 +21,6 @@ import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,6 +45,13 @@ public abstract class BaseActionHandler extends Object {
     private static AdminUserRightsApi ADMIN_USER_RIGHTS_API = SpringUtil.getBean(AdminUserRightsApi.class);
 
     /**
+     * 步骤状态缓存
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppStepStatusCache appStepStatusCache = SpringUtil.getBean(AppStepStatusCache.class);
+
+    /**
      * 步骤名称
      */
     private String name;
@@ -59,8 +65,6 @@ public abstract class BaseActionHandler extends Object {
      * 请求应用上下文
      */
     private AppContext appContext;
-
-    private ScopeDataOperator scopeDataOperator;
 
     /**
      * 获取用户权益类型
@@ -125,17 +129,24 @@ public abstract class BaseActionHandler extends Object {
     @JSONField(serialize = false)
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         log.info("Action[{}]执行开始，步骤：{}, 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getStepId(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
+
+        // 从工作流上下文中获取步骤ID
+        Optional<String> property = scopeDataOperator.getTaskProperty();
+        AppProcessParser.ServiceTaskPropertyDTO serviceTaskProperty = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
+        String stepId = serviceTaskProperty.getStepId();
+
         try {
             if (Objects.isNull(context)) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONTEXT_REQUIRED);
             }
 
-            Optional<String> property = scopeDataOperator.getTaskProperty();
-            AppProcessParser.ServiceTaskPropertyDTO serviceTaskPropertyDTO = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
-            context.setStepId(serviceTaskPropertyDTO.getStepId());
+            context.setStepId(stepId);
+            // 更新缓存为开始
+            appStepStatusCache.stepStart(context.getConversationUid(), context.getStepId());
+
             // 设置到上下文中
             this.setAppContext(context);
-            this.setScopeDataOperator(scopeDataOperator);
+
             // 执行具体的步骤
             ActionResponse actionResponse = this.doExecute();
             //设置到上下文中
@@ -160,7 +171,7 @@ public abstract class BaseActionHandler extends Object {
             if (userRightsType != null && costPoints > 0) {
                 // 扣除权益
                 ADMIN_USER_RIGHTS_API.reduceRights(
-                        context.getUserId(),null,null, // 用户ID
+                        context.getUserId(), null, null, // 用户ID
                         userRightsType, // 权益类型
                         costPoints, // 权益点数
                         UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType(), // 业务类型
@@ -168,14 +179,19 @@ public abstract class BaseActionHandler extends Object {
                 );
                 log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", userRightsType.name(), costPoints, context.getUserId(), context.getConversationUid());
             }
-
+            // 更新缓存为成功
+            appStepStatusCache.stepSuccess(context.getConversationUid(), context.getStepId());
             log.info("Action[{}] 执行成功, 步骤：{} ...", this.getClass().getSimpleName(), context.getStepId());
             return actionResponse;
         } catch (ServiceException exception) {
+            // 更新缓存为失败
+            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, exception.getCode().toString(), exception.getMessage());
             log.error("Action[{}] 执行异常： 步骤：{}, 异常码: {}, 异常信息: {}", this.getClass().getSimpleName(), context.getStepId(), exception.getCode(), exception.getMessage());
             throw exception;
 
         } catch (Exception exception) {
+            // 更新缓存为失败
+            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString(), exception.getMessage());
             log.error("Action[{}] 执行失败：步骤: {}, 异常信息: {}", this.getClass().getSimpleName(), context.getStepId(), exception.getMessage());
             throw exception;
         }
@@ -189,10 +205,8 @@ public abstract class BaseActionHandler extends Object {
      */
     @Override
     public boolean equals(Object obj) {
-
-        boolean ff = super.equals(obj);
-        return ff;
-
+        boolean equals = super.equals(obj);
+        return equals;
     }
 
 }

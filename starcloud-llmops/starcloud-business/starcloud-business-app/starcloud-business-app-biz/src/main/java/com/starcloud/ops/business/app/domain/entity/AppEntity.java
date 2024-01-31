@@ -14,7 +14,6 @@ import cn.kstry.framework.core.exception.KstryException;
 import cn.kstry.framework.core.monitor.FieldTracking;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
-import cn.kstry.framework.core.monitor.NoticeTracking;
 import cn.kstry.framework.core.monitor.RecallStory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -25,6 +24,7 @@ import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -73,6 +73,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
+
+    /**
+     * 步骤状态缓存
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppStepStatusCache appStepStatusCache = SpringUtil.getBean(AppStepStatusCache.class);
 
     /**
      * 工作流引擎
@@ -186,11 +193,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     /**
      * 模版方法：执行应用前置处理方法
      *
-     * @param appExecuteReqVO 请求参数
+     * @param request 请求参数
      */
     @Override
-    protected void beforeExecute(AppExecuteReqVO appExecuteReqVO) {
-
+    protected void beforeExecute(AppExecuteReqVO request) {
+        this.appStepStatusCache.init(request.getConversationUid(), this);
     }
 
     /**

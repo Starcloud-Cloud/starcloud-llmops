@@ -18,7 +18,6 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
-import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
@@ -41,9 +40,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INTEREST;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * App 实体类, 提供基础的应用功能，封装一些基本的模版方法。
@@ -375,6 +374,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
             this.validate(request);
+
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
                 try {
@@ -515,7 +515,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         LogAppConversationCreateReqVO createRequest = new LogAppConversationCreateReqVO();
         String conversationUid = request.getConversationUid();
         if (StringUtils.isBlank(conversationUid)) {
-            conversationUid = IdUtil.fastSimpleUUID();
+            conversationUid = createAppConversationUid();
         }
         createRequest.setUid(conversationUid);
         createRequest.setAppUid(this.getUid());
@@ -645,6 +645,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         }
     }
 
+    /**
+     * 获取步骤状态
+     *
+     * @param stepId 步骤ID
+     * @param key    键
+     * @param value  值
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public void putVariable(String stepId, String key, Object value) {
@@ -670,6 +677,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
+    }
+
+    /**
+     * 创建会话 UID
+     *
+     * @return 会话 UID
+     */
+    public static String createAppConversationUid() {
+        return IdUtil.fastSimpleUUID();
     }
 
 }

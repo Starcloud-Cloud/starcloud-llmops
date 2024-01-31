@@ -60,6 +60,7 @@ public interface CreativeContentConvert {
         xhsCreativeContentDO.setUid(IdUtil.fastSimpleUUID());
         xhsCreativeContentDO.setStatus(CreativeContentStatusEnum.INIT.getCode());
         xhsCreativeContentDO.setBusinessUid(createReq.getBusinessUid());
+        xhsCreativeContentDO.setConversationUid(createReq.getConversationUid());
         xhsCreativeContentDO.setType(createReq.getType());
 
         return xhsCreativeContentDO;

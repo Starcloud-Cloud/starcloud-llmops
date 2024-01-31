@@ -58,6 +58,10 @@ public class CreativeContentDO extends TenantBaseDO {
      */
     private String businessUid;
 
+    /**
+     * 会话UID
+     */
+    private String conversationUid;
 
     /**
      * 使用的图片 文案模板Uid
@@ -149,4 +153,8 @@ public class CreativeContentDO extends TenantBaseDO {
      */
     private Boolean liked;
 
+    /**
+     * 是否测试
+     */
+    private Boolean isTest;
 }

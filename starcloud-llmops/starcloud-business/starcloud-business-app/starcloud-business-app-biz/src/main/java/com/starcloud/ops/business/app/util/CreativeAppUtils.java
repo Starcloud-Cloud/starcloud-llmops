@@ -703,8 +703,7 @@ public class CreativeAppUtils {
     }
 
 
-    public static List<BaseSchemeStepDTO> mergeSchemeStepVariableList(List<BaseSchemeStepDTO> steps, CreativeSchemeListOptionRespVO listOptionResponse) {
-        List<BaseSchemeStepDTO> planStepList = listOptionResponse.getSteps();
+    public static List<BaseSchemeStepDTO> mergeSchemeStepVariableList(List<BaseSchemeStepDTO> steps, List<BaseSchemeStepDTO> planStepList) {
         if (CollectionUtil.isEmpty(planStepList)) {
             return steps;
         }
@@ -735,11 +734,11 @@ public class CreativeAppUtils {
     }
 
     private static List<VariableItemDTO> mergeVariable(List<VariableItemDTO> variableList, List<VariableItemDTO> variables) {
-        Map<String, Object> variableMap = variables.stream().collect(Collectors.toMap(VariableItemDTO::getField, VariableItemDTO::getValue));
+        Map<String, VariableItemDTO> variableMap = variables.stream().collect(Collectors.toMap(VariableItemDTO::getField, Function.identity()));
         for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(variableList)) {
             // 如果存在变量，就覆盖
             if (variableMap.containsKey(variableItem.getField())) {
-                Object value = variableMap.get(variableItem.getField());
+                Object value = variableMap.get(variableItem.getField()).getValue();
                 if (Objects.nonNull(value)) {
                     variableItem.setValue(value);
                 } else {

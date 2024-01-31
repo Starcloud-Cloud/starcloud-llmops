@@ -33,6 +33,13 @@ public interface CreativeContentService {
     CreativeContentRespVO retry(String businessUid);
 
     /**
+     * 失败重试
+     *
+     * @param uid 任务 uid
+     */
+    void failureRetry(String uid);
+
+    /**
      * 查询任务
      */
     List<CreativeContentDO> jobQuery(CreativeQueryReqVO queryReq);
@@ -89,6 +96,7 @@ public interface CreativeContentService {
 
     /**
      * 解绑
+     *
      * @param businessUids
      */
     void unBound(List<String> businessUids);

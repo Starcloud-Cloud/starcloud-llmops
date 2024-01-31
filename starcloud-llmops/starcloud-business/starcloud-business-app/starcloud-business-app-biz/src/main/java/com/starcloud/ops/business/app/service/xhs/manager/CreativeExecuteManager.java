@@ -150,6 +150,10 @@ public class CreativeExecuteManager {
             Integer maxRetry = getMaxRetry(force);
             // 获取最新的创作内容并且校验
             CreativeContentDO latestContent = getAppContent(content.getId(), start, maxRetry, force);
+            // 更新任务状态为执行中
+            latestContent.setStatus(CreativeContentStatusEnum.EXECUTING.getCode());
+            creativeContentMapper.updateById(latestContent);
+            
             try {
                 CreativePlanExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativePlanExecuteDTO.class);
                 AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
@@ -159,6 +163,8 @@ public class CreativeExecuteManager {
                 appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
                 appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
                 appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
+                // 会话UID，使用此会话UID。
+                appExecuteRequest.setConversationUid(latestContent.getConversationUid());
                 AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
                 AppExecuteRespVO response = entity.execute(appExecuteRequest);
                 if (!response.getSuccess()) {
@@ -179,8 +185,10 @@ public class CreativeExecuteManager {
                 LocalDateTime end = LocalDateTime.now();
                 long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
 
+                // 文案
                 CopyWritingContentDTO copyWritingContent = Optional.ofNullable(result.getCopyWritingContent())
                         .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(350600110, "生成文案内容不存在！")));
+                // 图片
                 List<PosterImageDTO> posterList = CollectionUtil.emptyIfNull(result.getPosterList());
 
                 CreativeContentDO updateContent = new CreativeContentDO();
@@ -632,7 +640,7 @@ public class CreativeExecuteManager {
         }
 
         if (!CreativeContentTypeEnum.ALL.getCode().equalsIgnoreCase(content.getType())) {
-            throw exception(350600212, "创作任务类型不是应用图片(ID: %s)！", id);
+            throw exception(350600212, "创作任务类型应用类型(ID: %s)！", id);
         }
 
         if (CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())) {
@@ -655,6 +663,7 @@ public class CreativeExecuteManager {
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：应用执行参数不存在，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
             throw exception(350600114, "创作中心：应用执行参数不存在，请联系管理员(ID: %s)！", content.getUid());
         }
+
         return content;
     }
 

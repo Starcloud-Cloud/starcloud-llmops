@@ -119,6 +119,6 @@ public interface CreativeSchemeService {
      * @param request 创作方案需求请求
      * @return 文案示例
      */
-    List<CreativeSchemeExampleDTO> example(CreativeSchemeReqVO request);
+    void example(CreativeSchemeModifyReqVO request);
 
 }

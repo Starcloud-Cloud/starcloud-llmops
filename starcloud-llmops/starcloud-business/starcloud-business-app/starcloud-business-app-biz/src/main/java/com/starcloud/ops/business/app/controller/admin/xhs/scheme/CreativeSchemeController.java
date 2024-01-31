@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
@@ -153,8 +152,9 @@ public class CreativeSchemeController {
     @PostMapping(value = "/example")
     @Operation(summary = "小红书文案测试生成")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<List<CreativeSchemeExampleDTO>> example(@Validated @RequestBody CreativeSchemeReqVO executeRequest) {
-        return CommonResult.success(creativeSchemeService.example(executeRequest));
+    public CommonResult<Boolean> example(@Validated @RequestBody CreativeSchemeModifyReqVO executeRequest) {
+        creativeSchemeService.example(executeRequest);
+        return CommonResult.success(Boolean.TRUE);
     }
 
 }

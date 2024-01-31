@@ -137,9 +137,4 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
             customConfiguration.validate();
         }
     }
-
-    public static void main(String[] args) {
-
-
-    }
 }

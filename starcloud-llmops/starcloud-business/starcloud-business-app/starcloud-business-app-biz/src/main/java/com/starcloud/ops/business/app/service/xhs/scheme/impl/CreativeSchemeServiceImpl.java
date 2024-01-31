@@ -3,28 +3,24 @@ package com.starcloud.ops.business.app.service.xhs.scheme.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
@@ -44,16 +40,21 @@ import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
-import com.starcloud.ops.business.app.service.xhs.executor.PosterStyleThreadPoolHolder;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
@@ -64,9 +65,9 @@ import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -78,9 +79,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -101,13 +99,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     private CreativeAppManager creativeAppManager;
 
     @Resource
-    private CreativeImageManager creativeImageManager;
-
-    @Resource
     private AppDictionaryService appDictionaryService;
 
     @Resource
-    private PosterStyleThreadPoolHolder posterStyleThreadPoolHolder;
+    private AppMarketService appMarketService;
+
+    @Resource
+    private CreativeContentService creativeContentService;
+
+    @Resource
+    private CreativeImageManager creativeImageManager;
 
     /**
      * 获取创作方案元数据
@@ -261,7 +262,55 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public PageResult<CreativeSchemeRespVO> page(CreativeSchemePageReqVO query) {
         IPage<CreativeSchemeDO> page = creativeSchemeMapper.page(PageUtil.page(query), query);
-        return CreativeSchemeConvert.INSTANCE.convertPage(page);
+
+        PageResult<CreativeSchemeRespVO> pageResult = new PageResult<>();
+        if (CollectionUtil.isEmpty(page.getRecords())) {
+            return new PageResult<>(Collections.emptyList(), page.getTotal());
+        }
+
+        List<CreativeSchemeDO> records = page.getRecords();
+
+        // 用户创建者ID列表。
+        List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).distinct().collect(Collectors.toList());
+        // 获取用户创建者ID，昵称 Map。
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+
+        // 用户更新者ID列表。
+        List<Long> updaterList = records.stream().map(item -> Long.valueOf(item.getUpdater())).distinct().collect(Collectors.toList());
+        // 获取用户更新者ID，昵称 Map。
+        Map<Long, String> updaterMap = UserUtils.getUserNicknameMapByIds(updaterList);
+
+        // 获取到所有的创作应用UID列表
+        List<String> appUidList = records.stream().map(item -> {
+            if (StringUtils.isNotBlank(item.getConfiguration())) {
+                if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
+                    CustomCreativeSchemeConfigDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CustomCreativeSchemeConfigDTO.class);
+                    if (configuration != null) {
+                        return configuration.getAppUid();
+                    }
+                }
+            }
+            return null;
+        }).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        AppMarketListQuery marketQuery = new AppMarketListQuery();
+        marketQuery.setUidList(appUidList);
+        List<AppMarketRespVO> list = appMarketService.list(marketQuery);
+        Map<String, AppMarketRespVO> appMap = list.stream().collect(Collectors.toMap(AppMarketRespVO::getUid, item -> item));
+
+
+        List<CreativeSchemeRespVO> collect = records.stream().map(item -> {
+            CreativeSchemeRespVO response = CreativeSchemeConvert.INSTANCE.convertResponse(item);
+            response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
+            response.setUpdater(updaterMap.get(Long.valueOf(item.getUpdater())));
+            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
+                response.setAppName(appMap.get(response.getCustomConfiguration().getAppUid()).getName());
+            }
+            return response;
+        }).collect(Collectors.toList());
+
+        pageResult.setTotal(page.getTotal());
+        pageResult.setList(collect);
+        return pageResult;
     }
 
     /**
@@ -369,295 +418,154 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     /**
      * 创建文案示例
      *
-     * @param request 创作方案需求请求
-     * @return 文案示例
+     * @param schemeRequest 创作方案需求请求
      */
     @Override
-    public List<CreativeSchemeExampleDTO> example(CreativeSchemeReqVO request) {
-        log.info("生成示例开始.....");
-        handlerAndValidate(request);
-        // 图片素材列表校验
-        if (CollectionUtil.isEmpty(request.getUseImages())) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPLOAD_IMAGE_EMPTY);
-        }
-        // 获取当前登录用户ID
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (Objects.isNull(loginUserId)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        }
-
-        // 生成文案示例
-        List<CopyWritingContentDTO> copyWritingList = copyWritingExample(request, loginUserId);
-
-        // 处理图片示例参数
-        List<CreativeSchemeExampleRequest> schemeExampleRequests = handleImageExampleRequest(request, copyWritingList);
-        if (CollectionUtil.isEmpty(schemeExampleRequests)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, "参数异常！");
-        }
-
-        List<CreativeSchemeExampleDTO> result = imageExample(schemeExampleRequests);
-        log.info("生成示例结束.....");
-        return result;
-    }
-
-    /**
-     * 生成文案示例
-     *
-     * @param request     创作方案需求请求
-     * @param loginUserId 登录用户ID
-     * @return 文案示例
-     */
-    private List<CopyWritingContentDTO> copyWritingExample(CreativeSchemeReqVO request, Long loginUserId) {
-        log.info("构建生成文案示例请求....");
-        // 获取执行小红书的应用
-        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(request.getMode());
-        if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equalsIgnoreCase(request.getMode())) {
-            // 构建小红书应用执行请求
-            AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-            // 获取第二步的步骤。约定，生成小红书内容为第二步
-            WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(executeApp);
-            executeRequest.setUserId(loginUserId);
-            executeRequest.setMode(AppModelEnum.COMPLETION.name());
-            executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
-            executeRequest.setAppUid(executeApp.getUid());
-            executeRequest.setStepId(stepWrapper.getField());
-            executeRequest.setN(3);
-            executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-            executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
-            log.info("生成文案示开始....");
-            String answer = creativeAppManager.execute(executeRequest);
-            List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
-            if (CollectionUtil.isEmpty(responses)) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE);
-            }
-            // 一条失败，全部失败
-            List<CopyWritingContentDTO> resultList = Lists.newArrayList();
-            for (XhsAppExecuteResponse response : responses) {
-                if (!response.getSuccess() || Objects.isNull(response.getCopyWriting()) || StringUtils.isBlank(response.getCopyWriting().getTitle()) || StringUtils.isBlank(response.getCopyWriting().getContent())) {
-                    log.error("生成文案示例失败！{}", response.getErrorMsg());
-                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
-                }
-                resultList.add(response.getCopyWriting());
-            }
-            log.info("生成文案示例成功！");
-            return resultList;
-        }
-        List<CopyWritingContentDTO> result = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            // 构建小红书应用执行请求
-            AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-            // 获取第二步的步骤。约定，生成小红书内容为第二步
-            WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(executeApp);
-            executeRequest.setUserId(loginUserId);
-            executeRequest.setMode(AppModelEnum.COMPLETION.name());
-            executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
-            executeRequest.setAppUid(executeApp.getUid());
-            executeRequest.setStepId(stepWrapper.getField());
-            executeRequest.setN(1);
-            executeRequest.setAiModel(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-            executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
-            log.info("生成文案示开始....");
-            String answer = creativeAppManager.execute(executeRequest);
-            List<XhsAppExecuteResponse> responses = CreativeAppUtils.handleAnswer(answer, executeRequest.getAppUid(), executeRequest.getN());
-            if (CollectionUtil.isEmpty(responses)) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE);
-            }
-            // 一条失败，全部失败
-            List<CopyWritingContentDTO> resultList = Lists.newArrayList();
-            for (XhsAppExecuteResponse response : responses) {
-                if (!response.getSuccess() || Objects.isNull(response.getCopyWriting()) || StringUtils.isBlank(response.getCopyWriting().getTitle()) || StringUtils.isBlank(response.getCopyWriting().getContent())) {
-                    log.error("生成文案示例失败！{}", response.getErrorMsg());
-                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, response.getErrorMsg());
-                }
-                resultList.add(response.getCopyWriting());
-            }
-            log.info("生成文案示例成功！");
-            result.addAll(resultList);
-        }
-        return result;
-    }
-
-    /**
-     * 图片示例
-     *
-     * @param schemeExampleRequests 请求
-     * @return 示例
-     */
-    private List<CreativeSchemeExampleDTO> imageExample(List<CreativeSchemeExampleRequest> schemeExampleRequests) {
-        log.info("开始生成图片示例....");
-        List<Throwable> exceptions = Lists.newArrayList();
-        List<CompletableFuture<CreativeSchemeExampleDTO>> futures = Lists.newArrayList();
-        ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
-        for (CreativeSchemeExampleRequest schemeExampleRequest : schemeExampleRequests) {
-            CompletableFuture<CreativeSchemeExampleDTO> future = CompletableFuture.
-                    supplyAsync(() -> singleImageExample(schemeExampleRequest), executor)
-                    .exceptionally(throwable -> {
-                        log.error("生成图片示例异常！", throwable);
-                        exceptions.add(throwable);
-                        return null;
-                    });
-            futures.add(future);
-        }
-
-        // 合并任务
-        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        // 等待任务完成
-        try {
-            allOf.get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("生成图片示例异常！", e);
-        }
-        if (!CollectionUtil.isEmpty(exceptions)) {
-            String message = exceptions.get(0).getMessage();
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, message);
-        }
-
-        List<CreativeSchemeExampleDTO> result = futures.stream().filter(Objects::nonNull).map(CompletableFuture::join).collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(result)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, "生成图片示例异常！");
-        }
-        log.info("生成图片示例结束....");
-        return result;
-    }
-
-    /**
-     * 单个图片示例
-     *
-     * @param schemeExampleRequest 请求
-     * @return 结果
-     */
-    private CreativeSchemeExampleDTO singleImageExample(CreativeSchemeExampleRequest schemeExampleRequest) {
-        log.info("开始生成单个图片示例....");
-        // 生成图片示例
-        XhsImageStyleExecuteRequest imageStyleRequest = schemeExampleRequest.getImageStyleRequest();
-        XhsImageStyleExecuteResponse styleResponse = creativeImageManager.styleExecute(imageStyleRequest);
-        // 校验图片示例
-        if (Objects.isNull(styleResponse) || !styleResponse.getSuccess() ||
-                CollectionUtil.isEmpty(styleResponse.getImageResponses())) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_EXAMPLE_FAILURE, styleResponse.getErrorMessage());
-        }
-        // 组装返回结果
-        List<XhsImageExecuteResponse> imageResponses = styleResponse.getImageResponses();
-        List<CreativeImageDTO> imageList = imageResponses.stream()
-                .map(item -> {
-                    CreativeImageDTO image = new CreativeImageDTO();
-                    image.setIndex(item.getIndex());
-                    image.setIsMain(item.getIsMain());
-                    image.setUrl(item.getUrl());
-                    return image;
-                }).collect(Collectors.toList());
-        CreativeSchemeExampleDTO example = new CreativeSchemeExampleDTO();
-        example.setCopyWriting(schemeExampleRequest.getCopyWriting());
-        example.setImages(imageList);
-        log.info("生成单个图片示例结束....");
-        return example;
-    }
-
-    /**
-     * 处理图片示例请求
-     *
-     * @param request         创作方案请求对象
-     * @param copyWritingList 文案示例列表
-     * @return 图片示例请求
-     */
-    private List<CreativeSchemeExampleRequest> handleImageExampleRequest(CreativeSchemeReqVO request, List<CopyWritingContentDTO> copyWritingList) {
-        log.info("处理图片参数开始...");
+    public void example(CreativeSchemeModifyReqVO schemeRequest) {
+        handlerAndValidate(schemeRequest);
+        // 获取生成任务数量量
+        int total = 3;
         // 图片素材列表
-        List<String> imageUrlList = request.getUseImages();
+        List<String> imageUrlList = schemeRequest.getUseImages();
         // 随机打散图片素材列表
-        List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, copyWritingList.size());
-        // Poster海报模板 Map
-        Map<String, PosterTemplateDTO> posterMap = creativeImageManager.mapTemplate();
-        // 图片模板风格列表
-        List<PosterStyleDTO> styleList = Optional.ofNullable(request.getConfiguration()).map(CreativeSchemeConfigDTO::getImageTemplate).map(CreativeSchemeImageTemplateDTO::getStyleList).orElseThrow(() -> ServiceExceptionUtil.exception(CreativeErrorCodeConstants.STYLE_IMAGE_TEMPLATE_NOT_EMPTY));
+        List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, total);
+        // 处理创作内容执行参数
+        List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(schemeRequest);
+        // 循环处理创作内容
+        List<CreativeContentCreateReqVO> creativeContentCreateRequestList = new ArrayList<>(total * 2);
+        for (int i = 0; i < total; i++) {
+            // 业务UID
+            String businessUid = IdUtil.fastSimpleUUID();
+            // 随机获取执行参数
+            CreativePlanExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(RandomUtil.randomInt(executeParamsList.size())));
+            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(executeParam.getSchemeMode())) {
 
-        List<CreativeSchemeExampleRequest> resultList = Lists.newArrayList();
+                CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
+                AppMarketRespVO appResponse = executeParam.getAppResponse();
+                if (appResponse == null) {
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
+                }
+                WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+                if (workflowConfig == null) {
+                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL);
+                }
+                List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
 
-        for (int i = 0; i < copyWritingList.size(); i++) {
-            // 随机获取一个图片样式
-            PosterStyleDTO creativeImageStyle = styleList.get(RandomUtil.randomInt(styleList.size()));
-            List<PosterTemplateDTO> templateList = creativeImageStyle.getTemplateList();
-            if (CollectionUtil.isEmpty(templateList)) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_IMAGE_TEMPLATE_STYLE_TEMPLATE_LIST_NOT_EMPTY);
-            }
+                for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+                    // 图片处理
+                    if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                        VariableRespVO variable = stepWrapper.getVariable();
+                        List<VariableItemRespVO> variables = variable.getVariables();
+                        Map<String, Object> variableMap = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, VariableItemRespVO::getValue));
+                        String postStyleString = String.valueOf(variableMap.getOrDefault(CreativeConstants.POSTER_STYLE, ""));
 
-            CreativeSchemeExampleRequest exampleRequest = new CreativeSchemeExampleRequest();
-            // 获取文案信息
-            CopyWritingContentDTO copyWriting = copyWritingList.get(i);
-            exampleRequest.setCopyWriting(copyWriting);
-            // 图片模板风格执行请求
-            XhsImageStyleExecuteRequest imageStyleExecuteRequest = new XhsImageStyleExecuteRequest();
-            List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
+                        PosterStyleDTO posterStyle = JSONUtil.toBean(postStyleString, PosterStyleDTO.class);
 
-            for (int j = 0; j < templateList.size(); j++) {
-                // 根据模板ID获取海报模板以及参数信息
-                PosterTemplateDTO template = templateList.get(j);
-                PosterTemplateDTO posterTemplate = CreativeImageUtils.mergeTemplate(template, posterMap);
-
-                // 海报模板参数构建
-                List<PosterVariableDTO> variables = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
-                Map<String, Object> params = Maps.newHashMap();
-                List<String> imageParamList = Lists.newArrayList();
-                // 获取第主图模板的参数
-                if (j == 0) {
-                    List<PosterVariableDTO> mainImageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
-                    for (int k = 0; k < mainImageVariableList.size(); k++) {
-                        PosterVariableDTO variableItem = mainImageVariableList.get(k);
-                        if (k == 0) {
-                            String imageUrl = disperseImageUrlList.get(i);
-                            params.put(variableItem.getField(), imageUrl);
-                            imageParamList.add(imageUrl);
-                        } else {
-                            params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageVariableList.size()));
+                        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+                        // 获取首图模板
+                        Optional<PosterTemplateDTO> mainImageOptional = templateList.stream().filter(PosterTemplateDTO::getIsMain).findFirst();
+                        // 首图不存在，直接抛出异常
+                        if (!mainImageOptional.isPresent()) {
+                            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_IMAGE_MAIN_NOT_EXIST);
                         }
-                    }
-                    List<PosterVariableDTO> mainOtherVariableList = CreativeImageUtils.otherTypeVariableList(variables);
-                    for (PosterVariableDTO variableItem : mainOtherVariableList) {
-                        if ("TEXT".equals(variableItem.getType())) {
-                            if (Objects.isNull(variableItem.getValue()) ||
-                                    ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
-                                if ("TITLE".equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
-                                } else if ("SUB_TITLE".equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
-                                } else {
-                                    params.put(variableItem.getField(), StringUtils.EMPTY);
-                                }
+                        PosterTemplateDTO mainImageTemplate = mainImageOptional.get();
+                        // 获取首图模板参数
+                        List<PosterVariableDTO> mainImageTemplateVariableList = mainImageTemplate.getVariableList();
+                        // 获取首图模板参数中的图片类型参数
+                        List<PosterVariableDTO> mainImageStyleTemplateVariableList = CreativeImageUtils.imageTypeVariableList(mainImageTemplateVariableList);
+                        // 首图图片参数素材图片替换
+                        List<String> imageParamList = com.google.common.collect.Lists.newArrayList();
+                        for (int j = 0; j < mainImageStyleTemplateVariableList.size(); j++) {
+                            PosterVariableDTO variableItem = mainImageStyleTemplateVariableList.get(j);
+                            if (j == 0) {
+                                String imageUrl = disperseImageUrlList.get(i);
+                                variableItem.setValue(imageUrl);
+                                imageParamList.add(imageUrl);
                             } else {
-                                params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
+                                variableItem.setValue(CreativeImageUtils.randomImage(imageParamList, imageUrlList, mainImageStyleTemplateVariableList.size()));
                             }
-                        } else {
-                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
                         }
-                    }
-                } else {
-                    List<PosterVariableDTO> imageVariableList = CreativeImageUtils.imageTypeVariableList(variables);
-                    for (PosterVariableDTO variableItem : variables) {
-                        if ("IMAGE".equals(variableItem.getType())) {
-                            params.put(variableItem.getField(), CreativeImageUtils.randomImage(imageParamList, imageUrlList, imageVariableList.size()));
-                        } else {
-                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
+
+                        posterStyle.setTemplateList(templateList);
+
+                        for (VariableItemRespVO variableItem : variables) {
+                            if (CreativeConstants.POSTER_STYLE.equals(variableItem.getField())) {
+                                variableItem.setValue(JSONUtil.toJsonStr(posterStyle));
+                            }
                         }
+                        variable.setVariables(variables);
+                        stepWrapper.setVariable(variable);
                     }
                 }
-                // 构建图片执行请求
-                XhsImageExecuteRequest imageExecuteRequest = new XhsImageExecuteRequest();
-                imageExecuteRequest.setId(posterTemplate.getId());
-                imageExecuteRequest.setName(posterTemplate.getName());
-                imageExecuteRequest.setIndex(j + 1);
-                imageExecuteRequest.setIsMain(j == 0);
-                imageExecuteRequest.setParams(params);
-                imageExecuteRequests.add(imageExecuteRequest);
-            }
 
-            imageStyleExecuteRequest.setId(creativeImageStyle.getId());
-            imageStyleExecuteRequest.setName(creativeImageStyle.getName());
-            imageStyleExecuteRequest.setImageRequests(imageExecuteRequests);
-            exampleRequest.setImageStyleRequest(imageStyleExecuteRequest);
-            resultList.add(exampleRequest);
+                workflowConfig.setSteps(stepWrapperList);
+                appResponse.setWorkflowConfig(workflowConfig);
+
+                appCreateRequest.setPlanUid("TEST");
+                appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
+                appCreateRequest.setBusinessUid(businessUid);
+                appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
+                appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
+                appCreateRequest.setTempUid(appResponse.getUid());
+
+                CreativePlanExecuteDTO appPlanExecute = new CreativePlanExecuteDTO();
+                appPlanExecute.setAppResponse(appResponse);
+                appPlanExecute.setSchemeUid(executeParam.getSchemeUid());
+                appPlanExecute.setSchemeMode(executeParam.getSchemeMode());
+
+                appCreateRequest.setExecuteParams(appPlanExecute);
+                appCreateRequest.setIsTest(Boolean.TRUE);
+                creativeContentCreateRequestList.add(appCreateRequest);
+            }
         }
-        log.info("处理图片示例参数结束....");
-        return resultList;
+        // 批量插入任务
+        creativeContentService.create(creativeContentCreateRequestList);
+
+    }
+
+    /**
+     * 处理创作内容执行参数
+     *
+     * @param schemeRequest 创作方案
+     * @return 创作内容执行参数
+     */
+    private List<CreativePlanExecuteDTO> handlerCreativeContentExecuteParams(CreativeSchemeModifyReqVO schemeRequest) {
+        // 获取最新的海报模板参数。避免海报模板修改无法感知
+        Map<String, PosterTemplateDTO> latestPosterMap = creativeImageManager.mapTemplate();
+        // 处理创作内容执行参数
+        List<CreativePlanExecuteDTO> list = Lists.newArrayList();
+        // 获取自定义配置并且校验
+        CustomCreativeSchemeConfigDTO customConfiguration = schemeRequest.getCustomConfiguration();
+        customConfiguration.validate();
+        // 查询应用信息
+        AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
+        // 获取自定义配置的步骤列表，并且合并计划参数。
+        List<BaseSchemeStepDTO> steps = CreativeAppUtils.mergeSchemeStepVariableList(customConfiguration.getSteps(), customConfiguration.getSteps());
+        // 获取海报步骤
+        Optional<BaseSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
+
+        // 如果没有海报步骤，直接创建一个执行参数
+        if (!posterStepOptional.isPresent()) {
+            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, SerializationUtils.clone(appMarketRespVO));
+            CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+            planExecute.setSchemeUid(schemeRequest.getUid());
+            planExecute.setSchemeMode(schemeRequest.getMode());
+            planExecute.setAppResponse(app);
+            list.add(planExecute);
+        }
+
+        // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
+        PosterSchemeStepDTO schemeStep = (PosterSchemeStepDTO) posterStepOptional.get();
+        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(schemeStep.getStyleList())) {
+            PosterStyleDTO style = CreativeImageUtils.mergePosterTemplate(posterStyle, latestPosterMap);
+            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(steps, style, SerializationUtils.clone(appMarketRespVO), schemeRequest.getUseImages());
+            CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+            planExecute.setSchemeUid(schemeRequest.getUid());
+            planExecute.setSchemeMode(schemeRequest.getMode());
+            planExecute.setAppResponse(app);
+            list.add(planExecute);
+        }
+        return list;
     }
 
     /**

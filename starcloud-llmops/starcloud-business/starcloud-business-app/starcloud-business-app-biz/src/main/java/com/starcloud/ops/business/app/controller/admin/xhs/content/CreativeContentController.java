@@ -75,6 +75,13 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.retry(businessUid));
     }
 
+    @GetMapping("/failureRetry/{uid}")
+    @Operation(summary = "失败重试")
+    public CommonResult<Boolean> failureRetry(@PathVariable("uid") String uid) {
+        creativeContentService.failureRetry(uid);
+        return CommonResult.success(true);
+    }
+
     @PostMapping("/like")
     @Operation(summary = "点赞", description = "点赞")
     @ApiOperationSupport(order = 80, author = "nacoyer")

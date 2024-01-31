@@ -38,6 +38,9 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     @Schema(description = "创作方案UID")
     private String uid;
 
+    @Schema(description = "应用名称")
+    private String appName;
+
     /**
      * 创作方案名称
      */

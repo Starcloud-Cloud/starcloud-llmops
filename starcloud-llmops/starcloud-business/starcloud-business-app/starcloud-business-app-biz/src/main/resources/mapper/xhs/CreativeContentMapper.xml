@@ -3,11 +3,10 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper">
     
     <sql id="page_column">
-        pic
-        .
-        plan_uid
-        as planUid,
-        pic.business_uid as businessUid, text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
+        pic.plan_uid as planUid,
+        pic.business_uid as businessUid,
+        pic.conversation_uid AS conversationUid,
+        text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
         pic.execute_params as pictureParams, text.execute_params as copyWritingParams, pic.status as pictureStatus, text.status as copyWritingStatus,
         pic.start_time as pictureStartTime, pic.end_time as pictureEndTime, pic.execute_time as pictureExecuteTime,
         text.start_time as copyWritingStartTime, text.end_time as copyWritingEndTime, text.execute_time as copyWritingExecuteTime,
@@ -65,6 +64,7 @@
         SELECT
         plan_uid AS planUid,
         business_uid AS businessUid,
+        conversation_uid AS conversationUid,
         temp_uid AS copyWritingUid,
         temp_uid AS pictureTempUid,
         use_picture AS usePicture,
@@ -125,6 +125,7 @@
         select
             plan_uid AS planUid,
             business_uid AS businessUid,
+            conversation_uid AS conversationUid,
             temp_uid AS copyWritingUid,
             temp_uid AS pictureTempUid,
             use_picture AS usePicture,
@@ -171,6 +172,9 @@
         </if>
         <if test="req.retryProcess != null and req.retryProcess == true">
             and a.retry_count &gt;= 1 and a.status = 'execute_error'
+        </if>
+        <if test="req.isTest != null and req.isTest == true">
+            and a.is_test = 1
         </if>
         and a.status != 'execute_success' and a.status != 'executing'
         ORDER BY a.update_time ASC
