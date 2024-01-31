@@ -157,8 +157,6 @@ public class ProductSpuController {
     @Operation(summary = "系统会员-获得商品 SPU 分页")
     public CommonResult<PageResult<AppProductSpuPageRespVO>> getSpuPage(@Valid AppProductSpuPageReqVO pageVO) {
         PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO,getLoginUserId());
-        // List<ProductSpuDO> collect = pageResult.getList().stream().filter(sku -> sku.getRegisterDays() == -1).collect(Collectors.toList());
-        // pageResult.setList(collect);
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }

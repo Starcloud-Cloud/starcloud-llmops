@@ -81,5 +81,10 @@
             <artifactId>starcloud-business-promotion-api</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-product-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
     </dependencies>
 </project>

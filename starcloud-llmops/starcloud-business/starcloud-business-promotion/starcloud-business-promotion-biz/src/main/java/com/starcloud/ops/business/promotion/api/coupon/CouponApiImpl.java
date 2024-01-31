@@ -84,5 +84,16 @@ public class CouponApiImpl implements CouponApi {
         return couponService.getMatchCouponCount(userId, price, spuIds, categoryIds);
     }
 
+    /**
+     * @param userId
+     * @param templateId
+     * @return
+     */
+    @Override
+    public List<CouponRespDTO> getMatchCouponByTemplateId(Long userId, Long templateId) {
+        List<CouponDO> couponDOList = couponService.getTakeListByTemplateId(userId, templateId);
+        return CouponConvert.INSTANCE.convertList02(couponDOList);
+    }
+
 
 }

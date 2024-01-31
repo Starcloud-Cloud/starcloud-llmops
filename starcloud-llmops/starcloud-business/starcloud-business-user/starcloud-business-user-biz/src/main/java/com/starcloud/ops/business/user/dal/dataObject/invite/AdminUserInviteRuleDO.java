@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author QingX
  */
-@TableName("system_user_invite_rule")
+@TableName(value = "system_user_invite_rule",autoResultMap = true)
 @KeySequence("system_user_invite_rule_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -109,7 +109,7 @@ public class AdminUserInviteRuleDO extends BaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseObject(json, Rule.class);
+            return JsonUtils.parseArray(json, Rule.class);
         }
 
         @Override
@@ -164,7 +164,7 @@ public class AdminUserInviteRuleDO extends BaseDO {
 
         @Schema(description = "用户等级生效时间单位", example = "100")
         @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-        private Integer LevelTimeRange;
+        private Integer levelTimeRange;
     }
 
 

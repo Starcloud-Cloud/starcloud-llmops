@@ -35,6 +35,8 @@ public class ProductSpuRespDTO {
      */
     private Integer unit;
 
+    private String keyword;
+
     /**
      * 商品分类编号
      */
@@ -92,6 +94,12 @@ public class ProductSpuRespDTO {
      * 是否限制注册天数 -1 不受限制
      */
     private Integer registerDays;
+
+
+    /**
+     * 必须存在该优惠券才可以下单 如果为空 不做限制
+     */
+    private List<Long> limitCouponTemplateIds;
 
     private List<Long> giveCouponTemplateIds;
 

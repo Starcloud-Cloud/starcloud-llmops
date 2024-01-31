@@ -182,17 +182,15 @@ public class CouponServiceImpl implements CouponService {
         if (!template.getOnlyLastTakeEffect()) {
             return;
         }
-        List<CouponDO> allCoupons = couponMapper.selectListByTemplateIdAndEnable(template.getId());
-        if (allCoupons.isEmpty()) {
-            return;
-        }
+        userIds.forEach(userId -> {
+            List<CouponDO> allCoupons = couponMapper.selectListByTemplateIdAndEnable(template.getId(), userId);
+            if (allCoupons.isEmpty()) {
+                return;
+            }
+            List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(template.getId()));
+            couponDOS.forEach(couponDO -> this.expireCoupon(couponDO));
 
-        userIds.stream()
-                .filter(userId -> !allCoupons.isEmpty())
-                .forEach(userId -> {
-                    List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(template.getId()));
-                    couponDOS.forEach(couponDO -> getSelf().expireCoupon(couponDO));
-                });
+        });
     }
 
     @Override
@@ -240,7 +238,7 @@ public class CouponServiceImpl implements CouponService {
 
 
     @Override
-    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds,List<Long> categoryIds) {
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds) {
         return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
                 price, spuIds, categoryIds).size();
@@ -292,6 +290,18 @@ public class CouponServiceImpl implements CouponService {
     }
 
     /**
+     * 统计会员领取优惠券的列表
+     *
+     * @param userId     用户编号
+     * @param templateId 优惠券模板编号
+     * @return 领取优惠券的数量
+     */
+    @Override
+    public List<CouponDO> getTakeListByTemplateId(Long userId, Long templateId) {
+        return couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(templateId));
+    }
+
+    /**
      * 过期单个优惠劵
      *
      * @param coupon 优惠劵
@@ -327,7 +337,7 @@ public class CouponServiceImpl implements CouponService {
             throw exception(COUPON_TEMPLATE_NOT_EXISTS);
         }
         // 校验剩余数量
-        if (couponTemplate.getTakeCount() + userIds.size() > couponTemplate.getTotalCount()) {
+        if (!couponTemplate.getTotalCount().equals(-1) && couponTemplate.getTakeCount() + userIds.size() > couponTemplate.getTotalCount()) {
             throw exception(COUPON_TEMPLATE_NOT_ENOUGH);
         }
         // 校验"固定日期"的有效期类型是否过期

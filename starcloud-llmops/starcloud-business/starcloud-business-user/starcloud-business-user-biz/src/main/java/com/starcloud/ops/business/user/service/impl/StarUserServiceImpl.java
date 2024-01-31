@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.util.collection.SetUtils;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
@@ -29,6 +30,11 @@ import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
+import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
+import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
 import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
@@ -75,6 +81,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
@@ -145,6 +152,12 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Resource
     private UserDeptService userDeptService;
+
+    @Resource
+    private ProductSpuApi productSpuApi;
+
+    @Resource
+    private CouponApi couponApi;
 
     @Resource
     private List<UserRegisterHandler> userRegisterHandlers;
@@ -253,7 +266,7 @@ public class StarUserServiceImpl implements StarUserService {
         } catch (Exception e) {
             log.warn("解析邀请用户失败，currentUserId={},inviteCode={}", currentUserId, inviteCode, e);
         }
-        // 2.0 订单创建前的验证
+        // 2.0 权益统一处理
         Long finalInviteUserid = inviteUserid;
         userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(currentUserId), finalInviteUserid == null ? null : userService.getUser(finalInviteUserid)));
         // addBenefits(currentUserId, inviteUserid);
@@ -535,12 +548,31 @@ public class StarUserServiceImpl implements StarUserService {
         // 获取用户权益
         List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
 
+
         AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
         userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(), userId));
         userDetailVO.setRegisterTime(userDO.getCreateTime());
         userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
+        userDetailVO.setIsInviteUser(false);
+
+        List<ProductSpuRespDTO> spuRespDTOS = productSpuApi.getSpuListByKeywordOrCategoryId(userId, "invite_try",null);
+
+        if (CollUtil.isNotEmpty(spuRespDTOS)){
+            spuRespDTOS.forEach(spu->{
+                List<Long> ids1 = JSON.parseArray(JSON.toJSONString(spu.getLimitCouponTemplateIds()), Long.class);
+                ids1.forEach(coupon ->
+                {
+                    List<CouponRespDTO> couponRespDTOList = couponApi.getMatchCouponByTemplateId(userId, coupon);
+                    if (CollUtil.isNotEmpty(couponRespDTOList)){
+                        userDetailVO.setInviteEndTime( couponRespDTOList.get(0).getValidEndTime());
+                    }
+                });
+
+            });
+            userDetailVO.setIsInviteUser(true);
+        }
         return userDetailVO;
 
     }
