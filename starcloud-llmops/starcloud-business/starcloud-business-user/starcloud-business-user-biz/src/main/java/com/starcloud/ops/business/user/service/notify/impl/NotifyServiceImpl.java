@@ -2,6 +2,8 @@ package com.starcloud.ops.business.user.service.notify.impl;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyMessageDO;
@@ -12,6 +14,7 @@ import cn.iocoder.yudao.module.system.service.notify.NotifyTemplateService;
 import com.starcloud.ops.business.user.controller.admin.notify.dto.SendNotifyReqDTO;
 import com.starcloud.ops.business.user.controller.admin.notify.dto.SendNotifyResultDTO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.CreateNotifyReqVO;
+import com.starcloud.ops.business.user.controller.admin.notify.vo.FilterUserReqVO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.NotifyContentRespVO;
 import com.starcloud.ops.business.user.enums.notify.NotifyMediaEnum;
 import com.starcloud.ops.business.user.enums.notify.NotifyTemplateEnum;
@@ -35,6 +38,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.PARAMS_ERROR;
 
 @Slf4j
 @Service
@@ -101,30 +108,10 @@ public class NotifyServiceImpl implements NotifyService {
     public void createMsgTask(CreateNotifyReqVO reqDTO) {
         log.info("create notify task {}", JSONUtil.toJsonStr(reqDTO));
         List<NotifyContentRespVO> notifyContentList = filterUser(reqDTO.getTemplateCode());
-        NotifyTemplateDO template = getTemplate(reqDTO.getTemplateCode());
-        List<NotifyMessageDO> notifyMessages = new ArrayList<>(notifyContentList.size());
-        for (NotifyContentRespVO notifyContent : notifyContentList) {
-            String key = notifyContent.getReceiverId() + "-" + reqDTO.getTemplateCode();
-            if (Boolean.FALSE.equals(redisTemplate.boundValueOps(key).setIfAbsent(key, 60, TimeUnit.MINUTES))) {
-                log.warn("重复发送通知，收信人id={},模板类型={}", notifyContent.getReceiverId(), reqDTO.getTemplateCode());
-                continue;
-            }
-            NotifyMessageDO message = new NotifyMessageDO()
-                    .setUserId(notifyContent.getReceiverId())
-                    .setUserType(UserTypeEnum.ADMIN.getValue())
-                    .setTemplateId(template.getId())
-                    .setTemplateCode(template.getCode())
-                    .setTemplateType(template.getType())
-                    .setTemplateNickname(template.getNickname())
-                    .setBatchCode(reqDTO.getBatchCode())
-                    .setSent(false)
-                    .setMediaTypes(template.getMediaTypes())
-                    .setTemplateContent(notifyContent.getContent())
-                    .setTemplateParams(notifyContent.getTemplateParams())
-                    .setReadStatus(false);
-            notifyMessages.add(message);
+        if (CollectionUtils.isNotEmpty(reqDTO.getReceiverIds())) {
+            notifyContentList = notifyContentList.stream().filter(notifyContentRespVO -> reqDTO.getReceiverIds().contains(notifyContentRespVO.getReceiverId())).collect(Collectors.toList());
         }
-        notifyMessageService.createMessageBatch(notifyMessages);
+        createMsgTask(reqDTO, notifyContentList);
     }
 
     @Override
@@ -141,8 +128,8 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public List<NotifyContentRespVO> filterUser(String templateCode) {
-        return notifyMediaFactory.getDataService(templateCode).filterNotifyContent();
+    public PageResult<NotifyContentRespVO> pageFilterUser(FilterUserReqVO reqVO) {
+        return notifyMediaFactory.getDataService(reqVO.getTemplateCode()).pageFilterNotifyContent(reqVO);
     }
 
     @Override
@@ -152,7 +139,39 @@ public class NotifyServiceImpl implements NotifyService {
                 notifyMediaFactory.getNotifyMedia(mediaType).valid(createReqVO);
             }
         }
+        NotifyTemplateEnum.validTemplateKey(createReqVO.getCode(), createReqVO.getContent());
         return templateService.createNotifyTemplate(createReqVO);
+    }
+
+    public void createMsgTask(CreateNotifyReqVO reqDTO, List<NotifyContentRespVO> notifyContentList) {
+        NotifyTemplateDO template = getTemplate(reqDTO.getTemplateCode());
+        List<NotifyMessageDO> notifyMessages = new ArrayList<>(notifyContentList.size());
+        for (NotifyContentRespVO notifyContent : notifyContentList) {
+            String lockKey = reqDTO.getTemplateCode() + "-" + notifyContent.getReceiverId();
+            if (Boolean.FALSE.equals(redisTemplate.boundValueOps(lockKey).setIfAbsent(lockKey, 60, TimeUnit.MINUTES))) {
+                log.warn("重复发送通知，收信人id={},模板类型={}", notifyContent.getReceiverId(), reqDTO.getTemplateCode());
+                continue;
+            }
+            NotifyMessageDO message = new NotifyMessageDO()
+                    .setUserId(notifyContent.getReceiverId())
+                    .setUserType(UserTypeEnum.ADMIN.getValue())
+                    .setTemplateId(template.getId())
+                    .setTemplateCode(template.getCode())
+                    .setTemplateType(template.getType())
+                    .setTemplateNickname(template.getNickname())
+                    .setBatchCode(reqDTO.getBatchCode())
+                    .setSent(CollectionUtils.isEmpty(template.getMediaTypes()))
+                    .setMediaTypes(template.getMediaTypes())
+                    .setTemplateContent(notifyContent.getContent())
+                    .setTemplateParams(notifyContent.getTemplateParams())
+                    .setReadStatus(false);
+            notifyMessages.add(message);
+        }
+        notifyMessageService.createMessageBatch(notifyMessages);
+    }
+
+    public List<NotifyContentRespVO> filterUser(String templateCode) {
+        return notifyMediaFactory.getDataService(templateCode).filterNotifyContent();
     }
 
     private void doSend(Long logId, Long userId, Integer mediaType, String content, Map<String, Object> params, String tempCode) {

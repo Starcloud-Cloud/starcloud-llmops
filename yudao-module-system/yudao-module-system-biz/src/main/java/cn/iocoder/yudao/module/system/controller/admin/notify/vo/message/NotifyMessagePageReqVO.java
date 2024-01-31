@@ -39,4 +39,7 @@ public class NotifyMessagePageReqVO extends PageParam {
     @Schema(description = "公众号发送成功")
     private Boolean mpSuccess;
 
+    @Schema(description = "公众号发送成功")
+    private Boolean mpTempSuccess;
+
 }

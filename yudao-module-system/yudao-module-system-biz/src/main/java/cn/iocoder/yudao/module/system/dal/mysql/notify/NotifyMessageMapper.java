@@ -29,6 +29,7 @@ public interface NotifyMessageMapper extends BaseMapperX<NotifyMessageDO> {
                 .betweenIfPresent(NotifyMessageDO::getCreateTime, reqVO.getCreateTime())
                 .eqIfPresent(NotifyMessageDO::getSmsSuccess, reqVO.getSmsSuccess())
                 .eqIfPresent(NotifyMessageDO::getMpSuccess, reqVO.getMpSuccess())
+                .eqIfPresent(NotifyMessageDO::getMpTempSuccess, reqVO.getMpTempSuccess())
                 .orderByDesc(NotifyMessageDO::getId));
     }
 
