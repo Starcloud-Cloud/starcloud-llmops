@@ -116,7 +116,7 @@ public class NotifyServiceImpl implements NotifyService {
                     .setTemplateCode(template.getCode())
                     .setTemplateType(template.getType())
                     .setTemplateNickname(template.getNickname())
-                    .setBatchCode("admin-async")
+                    .setBatchCode(reqDTO.getBatchCode())
                     .setSent(false)
                     .setMediaTypes(template.getMediaTypes())
                     .setTemplateContent(notifyContent.getContent())
@@ -130,11 +130,12 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void triggerNotify(CreateNotifyReqVO reqDTO) {
+        String batchCode = StringUtils.isBlank(reqDTO.getBatchCode()) ? "admin-sync" : reqDTO.getBatchCode();
+        reqDTO.setBatchCode(batchCode);
         if (NotifyTemplateEnum.contains(reqDTO.getTemplateCode())) {
             createMsgTask(reqDTO);
             return;
         }
-        String batchCode = StringUtils.isBlank(reqDTO.getBatchCode()) ? "admin-sync" : reqDTO.getBatchCode();
         Long logId = notifySendService.sendSingleNotify(reqDTO.getUserId(), reqDTO.getUserType(), batchCode, reqDTO.getTemplateCode(), reqDTO.getTemplateParams());
         sendNotify(logId);
     }
