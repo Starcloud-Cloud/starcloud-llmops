@@ -69,11 +69,17 @@ public class NotifyMessageBaseVO {
     @Schema(description = "公众号发送成功")
     private Boolean mpSuccess;
 
+    @Schema(description = "模板消息发送状态")
+    private Boolean mpTempSuccess;
+
     @Schema(description = "短信日志")
     private String smsLog;
 
     @Schema(description = "公众号日志")
     private String mpLog;
+
+    @Schema(description = "模板消息日志")
+    private String mpTempLog;
 
     @Schema(description = "定时发送触发")
     private Boolean sent;

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 public enum NotifyMediaEnum {
 //    sms(1,"手机短信"),
     wx_mp(2,"微信公共号"),
+    wx_template(3,"微信模板消息"),
 
     ;
 

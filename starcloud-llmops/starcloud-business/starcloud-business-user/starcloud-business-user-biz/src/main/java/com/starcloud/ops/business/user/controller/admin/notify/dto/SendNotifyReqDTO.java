@@ -22,4 +22,14 @@ public class SendNotifyReqDTO {
      * 消息内容
      */
     private String content;
+
+    /**
+     * 消息平台模板code
+     */
+    private String templateCode;
+
+    /**
+     * 模板参数
+     */
+    private Map<String,Object> params;
 }

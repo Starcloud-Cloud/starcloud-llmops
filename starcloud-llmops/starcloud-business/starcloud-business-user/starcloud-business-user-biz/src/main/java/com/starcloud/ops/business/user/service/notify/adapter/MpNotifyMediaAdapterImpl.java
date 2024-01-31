@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.user.service.notify.adapter;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
@@ -9,6 +8,7 @@ import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
+import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateCreateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyMessageDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;

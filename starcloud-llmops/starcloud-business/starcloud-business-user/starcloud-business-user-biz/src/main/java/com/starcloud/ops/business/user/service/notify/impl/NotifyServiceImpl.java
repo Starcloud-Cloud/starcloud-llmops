@@ -2,10 +2,13 @@ package com.starcloud.ops.business.user.service.notify.impl;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateCreateReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyMessageDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyTemplateDO;
 import cn.iocoder.yudao.module.system.service.notify.NotifyMessageService;
 import cn.iocoder.yudao.module.system.service.notify.NotifySendService;
+import cn.iocoder.yudao.module.system.service.notify.NotifyTemplateService;
 import com.starcloud.ops.business.user.controller.admin.notify.dto.SendNotifyReqDTO;
 import com.starcloud.ops.business.user.controller.admin.notify.dto.SendNotifyResultDTO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.CreateNotifyReqVO;
@@ -27,14 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Slf4j
 @Service
@@ -42,6 +42,9 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Resource
     private NotifyMessageService notifyMessageService;
+
+    @Resource
+    private NotifyTemplateService templateService;
 
     @Resource
     private NotifyFactory notifyMediaFactory;
@@ -73,13 +76,15 @@ public class NotifyServiceImpl implements NotifyService {
         }
         try {
             NotifyMessageDO notifyMessage = notifyMessageService.getNotifyMessage(logId);
+            NotifyTemplateDO template = templateService.getNotifyTemplateByCodeFromCache(notifyMessage.getTemplateCode());
             if (Boolean.TRUE.equals(notifyMessage.getSent())) {
                 log.warn("已发送 logId = {}", logId);
                 return;
             }
             if (!CollectionUtils.isEmpty(notifyMessage.getMediaTypes())) {
                 for (Integer mediaType : notifyMessage.getMediaTypes()) {
-                    doSend(logId, notifyMessage.getUserId(), mediaType, notifyMessage.getTemplateContent());
+                    doSend(logId, notifyMessage.getUserId(), mediaType,
+                            notifyMessage.getTemplateContent(), notifyMessage.getTemplateParams(), template.getRemoteTemplateCode());
                 }
             }
             notifyMessageService.updateById(new NotifyMessageDO().setId(logId).setSent(true));
@@ -139,15 +144,41 @@ public class NotifyServiceImpl implements NotifyService {
         return notifyMediaFactory.getDataService(templateCode).filterNotifyContent();
     }
 
-    private void doSend(Long logId, Long userId, Integer mediaType, String content) {
+    @Override
+    public Long createNotifyTemplate(NotifyTemplateCreateReqVO createReqVO) {
+        if (CollectionUtils.isNotEmpty(createReqVO.getMediaTypes())) {
+            for (Integer mediaType : createReqVO.getMediaTypes()) {
+                notifyMediaFactory.getNotifyMedia(mediaType).valid(createReqVO);
+            }
+        }
+        return templateService.createNotifyTemplate(createReqVO);
+    }
+
+    private void doSend(Long logId, Long userId, Integer mediaType, String content, Map<String, Object> params, String tempCode) {
+        NotifyMediaAdapter notifyMediaAdapter = notifyMediaFactory.getNotifyMedia(mediaType);
         try {
-            SendNotifyReqDTO sendNotifyReqDTO = new SendNotifyReqDTO().setContent(content).setUserId(userId).setUserType(UserTypeEnum.ADMIN);
-            NotifyMediaAdapter notifyMediaAdapter = notifyMediaFactory.getNotifyMedia(mediaType);
+            SendNotifyReqDTO sendNotifyReqDTO = new SendNotifyReqDTO()
+                    .setContent(content)
+                    .setUserId(userId)
+                    .setParams(params)
+                    .setTemplateCode(tempCode)
+                    .setUserType(UserTypeEnum.ADMIN);
             SendNotifyResultDTO sendNotifyResultDTO = notifyMediaAdapter.sendNotify(sendNotifyReqDTO);
             notifyMediaAdapter.updateLog(logId, sendNotifyResultDTO);
         } catch (Exception e) {
             log.warn("send notify error,logId={},userId={},mediaType={}", logId, userId, mediaType, e);
+            notifyMediaAdapter.updateLog(logId, SendNotifyResultDTO.error(null, e.getMessage()));
         }
+    }
+
+    @Override
+    public void updateNotifyTemplate(NotifyTemplateUpdateReqVO updateReqVO) {
+        if (CollectionUtils.isNotEmpty(updateReqVO.getMediaTypes())) {
+            for (Integer mediaType : updateReqVO.getMediaTypes()) {
+                notifyMediaFactory.getNotifyMedia(mediaType).valid(updateReqVO);
+            }
+        }
+        templateService.updateNotifyTemplate(updateReqVO);
     }
 
     private NotifyTemplateDO getTemplate(String templateCode) {

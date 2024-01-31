@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.user.service.notify;
 
+import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateCreateReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateUpdateReqVO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.CreateNotifyReqVO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.NotifyContentRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -32,4 +34,17 @@ public interface NotifyService {
      * @return
      */
     List<NotifyContentRespVO> filterUser(String templateCode);
+
+    /**
+     * 创建站内信模板
+     * @param createReqVO
+     * @return
+     */
+    Long createNotifyTemplate(NotifyTemplateCreateReqVO createReqVO);
+
+    /**
+     * 更新站内信模版
+     * @param updateReqVO
+     */
+    void updateNotifyTemplate(NotifyTemplateUpdateReqVO updateReqVO);
 }

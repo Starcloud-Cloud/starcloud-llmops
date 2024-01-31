@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.mp.convert.message;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageRespVO;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
+import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpTemplateSendReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
@@ -12,6 +13,7 @@ import me.chanjar.weixin.mp.bean.kefu.WxMpKefuMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutNewsMessage;
+import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 import me.chanjar.weixin.mp.builder.outxml.BaseBuilder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -119,6 +121,16 @@ public interface MpMessageConvert {
     }
     List<WxMpXmlOutNewsMessage.Item> convertList02(List<MpMessageDO.Article> list);
 
+    default WxMpTemplateMessage convertTemp(MpTemplateSendReqVO sendReqVO, MpUserDO user) {
+        WxMpTemplateMessage build = WxMpTemplateMessage.builder()
+                .toUser(user.getOpenid())
+                .templateId(sendReqVO.getTemplateId())
+                .data(sendReqVO.getData())
+                .build();
+        return build;
+    }
+
+
     default WxMpKefuMessage convert(MpMessageSendReqVO sendReqVO, MpUserDO user) {
         me.chanjar.weixin.mp.builder.kefu.BaseBuilder<?> builder;
         // 个性化字段
@@ -168,5 +180,18 @@ public interface MpMessageConvert {
             @Mapping(target = "createTime", ignore = true),
     })
     MpMessageDO convert(WxMpKefuMessage bean);
+
+
+    default MpMessageDO convert(WxMpTemplateMessage wxMessage, MpAccountDO account, MpUserDO user) {
+        MpMessageDO message = new MpMessageDO();
+        if (account != null) {
+            message.setAccountId(account.getId()).setAppId(account.getAppId());
+        }
+        if (user != null) {
+            message.setUserId(user.getId()).setOpenid(user.getOpenid());
+        }
+
+        return message;
+    }
 
 }

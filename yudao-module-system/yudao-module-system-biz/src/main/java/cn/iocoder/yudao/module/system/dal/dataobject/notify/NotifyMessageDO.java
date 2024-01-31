@@ -115,6 +115,11 @@ public class NotifyMessageDO extends BaseDO {
     private Boolean mpSuccess;
 
     /**
+     * 模板消息发送状态
+     */
+    private Boolean mpTempSuccess;
+
+    /**
      * 短信日志
      */
     private String smsLog;
@@ -123,6 +128,11 @@ public class NotifyMessageDO extends BaseDO {
      * 公众号日志
      */
     private String mpLog;
+
+    /**
+     *  模板消息日志
+     */
+    private String mpTempLog;
 
     /**
      * 发送任务状态

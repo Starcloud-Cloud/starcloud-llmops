@@ -47,4 +47,7 @@ public class NotifyTemplateBaseVO {
     @Schema(description = "通知渠道")
     private List<Integer> mediaTypes;
 
+    @Schema(description = "平台模板code")
+    private String remoteTemplateCode;
+
 }
