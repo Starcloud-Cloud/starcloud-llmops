@@ -58,10 +58,9 @@ public interface AdminUserInviteService {
 
     Long getInviteCountByTimes(Long userId, LocalDateTime startTime,LocalDateTime endTime);
 
-
-
-
-
     void setInviteRights(AdminUserDO inviteUserDO, Long invitationId);
+
+
+    void testInviteRule(Long userId,Long inviteeId);
 
 }

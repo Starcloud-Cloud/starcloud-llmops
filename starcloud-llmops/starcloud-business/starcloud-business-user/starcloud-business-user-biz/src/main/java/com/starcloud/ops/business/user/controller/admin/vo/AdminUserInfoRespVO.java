@@ -53,6 +53,12 @@ public class AdminUserInfoRespVO {
     @Schema(description = "是否新用户")
     private Boolean isNewUser;
 
+    @Schema(description = "是否特邀用户")
+    private Boolean isInviteUser;
+
+    @Schema(description = "优惠结束时间")
+    private LocalDateTime inviteEndTime;
+
     @Schema(description = "注册时间")
     private LocalDateTime registerTime;
 

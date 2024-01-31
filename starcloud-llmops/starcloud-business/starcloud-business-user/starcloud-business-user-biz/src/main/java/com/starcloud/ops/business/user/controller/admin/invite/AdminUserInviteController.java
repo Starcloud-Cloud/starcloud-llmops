@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/llm/invitation-records")
 @Validated
 @Slf4j
-public class InvitationRecordsController {
+public class AdminUserInviteController {
 
     @Resource
     private AdminUserInviteService adminUserInviteService;
@@ -39,9 +39,9 @@ public class InvitationRecordsController {
     @PostMapping("/create/{inviterId}/{inviteeId}")
     @Operation(summary = "创建邀请记录")
     // @PreAuthorize("@ss.hasPermission('llm:invitation-records:create')")
-    public CommonResult<Boolean> createInvitationRecords(            @PathVariable("inviterId") Long inviterId,
-                                                                  @PathVariable("inviteeId") Long inviteeId) {
-        adminUserInviteService.createInvitationRecords(inviterId,inviteeId);
+    public CommonResult<Boolean> createInvitationRecords(@PathVariable("inviterId") Long inviterId,
+                                                         @PathVariable("inviteeId") Long inviteeId) {
+        adminUserInviteService.createInvitationRecords(inviterId, inviteeId);
         return success(true);
     }
 
@@ -53,31 +53,14 @@ public class InvitationRecordsController {
         // 获取当天的邀请记录
         List<AdminUserInviteDO> todayInvitations = adminUserInviteService.getTodayInvitations(inviteUserId);
         if (todayInvitations.size() % 2 == 0) {
-            log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益",todayInvitations.size() , todayInvitations.size());
+            log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", todayInvitations.size(), todayInvitations.size());
             benefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_INVITE_REPEAT.getName(), inviteUserId);
             sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
-                    "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" +"\n"+ "\n" +"我们已经将这份珍贵的礼物送至您的账户中。" + "\n"+"\n" +
+                    "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "\n" + "\n" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
                             "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
         }
         return success(true);
     }
-    //
-    // @GetMapping("/list")
-    // @Operation(summary = "获得邀请记录列表")
-    // @Parameter(name = "ids", description = "编号列表", required = true, example = "1024,2048")
-    // @PreAuthorize("@ss.hasPermission('llm:invitation-records:query')")
-    // public CommonResult<List<InvitationRecordsRespVO>> getInvitationRecordsList(@RequestParam("ids") Collection<Long> ids) {
-    //     List<AdminUserInviteDO> list = adminUserInviteService.getInvitationRecordsList(ids);
-    //     return success(AdminUserInviteRecordsConvert.INSTANCE.convertList(list));
-    // }
-    //
-    // @GetMapping("/page")
-    // @Operation(summary = "获得邀请记录分页")
-    // @PreAuthorize("@ss.hasPermission('llm:invitation-records:query')")
-    // public CommonResult<PageResult<InvitationRecordsRespVO>> getInvitationRecordsPage(@Valid InvitationRecordsPageReqVO pageVO) {
-    //     PageResult<AdminUserInviteDO> pageResult = adminUserInviteService.getInvitationRecordsPage(pageVO);
-    //     return success(AdminUserInviteRecordsConvert.INSTANCE.convertPage(pageResult));
-    // }
-    //
+
 
 }

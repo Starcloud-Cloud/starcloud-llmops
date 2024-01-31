@@ -85,6 +85,7 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
         return convertMap(list, map -> MapUtil.getLong(map, templateIdAlias), map -> MapUtil.getInt(map, countAlias));
     }
 
+
     default List<CouponDO> selectListByUserIdAndTemplateIdIn(Long userId, Collection<Long> templateIds) {
         return selectList(new LambdaQueryWrapperX<CouponDO>()
                 .eq(CouponDO::getUserId, userId)
@@ -114,11 +115,12 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
         );
     }
 
-    default List<CouponDO> selectListByTemplateIdAndEnable(Long templateId) {
+    default List<CouponDO> selectListByTemplateIdAndEnable(Long templateId ,Long userId) {
         return selectList(new LambdaQueryWrapperX<CouponDO>()
                 .eq(CouponDO::getTemplateId, templateId)
+                .eq(CouponDO::getUserId,userId)
                 .eq(CouponDO::getStatus, CouponStatusEnum.UNUSED.getStatus())
-                .le(CouponDO::getValidEndTime, LocalDateTime.now())
+                .ge(CouponDO::getValidEndTime, LocalDateTime.now())
         );
     }
 

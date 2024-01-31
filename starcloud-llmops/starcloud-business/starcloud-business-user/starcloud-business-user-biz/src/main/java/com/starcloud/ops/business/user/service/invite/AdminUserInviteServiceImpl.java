@@ -21,6 +21,7 @@ import com.starcloud.ops.business.user.enums.invite.InviteRuleTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -50,6 +51,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     private AdminUserRightsService adminUserRightsService;
 
     @Resource
+    @Lazy
     private CouponApi couponApi;
 
     @Resource
@@ -118,7 +120,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     @Override
     public Long getInviteCountByTimes(Long userId, LocalDateTime startTime, LocalDateTime endTime) {
         return adminUserInviteMapper.selectCount(Wrappers.lambdaQuery(AdminUserInviteDO.class)
-                .eq(AdminUserInviteDO::getInviterId, userId)
+                .eq(AdminUserInviteDO::getInviteeId, userId)
                 .between(AdminUserInviteDO::getCreateTime, startTime, endTime));
     }
 
@@ -135,6 +137,15 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
             return;
         }
         getSelf().executeInviteRuleByRuleType(inviteUserDO, enableInviteRule, inviteRecordsId);
+    }
+
+    /**
+     * @param userId
+     * @param inviteeId
+     */
+    @Override
+    public void testInviteRule(Long userId, Long inviteeId) {
+
     }
 
     /**
@@ -171,8 +182,6 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
      * @param inviteRecordsId
      */
     private void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
-
-
         // 满足要求 添加权益
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (inviteCount % rule.getCount() == 0) {
@@ -204,11 +213,11 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     }
 
 
-    private void setInviteUserRights(AdminUserDO inviteUserDO, Long ruleId, AdminUserInviteRuleDO.Rule inviteRule, Long inviteRecordsId, Long inviteCount) {
+    public void setInviteUserRights(AdminUserDO inviteUserDO, Long ruleId, AdminUserInviteRuleDO.Rule inviteRule, Long inviteRecordsId, Long inviteCount) {
 
         int tag = 0;
         log.info("[executeInviteRuleByRuleType] 设置邀请人权益,邀请人 ID 为{},记录 ID 为{},规则为{}", inviteUserDO.getId(), inviteRecordsId, ruleId);
-        if (Objects.nonNull(inviteRule.getGiveRights())) {
+        if (Objects.nonNull(inviteRule.getGiveRights()) && inviteRule.getGiveRights().getGiveMagicBean() > 0 || inviteRule.getGiveRights().getGiveImage() > 0) {
             TenantUtils.execute(inviteUserDO.getTenantId(), () -> adminUserRightsService.createRights(inviteUserDO.getId(), inviteRule.getGiveRights().getGiveMagicBean(), inviteRule.getGiveRights().getGiveImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(inviteRecordsId), null));
             tag++;
         } else {

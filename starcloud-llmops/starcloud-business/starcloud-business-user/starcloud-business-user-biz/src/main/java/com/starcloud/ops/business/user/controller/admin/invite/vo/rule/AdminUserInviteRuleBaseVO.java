@@ -3,6 +3,8 @@ package com.starcloud.ops.business.user.controller.admin.invite.vo.rule;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteRuleDO;
 import com.starcloud.ops.business.user.enums.invite.InviteRuleTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -29,9 +31,6 @@ public class AdminUserInviteRuleBaseVO {
     @InEnum(value = InviteRuleTypeEnum.class, message = "邀请规则类型必须是 {value}")
     private Integer type;
 
-    @Schema(description = " 达标人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @NotNull(message = "达标人数不可以为空")
-    private Integer count;
 
     @Schema(description = "时间范围", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotNull(message = "时间范围不可以为空")
@@ -42,11 +41,16 @@ public class AdminUserInviteRuleBaseVO {
     @InEnum(value = TimeRangeTypeEnum.class, message = "时间单位必须是 {value}")
     private Integer timeRange;
 
-    @Schema(description = "优惠券编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    private List<Long> giveCouponTemplateIds;
+
+    @Schema(description = "规则", requiredMode = Schema.RequiredMode.REQUIRED, example = "30")
+    List<AdminUserInviteRuleDO.Rule> inviteRule;
 
     @Schema(description = "状态，参见 CommonStatusEnum 枚举", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotNull(message = "状态不能为空")
     @InEnum(value = CommonStatusEnum.class, message = "状态必须是 {value}")
     private Integer status;
+
+
+
+
 }
