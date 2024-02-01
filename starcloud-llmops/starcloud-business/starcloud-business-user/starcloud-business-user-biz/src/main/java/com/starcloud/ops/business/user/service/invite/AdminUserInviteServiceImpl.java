@@ -182,7 +182,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
      * @param inviteRules
      * @param inviteRecordsId
      */
-    private void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
+    public void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
         // 满足要求 添加权益
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (inviteCount % rule.getCount() == 0) {
@@ -204,7 +204,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
      * @param inviteRules
      * @param inviteRecordsId
      */
-    private void validateSingleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
+    public void validateSingleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
 
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (Objects.equals(rule.getCount(), inviteCount)) {
