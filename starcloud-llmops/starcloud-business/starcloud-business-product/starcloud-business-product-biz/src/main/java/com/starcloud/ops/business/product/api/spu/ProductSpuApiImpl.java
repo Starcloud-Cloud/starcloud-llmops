@@ -51,8 +51,8 @@ public class ProductSpuApiImpl implements ProductSpuApi {
      * @param couponId 优惠券 ID
      */
     @Override
-    public void validateSpuAndCoupon(Long spuId, Long couponId) {
-        spuService.validateSpuAndCoupon(spuId,couponId);
+    public void validateSpuAndCoupon(Long spuId, Long couponId, Long userId) {
+        spuService.validateSpuAndCoupon(spuId,couponId,userId);
     }
 
     @Override

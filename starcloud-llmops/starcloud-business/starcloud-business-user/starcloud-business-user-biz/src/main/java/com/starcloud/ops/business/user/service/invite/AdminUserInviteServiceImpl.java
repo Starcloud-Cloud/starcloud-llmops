@@ -239,8 +239,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         // 发送信息
         try {
             sendUserMsgService.sendMsgToWx(userId, String.format(
-                    "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
-                            "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", count));
+                    "你好，我是魔法AI小助手，注意到您又邀请了3位朋友一起使用魔法AI，一张9.9元周体验优惠券已送达，限时72小时有效，<a href=\"https://www.mofaai.com.cn/subscribe\">立即使用</a> ！", count));
         } catch (Exception e) {
             log.error("邀请达人公众号信息发送失败，userId={}", userId, e);
         }
