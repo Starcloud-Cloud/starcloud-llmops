@@ -26,7 +26,7 @@ public class NotifyTaskMapReduce extends BaseMapReduceTask {
 
     @Override
     protected BaseTaskResult execute(PowerJobTaskContext baseTaskContext) {
-        TenantContextHolder.setIgnore(true);
+//        TenantContextHolder.setIgnore(true);
         if (isRootTask()) {
             return runRoot(baseTaskContext);
         }
