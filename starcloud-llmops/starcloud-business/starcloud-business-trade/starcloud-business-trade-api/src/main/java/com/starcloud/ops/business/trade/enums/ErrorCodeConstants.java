@@ -38,6 +38,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode ORDER_CREATE_FAIL_USER_LIMIT = new ErrorCode(1_011_000_033, "交易订单创建失败，该商品仅限新用户购买");
 
+
     // ========== After Sale 模块 1-011-000-100 ==========
     ErrorCode AFTER_SALE_NOT_FOUND = new ErrorCode(1_011_000_100, "售后单不存在");
     ErrorCode AFTER_SALE_CREATE_FAIL_REFUND_PRICE_ERROR = new ErrorCode(1_011_000_101, "申请退款金额错误");

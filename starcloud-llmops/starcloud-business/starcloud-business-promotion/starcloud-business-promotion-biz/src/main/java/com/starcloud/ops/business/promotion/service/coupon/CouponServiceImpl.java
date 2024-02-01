@@ -167,12 +167,30 @@ public class CouponServiceImpl implements CouponService {
         removeTakeLimitUser(userIds, template);
         // 2. 校验优惠劵是否可以领取
         validateCouponTemplateCanTake(template, userIds, takeType);
+        // 3. 校验优惠劵是否仅最后一张生效
+        validateOnlyLastTakeEffect(template, userIds);
 
-        // 3. 批量保存优惠劵
+        // 4. 批量保存优惠劵
         couponMapper.insertBatch(convertList(userIds, userId -> CouponConvert.INSTANCE.convert(template, userId)));
 
-        // 3. 增加优惠劵模板的领取数量
+        // 5. 增加优惠劵模板的领取数量
         couponTemplateService.updateCouponTemplateTakeCount(templateId, userIds.size());
+    }
+
+    private void validateOnlyLastTakeEffect(CouponTemplateDO template, Set<Long> userIds) {
+
+        if (!template.getOnlyLastTakeEffect()) {
+            return;
+        }
+        userIds.forEach(userId -> {
+            List<CouponDO> allCoupons = couponMapper.selectListByTemplateIdAndEnable(template.getId(), userId);
+            if (allCoupons.isEmpty()) {
+                return;
+            }
+            List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(template.getId()));
+            couponDOS.forEach(couponDO -> this.expireCoupon(couponDO));
+
+        });
     }
 
     @Override
@@ -183,11 +201,13 @@ public class CouponServiceImpl implements CouponService {
         // 2. 校验优惠劵是否可以领取
         validateCouponTemplateCanTake(template, CollUtil.newHashSet(userId), takeType);
 
-        // 3. 批量保存优惠劵
+        // 3. 校验优惠劵是否仅最后一张生效
+        validateOnlyLastTakeEffect(template, Collections.singleton(userId));
+        // 4. 批量保存优惠劵
         CouponDO convert = CouponConvert.INSTANCE.convert(template, userId);
         couponMapper.insert(convert);
 
-        // 3. 增加优惠劵模板的领取数量
+        // 5. 增加优惠劵模板的领取数量
         couponTemplateService.updateCouponTemplateTakeCount(templateId, 1);
         return convert.getId();
     }
@@ -214,6 +234,14 @@ public class CouponServiceImpl implements CouponService {
         return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
                 matchReqVO.getPrice(), matchReqVO.getSpuIds(), matchReqVO.getCategoryIds());
+    }
+
+
+    @Override
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds) {
+        return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
+                CouponStatusEnum.UNUSED.getStatus(),
+                price, spuIds, categoryIds).size();
     }
 
     @Override
@@ -262,6 +290,18 @@ public class CouponServiceImpl implements CouponService {
     }
 
     /**
+     * 统计会员领取优惠券的列表
+     *
+     * @param userId     用户编号
+     * @param templateId 优惠券模板编号
+     * @return 领取优惠券的数量
+     */
+    @Override
+    public List<CouponDO> getTakeListByTemplateId(Long userId, Long templateId) {
+        return couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(templateId));
+    }
+
+    /**
      * 过期单个优惠劵
      *
      * @param coupon 优惠劵
@@ -297,7 +337,7 @@ public class CouponServiceImpl implements CouponService {
             throw exception(COUPON_TEMPLATE_NOT_EXISTS);
         }
         // 校验剩余数量
-        if (couponTemplate.getTakeCount() + userIds.size() > couponTemplate.getTotalCount()) {
+        if (!couponTemplate.getTotalCount().equals(-1) && couponTemplate.getTakeCount() + userIds.size() > couponTemplate.getTotalCount()) {
             throw exception(COUPON_TEMPLATE_NOT_ENOUGH);
         }
         // 校验"固定日期"的有效期类型是否过期

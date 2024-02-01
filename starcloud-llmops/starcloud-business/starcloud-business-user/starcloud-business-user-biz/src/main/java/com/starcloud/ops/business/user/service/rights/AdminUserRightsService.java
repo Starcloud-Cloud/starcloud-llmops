@@ -39,6 +39,7 @@ public interface AdminUserRightsService {
 
     /**
      * 获取权益数据汇总
+     *
      * @param userId 用户编号
      * @return
      */
@@ -54,10 +55,11 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage,  Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId,Long LevelId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId);
 
     /**
      * 校验权益是否可供扣除
+     *
      * @param userId      用户 ID
      * @param rightsType  权益类型
      * @param rightAmount 权益数量
@@ -67,16 +69,19 @@ public interface AdminUserRightsService {
     /**
      * 权益扣减
      *
-     * @param userId      用户 ID
+     * @param userId      使用者用户 ID
+     * @param teamOwnerId 团队所属者用户 ID (如果为空，则不属于团队消耗，不为空或者与 userId 值相同 则代表是团队下自己消耗执行)
+     * @param teamId      团队ID
      * @param rightsType  权益类型
      * @param rightAmount 权益数量
      * @param bizType     业务类型
      * @param bizId       业务编号
      */
-    void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId);
+    void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId);
 
     /**
      * 权益过期提醒
+     *
      * @param userId
      */
     NotifyExpiringRightsRespVO notifyExpiringRights(Long userId);

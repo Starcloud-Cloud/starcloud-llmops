@@ -162,6 +162,17 @@ public interface CouponService {
     List<CouponDO> getMatchCouponList(Long userId, AppCouponMatchReqVO matchReqVO);
 
     /**
+     * 获取用户匹配的优惠券列表
+     *
+     * @param userId      用户编号
+     * @param price       匹配参数
+     * @param spuIds      匹配参数
+     * @param categoryIds 匹配参数
+     * @return 优惠券列表
+     */
+    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds);
+
+    /**
      * 过期优惠券
      *
      * @return 过期数量
@@ -176,5 +187,15 @@ public interface CouponService {
      * @return 是否可以领取
      */
     Map<Long, Boolean> getUserCanCanTakeMap(Long userId, List<CouponTemplateDO> templates);
+
+
+    /**
+     * 统计会员领取优惠券的列表
+     *
+     * @param templateId 优惠券模板编号列表
+     * @param userId      用户编号
+     * @return 领取优惠券的数量
+     */
+    List<CouponDO> getTakeListByTemplateId(Long userId, Long templateId);
 
 }

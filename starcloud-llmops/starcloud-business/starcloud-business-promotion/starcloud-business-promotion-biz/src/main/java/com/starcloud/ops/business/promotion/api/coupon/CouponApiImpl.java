@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -51,7 +52,7 @@ public class CouponApiImpl implements CouponApi {
      */
     @Override
     public void addCoupon(Long templateId, Set<Long> userIds) {
-         couponService.takeCouponByAdmin(templateId,userIds);
+        couponService.takeCouponByAdmin(templateId, userIds);
     }
 
     /**
@@ -63,9 +64,36 @@ public class CouponApiImpl implements CouponApi {
      */
     @Override
     public void addCoupon(Long templateId, Long userId) {
-        couponService.takeCouponByUser(templateId,userId);
+        couponService.takeCouponByUser(templateId, userId);
     }
 
+    @Override
+    public void takeCouponByRegister(Long userId) {
+        couponService.takeCouponByRegister(userId);
+    }
+
+    /**
+     * @param userId
+     * @param price
+     * @param spuIds
+     * @param categoryIds
+     * @return
+     */
+    @Override
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds) {
+        return couponService.getMatchCouponCount(userId, price, spuIds, categoryIds);
+    }
+
+    /**
+     * @param userId
+     * @param templateId
+     * @return
+     */
+    @Override
+    public List<CouponRespDTO> getMatchCouponByTemplateId(Long userId, Long templateId) {
+        List<CouponDO> couponDOList = couponService.getTakeListByTemplateId(userId, templateId);
+        return CouponConvert.INSTANCE.convertList02(couponDOList);
+    }
 
 
 }

@@ -33,18 +33,18 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     private AdminUserRightsService adminUserRightsService;
 
     @Override
-    public void addRights(Long userId, Integer magicBean, Integer magicImage,Integer rightsTimeNums, Integer rightsTimeRange,
+    public void addRights(Long userId, Integer magicBean, Integer magicImage, Integer rightsTimeNums, Integer rightsTimeRange,
                           Integer bizType, String bizId, Long levelId) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, rightsTimeNums, rightsTimeRange, bizTypeEnum, bizId,levelId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, rightsTimeNums, rightsTimeRange, bizTypeEnum, bizId, levelId);
     }
 
     @Override
-    public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
+    public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
                              Integer bizType, String bizId) {
         Assert.isTrue(rightAmount > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
@@ -52,14 +52,14 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.reduceRights(userId, rightsType, rightAmount, bizTypeEnum, bizId);
+        adminUserRightsService.reduceRights(userId, teamOwnerId, teamId, rightsType, rightAmount, bizTypeEnum, bizId);
     }
 
     /**
      * 判断权益是否充足
      *
-     * @param userId 用户 ID
-     * @param rightsType 权益类型
+     * @param userId      用户 ID
+     * @param rightsType  权益类型
      * @param rightAmount 检测权益数 可以为空 为空 仅仅判断当前权益数大于 0
      * @return
      */

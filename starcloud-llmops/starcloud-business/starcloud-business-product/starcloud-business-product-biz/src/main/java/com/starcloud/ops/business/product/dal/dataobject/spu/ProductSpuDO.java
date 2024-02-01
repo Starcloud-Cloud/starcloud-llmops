@@ -3,6 +3,7 @@ package com.starcloud.ops.business.product.dal.dataobject.spu;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.product.dal.dataobject.brand.ProductBrandDO;
@@ -181,12 +182,19 @@ public class ProductSpuDO extends BaseDO {
      * 赠送积分
      */
     private Integer giveIntegral;
+
+    /**
+     * 必须存在该优惠券才可以下单 如果为空 不做限制
+     */
+    @TableField(typeHandler = LongListTypeHandler.class)
+    private List<Long> limitCouponTemplateIds;
+
     /**
      * 赠送的优惠劵编号的数组
      * <p>
      * 对应 CouponTemplateDO 的 id 属性
      */
-    @TableField(typeHandler = JacksonTypeHandler.class)
+    @TableField(typeHandler = LongListTypeHandler.class)
     private List<Long> giveCouponTemplateIds;
 
     // TODO @puhui999：字段估计要改成 brokerageType

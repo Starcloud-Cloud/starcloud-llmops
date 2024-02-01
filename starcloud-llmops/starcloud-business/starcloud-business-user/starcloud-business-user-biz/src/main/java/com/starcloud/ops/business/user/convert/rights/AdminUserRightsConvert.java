@@ -7,6 +7,7 @@ import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUs
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
