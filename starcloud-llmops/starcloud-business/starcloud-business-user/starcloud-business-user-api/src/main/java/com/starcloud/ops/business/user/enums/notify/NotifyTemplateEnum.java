@@ -61,7 +61,7 @@ public enum NotifyTemplateEnum {
             if (Objects.equals(value.getCode(), templateCode)) {
                 List<String> requiredKey = ReUtil.findAllGroup1(PATTERN_PARAMS, value.getTemplateKey());
                 List<String> contentParams = ReUtil.findAllGroup1(PATTERN_PARAMS, templateContent);
-                if (!requiredKey.containsAll(contentParams) || !contentParams.containsAll(requiredKey)) {
+                if (!requiredKey.containsAll(contentParams)) {
                     throw exception(TEMP_PARAMS_NOT_CONSISTENT, contentParams, requiredKey);
                 }
             }
