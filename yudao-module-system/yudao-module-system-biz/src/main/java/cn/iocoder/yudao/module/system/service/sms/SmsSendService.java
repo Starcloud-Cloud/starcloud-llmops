@@ -75,4 +75,15 @@ public interface SmsSendService {
      */
     void receiveSmsStatus(String channelCode, String text) throws Throwable;
 
+    /**
+     * 同步发送单条短信给用户 只能发送阿里云
+     * @param mobile
+     * @param userId
+     * @param userType
+     * @param content
+     * @return
+     */
+    Long syncSendSingleSms(String mobile, Long userId, Integer userType,
+                           String content, String apiTempLateId);
+
 }

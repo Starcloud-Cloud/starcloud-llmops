@@ -69,4 +69,15 @@ public class NotifyTemplateDO extends BaseDO {
      */
     private String remark;
 
+    /**
+     * 通知渠道
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<Integer> mediaTypes;
+
+    /**
+     * 模板code
+     */
+    private String remoteTemplateCode;
+
 }
