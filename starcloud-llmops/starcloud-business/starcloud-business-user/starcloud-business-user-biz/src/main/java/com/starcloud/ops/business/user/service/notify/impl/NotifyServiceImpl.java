@@ -198,6 +198,7 @@ public class NotifyServiceImpl implements NotifyService {
                 notifyMediaFactory.getNotifyMedia(mediaType).valid(updateReqVO);
             }
         }
+        NotifyTemplateEnum.validTemplateKey(updateReqVO.getCode(), updateReqVO.getContent());
         templateService.updateNotifyTemplate(updateReqVO);
     }
 
