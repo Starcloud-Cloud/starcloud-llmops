@@ -56,12 +56,12 @@ public enum NotifyTemplateEnum {
         return false;
     }
 
-    public static void validTemplateKey(String templateCode,String templateContent) {
+    public static void validTemplateKey(String templateCode, String templateContent) {
         for (NotifyTemplateEnum value : NotifyTemplateEnum.values()) {
             if (Objects.equals(value.getCode(), templateCode)) {
                 List<String> requiredKey = ReUtil.findAllGroup1(PATTERN_PARAMS, value.getTemplateKey());
                 List<String> contentParams = ReUtil.findAllGroup1(PATTERN_PARAMS, templateContent);
-                if (!Objects.equals(requiredKey, contentParams)) {
+                if (!requiredKey.containsAll(contentParams) || !contentParams.containsAll(requiredKey)) {
                     throw exception(TEMP_PARAMS_NOT_CONSISTENT, contentParams, requiredKey);
                 }
             }
