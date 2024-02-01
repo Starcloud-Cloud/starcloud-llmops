@@ -24,7 +24,7 @@ public class CouponRespDTO {
     /**
      * 优惠劵模板编号
      */
-    private Integer templateId;
+    private Long templateId;
     /**
      * 优惠劵名
      */

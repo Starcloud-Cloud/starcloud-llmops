@@ -27,7 +27,7 @@ public class TradeProductSpuOrderHandler implements TradeOrderHandler {
 
         // 下单检测
         orderItems.forEach( orderItem->
-               productSpuApi.validateSpuAndCoupon(orderItem.getSpuId(),order.getCouponId()));
+               productSpuApi.validateSpuAndCoupon(orderItem.getSpuId(),order.getCouponId(),order.getUserId()));
 
 
     }
