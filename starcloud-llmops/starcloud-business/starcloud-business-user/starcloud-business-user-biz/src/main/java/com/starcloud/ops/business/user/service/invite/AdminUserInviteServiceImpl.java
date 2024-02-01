@@ -234,16 +234,18 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
             log.warn("[executeInviteRuleByRuleType] 当前规则暂无优惠券配置,规则ID为{}", ruleId);
         }
 
+        log.info("准备发送消息，当前 tag 为{}",tag);
         if (tag > 0) {
             sendMsg(inviteUserDO.getId(), inviteCount);
         }
     }
 
     public void sendMsg(Long userId, Long count) {
+        log.info("邀请达人公众号信息准备发送，userId={}", userId);
         // 发送信息
         try {
             sendUserMsgService.sendMsgToWx(userId, "你好，我是魔法AI小助手，注意到您又邀请了3位朋友一起使用魔法AI，一张9.9元周体验优惠券已送达，限时72小时有效，<a href=\"https://www.mofaai.com.cn/subscribe\">立即使用</a> ！");
-            log.error("邀请达人公众号信息发送成功，userId={}", userId);
+            log.info("邀请达人公众号信息发送成功，userId={}", userId);
         } catch (Exception e) {
             log.error("邀请达人公众号信息发送失败，userId={}", userId, e);
         }
