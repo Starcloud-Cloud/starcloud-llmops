@@ -95,5 +95,17 @@ public class CouponApiImpl implements CouponApi {
         return CouponConvert.INSTANCE.convertList02(couponDOList);
     }
 
+    /**
+     * 获取优惠劵
+     *
+     * @param couponId 使用请求
+     */
+    @Override
+    public CouponRespDTO getCoupon(Long couponId, Long userId) {
+
+        CouponDO coupon = couponService.validCoupon(couponId, userId);
+        return CouponConvert.INSTANCE.convert(coupon);
+    }
+
 
 }
