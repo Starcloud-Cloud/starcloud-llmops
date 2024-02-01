@@ -174,38 +174,38 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     /**
      * 失败重试
      *
-     * @param uid 任务 uid
+     * @param businessUid 任务 uid
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void failureRetry(String uid) {
+    public void failureRetry(String businessUid) {
         // 查询任务信息
         LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
-        wrapper.eq(CreativeContentDO::getUid, uid);
+        wrapper.eq(CreativeContentDO::getBusinessUid, businessUid);
         wrapper.eq(CreativeContentDO::getDeleted, Boolean.FALSE);
         CreativeContentDO content = creativeContentMapper.selectOne(wrapper);
 
         // 基础校验
         if (Objects.isNull(content)) {
-            throw exception(CREATIVE_CONTENT_NOT_EXIST, uid);
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
 
         if (!CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() < 3) {
-            throw exception(new ErrorCode(300500001, "该任务状态不需要进行重试！"), uid);
+            throw exception(new ErrorCode(300500001, "该任务状态不需要进行重试！"), businessUid);
         }
 
         CreativePlanRespVO plan = creativePlanService.get(content.getPlanUid());
         if (Objects.isNull(plan)) {
-            throw exception(new ErrorCode(300500002, "该任务所属计划不存在！"), uid);
+            throw exception(new ErrorCode(300500002, "该任务所属计划不存在！"), businessUid);
         }
 
         if (!CreativePlanStatusEnum.FAILURE.name().equals(plan.getStatus())) {
-            throw exception(new ErrorCode(300500003, "该任务状态不需要进行重试！"), uid);
+            throw exception(new ErrorCode(300500003, "该任务状态不需要进行重试！"), businessUid);
         }
 
         // 更新任务状态信息
         LambdaUpdateWrapper<CreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(CreativeContentDO.class);
-        updateWrapper.eq(CreativeContentDO::getUid, uid);
+        updateWrapper.eq(CreativeContentDO::getUid, businessUid);
         // 重置重试次数
         updateWrapper.set(CreativeContentDO::getRetryCount, 0);
         // 重置状态
@@ -247,32 +247,30 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
-        if (StringUtils.isBlank(query.getPlanUid())) {
-            throw exception(CreativeErrorCodeConstants.PLAN_UID_REQUIRED, query.getPlanUid());
-        }
-
-        CreativePlanRespVO plan = creativePlanService.get(query.getPlanUid());
-        CreativePlanConfigDTO config = plan.getConfig();
-        List<CreativeSchemeListOptionRespVO> schemeList = config.getSchemeList();
-        // 老数据
-        if (CollectionUtils.isEmpty(schemeList)) {
-            Long count = creativeContentMapper.selectCount(query);
-            if (count == null || count <= 0) {
-                return PageResult.empty();
+        if (StringUtils.isNoneBlank(query.getPlanUid())) {
+            CreativePlanRespVO plan = creativePlanService.get(query.getPlanUid());
+            CreativePlanConfigDTO config = plan.getConfig();
+            List<CreativeSchemeListOptionRespVO> schemeList = config.getSchemeList();
+            // 老数据
+            if (CollectionUtils.isEmpty(schemeList)) {
+                Long count = creativeContentMapper.selectCount(query);
+                if (count == null || count <= 0) {
+                    return PageResult.empty();
+                }
+                List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
+                return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
             }
-            List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
-            return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
-        }
 
-        // 新数据，取第一条
-        CreativeSchemeListOptionRespVO schemeListOption = schemeList.get(0);
-        if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(schemeListOption.getMode())) {
-            Long count = creativeContentMapper.selectCount(query);
-            if (count == null || count <= 0) {
-                return PageResult.empty();
+            // 新数据，取第一条
+            CreativeSchemeListOptionRespVO schemeListOption = schemeList.get(0);
+            if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(schemeListOption.getMode())) {
+                Long count = creativeContentMapper.selectCount(query);
+                if (count == null || count <= 0) {
+                    return PageResult.empty();
+                }
+                List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
+                return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
             }
-            List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
-            return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
         }
 
         // 自定义类型
@@ -290,32 +288,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 // 成功的步骤数量
                 int successCount = (int) steps.stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
                 response.setSuccessStepCount(successCount);
-
-                // 海报步骤具体信息
-                Optional<AppStepStatusDTO> posterOptional = steps.stream().filter(stepItem -> PosterActionHandler.class.getSimpleName().equals(stepItem.getHandlerCode())).findFirst();
-                if (posterOptional.isPresent()) {
-                    AppStepStatusDTO posterStep = posterOptional.get();
-                    if (posterStep.getStartTime() != null && posterStep.getEndTime() != null) {
-                        response.setPictureStartTime(posterStep.getStartTime());
-                        response.setPictureEndTime(posterStep.getEndTime());
-                        response.setPictureExecuteTime(posterStep.getElapsed());
-                    }
-                }
-
-                // 文案步骤具体信息
-                List<AppStepStatusDTO> copywritingStepList = steps.stream().filter(stepItem -> !PosterActionHandler.class.getSimpleName().equals(stepItem.getHandlerCode())).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(copywritingStepList)) {
-                    AppStepStatusDTO copywritingStep = copywritingStepList.get(0);
-                    // 获取最后一个文案步骤
-                    AppStepStatusDTO lastCopywritingStep = copywritingStepList.get(copywritingStepList.size() - 1);
-                    if (copywritingStep.getStartTime() != null && lastCopywritingStep.getEndTime() != null) {
-                        response.setCopyWritingStartTime(copywritingStep.getStartTime());
-                        response.setCopyWritingEndTime(lastCopywritingStep.getEndTime());
-                        long executeTime = LocalDateTimeUtil.toEpochMilli(lastCopywritingStep.getEndTime()) - LocalDateTimeUtil.toEpochMilli(copywritingStep.getStartTime());
-                        response.setCopyWritingExecuteTime(executeTime);
-                    }
-                }
-
+                // 当前步骤索引值
+                Optional<AppStepStatusDTO> currentStep = steps.stream().filter(stepItem -> AppStepStatusEnum.RUNNING.name().equals(stepItem.getStatus())).findFirst();
+                response.setCurrentStepIndex(currentStep.map(steps::indexOf).orElse(-1));
             }
 
             return response;

@@ -75,9 +75,9 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.retry(businessUid));
     }
 
-    @GetMapping("/failureRetry/{uid}")
+    @GetMapping("/failureRetry/{businessUid}")
     @Operation(summary = "失败重试")
-    public CommonResult<Boolean> failureRetry(@PathVariable("uid") String uid) {
+    public CommonResult<Boolean> failureRetry(@PathVariable("businessUid") String uid) {
         creativeContentService.failureRetry(uid);
         return CommonResult.success(true);
     }

@@ -62,6 +62,7 @@ public interface CreativeContentConvert {
         xhsCreativeContentDO.setBusinessUid(createReq.getBusinessUid());
         xhsCreativeContentDO.setConversationUid(createReq.getConversationUid());
         xhsCreativeContentDO.setType(createReq.getType());
+        xhsCreativeContentDO.setIsTest(createReq.getIsTest());
 
         return xhsCreativeContentDO;
     }

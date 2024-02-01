@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.dict.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -51,6 +52,21 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
             return Collections.emptyList();
         }
         Stream<AppCategoryVO> stream = dictDataList.stream().map(CategoryConvert.INSTANCE::convert);
+
+        // 根据租户进行区分类别。
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+        stream = stream.filter(category -> {
+            String code = category.getCode();
+            if (StringUtils.isBlank(code)) {
+                return false;
+            }
+            String[] split = code.split("_");
+            if (String.valueOf(tenantId).equals(split[0])) {
+                return true;
+            }
+            return false;
+        });
+
         if (isRoot) {
             stream = stream.filter(category -> AppConstants.ROOT.equalsIgnoreCase(category.getParentCode()));
         }

@@ -126,4 +126,6 @@ public class CreativeContentRespVO {
     private Integer totalStep;
 
     private Integer successStepCount;
+
+    private Integer currentStepIndex;
 }

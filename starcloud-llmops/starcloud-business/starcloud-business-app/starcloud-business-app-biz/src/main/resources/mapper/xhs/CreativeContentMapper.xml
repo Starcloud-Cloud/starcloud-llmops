@@ -35,6 +35,9 @@
         <if test="req.status != null and req.status != ''">
             and pic.status = #{req.status} and text.status = #{req.status}
         </if>
+        <if test="req.isTest != null ">
+            AND is_test = #{req.isTest}
+        </if>
     </select>
     
     <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
@@ -56,6 +59,9 @@
         </if>
         <if test="req.status != null and req.status != ''">
             and pic.status = #{req.status} and text.status = #{req.status}
+        </if>
+        <if test="req.isTest != null ">
+            AND is_test = #{req.isTest}
         </if>
         order by pic.id limit #{start},#{end}
     </select>
@@ -105,6 +111,9 @@
         </if>
         <if test="req.status != null and req.status != ''">
             AND status = #{req.status}
+        </if>
+        <if test="req.isTest != null ">
+            AND is_test = #{req.isTest}
         </if>
         ORDER BY id
     </select>
