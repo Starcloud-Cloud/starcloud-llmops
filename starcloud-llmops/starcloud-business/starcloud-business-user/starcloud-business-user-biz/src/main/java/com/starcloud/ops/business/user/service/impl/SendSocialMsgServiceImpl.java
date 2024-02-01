@@ -148,11 +148,12 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         SocialUserDO socialUserDO = socialUserOptional.get();
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
         MpContextHolder.setAppId(dictDataDO.getValue());
+        MpUserDO user = mpUserService.getUser(dictDataDO.getValue(), socialUserDO.getOpenid());
 
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
         messageSendReqVO.setContent(content);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
-        messageSendReqVO.setUserId(userId);
+        messageSendReqVO.setUserId(user.getId());
         try {
 
             messageService.sendKefuMessage(messageSendReqVO);

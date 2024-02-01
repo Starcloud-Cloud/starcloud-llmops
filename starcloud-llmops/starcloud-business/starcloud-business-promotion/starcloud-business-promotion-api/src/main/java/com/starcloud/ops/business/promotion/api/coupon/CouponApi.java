@@ -68,4 +68,12 @@ public interface CouponApi {
     List<CouponRespDTO> getMatchCouponByTemplateId(Long userId, Long templateId);
 
 
+    /**
+     * 获取优惠劵
+     *
+     * @param couponId 使用请求
+     */
+    CouponRespDTO getCoupon(Long couponId, Long userId);
+
+
 }
