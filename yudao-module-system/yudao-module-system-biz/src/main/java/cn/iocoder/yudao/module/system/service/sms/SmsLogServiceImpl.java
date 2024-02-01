@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.system.service.sms;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.sms.core.enums.SmsChannelEnum;
 import cn.iocoder.yudao.module.system.controller.admin.sms.vo.log.SmsLogExportReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.sms.vo.log.SmsLogPageReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.sms.SmsLogDO;
@@ -8,11 +9,14 @@ import cn.iocoder.yudao.module.system.dal.dataobject.sms.SmsTemplateDO;
 import cn.iocoder.yudao.module.system.dal.mysql.sms.SmsLogMapper;
 import cn.iocoder.yudao.module.system.enums.sms.SmsReceiveStatusEnum;
 import cn.iocoder.yudao.module.system.enums.sms.SmsSendStatusEnum;
+import cn.iocoder.yudao.module.system.enums.sms.SmsTemplateTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +52,24 @@ public class SmsLogServiceImpl implements SmsLogService {
         logBuilder.receiveStatus(SmsReceiveStatusEnum.INIT.getStatus());
 
         // 插入数据库
+        SmsLogDO logDO = logBuilder.build();
+        smsLogMapper.insert(logDO);
+        return logDO.getId();
+    }
+
+    @Override
+    public Long createSmsLog(String mobile, Long userId, Integer userType, Boolean isSend, String templateContent, String apiTempLateId) {
+        SmsLogDO.SmsLogDOBuilder logBuilder = SmsLogDO.builder();
+        logBuilder.sendStatus(Objects.equals(isSend, true) ? SmsSendStatusEnum.INIT.getStatus()
+                : SmsSendStatusEnum.IGNORE.getStatus());
+        logBuilder.mobile(mobile).userId(userId).userType(userType);
+        // 无模板 ？？？
+        logBuilder.templateId(-1L).templateCode(StringUtils.EMPTY).templateType(SmsTemplateTypeEnum.NOTICE.getType());
+        logBuilder.templateContent(templateContent).templateParams(new HashMap<>())
+                .apiTemplateId(apiTempLateId);
+        logBuilder.channelId(-1L).channelCode(SmsChannelEnum.ALIYUN.getCode());
+        logBuilder.receiveStatus(SmsReceiveStatusEnum.INIT.getStatus());
+
         SmsLogDO logDO = logBuilder.build();
         smsLogMapper.insert(logDO);
         return logDO.getId();

@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.mp.service.message;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessagePageReqVO;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
+import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpTemplateSendReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
 import cn.iocoder.yudao.module.mp.service.message.bo.MpMessageSendOutReqBO;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
@@ -54,5 +55,13 @@ public interface MpMessageService {
      * @return 消息
      */
     MpMessageDO sendKefuMessage(MpMessageSendReqVO sendReqVO);
+
+
+    /**
+     * 发送模板消息
+     *
+     * @param sendReqVO
+     */
+    MpMessageDO sendTemplateMessage(MpTemplateSendReqVO sendReqVO);
 
 }
