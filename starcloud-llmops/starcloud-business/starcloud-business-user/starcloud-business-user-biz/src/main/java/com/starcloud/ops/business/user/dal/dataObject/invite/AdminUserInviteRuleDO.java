@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.dal.dataobject.invitation;
+package com.starcloud.ops.business.user.dal.dataobject.invite;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.starcloud.ops.business.user.enums.invite.InviteRuleTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -21,7 +22,7 @@ import java.util.List;
  *
  * @author QingX
  */
-@TableName("system_user_invite_rule")
+@TableName(value = "system_user_invite_rule",autoResultMap = true)
 @KeySequence("system_user_invite_rule_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -29,7 +30,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminUserInvitationConfigDO extends BaseDO {
+public class AdminUserInviteRuleDO extends BaseDO {
 
     /**
      * 规则自增主键
@@ -38,37 +39,26 @@ public class AdminUserInvitationConfigDO extends BaseDO {
     private Long id;
 
     /**
-     *  达标人数
+     *  规则名称
      */
-    private Long ruleType;
+    private String name;
 
     /**
-     *  达标人数
+     *  规则类型{@link InviteRuleTypeEnum}
      */
-    private Long count;
-    /**
-     *  限制时间数
-     */
-    private Integer times;
-    /**
-     * 限制时间单位
-     */
+    private Integer type;
+
+
+    @Schema(description = " 邀请有效时间", example = "1")
+    private Integer timeNums;
+
+    @Schema(description = "邀请有效时间单位", example = "30")
+    @InEnum(value = TimeRangeTypeEnum.class,message = "邀请有效时间单位，必须是 {value}")
     private Integer timeRange;
 
-    /**
-     * 赠送的优惠劵编号的数组
-     * <p>
-     * 对应 CouponTemplateDO 的 id 属性
-     */
-    @TableField(typeHandler = JacksonTypeHandler.class)
-    private List<Long> giveCouponTemplateIds;
 
-    // ========== 权益相关字段 =========
-    /**
-     * 属性数组，JSON 格式
-     */
-    @TableField(typeHandler = GiveRightsTypeHandler.class)
-    private GiveRights giveRights;
+    @TableField(typeHandler = RuleTypeHandler.class)
+    List<Rule> inviteRule;
 
     /**
      * 状态
@@ -76,6 +66,58 @@ public class AdminUserInvitationConfigDO extends BaseDO {
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
+
+
+    /**
+     * 魔法 AI 专属
+     * 商品附属赠送权益
+     *
+     * @author Alan Cusack
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Rule {
+
+        /**
+         *  达标人数
+         */
+        private Long count;
+
+        /**
+         *  排序【自动根据】count字段进行排序
+         *
+         */
+        private Integer sort;
+        /**
+         * 赠送的优惠劵编号的数组
+         * <p>
+         * 对应 CouponTemplateDO 的 id 属性
+         */
+        @TableField(typeHandler = JacksonTypeHandler.class)
+        private List<Long> giveCouponTemplateIds;
+
+        // ========== 权益相关字段 =========
+        /**
+         * 属性数组，JSON 格式
+         */
+        @TableField(typeHandler = GiveRightsTypeHandler.class)
+        private GiveRights giveRights;
+    }
+
+    public static class RuleTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseArray(json, Rule.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
 
 
     /**
@@ -122,7 +164,7 @@ public class AdminUserInvitationConfigDO extends BaseDO {
 
         @Schema(description = "用户等级生效时间单位", example = "100")
         @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-        private Integer LevelTimeRange;
+        private Integer levelTimeRange;
     }
 
 

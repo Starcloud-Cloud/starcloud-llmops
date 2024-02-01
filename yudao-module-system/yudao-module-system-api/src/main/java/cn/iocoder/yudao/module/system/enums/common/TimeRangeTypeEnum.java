@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.module.system.enums.common;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.iocoder.yudao.framework.common.core.IntArrayValuable;
 import lombok.AllArgsConstructor;
@@ -53,7 +52,7 @@ public enum TimeRangeTypeEnum implements IntArrayValuable {
                 e -> Objects.equals(type, e.getType()));
     }
 
-    public static LocalDateTime getTimeByRange(Integer type, Integer driftUnit, LocalDateTime dateTime) {
+    public static LocalDateTime getPlusTimeByRange(Integer type, Integer driftUnit, LocalDateTime dateTime) {
         if (Objects.isNull(dateTime)) {
             dateTime = LocalDateTime.now();
         }
@@ -71,5 +70,25 @@ public enum TimeRangeTypeEnum implements IntArrayValuable {
                 throw new RuntimeException("时间范围未识别");
         }
     }
+    public static LocalDateTime getMinusTimeByRange(Integer type, Integer driftUnit, LocalDateTime dateTime) {
+        if (Objects.isNull(dateTime)) {
+            dateTime = LocalDateTime.now();
+        }
+        TimeRangeTypeEnum timeRange = getByType(type);
+        switch (timeRange) {
+            case DAY:
+                return dateTime.minusDays(driftUnit);
+            case WEEK:
+                return dateTime.minusWeeks(driftUnit);
+            case MONTH:
+                return dateTime.minusMonths(driftUnit);
+            case YEAR:
+                return dateTime.minusYears(driftUnit);
+            default:
+                throw new RuntimeException("时间范围未识别");
+        }
+    }
+
+
 
 }

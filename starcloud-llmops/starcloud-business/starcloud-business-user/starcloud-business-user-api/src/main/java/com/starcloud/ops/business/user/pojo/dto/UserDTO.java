@@ -19,5 +19,7 @@ public class UserDTO {
 
     private String mobile;
 
+    private Long inviteUserId;
+
     private Long tenantId;
 }

@@ -25,6 +25,17 @@ public class TradeProductSkuOrderHandler implements TradeOrderHandler {
 
     @Override
     public void beforeOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
+        // 下单检测
+
+        // /**
+        //  * 验证商品是否必须含有优惠券下单
+        //  *
+        //  * @param spuId    skuId
+        //  * @param couponId 优惠券 ID
+        //  */
+        // void validateSpuAndCoupon(Long spuId, Long couponId);
+
+        // 可以下单 执行库存操作
         productSkuApi.updateSkuStock(TradeOrderConvert.INSTANCE.convertNegative(orderItems));
     }
 

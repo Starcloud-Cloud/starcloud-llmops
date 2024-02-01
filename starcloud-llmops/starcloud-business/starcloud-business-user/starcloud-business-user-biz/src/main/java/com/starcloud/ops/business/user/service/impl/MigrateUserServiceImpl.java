@@ -7,7 +7,7 @@ import com.starcloud.ops.business.user.pojo.dto.MigrateResultDTO;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.dto.WpUserDTO;
 import com.starcloud.ops.business.user.service.MigrateUserService;
-import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.user.StarUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
