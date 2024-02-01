@@ -159,6 +159,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         LocalDateTime startTime = TimeRangeTypeEnum.getMinusTimeByRange(ruleDO.getTimeRange(), ruleDO.getTimeNums(), endTime);
         // 根据时间范围查询已经邀请人数
         Long count = getSelf().getInviteCountByTimes(inviteUserDO.getId(), startTime, endTime);
+        log.info("用户{}当前邀请人数为{},开始检测是否满足规则", inviteUserDO.getId(), count);
         // 判断是否满足要求
         List<AdminUserInviteRuleDO.Rule> inviteRule = ruleDO.getInviteRule();
 
@@ -185,6 +186,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         // 满足要求 添加权益
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (inviteCount % rule.getCount() == 0) {
+                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}",inviteCount,inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环
             }
@@ -206,6 +208,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
 
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (Objects.equals(rule.getCount(), inviteCount)) {
+                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}",inviteCount,inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环
             }
@@ -230,16 +233,17 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         } else {
             log.warn("[executeInviteRuleByRuleType] 当前规则暂无优惠券配置,规则ID为{}", ruleId);
         }
+
         if (tag > 0) {
             sendMsg(inviteUserDO.getId(), inviteCount);
         }
     }
 
-    private void sendMsg(Long userId, Long count) {
+    public void sendMsg(Long userId, Long count) {
         // 发送信息
         try {
-            sendUserMsgService.sendMsgToWx(userId, String.format(
-                    "你好，我是魔法AI小助手，注意到您又邀请了3位朋友一起使用魔法AI，一张9.9元周体验优惠券已送达，限时72小时有效，<a href=\"https://www.mofaai.com.cn/subscribe\">立即使用</a> ！", count));
+            sendUserMsgService.sendMsgToWx(userId, "你好，我是魔法AI小助手，注意到您又邀请了3位朋友一起使用魔法AI，一张9.9元周体验优惠券已送达，限时72小时有效，<a href=\"https://www.mofaai.com.cn/subscribe\">立即使用</a> ！");
+            log.error("邀请达人公众号信息发送成功，userId={}", userId);
         } catch (Exception e) {
             log.error("邀请达人公众号信息发送失败，userId={}", userId, e);
         }
