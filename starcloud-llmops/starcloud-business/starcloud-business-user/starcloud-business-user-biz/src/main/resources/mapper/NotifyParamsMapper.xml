@@ -5,7 +5,7 @@
     <select id="countPurchaseExperienceParams" resultType="java.lang.Long">
         SELECT count(*)
         FROM system_users AS users
-        WHERE users.create_time >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+        WHERE users.create_time = DATE_SUB(NOW(), INTERVAL 3 DAY)
           AND users.id NOT IN (SELECT DISTINCT user_id FROM trade_order)
     </select>
 
@@ -16,7 +16,7 @@
                DATE_FORMAT(users.create_time, '%Y-%m-%d') as createTime,
                DATEDIFF(NOW(), users.create_time) + 1     AS daysDiff
         FROM system_users AS users
-        WHERE users.create_time >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+        WHERE users.create_time = DATE_SUB(NOW(), INTERVAL 3 DAY)
           AND users.id NOT IN (SELECT DISTINCT user_id FROM trade_order ORDER BY id)
         ORDER BY users.id
         limit #{start}, #{size}
@@ -29,7 +29,7 @@
                DATE_FORMAT(users.create_time, '%Y-%m-%d') as createTime,
                DATEDIFF(NOW(), users.create_time) + 1     AS daysDiff
         FROM system_users AS users
-        WHERE users.create_time >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+        WHERE users.create_time = DATE_SUB(NOW(), INTERVAL 3 DAY)
           AND users.id NOT IN (SELECT DISTINCT user_id FROM trade_order ORDER BY id)
         ORDER BY users.id
     </select>
