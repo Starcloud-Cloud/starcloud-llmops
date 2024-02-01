@@ -209,7 +209,7 @@ public class ProductSpuController {
         ArrayList<Long> list = new ArrayList<>();
 
         if (parts.length>1){
-            pageVO.setKeyword(parts[0]);
+            pageVO.setName(parts[0]);
         }else {
             return success(list);
         }
