@@ -230,6 +230,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         if (CollUtil.isNotEmpty(inviteRule.getGiveCouponTemplateIds())) {
             List<Long> ids1 = JSON.parseArray(JSON.toJSONString(inviteRule.getGiveCouponTemplateIds()), Long.class);
             ids1.forEach(coupon -> couponApi.addCoupon(coupon, SetUtils.asSet(inviteUserDO.getId())));
+            tag++;
         } else {
             log.warn("[executeInviteRuleByRuleType] 当前规则暂无优惠券配置,规则ID为{}", ruleId);
         }
