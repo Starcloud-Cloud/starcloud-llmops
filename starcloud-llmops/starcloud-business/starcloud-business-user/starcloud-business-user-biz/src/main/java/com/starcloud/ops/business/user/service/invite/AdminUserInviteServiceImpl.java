@@ -120,7 +120,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     @Override
     public Long getInviteCountByTimes(Long userId, LocalDateTime startTime, LocalDateTime endTime) {
         return adminUserInviteMapper.selectCount(Wrappers.lambdaQuery(AdminUserInviteDO.class)
-                .eq(AdminUserInviteDO::getInviteeId, userId)
+                .eq(AdminUserInviteDO::getInviterId, userId)
                 .between(AdminUserInviteDO::getCreateTime, startTime, endTime));
     }
 

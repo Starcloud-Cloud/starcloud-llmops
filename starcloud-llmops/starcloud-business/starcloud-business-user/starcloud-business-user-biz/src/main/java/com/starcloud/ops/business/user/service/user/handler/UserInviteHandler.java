@@ -45,13 +45,12 @@ public class UserInviteHandler implements UserRegisterHandler {
 
         log.info("【afterUserRegister】邀请人信息注入，创建邀请记录");
         // 增加邀请记录
-        Long invitationId = adminUserInviteService.createInvitationRecords(adminUserDO.getId(), inviteUserDO.getId());
+        Long invitationId = adminUserInviteService.createInvitationRecords(inviteUserDO.getId(), adminUserDO.getId());
 
         log.info("【afterUserRegister】邀请人信息设置成功,开始准备邀请人权益发放，准备邀请人发放权益");
 
 
         adminUserInviteService.setInviteRights(inviteUserDO, invitationId);
-
 
 
         log.info("【afterUserRegister】邀请人权益发放，邀请人权益发放成功");
