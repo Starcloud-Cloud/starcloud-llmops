@@ -1,11 +1,14 @@
 package cn.iocoder.yudao.module.system.controller.admin.notify.vo.message;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
@@ -56,5 +59,33 @@ public class NotifyMessageBaseVO {
     @Schema(description = "阅读时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime readTime;
+
+    @Schema(description = "批次号")
+    private String batchCode;
+
+    @Schema(description = "短信发送成功")
+    private Boolean smsSuccess;
+
+    @Schema(description = "公众号发送成功")
+    private Boolean mpSuccess;
+
+    @Schema(description = "模板消息发送状态")
+    private Boolean mpTempSuccess;
+
+    @Schema(description = "短信日志")
+    private String smsLog;
+
+    @Schema(description = "公众号日志")
+    private String mpLog;
+
+    @Schema(description = "模板消息日志")
+    private String mpTempLog;
+
+    @Schema(description = "定时发送触发")
+    private Boolean sent;
+
+    @Schema(description = "通知渠道")
+    private List<Integer> mediaTypes;
+
 
 }

@@ -33,6 +33,9 @@ public interface SmsLogService {
     Long createSmsLog(String mobile, Long userId, Integer userType, Boolean isSend,
                       SmsTemplateDO template, String templateContent, Map<String, Object> templateParams);
 
+    Long createSmsLog(String mobile, Long userId, Integer userType, Boolean isSend,
+                       String templateContent, String apiTempLateId);
+
     /**
      * 更新日志的发送结果
      *

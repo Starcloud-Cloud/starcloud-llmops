@@ -52,7 +52,7 @@ class NotifySendServiceImplTest extends BaseMockitoUnitTest {
                 .thenReturn(content);
         // mock NotifyMessageService 的方法
         Long messageId = randomLongId();
-        when(notifyMessageService.createNotifyMessage(eq(userId), eq(UserTypeEnum.ADMIN.getValue()),
+        when(notifyMessageService.createNotifyMessage(eq(userId), eq(UserTypeEnum.ADMIN.getValue()),"",
                 eq(template), eq(content), eq(templateParams))).thenReturn(messageId);
 
         // 调用
@@ -80,7 +80,7 @@ class NotifySendServiceImplTest extends BaseMockitoUnitTest {
                 .thenReturn(content);
         // mock NotifyMessageService 的方法
         Long messageId = randomLongId();
-        when(notifyMessageService.createNotifyMessage(eq(userId), eq(UserTypeEnum.MEMBER.getValue()),
+        when(notifyMessageService.createNotifyMessage(eq(userId), eq(UserTypeEnum.MEMBER.getValue()),"",
                 eq(template), eq(content), eq(templateParams))).thenReturn(messageId);
 
         // 调用
@@ -112,11 +112,11 @@ class NotifySendServiceImplTest extends BaseMockitoUnitTest {
                 .thenReturn(content);
         // mock NotifyMessageService 的方法
         Long messageId = randomLongId();
-        when(notifyMessageService.createNotifyMessage(eq(userId), eq(userType),
+        when(notifyMessageService.createNotifyMessage(eq(userId), eq(userType),"",
                 eq(template), eq(content), eq(templateParams))).thenReturn(messageId);
 
         // 调用
-        Long resultMessageId = notifySendService.sendSingleNotify(userId, userType, templateCode, templateParams);
+        Long resultMessageId = notifySendService.sendSingleNotify(userId, userType,"", templateCode, templateParams);
         // 断言
         assertEquals(messageId, resultMessageId);
     }
@@ -141,11 +141,11 @@ class NotifySendServiceImplTest extends BaseMockitoUnitTest {
         when(notifyTemplateService.getNotifyTemplateByCodeFromCache(eq(templateCode))).thenReturn(template);
 
         // 调用
-        Long resultMessageId = notifySendService.sendSingleNotify(userId, userType, templateCode, templateParams);
+        Long resultMessageId = notifySendService.sendSingleNotify(userId, userType,"", templateCode, templateParams);
         // 断言
         assertNull(resultMessageId);
         verify(notifyTemplateService, never()).formatNotifyTemplateContent(anyString(), anyMap());
-        verify(notifyMessageService, never()).createNotifyMessage(anyLong(), anyInt(), any(), anyString(), anyMap());
+        verify(notifyMessageService, never()).createNotifyMessage(anyLong(), anyInt(),"", any(), anyString(), anyMap());
     }
 
     @Test
