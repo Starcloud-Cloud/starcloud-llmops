@@ -45,6 +45,9 @@ public interface ErrorCodeConstants {
     ErrorCode SPU_SKU_NOT_DUPLICATE = new ErrorCode(1_008_006_003, "一个 SPU 下的每个 SKU，必须不重复");
     ErrorCode SKU_STOCK_NOT_ENOUGH = new ErrorCode(1_008_006_004, "商品 SKU 库存不足");
 
+    ErrorCode SPU_FAIL_NEW_USER_LIMIT = new ErrorCode(1_008_006_005, "该商品仅限新用户下单购买");
+    ErrorCode SPU_FAIL_SPU_LIMIT = new ErrorCode(1_008_006_006, "该商品仅限特邀用户购买");
+
     // ========== 商品 评价 1-008-007-000 ==========
     ErrorCode COMMENT_NOT_EXISTS = new ErrorCode(1_008_007_000, "商品评价不存在");
     ErrorCode COMMENT_ORDER_EXISTS = new ErrorCode(1_008_007_001, "订单的商品评价已存在");

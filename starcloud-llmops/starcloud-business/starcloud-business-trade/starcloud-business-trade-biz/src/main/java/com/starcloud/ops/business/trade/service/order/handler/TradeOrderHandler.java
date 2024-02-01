@@ -16,6 +16,14 @@ import java.util.List;
 public interface TradeOrderHandler {
 
     /**
+     * 订单创建前 商品检测
+     *
+     * @param order 订单
+     * @param orderItems 订单项
+     */
+    default void beforeOrderValidate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
+
+    /**
      * 订单创建前
      *
      * @param order 订单

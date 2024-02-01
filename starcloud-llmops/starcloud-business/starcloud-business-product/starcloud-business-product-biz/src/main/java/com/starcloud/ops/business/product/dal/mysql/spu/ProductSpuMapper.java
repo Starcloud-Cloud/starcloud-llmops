@@ -71,7 +71,7 @@ public interface ProductSpuMapper extends BaseMapperX<ProductSpuDO> {
     default PageResult<ProductSpuDO> selectPage(AppProductSpuPageReqVO pageReqVO, Set<Long> categoryIds) {
         LambdaQueryWrapperX<ProductSpuDO> query = new LambdaQueryWrapperX<ProductSpuDO>()
                 // 关键字匹配，目前只匹配商品名
-                .likeIfPresent(ProductSpuDO::getName, pageReqVO.getKeyword())
+                .likeIfPresent(ProductSpuDO::getKeyword, pageReqVO.getKeyword())
                 // 分类
                 .inIfPresent(ProductSpuDO::getCategoryId, categoryIds);
         // 上架状态 且有库存

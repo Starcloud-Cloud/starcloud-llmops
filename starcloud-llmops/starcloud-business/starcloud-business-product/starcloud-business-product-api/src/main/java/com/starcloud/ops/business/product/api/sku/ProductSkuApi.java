@@ -45,4 +45,6 @@ public interface ProductSkuApi {
      */
     void updateSkuStock(ProductSkuUpdateStockReqDTO updateStockReqDTO);
 
+
+
 }

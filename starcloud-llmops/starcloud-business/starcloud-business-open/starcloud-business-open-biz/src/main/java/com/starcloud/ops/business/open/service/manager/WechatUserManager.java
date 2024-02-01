@@ -8,15 +8,18 @@ import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
+import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
-import com.starcloud.ops.business.user.service.StarUserService;
+import com.starcloud.ops.business.user.service.user.StarUserService;
+import com.starcloud.ops.business.user.service.user.handler.UserRegisterHandler;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -25,6 +28,7 @@ import javax.annotation.Resource;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import static java.lang.Character.MAX_RADIX;
 
@@ -39,10 +43,18 @@ public class WechatUserManager {
     private StarUserService starUserService;
 
     @Resource
+    @Lazy
+    private AdminUserService userService;
+
+    @Resource
     private PasswordEncoder passwordEncoder;
 
     @Resource
     private SocialUserService socialUserService;
+
+    @Resource
+    private List<UserRegisterHandler> userRegisterHandlers;
+
 
     public Boolean socialExist(String openId) {
         AdminUserDO socialUser = socialUserService.getSocialUser(openId, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
@@ -84,7 +96,11 @@ public class WechatUserManager {
         } catch (Exception e) {
             log.warn("获取邀请用户失败，currentUser={}", userId, e);
         }
-        starUserService.addBenefits(userId, inviteUserid);
+
+        Long finalInviteUserid = inviteUserid;
+        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(userId), finalInviteUserid == 0L ? null : userService.getUser(finalInviteUserid)));
+
+        // starUserService.addBenefits(userId, inviteUserid);
     }
 
 
