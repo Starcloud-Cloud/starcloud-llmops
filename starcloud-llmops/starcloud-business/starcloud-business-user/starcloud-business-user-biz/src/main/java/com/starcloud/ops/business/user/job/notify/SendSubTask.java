@@ -7,4 +7,5 @@ public class SendSubTask {
 
     private Long logId;
 
+    private Long tenantId;
 }

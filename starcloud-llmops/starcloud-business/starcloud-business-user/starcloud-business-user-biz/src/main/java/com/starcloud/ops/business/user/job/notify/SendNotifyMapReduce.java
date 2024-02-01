@@ -35,7 +35,7 @@ public class SendNotifyMapReduce extends BaseMapReduceTask {
 
     @Override
     protected BaseTaskResult execute(PowerJobTaskContext baseTaskContext) {
-        TenantContextHolder.setIgnore(true);
+//        TenantContextHolder.setIgnore(true);
         if (isRootTask()) {
             return runRoot(baseTaskContext);
         }
@@ -52,10 +52,12 @@ public class SendNotifyMapReduce extends BaseMapReduceTask {
         if (StringUtils.isBlank(params)) {
             return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS");
         }
-
         TypeReference<Map<String, Integer>> typeReference = new TypeReference<Map<String, Integer>>() {
         };
         Map<String, Integer> mapParams = JSON.parseObject(params, typeReference);
+        Long tenantId = Long.valueOf(mapParams.get("tenantId"));
+        TenantContextHolder.setIgnore(false);
+        TenantContextHolder.setTenantId(tenantId);
         try {
             List<NotifyMessageDO> notifyMessageDOS = messageService.sendIds(mapParams.get("limit"));
             if (CollectionUtils.isEmpty(notifyMessageDOS)) {
@@ -65,6 +67,7 @@ public class SendNotifyMapReduce extends BaseMapReduceTask {
             for (NotifyMessageDO notifyMessageDO : notifyMessageDOS) {
                 SendSubTask subTask = new SendSubTask();
                 subTask.setLogId(notifyMessageDO.getId());
+                subTask.setTenantId(tenantId);
                 subTasks.add(subTask);
             }
 
@@ -77,6 +80,8 @@ public class SendNotifyMapReduce extends BaseMapReduceTask {
     }
 
     public BaseTaskResult runSub(SendSubTask subTask) {
+        TenantContextHolder.setIgnore(false);
+        TenantContextHolder.setTenantId(subTask.getTenantId());
         notifyService.sendNotify(subTask.getLogId());
         return new BaseTaskResult(true, "SUB_PROCESS_SUCCESS");
     }
