@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.system.service.social;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.lang.Assert;
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
@@ -185,5 +186,12 @@ public class SocialUserServiceImpl implements SocialUserService {
         socialUserMapper.insert(socialUserDO);
         socialUserBindDO.setSocialUserId(socialUserDO.getId());
         socialUserBindMapper.insert(socialUserBindDO);
+    }
+
+    @Override
+    public SocialUserDO getSocialUser(Long userId, Integer userType) {
+        return getSocialUserList(userId, UserTypeEnum.ADMIN.getValue())
+                .stream().filter(socialUserDO -> SocialTypeEnum.WECHAT_MP.getType().equals(socialUserDO.getType()))
+                .findFirst().orElse(null);
     }
 }

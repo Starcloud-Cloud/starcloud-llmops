@@ -44,7 +44,7 @@ public interface NotifySendService {
      * @param templateParams 站内信模板参数
      * @return 发送日志编号
      */
-    Long sendSingleNotify( Long userId, Integer userType,
+    Long sendSingleNotify( Long userId, Integer userType,String batchCode,
                            String templateCode, Map<String, Object> templateParams);
 
     default void sendBatchNotify(List<String> mobiles, List<Long> userIds, Integer userType,

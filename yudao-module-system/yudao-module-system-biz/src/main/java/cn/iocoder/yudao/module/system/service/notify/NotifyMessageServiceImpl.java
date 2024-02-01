@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.system.controller.admin.notify.vo.message.NotifyM
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyMessageDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyTemplateDO;
 import cn.iocoder.yudao.module.system.dal.mysql.notify.NotifyMessageMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -29,14 +30,29 @@ public class NotifyMessageServiceImpl implements NotifyMessageService {
     private NotifyMessageMapper notifyMessageMapper;
 
     @Override
-    public Long createNotifyMessage(Long userId, Integer userType,
+    public Long createNotifyMessage(Long userId, Integer userType, String batchCode,
                                     NotifyTemplateDO template, String templateContent, Map<String, Object> templateParams) {
         NotifyMessageDO message = new NotifyMessageDO().setUserId(userId).setUserType(userType)
                 .setTemplateId(template.getId()).setTemplateCode(template.getCode())
                 .setTemplateType(template.getType()).setTemplateNickname(template.getNickname())
+                .setBatchCode(batchCode)
+                .setMediaTypes(template.getMediaTypes())
                 .setTemplateContent(templateContent).setTemplateParams(templateParams).setReadStatus(false);
         notifyMessageMapper.insert(message);
         return message.getId();
+    }
+
+    @Override
+    public void createMessageBatch(List<NotifyMessageDO> notifyMessageDOS) {
+        if (CollectionUtils.isEmpty(notifyMessageDOS)) {
+            return;
+        }
+        notifyMessageMapper.insertBatch(notifyMessageDOS, notifyMessageDOS.size());
+    }
+
+    @Override
+    public List<NotifyMessageDO> sendIds(int limit) {
+        return notifyMessageMapper.sendIds(limit);
     }
 
     @Override
@@ -74,4 +90,8 @@ public class NotifyMessageServiceImpl implements NotifyMessageService {
         return notifyMessageMapper.updateListRead(userId, userType);
     }
 
+    @Override
+    public void updateById(NotifyMessageDO notifyMessageDO) {
+        notifyMessageMapper.updateById(notifyMessageDO);
+    }
 }
