@@ -47,6 +47,14 @@ public interface MpMessageService {
     WxMpXmlOutMessage sendOutMessage(@Valid MpMessageSendOutReqBO sendReqBO);
 
     /**
+     * 根据openId 发送消息
+     * @param openId
+     * @return
+     */
+    MpMessageDO sendMessage(String openId,MpMessageSendReqVO sendReqVO);
+
+
+    /**
      * 使用公众号，给粉丝发送【客服】消息
      *
      * 注意，该方法会真实发送消息
