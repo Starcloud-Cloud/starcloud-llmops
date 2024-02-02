@@ -91,7 +91,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         messageSendReqVO.setContent(format);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
         messageSendReqVO.setUserId(inviteUserid);
-        messageService.sendKefuMessage(messageSendReqVO);
+        messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
     }
 
     @Override

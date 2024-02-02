@@ -182,6 +182,42 @@ public interface MpMessageConvert {
     MpMessageDO convert(WxMpKefuMessage bean);
 
 
+
+    default WxMpKefuMessage convert(MpMessageSendReqVO sendReqVO, String openId) {
+        me.chanjar.weixin.mp.builder.kefu.BaseBuilder<?> builder;
+        // 个性化字段
+        switch (sendReqVO.getType()) {
+            case WxConsts.KefuMsgType.TEXT:
+                builder = WxMpKefuMessage.TEXT().content(sendReqVO.getContent());
+                break;
+            case WxConsts.KefuMsgType.IMAGE:
+                builder = WxMpKefuMessage.IMAGE().mediaId(sendReqVO.getMediaId());
+                break;
+            case WxConsts.KefuMsgType.VOICE:
+                builder = WxMpKefuMessage.VOICE().mediaId(sendReqVO.getMediaId());
+                break;
+            case WxConsts.KefuMsgType.VIDEO:
+                builder = WxMpKefuMessage.VIDEO().mediaId(sendReqVO.getMediaId())
+                        .title(sendReqVO.getTitle()).description(sendReqVO.getDescription());
+                break;
+            case WxConsts.KefuMsgType.NEWS:
+                builder = WxMpKefuMessage.NEWS().articles(convertList03(sendReqVO.getArticles()));
+                break;
+            case WxConsts.KefuMsgType.MUSIC:
+                builder = WxMpKefuMessage.MUSIC().title(sendReqVO.getTitle()).description(sendReqVO.getDescription())
+                        .thumbMediaId(sendReqVO.getThumbMediaId())
+                        .musicUrl(sendReqVO.getMusicUrl()).hqMusicUrl(sendReqVO.getHqMusicUrl());
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的消息类型：" + sendReqVO.getType());
+        }
+        // 通用字段
+        builder.toUser(openId);
+        return builder.build();
+    }
+
+
+
     default MpMessageDO convert(WxMpTemplateMessage wxMessage, MpAccountDO account, MpUserDO user) {
         MpMessageDO message = new MpMessageDO();
         if (account != null) {
