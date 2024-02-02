@@ -3,12 +3,15 @@ package com.starcloud.ops.business.listing.service.sellersprite;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataUpdateReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.AriaRole;
@@ -31,10 +34,8 @@ import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 /**
  * 卖家精灵实现类
@@ -75,6 +76,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * <p>
      */
     private final static String GET_LISTING_BY_ASIN = "listing-builder/get-listing-by-asin";
+
+
+    private final static String DICT_DATA_TYPE = "SELLER_SPRITE";
+
+    private final static String DICT_DATA_VALUE = "COOKIE";
 
 
     /**
@@ -182,6 +188,49 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
     }
 
+    /**
+     * 品牌检测
+     */
+    @Override
+    public void AutoUpdateCookies() {
+        // 取出账号池
+        List<DictDataDO> enabledDictDataListByType = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        // 遍历账号池
+        enabledDictDataListByType.forEach(cookie -> {
+            DictDataUpdateReqVO updateReqVO = new DictDataUpdateReqVO();
+            updateReqVO.setId(cookie.getId())
+                    .setSort(cookie.getSort())
+                    .setLabel(cookie.getLabel())
+                    .setValue(cookie.getValue())
+                    .setDictType(cookie.getDictType())
+                    .setStatus(cookie.getStatus())
+                    .setColorType(cookie.getColorType())
+                    .setCssClass(cookie.getCssClass());
+
+            // 判断当前 cookie 是否过期
+            if (!checkCookieIsEnable(cookie.getValue())) {
+                String cookieData = getCookie();
+                if (Objects.nonNull(cookieData)) {
+                    updateReqVO.setRemark(cookie.getRemark());
+                    // 过期则直接 更新
+                    dictDataService.updateDictData(updateReqVO);
+                }
+            }
+
+            Long maxNums = RandomUtil.randomLong(6) + 6;
+            long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
+            if (between >= maxNums) {
+                String cookieData = getCookie();
+                if (Objects.nonNull(cookieData)) {
+                    updateReqVO.setRemark(cookie.getRemark());
+                    // 过期则直接 更新
+                    dictDataService.updateDictData(updateReqVO);
+                }
+            }
+
+        });
+    }
+
 
     /**
      * 统一请求
@@ -190,8 +239,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @return
      */
     private String unifiedPostRequest(String url, String requestData) {
+        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
 
-        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
+        // 将列表转换为ArrayList，并随机打乱元素顺序
+        Collections.shuffle(cookies);
+
+        // 获取第一个元素作为随机选择的值
+        String cookie = cookies.get(0).getRemark();
+        // String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
         try {
             String result = HttpRequest.post(url).cookie(cookie)
                     .body(requestData)
@@ -208,8 +263,25 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         } catch (Exception e) {
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
+    }
 
+    private Boolean checkCookieIsEnable(String cookie) {
+        PrepareRequestDTO prepareRequestDTO = new PrepareRequestDTO().setMarket(1).setAsinList(Arrays.asList("B098T9ZFB5", "B09JW5FNVX", "B0B71DH45N", "B07MHHM31K", "B08RYQR1CJ"));
 
+        try {
+            String result = HttpRequest.post(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE).cookie(cookie)
+                    .body(JSONUtil.toJsonStr(prepareRequestDTO))
+                    .execute().body();
+            JSONObject entries = JSONUtil.parseObj(result);
+            if (!result.isEmpty() && entries.getBool("success", false)) {
+                return true;
+            } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                return false;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -219,7 +291,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @return
      */
     private String unifiedGetRequest(String url, String requestData) {
-        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
+        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+
+        // 将列表转换为ArrayList，并随机打乱元素顺序
+        Collections.shuffle(cookies);
+
+        // 获取第一个元素作为随机选择的值
+        String cookie = cookies.get(0).getRemark();
+        // String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
         try {
             String result = HttpRequest.get(url)
                     .body(requestData).cookie(cookie)
@@ -253,11 +332,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             log.error("系统支付通知信息发送失败", e);
         }
 
-    }
-
-
-    public static void main(String[] args) {
-        getCookie();
     }
 
 
