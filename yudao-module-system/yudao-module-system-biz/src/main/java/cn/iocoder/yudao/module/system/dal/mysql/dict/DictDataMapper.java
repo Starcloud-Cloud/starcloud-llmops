@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.system.dal.mysql.dict;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
@@ -21,7 +22,9 @@ public interface DictDataMapper extends BaseMapperX<DictDataDO> {
     }
 
     default DictDataDO selectByDictTypeAndLabel(String dictType, String label) {
-        return selectOne(DictDataDO::getDictType, dictType, DictDataDO::getLabel, label);
+        return selectOne(DictDataDO::getDictType, dictType,
+                DictDataDO::getLabel, label
+                , DictDataDO::getStatus, CommonStatusEnum.ENABLE.getStatus());
     }
 
     default List<DictDataDO> selectByDictTypeAndValues(String dictType, Collection<String> values) {

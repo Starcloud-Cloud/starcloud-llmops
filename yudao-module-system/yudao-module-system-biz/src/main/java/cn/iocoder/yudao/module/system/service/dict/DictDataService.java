@@ -114,5 +114,13 @@ public interface DictDataService {
      */
     DictDataDO parseDictData(String dictType, String label);
 
+    /**
+     * 区分租户配置
+     * @param dictType
+     * @param label
+     * @return
+     */
+    DictDataDO parseDictDataWithTenantContext(String dictType, String label);
+
     List<DictDataDO> getDictDataList(String dictType);
 }

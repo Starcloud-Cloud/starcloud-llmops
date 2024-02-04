@@ -65,7 +65,7 @@ public class WeChatScanHandler implements WxMpMessageHandler {
         mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
 
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "scan_Login");
+        DictDataDO dictDataDO = dictDataService.parseDictDataWithTenantContext(WECHAT_MSG, "scan_Login");
         if (dictDataDO != null) {
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser())
                     .fromUser(wxMessage.getToUser()).content(dictDataDO.getValue()).build();

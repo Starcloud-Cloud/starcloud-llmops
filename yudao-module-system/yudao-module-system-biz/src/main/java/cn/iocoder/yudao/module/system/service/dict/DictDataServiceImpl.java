@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataPageReqVO;
@@ -186,6 +187,14 @@ public class DictDataServiceImpl implements DictDataService {
     @Override
     public DictDataDO parseDictData(String dictType, String label) {
         return dictDataMapper.selectByDictTypeAndLabel(dictType, label);
+    }
+
+    @Override
+    public DictDataDO parseDictDataWithTenantContext(String dictType, String label) {
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+        dictType = dictType + "_" + tenantId;
+        label = label + "_" + tenantId;
+        return parseDictData(dictType, label);
     }
 
     @Override
