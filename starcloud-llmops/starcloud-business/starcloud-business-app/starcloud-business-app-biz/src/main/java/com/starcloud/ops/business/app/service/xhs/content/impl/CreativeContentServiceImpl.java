@@ -203,7 +203,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
         // 更新任务状态信息
         LambdaUpdateWrapper<CreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(CreativeContentDO.class);
-        updateWrapper.eq(CreativeContentDO::getUid, businessUid);
+        updateWrapper.eq(CreativeContentDO::getBusinessUid, businessUid);
         // 重置重试次数
         updateWrapper.set(CreativeContentDO::getRetryCount, 0);
         // 重置状态
