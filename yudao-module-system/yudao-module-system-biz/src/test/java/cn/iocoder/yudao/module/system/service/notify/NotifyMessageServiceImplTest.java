@@ -53,7 +53,7 @@ public class NotifyMessageServiceImplTest extends BaseDbUnitTest {
         // mock 方法
 
         // 调用
-        Long messageId = notifyMessageService.createNotifyMessage(userId, userType,
+        Long messageId = notifyMessageService.createNotifyMessage(userId, userType,"",
                 template, templateContent, templateParams);
         // 断言
         NotifyMessageDO message = notifyMessageMapper.selectById(messageId);

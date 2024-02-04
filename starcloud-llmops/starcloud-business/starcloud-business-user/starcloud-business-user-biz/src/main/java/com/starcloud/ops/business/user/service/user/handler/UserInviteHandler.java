@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.user.service.user.handler;
 
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.invite.AdminUserInviteRuleService;
 import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -22,7 +24,7 @@ public class UserInviteHandler implements UserRegisterHandler {
 
 
     @Resource
-    private AdminUserInviteRuleService adminUserInviteRuleService;
+    private AdminUserRightsService adminUserRightsService;
 
 
     @Resource
@@ -46,13 +48,12 @@ public class UserInviteHandler implements UserRegisterHandler {
         log.info("【afterUserRegister】邀请人信息注入，创建邀请记录");
         // 增加邀请记录
         Long invitationId = adminUserInviteService.createInvitationRecords(inviteUserDO.getId(), adminUserDO.getId());
-
         log.info("【afterUserRegister】邀请人信息设置成功,开始准备邀请人权益发放，准备邀请人发放权益");
 
+        adminUserRightsService.createRights(inviteUserDO.getId(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId), null);
+        log.info("【afterUserRegister】邀请人信息设置成功,基础权益人发放完成");
 
         adminUserInviteService.setInviteRights(inviteUserDO, invitationId);
-
-
         log.info("【afterUserRegister】邀请人权益发放，邀请人权益发放成功");
 
     }

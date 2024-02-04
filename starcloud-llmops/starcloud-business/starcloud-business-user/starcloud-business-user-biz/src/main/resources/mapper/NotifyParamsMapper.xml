@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.user.dal.mysql.notify.NotifyParamsMapper">
+
+    <select id="countPurchaseExperienceParams" resultType="java.lang.Long">
+        SELECT count(*)
+        FROM system_users AS users
+        WHERE users.deleted = false
+          AND users.create_time &gt;= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y-%m-%d')
+          AND users.create_time &lt; DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 DAY), '%Y-%m-%d')
+          AND users.id NOT IN (SELECT DISTINCT user_id FROM trade_order)
+    </select>
+
+    <select id="pagePurchaseExperienceParams"
+            resultType="com.starcloud.ops.business.user.dal.dataObject.notify.PurchaseExperienceParamsDTO">
+        SELECT users.id                                   as userId,
+               users.nickname                             as nickname,
+               DATE_FORMAT(users.create_time, '%Y-%m-%d') as createTime,
+               DATEDIFF(NOW(), users.create_time) + 1     AS daysDiff
+        FROM system_users AS users
+        WHERE users.deleted = false
+          AND  users.create_time &gt;= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y-%m-%d')
+          and users.create_time &lt; DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 DAY), '%Y-%m-%d')
+          AND users.id NOT IN (SELECT DISTINCT user_id FROM trade_order ORDER BY id)
+        ORDER BY users.id
+        limit #{start}, #{size}
+    </select>
+
+    <select id="purchaseExperienceParams"
+            resultType="com.starcloud.ops.business.user.dal.dataObject.notify.PurchaseExperienceParamsDTO">
+        SELECT users.id                                   as userId,
+               users.nickname                             as nickname,
+               DATE_FORMAT(users.create_time, '%Y-%m-%d') as createTime,
+               DATEDIFF(NOW(), users.create_time) + 1     AS daysDiff
+        FROM system_users AS users
+        WHERE users.deleted = false
+          AND  users.create_time &gt;= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y-%m-%d')
+          and users.create_time &lt; DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 DAY), '%Y-%m-%d')
+          AND users.id NOT IN (SELECT DISTINCT user_id FROM trade_order ORDER BY id)
+        ORDER BY users.id
+    </select>
+</mapper>

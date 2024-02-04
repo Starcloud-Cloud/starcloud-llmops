@@ -11,6 +11,7 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.sms.core.client.SmsClient;
 import cn.iocoder.yudao.framework.sms.core.client.dto.SmsReceiveRespDTO;
 import cn.iocoder.yudao.framework.sms.core.client.dto.SmsSendRespDTO;
+import cn.iocoder.yudao.framework.sms.core.enums.SmsChannelEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.sms.SmsChannelDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.sms.SmsTemplateDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -188,4 +190,29 @@ public class SmsSendServiceImpl implements SmsSendService {
                 result.getSuccess(), result.getReceiveTime(), result.getErrorCode(), result.getErrorMsg()));
     }
 
+    @Override
+    public Long syncSendSingleSms(String mobile, Long userId, Integer userType, String content, String apiTempLateId) {
+        SmsClient smsClient = smsChannelService.getSmsClient(SmsChannelEnum.ALIYUN.getCode());
+        Long sendLogId = smsLogService.createSmsLog(mobile, userId, userType, true, content, apiTempLateId);
+
+        try {
+            List<KeyValue<String, Object>> param = new ArrayList<>();
+            KeyValue<String, Object> keyValue = new KeyValue<>("content", content);
+            param.add(keyValue);
+
+            SmsSendRespDTO sendResponse = smsClient.sendSms(sendLogId, mobile,
+                    apiTempLateId, param);
+
+            smsLogService.updateSmsSendResult(sendLogId, sendResponse.getSuccess(),
+                    sendResponse.getApiCode(), sendResponse.getApiMsg(),
+                    sendResponse.getApiRequestId(), sendResponse.getSerialNo());
+        } catch (Throwable ex) {
+            log.error("[doSendSms][发送短信异常，日志编号({})]", sendLogId, ex);
+            smsLogService.updateSmsSendResult(sendLogId, false,
+                    "EXCEPTION", ExceptionUtil.getRootCauseMessage(ex), null, null);
+
+        }
+
+        return sendLogId;
+    }
 }

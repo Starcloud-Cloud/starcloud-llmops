@@ -19,6 +19,7 @@ import com.starcloud.ops.business.product.service.brand.ProductBrandService;
 import com.starcloud.ops.business.product.service.category.ProductCategoryService;
 import com.starcloud.ops.business.product.service.sku.ProductSkuService;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
 import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -180,13 +181,14 @@ public class ProductSpuServiceImpl implements ProductSpuService {
      * @param couponId
      */
     @Override
-    public void validateSpuAndCoupon(Long spuId, Long couponId) {
+    public void validateSpuAndCoupon(Long spuId, Long couponId, Long userId) {
         ProductSpuDO spu = getSpu(spuId);
         if (Objects.isNull(spu.getLimitCouponTemplateIds())) {
             return;
         }
         List<Long> limitCouponTemplateIds = spu.getLimitCouponTemplateIds();
-        if (!limitCouponTemplateIds.contains(couponId)) {
+        CouponRespDTO coupon = couponApi.getCoupon(couponId, userId);
+        if (!limitCouponTemplateIds.contains(coupon.getTemplateId())) {
             throw exception(SPU_FAIL_SPU_LIMIT);
         }
     }

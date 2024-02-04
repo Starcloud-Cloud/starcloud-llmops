@@ -31,6 +31,9 @@ public class AppProductSpuPageReqVO extends PageParam {
     @Schema(description = "关键字", example = "好看")
     private String keyword;
 
+    @Schema(description = "商品名称", example = "商品名称")
+    private String name;
+
     @Schema(description = "排序字段", example = "price") // 参见 AppProductSpuPageReqVO.SORT_FIELD_XXX 常量
     private String sortField;
 

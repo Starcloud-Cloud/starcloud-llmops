@@ -159,6 +159,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         LocalDateTime startTime = TimeRangeTypeEnum.getMinusTimeByRange(ruleDO.getTimeRange(), ruleDO.getTimeNums(), endTime);
         // 根据时间范围查询已经邀请人数
         Long count = getSelf().getInviteCountByTimes(inviteUserDO.getId(), startTime, endTime);
+        log.info("用户{}当前邀请人数为{},开始检测是否满足规则", inviteUserDO.getId(), count);
         // 判断是否满足要求
         List<AdminUserInviteRuleDO.Rule> inviteRule = ruleDO.getInviteRule();
 
@@ -181,10 +182,11 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
      * @param inviteRules
      * @param inviteRecordsId
      */
-    private void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
+    public void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
         // 满足要求 添加权益
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (inviteCount % rule.getCount() == 0) {
+                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}",inviteCount,inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环
             }
@@ -202,10 +204,11 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
      * @param inviteRules
      * @param inviteRecordsId
      */
-    private void validateSingleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
+    public void validateSingleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
 
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (Objects.equals(rule.getCount(), inviteCount)) {
+                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}",inviteCount,inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环
             }
@@ -227,20 +230,23 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         if (CollUtil.isNotEmpty(inviteRule.getGiveCouponTemplateIds())) {
             List<Long> ids1 = JSON.parseArray(JSON.toJSONString(inviteRule.getGiveCouponTemplateIds()), Long.class);
             ids1.forEach(coupon -> couponApi.addCoupon(coupon, SetUtils.asSet(inviteUserDO.getId())));
+            tag++;
         } else {
             log.warn("[executeInviteRuleByRuleType] 当前规则暂无优惠券配置,规则ID为{}", ruleId);
         }
+
+        log.info("准备发送消息，当前 tag 为{}",tag);
         if (tag > 0) {
             sendMsg(inviteUserDO.getId(), inviteCount);
         }
     }
 
-    private void sendMsg(Long userId, Long count) {
+    public void sendMsg(Long userId, Long count) {
+        log.info("邀请达人公众号信息准备发送，userId={}", userId);
         // 发送信息
         try {
-            sendUserMsgService.sendMsgToWx(userId, String.format(
-                    "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
-                            "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", count));
+            sendUserMsgService.sendMsgToWx(userId, "你好，我是魔法AI小助手，注意到您又邀请了3位朋友一起使用魔法AI，一张9.9元周体验优惠券已送达，限时72小时有效，<a href=\"https://www.mofaai.com.cn/subscribe\">立即使用</a> ！");
+            log.info("邀请达人公众号信息发送成功，userId={}", userId);
         } catch (Exception e) {
             log.error("邀请达人公众号信息发送失败，userId={}", userId, e);
         }

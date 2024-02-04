@@ -46,7 +46,7 @@ public interface ProductSpuApi {
      * @param spuId    skuId
      * @param couponId 优惠券 ID
      */
-    void validateSpuAndCoupon(Long spuId, Long couponId);
+    void validateSpuAndCoupon(Long spuId, Long couponId, Long userId);
 
 
     void validateSpuRegisterLimit(Long userId, Long spuId);

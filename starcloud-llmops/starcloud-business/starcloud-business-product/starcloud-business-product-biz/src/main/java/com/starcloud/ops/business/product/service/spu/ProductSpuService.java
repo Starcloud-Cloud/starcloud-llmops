@@ -156,7 +156,7 @@ public interface ProductSpuService {
      */
     ProductSpuDO getSpecialOfferSku();
 
-    void validateSpuAndCoupon(Long spuId, Long couponId);
+    void validateSpuAndCoupon(Long spuId, Long couponId, Long userId);
 
     void validateSpuRegisterLimit(Long userId,Long spuId);
 }
