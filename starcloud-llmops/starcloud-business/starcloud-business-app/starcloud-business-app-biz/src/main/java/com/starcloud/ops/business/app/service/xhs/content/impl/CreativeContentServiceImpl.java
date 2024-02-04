@@ -225,6 +225,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (!queryReq.valid()) {
             return Collections.emptyList();
         }
+        if (Objects.nonNull(queryReq.getIsTest()) && queryReq.getIsTest()) {
+            return creativeContentMapper.jobTestQuery(queryReq);
+        }
         return creativeContentMapper.jobQuery(queryReq);
     }
 

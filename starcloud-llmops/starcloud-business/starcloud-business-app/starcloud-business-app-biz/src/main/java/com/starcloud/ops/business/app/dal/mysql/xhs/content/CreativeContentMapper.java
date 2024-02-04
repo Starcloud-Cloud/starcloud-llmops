@@ -110,6 +110,8 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
 
     List<CreativeContentDO> jobQuery(@Param("req") CreativeQueryReqVO queryReq);
 
+    List<CreativeContentDO> jobTestQuery(@Param("req") CreativeQueryReqVO queryReq);
+
     Long countByBusinessUid(@Param("businessUids") List<String> businessUids);
 
     List<CreativeContentDTO> selectByBusinessUid(@Param("businessUids") List<String> businessUids, @Param("claim") Boolean claim);

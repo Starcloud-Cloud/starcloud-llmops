@@ -192,6 +192,30 @@
         </if>
     </select>
     
+    <select id="jobTestQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO">
+        SELECT a.* FROM
+        llm_creative_content a
+        WHERE a.retry_count &lt; 3
+        and a.deleted = false
+        <if test="req.planUid != null and req.planUid != ''">
+            and a.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.type != null and req.type != ''">
+            and a.type = #{req.type}
+        </if>
+        <if test="req.retryProcess != null and req.retryProcess == true">
+            and a.retry_count &gt;= 1 and a.status = 'execute_error'
+        </if>
+        <if test="req.isTest != null and req.isTest == true">
+            and a.is_test = 1
+        </if>
+        and a.status != 'execute_success' and a.status != 'executing'
+        ORDER BY a.update_time ASC
+        <if test="req.bathCount != null and req.bathCount gt 0">
+            LIMIT #{req.bathCount}
+        </if>
+    </select>
+    
     <select id="countByBusinessUid" resultType="java.lang.Long">
         select count(*) FROM
         llm_creative_content pic
