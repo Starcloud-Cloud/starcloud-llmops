@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.xhs.content.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -35,8 +34,6 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
@@ -224,6 +221,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public List<CreativeContentDO> jobQuery(CreativeQueryReqVO queryReq) {
         if (!queryReq.valid()) {
             return Collections.emptyList();
+        }
+        if (Objects.nonNull(queryReq.getIsTest()) && queryReq.getIsTest()) {
+            return creativeContentMapper.jobTestQuery(queryReq);
         }
         return creativeContentMapper.jobQuery(queryReq);
     }
