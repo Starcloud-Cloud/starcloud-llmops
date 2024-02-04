@@ -289,9 +289,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 // 成功的步骤数量
                 int successCount = (int) steps.stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
                 response.setSuccessStepCount(successCount);
-                // 当前步骤索引值
-                Optional<AppStepStatusDTO> currentStep = steps.stream().filter(stepItem -> AppStepStatusEnum.RUNNING.name().equals(stepItem.getStatus())).findFirst();
-                response.setCurrentStepIndex(currentStep.map(steps::indexOf).orElse(-1));
+                // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
+                response.setCurrentStepIndex(successCount);
             }
 
             return response;
