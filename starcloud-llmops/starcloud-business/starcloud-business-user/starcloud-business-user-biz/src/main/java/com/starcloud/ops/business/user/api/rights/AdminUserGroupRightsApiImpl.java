@@ -53,12 +53,12 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
     private UserDeptService userDeptService;
 
     @Override
-    public void reduceRights(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
+    public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
                              Integer bizType, String bizId) {
         UserDeptDO userDeptDO = this.getDeptRightsUserId(userId, rightsType, rightAmount);
         userDeptService.recordRights(userDeptDO,userId, rightsType, rightAmount);
         Long deptUserId = Optional.ofNullable(userDeptDO).map(UserDeptDO::getUserId).orElse(userId);
-        super.reduceRights(deptUserId, rightsType, rightAmount, bizType, bizId);
+        super.reduceRights(deptUserId, teamOwnerId, teamId, rightsType, rightAmount, bizType, bizId);
 
     }
 
