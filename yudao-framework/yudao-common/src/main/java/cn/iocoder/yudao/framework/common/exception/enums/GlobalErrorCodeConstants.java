@@ -26,6 +26,10 @@ public interface GlobalErrorCodeConstants {
     ErrorCode LOCKED = new ErrorCode(423, "请求失败，请稍后重试"); // 并发请求，不允许
     ErrorCode TOO_MANY_REQUESTS = new ErrorCode(429, "请求过于频繁，请稍后重试");
 
+    ErrorCode MISS_CLIENT_TYPE = new ErrorCode(450, "客户端类型未传递");
+
+    ErrorCode NOT_SUPPORTED_CLIENT_TYPE = new ErrorCode(451, "不支持的客户端类型");
+
     // ========== 服务端错误段 ==========
 
     ErrorCode INTERNAL_SERVER_ERROR = new ErrorCode(500, "系统异常");

@@ -1,9 +1,11 @@
 package cn.iocoder.yudao.framework.web.core.util;
 
 import cn.hutool.core.util.NumberUtil;
+import cn.iocoder.yudao.framework.common.enums.ClientTypeEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.web.config.WebProperties;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -25,6 +27,8 @@ public class WebFrameworkUtils {
     private static final String REQUEST_ATTRIBUTE_COMMON_RESULT = "common_result";
 
     public static final String HEADER_TENANT_ID = "tenant-id";
+
+    private static final String HEADER_CLIENT_TYPE = "client-type";
 
     private static WebProperties properties;
 
@@ -108,6 +112,12 @@ public class WebFrameworkUtils {
     public static Long getLoginUserId() {
         HttpServletRequest request = getRequest();
         return getLoginUserId(request);
+    }
+
+    public static Integer getClientType() {
+        HttpServletRequest request = getRequest();
+        String clientType = request.getHeader(HEADER_CLIENT_TYPE);
+        return ClientTypeEnum.getTypeCode(clientType);
     }
 
     public static void setCommonResult(ServletRequest request, CommonResult<?> result) {
