@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
@@ -85,6 +86,11 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
      * 1）是部门管理员，返回
      * 2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
      * 3，返回有剩余点的用户ID（管理员或当前用户）
+     */
+    @DataPermission(enable = false)
+    /**
+     * 这里关闭数据权限，主要是后面的 SQL查询会带上 kstry 线程中的其他正常用户的上下文，导致跟 powerjob 执行应用时候导致用户上下文冲突
+     * 所以这里直接 关闭数据权限，这样下面的 关于权益的扣点 已经不需要用户上下文了，单ruiyi 本地比如SQL update会继续获取，所以后续的方法最好直接指定字段创作DB。
      */
     protected UserDeptDO getDeptRightsUserId(Long currentUserId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
         UserDeptDO userDeptDO = userDeptService.selectSuperAdminId(currentUserId);
