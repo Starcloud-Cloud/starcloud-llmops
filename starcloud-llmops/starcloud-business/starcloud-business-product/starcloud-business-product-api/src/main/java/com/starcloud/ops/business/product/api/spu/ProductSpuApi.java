@@ -23,7 +23,7 @@ public interface ProductSpuApi {
 
     /**
      * 批量查询 SPU 数组，并且校验是否 SPU 是否有效。
-     *
+     * <p>
      * 如下情况，视为无效：
      * 1. 商品编号不存在
      * 2. 商品被禁用
@@ -39,5 +39,18 @@ public interface ProductSpuApi {
      * @return SPU
      */
     ProductSpuRespDTO getSpu(Long id);
+
+    /**
+     * 验证商品是否必须含有优惠券下单
+     *
+     * @param spuId    skuId
+     * @param couponId 优惠券 ID
+     */
+    void validateSpuAndCoupon(Long spuId, Long couponId, Long userId);
+
+
+    void validateSpuRegisterLimit(Long userId, Long spuId);
+
+    List<ProductSpuRespDTO> getSpuListByKeywordOrCategoryId(Long userId, String keyword, Long categoryId);
 
 }

@@ -22,4 +22,7 @@ public class CreativeContentPageReqVO extends PageParam {
 
     @Schema(description = "是否绑定")
     private Boolean claim;
+
+    @Schema(description = "是否测试")
+    private Boolean isTest;
 }

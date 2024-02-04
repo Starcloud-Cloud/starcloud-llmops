@@ -4,7 +4,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -346,20 +347,65 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 生成图片的数量
+     *
+     * @return VariableItemRespVO
+     */
+    public static VariableItemRespVO defMediaMatrixGenerateVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.GENERATE_MODE);
+        variableItem.setLabel("生成模式");
+        variableItem.setDescription("生成模式");
+        variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setOrder(100);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.RANDOM.getLabel(), CreativeSchemeGenerateModeEnum.RANDOM.name());
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_PARODY.getLabel(), CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_CUSTOM.getLabel(), CreativeSchemeGenerateModeEnum.AI_CUSTOM.name());
+        return variableItem;
+    }
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defMediaMatrixRefersCount() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REFERS_COUNT);
+        variableItem.setLabel("AI参考内容随机获取数量");
+        variableItem.setDescription("AI参考内容随机获取数量");
+        variableItem.setDefaultValue(3);
+        variableItem.setValue(3);
+        variableItem.setOrder(1040);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
      * 参考内容变量
      *
      * @return 参考内容变量
      */
     public static VariableItemRespVO defMediaMatrixRefers() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("REFERS");
+        variableItem.setField(CreativeConstants.REFERS);
         variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
-        variableItem.setOrder(1);
+        variableItem.setOrder(101);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
@@ -367,26 +413,44 @@ public class RecommendVariableItemFactory {
     }
 
     /**
-     * 海报模式变量
+     * 生成段落数量
      *
-     * @return VariableItemRespVO
+     * @return 参考内容变量
      */
-    public static VariableItemRespVO defPosterModeVariable() {
+    public static VariableItemRespVO defMediaMatrixParagraphCount() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_MODE");
-        variableItem.setLabel(MessageUtil.getMessage("POSTER_MODE_LABEL"));
-        variableItem.setDescription(MessageUtil.getMessage("POSTER_MODE_DESCRIPTION"));
-        variableItem.setDefaultValue(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
-        variableItem.setValue(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
-        variableItem.setOrder(1);
+        variableItem.setField(CreativeConstants.PARAGRAPH_COUNT);
+        variableItem.setLabel("生成段落数量");
+        variableItem.setDescription("生成段落数量");
+        variableItem.setDefaultValue(4);
+        variableItem.setValue(4);
+        variableItem.setOrder(102);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
-        variableItem.addOption(CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name());
-        variableItem.addOption(CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name());
-        variableItem.addOption(CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.getLabel(), CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name());
+        return variableItem;
+    }
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defMediaMatrixRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REQUIREMENT);
+        variableItem.setLabel("文案生成要求");
+        variableItem.setDescription("文案生成要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(103);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
 
@@ -397,32 +461,32 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defPosterStyleVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_STYLE");
+        variableItem.setField(CreativeConstants.POSTER_STYLE);
         variableItem.setLabel(MessageUtil.getMessage("POSTER_STYLE_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("POSTER_STYLE_DESCRIPTION"));
         variableItem.setDefaultValue("{}");
         variableItem.setValue("{}");
         variableItem.setOrder(2);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
-        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
 
     /**
-     * 海报素材变量
+     * 标题变量
      *
      * @return 参考内容变量
      */
-    public static VariableItemRespVO defPosterMaterialVariable() {
+    public static VariableItemRespVO defPosterTitleVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_MATERIAL");
-        variableItem.setLabel(MessageUtil.getMessage("POSTER_MATERIAL_LABEL"));
-        variableItem.setDescription(MessageUtil.getMessage("POSTER_MATERIAL_DESCRIPTION"));
-        variableItem.setDefaultValue("[]");
-        variableItem.setValue("[]");
+        variableItem.setField("TITLE");
+        variableItem.setLabel(MessageUtil.getMessage("POSTER_TITLE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("POSTER_TITLE_DESCRIPTION"));
+        variableItem.setDefaultValue("");
+        variableItem.setValue("");
         variableItem.setOrder(3);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
@@ -439,12 +503,34 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defPosterContentVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("POSTER_CONTENT");
+        variableItem.setField("CONTENT");
         variableItem.setLabel(MessageUtil.getMessage("POSTER_CONTENT_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("POSTER_CONTENT_DESCRIPTION"));
-        variableItem.setDefaultValue("{}");
-        variableItem.setValue("{}");
+        variableItem.setDefaultValue("");
+        variableItem.setValue("");
         variableItem.setOrder(4);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+
+    /**
+     * 参考内容变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REQUIREMENT);
+        variableItem.setLabel("海报生成要求");
+        variableItem.setDescription("海报生成要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(1009);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());

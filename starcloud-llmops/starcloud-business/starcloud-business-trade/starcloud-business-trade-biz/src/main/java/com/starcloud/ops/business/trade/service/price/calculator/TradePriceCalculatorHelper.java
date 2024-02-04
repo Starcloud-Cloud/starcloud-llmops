@@ -99,7 +99,7 @@ public class TradePriceCalculatorHelper {
             orderItem.setSpuId(sku.getSpuId()).setSkuId(sku.getId())
                     .setCount(item.getCount()).setCartId(item.getCartId()).setSelected(item.getSelected());
             // sku 价格
-            orderItem.setPrice(spu.getSubscribeConfig().getPrice()).setPayPrice(spu.getSubscribeConfig().getPrice() * item.getCount())
+            orderItem.setPrice(spu.getPrice()).setPayPrice(spu.getPrice() * item.getCount())
                     .setDiscountPrice(0).setDeliveryPrice(0).setCouponPrice(0).setPointPrice(0).setVipPrice(0);
             // sku 信息
             orderItem.setPicUrl(sku.getPicUrl()).setProperties(sku.getProperties())

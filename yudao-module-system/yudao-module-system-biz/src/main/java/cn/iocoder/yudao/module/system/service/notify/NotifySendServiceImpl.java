@@ -33,16 +33,16 @@ public class NotifySendServiceImpl implements NotifySendService {
 
     @Override
     public Long sendSingleNotifyToAdmin(Long userId, String templateCode, Map<String, Object> templateParams) {
-        return sendSingleNotify(userId, UserTypeEnum.ADMIN.getValue(), templateCode, templateParams);
+        return sendSingleNotify(userId, UserTypeEnum.ADMIN.getValue(), "", templateCode, templateParams);
     }
 
     @Override
     public Long sendSingleNotifyToMember(Long userId, String templateCode, Map<String, Object> templateParams) {
-        return sendSingleNotify(userId, UserTypeEnum.MEMBER.getValue(), templateCode, templateParams);
+        return sendSingleNotify(userId, UserTypeEnum.MEMBER.getValue(), "", templateCode, templateParams);
     }
 
     @Override
-    public Long sendSingleNotify(Long userId, Integer userType, String templateCode, Map<String, Object> templateParams) {
+    public Long sendSingleNotify(Long userId, Integer userType, String batchCode, String templateCode, Map<String, Object> templateParams) {
         // 校验模版
         NotifyTemplateDO template = validateNotifyTemplate(templateCode);
         if (Objects.equals(template.getStatus(), CommonStatusEnum.DISABLE.getStatus())) {
@@ -54,7 +54,7 @@ public class NotifySendServiceImpl implements NotifySendService {
 
         // 发送站内信
         String content = notifyTemplateService.formatNotifyTemplateContent(template.getContent(), templateParams);
-        return notifyMessageService.createNotifyMessage(userId, userType, template, content, templateParams);
+        return notifyMessageService.createNotifyMessage(userId, userType, batchCode, template, content, templateParams);
     }
 
     @VisibleForTesting
@@ -71,7 +71,7 @@ public class NotifySendServiceImpl implements NotifySendService {
     /**
      * 校验站内信模版参数是否确实
      *
-     * @param template 邮箱模板
+     * @param template       邮箱模板
      * @param templateParams 参数列表
      */
     @VisibleForTesting

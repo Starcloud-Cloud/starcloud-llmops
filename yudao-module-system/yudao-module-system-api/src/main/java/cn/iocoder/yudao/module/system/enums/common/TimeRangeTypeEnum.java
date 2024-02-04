@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.core.IntArrayValuable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -50,5 +51,44 @@ public enum TimeRangeTypeEnum implements IntArrayValuable {
         return EnumUtil.getBy(TimeRangeTypeEnum.class,
                 e -> Objects.equals(type, e.getType()));
     }
+
+    public static LocalDateTime getPlusTimeByRange(Integer type, Integer driftUnit, LocalDateTime dateTime) {
+        if (Objects.isNull(dateTime)) {
+            dateTime = LocalDateTime.now();
+        }
+        TimeRangeTypeEnum timeRange = getByType(type);
+        switch (timeRange) {
+            case DAY:
+                return dateTime.plusDays(driftUnit);
+            case WEEK:
+                return dateTime.plusWeeks(driftUnit);
+            case MONTH:
+                return dateTime.plusMonths(driftUnit);
+            case YEAR:
+                return dateTime.plusYears(driftUnit);
+            default:
+                throw new RuntimeException("时间范围未识别");
+        }
+    }
+    public static LocalDateTime getMinusTimeByRange(Integer type, Integer driftUnit, LocalDateTime dateTime) {
+        if (Objects.isNull(dateTime)) {
+            dateTime = LocalDateTime.now();
+        }
+        TimeRangeTypeEnum timeRange = getByType(type);
+        switch (timeRange) {
+            case DAY:
+                return dateTime.minusDays(driftUnit);
+            case WEEK:
+                return dateTime.minusWeeks(driftUnit);
+            case MONTH:
+                return dateTime.minusMonths(driftUnit);
+            case YEAR:
+                return dateTime.minusYears(driftUnit);
+            default:
+                throw new RuntimeException("时间范围未识别");
+        }
+    }
+
+
 
 }

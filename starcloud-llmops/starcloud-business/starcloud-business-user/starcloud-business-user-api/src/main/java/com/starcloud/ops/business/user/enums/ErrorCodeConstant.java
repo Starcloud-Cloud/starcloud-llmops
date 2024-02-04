@@ -94,6 +94,20 @@ public interface ErrorCodeConstant {
 
     ErrorCode TOO_MANY_DEPT_NUM =  new ErrorCode(2000500009, "加入空间数超过 {} 个");
 
+    // 用户通知
 
+    ErrorCode NOT_SUPPORTED_NOTIFY_MEDIA =  new ErrorCode(2000600001, "不支持的消息媒介 {}");
+
+    ErrorCode NOT_SUPPORTED_TEMPLATE_CODE =  new ErrorCode(2000600002, "不支持的模板类型 {}");
+
+    ErrorCode PARAMS_ERROR =  new ErrorCode(2000600003, "用户 {} 模板参数({})缺失");
+
+    ErrorCode MISSING_TEMP_CODE =  new ErrorCode(2000600004, " {} 模板code未配置");
+
+    ErrorCode TEMP_CODE_NOT_EXITS =  new ErrorCode(2000600005, " {} 消息平台模板code不存在");
+
+    ErrorCode TEMP_PARAMS_NOT_CONSISTENT =  new ErrorCode(2000600006, "自定义模板参数[{}]与平台模板参数[{}] 不一致");
+
+    ErrorCode WX_SERVICE_ERROR =  new ErrorCode(2000600007, "查询模板失败, [{}]");
 
 }

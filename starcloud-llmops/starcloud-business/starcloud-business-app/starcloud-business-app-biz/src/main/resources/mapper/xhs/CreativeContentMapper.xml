@@ -3,11 +3,10 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper">
     
     <sql id="page_column">
-        pic
-        .
-        plan_uid
-        as planUid,
-        pic.business_uid as businessUid, text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
+        pic.plan_uid as planUid,
+        pic.business_uid as businessUid,
+        pic.conversation_uid AS conversationUid,
+        text.temp_uid as copyWritingUid, pic.temp_uid as pictureTempUid, text.use_picture as usePicture,
         pic.execute_params as pictureParams, text.execute_params as copyWritingParams, pic.status as pictureStatus, text.status as copyWritingStatus,
         pic.start_time as pictureStartTime, pic.end_time as pictureEndTime, pic.execute_time as pictureExecuteTime,
         text.start_time as copyWritingStartTime, text.end_time as copyWritingEndTime, text.execute_time as copyWritingExecuteTime,
@@ -36,6 +35,9 @@
         <if test="req.status != null and req.status != ''">
             and pic.status = #{req.status} and text.status = #{req.status}
         </if>
+        <if test="req.isTest != null ">
+            AND is_test = #{req.isTest}
+        </if>
     </select>
     
     <select id="pageSelect" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
@@ -58,8 +60,65 @@
         <if test="req.status != null and req.status != ''">
             and pic.status = #{req.status} and text.status = #{req.status}
         </if>
+        <if test="req.isTest != null ">
+            AND is_test = #{req.isTest}
+        </if>
         order by pic.id limit #{start},#{end}
     </select>
+    
+    <select id="allTypePage" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        SELECT
+        plan_uid AS planUid,
+        business_uid AS businessUid,
+        conversation_uid AS conversationUid,
+        temp_uid AS copyWritingUid,
+        temp_uid AS pictureTempUid,
+        use_picture AS usePicture,
+        execute_params AS pictureParams,
+        execute_params AS copyWritingParams,
+        status AS pictureStatus,
+        status AS copyWritingStatus,
+        start_time AS pictureStartTime,
+        end_time AS pictureEndTime,
+        execute_time AS pictureExecuteTime,
+        start_time AS copyWritingStartTime,
+        end_time AS copyWritingEndTime,
+        execute_time AS copyWritingExecuteTime,
+        copy_writing_title AS copyWritingTitle,
+        copy_writing_content AS copyWritingContent,
+        picture_num AS pictureNum,
+        picture_content AS pictureContent,
+        error_msg AS pictureErrorMsg,
+        error_msg AS copyWritingErrorMsg,
+        retry_count AS pictureRetryCount,
+        retry_count AS copyWritingRetryCount,
+        copy_writing_count AS copyWritingCount,
+        extend AS pictureExtend,
+        extend AS copyWritingExtend,
+        claim AS claim,
+        liked AS liked
+        FROM llm_creative_content
+        WHERE type = 'all'
+        AND deleted = false
+        <if test="req.planUid != null and req.planUid != ''">
+            AND plan_uid = #{req.planUid}
+        </if>
+        <if test="req.schemeUid != null and req.schemeUid != ''">
+            AND scheme_uid = #{req.schemeUid}
+        </if>
+        <if test="req.claim != null ">
+            AND claim = #{req.claim}
+        </if>
+        <if test="req.status != null and req.status != ''">
+            AND status = #{req.status}
+        </if>
+        <if test="req.isTest != null ">
+            AND is_test = #{req.isTest}
+        </if>
+        ORDER BY id
+    </select>
+    
+    
     
     <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select
@@ -69,6 +128,43 @@
         INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
         WHERE pic.type = 'picture' and text.type = 'copy_writing'
         and pic.business_uid = #{businessUid} and text.business_uid = #{businessUid}
+    </select>
+    
+    <select id="allTypeDetail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        select
+            plan_uid AS planUid,
+            business_uid AS businessUid,
+            conversation_uid AS conversationUid,
+            temp_uid AS copyWritingUid,
+            temp_uid AS pictureTempUid,
+            use_picture AS usePicture,
+            execute_params AS pictureParams,
+            execute_params AS copyWritingParams,
+            status AS pictureStatus,
+            status AS copyWritingStatus,
+            start_time AS pictureStartTime,
+            end_time AS pictureEndTime,
+            execute_time AS pictureExecuteTime,
+            start_time AS copyWritingStartTime,
+            end_time AS copyWritingEndTime,
+            execute_time AS copyWritingExecuteTime,
+            copy_writing_title AS copyWritingTitle,
+            copy_writing_content AS copyWritingContent,
+            picture_num AS pictureNum,
+            picture_content AS pictureContent,
+            error_msg AS pictureErrorMsg,
+            error_msg AS copyWritingErrorMsg,
+            retry_count AS pictureRetryCount,
+            retry_count AS copyWritingRetryCount,
+            copy_writing_count AS copyWritingCount,
+            extend AS pictureExtend,
+            extend AS copyWritingExtend,
+            claim AS claim,
+            liked AS liked
+        FROM
+        llm_creative_content
+        WHERE type = 'all'
+        and business_uid = #{businessUid}
     </select>
     
     <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO">
@@ -85,6 +181,9 @@
         </if>
         <if test="req.retryProcess != null and req.retryProcess == true">
             and a.retry_count &gt;= 1 and a.status = 'execute_error'
+        </if>
+        <if test="req.isTest != null and req.isTest == true">
+            and a.is_test = 1
         </if>
         and a.status != 'execute_success' and a.status != 'executing'
         ORDER BY a.update_time ASC
@@ -136,13 +235,12 @@
         order by pic.create_time desc
     </select>
     
-    <select id="listGroupByBusinessUid"
+    <select id="listGroupByPlanUid"
             resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO">
         SELECT
         plan_uid AS planUid,
         business_uid AS businessUid,
-        SUM(CASE WHEN status = 'execute_success' THEN 1 ELSE 0 END) AS successCount,
-        SUM(CASE WHEN status = 'execute_error_finished' THEN 1 ELSE 0 END) AS failureCount
+        status AS status
         FROM
         llm_creative_content
         WHERE
@@ -152,7 +250,7 @@
         </foreach>
         AND deleted = 0
         GROUP BY
-        plan_uid, business_uid
+        plan_uid, uid
         ORDER BY
         id DESC
     </select>

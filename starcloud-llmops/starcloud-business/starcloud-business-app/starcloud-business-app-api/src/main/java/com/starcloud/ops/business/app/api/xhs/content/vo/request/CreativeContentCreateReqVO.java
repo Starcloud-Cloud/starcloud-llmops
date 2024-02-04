@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.request;
 
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -36,6 +36,10 @@ public class CreativeContentCreateReqVO {
     @NotBlank(message = "业务uid 不能为空")
     private String businessUid;
 
+    @Schema(description = "会话UID")
+    @NotBlank(message = "会话UID 不能为空")
+    private String conversationUid;
+
     @Schema(description = "使用的图片/文案模板Uid")
     private String tempUid;
 
@@ -47,5 +51,8 @@ public class CreativeContentCreateReqVO {
 
     @Schema(description = "拓展信息")
     private CreativeContentExtendDTO extend;
+
+    @Schema(description = "是否测试")
+    private Boolean isTest;
 
 }

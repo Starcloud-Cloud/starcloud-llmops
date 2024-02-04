@@ -10,7 +10,7 @@ import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateDTO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -99,8 +99,8 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             }
 
             // 校验图片模板是否存在
-            List<PosterTemplateDTO> templates = POSTER_SERVICE.templates();
-            Optional<PosterTemplateDTO> templateOption = templates.stream().filter(item -> StringUtils.equals(item.getId(), request.getId())).findFirst();
+            List<PosterTemplate> templates = POSTER_SERVICE.templates();
+            Optional<PosterTemplate> templateOption = templates.stream().filter(item -> StringUtils.equals(item.getId(), request.getId())).findFirst();
             if (!templateOption.isPresent()) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_NOT_SUPPORTED, request.getName());
             }
@@ -116,8 +116,8 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             response.setName(request.getName());
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
-            log.info("海报图片生成: 执行生成图片成功，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             response.setUrl(url);
+            log.info("海报图片生成: 执行生成图片成功，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             return response;
         } catch (ServiceException exception) {
             throw exception;

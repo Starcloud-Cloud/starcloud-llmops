@@ -6,7 +6,6 @@ import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageS
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpMessageService;
-import cn.iocoder.yudao.module.mp.service.message.bo.MpMessageSendOutReqBO;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
@@ -15,8 +14,8 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
-import com.starcloud.ops.business.user.dal.dataobject.InvitationRecordsDO;
-import com.starcloud.ops.business.user.service.InvitationRecordsService;
+import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
+import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
@@ -60,7 +59,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
     private DictDataService dictDataService;
 
     @Resource
-    private InvitationRecordsService invitationRecordsService;
+    private AdminUserInviteService adminUserInviteService;
 
     @Resource
     private MpMessageService messageService;
@@ -77,7 +76,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         if (CollectionUtils.isEmpty(socialUserList)) {
             return;
         }
-        List<InvitationRecordsDO> invitationRecords = invitationRecordsService.getInvitationRecords(inviteUserid);
+        List<AdminUserInviteDO> invitationRecords = adminUserInviteService.getInvitationRecords(inviteUserid);
 
         if (invitationRecords.size() <= 3) {
             log.info("用户: {} 已邀请了{}个人", inviteUserid, invitationRecords.size());
@@ -92,7 +91,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         messageSendReqVO.setContent(format);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
         messageSendReqVO.setUserId(inviteUserid);
-        messageService.sendKefuMessage(messageSendReqVO);
+        messageService.sendMessage(socialUserDO.getOpenid(), messageSendReqVO);
     }
 
     @Override
@@ -149,11 +148,12 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         SocialUserDO socialUserDO = socialUserOptional.get();
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
         MpContextHolder.setAppId(dictDataDO.getValue());
+        MpUserDO user = mpUserService.getUser(dictDataDO.getValue(), socialUserDO.getOpenid());
 
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
         messageSendReqVO.setContent(content);
         messageSendReqVO.setType(WxConsts.KefuMsgType.TEXT);
-        messageSendReqVO.setUserId(userId);
+        messageSendReqVO.setUserId(user.getId());
         try {
 
             messageService.sendKefuMessage(messageSendReqVO);

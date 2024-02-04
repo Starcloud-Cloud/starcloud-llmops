@@ -2,7 +2,9 @@ package cn.iocoder.yudao.module.pay.controller.admin.sign;
 
 
 import cn.hutool.core.io.FastByteArrayOutputStream;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.extra.qrcode.QrCodeUtil;
+import cn.hutool.extra.qrcode.QrConfig;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,9 @@ import javax.imageio.ImageIO;
 import javax.validation.*;
 import javax.servlet.http.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.io.IOException;
 
@@ -26,6 +31,9 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 
+import static cn.hutool.core.img.ImgUtil.IMAGE_TYPE_JPG;
+import static cn.hutool.extra.qrcode.QrCodeUtil.QR_TYPE_SVG;
+import static cn.hutool.extra.qrcode.QrCodeUtil.QR_TYPE_TXT;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
@@ -59,18 +67,21 @@ public class SignController {
     public CommonResult<String> updateSign(@Valid @RequestBody PaySignSubmitReqVO updateReqVO) throws IOException {
         PaySignSubmitRespVO paySignSubmitRespVO = paySignService.submitSign(updateReqVO, getClientIP());
 
-        // 生成二维码并指定宽高
-        BufferedImage generate = QrCodeUtil.generate(paySignSubmitRespVO.getDisplayContent(), 220, 220);
-        // 转换流信息写出
-        FastByteArrayOutputStream os = new FastByteArrayOutputStream();
-        ImageIO.write(generate, "jpg", os);
-        return success(Base64.getEncoder().encodeToString(os.toByteArray()));
         //如果二维码要在前端显示需要转成Base64
+        // QrConfig qrConfig = new QrConfig()
+        //         .setWidth(240)
+        //         .setHeight(240)
+        //         .setMargin(1)
+        //         .setImg("./static/alipay_logo.png");
+        // return success(QrCodeUtil.generateAsBase64(paySignSubmitRespVO.getDisplayContent(), qrConfig, IMAGE_TYPE_JPG));
+
+        return success(paySignSubmitRespVO.getDisplayContent());
+
 
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "删除支付签约 ")
+    @Operation(summary = "删除支付签约")
     @Parameter(name = "id", description = "编号", required = true)
     @PreAuthorize("@ss.hasPermission('pay:sign:delete')")
     public CommonResult<Boolean> deleteSign(@RequestParam("id") Long id) {
@@ -114,6 +125,22 @@ public class SignController {
     // @PreAuthorize("@ss.hasPermission('pay:sign:export')")
     public CommonResult<Integer> syncSignPay() throws IOException {
         return success(  paySignService.syncSignPay());
+    }
+
+    @GetMapping("/getSignRecord")
+    @Operation(summary = "获取签约信息")
+    // @PreAuthorize("@ss.hasPermission('pay:sign:export')")
+    public CommonResult<Object> getSign(@RequestParam("no")String no) throws IOException {
+        paySignService.getSignRecord(no);
+        return success(1);
+    }
+
+    @GetMapping("/updateSign")
+    @Operation(summary = "修改签约扣款日期")
+    // @PreAuthorize("@ss.hasPermission('pay:sign:export')")
+    public CommonResult<Object> updateSign(@RequestParam("no")String no,String deductTime) throws IOException {
+        paySignService.UpdateSign(no,deductTime);
+        return success(1);
     }
 
 

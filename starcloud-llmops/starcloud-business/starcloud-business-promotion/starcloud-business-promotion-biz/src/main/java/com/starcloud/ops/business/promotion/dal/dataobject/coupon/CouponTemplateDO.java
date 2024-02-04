@@ -68,6 +68,12 @@ public class CouponTemplateDO extends BaseDO {
      * 枚举 {@link CouponTakeTypeEnum}
      */
     private Integer takeType;
+
+    /**
+     *  仅最后一次生效
+     *
+     */
+    private Boolean onlyLastTakeEffect;
     // ========== 领取规则 END ==========
 
     // ========== 使用规则 BEGIN ==========

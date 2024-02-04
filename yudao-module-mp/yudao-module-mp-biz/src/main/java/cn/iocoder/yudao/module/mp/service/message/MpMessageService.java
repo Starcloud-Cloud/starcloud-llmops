@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.mp.service.message;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessagePageReqVO;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
+import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpTemplateSendReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
 import cn.iocoder.yudao.module.mp.service.message.bo.MpMessageSendOutReqBO;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
@@ -46,6 +47,14 @@ public interface MpMessageService {
     WxMpXmlOutMessage sendOutMessage(@Valid MpMessageSendOutReqBO sendReqBO);
 
     /**
+     * 根据openId 发送消息
+     * @param openId
+     * @return
+     */
+    MpMessageDO sendMessage(String openId,MpMessageSendReqVO sendReqVO);
+
+
+    /**
      * 使用公众号，给粉丝发送【客服】消息
      *
      * 注意，该方法会真实发送消息
@@ -54,5 +63,13 @@ public interface MpMessageService {
      * @return 消息
      */
     MpMessageDO sendKefuMessage(MpMessageSendReqVO sendReqVO);
+
+
+    /**
+     * 发送模板消息
+     *
+     * @param sendReqVO
+     */
+    MpMessageDO sendTemplateMessage(MpTemplateSendReqVO sendReqVO);
 
 }

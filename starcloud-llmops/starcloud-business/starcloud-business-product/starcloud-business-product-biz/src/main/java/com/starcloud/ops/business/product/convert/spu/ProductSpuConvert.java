@@ -96,11 +96,14 @@ public interface ProductSpuConvert {
     }
     // ========== 用户 App 相关 ==========
 
+
     PageResult<AppProductSpuPageRespVO> convertPageForGetSpuPage(PageResult<ProductSpuDO> page);
 
     default List<AppProductSpuPageRespVO> convertListForGetSpuList(List<ProductSpuDO> list) {
         // 处理虚拟销量
-        list.forEach(spu -> spu.setSalesCount(spu.getSalesCount() + spu.getVirtualSalesCount()));
+        list.forEach(spu -> {
+            spu.setSalesCount(spu.getSalesCount() + spu.getVirtualSalesCount());
+        });
         // 处理 VO 字段
         List<AppProductSpuPageRespVO> voList = convertListForGetSpuList0(list);
         for (int i = 0; i < list.size(); i++) {
@@ -113,6 +116,10 @@ public interface ProductSpuConvert {
 
     @Named("convertListForGetSpuList0")
     List<AppProductSpuPageRespVO> convertListForGetSpuList0(List<ProductSpuDO> list);
+
+    @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsDTO(productSpuDO.getGiveRights()))")
+    @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigDTO(productSpuDO.getSubscribeConfig()))")
+    AppProductSpuPageRespVO productSpuDOToAppProductSpuPageRespVO(ProductSpuDO productSpuDO);
 
     default AppProductSpuDetailRespVO convertForGetSpuDetail(ProductSpuDO spu, List<ProductSkuDO> skus) {
         // 处理 SPU

@@ -45,6 +45,10 @@ public class CouponTemplateBaseVO {
     @NotNull(message = "领取方式不能为空")
     private Integer takeType;
 
+    @Schema(description = "仅最后一次生效", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @NotNull(message = "仅最后一次生效不能为空")
+    private Boolean onlyLastTakeEffect;
+
     @Schema(description = "是否设置满多少金额可用", requiredMode = Schema.RequiredMode.REQUIRED, example = "100") // 单位：分；0 - 不限制
     @NotNull(message = "是否设置满多少金额可用不能为空")
     private Integer usePrice;

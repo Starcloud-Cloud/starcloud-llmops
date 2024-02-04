@@ -96,4 +96,12 @@ public interface SocialUserService {
      */
     void bindWechatUser(SocialUserDO socialUserDO, SocialUserBindDO socialUserBindDO);
 
+    /**
+     * 获得指定用户的社交用户
+     * @param userId
+     * @param userType
+     * @return
+     */
+    SocialUserDO getSocialUser(Long userId, Integer userType);
+
 }

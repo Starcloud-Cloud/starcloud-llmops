@@ -18,6 +18,9 @@ import com.starcloud.ops.business.product.enums.spu.ProductSpuStatusEnum;
 import com.starcloud.ops.business.product.service.brand.ProductBrandService;
 import com.starcloud.ops.business.product.service.category.ProductCategoryService;
 import com.starcloud.ops.business.product.service.sku.ProductSkuService;
+import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
+import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getMinValue;
@@ -51,6 +55,13 @@ public class ProductSpuServiceImpl implements ProductSpuService {
     private ProductBrandService brandService;
     @Resource
     private ProductCategoryService categoryService;
+
+    @Resource
+    private AdminUsersApi adminUsersApi;
+
+    @Resource
+    private CouponApi couponApi;
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -165,6 +176,41 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         return productSpuMapper.selectSpecialOfferSku();
     }
 
+    /**
+     * @param spuId
+     * @param couponId
+     */
+    @Override
+    public void validateSpuAndCoupon(Long spuId, Long couponId, Long userId) {
+        ProductSpuDO spu = getSpu(spuId);
+        if (Objects.isNull(spu.getLimitCouponTemplateIds())) {
+            return;
+        }
+        List<Long> limitCouponTemplateIds = spu.getLimitCouponTemplateIds();
+        CouponRespDTO coupon = couponApi.getCoupon(couponId, userId);
+        if (!limitCouponTemplateIds.contains(coupon.getTemplateId())) {
+            throw exception(SPU_FAIL_SPU_LIMIT);
+        }
+    }
+
+    /**
+     * @param userId
+     * @param spuId
+     */
+    @Override
+    public void validateSpuRegisterLimit(Long userId, Long spuId) {
+        ProductSpuDO spu = getSpu(spuId);
+        if (Objects.isNull(spu.getRegisterDays())) {
+            return;
+        }
+        if (spu.getRegisterDays().equals(-1)) {
+            return;
+        }
+        if (!adminUsersApi.isNewUser(userId, Long.valueOf(spu.getRegisterDays()))) {
+            throw exception(SPU_FAIL_NEW_USER_LIMIT);
+        }
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSpu(Long id) {
@@ -229,6 +275,42 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         }
         // 分页查询
         return productSpuMapper.selectPage(pageReqVO, categoryIds);
+    }
+
+    @Override
+    public PageResult<ProductSpuDO> getSpuPage(AppProductSpuPageReqVO pageReqVO, Long userId) {
+        // 查找时，如果查找某个分类编号，则包含它的子分类。因为顶级分类不包含商品
+        Set<Long> categoryIds = new HashSet<>();
+        if (pageReqVO.getCategoryId() != null && pageReqVO.getCategoryId() > 0) {
+            categoryIds.add(pageReqVO.getCategoryId());
+            List<ProductCategoryDO> categoryChildren = categoryService.getEnableCategoryList(new ProductCategoryListReqVO()
+                    .setParentId(pageReqVO.getCategoryId()).setStatus(CommonStatusEnum.ENABLE.getStatus()));
+            categoryIds.addAll(CollectionUtils.convertList(categoryChildren, ProductCategoryDO::getId));
+        }
+        // 分页查询
+        PageResult<ProductSpuDO> pageResult = productSpuMapper.selectPage(pageReqVO, categoryIds);
+        // 执行商品过滤
+        if (Objects.isNull(userId)) {
+            return pageResult;
+        }
+
+        List<ProductSpuDO> collect = pageResult.getList().stream()
+                .filter(spu -> {
+                    Integer registerDays = spu.getRegisterDays();
+                    if (registerDays != -1) {
+                        boolean isNewUser = adminUsersApi.isNewUser(userId, Long.valueOf(registerDays));
+                        return isNewUser;
+                    }
+                    return true;
+                })
+                .filter(spu -> {
+                    if (CollUtil.isNotEmpty(spu.getLimitCouponTemplateIds())) {
+                        return couponApi.getMatchCouponCount(userId, spu.getPrice(), Collections.singletonList(spu.getId()), Collections.singletonList(spu.getCategoryId())) != 0;
+                    }
+                    return true;
+                }).collect(Collectors.toList());
+
+        return pageResult.setList(collect).setTotal((long) collect.size());
     }
 
     @Override

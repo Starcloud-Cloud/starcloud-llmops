@@ -20,6 +20,7 @@ import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
@@ -55,8 +56,10 @@ import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateResp
 import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
+import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +70,7 @@ import java.util.*;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.*;
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.minusTime;
+import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 /**
@@ -120,6 +124,15 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     @Resource
     private DingTalkNoticeProperties dingTalkNoticeProperties;
+
+    @Resource
+    @Lazy
+    private TradeSignUpdateService tradeSignUpdateService;
+
+    // @Resource
+    // @Lazy
+    // private CouponTemplateApi couponTemplateApi;
+
 
     // =================== Order ===================
 
@@ -218,6 +231,9 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         List<TradeOrderItemDO> orderItems = buildTradeOrderItems(order, calculateRespBO);
 
+        // 2.0 订单创建前的验证
+        tradeOrderHandlers.forEach(handler -> handler.beforeOrderValidate(order, orderItems));
+
         // 2. 订单创建前的逻辑
         tradeOrderHandlers.forEach(handler -> handler.beforeOrderCreate(order, orderItems));
 
@@ -250,6 +266,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 2. 订单创建前的逻辑
         tradeOrderHandlers.forEach(handler -> handler.beforeOrderCreate(order, orderItems));
 
+        if (getLoginUserId() == null) {
+            order.setCreator(String.valueOf(userId));
+            order.setUpdater(String.valueOf(userId));
+        }
         // 3. 保存订单
         tradeOrderMapper.insert(order);
         orderItems.forEach(orderItem -> {
@@ -329,6 +349,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 创建支付单，用于后续的支付
         PayOrderCreateReqDTO payOrderCreateReqDTO = TradeOrderConvert.INSTANCE.convert(
                 order, orderItems, tradeOrderProperties);
+        payOrderCreateReqDTO.setUserId(order.getUserId());
         Long payOrderId = payOrderApi.createOrder(payOrderCreateReqDTO);
 
         // 更新到交易单上
@@ -374,7 +395,12 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
+        // 如果是签约订单 则更新下次扣款时间
+        if (Objects.nonNull(order.getTradeSignId())) {
+            tradeSignUpdateService.updatePayTime(order.getTradeSignId());
+        }
+
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now());
 
     }
 
@@ -939,6 +965,15 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     }
 
     /**
+     * @param bean
+     */
+    @Override
+    public void updateOrderTimeAndStatus(TradeOrderDO bean) {
+        tradeOrderMapper.update(bean, new LambdaUpdateWrapper<TradeOrderDO>()
+                .eq(TradeOrderDO::getId, bean.getId()));
+    }
+
+    /**
      * 创建单个订单的评论
      *
      * @param order 订单
@@ -1018,6 +1053,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+
+            //
+            // couponTemplateApi.getCouponTemplate(1L);
+
 
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());

@@ -21,6 +21,7 @@
         COUNT(fb.id) AS feedbacksCount,
         SUM(msg.elapsed) AS totalElapsed,
         SUM(msg.cost_points) AS costPoints,
+        SUM(msg.image_points) AS imagePoints,
         SUM(msg.total_price) AS totalPrice,
         SUM(msg.message_tokens) AS totalMessageTokens,
         SUM(msg.answer_tokens) AS totalAnswerTokens,

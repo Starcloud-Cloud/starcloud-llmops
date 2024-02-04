@@ -26,8 +26,8 @@
         COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
         AVG(CASE WHEN ms.app_mode != "IMAGE" THEN ms.elapsed END) AS completionAvgElapsed,
         AVG(CASE WHEN ms.app_mode = "IMAGE" THEN ms.elapsed END) AS imageAvgElapsed,
-        SUM(CASE WHEN ms.app_mode != "IMAGE" THEN ms.cost_points END) AS completionCostPoints,
-        SUM(CASE WHEN ms.app_mode = "IMAGE" THEN ms.cost_points END) AS imageCostPoints,
+        SUM(ms.cost_points) AS completionCostPoints,
+        SUM(ms.image_points ) AS imageCostPoints,
         SUM(
         (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.message_tokens END) +
         (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.answer_tokens END)

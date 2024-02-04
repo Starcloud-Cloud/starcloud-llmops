@@ -180,6 +180,21 @@ public class AdminUserLevelConfigServiceImpl implements AdminUserLevelConfigServ
         return adminUserLevelConfigMapper.selectOne( Wrappers.lambdaQuery(AdminUserLevelConfigDO.class).eq(AdminUserLevelConfigDO::getRoleId,roleId).eq(AdminUserLevelConfigDO::getStatus, CommonStatusEnum.ENABLE.getStatus()));
     }
 
+    /**
+     * 获得指定状态的会员等级列表
+     *
+     * @param roleId 状态
+     * @return 会员等级列表
+     */
+    @Override
+    public List<AdminUserLevelConfigDO> getListByRoleId(Long roleId) {
+        return adminUserLevelConfigMapper.selectList(
+                Wrappers.lambdaQuery(AdminUserLevelConfigDO.class)
+                        .eq(AdminUserLevelConfigDO::getRoleId,roleId)
+                        .eq(AdminUserLevelConfigDO::getStatus, CommonStatusEnum.ENABLE.getStatus())
+        );
+    }
+
 //    @Override
 //    @Transactional(rollbackFor = Exception.class)
 //    public void updateUserLevel(MemberUserUpdateLevelReqVO updateReqVO) {

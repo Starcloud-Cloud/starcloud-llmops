@@ -63,7 +63,7 @@ public abstract class BaseMapReduceTask implements MapReduceProcessor {
             baseTaskResult = execute(baseTaskContext);
 
         } catch (Exception e) {
-
+            log.error("job error", e);
             baseTaskResult = BaseTaskResult.builder().success(false).msg(e.getMessage()).build();
         }
 

@@ -122,7 +122,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             List<UserDeptDO> userDeptDOS = userDeptMapper.selectByDeptId(deptId);
             Optional<UserDeptDO> superUser = userDeptDOS.stream().filter(userDeptDO -> Objects.equals(UserDeptRoleEnum.SUPER_ADMIN.getRoleCode(), userDeptDO.getDeptRole())).findAny();
             if (!superUser.isPresent()) {
-                throw exception(DEPT_IS_FULL,1);
+                throw exception(DEPT_IS_FULL, 1);
             }
 
             AdminUserLevelDetailRespVO userLevelDetailRespVO = adminUserLevelService.getLevelList(superUser.get().getUserId()).get(0);

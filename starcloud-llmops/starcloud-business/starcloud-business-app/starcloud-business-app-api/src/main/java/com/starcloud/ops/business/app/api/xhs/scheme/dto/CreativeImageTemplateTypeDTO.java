@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -46,5 +47,5 @@ public class CreativeImageTemplateTypeDTO implements java.io.Serializable {
      * 海报模板类型下的海报模板
      */
     @Schema(description = "海报模板类型下的海报模板")
-    private List<CreativeImageTemplateDTO> list;
+    private List<PosterTemplateDTO> list;
 }

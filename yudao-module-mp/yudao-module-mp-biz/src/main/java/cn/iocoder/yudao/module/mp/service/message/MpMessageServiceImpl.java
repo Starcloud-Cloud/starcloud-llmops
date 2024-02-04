@@ -2,9 +2,11 @@ package cn.iocoder.yudao.module.mp.service.message;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessagePageReqVO;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
+import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpTemplateSendReqVO;
 import cn.iocoder.yudao.module.mp.convert.message.MpMessageConvert;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
@@ -12,6 +14,7 @@ import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.dal.mysql.message.MpMessageMapper;
 import cn.iocoder.yudao.module.mp.enums.message.MpMessageSendFromEnum;
 import cn.iocoder.yudao.module.mp.framework.mp.core.MpServiceFactory;
+import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.framework.mp.core.util.MpUtils;
 import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
 import cn.iocoder.yudao.module.mp.service.material.MpMaterialService;
@@ -24,6 +27,7 @@ import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.kefu.WxMpKefuMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -125,6 +129,49 @@ public class MpMessageServiceImpl implements MpMessageService {
         MpMessageDO message = MpMessageConvert.INSTANCE.convert(wxMessage, account, user)
                 .setSendFrom(MpMessageSendFromEnum.MP_TO_USER.getFrom());
         downloadMessageMedia(message);
+        mpMessageMapper.insert(message);
+        return message;
+    }
+
+    @Override
+    public MpMessageDO sendMessage(String openId, MpMessageSendReqVO sendReqVO) {
+        WxMpKefuMessage wxMessage = MpMessageConvert.INSTANCE.convert(sendReqVO, openId);
+        String appId = MpContextHolder.getAppId();
+        WxMpService mpService = mpServiceFactory.getRequiredMpService(appId);
+        MpAccountDO mpAccountDO = mpAccountService.getAccountFromCache(appId);
+        try {
+            mpService.getKefuService().sendKefuMessageWithResponse(wxMessage);
+        } catch (WxErrorException e) {
+            throw exception(MESSAGE_SEND_FAIL, e.getError().getErrorMsg());
+        }
+        MpMessageDO message = MpMessageConvert.INSTANCE.convert(wxMessage)
+                .setSendFrom(MpMessageSendFromEnum.MP_TO_USER.getFrom())
+                .setAccountId(mpAccountDO.getId())
+                .setAppId(appId)
+                .setOpenid(openId)
+                .setUserId(sendReqVO.getUserId())
+                ;
+        mpMessageMapper.insert(message);
+        return message;
+    }
+
+    @Override
+    public MpMessageDO sendTemplateMessage(MpTemplateSendReqVO sendReqVO) {
+        MpUserDO user = mpUserService.getRequiredUser(sendReqVO.getMpUserId());
+        MpAccountDO account = mpAccountService.getRequiredAccount(user.getAccountId());
+
+        WxMpTemplateMessage wxMessage = MpMessageConvert.INSTANCE.convertTemp(sendReqVO, user);
+        WxMpService mpService = mpServiceFactory.getRequiredMpService(user.getAppId());
+        try {
+            mpService.getTemplateMsgService().sendTemplateMsg(wxMessage);
+        } catch (WxErrorException e) {
+            throw exception(MESSAGE_SEND_FAIL, e.getError().getErrorMsg());
+        }
+
+        MpMessageDO message = MpMessageConvert.INSTANCE.convert(wxMessage, account, user)
+                .setSendFrom(MpMessageSendFromEnum.MP_TO_USER.getFrom());
+        message.setType("temp");
+        message.setContent(JSONUtil.toJsonStr(sendReqVO.getData()));
         mpMessageMapper.insert(message);
         return message;
     }

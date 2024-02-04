@@ -26,13 +26,9 @@ public class CreativeContentBusinessPO implements java.io.Serializable {
     private String businessUid;
 
     /**
-     * 成功次数
+     * 状态
      */
-    private Integer successCount;
+    private String status;
 
-    /**
-     * 失败次数
-     */
-    private Integer failureCount;
 
 }

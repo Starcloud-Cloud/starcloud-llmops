@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 
@@ -29,7 +30,9 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GENERATE_TEXT_NAME"));
         stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep());
-        stepWrapper.setVariable(null);
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        stepWrapper.setVariable(variable);
         return stepWrapper;
     }
 
@@ -109,7 +112,9 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ARTICLE_EXCERPT_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defOpenAiChatCompletionStep(defaultPrompt));
-        stepWrapper.setVariable(null);
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        stepWrapper.setVariable(variable);
         return stepWrapper;
     }
 
@@ -118,18 +123,38 @@ public class RecommendStepWrapperFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defContentStepWrapper() {
-        String name = MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME");
+    public static WorkflowStepWrapperRespVO defTitleStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_NAME"));
-        String defaultPrompt = "内容";
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME"));
+        String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_DESCRIPTION"));
-        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CONTENT_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defContentActionStep(defaultPrompt));
-        stepWrapper.setVariable(RecommendVariableFactory.defContentVariable());
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defTitleActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defTitleVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成内容步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
+        String field = AppUtils.obtainField(name);
+        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
+        String defaultPrompt = "";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defCustomActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defCustomVariable());
         return stepWrapper;
     }
 
@@ -142,7 +167,7 @@ public class RecommendStepWrapperFactory {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
         String field = AppUtils.obtainField(name);
         String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
-        String defaultPrompt = "内容";
+        String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -162,7 +187,7 @@ public class RecommendStepWrapperFactory {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
         String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
-        String defaultPrompt = "内容";
+        String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -181,13 +206,13 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
         String field = AppUtils.obtainField(name);
+        String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(null);
-        stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep());
+        stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defPosterVariable());
         return stepWrapper;
     }
@@ -208,8 +233,8 @@ public class RecommendStepWrapperFactory {
      */
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
-                defDefaultTextCompletionStepWrapper(),
-                defContentStepWrapper(),
+                defTitleStepWrapper(),
+                defCustomStepWrapper(),
                 defParagraphStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()

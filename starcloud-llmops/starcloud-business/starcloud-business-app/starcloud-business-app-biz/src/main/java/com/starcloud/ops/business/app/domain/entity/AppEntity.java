@@ -11,9 +11,9 @@ import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
 import cn.kstry.framework.core.exception.KstryException;
+import cn.kstry.framework.core.monitor.FieldTracking;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
-import cn.kstry.framework.core.monitor.NoticeTracking;
 import cn.kstry.framework.core.monitor.RecallStory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -72,6 +73,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
+
+    /**
+     * 步骤状态缓存
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppStepStatusCache appStepStatusCache = SpringUtil.getBean(AppStepStatusCache.class);
 
     /**
      * 工作流引擎
@@ -185,11 +193,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     /**
      * 模版方法：执行应用前置处理方法
      *
-     * @param appExecuteReqVO 请求参数
+     * @param request 请求参数
      */
     @Override
-    protected void beforeExecute(AppExecuteReqVO appExecuteReqVO) {
-
+    protected void beforeExecute(AppExecuteReqVO request) {
+        this.appStepStatusCache.init(request.getConversationUid(), this);
     }
 
     /**
@@ -350,7 +358,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking).orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
-                    this.createAppMessageLog(appContext, nodeTracking);
+                    //把业务的异常传入进来
+                    this.createAppMessageLog(appContext, nodeTracking, story.getException());
                 }
             }
             log.info("应用执行回调结束...");
@@ -365,12 +374,18 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking) {
+    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking, Optional<Throwable> storyException) {
 
         this.createAppMessage((messageCreateRequest) -> {
 
+            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
+            appContext.setActionResponse(nodeTracking.getNodeName(), actionResponse);
+
+            //此时 appContext.getStepId(); 是最后一个执行成功的step
+            String stepId = nodeTracking.getNodeName();
+
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
-            messageCreateRequest.setAppStep(appContext.getStepId());
+            messageCreateRequest.setAppStep(stepId);
             messageCreateRequest.setEndUser(appContext.getEndUser());
             messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
@@ -382,14 +397,15 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAiModel(appContext.getAiModel());
 
-            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
-            appContext.setActionResponse(actionResponse);
+            AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
+            // 获取step变量
+            Map<String, Object> variables = appContext.getContextVariablesValues(nodeTracking.getNodeName());
+            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
-                // 将执行结果数据更新到 app
-                AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
-                messageCreateRequest.setStatus(LogStatusEnum.SUCCESS.name());
+
+                messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
                 messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
                 messageCreateRequest.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
@@ -403,27 +419,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 return;
             }
 
-            // 说明执行失败
-            ModelTypeEnum modelType = TokenCalculator.fromName(appContext.getAiModel());
-            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
-            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
-
-            // 获取所有变量
-            Map<String, Object> variables = appContext.getContextVariablesValues();
+            // 说明执行handler时异常
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
+            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
             messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
-            messageCreateRequest.setMessage(String.valueOf(variables.getOrDefault("PROMPT", "")));
-            messageCreateRequest.setMessageTokens(0);
-            messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
-            messageCreateRequest.setAnswer("");
-            messageCreateRequest.setAnswerTokens(0);
-            messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
-            messageCreateRequest.setTotalPrice(new BigDecimal("0"));
             messageCreateRequest.setCostPoints(0);
-            Optional<Throwable> taskExceptionOptional = Optional.ofNullable(nodeTracking.getTaskException());
-            if (taskExceptionOptional.isPresent()) {
-                Throwable throwable = taskExceptionOptional.get();
+
+            if (storyException.isPresent()) {
+                Throwable throwable = storyException.get();
                 messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(throwable));
                 messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
                 if (throwable instanceof KstryException) {
@@ -506,11 +509,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private <T> T getTracking(List<NoticeTracking> noticeTrackingList, Class<T> clazz) {
+    private <T> T getTracking(List<FieldTracking> noticeTrackingList, Class<T> clazz) {
         String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
         return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
-                .filter(noticeTracking -> noticeTracking.getFieldName().equals(field))
+                .filter(noticeTracking -> noticeTracking.getSourceName().equals(field))
                 .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
                 .findFirst().orElse(null);
     }

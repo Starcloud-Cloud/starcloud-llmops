@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.service.xhs.content.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -10,18 +13,35 @@ import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.app.dto.AppStepStatusDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
+import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
+import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppStepStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -35,13 +55,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_CLAIMED;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.CREATIVE_CONTENT_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.EXECTURE_ERROR;
 
 /**
  * @author nacoyer
@@ -66,6 +92,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Lazy
     private CreativePlanService creativePlanService;
 
+    @Resource
+    private CreativePlanMapper creativePlanMapper;
+
+    @Resource
+    private AppStepStatusCache appStepStatusCache;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -83,8 +114,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force) {
         log.info("开始执行 {} 任务 {}, {}, {}", type, ids, TenantContextHolder.isIgnore(), TenantContextHolder.getTenantId());
         try {
-            List<CreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids)
-                    .stream().filter(content -> !CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
+            List<CreativeContentDO> contentList = creativeContentMapper.selectBatchIds(ids).stream().filter(content -> !CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(contentList)) {
                 return Collections.emptyMap();
@@ -94,6 +124,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 return xlsCreativeExecuteManager.executeCopyWriting(contentList, force);
             } else if (CreativeContentTypeEnum.PICTURE.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executePicture(contentList, force);
+            } else if (CreativeContentTypeEnum.ALL.getCode().equalsIgnoreCase(type)) {
+                return xlsCreativeExecuteManager.executeAppALl(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
             }
@@ -105,30 +137,86 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public CreativeContentRespVO retry(String businessUid) {
-        CreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.COPY_WRITING.getCode());
-        CreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.PICTURE.getCode());
+//        CreativeContentDO textDO = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.COPY_WRITING.getCode());
+//        CreativeContentDO picDO = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.PICTURE.getCode());
+//
+//        if (textDO == null || picDO == null) {
+//            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+//        }
+//        Integer maxRetry = getMaxRetry(false);
+//
+//        if (textDO.getRetryCount() >= maxRetry || picDO.getRetryCount() >= maxRetry) {
+//            throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
+//        }
+//        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
+//        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
+//            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
+//        }
+//
+//        Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
+//        if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
+//            throw exception(EXECTURE_ERROR, "图片", textDO.getId());
+//        }
 
-        if (textDO == null || picDO == null) {
+        CreativeContentDO content = creativeContentMapper.selectByType(businessUid, CreativeContentTypeEnum.ALL.getCode());
+        if (content == null) {
+            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+        }
+        Map<Long, Boolean> allMap = xlsCreativeExecuteManager.executeAppALl(Collections.singletonList(content), true);
+        if (BooleanUtils.isNotTrue(allMap.get(content.getId()))) {
+            throw exception(EXECTURE_ERROR, "文案和图片", content.getId());
+        }
+
+        creativePlanService.updatePlanStatus(content.getPlanUid());
+        return detail(businessUid);
+    }
+
+    /**
+     * 失败重试
+     *
+     * @param businessUid 任务 uid
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void failureRetry(String businessUid) {
+        // 查询任务信息
+        LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+        wrapper.eq(CreativeContentDO::getBusinessUid, businessUid);
+        wrapper.eq(CreativeContentDO::getDeleted, Boolean.FALSE);
+        CreativeContentDO content = creativeContentMapper.selectOne(wrapper);
+
+        // 基础校验
+        if (Objects.isNull(content)) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
 
-        Integer maxRetry = getMaxRetry(false);
-
-        if (textDO.getRetryCount() >= maxRetry || picDO.getRetryCount() >= maxRetry) {
-            throw exception(CREATIVE_CONTENT_GREATER_RETRY, maxRetry);
-        }
-        Map<Long, Boolean> textMap = xlsCreativeExecuteManager.executeCopyWriting(Collections.singletonList(textDO), true);
-        if (BooleanUtils.isNotTrue(textMap.get(textDO.getId()))) {
-            throw exception(EXECTURE_ERROR, "文案", textDO.getId());
+        if (!CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() < 3) {
+            throw exception(new ErrorCode(300500001, "该任务状态不需要进行重试！"), businessUid);
         }
 
-        Map<Long, Boolean> picMap = xlsCreativeExecuteManager.executePicture(Collections.singletonList(picDO), true);
-        if (BooleanUtils.isNotTrue(picMap.get(picDO.getId()))) {
-            throw exception(EXECTURE_ERROR, "图片", textDO.getId());
+        CreativePlanRespVO plan = creativePlanService.get(content.getPlanUid());
+        if (Objects.isNull(plan)) {
+            throw exception(new ErrorCode(300500002, "该任务所属计划不存在！"), businessUid);
         }
 
-        creativePlanService.updatePlanStatus(textDO.getPlanUid());
-        return detail(businessUid);
+        if (!CreativePlanStatusEnum.FAILURE.name().equals(plan.getStatus())) {
+            throw exception(new ErrorCode(300500003, "该任务状态不需要进行重试！"), businessUid);
+        }
+
+        // 更新任务状态信息
+        LambdaUpdateWrapper<CreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(CreativeContentDO.class);
+        updateWrapper.eq(CreativeContentDO::getUid, businessUid);
+        // 重置重试次数
+        updateWrapper.set(CreativeContentDO::getRetryCount, 0);
+        // 重置状态
+        updateWrapper.set(CreativeContentDO::getStatus, CreativeContentStatusEnum.INIT.getCode());
+        creativeContentMapper.update(null, updateWrapper);
+
+        // 更新计划状态信息
+        LambdaUpdateWrapper<CreativePlanDO> planUpdateWrapper = Wrappers.lambdaUpdate(CreativePlanDO.class);
+        planUpdateWrapper.eq(CreativePlanDO::getUid, content.getPlanUid());
+        planUpdateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
+        creativePlanMapper.update(null, planUpdateWrapper);
     }
 
     @Override
@@ -153,18 +241,62 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 业务uid
      */
     @Override
-    public List<CreativeContentBusinessPO> listGroupByBusinessUid(List<String> planUidList) {
-        return creativeContentMapper.listGroupByBusinessUid(planUidList);
+    public List<CreativeContentBusinessPO> listGroupByPlanUid(List<String> planUidList) {
+        return creativeContentMapper.listGroupByPlanUid(planUidList);
     }
 
     @Override
-    public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO req) {
-        Long count = creativeContentMapper.selectCount(req);
-        if (count == null || count <= 0) {
-            return PageResult.empty();
+    public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
+        if (StringUtils.isNoneBlank(query.getPlanUid())) {
+            CreativePlanRespVO plan = creativePlanService.get(query.getPlanUid());
+            CreativePlanConfigDTO config = plan.getConfig();
+            List<CreativeSchemeListOptionRespVO> schemeList = config.getSchemeList();
+            // 老数据
+            if (CollectionUtils.isEmpty(schemeList)) {
+                Long count = creativeContentMapper.selectCount(query);
+                if (count == null || count <= 0) {
+                    return PageResult.empty();
+                }
+                List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
+                return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
+            }
+
+            // 新数据，取第一条
+            CreativeSchemeListOptionRespVO schemeListOption = schemeList.get(0);
+            if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(schemeListOption.getMode())) {
+                Long count = creativeContentMapper.selectCount(query);
+                if (count == null || count <= 0) {
+                    return PageResult.empty();
+                }
+                List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
+                return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
+            }
         }
-        List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(req, PageUtils.getStart(req), req.getPageSize());
-        return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
+
+        // 自定义类型
+        IPage<CreativeContentDTO> page = new Page<>(query.getPageNo(), query.getPageSize());
+        Page<CreativeContentDTO> allTypePage = creativeContentMapper.allTypePage(page, query);
+
+        List<CreativeContentRespVO> recordResponseList = CollectionUtil.emptyIfNull(allTypePage.getRecords()).stream().map(item -> {
+            CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(item);
+            LinkedHashMap<String, AppStepStatusDTO> stepMap = appStepStatusCache.get(response.getConversationUid());
+            if (MapUtil.isNotEmpty(stepMap)) {
+                ArrayList<AppStepStatusDTO> steps = new ArrayList<>(stepMap.values());
+
+                // 总的步骤数量
+                response.setTotalStep(steps.size());
+                // 成功的步骤数量
+                int successCount = (int) steps.stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
+                response.setSuccessStepCount(successCount);
+                // 当前步骤索引值
+                Optional<AppStepStatusDTO> currentStep = steps.stream().filter(stepItem -> AppStepStatusEnum.RUNNING.name().equals(stepItem.getStatus())).findFirst();
+                response.setCurrentStepIndex(currentStep.map(steps::indexOf).orElse(-1));
+            }
+
+            return response;
+        }).collect(Collectors.toList());
+
+        return new PageResult<>(recordResponseList, allTypePage.getTotal());
     }
 
     @Override
@@ -183,10 +315,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             if (CollectionUtils.isEmpty(contentList)) {
                 continue;
             }
-            boolean error = contentList.stream()
-                    .anyMatch(x -> CreativeContentStatusEnum.EXECUTE_ERROR.getCode().equals(x.getStatus()));
-            boolean success = contentList.stream()
-                    .allMatch(x -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
+            boolean error = contentList.stream().anyMatch(x -> CreativeContentStatusEnum.EXECUTE_ERROR.getCode().equals(x.getStatus()));
+            boolean success = contentList.stream().allMatch(x -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
             if (error) {
                 errorCount++;
             } else if (success) {
@@ -316,7 +446,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private CreativeContentDTO byBusinessUid(String businessUid) {
         CreativeContentDTO detail = creativeContentMapper.detail(businessUid);
         if (detail == null) {
-            throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+            detail = creativeContentMapper.allTypeDetail(businessUid);
+            if (detail == null) {
+                throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+            }
         }
         return detail;
     }

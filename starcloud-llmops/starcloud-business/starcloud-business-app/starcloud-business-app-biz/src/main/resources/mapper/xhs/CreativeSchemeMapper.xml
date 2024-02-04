@@ -75,7 +75,7 @@
     <!-- 根据条件分页查询创作方案列表 -->
     <select id="page" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `configuration`
         FROM llm_creative_scheme
         <where>
             <if test="query.name != null and query.name != '' ">

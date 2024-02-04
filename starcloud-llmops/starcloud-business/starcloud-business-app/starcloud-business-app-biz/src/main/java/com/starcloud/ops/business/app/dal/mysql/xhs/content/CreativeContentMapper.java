@@ -5,7 +5,9 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
@@ -46,7 +48,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         return selectList(wrapper);
     }
 
-    List<CreativeContentBusinessPO> listGroupByBusinessUid(@Param("planUidList") List<String> planUidList);
+    List<CreativeContentBusinessPO> listGroupByPlanUid(@Param("planUidList") List<String> planUidList);
 
     default CreativeContentDO selectByType(String businessUid, String type) {
         LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class)
@@ -100,8 +102,11 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
     List<CreativeContentDTO> pageSelect(@Param("req") CreativeContentPageReqVO req,
                                         @Param("start") Integer start, @Param("end") Integer end);
 
+    Page<CreativeContentDTO> allTypePage(IPage<CreativeContentDTO> page,  @Param("req") CreativeContentPageReqVO req);
+
 
     CreativeContentDTO detail(@Param("businessUid") String businessUid);
+    CreativeContentDTO allTypeDetail(@Param("businessUid") String businessUid);
 
     List<CreativeContentDO> jobQuery(@Param("req") CreativeQueryReqVO queryReq);
 

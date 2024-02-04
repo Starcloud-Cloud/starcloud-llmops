@@ -3,14 +3,12 @@ package com.starcloud.ops.business.app.domain.entity.config;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterStepEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.util.AppUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -61,11 +59,6 @@ public class WorkflowStepWrapper {
     private WorkflowStepEntity flowStep;
 
     /**
-     * 海报步骤配置
-     */
-    private PosterStepEntity posterStep;
-
-    /**
      * 提示词变量
      */
     private VariableEntity variable;
@@ -100,9 +93,11 @@ public class WorkflowStepWrapper {
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String prefixKey) {
         Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
-        String key = VariableEntity.generateKey(prefixKey, this.getField());
+        String key = VariableEntity.generateKey(prefixKey, this.getStepCode());
         Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, key);
-        variableMap.put(VariableEntity.generateKey(prefixKey, this.getField(), "_OUT"), this.flowStep.getValue());
+
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_OUT"), this.flowStep.getValue());
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_DATA"), this.flowStep.getOutput());
         return variableMap;
 
     }
@@ -130,11 +125,18 @@ public class WorkflowStepWrapper {
     public void setActionResponse(String stepId, ActionResponse response) {
         if (StringUtils.equalsIgnoreCase(this.name, stepId) || StringUtils.equalsIgnoreCase(this.field, stepId)) {
             ActionResponse actionResponse = this.flowStep.getResponse();
+
             response.setType(Optional.ofNullable(actionResponse).map(ActionResponse::getType).orElse(AppStepResponseTypeEnum.TEXT.name()));
             response.setStyle(Optional.ofNullable(actionResponse).map(ActionResponse::getStyle).orElse(AppStepResponseStyleEnum.TEXTAREA.name()));
             response.setIsShow(Optional.ofNullable(actionResponse).map(ActionResponse::getIsShow).orElse(Boolean.TRUE));
+
             this.flowStep.setResponse(response);
         }
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String key, Object value) {
+        this.variable.putVariable(key, value);
+    }
 }

@@ -91,4 +91,18 @@ public interface PaySignService {
     int syncSignStatus();
 
     void notifySignStatus(Long channelId,PayAgreementRespDTO respDTO);
+
+
+    /**
+     * 同步签约支付
+     * @return
+     */
+    Object getSignRecord(String signNo);
+
+
+    /**
+     * 同步签约支付
+     * @return
+     */
+    Object UpdateSign(String signNo,String deductTime);
 }
