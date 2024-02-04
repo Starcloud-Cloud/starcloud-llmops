@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.system.service.logger;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.logger.vo.loginlog.LoginLogExportReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.logger.vo.loginlog.LoginLogPageReqVO;
@@ -36,6 +37,7 @@ public class LoginLogServiceImpl implements LoginLogService {
     @Override
     public void createLoginLog(LoginLogCreateReqDTO reqDTO) {
         LoginLogDO loginLog = LoginLogConvert.INSTANCE.convert(reqDTO);
+        loginLog.setClientType(WebFrameworkUtils.getClientType());
         loginLogMapper.insert(loginLog);
     }
 

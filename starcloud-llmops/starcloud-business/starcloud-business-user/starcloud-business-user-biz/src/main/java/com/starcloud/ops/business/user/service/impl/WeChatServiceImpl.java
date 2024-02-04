@@ -71,7 +71,6 @@ public class WeChatServiceImpl implements WeChatService {
     public QrCodeTicketVO qrCodeCreate(String inviteCode) {
         try {
             Long tenantId = TenantContextHolder.getTenantId();
-            Long loginUserId = WebFrameworkUtils.getLoginUserId();
             WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket("login", 60 * 5);
             String url = wxMpService.getQrcodeService().qrCodePictureUrl(wxMpQrCodeTicket.getTicket());
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
@@ -80,9 +79,6 @@ public class WeChatServiceImpl implements WeChatService {
             ticketVO.setUrl(url);
             if (StringUtils.isNotBlank(inviteCode)) {
                 redisTemplate.boundValueOps(ticketVO.getTicket() + "_inviteCode").set(inviteCode, 10, TimeUnit.MINUTES);
-            }
-            if (loginUserId != null) {
-                redisTemplate.boundValueOps(ticketVO.getTicket() + "_userId").set(String.valueOf(loginUserId), 10, TimeUnit.MINUTES);
             }
             return ticketVO;
         } catch (WxErrorException e) {
