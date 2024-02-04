@@ -275,18 +275,20 @@ public class UserDeptServiceImpl implements UserDeptService {
     }
 
     @Override
-    public void recordRights(UserDeptDO deptDO,Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
+    public void recordRights(UserDeptDO deptDO, Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
         if (deptDO == null || deptDO.getDeptId() == null) {
             return;
         }
-        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndUser(deptDO.getDeptId(), userId);
-        if (userDeptDO == null) {
-            return;
-        }
-        if (AdminUserRightsTypeEnum.MAGIC_BEAN.equals(rightsType)) {
-            userDeptMapper.recordAppRights(rightAmount,userDeptDO.getId());
-        } else if (AdminUserRightsTypeEnum.MAGIC_IMAGE.equals(rightsType)) {
-            userDeptMapper.recordImageRights(rightAmount,userDeptDO.getId());
+        try {
+            UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndUser(deptDO.getDeptId(), userId);
+
+            if (AdminUserRightsTypeEnum.MAGIC_BEAN.equals(rightsType)) {
+                userDeptMapper.recordAppRights(rightAmount, userDeptDO.getId());
+            } else if (AdminUserRightsTypeEnum.MAGIC_IMAGE.equals(rightsType)) {
+                userDeptMapper.recordImageRights(rightAmount, userDeptDO.getId());
+            }
+        } catch (Exception e) {
+            log.warn("记录空间扣点异常", e);
         }
     }
 
