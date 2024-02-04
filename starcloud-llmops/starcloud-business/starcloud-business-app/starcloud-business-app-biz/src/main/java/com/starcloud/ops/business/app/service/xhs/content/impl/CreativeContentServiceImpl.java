@@ -187,17 +187,15 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
 
-        if (!CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() < 3) {
+        if (!CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus())) {
             throw exception(new ErrorCode(300500001, "该任务状态不需要进行重试！"), businessUid);
         }
 
-        CreativePlanRespVO plan = creativePlanService.get(content.getPlanUid());
-        if (Objects.isNull(plan)) {
-            throw exception(new ErrorCode(300500002, "该任务所属计划不存在！"), businessUid);
-        }
-
-        if (!CreativePlanStatusEnum.FAILURE.name().equals(plan.getStatus())) {
-            throw exception(new ErrorCode(300500003, "该任务状态不需要进行重试！"), businessUid);
+        if (!content.getIsTest()) {
+            CreativePlanRespVO plan = creativePlanService.get(content.getPlanUid());
+            if (Objects.isNull(plan)) {
+                throw exception(new ErrorCode(300500002, "该任务所属计划不存在！"), businessUid);
+            }
         }
 
         // 更新任务状态信息
