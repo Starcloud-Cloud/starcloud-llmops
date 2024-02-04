@@ -87,6 +87,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         queryReq.setType(params.getRunType());
         queryReq.setRetryProcess(params.getRetryProcess());
         queryReq.setBathCount(params.getBathCount());
+        queryReq.setIsTest(params.getIsTest());
         List<CreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
         if (CollectionUtils.isEmpty(creativeContentList)) {
             return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS : 未找到待执行的任务");

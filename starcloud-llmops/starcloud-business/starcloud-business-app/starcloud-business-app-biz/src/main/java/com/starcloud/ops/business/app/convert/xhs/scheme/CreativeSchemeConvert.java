@@ -5,11 +5,12 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
@@ -102,7 +103,7 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
         creativeSchemeResponse.setMode(creativeScheme.getMode());
         if (StringUtils.isNotBlank(creativeScheme.getRefers())) {
-            TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
+            TypeReference<List<ReferenceSchemeDTO>> typeReference = new TypeReference<List<ReferenceSchemeDTO>>() {
             };
             creativeSchemeResponse.setRefers(JSONUtil.toBean(creativeScheme.getRefers(), typeReference, Boolean.TRUE));
         }
@@ -110,7 +111,7 @@ public interface CreativeSchemeConvert {
             if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(creativeScheme.getMode())) {
                 creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
             } else {
-                creativeSchemeResponse.setCustomConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CustomCreativeSchemeConfigDTO.class));
+                creativeSchemeResponse.setCustomConfiguration(JsonUtils.parseObject(creativeScheme.getConfiguration(), CustomCreativeSchemeConfigDTO.class));
             }
         }
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {

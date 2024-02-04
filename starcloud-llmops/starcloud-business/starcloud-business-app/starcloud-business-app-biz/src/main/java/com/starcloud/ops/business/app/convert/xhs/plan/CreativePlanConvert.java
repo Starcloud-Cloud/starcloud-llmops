@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.convert.xhs.plan;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
@@ -99,7 +101,7 @@ public interface CreativePlanConvert {
         response.setName(creativePlan.getName());
         response.setType(creativePlan.getType());
         if (StringUtils.isNotBlank(creativePlan.getConfig())) {
-            response.setConfig(JSONUtil.toBean(creativePlan.getConfig(), CreativePlanConfigDTO.class));
+            response.setConfig(JsonUtils.parseObject(creativePlan.getConfig(), CreativePlanConfigDTO.class));
         }
         response.setRandomType(creativePlan.getRandomType());
         response.setSuccessCount(creativePlan.getSuccessCount());
@@ -130,7 +132,7 @@ public interface CreativePlanConvert {
         response.setName(creativePlan.getName());
         response.setType(creativePlan.getType());
         if (StringUtils.isNotBlank(creativePlan.getConfig())) {
-            response.setConfig(JSONUtil.toBean(creativePlan.getConfig(), CreativePlanConfigDTO.class));
+            response.setConfig(JsonUtils.parseObject(creativePlan.getConfig(), CreativePlanConfigDTO.class));
         }
         response.setRandomType(creativePlan.getRandomType());
         response.setTotal(creativePlan.getTotal());

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.xhs.scheme.dto;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto.reference;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

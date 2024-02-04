@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.vo.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -37,6 +37,9 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作方案UID")
     private String uid;
+
+    @Schema(description = "应用名称")
+    private String appName;
 
     /**
      * 创作方案名称
@@ -79,7 +82,7 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
      * 创作方案参考
      */
     @Schema(description = "创作方案参考账号")
-    private List<CreativeSchemeReferenceDTO> refers;
+    private List<ReferenceSchemeDTO> refers;
 
     /**
      * 创作方案配置信息

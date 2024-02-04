@@ -158,6 +158,11 @@ public class LogAppMessageDO extends TenantBaseDO {
     private Integer costPoints;
 
     /**
+     * 消耗图片点数
+     */
+    private Integer imagePoints;
+
+    /**
      * 执行耗时
      */
     private Long elapsed;

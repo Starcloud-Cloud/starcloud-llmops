@@ -30,6 +30,21 @@ mybatis:
   type-aliases-package: ${yudao.info.base-package}.module.*.dal.dataobject
   lazy-initialization: true # 单元测试，设置 MyBatis Mapper 延迟加载，加速每个单元测试
 
+# 日志文件配置
+logging:
+  level:
+    # 配置自己写的 MyBatis Mapper 打印日志
+    cn.iocoder.yudao.module.bpm.dal.mysql: debug
+    cn.iocoder.yudao.module.infra.dal.mysql: debug
+    cn.iocoder.yudao.module.infra.dal.mysql.job.JobLogMapper: INFO # 配置 JobLogMapper 的日志级别为 info
+    cn.iocoder.yudao.module.pay.dal.mysql: debug
+    cn.iocoder.yudao.module.pay.dal.mysql.notify.PayNotifyTaskMapper: INFO # 配置 JobLogMapper 的日志级别为 info
+    cn.iocoder.yudao.module.system.dal.mysql: debug
+    cn.iocoder.yudao.module.tool.dal.mysql: debug
+    cn.iocoder.yudao.module.member.dal.mysql: debug
+    cn.iocoder.yudao.module.trade.dal.mysql: debug
+    cn.iocoder.yudao.module.promotion.dal.mysql: debug
+
 --- #################### 定时任务相关配置 ####################
 
 --- #################### 配置中心相关配置 ####################
@@ -48,7 +63,75 @@ mybatis:
 yudao:
   info:
     base-package: cn.iocoder.yudao.module
-
+  tenant: # 多租户相关配置项
+    enable: true
+    ignore-urls:
+      - /admin-api/system/tenant/get-id-by-name # 基于名字获取租户，不许带租户编号
+      - /admin-api/system/tenant/get-by-website # 基于域名获取租户，不许带租户编号
+      - /admin-api/system/captcha/get # 获取图片验证码，和租户无关
+      - /admin-api/system/captcha/check # 校验图片验证码，和租户无关
+      - /admin-api/infra/file/*/get/** # 获取图片，和租户无关
+      - /admin-api/system/sms/callback/* # 短信回调接口，无法带上租户编号
+      - /admin-api/pay/notify/** # 支付回调通知，不携带租户编号
+      - /jmreport/* # 积木报表，无法携带租户编号
+      - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，无法携带租户编号
+      - /admin-api/llm/auth/**   # llm 注册，找回密码 无法携带租户编号
+      - /admin-api/system/auth/login # 登录
+      - /admin-api/system/auth/refresh-token # 刷新缓存
+      - /admin-api/llm/wechat/** # 微信回调
+      - /admin-api/system/auth/logout # 登出
+      - /admin-api/llm/communication/code/**  # 发送验证码
+      - /admin-api/llm/worktool/callback/**   # 平台回调
+      - /app-api/share/**       # 游客访问
+      - /admin-api/share/**
+      - /admin-api/llm/chat/config/detail/*
+      - /admin-api/llm/notification/metadata
+      - /admin-api/llm/xhs/customer/**
+    ignore-tables:
+      - system_tenant
+      - system_tenant_package
+      - system_dict_data
+      - system_dict_type
+      - system_error_code
+      - system_menu
+      - system_sms_channel
+      - system_sms_template
+      - system_sms_log
+      - system_sensitive_word
+      - system_oauth2_client
+      - system_oauth2_access_token
+      - system_mail_account
+      - system_mail_template
+      - system_mail_log
+      - system_notify_template
+      - infra_codegen_column
+      - infra_codegen_table
+      - infra_test_demo
+      - infra_config
+      - infra_file_config
+      - infra_file
+      - infra_file_content
+      - infra_job
+      - infra_job_log
+      - infra_job_log
+      - infra_data_source_config
+      - jimu_dict
+      - jimu_dict_item
+      - jimu_report
+      - jimu_report_data_source
+      - jimu_report_db
+      - jimu_report_db_field
+      - jimu_report_db_param
+      - jimu_report_link
+      - jimu_report_map
+      - jimu_report_share
+      - rep_demo_dxtj
+      - rep_demo_employee
+      - rep_demo_gongsi
+      - rep_demo_jianpiao
+      - tmp_report_data_1
+      - tmp_report_data_income
+      - llm_xhs_note_detail
 
 kstry:
   story:

@@ -23,9 +23,14 @@ public enum AppVariableStyleEnum implements IEnumable<Integer> {
     TEXTAREA(1, "文本框样式"),
 
     /**
+     * JSON样式
+     */
+    JSON(2, "JSON格式"),
+
+    /**
      * 下拉框样式
      */
-    SELECT(2, "下拉框样式");
+    SELECT(3, "下拉框样式");
 
     /**
      * 变量样式Code

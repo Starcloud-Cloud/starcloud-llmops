@@ -11,6 +11,10 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.execute.CreativeAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.execute.PosterImageDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -22,19 +26,24 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
-import com.starcloud.ops.business.app.service.xhs.executor.CreativeImageCreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.service.log.AppLogService;
+import com.starcloud.ops.business.app.service.xhs.convert.AppResponseConverter;
+import com.starcloud.ops.business.app.service.xhs.executor.PosterStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
+import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -87,59 +96,173 @@ public class CreativeExecuteManager {
     private CreativeImageManager creativeImageManager;
 
     @Resource
-    private CreativeImageCreativeThreadPoolHolder creativeImageCreativeThreadPoolHolder;
+    private PosterStyleThreadPoolHolder posterStyleThreadPoolHolder;
+
+    @Resource
+    private AppLogService appLogService;
 
     public Map<Long, Boolean> executeAppALl(List<CreativeContentDO> contentList, Boolean force) {
+        Map<Long, Boolean> result = new HashMap<>(contentList.size());
 
-        return null;
+        if (CollectionUtil.isEmpty(contentList)) {
+            log.warn("创作中心：小红书应用生成执行：参数为空！应用生成结束");
+            return Collections.emptyMap();
+        }
+
+        // 获取异步Future
+        ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
+        List<CompletableFuture<CreativeAppExecuteResponse>> appFutureList = Lists.newArrayList();
+        for (CreativeContentDO content : contentList) {
+            CompletableFuture<CreativeAppExecuteResponse> future = CompletableFuture.supplyAsync(() -> executeApp(content, force), executor);
+            appFutureList.add(future);
+        }
+        // 合并任务
+        CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(appFutureList.toArray(new CompletableFuture[0]));
+        // 等待所有任务执行完成并且获取执行结果
+        CompletableFuture<List<CreativeAppExecuteResponse>> allFuture = allOfFuture
+                .thenApply(v -> appFutureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        // 获取执行结果
+        List<CreativeAppExecuteResponse> responses = allFuture.join();
+        // 处理执行结果
+        for (CreativeAppExecuteResponse response : responses) {
+            if (response.getSuccess()) {
+                result.put(response.getContentId(), true);
+            } else {
+                result.put(response.getContentId(), false);
+            }
+        }
+
+        log.info("创作中心：小红书图片生成执行：图片生成结束");
+        return result;
     }
 
-    public Map<Long, Boolean> executeApp(CreativeContentDO content, Boolean force) {
+    public CreativeAppExecuteResponse executeApp(CreativeContentDO content, Boolean force) {
         String lockKey = "creative-content-app-" + content.getId();
         RLock lock = redissonClient.getLock(lockKey);
         if (lock != null && !lock.tryLock()) {
             log.warn("创作中心：生成内容和图片正在执行中，重复调用(内容ID：{})！", content.getId());
-
+            return failure(content, 350600110, "生成内容和图片正在执行中，请稍后再试");
         }
 
         try {
             LocalDateTime start = LocalDateTime.now();
-            log.info("创作中心：生成内容和图片失败：{}，{}", content.getId(), start);
+            log.info("创作中心：生成内容和图片开始：{}，{}", content.getId(), start);
             Integer maxRetry = getMaxRetry(force);
             // 获取最新的创作内容并且校验
-            CreativeContentDO latestContent = getImageContent(content.getId(), start, maxRetry, force);
+            CreativeContentDO latestContent = getAppContent(content.getId(), start, maxRetry, force);
+            // 更新任务状态为执行中
+            latestContent.setStatus(CreativeContentStatusEnum.EXECUTING.getCode());
+            creativeContentMapper.updateById(latestContent);
+            
             try {
                 CreativePlanExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativePlanExecuteDTO.class);
-                AppRespVO appResponse = creativePlanExecute.getAppResponse();
+                AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
 
                 AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
                 appExecuteRequest.setAppUid(appResponse.getUid());
                 appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
                 appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
                 appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
-                AppEntity entity = (AppEntity) AppFactory.factory(appExecuteRequest);
-                entity.execute(appExecuteRequest);
+                // 会话UID，使用此会话UID。
+                appExecuteRequest.setConversationUid(latestContent.getConversationUid());
+                AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
+                AppExecuteRespVO response = entity.execute(appExecuteRequest);
+                if (!response.getSuccess()) {
+                    throw new ServiceException(350600110, "生成内容和图片失败，错误码：" + response.getResultCode() + ",错误信息：" + response.getResultDesc());
+                }
 
+                LogAppMessagePageReqVO logQuery = new LogAppMessagePageReqVO();
+                logQuery.setAppConversationUid(response.getConversationUid());
+                AppLogMessageRespVO logAppMessage = appLogService.getLogAppMessageDetail(logQuery);
+
+                // 执行失败
+                if (LogStatusEnum.ERROR.name().equals(logAppMessage.getStatus())) {
+                    throw new ServiceException(350600110, "生成内容和图片失败，错误码：" + logAppMessage.getErrorCode() + ",错误信息：" + logAppMessage.getErrorMessage());
+                }
+                CreativeAppExecuteResponse result = buildResponse(logAppMessage, latestContent);
+
+                // 更新执行时间
+                LocalDateTime end = LocalDateTime.now();
+                long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+
+                // 文案
+                CopyWritingContentDTO copyWritingContent = Optional.ofNullable(result.getCopyWritingContent())
+                        .orElseThrow(() -> ServiceExceptionUtil.exception(new ErrorCode(350600110, "生成文案内容不存在！")));
+                // 图片
+                List<PosterImageDTO> posterList = CollectionUtil.emptyIfNull(result.getPosterList());
+
+                CreativeContentDO updateContent = new CreativeContentDO();
+                updateContent.setId(latestContent.getId());
+                updateContent.setCopyWritingTitle(copyWritingContent.getTitle());
+                updateContent.setCopyWritingContent(copyWritingContent.getContent());
+                updateContent.setCopyWritingCount(Optional.ofNullable(copyWritingContent.getContent()).orElse("").length());
+                updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWritingContent));
+                updateContent.setPictureContent(JSONUtil.toJsonStr(posterList));
+                updateContent.setPictureNum(posterList.size());
+                updateContent.setStartTime(start);
+                updateContent.setEndTime(end);
+                updateContent.setExecuteTime(executeTime);
+                updateContent.setStatus(CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode());
+                updateContent.setUpdateTime(end);
+                updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+                creativeContentMapper.updateById(updateContent);
+
+                return result;
             } catch (Exception exception) {
-                log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
+                //log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
+                updateFailure(latestContent.getId(), start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
                 throw exception;
             }
-
         } catch (ServiceException exception) {
             log.error("创作中心：生成内容和图片失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
-
-
+            return failure(content, exception.getCode(), exception.getMessage());
         } catch (Exception exception) {
             log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
-
+            return failure(content, 350600110, exception.getMessage());
         } finally {
             if (lock != null) {
                 lock.unlock();
                 log.info("创作中心：生成内容和图片解锁成功：{}", lockKey);
             }
         }
+    }
 
-        return null;
+    private static CreativeAppExecuteResponse buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
+        AppRespVO appInfo = logAppMessage.getAppInfo();
+        List<String> tags = appInfo.getTags();
+        if (tags.contains("PracticalConverter")) {
+            CreativeAppExecuteResponse response = AppResponseConverter.practicalConverter(appInfo);
+            response.setContentId(content.getId());
+            response.setContentUid(content.getUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setPlanUid(content.getPlanUid());
+            return response;
+        }
+        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
+    }
+
+    /**
+     * 生成失败返回结果
+     *
+     * @param content      创作内容
+     * @param errorCode    错误码
+     * @param errorMessage 错误信息
+     * @return 返回结果
+     */
+    private static CreativeAppExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage) {
+        CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
+        response.setSuccess(Boolean.FALSE);
+        response.setErrorCode(errorCode);
+        response.setErrorMessage(errorMessage);
+        if (Objects.nonNull(content)) {
+            response.setContentId(content.getId());
+            response.setContentUid(content.getUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setPlanUid(content.getPlanUid());
+        }
+        return response;
     }
 
     /**
@@ -322,7 +445,7 @@ public class CreativeExecuteManager {
         }
 
         // 获取异步Future
-        ThreadPoolExecutor executor = creativeImageCreativeThreadPoolHolder.executor();
+        ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
         List<CompletableFuture<XhsImageCreativeExecuteResponse>> imageFutureList = Lists.newArrayList();
         for (CreativeContentDO content : contentList) {
             CompletableFuture<XhsImageCreativeExecuteResponse> future = CompletableFuture.supplyAsync(() -> imageExecute(content, force), executor);
@@ -349,7 +472,7 @@ public class CreativeExecuteManager {
             }
         }
 
-        log.info("创作中心：小红书图片生成执行：图片生成结束");
+        log.info("创作中心：小红书应用执行：文案内容和图片生成结束");
         return result;
     }
 
@@ -501,6 +624,47 @@ public class CreativeExecuteManager {
             throw exception(350600148, "创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid());
         }
         return copyWriting;
+    }
+
+    /**
+     * 获取图片执行任务
+     *
+     * @param id    任务ID
+     * @param force 是否强制执行
+     * @return 图片执行任务
+     */
+    private CreativeContentDO getAppContent(Long id, LocalDateTime start, Integer maxRetry, Boolean force) {
+        CreativeContentDO content = creativeContentMapper.selectById(id);
+        if (Objects.isNull(content)) {
+            throw exception(350600211, "未找到对应的创作任务(ID: %s)！", id);
+        }
+
+        if (!CreativeContentTypeEnum.ALL.getCode().equalsIgnoreCase(content.getType())) {
+            throw exception(350600212, "创作任务类型应用类型(ID: %s)！", id);
+        }
+
+        if (CreativeContentStatusEnum.EXECUTING.getCode().equals(content.getStatus())) {
+            throw exception(350600213, "创作任务正在执行(ID: %s)！", id);
+        }
+
+        if (!force) {
+            if (CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(content.getStatus())) {
+                throw exception(350600214, "创作任务已经执行成功(ID: %s)！", id);
+            }
+            if (CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(content.getStatus()) || content.getRetryCount() >= maxRetry) {
+                throw exception(350600215, "创作任务: %s，重试次数：%s，最多重试次数：%s ！", id, content.getRetryCount(), maxRetry);
+            }
+        }
+
+        // 获取并且校验执行参数
+        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+        if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getAppResponse())) {
+            // 执行参数为空，说明该任务数据存在问题。需要更新状态
+            updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：应用执行参数不存在，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
+            throw exception(350600114, "创作中心：应用执行参数不存在，请联系管理员(ID: %s)！", content.getUid());
+        }
+
+        return content;
     }
 
     /**

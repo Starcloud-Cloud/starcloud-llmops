@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import cn.kstry.framework.core.engine.StoryEngine;
 import com.google.common.collect.Sets;
+import com.starcloud.ops.BaseUserContextTest;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
@@ -22,7 +23,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.AppWorkflowService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +31,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.misc.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -44,107 +51,13 @@ import java.util.*;
  * 多step功能执行测试
  */
 @Slf4j
-@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class})
-@ExtendWith(MockitoExtension.class)
-public class WorkflowV2Test extends BaseDbUnitTest {
-
-
-    @MockBean
-    private PermissionApi permissionApi;
-
-    @MockBean
-    private DictDataService dictDataService;
-
-    @MockBean
-    private RoleService roleService;
-
-    @MockBean
-    private PermissionService permissionService;
-
+public class WorkflowV2Test extends BaseUserContextTest {
 
     @Autowired
     private StoryEngine storyEngine;
 
-
-    @Autowired
-    private AppWorkflowService appWorkflowService;
-
-    @MockBean
-    private AdminUserService adminUserService;
-
-    @MockBean
-    private DeptService deptService;
-
-    @MockBean
-    private AdminUserApi adminUserApi;
-
-
-
     final String appId = "appId-test";
 
-    final String requestId = "appId-request-xxx-id";
-
-    final String stepId = "title";
-
-    @Test
-    public void demoTest() {
-
-        log.info("hahahahhaha");
-    }
-
-    @BeforeEach
-    public void before() {
-
-        AppEntity appEntity = new AppEntity();
-
-        appEntity.setUid(appId);
-        appEntity.setName("ppId-test name");
-        appEntity.setModel(AppModelEnum.CHAT.name());
-
-        WorkflowConfigEntity appConfigEntity = new WorkflowConfigEntity();
-
-        List<WorkflowStepWrapper> appStepWrappers = new ArrayList<>();
-
-
-        appStepWrappers.add(createAppStep("title"));
-        appStepWrappers.add(createAppStep("content"));
-        appStepWrappers.add(createAppStep("summarize"));
-
-        appConfigEntity.setSteps(appStepWrappers);
-        appEntity.setWorkflowConfig(appConfigEntity);
-
-
-        //Mockito.mockStatic(AppFactory.class);
-//        Mockito.when(AppFactory.factory(appId)).thenReturn(appEntity);
-//
-//
-//        Mockito.when(AppFactory.factory(appId, new AppReqVO())).thenReturn(appEntity);
-//
-//        Mockito.when(AppFactory.factory(appId, new AppReqVO(), stepId)).thenReturn(appEntity);
-
-
-        Mockito.mockStatic(SecurityFrameworkUtils.class);
-        Mockito.when(SecurityFrameworkUtils.getLoginUserId()).thenReturn(1L);
-
-    }
-
-
-    private WorkflowStepWrapper createAppStep(String title) {
-
-        WorkflowStepWrapper appStepWrapper = new WorkflowStepWrapper();
-
-        WorkflowStepEntity appStepEntity = new WorkflowStepEntity();
-
-        appStepEntity.setName("chatgpt api");
-        appStepEntity.setType("OpenAIChatActionHandler");
-        appStepEntity.setHandler("OpenAIChatActionHandler");
-
-        appStepWrapper.setName(title);
-        appStepWrapper.setField(title);
-        appStepWrapper.setFlowStep(appStepEntity);
-
-        return appStepWrapper;
-    }
 
     @Test
     public void testRunTest() {
@@ -157,6 +70,8 @@ public class WorkflowV2Test extends BaseDbUnitTest {
         executeReqVO.setAppReqVO(new AppReqVO());
         executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
 
+        executeReqVO.setTenantId(2L);
+
         SseEmitter emitter = new SseEmitter(60000L);
 
         //executeReqVO.setSseEmitter(emitter);
@@ -167,43 +82,107 @@ public class WorkflowV2Test extends BaseDbUnitTest {
 
     }
 
-
     @Test
-    public void fireByAppTest() {
+    public void spelTest() {
+        // 创建spel表达式分析器
+        ExpressionParser parser = new SpelExpressionParser();
 
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO());
+        ParserContext parserContext = new ParserContext() {
+            @Override
+            public boolean isTemplate() {
+                return true;
+            }
+
+            @Override
+            public String getExpressionPrefix() {
+                return "#{";
+            }
+
+            @Override
+            public String getExpressionSuffix() {
+                return "}";
+            }
+        };
+
+
+        HashMap<String, Object> rootMap = new HashMap<>();
+
+        rootMap.put("STEP.开头._OUT", "77882323");
+
+
+        List<HashMap> content = Arrays.asList(
+
+                new HashMap() {{
+                    put("title", "title1");
+                    put("content", "content1");
+                }},
+                new HashMap() {{
+                    put("title", "title2");
+                    put("content", "content2");
+                }},
+                new HashMap() {{
+                    put("title", "title3");
+                    put("content", "content3");
+                }}
+        );
+
+        StandardEvaluationContext context = new StandardEvaluationContext(rootMap);
+        context.setVariable("STEP.段落._OUT", "3333");
+        context.setVariable("STEP.TTT._DATA", "3333");
+        context.setVariable("_DATA", "3333");
+
+        // 输入表达式
+        Expression exp = parser.parseExpression("测试：{STEP.开头._OUT}。。#{['STEP.开头._OUT']}", parserContext);
+        // 获取表达式的输出结果，getValue入参是返回参数的类型
+        Object value = exp.getValue(context);
+        System.out.println(value);
 
     }
 
-    @Test
-    public void fireByAppStepTest() {
-        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+    @Data
+    public static class Root {
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title");
-    }
+        private String TTT = "333";
 
+        private HashMap STEP = new HashMap<String, Object>() {{
+            put("开头._OUT", "outttt");
 
-    @Test
-    public void fireByAppStepStreamTest() {
-        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+            put("段落._OUT", "tttt\n xxxxx\n 4444444\n");
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", mockHttpServletResponse);
+            put("段落._DATA", new ArrayList<String>() {{
+                add("tttt");
+                add("xxxxx");
+                add("4444444 #{STEP['段落._DATA'][0]}");
 
-    }
+            }});
 
+            put("开头", new HashMap<String, Object>() {{
+                put("key1", "vvv");
+                put("key2", new HashMap() {{
+                    put("xxx", "123");
+                    put("_OUT", 77);
+                }});
+            }});
 
-    @Test
-    public void fireByAppStepContentTest() {
+            put("段落", Arrays.asList(
 
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "content");
-    }
+                    new HashMap() {{
+                        put("title", "title1");
+                        put("content", "content1");
+                    }},
+                    new HashMap() {{
+                        put("title", "title2");
+                        put("content", "content2");
+                    }},
+                    new HashMap() {{
+                        put("title", "title3");
+                        put("content", "content3");
+                    }}
+            ));
 
+        }};
 
-    @Test
-    public void fireByAppStepRequestIdTest() {
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", "requestId-test");
     }
 
 }

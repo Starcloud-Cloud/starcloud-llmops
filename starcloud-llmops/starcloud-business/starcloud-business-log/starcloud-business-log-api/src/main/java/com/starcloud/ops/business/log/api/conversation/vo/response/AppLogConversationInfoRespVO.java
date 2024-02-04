@@ -111,6 +111,9 @@ public class AppLogConversationInfoRespVO implements Serializable {
     @Schema(description = "消耗积分")
     private Integer costPoints;
 
+    @Schema(description = "消耗图片点数")
+    private Integer imagePoints;
+
     /**
      * 执行状态，ERROR：失败，SUCCESS：成功
      */

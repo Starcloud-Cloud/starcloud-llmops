@@ -32,4 +32,9 @@ public class RunJobParams {
      * 子任务数量
      */
     private Integer subSize;
+
+    /**
+     * 是否是测试任务
+     */
+    private Boolean isTest;
 }

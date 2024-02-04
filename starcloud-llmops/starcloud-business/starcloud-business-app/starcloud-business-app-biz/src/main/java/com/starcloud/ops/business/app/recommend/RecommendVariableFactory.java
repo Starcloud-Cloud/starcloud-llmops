@@ -15,6 +15,17 @@ import java.util.Collections;
 public class RecommendVariableFactory {
 
     /**
+     * 空变量
+     *
+     * @return VariableRespVO
+     */
+    public static VariableRespVO defEmptyVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        return variable;
+    }
+
+    /**
      * Open AI Chat Completion 默认变量
      *
      * @param defaultPrompt 默认提示
@@ -77,9 +88,30 @@ public class RecommendVariableFactory {
      *
      * @return 变量
      */
-    public static VariableRespVO defContentVariable() {
+    public static VariableRespVO defTitleVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
+                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
+                RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRequirement()
+        ));
+        return variable;
+    }
+
+    /**
+     * 媒体矩阵自定义内容变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defCustomVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
+                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
+                RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixRequirement()
+        ));
         return variable;
     }
 
@@ -90,7 +122,13 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defParagraphVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRefers()));
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
+                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
+                RecommendVariableItemFactory.defMediaMatrixRefers(),
+                RecommendVariableItemFactory.defMediaMatrixParagraphCount(),
+                RecommendVariableItemFactory.defMediaMatrixRequirement()
+        ));
         return variable;
     }
 
@@ -101,7 +139,7 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defAssembleVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.emptyList());
+        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRequirement()));
         return variable;
     }
 
@@ -113,10 +151,10 @@ public class RecommendVariableFactory {
     public static VariableRespVO defPosterVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defPosterModeVariable(),
                 RecommendVariableItemFactory.defPosterStyleVariable(),
-                RecommendVariableItemFactory.defPosterMaterialVariable(),
-                RecommendVariableItemFactory.defPosterContentVariable()
+                RecommendVariableItemFactory.defPosterTitleVariable(),
+                RecommendVariableItemFactory.defPosterContentVariable(),
+                RecommendVariableItemFactory.defPosterRequirement()
         ));
         return variable;
     }

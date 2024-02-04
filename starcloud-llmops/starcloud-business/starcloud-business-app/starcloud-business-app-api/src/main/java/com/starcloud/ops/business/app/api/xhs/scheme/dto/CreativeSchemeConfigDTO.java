@@ -41,16 +41,12 @@ public class CreativeSchemeConfigDTO implements java.io.Serializable {
     /**
      * 文案生成模板
      */
-    @Valid
-    @NotNull(message = "文案生成模板不能为空！")
     @Schema(description = "文案生成模板")
     private CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate;
 
     /**
      * 图片生成模板：图片风格
      */
-    @Valid
-    @NotNull(message = "图片生成模板：图片模板不能为空")
     @Schema(description = "图片模板")
     private CreativeSchemeImageTemplateDTO imageTemplate;
 

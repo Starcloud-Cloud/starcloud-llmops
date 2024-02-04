@@ -2,6 +2,7 @@ package com.starcloud.ops.business.mission.service.impl;
 
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
@@ -58,7 +59,8 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
         MissionNotificationDTO detail = missionService.missionDetail(uid);
         SingleMissionDetailVO detailVO = SingleMissionConvert.INSTANCE.convertDetail(detail);
         CreativePlanRespVO creativePlan = creativePlanService.get(detail.getCreativePlanUid());
-        List<String> schemeUidList = Optional.ofNullable(creativePlan.getConfig()).map(CreativePlanConfigDTO::getSchemeUidList).orElse(Collections.emptyList());
+        List<CreativeSchemeListOptionRespVO> schemeList = Optional.ofNullable(creativePlan.getConfig()).map(CreativePlanConfigDTO::getSchemeList).orElse(Collections.emptyList());
+        List<String> schemeUidList = schemeList.stream().map(CreativeSchemeListOptionRespVO::getUid).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(schemeUidList)) {
             List<CreativeSchemeRespVO> schemeRespVOS = creativeSchemeService.list(schemeUidList);
             List<String> tags = schemeRespVOS.stream().map(CreativeSchemeRespVO::getTags).reduce(new ArrayList<>(), (a, b) -> {

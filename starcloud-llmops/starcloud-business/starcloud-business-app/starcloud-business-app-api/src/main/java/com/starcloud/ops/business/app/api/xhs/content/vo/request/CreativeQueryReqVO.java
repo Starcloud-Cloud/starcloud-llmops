@@ -29,6 +29,11 @@ public class CreativeQueryReqVO {
      */
     private Boolean retryProcess;
 
+    /**
+     * 是否是测试任务
+     */
+    private Boolean isTest;
+
 
     public Boolean valid() {
         return !StringUtil.isBlank(type) && CreativeContentTypeEnum.contain(type);

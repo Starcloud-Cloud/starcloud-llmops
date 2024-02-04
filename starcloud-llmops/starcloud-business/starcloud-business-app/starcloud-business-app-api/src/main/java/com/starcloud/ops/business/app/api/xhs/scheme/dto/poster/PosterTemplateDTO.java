@@ -1,8 +1,9 @@
-package com.starcloud.ops.business.app.api.xhs.scheme.dto;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto.poster;
 
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,8 +25,8 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "CreativeImageTemplateDTO", description = "创作中心图片模板对象")
-public class CreativeImageTemplateDTO implements java.io.Serializable {
+@Schema(name = "PosterTemplateDTO", description = "创作中心图片模板对象")
+public class PosterTemplateDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 20366484377479364L;
 
@@ -44,10 +45,34 @@ public class CreativeImageTemplateDTO implements java.io.Serializable {
     private String name;
 
     /**
+     * 应用UID
+     */
+    @Schema(description = "图片序号")
+    private Integer index;
+
+    /**
+     * 是否是主图
+     */
+    @Schema(description = "是否是主图")
+    private Boolean isMain;
+
+    /**
      * 图片数量
      */
     @Schema(description = "图片数量")
     private Integer imageNumber;
+
+    /**
+     * 标题生成模式
+     */
+    @Schema(description = "标题生成模式")
+    private String titleGenerateMode;
+
+    /**
+     * 标题生成规则
+     */
+    @Schema(description = "标题生成要求")
+    private String titleGenerateRequirement;
 
     /**
      * 示例图片
@@ -59,6 +84,15 @@ public class CreativeImageTemplateDTO implements java.io.Serializable {
      * 图片模板变量
      */
     @Schema(description = "图片模板变量")
-    private List<VariableItemRespVO> variables;
+    private List<PosterVariableDTO> variableList;
 
+    /**
+     * 校验
+     */
+    public void validate() {
+        if (StrUtil.isBlank(id)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "海报ID不能为空！"));
+        }
+        variableList.forEach(PosterVariableDTO::validate);
+    }
 }

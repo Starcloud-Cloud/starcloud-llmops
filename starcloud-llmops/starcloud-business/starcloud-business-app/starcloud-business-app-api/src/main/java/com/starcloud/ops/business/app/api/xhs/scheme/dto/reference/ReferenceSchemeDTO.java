@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.xhs.scheme.dto;
+package com.starcloud.ops.business.app.api.xhs.scheme.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,8 +22,8 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "CreativeSchemeReferenceDTO", description = "创作方案配置")
-public class CreativeSchemeReferenceDTO implements java.io.Serializable {
+@Schema(name = "ReferenceSchemeDTO", description = "创作方案配置")
+public class ReferenceSchemeDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -8215160775720598169L;
 
@@ -70,7 +70,7 @@ public class CreativeSchemeReferenceDTO implements java.io.Serializable {
      * 参考图片
      */
     @Schema(description = "图片")
-    private List<ReferenceImageDTO> images;
+    private List<ReferenceImageDTO> imageList;
 
 
 }

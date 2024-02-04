@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.plan.dto;
 
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,5 +55,5 @@ public class CreativePlanImageExecuteDTO implements java.io.Serializable {
      * 图片生成参数
      */
     @Schema(description = "图片生成参数")
-    private List<VariableItemRespVO> params;
+    private List<PosterVariableDTO> params;
 }
