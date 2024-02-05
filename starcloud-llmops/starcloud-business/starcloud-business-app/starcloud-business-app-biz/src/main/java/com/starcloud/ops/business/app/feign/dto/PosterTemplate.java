@@ -18,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Schema(name = "PosterTemplateListDTO", description = "海报模板列表")
-public class PosterTemplateDTO implements java.io.Serializable {
+public class PosterTemplate implements java.io.Serializable {
 
     private static final long serialVersionUID = -3326228285861270645L;
 

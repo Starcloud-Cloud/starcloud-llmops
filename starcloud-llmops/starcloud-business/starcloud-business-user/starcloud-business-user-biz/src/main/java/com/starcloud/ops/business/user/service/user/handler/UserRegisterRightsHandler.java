@@ -49,7 +49,7 @@ public class UserRegisterRightsHandler implements UserRegisterHandler{
         // 发放新人优惠券
         couponApi.takeCouponByRegister(adminUserDO.getId());
 
-        sendSocialMsgService.sendInviteMsg(adminUserDO.getId());
+//        sendSocialMsgService.sendInviteMsg(adminUserDO.getId());
 
         log.info("【afterUserRegister】用户注册，新增用户注册权益成功");
     }

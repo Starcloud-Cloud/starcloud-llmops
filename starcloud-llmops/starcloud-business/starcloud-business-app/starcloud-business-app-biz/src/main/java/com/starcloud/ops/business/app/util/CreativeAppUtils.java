@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -19,21 +18,29 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRespo
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeReferenceDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.StandardSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -41,7 +48,10 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatMessage;
@@ -50,11 +60,12 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -111,18 +122,17 @@ public class CreativeAppUtils {
     /**
      * 获取小红书应用执行参数
      *
-     * @param scheme     创作任务
-     * @param planConfig 计划配置
-     * @param appUid     应用UID
+     * @param scheme             创作任务
+     * @param listOptionResponse 计划配置
+     * @param appUid             应用UID
      * @return 应用执行参数
      */
-    public static CreativePlanAppExecuteDTO getXhsAppExecuteRequest(CreativeSchemeRespVO scheme, CreativePlanConfigDTO planConfig, String appUid) {
+    public static CreativePlanAppExecuteDTO getXhsAppExecuteRequest(CreativeSchemeRespVO scheme, CreativeSchemeListOptionRespVO listOptionResponse, String appUid) {
 
         CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
         CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
 
-        Map<String, List<VariableItemRespVO>> paramMap = planConfig.getParamMap();
-        List<VariableItemRespVO> variableList = Optional.ofNullable(paramMap.get(scheme.getUid())).orElse(Lists.newArrayList());
+        List<VariableItemRespVO> variableList = CollectionUtil.emptyIfNull(listOptionResponse.getVariables());
 
         List<VariableItemRespVO> params = Lists.newArrayList();
         params.add(ofInputVariableItem(NAME, scheme.getName()));
@@ -170,18 +180,38 @@ public class CreativeAppUtils {
      * @param referenceList 处理参考内容
      * @return 参考内容
      */
-    public static List<CreativeSchemeReferenceDTO> handlerReferences(List<CreativeSchemeReferenceDTO> referenceList) {
+    public static List<ReferenceSchemeDTO> handlerReferences(List<ReferenceSchemeDTO> referenceList) {
         return CollectionUtil.emptyIfNull(referenceList).stream().map(item -> {
-            CreativeSchemeReferenceDTO reference = new CreativeSchemeReferenceDTO();
+            ReferenceSchemeDTO reference = new ReferenceSchemeDTO();
             reference.setTitle(item.getTitle());
             reference.setContent(item.getContent());
-            reference.setImages(null);
+            reference.setImageList(null);
             reference.setLink(null);
             reference.setSource(null);
             reference.setId(null);
             return reference;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * 处理参考内容
+     *
+     * @param referenceList 处理参考内容
+     * @return 参考内容
+     */
+    public static List<ReferenceSchemeEntity> handlerReferencesEntity(List<ReferenceSchemeEntity> referenceList) {
+        return CollectionUtil.emptyIfNull(referenceList).stream().map(item -> {
+            ReferenceSchemeEntity reference = new ReferenceSchemeEntity();
+            reference.setTitle(item.getTitle());
+            reference.setContent(item.getContent());
+            reference.setImageList(null);
+            reference.setLink(null);
+            reference.setSource(null);
+            reference.setId(null);
+            return reference;
+        }).collect(Collectors.toList());
+    }
+
 
     /**
      * 处理需求文本，变量填充等
@@ -193,10 +223,10 @@ public class CreativeAppUtils {
     public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemRespVO> variableList) {
         String demand = copyWritingTemplate.getDemand();
         if (CollectionUtil.isEmpty(variableList)) {
-            variableList = Optional.ofNullable(copyWritingTemplate.getVariables()).orElse(Lists.newArrayList());
+            variableList = Optional.ofNullable(copyWritingTemplate.getVariableList()).orElse(Lists.newArrayList());
         }
         Map<String, VariableItemRespVO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemRespVO::getField, item -> item));
-        for (VariableItemRespVO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariables())) {
+        for (VariableItemRespVO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariableList())) {
             String field = variableItem.getField();
             VariableItemRespVO variable = variableMap.getOrDefault(field, variableItem);
             Object value = variable.getValue();
@@ -385,9 +415,9 @@ public class CreativeAppUtils {
                 if (REFERS.equals(variableItem.getField())) {
                     Object value = appParams.get(variableItem.getField());
                     if (value instanceof String && StringUtils.isNoneBlank((String) value)) {
-                        TypeReference<List<CreativeSchemeReferenceDTO>> typeReference = new TypeReference<List<CreativeSchemeReferenceDTO>>() {
+                        TypeReference<List<ReferenceSchemeDTO>> typeReference = new TypeReference<List<ReferenceSchemeDTO>>() {
                         };
-                        List<CreativeSchemeReferenceDTO> refers = JSONUtil.toBean((String) value, typeReference, false);
+                        List<ReferenceSchemeDTO> refers = JSONUtil.toBean((String) value, typeReference, false);
                         String refs = JSONUtil.toJsonStr(handlerReferences(refers));
                         variableItem.setValue(refs);
                         variableItem.setDefaultValue(refs);
@@ -566,8 +596,8 @@ public class CreativeAppUtils {
      * @param label 值
      * @return 文本变量
      */
-    public static VariableItemRespVO ofInputVariable(String field, String label, Integer order, Integer count) {
-        VariableItemRespVO variableItem = new VariableItemRespVO();
+    public static PosterVariableDTO ofInputVariable(String field, String label, Integer order, Integer count) {
+        PosterVariableDTO variableItem = new PosterVariableDTO();
         variableItem.setField(field);
         variableItem.setLabel(label);
         variableItem.setDescription(label);
@@ -599,46 +629,61 @@ public class CreativeAppUtils {
         return content.toString();
     }
 
-    public static AppRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration,
-                                                  List<String> imageUrlList,
-                                                  AppRespVO appResponse,
-                                                  Map<String, CreativeImageTemplateDTO> posterMap,
-                                                  Integer index) {
+    public static AppMarketRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration, AppMarketRespVO appResponse) {
+        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(customConfiguration.getSteps());
+        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = steps.stream()
+                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
 
-        String appUid = customConfiguration.getAppUid();
-        List<CreativeSchemeStepDTO> schemeSteps = customConfiguration.getSteps();
-
-        // 工作流配置信息
         WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
-
-        List<WorkflowStepWrapperRespVO> stepWrappers = workflowConfig.getSteps();
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrappers) {
-            String field = stepWrapper.getField();
-            Optional<CreativeSchemeStepDTO> stepOptional = schemeSteps.stream().filter(item -> field.equals(item.getId())).findFirst();
-            if (!stepOptional.isPresent()) {
+        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
+            if (!stepEntityOptional.isPresent()) {
                 continue;
             }
-
-            CreativeSchemeStepDTO schemeStep = stepOptional.get();
-            Map<String, Object> schemeVariableMap = toAppVariableMap(schemeStep, imageUrlList, index);
-
-            stepWrapper.putVariable(schemeVariableMap);
-
+            BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
+            schemeStepEntity.transformAppStep(stepWrapper);
         }
-        workflowConfig.setSteps(stepWrappers);
+        workflowConfig.setSteps(stepWrapperList);
         appResponse.setWorkflowConfig(workflowConfig);
         return appResponse;
     }
 
-    public static Map<String, Object> toAppVariableMap(CreativeSchemeStepDTO schemeStep, List<String> imageUrlList, Integer index) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("REFERS", JSONUtil.toJsonStr(handlerReferences(schemeStep.getRefers())));
-        map.put("GENERATE_MODE", schemeStep.getGenerateMode());
-        map.put("REQUIREMENT", handlerRequirement(schemeStep.getRequirement(), schemeStep.getVariables()));
-        map.put("PARAGRAPH_COUNT", schemeStep.getParagraphCount());
-        map.put("POSTER_MATERIAL", JSONUtil.toJsonStr(imageUrlList));
-        map.put("POSTER_STYLE", JSONUtil.toJsonStr(schemeStep.getImageStyles().get(index)));
-        return map;
+    public static AppMarketRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
+                                                         PosterStyleDTO posterStyle,
+                                                         AppMarketRespVO appResponse,
+                                                         List<String> useImageList) {
+
+        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
+                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
+
+        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+        // 段落步骤。
+        Optional<BaseSchemeStepDTO> paragraphOptional = schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                PosterStyleDTO style;
+                if (!paragraphOptional.isPresent()) {
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList);
+                } else {
+                    ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) paragraphOptional.get();
+                    Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount);
+                }
+                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(style)));
+            } else {
+                Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
+                if (!stepEntityOptional.isPresent()) {
+                    continue;
+                }
+                BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
+                schemeStepEntity.transformAppStep(stepWrapper);
+            }
+        }
+        workflowConfig.setSteps(stepWrapperList);
+        appResponse.setWorkflowConfig(workflowConfig);
+        return appResponse;
     }
 
     /**
@@ -655,5 +700,55 @@ public class CreativeAppUtils {
             requirement = requirement.replace("{" + field + "}", String.valueOf(value));
         }
         return requirement;
+    }
+
+
+    public static List<BaseSchemeStepDTO> mergeSchemeStepVariableList(List<BaseSchemeStepDTO> steps, List<BaseSchemeStepDTO> planStepList) {
+        if (CollectionUtil.isEmpty(planStepList)) {
+            return steps;
+        }
+
+        Map<String, BaseSchemeStepDTO> stepMap = planStepList.stream().collect(Collectors.toMap(BaseSchemeStepDTO::getName, Function.identity()));
+
+        List<BaseSchemeStepDTO> result = new ArrayList<>();
+
+        for (BaseSchemeStepDTO step : steps) {
+            if ((step instanceof AssembleSchemeStepDTO) || (step instanceof PosterSchemeStepDTO)) {
+                result.add(step);
+                continue;
+            }
+            if (!stepMap.containsKey(step.getName()) || Objects.isNull(stepMap.get(step.getName()))) {
+                result.add(step);
+                continue;
+            }
+
+            if (step instanceof StandardSchemeStepDTO) {
+                StandardSchemeStepDTO contentSchemeStep = (StandardSchemeStepDTO) step;
+                StandardSchemeStepDTO schemeStep = (StandardSchemeStepDTO) stepMap.get(step.getName());
+                contentSchemeStep.setVariableList(mergeVariable(contentSchemeStep.getVariableList(), schemeStep.getVariableList()));
+                result.add(contentSchemeStep);
+            }
+        }
+
+        return result;
+    }
+
+    private static List<VariableItemDTO> mergeVariable(List<VariableItemDTO> variableList, List<VariableItemDTO> variables) {
+        Map<String, VariableItemDTO> variableMap = variables.stream().collect(Collectors.toMap(VariableItemDTO::getField, Function.identity()));
+        for (VariableItemDTO variableItem : CollectionUtil.emptyIfNull(variableList)) {
+            // 如果存在变量，就覆盖
+            if (variableMap.containsKey(variableItem.getField())) {
+                Object value = variableMap.get(variableItem.getField()).getValue();
+                if (Objects.nonNull(value)) {
+                    variableItem.setValue(value);
+                } else {
+                    // 如果变量值为空，就使用默认值
+                    variableItem.setValue(Objects.nonNull(variableItem.getValue()) ? variableItem.getValue() : variableItem.getDefaultValue());
+                }
+            } else {
+                variableItem.setValue(Objects.nonNull(variableItem.getValue()) ? variableItem.getValue() : variableItem.getDefaultValue());
+            }
+        }
+        return variableList;
     }
 }

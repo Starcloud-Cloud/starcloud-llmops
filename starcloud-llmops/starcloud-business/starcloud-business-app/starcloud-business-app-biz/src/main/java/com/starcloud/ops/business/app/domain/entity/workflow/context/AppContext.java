@@ -11,8 +11,8 @@ import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -20,6 +20,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotBlank;
@@ -42,6 +47,28 @@ import java.util.Optional;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppContext {
+
+
+    private static ExpressionParser SpelParser = new SpelExpressionParser();
+
+
+    private static ParserContext ParserContext = new ParserContext() {
+        @Override
+        public boolean isTemplate() {
+            return true;
+        }
+
+        @Override
+        public String getExpressionPrefix() {
+            return "#{";
+        }
+
+        @Override
+        public String getExpressionSuffix() {
+            return "}";
+        }
+    };
+
 
     /**
      * 步骤前缀
@@ -179,8 +206,42 @@ public class AppContext {
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues() {
 
+        return this.getContextVariablesValues(this.getStepId());
+    }
+
+    /**
+     * 获取当前步骤前最后一个适配的handler的变量结果
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getStepResponseData(Class<? extends BaseActionHandler> actionHandler) {
+
         // 获取当前步骤前的所有变量的值
-        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.stepId);
+        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.getStepId());
+
+        Object data = Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).stream().filter(wrapper -> {
+            return actionHandler.getSimpleName().equals(wrapper.getFlowStep().getHandler());
+        }).findFirst().map(wrapper -> {
+            Map<String, Object> params = Optional.ofNullable(wrapper.getContextVariablesValues(null)).orElse(MapUtil.empty());
+            return params.getOrDefault(wrapper.getStepCode() + "._DATA", null);
+        }).orElse(null);
+
+        return data;
+    }
+
+    /**
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Map<String, Object> getContextVariablesValues(String stepId) {
+
+        // 获取当前步骤前的所有变量的值
+        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
 
         Map<String, Object> allVariablesValues = MapUtil.newHashMap();
 
@@ -191,16 +252,27 @@ public class AppContext {
             allVariablesValues.putAll(Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()));
         });
 
-        WorkflowStepWrapper wrapper = this.getStepWrapper(this.stepId);
+        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
         //当前步骤的所有变量
         Map<String, Object> variables = wrapper.getContextVariablesValues(null);
 
         Map<String, Object> fieldVariables = new HashMap<>();
         Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
-            String filedKey = StrUtil.replace(entrySet.getKey(), this.stepId + ".", "");
+            String filedKey = StrUtil.replace(entrySet.getKey(), stepId + ".", "");
             filedKey = StrUtil.replace(filedKey, this.stepId, "");
-            fieldVariables.put(filedKey, StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues));
+
+            Object value = entrySet.getValue();
+            if (value != null) {
+                //做一次字符串替换， {}会被替换掉
+                String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
+                //做一次spel，spel 语法会被替换掉
+                StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
+                Expression exp = SpelParser.parseExpression(val, ParserContext);
+                value = exp.getValue(context);
+            }
+
+            fieldVariables.put(filedKey, value);
         });
 
         return fieldVariables;
@@ -214,8 +286,24 @@ public class AppContext {
      */
     @JsonIgnore
     @JSONField(serialize = false)
+    public void setActionResponse(String stepId, ActionResponse response) {
+        this.app.setActionResponse(stepId, response);
+    }
+
+    /**
+     * 执行成功后，响应更新
+     *
+     * @param response 响应
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void setActionResponse(ActionResponse response) {
         this.app.setActionResponse(this.stepId, response);
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String key, Object value) {
+        this.app.putVariable(this.stepId, key, value);
+    }
 }

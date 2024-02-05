@@ -184,7 +184,7 @@ public interface CreativeErrorCodeConstants {
     /**
      * 不支持的图片模板或者图片模板不存在
      */
-    ErrorCode POSTER_NOT_SUPPORTED = new ErrorCode(750100113, "不支持的图片模板或者图片模板不存在({})！");
+    ErrorCode POSTER_NOT_SUPPORTED = new ErrorCode(750100113, "包含段落步骤情况下，必须包含生成段落的图片模板！");
 
     /**
      * 图片模板不存在

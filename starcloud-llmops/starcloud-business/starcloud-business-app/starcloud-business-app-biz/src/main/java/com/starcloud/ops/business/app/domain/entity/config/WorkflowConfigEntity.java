@@ -6,6 +6,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.validate.AppValidate;
 import lombok.Data;
@@ -111,4 +113,11 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         }
     }
 
+    public void putVariable(String stepId, String key, Object value) {
+        for (WorkflowStepWrapper step : this.steps) {
+            if (step.getName().equals(stepId)) {
+                step.putVariable(key, value);
+            }
+        }
+    }
 }

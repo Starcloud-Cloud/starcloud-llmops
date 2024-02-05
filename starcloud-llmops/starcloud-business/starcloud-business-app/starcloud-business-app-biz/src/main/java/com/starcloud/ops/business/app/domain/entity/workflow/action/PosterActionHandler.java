@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -12,23 +15,39 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterStyleEntity;
-import com.starcloud.ops.business.app.domain.entity.poster.PosterTemplateEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterVariableEntity;
+import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
+import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.MultiModalMessage;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -43,6 +62,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @TaskComponent
 public class PosterActionHandler extends BaseActionHandler {
+
+    private static final String IMAGE_URL_LIMIT_PIXEL = "?x-oss-process=image/resize,m_lfit,w_440,h_440";
 
     /**
      * 线程池
@@ -98,25 +119,28 @@ public class PosterActionHandler extends BaseActionHandler {
         log.info("海报生成 Action 执行开始......");
 
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-
-        // 图片类型参数
-        String posterMode = String.valueOf(params.getOrDefault("POSTER_MODE", CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name()));
         // 海报模版参数
-        String posterStyle = String.valueOf(params.getOrDefault("POSTER_STYLE", "{}"));
-        // 海报素材参数
-        String posterMaterial = String.valueOf(params.getOrDefault("POSTER_MATERIAL", "[]"));
-        // 海报内容参数
-        String posterContent = String.valueOf(params.getOrDefault("POSTER_CONTENT", "{}"));
-
+        String posterStyle = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_STYLE, "{}"));
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
-        // 转为图片素材对象
-        List<String> posterMaterialList = JSONUtil.toList(posterMaterial, String.class);
+
+        // 获取段落配置，如果有段落配置，则说明是段落模版
+        List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);
+        // 获取生成的标题
+        String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
+        // 获取整个拼接内容
+        String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
+        // 找到段落配置，说明是段落模版
+        if (CollectionUtil.isNotEmpty(paragraphList)) {
+            // 处理海报模版参数
+            style.assemble(title, paragraphList);
+        }
+
+        // 处理图片标题生成
+        handlerPosterTitle(style, title, content);
 
         // 校验海报模版
         style.validate();
-        // 处理海报模版参数
-        style.assemble(posterMode, posterMaterialList, posterContent);
 
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
@@ -139,6 +163,7 @@ public class PosterActionHandler extends BaseActionHandler {
             response.setErrorMsg(failure.getErrorMsg());
             response.setType(failure.getType());
             response.setIsShow(Boolean.TRUE);
+            response.setMessage(JSONUtil.toJsonStr(style));
             response.setStepConfig(JSONUtil.toJsonStr(style));
             response.setCostPoints(0);
             return response;
@@ -160,6 +185,150 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 处理图片标题
+     *
+     * @param posterStyle 海报风格
+     * @param title       文案标题
+     * @param content     文案内容
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private void handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
+        List<PosterTemplateEntity> templates = new ArrayList<>();
+        List<PosterTemplateEntity> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+        for (PosterTemplateEntity posterTemplate : templateList) {
+            // 默认模式生成
+            String titleGenerateMode = Optional.ofNullable(posterTemplate.getTitleGenerateMode()).orElse(PosterTitleModeEnum.DEFAULT.name());
+            if (PosterTitleModeEnum.DEFAULT.name().equals(titleGenerateMode)) {
+                List<PosterVariableEntity> variables = new ArrayList<>();
+                List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
+                for (PosterVariableEntity variable : variableList) {
+                    if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
+                        variable.setValue(title);
+                    }
+                    // 复制变量, 添加到模版列表中
+                    variables.add(SerializationUtils.clone(variable));
+                }
+                posterTemplate.setVariableList(variables);
+
+            } else if (PosterTitleModeEnum.AI.name().equals(titleGenerateMode)) {
+                this.getAppContext().putVariable(CreativeConstants.TITLE, title);
+                this.getAppContext().putVariable(CreativeConstants.CONTENT, content);
+                this.getAppContext().putVariable(CreativeConstants.REQUIREMENT, posterTemplate.getTitleGenerateRequirement());
+                // 执行多模态生成海报标题副标题
+                MultimodalPosterTitleResponse response = multimodalPosterTitle(posterTemplate);
+                if (!response.getSuccess()) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(350400200, response.errorMessage));
+                }
+                // 获取结果，并且进行变量替换
+                PosterTitleDTO posterTitle = response.getPosterTitle();
+
+                List<PosterVariableEntity> variables = new ArrayList<>();
+                // 变量替换
+                List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
+                for (PosterVariableEntity variable : variableList) {
+                    if (CreativeImageUtils.TITLE.equals(variable.getField())) {
+                        variable.setValue(posterTitle.getImgTitle());
+                    }
+                    if (CreativeImageUtils.SUB_TITLE.equals(variable.getField())) {
+                        variable.setValue(posterTitle.getImgSubTitle());
+                    }
+                    if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
+                        variable.setValue(title);
+                    }
+                    // 复制变量, 添加到模版列表中
+                    variables.add(SerializationUtils.clone(variable));
+                }
+                posterTemplate.setVariableList(variables);
+            } else {
+                log.error("不支持的图片标题生成模式: {}", titleGenerateMode);
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "不支持的图片标题生成模式: " + titleGenerateMode));
+            }
+            templates.add(SerializationUtils.clone(posterTemplate));
+        }
+        posterStyle.setTemplateList(templates);
+    }
+
+    /**
+     * 多模态处理
+     *
+     * @param posterTemplate 海报模版
+     */
+    public MultimodalPosterTitleResponse multimodalPosterTitle(PosterTemplateEntity posterTemplate) {
+        try {
+            // 获取变量值
+            Map<String, Object> variablesValues = this.getAppContext().getContextVariablesValues();
+
+            // 构建消息列表
+            List<Map<String, Object>> messages = new ArrayList<>();
+
+            // 获取标题提示
+            String prompt = String.valueOf(variablesValues.getOrDefault("PROMPT", "图片上画了什么？"));
+            messages.add(Collections.singletonMap(MultiModalMessage.MESSAGE_TEXT_KEY, prompt));
+
+            // 图片变量列表
+            List<PosterVariableEntity> imageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
+                    .filter(item -> "IMAGE".equals(item.getType())).collect(Collectors.toList());
+            // 处理需要上传的图片
+            List<String> urlList = new ArrayList<>();
+            // 如果图片数量大于2，只取前2个，否则取全部
+            for (int i = 0; i < imageVariableList.size(); i++) {
+                if (i > 1) {
+                    break;
+                }
+                PosterVariableEntity imageVariable = imageVariableList.get(i);
+                Object value = imageVariable.getValue();
+                if (Objects.isNull(value)) {
+                    continue;
+                }
+                String imageUrl = String.valueOf(value) + IMAGE_URL_LIMIT_PIXEL;
+                urlList.add(imageUrl);
+                messages.add(Collections.singletonMap(MultiModalMessage.MESSAGE_IMAGE_KEY, imageUrl));
+            }
+
+            // 调用通义千问VL模型
+            HumanMessage humanMessage = new HumanMessage(messages);
+            ChatVLQwen chatVLQwen = new ChatVLQwen();
+            String call = chatVLQwen.call(Arrays.asList(humanMessage));
+
+            if (log.isDebugEnabled()) {
+                log.info("通义千问多模态执行结果: {}", call);
+            }
+
+            // 判断结果是否为空
+            if (StrUtil.isBlank(call)) {
+                log.error("通义千问多模态执行失败：标题生成结果为空");
+                return MultimodalPosterTitleResponse.failure("350400200", "标题生成结果为空！", prompt, urlList);
+            }
+
+            // 解析结果
+            if (!call.contains("标题") || !call.contains("副标题")) {
+                return MultimodalPosterTitleResponse.failure("350400200", "标题生成格式不正确！", prompt, urlList);
+            }
+            Integer titleIndex = call.indexOf("标题");
+            Integer subTitleIndex = call.indexOf("副标题");
+            String title = call.substring(titleIndex + 3, subTitleIndex).trim();
+            String subTitle = call.substring(subTitleIndex + 4).trim();
+
+            PosterTitleDTO posterTitle = new PosterTitleDTO();
+            posterTitle.setImgTitle(title);
+            posterTitle.setImgSubTitle(subTitle);
+
+            // 构建结果并且返回
+            MultimodalPosterTitleResponse response = new MultimodalPosterTitleResponse();
+            response.setSuccess(Boolean.TRUE);
+            response.setPrompt(prompt);
+            response.setUrlList(urlList);
+            response.setCostPoints(1);
+            response.setPosterTitle(posterTitle);
+            return response;
+        } catch (Exception exception) {
+            log.error("通义千问多模态执行失败：{}", exception.getMessage());
+            return MultimodalPosterTitleResponse.failure("350400200", exception.getMessage());
+        }
+    }
+
+    /**
      * 生成海报图片
      *
      * @param posterTemplate 海报模版
@@ -175,8 +344,8 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariables()).stream()
-                    .collect(Collectors.toMap(VariableItemEntity::getField, VariableItemEntity::getValue));
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
+                    .collect(Collectors.toMap(PosterVariableEntity::getField, PosterVariableEntity::getValue));
             handlerRequest.setParams(params);
 
             // 构建请求
@@ -207,4 +376,82 @@ public class PosterActionHandler extends BaseActionHandler {
         }
     }
 
+    /**
+     * 多模态生成标题返回结果
+     */
+    @Data
+    @ToString
+    @EqualsAndHashCode
+    @NoArgsConstructor
+    public static class MultimodalPosterTitleResponse {
+
+        /**
+         * 是否成功
+         */
+        private Boolean success;
+
+        /**
+         * 错误码
+         */
+        private String errorCode;
+
+        /**
+         * 错误信息
+         */
+        private String errorMessage;
+
+        /**
+         * 消耗点数
+         */
+        private Integer costPoints;
+
+        /**
+         * 提示词
+         */
+        private String prompt;
+
+        /**
+         * 图片列表
+         */
+        private List<String> urlList;
+
+        /**
+         * 海报标题
+         */
+        private PosterTitleDTO posterTitle;
+
+        /**
+         * 失败返回结果
+         *
+         * @param errorCode    错误码
+         * @param errorMessage 错误信息
+         * @return 失败返回结果
+         */
+        public static MultimodalPosterTitleResponse failure(String errorCode, String errorMessage) {
+            MultimodalPosterTitleResponse response = new MultimodalPosterTitleResponse();
+            response.setSuccess(Boolean.FALSE);
+            response.setErrorCode(errorCode);
+            response.setErrorMessage(errorMessage);
+            response.setCostPoints(0);
+            return response;
+        }
+
+        /**
+         * 失败返回结果
+         *
+         * @param errorCode    错误码
+         * @param errorMessage 错误信息
+         * @return 失败返回结果
+         */
+        public static MultimodalPosterTitleResponse failure(String errorCode, String errorMessage, String prompt, List<String> urlList) {
+            MultimodalPosterTitleResponse response = new MultimodalPosterTitleResponse();
+            response.setSuccess(Boolean.FALSE);
+            response.setErrorCode(errorCode);
+            response.setErrorMessage(errorMessage);
+            response.setPrompt(prompt);
+            response.setUrlList(urlList);
+            response.setCostPoints(0);
+            return response;
+        }
+    }
 }

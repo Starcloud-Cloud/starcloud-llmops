@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @Slf4j
-public class CreativeImageCreativeThreadPoolHolder {
+public class PosterStyleThreadPoolHolder {
 
     /**
      * 阻塞队列

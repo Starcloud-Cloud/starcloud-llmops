@@ -26,6 +26,12 @@ public class CreativeContentRespVO {
     @Schema(description = "业务uid")
     private String businessUid;
 
+    /**
+     * 会话UID
+     */
+    @Schema(description = "会话UID")
+    private String conversationUid;
+
     @Schema(description = "文案模板Uid")
     private String copyWritingUid;
 
@@ -110,4 +116,16 @@ public class CreativeContentRespVO {
      */
     @Schema(description = "喜欢数量")
     private Boolean liked;
+
+    /**
+     * 是否是测试数据
+     */
+    @Schema(description = "是否是测试数据")
+    private Boolean isTest;
+
+    private Integer totalStep;
+
+    private Integer successStepCount;
+
+    private Integer currentStepIndex;
 }

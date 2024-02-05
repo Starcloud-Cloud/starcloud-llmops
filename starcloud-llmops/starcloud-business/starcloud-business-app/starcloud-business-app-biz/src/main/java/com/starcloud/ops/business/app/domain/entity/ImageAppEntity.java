@@ -131,11 +131,11 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             imageResponse.setFromScene(request.getScene());
             imageResponse.setFinishTime(new Date());
             // 扣除权益
-            Integer costPoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
+            Integer imagePoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
             adminUserRightsApi.reduceRights(
                     request.getUserId(), null,null,// 用户ID
                     AdminUserRightsTypeEnum.MAGIC_IMAGE, // 权益类型
-                    costPoints, // 权益点数
+                    imagePoints, // 权益点数
                     UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType(), // 业务类型
                     request.getConversationUid() // 会话ID
             );
@@ -147,7 +147,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
                 messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
-                messageRequest.setCostPoints(costPoints);
+                messageRequest.setImagePoints(imagePoints);
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
             });
             // 返回结果
@@ -310,6 +310,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setTotalPrice(new BigDecimal("0.0000"));
         messageRequest.setCurrency("USD");
         messageRequest.setCostPoints(0);
+        messageRequest.setImagePoints(0);
         messageRequest.setElapsed(0L);
         messageRequest.setStatus(LogStatusEnum.ERROR.name());
         messageRequest.setMediumUid(request.getMediumUid());

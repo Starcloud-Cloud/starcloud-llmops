@@ -26,7 +26,6 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.AppWorkflowService;
 import com.starcloud.ops.business.app.service.app.impl.AppServiceImpl;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -66,10 +65,6 @@ public class WorkflowTest extends BaseDbUnitTest {
 
     @Autowired
     private StoryEngine storyEngine;
-
-
-    @Autowired
-    private AppWorkflowService appWorkflowService;
 
     @MockBean
     private AdminUserService adminUserService;
@@ -187,45 +182,6 @@ public class WorkflowTest extends BaseDbUnitTest {
 
         appService.modify(appUpdateReqVO);
 
-    }
-
-
-    @Test
-    public void fireByAppTest() {
-
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO());
-
-    }
-
-    @Test
-    public void fireByAppStepTest() {
-        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title");
-    }
-
-
-    @Test
-    public void fireByAppStepStreamTest() {
-        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", mockHttpServletResponse);
-
-    }
-
-
-    @Test
-    public void fireByAppStepContentTest() {
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "content");
-    }
-
-
-    @Test
-    public void fireByAppStepRequestIdTest() {
-
-        appWorkflowService.fireByApp(appId, AppSceneEnum.WEB_MARKET, new AppReqVO(), "title", "requestId-test");
     }
 
 }

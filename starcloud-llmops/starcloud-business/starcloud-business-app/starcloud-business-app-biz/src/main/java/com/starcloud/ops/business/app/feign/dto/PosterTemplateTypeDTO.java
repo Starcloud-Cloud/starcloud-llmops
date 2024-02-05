@@ -74,5 +74,5 @@ public class PosterTemplateTypeDTO implements java.io.Serializable {
      * 海报模板类型下的海报模板
      */
     @Schema(description = "海报模板类型下的海报模板")
-    private List<PosterTemplateDTO> list;
+    private List<PosterTemplate> list;
 }

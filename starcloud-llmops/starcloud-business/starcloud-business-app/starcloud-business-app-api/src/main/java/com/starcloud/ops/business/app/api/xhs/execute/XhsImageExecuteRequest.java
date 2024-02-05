@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.xhs.execute;
 
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

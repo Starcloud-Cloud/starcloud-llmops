@@ -88,6 +88,11 @@ public class LogAppConversationInfoPO {
     private Integer costPoints;
 
     /**
+     * 消耗图片点数
+     */
+    private Integer imagePoints;
+
+    /**
      * 会话状态
      */
     private String status;

@@ -1,8 +1,14 @@
 package com.starcloud.ops.business.app.enums.xhs.scheme;
 
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -53,5 +59,20 @@ public enum CreativeSchemeModeEnum implements IEnumable<Integer> {
         this.code = code;
         this.label = label;
         this.tagType = tagType;
+    }
+
+    /**
+     * 获取类型枚举
+     *
+     * @return 类型枚举
+     */
+    public static List<Option> options() {
+        return Arrays.stream(values()).sorted(Comparator.comparingInt(CreativeSchemeModeEnum::ordinal))
+                .map(item -> {
+                    Option option = new Option();
+                    option.setLabel(item.getLabel());
+                    option.setValue(item.name());
+                    return option;
+                }).collect(Collectors.toList());
     }
 }

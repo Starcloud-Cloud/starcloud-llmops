@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -42,6 +42,12 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
     private String name;
 
     /**
+     * 创作方案模式
+     */
+    @Schema(description = "创作方案模式")
+    private String mode;
+
+    /**
      * 创作方案描述
      */
     @Schema(description = "创作方案描述")
@@ -52,6 +58,12 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作方案变量信息")
     private List<VariableItemRespVO> variables;
+
+    /**
+     * 创作方案步骤配置信息
+     */
+    @Schema(description = "方案步骤配置信息")
+    private List<BaseSchemeStepDTO> steps;
 
     /**
      * 创建时间

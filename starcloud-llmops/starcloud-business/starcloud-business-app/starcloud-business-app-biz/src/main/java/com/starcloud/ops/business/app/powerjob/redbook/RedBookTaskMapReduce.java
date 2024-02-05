@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -47,7 +49,6 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     private CreativePlanService creativePlanService;
 
     @Override
-    @TenantIgnore
     protected BaseTaskResult execute(PowerJobTaskContext powerJobTaskContext) {
         if (isRootTask()) {
             return runRoot(powerJobTaskContext);
@@ -67,6 +68,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      * @param baseTaskContext
      * @return
      */
+    @TenantJob
     @Override
     protected BaseTaskResult runRoot(PowerJobTaskContext baseTaskContext) {
 
@@ -87,6 +89,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         queryReq.setType(params.getRunType());
         queryReq.setRetryProcess(params.getRetryProcess());
         queryReq.setBathCount(params.getBathCount());
+        queryReq.setIsTest(params.getIsTest());
+
         List<CreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
         if (CollectionUtils.isEmpty(creativeContentList)) {
             return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS : 未找到待执行的任务");
@@ -121,20 +125,26 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     //单操作任务执行入口
     public BaseTaskResult runSub(BaseTaskContext powerJobTaskContext, SubTask subTask) {
         try {
-            TenantContextHolder.setIgnore(false);
-            TenantContextHolder.setTenantId(subTask.getTenantId());
-            List<Long> redBookTask = subTask.getRedBookIdList();
-            Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
 
             StringJoiner sj = new StringJoiner(",");
             List<Long> errorTasks = new ArrayList<>();
-            for (Long id : redBookTask) {
-                if (BooleanUtils.isTrue(resp.get(id))) {
-                    continue;
+            List<Long> redBookTask = subTask.getRedBookIdList();
+
+            //按租户去执行
+            TenantUtils.execute(subTask.getTenantId(), () -> {
+
+                Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
+
+                for (Long id : redBookTask) {
+                    if (BooleanUtils.isTrue(resp.get(id))) {
+                        continue;
+                    }
+                    errorTasks.add(id);
+                    sj.add(id.toString());
                 }
-                errorTasks.add(id);
-                sj.add(id.toString());
-            }
+
+            });
+
 
             //调用批量执行的服务，服务内部不要抛异常，执行失败的在后续的轮训中继续执行
 

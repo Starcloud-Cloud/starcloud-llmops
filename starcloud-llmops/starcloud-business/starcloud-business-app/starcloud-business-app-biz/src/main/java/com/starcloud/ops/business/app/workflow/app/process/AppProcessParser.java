@@ -28,10 +28,10 @@ public class AppProcessParser implements ConfigResource {
     private final String resourceName;
 
 
-//    @Override
-//    public ResourceTypeEnum getResourceType() {
-//        return ResourceTypeEnum.DYNAMIC_PROCESS;
-//    }
+    @Override
+    public ResourceTypeEnum getResourceType() {
+        return ResourceTypeEnum.DYNAMIC_PROCESS;
+    }
 
     public AppProcessParser(AppEntity app) {
         this.app = app;
@@ -54,7 +54,7 @@ public class AppProcessParser implements ConfigResource {
 
         List<WorkflowStepWrapper> stepWrappers = CollectionUtil.defaultIfEmpty(this.app.getWorkflowConfig().getSteps(), new ArrayList<>());
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
-            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getName())
+            ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getStepCode())
                     .property(JSONUtil.toJsonStr(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
                     .build();
 
@@ -87,7 +87,7 @@ public class AppProcessParser implements ConfigResource {
             String service = stepWrapper.getFlowStep().getHandler();
 
             processLink = processLink.nextService(Exp.b(e -> e.equals("req.uid", "'" + this.app.getUid() + "'")), service)
-                    .name(stepWrapper.getName())
+                    .name(stepWrapper.getStepCode())
                     .property(JSONUtil.toJsonStr(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
                     .build();
         }

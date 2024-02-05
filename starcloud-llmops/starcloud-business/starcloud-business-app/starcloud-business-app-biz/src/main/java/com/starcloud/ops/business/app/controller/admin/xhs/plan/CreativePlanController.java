@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.plan;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
@@ -10,7 +11,14 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQu
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanStatusReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -29,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -124,7 +133,32 @@ public class CreativePlanController {
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<Boolean> test(@Validated @RequestBody List<Long> ids) {
-        creativeContentService.execute(ids, CreativeContentTypeEnum.PICTURE.getCode(), Boolean.FALSE);
+        creativeContentService.execute(ids, CreativeContentTypeEnum.ALL.getCode(), Boolean.FALSE);
         return CommonResult.success(true);
     }
+
+    @PostMapping("/test1")
+    @Operation(summary = "执行创作计划", description = "执行创作计划")
+    @ApiOperationSupport(order = 80, author = "nacoyer")
+    public CommonResult<AppExecuteRespVO> test1(@Validated @RequestBody List<Long> ids) {
+        AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
+
+        executeReqVO.setAppUid("b190d6b601b44dd08ea3505de6c928ba");
+        executeReqVO.setUserId(186L);
+        executeReqVO.setAppReqVO(null);
+        executeReqVO.setScene(AppSceneEnum.WEB_MARKET.name());
+
+        executeReqVO.setTenantId(2L);
+
+        SseEmitter emitter = new SseEmitter(60000L);
+
+        //executeReqVO.setSseEmitter(emitter);
+
+        AppMarketEntity entity = (AppMarketEntity)AppFactory.factory(executeReqVO);
+
+        AppExecuteRespVO execute = entity.execute(executeReqVO);
+        return CommonResult.success(execute);
+    }
+
+
 }

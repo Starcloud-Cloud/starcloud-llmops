@@ -165,6 +165,9 @@ public class LogAppMessageBaseVO implements Serializable {
     @NotNull(message = "消耗积分【costPoints】是必填项！")
     private Integer costPoints = 0;
 
+    @Schema(description = "消耗图片点数")
+    private Integer imagePoints = 0;
+
     /**
      * 执行耗时
      */

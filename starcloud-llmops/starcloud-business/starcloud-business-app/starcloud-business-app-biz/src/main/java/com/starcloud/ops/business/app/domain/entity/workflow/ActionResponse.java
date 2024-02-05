@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.workflow;
 
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -104,5 +106,18 @@ public class ActionResponse {
      */
     private Object stepConfig;
 
+    public static ActionResponse failure(String errorCode, String errorMsg, Object stepConfig) {
+        ActionResponse actionResponse = new ActionResponse();
+        actionResponse.setSuccess(Boolean.FALSE);
+        actionResponse.setErrorCode(errorCode);
+        actionResponse.setErrorMsg(errorMsg);
+        actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
+        actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
+        actionResponse.setIsShow(Boolean.TRUE);
+        actionResponse.setMessage(" ");
+        actionResponse.setStepConfig(stepConfig);
+        actionResponse.setCostPoints(0);
+        return actionResponse;
+    }
 
 }
