@@ -63,6 +63,6 @@ public interface SellerSpriteService {
     /**
      * 品牌检测
      */
-    void AutoUpdateCookies();
+    void AutoUpdateCheckCookies();
 
 }

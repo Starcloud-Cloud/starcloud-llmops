@@ -4,7 +4,9 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
@@ -13,11 +15,6 @@ import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.microsoft.playwright.*;
-import com.microsoft.playwright.options.AriaRole;
-import com.microsoft.playwright.options.ColorScheme;
-import com.microsoft.playwright.options.Cookie;
-import com.microsoft.playwright.options.LoadState;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
@@ -29,13 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
-
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 /**
  * 卖家精灵实现类
@@ -79,6 +76,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
 
     private final static String DICT_DATA_TYPE = "SELLER_SPRITE";
+    private final static String SELLER_SPRITE_ACCOUNT = "SELLER_SPRITE_ACCOUNT";
 
     private final static String DICT_DATA_VALUE = "COOKIE";
 
@@ -192,43 +190,44 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 品牌检测
      */
     @Override
-    public void AutoUpdateCookies() {
-        // 取出账号池
-        List<DictDataDO> enabledDictDataListByType = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
-        // 遍历账号池
-        enabledDictDataListByType.forEach(cookie -> {
-            DictDataUpdateReqVO updateReqVO = new DictDataUpdateReqVO();
-            updateReqVO.setId(cookie.getId())
-                    .setSort(cookie.getSort())
-                    .setLabel(cookie.getLabel())
-                    .setValue(cookie.getValue())
-                    .setDictType(cookie.getDictType())
-                    .setStatus(cookie.getStatus())
-                    .setColorType(cookie.getColorType())
-                    .setCssClass(cookie.getCssClass());
+    public void AutoUpdateCheckCookies() {
+        // 取出COOKIE池
+        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
 
+        // 遍历账号池
+        cookies.forEach(cookie -> {
             // 判断当前 cookie 是否过期
-            if (!checkCookieIsEnable(cookie.getValue())) {
-                String cookieData = getCookie();
-                if (Objects.nonNull(cookieData)) {
-                    updateReqVO.setRemark(cookie.getRemark());
-                    // 过期则直接 更新
-                    dictDataService.updateDictData(updateReqVO);
-                }
+            if (!checkCookieIsEnable(cookie.getRemark())) {
+                updateSellStripeCookie(cookie);
             }
 
-            Long maxNums = RandomUtil.randomLong(6) + 6;
+            long maxNums = RandomUtil.randomLong(6) + 6;
             long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
             if (between >= maxNums) {
-                String cookieData = getCookie();
-                if (Objects.nonNull(cookieData)) {
-                    updateReqVO.setRemark(cookie.getRemark());
-                    // 过期则直接 更新
-                    dictDataService.updateDictData(updateReqVO);
-                }
+                updateSellStripeCookie(cookie);
             }
 
         });
+    }
+
+    private void updateSellStripeCookie(DictDataDO cookie) {
+        DictDataUpdateReqVO updateReqVO = new DictDataUpdateReqVO();
+        updateReqVO.setId(cookie.getId())
+                .setSort(cookie.getSort())
+                .setLabel(cookie.getLabel())
+                .setValue(cookie.getValue())
+                .setDictType(cookie.getDictType())
+                .setStatus(cookie.getStatus())
+                .setColorType(cookie.getColorType())
+                .setCssClass(cookie.getCssClass());
+        // 取出对应账号
+        DictDataDO account = dictDataService.getDictData(SELLER_SPRITE_ACCOUNT, cookie.getValue());
+        JSONObject accountJson = JSONUtil.parseObj(account.getRemark());
+        String cookieData = getCookie(accountJson.getStr("userName"), accountJson.getStr("pwd"));
+        if (Objects.nonNull(cookieData)) {
+            updateReqVO.setRemark(cookieData);
+            dictDataService.updateDictData(updateReqVO);
+        }
     }
 
 
@@ -246,7 +245,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
         // 获取第一个元素作为随机选择的值
         String cookie = cookies.get(0).getRemark();
-        // String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
         try {
             String result = HttpRequest.post(url).cookie(cookie)
                     .body(requestData)
@@ -331,64 +329,53 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         } catch (RuntimeException e) {
             log.error("系统支付通知信息发送失败", e);
         }
-
     }
 
 
     @Nullable
-    public static String getCookie() {
+    public String getCookie(String userName, String pwd) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("userName", userName);
+        map.put("pwd", pwd);
 
-        StringBuilder result = new StringBuilder();
+        String cookie;
+        try {
+            String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
+            JSONObject entries = JSONUtil.parseObj(result);
+            if ( !entries.getBool("success") &&!(Boolean) entries.get("success")){
+                cookie = null;
+                sendLoginFailMessage();
+            }else {
+                cookie = JSONUtil.toJsonStr(entries.get("data").toString());
+            }
 
-        try (Playwright playwright = Playwright.create()) {
-            Browser browser = playwright.firefox().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false));
-            BrowserContext context = browser.newContext();
-            Page page = context.newPage();
-            page.navigate("https://www.sellersprite.com/w/user/login");
-            page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("中文")).click(new Locator.ClickOptions()
-                    .setClickCount(3));
-            page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName("账号登录")).click();
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("手机号/邮箱/子账号")).click();
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("手机号/邮箱/子账号")).fill("starcloud02");
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("密 码")).click();
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("密 码")).fill("SXqTXRxi8hYRwt:");
-            page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("立即登录")).click();
-
-            // 等待页面加载完成
-            // page.waitForLoadState(LoadState.NETWORKIDLE);
-
-            page.navigate("https://www.sellersprite.com/v3/keyword-reverse");
-
-            // page.waitForLoadState(LoadState.NETWORKIDLE);
-
-            List<Cookie> cookies = page.context().cookies();
-
-            cookies.stream().forEach(cookie -> {
-                result.append(cookie.name + "=" + cookie.value + ";");
-            });
-            browser.close();
-
-            // =================脚本录制=====================
-            // Playwright playwright = Playwright.create();
-            // Browser browser = playwright.firefox().launch(
-            //         new BrowserType.LaunchOptions().setHeadless(false) //取消无头模式，我们才能看见浏览器操作
-            //                 .setSlowMo(100) //减慢执行速度，以免太快
-            //                 .setDevtools(false)); //打开浏览器开发者工具，默认不打开
-            // BrowserContext browserContext = browser.newContext(
-            //         new Browser.NewContextOptions().setColorScheme(ColorScheme.DARK) //设置浏览器主题，chromium设置了dark好像没用
-            //                 .setViewportSize(1200, 900) //设置浏览器打开后窗口大小
-            // );
-            // Page page = browserContext.newPage();
-            // page.navigate("https://www.sellersprite.com/w/user/login");
-            //
-            // page.pause();//暂停脚本
-            return result.toString();
-        } catch (Exception e) {
-            return null;
+        } catch (RuntimeException e) {
+            log.error("卖家精灵账号登录失败");
+            cookie = null;
         }
 
+        if (StrUtil.isBlank(cookie)) {
+            // 发送报警
+            sendLoginFailMessage();
+            return null;
+        }
+        return cookie;
     }
 
 
+    @TenantIgnore
+    private void sendLoginFailMessage() {
+        log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("NOTICE_SELLER_SPRITE_LOGIN_FAIL")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("卖家精灵登录失败，通知信息发送失败", e);
+        }
+    }
 }
