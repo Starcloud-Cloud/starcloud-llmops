@@ -299,6 +299,12 @@ public class UserDeptServiceImpl implements UserDeptService {
     }
 
     @Override
+    public UserDeptDO selectOwnerDept(Long userId) {
+        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+        return userDeptDO;
+    }
+
+    @Override
     public void recordRights(UserDeptDO deptDO, Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
         if (deptDO == null || deptDO.getDeptId() == null) {
             return;
