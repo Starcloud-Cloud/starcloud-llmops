@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.record.AdminUserRightsRecordPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsRecordDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsRecordMapper;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 
 /**
@@ -85,6 +85,18 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
         record.setUpdater(String.valueOf(userId));
         // }
         adminUserRightsRecordMapper.insert(record);
+    }
+
+    /**
+     * 用户权益统计
+     *
+     * @param teamId  团队 ID
+     * @param userIds 用户 ID，
+     */
+    @Override
+    public List<StatisticsUserRightReqDTO> calculateRightUsedByUser(Long teamId, List<Long> userIds) {
+        return adminUserRightsRecordMapper.calculateRightUsedByUser(teamId, userIds);
+
     }
 
 }

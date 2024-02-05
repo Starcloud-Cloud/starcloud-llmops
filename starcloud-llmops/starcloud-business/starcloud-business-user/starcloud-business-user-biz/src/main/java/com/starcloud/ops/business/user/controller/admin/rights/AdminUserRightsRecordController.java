@@ -4,10 +4,12 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsRespVO;
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsRecordService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -33,6 +37,9 @@ public class AdminUserRightsRecordController {
 
     @Resource
     private AdminUserRightsService adminUserRightsService;
+
+    @Resource
+    private AdminUserRightsRecordService adminUserRightsRecordService;
 
     @Resource
     private AdminUserService adminUserService;
@@ -52,5 +59,17 @@ public class AdminUserRightsRecordController {
                 convertSet(pageResult.getList(), AdminUserRightsDO::getUserId));
         return success(AdminUserRightsConvert.INSTANCE.convertPage(pageResult, users));
     }
+
+
+
+    @GetMapping("/record")
+    @Operation(summary = "接口测试")
+    public CommonResult<List<StatisticsUserRightReqDTO>> calculateRightUsedByUser() {
+        // 执行分页查询
+        List<StatisticsUserRightReqDTO> result = adminUserRightsRecordService.calculateRightUsedByUser(180L, Collections.singletonList(195L));
+        return success(result);
+    }
+
+
 
 }

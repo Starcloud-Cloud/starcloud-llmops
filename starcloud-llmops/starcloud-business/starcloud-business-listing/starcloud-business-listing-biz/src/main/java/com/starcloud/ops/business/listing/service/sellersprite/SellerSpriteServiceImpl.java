@@ -3,16 +3,18 @@ package com.starcloud.ops.business.listing.service.sellersprite;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataUpdateReqVO;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.microsoft.playwright.*;
-import com.microsoft.playwright.options.AriaRole;
-import com.microsoft.playwright.options.ColorScheme;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
@@ -21,15 +23,16 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Exten
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.KeywordMinerRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 /**
  * 卖家精灵实现类
@@ -70,6 +73,12 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * <p>
      */
     private final static String GET_LISTING_BY_ASIN = "listing-builder/get-listing-by-asin";
+
+
+    private final static String DICT_DATA_TYPE = "SELLER_SPRITE";
+    private final static String SELLER_SPRITE_ACCOUNT = "SELLER_SPRITE_ACCOUNT";
+
+    private final static String DICT_DATA_VALUE = "COOKIE";
 
 
     /**
@@ -177,6 +186,50 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
     }
 
+    /**
+     * 品牌检测
+     */
+    @Override
+    public void AutoUpdateCheckCookies() {
+        // 取出COOKIE池
+        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+
+        // 遍历账号池
+        cookies.forEach(cookie -> {
+            // 判断当前 cookie 是否过期
+            if (!checkCookieIsEnable(cookie.getRemark())) {
+                updateSellStripeCookie(cookie);
+            }
+
+            long maxNums = RandomUtil.randomLong(6) + 6;
+            long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
+            if (between >= maxNums) {
+                updateSellStripeCookie(cookie);
+            }
+
+        });
+    }
+
+    private void updateSellStripeCookie(DictDataDO cookie) {
+        DictDataUpdateReqVO updateReqVO = new DictDataUpdateReqVO();
+        updateReqVO.setId(cookie.getId())
+                .setSort(cookie.getSort())
+                .setLabel(cookie.getLabel())
+                .setValue(cookie.getValue())
+                .setDictType(cookie.getDictType())
+                .setStatus(cookie.getStatus())
+                .setColorType(cookie.getColorType())
+                .setCssClass(cookie.getCssClass());
+        // 取出对应账号
+        DictDataDO account = dictDataService.getDictData(SELLER_SPRITE_ACCOUNT, cookie.getValue());
+        JSONObject accountJson = JSONUtil.parseObj(account.getRemark());
+        String cookieData = getCookie(accountJson.getStr("userName"), accountJson.getStr("pwd"));
+        if (Objects.nonNull(cookieData)) {
+            updateReqVO.setRemark(cookieData);
+            dictDataService.updateDictData(updateReqVO);
+        }
+    }
+
 
     /**
      * 统一请求
@@ -185,8 +238,13 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @return
      */
     private String unifiedPostRequest(String url, String requestData) {
+        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
 
-        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
+        // 将列表转换为ArrayList，并随机打乱元素顺序
+        Collections.shuffle(cookies);
+
+        // 获取第一个元素作为随机选择的值
+        String cookie = cookies.get(0).getRemark();
         try {
             String result = HttpRequest.post(url).cookie(cookie)
                     .body(requestData)
@@ -203,8 +261,25 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         } catch (Exception e) {
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
+    }
 
+    private Boolean checkCookieIsEnable(String cookie) {
+        PrepareRequestDTO prepareRequestDTO = new PrepareRequestDTO().setMarket(1).setAsinList(Arrays.asList("B098T9ZFB5", "B09JW5FNVX", "B0B71DH45N", "B07MHHM31K", "B08RYQR1CJ"));
 
+        try {
+            String result = HttpRequest.post(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE).cookie(cookie)
+                    .body(JSONUtil.toJsonStr(prepareRequestDTO))
+                    .execute().body();
+            JSONObject entries = JSONUtil.parseObj(result);
+            if (!result.isEmpty() && entries.getBool("success", false)) {
+                return true;
+            } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                return false;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -214,7 +289,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * @return
      */
     private String unifiedGetRequest(String url, String requestData) {
-        String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
+        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+
+        // 将列表转换为ArrayList，并随机打乱元素顺序
+        Collections.shuffle(cookies);
+
+        // 获取第一个元素作为随机选择的值
+        String cookie = cookies.get(0).getRemark();
+        // String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
         try {
             String result = HttpRequest.get(url)
                     .body(requestData).cookie(cookie)
@@ -242,67 +324,58 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")
-                             .setTemplateCode("NOTICE_SELLER_SPRITE_WARN")
+                            .setTemplateCode("NOTICE_SELLER_SPRITE_WARN")
                             .setTemplateParams(templateParams));
         } catch (RuntimeException e) {
             log.error("系统支付通知信息发送失败", e);
         }
-
     }
 
 
-    public static void main(String[] args) {
-        Map<String,String> map = new HashMap();
-        //跳过下载浏览器，因为公司是内网，这个配置很重要
-        // map.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
-        // //跳过下载浏览器后配置浏览器位置
-        // map.put("PLAYWRIGHT_BROWSERS_PATH", "D:\\pw-browsers\\ms-playwright");
-        Playwright playwright = Playwright.create(new Playwright.CreateOptions().setEnv(map));
-        Browser browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions().setHeadless(false) //取消无头模式，我们才能看见浏览器操作
-                        .setSlowMo(100) //减慢执行速度，以免太快
-                        .setDevtools(false)); //打开浏览器开发者工具，默认不打开
-        // Browser browser = playwright.chromium().launch();
-        BrowserContext browserContext = browser.newContext(
-                new Browser.NewContextOptions().setColorScheme(ColorScheme.DARK) //设置浏览器主题，chromium设置了dark好像没用
-                        .setViewportSize(1200, 900) //设置浏览器打开后窗口大小
-        );
-        Page page = browserContext.newPage();
-        page.navigate("https://www.sellersprite.com/w/user/login");
+    @Nullable
+    public String getCookie(String userName, String pwd) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("userName", userName);
+        map.put("pwd", pwd);
 
-        page.pause();//暂停脚本
+        String cookie;
+        try {
+            String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
+            JSONObject entries = JSONUtil.parseObj(result);
+            if ( !entries.getBool("success") &&!(Boolean) entries.get("success")){
+                cookie = null;
+                sendLoginFailMessage();
+            }else {
+                cookie = JSONUtil.toJsonStr(entries.get("data").toString());
+            }
 
-    }
-    public String getCookie(){
-
-        // Playwright playwright = Playwright.create(new Playwright.CreateOptions().setEnv(map));
-        // Browser browser = playwright.chromium().launch(
-        //         new BrowserType.LaunchOptions().setHeadless(false) //取消无头模式，我们才能看见浏览器操作
-        //                 .setSlowMo(100) //减慢执行速度，以免太快
-        //                 .setDevtools(true)); //打开浏览器开发者工具，默认不打开
-        // // Browser browser = playwright.chromium().launch();
-        // BrowserContext browserContext = browser.newContext(
-        //         new Browser.NewContextOptions().setColorScheme(ColorScheme.DARK) //设置浏览器主题，chromium设置了dark好像没用
-        //                 .setViewportSize(1000, 500) //设置浏览器打开后窗口大小
-        // );
-
-
-        try (Playwright playwright = Playwright.create()) {
-            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false));
-            BrowserContext context = browser.newContext();
-            Page page = context.newPage();
-
-            page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName("账号登录")).click();
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("手机号/邮箱/子账号")).click();
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("手机号/邮箱/子账号")).fill("17835411844");
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("密 码")).click();
-            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("密 码")).fill("alancusack");
-            page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("立即登录")).click();
-            page.goBack();
+        } catch (RuntimeException e) {
+            log.error("卖家精灵账号登录失败");
+            cookie = null;
         }
-        return "1";
+
+        if (StrUtil.isBlank(cookie)) {
+            // 发送报警
+            sendLoginFailMessage();
+            return null;
+        }
+        return cookie;
     }
 
 
+    @TenantIgnore
+    private void sendLoginFailMessage() {
+        log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("NOTICE_SELLER_SPRITE_LOGIN_FAIL")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("卖家精灵登录失败，通知信息发送失败", e);
+        }
+    }
 }

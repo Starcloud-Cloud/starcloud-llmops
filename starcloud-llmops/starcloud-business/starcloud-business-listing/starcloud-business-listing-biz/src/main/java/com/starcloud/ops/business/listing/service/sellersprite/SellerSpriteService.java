@@ -60,4 +60,9 @@ public interface SellerSpriteService {
     void checkBrand();
 
 
+    /**
+     * 品牌检测
+     */
+    void AutoUpdateCheckCookies();
+
 }
