@@ -100,6 +100,13 @@ public interface UserDeptService {
     UserDeptDO selectSuperAdminId(Long currentUserId);
 
     /**
+     * 查询此用户是超级管理员的部门
+     * @param userId
+     * @return
+     */
+    UserDeptDO selectOwnerDept(Long userId);
+
+    /**
      * 记录消耗
      *
      * @param deptDO
