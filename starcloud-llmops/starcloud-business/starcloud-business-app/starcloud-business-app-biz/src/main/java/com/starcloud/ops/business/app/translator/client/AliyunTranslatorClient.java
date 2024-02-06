@@ -117,7 +117,7 @@ public class AliyunTranslatorClient {
                 continue;
             }
             if (str.length() > 1000) {
-                List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(str, 1000, Arrays.asList("\n", "\\.", "。", " "));
+                List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(str, 1000, Arrays.asList("\n", "\\.", "。"));
                 for (int j = 0; j < splitText.size(); j++) {
                     if (StringUtils.isBlank(splitText.get(j))) {
                         continue;
@@ -160,7 +160,7 @@ public class AliyunTranslatorClient {
             } else {
                 TranslateIndexDTO sub = treeMap.get(key);
                 TranslateIndexDTO root = rootMap.get(key / 100 * 100);
-                root.setTranslated(root.getTranslated() + "\n" + sub.getTranslated());
+                root.setTranslated(root.getTranslated() + "\n\n" + sub.getTranslated());
                 root.setWordCount(root.getWordCount() + sub.getWordCount());
             }
         }
