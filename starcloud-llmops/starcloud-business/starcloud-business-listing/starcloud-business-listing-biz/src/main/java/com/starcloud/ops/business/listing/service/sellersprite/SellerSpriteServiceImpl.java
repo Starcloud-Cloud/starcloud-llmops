@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
@@ -9,6 +10,8 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.date.DateUtils;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
@@ -16,6 +19,7 @@ import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataUpda
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
+import com.starcloud.ops.business.listing.dal.redis.no.SellerSpriteNoRedisDAO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
@@ -24,6 +28,7 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Keywo
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.afterNow;
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 /**
@@ -47,6 +53,17 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
     @Resource
     private DictDataService dictDataService;
+
+
+    @Resource
+    private SellerSpriteNoRedisDAO sellerSpriteNoRedisDAO;
+
+    @Resource
+    @Lazy // 循环依赖（自己依赖自己），避免报错
+    private SellerSpriteServiceImpl self;
+
+    public static final long SELLER_SPRITE_TIMEOUT_MILLIS = 30 * DateUtils.SECOND_MILLIS;
+
 
     /**
      * 卖家精灵 API 地址
@@ -190,10 +207,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 品牌检测
      */
     @Override
-    public void AutoUpdateCheckCookies() {
-        // 取出COOKIE池
-        List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
-
+    public void AutoUpdateCheckCookies(List<DictDataDO> cookieList) {
+        List<DictDataDO> cookies;
+        if (CollUtil.isEmpty(cookieList)) {
+            // 取出COOKIE池
+            cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        } else {
+            cookies = cookieList;
+        }
         // 遍历账号池
         cookies.forEach(cookie -> {
             // 判断当前 cookie 是否过期
@@ -239,32 +260,39 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedPostRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        String result = null;
+        int tag = 0;
 
-        // 将列表转换为ArrayList，并随机打乱元素顺序
-        Collections.shuffle(cookies);
-
-        // 获取第一个元素作为随机选择的值
-        String cookie = cookies.get(0).getRemark();
-        try {
-            String result = HttpRequest.post(url).cookie(cookie)
-                    .body(requestData)
-                    .execute().body();
-            JSONObject entries = JSONUtil.parseObj(result);
-            if (!result.isEmpty() && entries.getBool("success", false)) {
-                return JSONUtil.toJsonStr(entries.getObj("data"));
-            } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
-                log.error("卖家精灵登录失效");
-                this.sendMessage();
-                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
+        for (DictDataDO data : cookies) {
+            try {
+                String requestResult = HttpRequest.post(url).cookie(data.getRemark())
+                        .body(requestData)
+                        .execute().body();
+                JSONObject entries = JSONUtil.parseObj(requestResult);
+                if (!requestResult.isEmpty() && entries.getBool("success", false)) {
+                    result = JSONUtil.toJsonStr(entries.getObj("data"));
+                    break; // 找到有效 cookie，退出循环
+                } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                    tag++;
+                    self.executeCookieUpdateSync(data);
+                } else {
+                    tag++;
+                    log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
+                }
+            } catch (Exception e) {
+                tag++;
+                log.error("卖家精灵未知问题: ", e); // 记录异常信息
             }
-            return null;
-        } catch (Exception e) {
+        }
+        if (StrUtil.isBlank(result) && tag >= cookies.size()) {
+            this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
+        return result;
     }
 
     private Boolean checkCookieIsEnable(String cookie) {
-        PrepareRequestDTO prepareRequestDTO = new PrepareRequestDTO().setMarket(1).setAsinList(Arrays.asList("B098T9ZFB5", "B09JW5FNVX", "B0B71DH45N", "B07MHHM31K", "B08RYQR1CJ"));
+        PrepareRequestDTO prepareRequestDTO = new PrepareRequestDTO().setMarket(1).setAsinList(Collections.singletonList("B098T9ZFB5"));
 
         try {
             String result = HttpRequest.post(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_EXTEND_PREPARE).cookie(cookie)
@@ -290,29 +318,33 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedGetRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        String result = null;
+        int tag = 0;
 
-        // 将列表转换为ArrayList，并随机打乱元素顺序
-        Collections.shuffle(cookies);
-
-        // 获取第一个元素作为随机选择的值
-        String cookie = cookies.get(0).getRemark();
-        // String cookie = dictDataService.getDictData("SELLER_SPRITE", "COOKIE").getRemark();
-        try {
-            String result = HttpRequest.get(url)
-                    .body(requestData).cookie(cookie)
-                    .execute().body();
-            JSONObject entries = JSONUtil.parseObj(result);
-            if (!result.isEmpty() && entries.getBool("success", false)) {
-                return JSONUtil.toJsonStr(entries.getObj("data"));
-            } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
-                log.error("卖家精灵登录失效");
-                this.sendMessage();
-                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
+        for (DictDataDO data : cookies) {
+            try {
+                String requestResult = HttpRequest.get(url).body(requestData).cookie(data.getRemark()).execute().body();
+                JSONObject entries = JSONUtil.parseObj(requestResult);
+                if (!requestResult.isEmpty() && entries.getBool("success", false)) {
+                    result = JSONUtil.toJsonStr(entries.getObj("data"));
+                    break; // 找到有效 cookie，退出循环
+                } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                    tag++;
+                    self.executeCookieUpdateSync(data);
+                } else {
+                    tag++;
+                    log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
+                }
+            } catch (Exception e) {
+                tag++;
+                log.error("卖家精灵未知问题: ", e); // 记录异常信息
             }
-            return null;
-        } catch (Exception e) {
+        }
+        if (StrUtil.isBlank(result) && tag >= cookies.size()) {
+            this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
+        return result;
     }
 
     @TenantIgnore
@@ -342,10 +374,10 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         try {
             String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
             JSONObject entries = JSONUtil.parseObj(result);
-            if ( !entries.getBool("success") &&!(Boolean) entries.get("success")){
+            if (!entries.getBool("success") && !(Boolean) entries.get("success")) {
                 cookie = null;
                 sendLoginFailMessage();
-            }else {
+            } else {
                 cookie = JSONUtil.toJsonStr(entries.get("data").toString());
             }
 
@@ -378,4 +410,19 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             log.error("卖家精灵登录失败，通知信息发送失败", e);
         }
     }
+
+    /**
+     * 同步执行单个支付通知
+     *
+     * @param dictDataDO 通知任务
+     */
+    public void executeCookieUpdateSync(DictDataDO dictDataDO) {
+        // 分布式锁，避免并发问题
+        sellerSpriteNoRedisDAO.lock(dictDataDO.getId(), SELLER_SPRITE_TIMEOUT_MILLIS, () -> {
+            // 执行通知
+            self.AutoUpdateCheckCookies(Collections.singletonList(dictDataDO));
+        });
+    }
+
+
 }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.KeywordMinerReposeDTO;
@@ -63,6 +64,6 @@ public interface SellerSpriteService {
     /**
      * 品牌检测
      */
-    void AutoUpdateCheckCookies();
+    void AutoUpdateCheckCookies(List<DictDataDO> cookies);
 
 }
