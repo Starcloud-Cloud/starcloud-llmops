@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDeptUpdateReqVO;
@@ -21,8 +22,10 @@ import com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -33,9 +36,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.DEPT_NOT_FOUND;
@@ -64,6 +70,9 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Resource
     private RedissonClient redissonClient;
 
+    @Resource
+    private AdminUserRightsRecordService rightsRecordService;
+
     private final static String baseStr = "ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private final static String prefix = "dept_invite_";
@@ -76,7 +85,22 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Override
     public List<DeptUserRespVO> userList(Long deptId) {
         validBindDept(deptId);
-        return userDeptMapper.userList(deptId);
+        List<DeptUserRespVO> deptUserList = userDeptMapper.userList(deptId);
+        List<Long> userIds = deptUserList.stream().map(DeptUserRespVO::getUserId).collect(Collectors.toList());
+        Map<Long, StatisticsUserRightReqDTO> userRightMap = rightsRecordService.calculateRightUsedByUser(deptId, userIds)
+                .stream().collect(Collectors.toMap(StatisticsUserRightReqDTO::getUserId, Function.identity()));
+        if (MapUtils.isEmpty(userRightMap)) {
+            return deptUserList;
+        }
+        for (DeptUserRespVO deptUserRespVO : deptUserList) {
+            StatisticsUserRightReqDTO statisticsUserRightReqDTO = userRightMap.get(deptUserRespVO.getUserId());
+            if (statisticsUserRightReqDTO == null) {
+                continue;
+            }
+            deptUserRespVO.setImageCount(statisticsUserRightReqDTO.getImageCounts());
+            deptUserRespVO.setCostPoints(statisticsUserRightReqDTO.getMagicBeanCounts());
+        }
+        return deptUserList;
     }
 
     @Override
