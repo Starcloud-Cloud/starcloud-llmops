@@ -117,7 +117,7 @@ public class AliyunTranslatorClient {
                 continue;
             }
             if (str.length() > 1000) {
-                List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(str, 1000, Arrays.asList("\n", "\\.", "。"));
+                List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(str, 900, Arrays.asList("\n", "\\.", "。"));
                 for (int j = 0; j < splitText.size(); j++) {
                     if (StringUtils.isBlank(splitText.get(j))) {
                         continue;
