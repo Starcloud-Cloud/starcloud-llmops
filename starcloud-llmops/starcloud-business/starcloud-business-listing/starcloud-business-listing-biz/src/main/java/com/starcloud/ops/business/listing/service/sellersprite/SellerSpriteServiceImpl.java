@@ -28,6 +28,7 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Prepa
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -276,7 +277,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                 } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                     log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
                     tag++;
-                    self.executeCookieUpdateSync(data);
+                    self.executeCookieUpdateAsync(data);
                 } else {
                     tag++;
                     log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
@@ -335,7 +336,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                 } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
                     log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
                     tag++;
-                    self.executeCookieUpdateSync(data);
+                    self.executeCookieUpdateAsync(data);
                 } else {
                     tag++;
                     log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
@@ -416,12 +417,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         }
     }
 
+
     /**
-     * 同步执行单个支付通知
+     * 异步更新卖家精灵cookie 更新
      *
      * @param dictDataDO 通知任务
      */
-    public void executeCookieUpdateSync(DictDataDO dictDataDO) {
+    @Async
+    public void executeCookieUpdateAsync(DictDataDO dictDataDO) {
         // 分布式锁，避免并发问题
         sellerSpriteNoRedisDAO.lock(dictDataDO.getId(), SELLER_SPRITE_TIMEOUT_MILLIS, () -> {
             // 执行通知
