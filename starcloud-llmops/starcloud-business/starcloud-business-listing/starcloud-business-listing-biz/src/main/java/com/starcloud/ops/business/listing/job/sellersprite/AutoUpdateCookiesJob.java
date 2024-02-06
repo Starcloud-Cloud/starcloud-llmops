@@ -22,7 +22,7 @@ public class AutoUpdateCookiesJob implements JobHandler {
      */
     @Override
     public String execute(String param) throws Exception {
-        sellerSpriteService.AutoUpdateCheckCookies();
+        sellerSpriteService.AutoUpdateCheckCookies(null);
         return String.format("检测卖家精灵 Cookie");
     }
 }
