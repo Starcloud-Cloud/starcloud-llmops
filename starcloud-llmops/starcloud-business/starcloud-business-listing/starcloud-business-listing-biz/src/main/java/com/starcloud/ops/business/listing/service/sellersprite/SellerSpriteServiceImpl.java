@@ -259,6 +259,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedPostRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        Collections.shuffle(cookies);
         String result = null;
         int tag = 0;
 
@@ -319,6 +320,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedGetRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        Collections.shuffle(cookies);
         String result = null;
         int tag = 0;
 
