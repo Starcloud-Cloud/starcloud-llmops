@@ -11,7 +11,6 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.date.DateUtils;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
@@ -37,7 +36,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.afterNow;
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
 
 /**
@@ -248,6 +246,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         if (Objects.nonNull(cookieData)) {
             updateReqVO.setRemark(cookieData);
             dictDataService.updateDictData(updateReqVO);
+            log.info("卖家精灵账号更新成功，当前账号为{}", account.getValue());
         }
     }
 
@@ -260,6 +259,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedPostRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        Collections.shuffle(cookies);
         String result = null;
         int tag = 0;
 
@@ -270,9 +270,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                         .execute().body();
                 JSONObject entries = JSONUtil.parseObj(requestResult);
                 if (!requestResult.isEmpty() && entries.getBool("success", false)) {
+                    log.info("卖家精灵接口数据请求成功，当前账号为{}", data.getValue());
                     result = JSONUtil.toJsonStr(entries.getObj("data"));
                     break; // 找到有效 cookie，退出循环
                 } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                    log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
                     tag++;
                     self.executeCookieUpdateSync(data);
                 } else {
@@ -318,6 +320,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      */
     private String unifiedGetRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
+        Collections.shuffle(cookies);
         String result = null;
         int tag = 0;
 
@@ -326,9 +329,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                 String requestResult = HttpRequest.get(url).body(requestData).cookie(data.getRemark()).execute().body();
                 JSONObject entries = JSONUtil.parseObj(requestResult);
                 if (!requestResult.isEmpty() && entries.getBool("success", false)) {
+                    log.info("卖家精灵接口数据请求成功，当前账号为{}", data.getValue());
                     result = JSONUtil.toJsonStr(entries.getObj("data"));
                     break; // 找到有效 cookie，退出循环
                 } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
+                    log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
                     tag++;
                     self.executeCookieUpdateSync(data);
                 } else {
