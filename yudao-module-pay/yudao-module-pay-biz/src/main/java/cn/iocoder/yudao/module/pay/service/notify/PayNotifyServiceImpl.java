@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.addTime;
 import static cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum.ORDER;
@@ -358,11 +359,24 @@ public class PayNotifyServiceImpl implements PayNotifyService {
 
             return updateTask.getStatus();
         }
+
+        // 防止并发 检测当前 task 在有无通知成功的 log
+        List<PayNotifyLogDO> notifyLogList = getSelf().getNotifyLogList(task.getId());
+        List<PayNotifyLogDO> successList = notifyLogList.stream().filter(data -> PayNotifyStatusEnum.SUCCESS.getStatus().equals(data.getStatus())).collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(successList)){
+            updateTask.setStatus(PayNotifyStatusEnum.SUCCESS.getStatus());
+            notifyTaskMapper.updateById(updateTask);
+            return updateTask.getStatus();
+        }
+
         // 2.2 未超过最大回调次数
         updateTask.setNextNotifyTime(addTime(Duration.ofSeconds(PayNotifyTaskDO.NOTIFY_FREQUENCY[updateTask.getNotifyTimes()])));
         updateTask.setStatus(invokeException != null ? PayNotifyStatusEnum.REQUEST_FAILURE.getStatus()
                 : PayNotifyStatusEnum.REQUEST_SUCCESS.getStatus());
         notifyTaskMapper.updateById(updateTask);
+
+
+
         return updateTask.getStatus();
     }
 
