@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.service.rights;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
@@ -56,6 +57,17 @@ public interface AdminUserRightsService {
      * @param bizId      业务编号
      */
     void createRights(Long userId, Integer magicBean, Integer magicImage, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId);
+
+
+    /**
+     * 创建用户权益记录
+     *
+     * @param rightsDTO 权益配置
+     * @param bizType   业务类型
+     * @param bizId     业务编号
+     */
+    void createRights(AdminUserRightsCommonDTO rightsDTO,Long userId, AdminUserRightsBizTypeEnum bizType, String bizId);
+
 
     /**
      * 校验权益是否可供扣除
