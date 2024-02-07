@@ -11,7 +11,6 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
@@ -37,8 +36,6 @@ import cn.iocoder.yudao.module.pay.service.sign.PaySignService;
 import cn.iocoder.yudao.module.pay.service.transfer.PayTransferService;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
-import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
-import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -55,13 +52,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.addTime;
-import static cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum.ORDER;
 import static cn.iocoder.yudao.module.pay.framework.job.config.PayJobConfiguration.NOTIFY_THREAD_POOL_TASK_EXECUTOR;
 
 /**
@@ -111,8 +106,8 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     @Resource
     private SmsSendApi smsSendApi;
 
-    @Resource
-    private AdminUserApi adminUserApi;
+    // @Resource
+    // private AdminUserApi adminUserApi;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -401,42 +396,42 @@ public class PayNotifyServiceImpl implements PayNotifyService {
         try {
             PayNotifyTypeEnum notifyTypeEnum = PayNotifyTypeEnum.getByType(task.getType());
             String notifyType;
-            Long userId;
+            // Long userId;
             Long payId;
             String tradeId;
             switch (notifyTypeEnum) {
                 case ORDER:
                     notifyType = PayNotifyTypeEnum.ORDER.getName();
                     PayOrderDO order = orderService.getOrder(task.getDataId()); // 不进行非空判断，有问题直接异常
-                    userId = Long.valueOf(order.getCreator());
+                    // userId = Long.valueOf(order.getCreator());
                     payId = order.getId();
                     tradeId = order.getMerchantOrderId();
                     break;
                 case REFUND:
                     notifyType = PayNotifyTypeEnum.REFUND.getName();
                     PayRefundDO refundDO = refundService.getRefund(task.getDataId());
-                    userId = Long.valueOf(refundDO.getCreator());
+                    // userId = Long.valueOf(refundDO.getCreator());
                     payId = refundDO.getId();
                     tradeId = refundDO.getMerchantRefundId();
                     break;
                 case TRANSFER:
                     notifyType = PayNotifyTypeEnum.TRANSFER.getName();
                     PayTransferDO transfer = transferService.getTransfer(task.getDataId());
-                    userId = Long.valueOf(transfer.getCreator());
+                    // userId = Long.valueOf(transfer.getCreator());
                     payId = transfer.getId();
                     tradeId = transfer.getMerchantTransferId();
                     break;
                 case SIGN_SUCCESS:
                     notifyType = PayNotifyTypeEnum.SIGN_SUCCESS.getName();
                     PaySignDO sign = paySignService.getSign(task.getDataId());
-                    userId = Long.valueOf(sign.getCreator());
+                    // userId = Long.valueOf(sign.getCreator());
                     payId = sign.getId();
                     tradeId = sign.getMerchantSignId();
                     break;
                 case SIGN_CLOSE:
                     notifyType = PayNotifyTypeEnum.SIGN_CLOSE.getName();
                     PaySignDO sign2 = paySignService.getSign(task.getDataId());
-                    userId = Long.valueOf(sign2.getCreator());
+                    // userId = Long.valueOf(sign2.getCreator());
                     payId = sign2.getId();
                     tradeId = sign2.getMerchantSignId();
                     break;
