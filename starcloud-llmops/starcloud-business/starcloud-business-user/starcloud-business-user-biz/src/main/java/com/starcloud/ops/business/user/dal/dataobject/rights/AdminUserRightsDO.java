@@ -78,6 +78,7 @@ public class AdminUserRightsDO extends BaseDO {
     private Integer magicImageInit;
 
 
+
     /**
      * '关联用户等级ID'
      * <p>

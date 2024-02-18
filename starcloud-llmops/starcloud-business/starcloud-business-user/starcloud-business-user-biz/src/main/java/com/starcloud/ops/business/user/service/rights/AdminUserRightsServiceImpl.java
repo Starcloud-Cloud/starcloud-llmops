@@ -12,6 +12,9 @@ import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.TimesRangeDTO;
+import com.starcloud.ops.business.user.api.rights.dto.UserRightsBasicDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
@@ -128,6 +131,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             timeNums = 1;
             timeRange = TimeRangeTypeEnum.MONTH.getType();
         }
+
         LocalDateTime startTime = LocalDateTimeUtil.now();
         LocalDateTime endTime;
         // 判断当前是否存在相同等级配置
@@ -168,6 +172,82 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         if (magicImage > 0) {
             adminUserRightsRecordService.createRightsRecord(userId, null, null, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
+
+
+    }
+
+    /**
+     * 创建用户权益记录
+     *
+     * @param rightsDTO 权益配置
+     * @param bizType   业务类型
+     * @param bizId     业务编号
+     */
+    @Override
+    public void createRights(AdminUserRightsCommonDTO rightsDTO, Long userId, AdminUserRightsBizTypeEnum bizType, String bizId) {
+        // 权益判断
+        if (Objects.isNull(rightsDTO.getRightsBasicDTO())) {
+            log.warn("权益添加失败，权益配置不存在无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsDTO);
+            return;
+        }
+
+        // 权益数量判断
+        UserRightsBasicDTO rightsBasicDTO = rightsDTO.getRightsBasicDTO();
+        if (rightsBasicDTO.getMagicBean() == 0 && rightsBasicDTO.getMagicImage() == 0 && rightsBasicDTO.getMatrixBean() == 0) {
+            log.warn("权益添加失败，权益数量为0无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsDTO);
+            return;
+        }
+
+        // 根据业务类型设置权益有效期
+        TimesRangeDTO timesRange = rightsBasicDTO.getTimesRange();
+        if (bizType.isSystem()) {
+            timesRange.setTimeNums(1);
+            timesRange.setTimeRange(TimeRangeTypeEnum.MONTH.getType());
+        }
+
+        LocalDateTime startTime = LocalDateTimeUtil.now();
+        LocalDateTime endTime;
+        // 判断当前是否存在相同等级配置
+        if (Objects.nonNull(rightsDTO.getLevelBasicDTO()) && Objects.nonNull(rightsDTO.getLevelBasicDTO().getLevelId())) {
+            AdminUserRightsDO latestExpirationByLevel = adminUserRightsMapper.findLatestExpirationByLevel(userId, rightsDTO.getLevelBasicDTO().getLevelId());
+            if (latestExpirationByLevel != null) {
+                startTime = latestExpirationByLevel.getValidEndTime();
+            }
+        }
+        endTime = getSpecificTime(startTime, rightsDTO.getLevelBasicDTO().getTimesRange().getTimeNums(), rightsDTO.getLevelBasicDTO().getTimesRange().getTimeRange());
+
+        // FIXME 添加数据字段
+        // 1. 增加权益记录
+        AdminUserRightsDO record = new AdminUserRightsDO()
+                .setUserId(userId)
+                .setBizId(bizId)
+                .setBizType(bizType.getType())
+                .setTitle(bizType.getName())
+                .setDescription(StrUtil.format(bizType.getDescription(), rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage()))
+                .setMagicBean(rightsBasicDTO.getMagicBean())
+                .setMagicImage(rightsBasicDTO.getMagicImage())
+                .setMagicBeanInit(rightsBasicDTO.getMagicBean())
+                .setMagicImageInit(rightsBasicDTO.getMagicImage())
+                .setUserLevelId(Objects.isNull(rightsDTO.getLevelBasicDTO().getLevelId()) ? null : rightsDTO.getLevelBasicDTO().getLevelId())
+                .setValidStartTime(startTime)
+                .setValidEndTime(endTime)
+                .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
+
+        if (getLoginUserId() == null) {
+            record.setCreator(String.valueOf(userId));
+            record.setUpdater(String.valueOf(userId));
+        }
+
+        adminUserRightsMapper.insert(record);
+
+        if (rightsBasicDTO.getMagicBean() > 0) {
+            adminUserRightsRecordService.createRightsRecord(userId, null, null, rightsBasicDTO.getMagicBean(), AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
+
+        if (rightsBasicDTO.getMagicImage() > 0) {
+            adminUserRightsRecordService.createRightsRecord(userId, null, null, rightsBasicDTO.getMagicImage(), AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
+        // FIXME 添加矩阵点
 
 
     }

@@ -98,9 +98,10 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     protected ActionResponse doExecute() {
 
-        log.info("自定义内容生成[{}]：执行开始......", this.getClass().getSimpleName());
+
+        log.info("自定义内容生成[{}][{}]：执行开始......", this.getClass().getSimpleName(), this.getAppContext().getStepId());
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("自定义内容生成[{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), JSONUtil.parse(params).toStringPretty());
+        log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JSONUtil.parse(params).toStringPretty());
 
         // 获取到生成模式
         String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
@@ -195,7 +196,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
-        log.info("自定义内容生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JSONUtil.parse(params).toStringPretty());
+        log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JSONUtil.parse(params).toStringPretty());
 
         // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());

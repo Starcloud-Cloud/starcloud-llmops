@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
@@ -113,7 +114,12 @@ public class CreativeExecuteManager {
         ThreadPoolExecutor executor = posterStyleThreadPoolHolder.executor();
         List<CompletableFuture<CreativeAppExecuteResponse>> appFutureList = Lists.newArrayList();
         for (CreativeContentDO content : contentList) {
-            CompletableFuture<CreativeAppExecuteResponse> future = CompletableFuture.supplyAsync(() -> executeApp(content, force), executor);
+            CompletableFuture<CreativeAppExecuteResponse> future = CompletableFuture.supplyAsync(() -> {
+                //设置租户上下文
+                return TenantUtils.execute(content.getTenantId(), () -> {
+                    return executeApp(content, force);
+                });
+            }, executor);
             appFutureList.add(future);
         }
         // 合并任务

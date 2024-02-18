@@ -2,9 +2,12 @@ package com.starcloud.ops.business.user.service.rights;
 
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.record.AdminUserRightsRecordPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsRecordDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+
+import java.util.List;
 
 /**
  * 用户积分记录 Service 接口
@@ -40,4 +43,13 @@ public interface AdminUserRightsRecordService {
      * @param bizId      业务编号
      */
     void createRightsRecord(Long userId, Long teamOwnerId, Long teamId, Integer amount, AdminUserRightsTypeEnum rightsType, Integer bizType, String bizId, String bizCode);
+
+
+    /**
+     * 用户权益统计
+     * @param teamId  团队 ID
+     * @param userIds 用户 ID，
+     *
+     */
+    List<StatisticsUserRightReqDTO> calculateRightUsedByUser(Long teamId, List<Long> userIds);
 }
