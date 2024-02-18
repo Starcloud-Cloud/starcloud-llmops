@@ -11,7 +11,6 @@ import com.aliyun.alimt20181012.models.GetBatchTranslateResponseBody;
 import com.starcloud.ops.business.app.translator.dto.TranslateIndexDTO;
 import com.starcloud.ops.business.app.translator.request.TranslateRequest;
 import com.starcloud.ops.business.app.translator.response.TranslateResponse;
-import com.starcloud.ops.llm.langchain.core.indexes.splitter.SplitterContainer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -116,8 +115,9 @@ public class AliyunTranslatorClient {
             if (StringUtils.isBlank(str)) {
                 continue;
             }
-            if (str.length() > 900) {
-                List<String> splitText = SplitterContainer.CHARACTER_TEXT_SPLITTER.getSplitter().splitText(str, 900, Arrays.asList("\n", "\\.", "。"));
+            int maxLength = 900;
+            if (str.length() > maxLength) {
+                List<String> splitText = splitToChunks(str, maxLength);
                 for (int j = 0; j < splitText.size(); j++) {
                     if (StringUtils.isBlank(splitText.get(j))) {
                         continue;
@@ -143,7 +143,7 @@ public class AliyunTranslatorClient {
         for (Map<String, ?> item : translatedList) {
             if (item != null && StringUtils.equals((String) item.get("code"), "200")) {
                 String translated = (String) item.get("translated");
-                Integer index = Integer.valueOf((String) item.get("index")) ;
+                Integer index = Integer.valueOf((String) item.get("index"));
                 Integer count = Integer.valueOf((String) item.get("wordCount"));
                 if (StringUtils.isNotBlank(translated)) {
                     treeMap.put(index, TranslateIndexDTO.of(index / 100, translated, count));
@@ -160,12 +160,76 @@ public class AliyunTranslatorClient {
             } else {
                 TranslateIndexDTO sub = treeMap.get(key);
                 TranslateIndexDTO root = rootMap.get(key / 100 * 100);
-                root.setTranslated(root.getTranslated() + "\n\n" + sub.getTranslated());
+                root.setTranslated(root.getTranslated() + sub.getTranslated());
                 root.setWordCount(root.getWordCount() + sub.getWordCount());
             }
         }
 
         return new ArrayList<>(rootMap.values());
     }
+
+
+    public List<String> splitToChunks(String article, int maxChunkLength) {
+        List<String> chunks = new ArrayList<>();
+        StringBuilder currentChunk = new StringBuilder();
+
+        // 模拟原始字符数组，用于保留换行符和句号的位置
+        char[] originalChars = article.toCharArray();
+
+        for (int i = 0; i < originalChars.length; i++) {
+            char c = originalChars[i];
+
+            // 当遇到换行符时，直接添加当前chunk并开始新的chunk
+            if (c == '\n') {
+                addChunk(chunks, currentChunk, originalChars, i);
+                currentChunk.setLength(0); // 清空当前chunk
+                continue;
+            }
+
+            currentChunk.append(c);
+
+            // 当当前chunk长度达到或超过最大值时进行处理
+            if (currentChunk.length() >= maxChunkLength) {
+                // 尝试找到上一个句点作为分割位置
+                int lastPeriodIndex = findLastSentenceEnd(originalChars, maxChunkLength, i);
+                if (lastPeriodIndex != -1) {
+                    addChunk(chunks, currentChunk, originalChars, lastPeriodIndex);
+                    currentChunk.delete(0, lastPeriodIndex + 1);
+                } else {
+                    // 若没有找到句点，则强制按字符长度拆分
+                    String chunk = currentChunk.substring(0, maxChunkLength).toString();
+                    chunks.add(chunk);
+                    currentChunk.delete(0, maxChunkLength);
+                }
+            }
+        }
+
+        // 添加剩余部分
+        if (currentChunk.length() > 0) {
+            chunks.add(currentChunk.toString());
+        }
+        return chunks;
+    }
+
+    private void addChunk(List<String> chunks, StringBuilder chunkBuilder, char[] originalChars, int endIndex) {
+        String chunk = chunkBuilder.toString();
+        // 从原始字符数组中取出分割符加入到chunk末尾
+        if (endIndex < originalChars.length) {
+            chunk += originalChars[endIndex];
+        }
+        chunks.add(chunk);
+    }
+
+    private int findLastSentenceEnd(char[] originalChars, int maxLength, int currentIndex) {
+        for (int i = currentIndex - 1; i >= 0; i--) {
+            if (originalChars[i] == '.' || originalChars[i] == '。') {
+                if (i < maxLength - 1) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
 
 }
