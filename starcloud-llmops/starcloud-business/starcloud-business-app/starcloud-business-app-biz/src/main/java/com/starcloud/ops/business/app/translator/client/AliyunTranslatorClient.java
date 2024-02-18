@@ -181,20 +181,29 @@ public class AliyunTranslatorClient {
 
             // 当遇到换行符时，直接添加当前chunk并开始新的chunk
             if (c == '\n') {
-                addChunk(chunks, currentChunk, originalChars, i);
-                currentChunk.setLength(0); // 清空当前chunk
+                if (i > 0 && originalChars[i - 1] == '\n') {
+                    // 连续换行拼接在上一个chunk上
+                    int previousIndex = chunks.size() - 1;
+                    String previous = chunks.get(previousIndex) + "\n";
+                    chunks.set(previousIndex, previous);
+                } else {
+                    addChunk(chunks, currentChunk, originalChars, i);
+                }
+                // 清空当前chunk
+                currentChunk.setLength(0);
                 continue;
             }
 
             currentChunk.append(c);
 
             // 当当前chunk长度达到或超过最大值时进行处理
-            if (currentChunk.length() >= maxChunkLength) {
+            while (currentChunk.length() >= maxChunkLength) {
                 // 尝试找到上一个句点作为分割位置
-                int lastPeriodIndex = findLastSentenceEnd(originalChars, maxChunkLength, i);
+                int lastPeriodIndex = findLastSentenceEnd(currentChunk, maxChunkLength);
                 if (lastPeriodIndex != -1) {
-                    addChunk(chunks, currentChunk, originalChars, lastPeriodIndex);
-                    currentChunk.delete(0, lastPeriodIndex + 1);
+                    String chunk = currentChunk.substring(0, lastPeriodIndex).toString();
+                    chunks.add(chunk);
+                    currentChunk.delete(0, lastPeriodIndex);
                 } else {
                     // 若没有找到句点，则强制按字符长度拆分
                     String chunk = currentChunk.substring(0, maxChunkLength).toString();
@@ -220,11 +229,11 @@ public class AliyunTranslatorClient {
         chunks.add(chunk);
     }
 
-    private int findLastSentenceEnd(char[] originalChars, int maxLength, int currentIndex) {
-        for (int i = currentIndex - 1; i >= 0; i--) {
-            if (originalChars[i] == '.' || originalChars[i] == '。') {
+    private int findLastSentenceEnd(StringBuilder sb, int maxLength) {
+        for (int i = maxLength - 1; i >= 0; i--) {
+            if (sb.charAt(i) == '.' || sb.charAt(i) == '。') {
                 if (i < maxLength - 1) {
-                    return i;
+                    return i + 1;
                 }
             }
         }
