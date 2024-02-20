@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * 新用户注册权益发送的 {@link UserRegisterHandler} 实现类
@@ -41,10 +42,15 @@ public class UserRegisterRightsHandler implements UserRegisterHandler{
     @Override
     public void afterUserRegister(AdminUserDO adminUserDO, AdminUserDO inviteUserDO) {
         log.info("【afterUserRegister】用户注册，准备新增用户注册权益");
+
+        AdminUserRightsBizTypeEnum rightsBizTypeEnum = AdminUserRightsBizTypeEnum.USER_INVITE;
+        if (Objects.isNull(inviteUserDO)){
+            rightsBizTypeEnum =AdminUserRightsBizTypeEnum.REGISTER;
+        }
         adminUserRightsService.createRights(adminUserDO.getId(),
-                AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(),
-                AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(),
-                null, null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER,
+                rightsBizTypeEnum.getMagicBean(),
+                rightsBizTypeEnum.getMagicImage(),
+                null, null, rightsBizTypeEnum,
                 String.valueOf(adminUserDO.getId()),null);
         // 发放新人优惠券
         couponApi.takeCouponByRegister(adminUserDO.getId());
