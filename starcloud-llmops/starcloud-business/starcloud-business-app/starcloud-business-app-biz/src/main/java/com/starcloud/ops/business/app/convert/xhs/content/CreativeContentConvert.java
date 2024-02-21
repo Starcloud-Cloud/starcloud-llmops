@@ -63,6 +63,7 @@ public interface CreativeContentConvert {
         xhsCreativeContentDO.setConversationUid(createReq.getConversationUid());
         xhsCreativeContentDO.setType(createReq.getType());
         xhsCreativeContentDO.setIsTest(createReq.getIsTest());
+        xhsCreativeContentDO.setTags(createReq.getTags());
 
         return xhsCreativeContentDO;
     }
