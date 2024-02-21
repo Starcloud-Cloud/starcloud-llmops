@@ -161,7 +161,8 @@
             extend AS pictureExtend,
             extend AS copyWritingExtend,
             claim AS claim,
-            liked AS liked
+            liked AS liked,
+            tags AS tags
         FROM
         llm_creative_content
         WHERE type = 'all'
