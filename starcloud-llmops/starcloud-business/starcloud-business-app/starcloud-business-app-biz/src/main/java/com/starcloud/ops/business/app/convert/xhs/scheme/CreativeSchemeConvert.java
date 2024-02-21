@@ -128,6 +128,7 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setUpdater(creativeScheme.getUpdater());
         creativeSchemeResponse.setCreateTime(creativeScheme.getCreateTime());
         creativeSchemeResponse.setUpdateTime(creativeScheme.getUpdateTime());
+        creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         return creativeSchemeResponse;
     }
 

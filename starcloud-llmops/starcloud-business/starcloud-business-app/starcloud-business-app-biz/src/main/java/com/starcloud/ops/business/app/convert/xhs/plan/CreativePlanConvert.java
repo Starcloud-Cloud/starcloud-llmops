@@ -65,6 +65,7 @@ public interface CreativePlanConvert {
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
         creativePlan.setUpdateTime(LocalDateTime.now());
+        creativePlan.setTags(request.getTags());
         return creativePlan;
     }
 
@@ -86,6 +87,7 @@ public interface CreativePlanConvert {
         creativePlan.setDescription(StringUtils.isBlank(creativePlan.getDescription()) ? "" : creativePlan.getDescription());
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setUpdateTime(LocalDateTime.now());
+        creativePlan.setTags(request.getTags());
         return creativePlan;
     }
 
@@ -145,6 +147,7 @@ public interface CreativePlanConvert {
         response.setUpdater(UserUtils.getUsername(creativePlan.getUpdater()));
         response.setCreateTime(creativePlan.getCreateTime());
         response.setUpdateTime(creativePlan.getUpdateTime());
+        response.setTags(creativePlan.getTags());
         return response;
     }
 

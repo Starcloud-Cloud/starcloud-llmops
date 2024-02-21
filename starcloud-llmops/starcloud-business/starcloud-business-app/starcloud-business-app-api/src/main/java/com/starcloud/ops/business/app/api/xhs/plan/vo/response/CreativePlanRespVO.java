@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -138,4 +139,10 @@ public class CreativePlanRespVO implements java.io.Serializable {
      */
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
+
+    /**
+     * 标签
+     */
+    @Schema(description = "标签")
+    private List<String> tags;
 }
