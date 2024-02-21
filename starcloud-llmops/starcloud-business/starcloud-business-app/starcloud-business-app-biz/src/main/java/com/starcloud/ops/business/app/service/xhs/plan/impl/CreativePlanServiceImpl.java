@@ -488,6 +488,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 appPlanExecute.setSchemeMode(executeParam.getSchemeMode());
                 appCreateRequest.setExecuteParams(appPlanExecute);
                 appCreateRequest.setIsTest(Boolean.FALSE);
+                appCreateRequest.setTags(plan.getTags());
                 creativeContentCreateRequestList.add(appCreateRequest);
 
                 // 添加一条图片执行任务
