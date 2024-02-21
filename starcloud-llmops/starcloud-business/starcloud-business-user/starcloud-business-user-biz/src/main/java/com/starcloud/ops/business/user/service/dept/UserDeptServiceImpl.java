@@ -161,6 +161,8 @@ public class UserDeptServiceImpl implements UserDeptService {
                     .inviteUser(inviteUser)
                     .deptRole(UserDeptRoleEnum.NORMAL.getRoleCode()).build();
             create(createUserDeptReqVO);
+            // 切换到新加入空间
+            checkout(deptId);
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
