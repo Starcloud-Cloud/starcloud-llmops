@@ -123,4 +123,7 @@ public class CreativeContentDTO {
      */
     @Schema(description = "是否是测试数据")
     private Boolean isTest;
+
+    @Schema(description = "标签")
+    private String tags;
 }

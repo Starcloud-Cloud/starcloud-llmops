@@ -51,7 +51,7 @@
     <!-- 根据条件查询创作方案列表 -->
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`,`tags`
         FROM llm_creative_scheme
         <include refid="LIST_SELECT_QUERY_CONDITION"/>
     </select>

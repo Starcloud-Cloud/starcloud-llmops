@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -21,7 +23,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName("llm_creative_content")
+@TableName(value = "llm_creative_content", autoResultMap = true)
 public class CreativeContentDO extends TenantBaseDO {
 
     private static final long serialVersionUID = -5839072713407684423L;
@@ -157,4 +159,10 @@ public class CreativeContentDO extends TenantBaseDO {
      * 是否测试
      */
     private Boolean isTest;
+
+    /**
+     * 标签
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<String> tags;
 }

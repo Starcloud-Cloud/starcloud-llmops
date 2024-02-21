@@ -71,4 +71,10 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
+    /**
+     * 创作方案标签
+     */
+    @Schema(description = "创作方案标签")
+    private List<String> tags;
+
 }

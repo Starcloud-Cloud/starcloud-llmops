@@ -55,4 +55,7 @@ public class CreativeContentCreateReqVO {
     @Schema(description = "是否测试")
     private Boolean isTest;
 
+    @Schema(description = "标签")
+    private List<String> tags;
+
 }

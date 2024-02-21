@@ -232,6 +232,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         copyPlan.setDeleted(Boolean.FALSE);
         copyPlan.setCreateTime(LocalDateTime.now());
         copyPlan.setEndTime(LocalDateTime.now());
+        copyPlan.setTags(plan.getTags());
         creativePlanMapper.insert(copyPlan);
         return copyPlan.getUid();
     }
@@ -470,6 +471,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
                 appCreateRequest.setExecuteParams(appPlanExecute);
                 appCreateRequest.setIsTest(Boolean.FALSE);
+                appCreateRequest.setTags(plan.getTags());
                 creativeContentCreateRequestList.add(appCreateRequest);
             } else {
                 // 1. 添加一条文案内容执行任务
@@ -538,6 +540,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 imageCreateRequest.setExecuteParams(imagePlanExecute);
                 imageCreateRequest.setUsePicture(imageUrlList);
                 imageCreateRequest.setIsTest(Boolean.FALSE);
+                imageCreateRequest.setTags(plan.getTags());
                 creativeContentCreateRequestList.add(imageCreateRequest);
             }
         }
