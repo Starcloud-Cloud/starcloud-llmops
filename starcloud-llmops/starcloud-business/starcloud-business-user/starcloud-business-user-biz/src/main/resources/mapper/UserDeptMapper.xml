@@ -18,9 +18,7 @@
                u.id          as userId,
                a.dept_role   as deptRole,
                u.mobile      as mobile,
-               u.email       as email,
-               a.cost_points as costPoints,
-               a.image_count as imageCount
+               u.email       as email
         from system_user_dept a
                  inner join system_users u on a.user_id = u.id
         where a.deleted = false
