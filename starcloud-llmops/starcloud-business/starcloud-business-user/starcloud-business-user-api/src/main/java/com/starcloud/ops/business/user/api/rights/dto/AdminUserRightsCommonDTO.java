@@ -3,9 +3,13 @@ package com.starcloud.ops.business.user.api.rights.dto;
 
 import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AdminUserRightsCommonDTO {
 
     @Schema(description = "用户基础权益")

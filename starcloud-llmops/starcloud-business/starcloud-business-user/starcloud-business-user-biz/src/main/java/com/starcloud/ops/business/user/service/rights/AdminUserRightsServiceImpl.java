@@ -97,14 +97,38 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
         int sumMagicBean = 0;
         int sumMagicImage = 0;
+        int sumMatrixBean = 0;
         int sumMagicBeanInit = 0;
         int sumMagicImageInit = 0;
+        int sumMatrixBeanInit = 0;
         if (!validRightsList.isEmpty()) {
-            sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
-            sumMagicImage = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImage).sum();
+            sumMagicBean = validRightsList.stream().mapToInt(adminUserRightsDO -> {
+                Integer magicBean = adminUserRightsDO.getMagicBean();
+                return magicBean != null ? magicBean : 0;
+            }).sum();
 
-            sumMagicBeanInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBeanInit).sum();
-            sumMagicImageInit = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicImageInit).sum();
+            sumMagicImage = validRightsList.stream().mapToInt(adminUserRightsDO -> {
+                Integer magicImage = adminUserRightsDO.getMagicImage();
+                return magicImage != null ? magicImage : 0;
+            }).sum();
+
+            sumMatrixBean = validRightsList.stream().mapToInt(adminUserRightsDO -> {
+                Integer matrixBean = adminUserRightsDO.getMatrixBean();
+                return matrixBean != null ? matrixBean : 0;
+            }).sum();
+
+            sumMagicBeanInit = validRightsList.stream().mapToInt(adminUserRightsDO -> {
+                Integer magicBeanInit = adminUserRightsDO.getMagicBeanInit();
+                return magicBeanInit != null ? magicBeanInit : 0;
+            }).sum();
+            sumMagicImageInit = validRightsList.stream().mapToInt(adminUserRightsDO -> {
+                Integer magicImageInit = adminUserRightsDO.getMagicImageInit();
+                return magicImageInit != null ? magicImageInit : 0;
+            }).sum();
+            sumMatrixBeanInit = validRightsList.stream().mapToInt(adminUserRightsDO -> {
+                Integer matrixBeanInit = adminUserRightsDO.getMatrixBeanInit();
+                return matrixBeanInit != null ? matrixBeanInit : 0;
+            }).sum();
         }
 
         List<AdminUserRightsCollectRespVO> rightsCollectRespVOS = new ArrayList<>();
@@ -113,6 +137,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 sumMagicBeanInit - sumMagicBean, sumMagicBean, 0));
         rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_IMAGE.getName(), AdminUserRightsTypeEnum.MAGIC_IMAGE.name(), sumMagicImageInit,
                 sumMagicImageInit - sumMagicImage, sumMagicImage, 0));
+
+        rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MATRIX_BEAN.getName(), AdminUserRightsTypeEnum.MATRIX_BEAN.name(), sumMatrixBeanInit,
+                sumMatrixBeanInit - sumMatrixBean, sumMatrixBean, 0));
 
         return rightsCollectRespVOS;
     }
@@ -245,8 +272,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 根据业务类型设置权益有效期
         TimesRangeDTO timesRange = rightsBasicDTO.getTimesRange();
         if (bizType.isSystem()) {
-            timesRange.setTimeNums(1);
-            timesRange.setTimeRange(TimeRangeTypeEnum.MONTH.getType());
+            timesRange.setNums(1);
+            timesRange.setRange(TimeRangeTypeEnum.MONTH.getType());
         }
 
         LocalDateTime startTime = LocalDateTimeUtil.now();
@@ -258,7 +285,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 startTime = latestExpirationByLevel.getValidEndTime();
             }
         }
-        endTime = getSpecificTime(startTime, rightsDTO.getLevelBasicDTO().getTimesRange().getTimeNums(), rightsDTO.getLevelBasicDTO().getTimesRange().getTimeRange());
+        endTime = getSpecificTime(startTime, rightsDTO.getLevelBasicDTO().getTimesRange().getNums(), rightsDTO.getLevelBasicDTO().getTimesRange().getRange());
 
         // FIXME 添加数据字段
         // 1. 增加权益记录
@@ -379,7 +406,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         AdminUserRightsBizTypeEnum bizType = AdminUserRightsBizTypeEnum.getByType(reduceRightsDTO.getBizType());
 
         // 获取可用权益列表
-        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(reduceUserId,rightsType );
+        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(reduceUserId, rightsType);
         if (validRightsList.isEmpty()) {
             if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_BEAN_NOT_ENOUGH);

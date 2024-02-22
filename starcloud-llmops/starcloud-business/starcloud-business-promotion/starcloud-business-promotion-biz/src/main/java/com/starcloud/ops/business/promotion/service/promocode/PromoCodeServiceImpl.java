@@ -170,7 +170,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         if (Objects.nonNull(giveRights.getLevelBasicDTO())) {
             log.info("增加用户等级");
             UserLevelBasicDTO levelBasicDTO = giveRights.getLevelBasicDTO();
-            adminUserLevelApi.addAdminUserLevel(userId, levelBasicDTO.getLevelId(), levelBasicDTO.getTimesRange().getTimeNums(), levelBasicDTO.getTimesRange().getTimeRange(), AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
+            adminUserLevelApi.addAdminUserLevel(userId, levelBasicDTO.getLevelId(), levelBasicDTO.getTimesRange().getNums(), levelBasicDTO.getTimesRange().getRange(), AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
         }
         // 增加用户权益
         if (Objects.nonNull(giveRights.getRightsBasicDTO())) {
@@ -182,8 +182,8 @@ public class PromoCodeServiceImpl implements PromoCodeService {
                     .setMagicBean(rightsBasicDTO.getMagicBean())
                     .setMagicImage(rightsBasicDTO.getMagicImage())
                     .setMatrixBean(rightsBasicDTO.getMatrixBean())
-                    .setTimeNums(rightsBasicDTO.getTimesRange().getTimeNums())
-                    .setTimeRange(rightsBasicDTO.getTimesRange().getTimeRange())
+                    .setTimeNums(rightsBasicDTO.getTimesRange().getNums())
+                    .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
                     .setBizType(AdminUserRightsBizTypeEnum.REDEEM_CODE.getType())
                     .setBizId(String.valueOf(convert.getId()))
                     .setLevelId(giveRights.getLevelBasicDTO() != null ? giveRights.getLevelBasicDTO().getLevelId() : null);

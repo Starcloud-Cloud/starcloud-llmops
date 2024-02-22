@@ -42,8 +42,8 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                 adminUserLevelApi.addAdminUserLevel(
                         order.getUserId(),
                         giveRight.getLevelBasicDTO().getLevelId(),
-                        giveRight.getLevelBasicDTO().getTimesRange().getTimeNums(),
-                        giveRight.getLevelBasicDTO().getTimesRange().getTimeRange(),
+                        giveRight.getLevelBasicDTO().getTimesRange().getNums(),
+                        giveRight.getLevelBasicDTO().getTimesRange().getRange(),
                         AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
                         String.valueOf(order.getId()));
             }
@@ -55,8 +55,8 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                         .setMagicBean(rightsBasicDTO.getMagicBean())
                         .setMagicImage(rightsBasicDTO.getMagicImage())
                         .setMatrixBean(rightsBasicDTO.getMatrixBean())
-                        .setTimeNums(rightsBasicDTO.getTimesRange().getTimeNums())
-                        .setTimeRange(rightsBasicDTO.getTimesRange().getTimeRange())
+                        .setTimeNums(rightsBasicDTO.getTimesRange().getNums())
+                        .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
                         .setBizType(AdminUserRightsBizTypeEnum.REDEEM_CODE.getType())
                         .setBizId(String.valueOf(order.getId()))
                         .setLevelId(giveRight.getLevelBasicDTO() != null ? giveRight.getLevelBasicDTO().getLevelId() : null);
