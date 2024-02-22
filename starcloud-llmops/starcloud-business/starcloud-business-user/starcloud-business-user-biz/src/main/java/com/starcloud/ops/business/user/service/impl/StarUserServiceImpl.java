@@ -5,7 +5,6 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
-import cn.iocoder.yudao.framework.common.util.collection.SetUtils;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
@@ -23,6 +22,7 @@ import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
@@ -37,6 +37,7 @@ import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
 import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
 import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
@@ -44,9 +45,9 @@ import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
-import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
 import com.starcloud.ops.business.user.dal.dataobject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
@@ -56,13 +57,13 @@ import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RegisterRequest;
 import com.starcloud.ops.business.user.pojo.request.UserProfileUpdateRequest;
-import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
-import com.starcloud.ops.business.user.service.user.StarUserService;
 import com.starcloud.ops.business.user.service.dept.UserDeptService;
+import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
+import com.starcloud.ops.business.user.service.user.StarUserService;
 import com.starcloud.ops.business.user.service.user.handler.UserRegisterHandler;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
@@ -220,8 +220,32 @@ public class StarUserServiceImpl implements StarUserService {
                 log.info("邀请记录添加成功，开始发送注册与邀请权益");
 
                 TenantUtils.execute(tenantId, () -> {
-                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER, String.valueOf(currentUserId), null);
-                    adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId), null);
+                    AddRightsDTO newUserRightsDTO = new AddRightsDTO()
+                            .setUserId(currentUserId)
+                            .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
+                            .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
+                            .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
+                            .setTimeNums(1)
+                            .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                            .setBizId(String.valueOf(currentUserId))
+                            .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
+                            .setLevelId(null);
+
+                    // 增加注册人权益
+                    adminUserRightsService.createRights(newUserRightsDTO);
+
+                    AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
+                            .setUserId(inviteUserId)
+                            .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean())
+                            .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage())
+                            .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMatrixBean())
+                            .setTimeNums(1)
+                            .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                            .setBizId(String.valueOf(invitationId))
+                            .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE.getType())
+                            .setLevelId(null);
+                    // 增加邀请人权益
+                    adminUserRightsService.createRights(inviteUserRightsDTO);
                 });
 
                 sendSocialMsgService.sendInviteMsg(inviteUserId);
@@ -231,7 +255,17 @@ public class StarUserServiceImpl implements StarUserService {
                 if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
                     log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
                     TenantUtils.execute(tenantId, () -> {
-                        adminUserRightsService.createRights(inviteUserId, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT, String.valueOf(invitationId), null);
+                        AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
+                                .setUserId(inviteUserId)
+                                .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean())
+                                .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage())
+                                .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMatrixBean())
+                                .setTimeNums(1)
+                                .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                                .setBizId(String.valueOf(invitationId))
+                                .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getType())
+                                .setLevelId(null);
+                        adminUserRightsService.createRights(inviteUserRightsDTO);
                     });
 
                     try {
@@ -247,7 +281,19 @@ public class StarUserServiceImpl implements StarUserService {
             } else {
                 // 普通注册权益
                 TenantUtils.execute(tenantId, () -> {
-                    adminUserRightsService.createRights(currentUserId, AdminUserRightsBizTypeEnum.REGISTER.getMagicBean(), AdminUserRightsBizTypeEnum.REGISTER.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.REGISTER, String.valueOf(currentUserId), null);
+
+                    AddRightsDTO newUserRightsDTO = new AddRightsDTO()
+                            .setUserId(currentUserId)
+                            .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
+                            .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
+                            .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
+                            .setTimeNums(1)
+                            .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                            .setBizId(String.valueOf(currentUserId))
+                            .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
+                            .setLevelId(null);
+
+                    adminUserRightsService.createRights(newUserRightsDTO);
                 });
             }
 
@@ -557,16 +603,16 @@ public class StarUserServiceImpl implements StarUserService {
         userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
         userDetailVO.setIsInviteUser(false);
 
-        List<ProductSpuRespDTO> spuRespDTOS = productSpuApi.getSpuListByKeywordOrCategoryId(userId, "invite_try",null);
+        List<ProductSpuRespDTO> spuRespDTOS = productSpuApi.getSpuListByKeywordOrCategoryId(userId, "invite_try", null);
 
-        if (CollUtil.isNotEmpty(spuRespDTOS)){
-            spuRespDTOS.forEach(spu->{
+        if (CollUtil.isNotEmpty(spuRespDTOS)) {
+            spuRespDTOS.forEach(spu -> {
                 List<Long> ids1 = JSON.parseArray(JSON.toJSONString(spu.getLimitCouponTemplateIds()), Long.class);
                 ids1.forEach(coupon ->
                 {
                     List<CouponRespDTO> couponRespDTOList = couponApi.getMatchCouponByTemplateId(userId, coupon);
-                    if (CollUtil.isNotEmpty(couponRespDTOList)){
-                        userDetailVO.setInviteEndTime( couponRespDTOList.get(0).getValidEndTime());
+                    if (CollUtil.isNotEmpty(couponRespDTOList)) {
+                        userDetailVO.setInviteEndTime(couponRespDTOList.get(0).getValidEndTime());
                     }
                 });
 

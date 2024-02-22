@@ -13,6 +13,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
+import com.starcloud.ops.business.user.api.rights.dto.UserRightsBasicDTO;
 import com.starcloud.ops.business.user.controller.admin.invite.vo.records.InvitationRecordsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
 import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteRuleDO;
@@ -220,8 +222,21 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
 
         int tag = 0;
         log.info("[executeInviteRuleByRuleType] 设置邀请人权益,邀请人 ID 为{},记录 ID 为{},规则为{}", inviteUserDO.getId(), inviteRecordsId, ruleId);
-        if (Objects.nonNull(inviteRule.getGiveRights()) && inviteRule.getGiveRights().getGiveMagicBean() > 0 || inviteRule.getGiveRights().getGiveImage() > 0) {
-            TenantUtils.execute(inviteUserDO.getTenantId(), () -> adminUserRightsService.createRights(inviteUserDO.getId(), inviteRule.getGiveRights().getGiveMagicBean(), inviteRule.getGiveRights().getGiveImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(inviteRecordsId), null));
+        if (Objects.nonNull(inviteRule.getGiveRights()) && Objects.nonNull(inviteRule.getGiveRights().getRightsBasicDTO())) {
+            TenantUtils.execute(inviteUserDO.getTenantId(), () -> {
+                UserRightsBasicDTO rightsBasicDTO = inviteRule.getGiveRights().getRightsBasicDTO();
+                AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
+                        .setUserId(inviteUserDO.getId())
+                        .setMagicBean(rightsBasicDTO.getMagicBean())
+                        .setMagicImage(rightsBasicDTO.getMagicImage())
+                        .setMatrixBean(rightsBasicDTO.getMatrixBean())
+                        .setTimeNums(1)
+                        .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                        .setBizId(String.valueOf(inviteRecordsId))
+                        .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE.getType())
+                        .setLevelId(null);
+                adminUserRightsService.createRights(inviteUserRightsDTO);
+            });
             tag++;
         } else {
             log.warn("[executeInviteRuleByRuleType] 当前规则暂无权益配置,规则ID为{}", ruleId);

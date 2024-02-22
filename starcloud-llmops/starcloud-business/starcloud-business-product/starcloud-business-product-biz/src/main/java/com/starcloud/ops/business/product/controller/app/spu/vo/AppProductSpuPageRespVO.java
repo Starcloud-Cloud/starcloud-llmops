@@ -1,13 +1,11 @@
 package com.starcloud.ops.business.product.controller.app.spu.vo;
 
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.controller.app.property.vo.value.AppProductPropertyValueDetailRespVO;
-import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Schema(description = "用户 App - 商品 SPU Response VO")
@@ -68,7 +66,7 @@ public class AppProductSpuPageRespVO {
     private List<Sku> skus;
 
 
-    private GiveRightsDTO giveRights;
+    private AdminUserRightsCommonDTO giveRights;
 
     private SubscribeConfigDTO subscribeConfig;
 

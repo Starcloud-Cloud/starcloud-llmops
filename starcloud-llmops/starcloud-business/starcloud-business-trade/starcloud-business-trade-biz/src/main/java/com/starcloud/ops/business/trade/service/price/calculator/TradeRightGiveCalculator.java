@@ -29,7 +29,7 @@ public class TradeRightGiveCalculator implements TradePriceCalculator {
     @Override
     public void calculate(TradePriceCalculateReqBO param, TradePriceCalculateRespBO result) {
 //        // 1.1 校验积分功能是否开启
-//        GiveRightsDTO giveRightsDTO = Optional.ofNullable(result.getGiveRights())
+//        AdminUserRightsCommonDTO giveRightsDTO = Optional.ofNullable(result.getGiveRights())
 //                .orElse(null);
 //        if (Objects.isNull(giveRightsDTO)) {
 //            return;

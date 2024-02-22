@@ -2,6 +2,7 @@ package com.starcloud.ops.business.product.dal.dataobject.sku;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyValueDO;
 import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.*;
 
 import java.util.List;
@@ -79,6 +81,17 @@ public class ProductSkuDO extends BaseDO {
     private Double volume;
 
     /**
+     * 商品附属权益
+     */
+    @TableField(typeHandler = RightsTypeHandler.class)
+    private AdminUserRightsCommonDTO rightsConfig;
+    /**
+     * 商品签约配置
+     */
+    @TableField(typeHandler = SubscribeConfigTypeHandler.class)
+    private SubscribeConfigDTO subscribeConfig;
+
+    /**
      * 一级分销的佣金，单位：分
      */
     private Integer firstBrokeragePrice;
@@ -145,6 +158,38 @@ public class ProductSkuDO extends BaseDO {
         }
 
     }
+
+
+
+    public static class RightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, AdminUserRightsCommonDTO.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
+    public static class SubscribeConfigTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, SubscribeConfigDTO.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
+    // TODO @芋艿：可以找一些新的思路
 
     // TODO 芋艿：integral from y
     // TODO 芋艿：pinkPrice from y
