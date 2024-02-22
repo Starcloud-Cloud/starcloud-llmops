@@ -1,26 +1,18 @@
 package com.starcloud.ops.business.user.api.rights;
 
 import cn.hutool.core.lang.Assert;
-
-import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 
-import java.time.LocalDateTime;
-
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
-
-
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
 
 /**
  * 用户积分的 API 实现类
@@ -46,7 +38,7 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     }
 
     /**
-     * @param addRightsDTO
+     * @param addRightsDTO 新增权益DTO
      */
     @Override
     public void addRights(AddRightsDTO addRightsDTO) {
@@ -66,7 +58,7 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     }
 
     /**
-     * @param reduceRightsDTO
+     * @param reduceRightsDTO 权益扣减DTO
      */
     @Override
     public void reduceRights(ReduceRightsDTO reduceRightsDTO) {
@@ -79,7 +71,7 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
      * @param userId      用户 ID
      * @param rightsType  权益类型
      * @param rightAmount 检测权益数 可以为空 为空 仅仅判断当前权益数大于 0
-     * @return
+     * @return 是否充足 布尔值
      */
     @Override
     public Boolean calculateUserRightsEnough(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {

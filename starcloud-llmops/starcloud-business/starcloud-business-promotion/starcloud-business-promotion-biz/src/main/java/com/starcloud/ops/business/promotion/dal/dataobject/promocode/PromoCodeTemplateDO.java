@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 
 /**
  * 兑换码模板 DO
- *
+ * <p>
  * 当用户领取时，会生成 {@link PromoCodeDO} 兑换码记录
  *
  * @author  Cusack Alan
@@ -53,13 +53,13 @@ public class PromoCodeTemplateDO extends BaseDO {
     // ========== 兑换规则 ==========
     /**
      * 发放数量
-     *
+     * <p>
      * -1 - 则表示不限制发放数量
      */
     private Integer totalCount;
     /**
      * 每人限领个数
-     *
+     * <p>
      * -1 - 则表示不限制
      */
     private Integer takeLimitCount;
@@ -68,7 +68,7 @@ public class PromoCodeTemplateDO extends BaseDO {
     // ========== 使用规则 BEGIN ==========
     /**
      * 兑换码类型
-     *
+     * <p>
      * 枚举 {@link PromotionCodeTypeEnum}
      */
     private Integer codeType;

@@ -76,7 +76,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
         PromoCodeDO PromoCode = promoCodeMapper.selectByIdAndUserId(id, userId);
         if (PromoCode == null) {
-            // throw exception(PromoCode_NOT_EXISTS);
+            throw exception(PROMO_CODE_NOT_EXISTS);
         }
         validPromoCode(PromoCode);
         return PromoCode;

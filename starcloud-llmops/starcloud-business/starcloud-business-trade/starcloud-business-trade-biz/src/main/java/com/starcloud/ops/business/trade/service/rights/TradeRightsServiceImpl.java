@@ -70,7 +70,8 @@ public class TradeRightsServiceImpl implements TradeRightsService {
         List<ProductSpuRespDTO> spuList = checkSpuList(skuList);
 
         // 2.0 设置权益相关字段
-        SubscribeConfigDTO subscribeConfigDTO = new SubscribeConfigDTO();
+        new SubscribeConfigDTO();
+        SubscribeConfigDTO subscribeConfigDTO;
         subscribeConfigDTO =spuList.get(0).getSubscribeConfig() ;
         return subscribeConfigDTO;
     }

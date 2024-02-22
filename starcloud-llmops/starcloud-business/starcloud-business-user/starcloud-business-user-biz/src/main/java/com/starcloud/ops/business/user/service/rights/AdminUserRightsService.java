@@ -2,7 +2,6 @@ package com.starcloud.ops.business.user.service.rights;
 
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
@@ -13,7 +12,6 @@ import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,7 +42,7 @@ public interface AdminUserRightsService {
      * 获取权益数据汇总
      *
      * @param userId 用户编号
-     * @return
+     * @return 权益数据汇总
      */
     List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId);
 
@@ -103,7 +101,7 @@ public interface AdminUserRightsService {
 
     /**
      * 权益扣减
-     * @param reduceRightsDTO
+     * @param reduceRightsDTO 权益扣减DTO
      */
     void reduceRights(ReduceRightsDTO reduceRightsDTO);
 
@@ -112,7 +110,7 @@ public interface AdminUserRightsService {
     /**
      * 权益过期提醒
      *
-     * @param userId
+     * @param userId 用户 ID
      */
     NotifyExpiringRightsRespVO notifyExpiringRights(Long userId);
 

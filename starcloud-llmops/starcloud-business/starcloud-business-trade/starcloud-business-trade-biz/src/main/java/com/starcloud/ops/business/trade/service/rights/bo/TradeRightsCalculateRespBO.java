@@ -9,7 +9,6 @@ import java.util.List;
 
 /**
  * 权益计算 Response BO
- *
  * 整体设计，参考 taobao 的技术文档：
  * 1. <a href="https://developer.alibaba.com/docs/doc.htm?treeId=1&articleId=1029&docType=1">订单管理</a>
  * 2. <a href="https://open.taobao.com/docV3.htm?docId=108471&docType=1">常用订单金额说明</a>
