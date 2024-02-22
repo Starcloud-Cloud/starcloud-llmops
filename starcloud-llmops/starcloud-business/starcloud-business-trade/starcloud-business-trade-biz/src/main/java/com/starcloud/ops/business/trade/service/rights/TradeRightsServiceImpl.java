@@ -4,15 +4,11 @@ package com.starcloud.ops.business.trade.service.rights;
 import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
-import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
-import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
-import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculator;
-import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalculatorHelper;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -27,7 +23,6 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_STOCK_NOT_ENOUGH;
-import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.PRICE_CALCULATE_PAY_PRICE_ILLEGAL;
 
 /**
  * 价格计算 Service 实现类
@@ -53,7 +48,7 @@ public class TradeRightsServiceImpl implements TradeRightsService {
 
         // 2.0 设置权益相关字段
         TradeRightsCalculateRespBO calculateRespBO = new TradeRightsCalculateRespBO();
-         List<GiveRightsDTO> giveRights = new ArrayList<>();
+         List<AdminUserRightsCommonDTO> giveRights = new ArrayList<>();
         for (ProductSpuRespDTO productSpuRespDTO : spuList) {
             giveRights.add(productSpuRespDTO.getGiveRights());
         }

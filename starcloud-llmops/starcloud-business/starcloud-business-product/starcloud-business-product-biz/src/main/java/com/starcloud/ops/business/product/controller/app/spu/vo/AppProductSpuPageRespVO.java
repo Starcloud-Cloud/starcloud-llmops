@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.product.controller.app.spu.vo;
 
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.controller.app.property.vo.value.AppProductPropertyValueDetailRespVO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -66,7 +66,7 @@ public class AppProductSpuPageRespVO {
     private List<Sku> skus;
 
 
-    private GiveRightsDTO giveRights;
+    private AdminUserRightsCommonDTO giveRights;
 
     private SubscribeConfigDTO subscribeConfig;
 

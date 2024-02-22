@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 /**
@@ -35,12 +36,16 @@ public class AdminUserSignInRecordDO extends BaseDO {
      */
     private Integer day;
     /**
-     * 签到的积分
+     * 签到的魔法豆
      */
     private Integer magicBean;
     /**
-     * 签到的经验
+     * 魔法图片
      */
     private Integer magicImage;
+    /**
+     * 矩阵豆
+     */
+    private Integer matrixBean;
 
 }

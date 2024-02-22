@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.dict.core.util.DictFrameworkUtils;
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.controller.admin.spu.vo.*;
@@ -15,9 +14,9 @@ import com.starcloud.ops.business.product.convert.sku.ProductSkuConvert;
 import com.starcloud.ops.business.product.dal.dataobject.sku.ProductSkuDO;
 import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
 import com.starcloud.ops.business.product.enums.DictTypeConstants;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
@@ -80,7 +79,7 @@ public interface ProductSpuConvert {
     public static SubscribeConfigVO mapToSubscribeConfigVO(ProductSpuDO.SubscribeConfig subscribeConfig) {
         return BeanUtil.toBean(subscribeConfig,SubscribeConfigVO.class);
     }
-    public static GiveRightsVO mapToGiveRightsVO(ProductSpuDO.GiveRights giveRights) {
+    public static GiveRightsVO mapToGiveRightsVO(AdminUserRightsCommonDTO giveRights) {
         return BeanUtil.toBean(giveRights,GiveRightsVO.class);
     }
 
@@ -91,8 +90,8 @@ public interface ProductSpuConvert {
     public static SubscribeConfigDTO mapToSubscribeConfigDTO(ProductSpuDO.SubscribeConfig subscribeConfig) {
         return BeanUtil.toBean(subscribeConfig,SubscribeConfigDTO.class);
     }
-    public static GiveRightsDTO mapToGiveRightsDTO(ProductSpuDO.GiveRights giveRights) {
-        return BeanUtil.toBean(giveRights,GiveRightsDTO.class);
+    public static AdminUserRightsCommonDTO mapToGiveRightsDTO(AdminUserRightsCommonDTO giveRights) {
+        return BeanUtil.toBean(giveRights,AdminUserRightsCommonDTO.class);
     }
     // ========== 用户 App 相关 ==========
 

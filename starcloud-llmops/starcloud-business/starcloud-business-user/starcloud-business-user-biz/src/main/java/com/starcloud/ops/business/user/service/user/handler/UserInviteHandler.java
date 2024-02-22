@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.user.service.user.handler;
 
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.invite.AdminUserInviteRuleService;
 import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
@@ -50,7 +52,18 @@ public class UserInviteHandler implements UserRegisterHandler {
         Long invitationId = adminUserInviteService.createInvitationRecords(inviteUserDO.getId(), adminUserDO.getId());
         log.info("【afterUserRegister】邀请人信息设置成功,开始准备邀请人权益发放，准备邀请人发放权益");
 
-        adminUserRightsService.createRights(inviteUserDO.getId(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean(), AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.USER_INVITE, String.valueOf(invitationId), null);
+        AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
+                .setUserId(inviteUserDO.getId())
+                .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean())
+                .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage())
+                .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMatrixBean())
+                .setTimeNums(1)
+                .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                .setBizId(String.valueOf(invitationId))
+                .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE.getType())
+                .setLevelId(null);
+
+        adminUserRightsService.createRights(inviteUserRightsDTO);
         log.info("【afterUserRegister】邀请人信息设置成功,基础权益人发放完成");
 
         adminUserInviteService.setInviteRights(inviteUserDO, invitationId);

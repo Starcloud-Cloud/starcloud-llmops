@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.util.Objects;
 
 /**
- * 会员积分的业务类型枚举
+ * 会员权益的业务类型枚举
  *
  * @author 芋道源码
  */
@@ -18,6 +18,7 @@ public enum AdminUserRightsTypeEnum implements IntArrayValuable {
 
     MAGIC_BEAN(1, "魔法豆"),
     MAGIC_IMAGE(2, "图片"),
+    MATRIX_BEAN(3, " 矩阵豆"),
     ;
 
     /**

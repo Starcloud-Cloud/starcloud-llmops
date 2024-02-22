@@ -3,6 +3,8 @@ package com.starcloud.ops.business.user.api.rights;
 import cn.hutool.core.lang.Assert;
 
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
@@ -33,14 +35,22 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     private AdminUserRightsService adminUserRightsService;
 
     @Override
-    public void addRights(Long userId, Integer magicBean, Integer magicImage, Integer rightsTimeNums, Integer rightsTimeRange,
+    public void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer rightsTimeNums, Integer rightsTimeRange,
                           Integer bizType, String bizId, Long levelId) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, rightsTimeNums, rightsTimeRange, bizTypeEnum, bizId, levelId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizTypeEnum, bizId, levelId);
+    }
+
+    /**
+     * @param addRightsDTO
+     */
+    @Override
+    public void addRights(AddRightsDTO addRightsDTO) {
+        adminUserRightsService.createRights(addRightsDTO);
     }
 
     @Override
@@ -53,6 +63,14 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
         adminUserRightsService.reduceRights(userId, teamOwnerId, teamId, rightsType, rightAmount, bizTypeEnum, bizId);
+    }
+
+    /**
+     * @param reduceRightsDTO
+     */
+    @Override
+    public void reduceRights(ReduceRightsDTO reduceRightsDTO) {
+        adminUserRightsService.reduceRights(reduceRightsDTO);
     }
 
     /**

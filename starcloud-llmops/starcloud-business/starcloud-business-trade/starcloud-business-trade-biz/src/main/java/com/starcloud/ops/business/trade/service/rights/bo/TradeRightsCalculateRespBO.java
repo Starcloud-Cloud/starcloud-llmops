@@ -1,9 +1,6 @@
 package com.starcloud.ops.business.trade.service.rights.bo;
 
-import com.starcloud.ops.business.product.api.property.dto.ProductPropertyValueDetailRespDTO;
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
-import com.starcloud.ops.business.promotion.enums.common.PromotionTypeEnum;
-import com.starcloud.ops.business.trade.enums.order.TradeOrderTypeEnum;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -25,6 +22,6 @@ public class TradeRightsCalculateRespBO {
     // ========== 权益 相关字段 =========
     @Schema(description = "权益参数")
     @Valid
-    private List<GiveRightsDTO> giveRights;
+    private List<AdminUserRightsCommonDTO> giveRights;
 
 }

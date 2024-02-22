@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.product.api.spu.dto;
 
 import com.starcloud.ops.business.product.enums.spu.ProductSpuStatusEnum;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -121,7 +122,7 @@ public class ProductSpuRespDTO {
     // ========== 权益 相关字段 =========
     @Schema(description = "权益参数")
     @Valid
-    private GiveRightsDTO giveRights;
+    private AdminUserRightsCommonDTO giveRights;
 
     @Schema(description = "订阅参数")
     @Valid

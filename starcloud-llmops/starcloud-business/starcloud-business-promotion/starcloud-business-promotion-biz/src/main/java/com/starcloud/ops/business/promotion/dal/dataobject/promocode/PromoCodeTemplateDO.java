@@ -2,24 +2,18 @@ package com.starcloud.ops.business.promotion.dal.dataobject.promocode;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.common.validation.InEnum;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
-import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
-import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 兑换码模板 DO
@@ -108,61 +102,15 @@ public class PromoCodeTemplateDO extends BaseDO {
      * 属性数组，JSON 格式
      */
     @TableField(typeHandler = GiveRightsTypeHandler.class)
-    private GiveRights giveRights;
+    private AdminUserRightsCommonDTO giveRights;
 
 
-    /**
-     * 魔法 AI 专属
-     * 商品附属赠送权益
-     *
-     * @author Alan Cusack
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class GiveRights {
-        /**
-         * 赠送魔法豆
-         */
-        private Integer giveMagicBean;
-
-        /**
-         * 赠送图片权益
-         */
-        private Integer giveImage;
-
-        /**
-         * 权益生效时间
-         */
-        @Schema(description = "权益生效时间", example = "100")
-        private Integer rightsTimeNums;
-
-        /**
-         * 权益生效时间单位
-         */
-        @Schema(description = "权益生效时间单位", example = "100")
-        @InEnum(value = TimeRangeTypeEnum.class,message = "权益生效时间单位，必须是 {value}")
-        private Integer rightsTimeRange;
-
-        /**
-         * 用户等级
-         */
-        @Schema(description = "用户等级", example = "1")
-        private Long levelId;
-
-        @Schema(description = "用户等级生效时间", example = "100")
-        private Integer levelTimeNums;
-
-        @Schema(description = "用户等级生效时间单位", example = "100")
-        @InEnum(value = TimeRangeTypeEnum.class,message = "用户等级生效时间单位，必须是 {value}")
-        private Integer LevelTimeRange;
-    }
 
     public static class GiveRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseObject(json, GiveRights.class);
+            return JsonUtils.parseObject(json, AdminUserRightsCommonDTO.class);
         }
 
         @Override

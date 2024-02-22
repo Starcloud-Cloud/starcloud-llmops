@@ -12,12 +12,11 @@ import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
-import com.starcloud.ops.business.user.api.rights.dto.TimesRangeDTO;
-import com.starcloud.ops.business.user.api.rights.dto.UserRightsBasicDTO;
+import com.starcloud.ops.business.user.api.rights.dto.*;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
+import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -121,7 +120,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId) {
 
         if (magicBean == 0 || magicImage == 0) {
             return;
@@ -159,12 +158,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .setValidEndTime(endTime)
                 .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
 
-        if (getLoginUserId() == null) {
-            record.setCreator(String.valueOf(userId));
-            record.setUpdater(String.valueOf(userId));
-        }
-
-        adminUserRightsMapper.insert(record);
 
         if (magicBean > 0) {
             adminUserRightsRecordService.createRightsRecord(userId, null, null, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
@@ -174,6 +167,57 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
 
 
+    }
+
+    /**
+     * 创建用户权益记录
+     *
+     * @param addRightsDTO 新增权益 DTO
+     */
+    @Override
+    public void createRights(AddRightsDTO addRightsDTO) {
+
+        // 获取业务类型
+        AdminUserRightsBizTypeEnum bizType = AdminUserRightsBizTypeEnum.getByType(addRightsDTO.getBizType());
+
+        if (bizType.isSystem()) {
+            addRightsDTO.setTimeNums(1);
+            addRightsDTO.setTimeRange(TimeRangeTypeEnum.MONTH.getType());
+        }
+
+        LocalDateTime startTime = LocalDateTimeUtil.now();
+        LocalDateTime endTime;
+
+        // 判断当前是否存在相同等级配置
+        if (Objects.nonNull(addRightsDTO.getLevelId())) {
+            AdminUserRightsDO latestExpirationByLevel = adminUserRightsMapper.findLatestExpirationByLevel(addRightsDTO.getUserId(), addRightsDTO.getLevelId());
+            if (latestExpirationByLevel != null) {
+                startTime = latestExpirationByLevel.getValidEndTime();
+            }
+        }
+        endTime = getSpecificTime(startTime, addRightsDTO.getTimeNums(), addRightsDTO.getTimeRange());
+
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert01(addRightsDTO, bizType, startTime, endTime);
+
+        if (getLoginUserId() == null) {
+            record.setCreator(String.valueOf(addRightsDTO.getUserId()));
+            record.setUpdater(String.valueOf(addRightsDTO.getUserId()));
+        }
+
+        // 插入记录
+        adminUserRightsMapper.insert(record);
+        // 插入魔法豆明细记录
+        if (addRightsDTO.getMagicBean() > 0) {
+            adminUserRightsRecordService.createRightsRecord(addRightsDTO.getUserId(), null, null, addRightsDTO.getMagicBean(), AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
+        // 插入魔法图片明细记录
+        if (addRightsDTO.getMagicImage() > 0) {
+            adminUserRightsRecordService.createRightsRecord(addRightsDTO.getUserId(), null, null, addRightsDTO.getMagicImage(), AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
+        // 插入矩阵豆明细记录
+        if (addRightsDTO.getMatrixBean() > 0) {
+            adminUserRightsRecordService.createRightsRecord(addRightsDTO.getUserId(), null, null, addRightsDTO.getMatrixBean(), AdminUserRightsTypeEnum.MATRIX_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
     }
 
     /**
@@ -320,6 +364,45 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .collect(Collectors.joining(",")); // 使用逗号连接
 
         adminUserRightsRecordService.createRightsRecord(userId, teamOwnerId, teamId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
+
+    }
+
+    /**
+     * 权益扣减
+     *
+     * @param reduceRightsDTO
+     */
+    @Override
+    public void reduceRights(ReduceRightsDTO reduceRightsDTO) {
+        Long reduceUserId = Objects.isNull(reduceRightsDTO.getTeamOwnerId()) ? reduceRightsDTO.getUserId() : reduceRightsDTO.getTeamOwnerId();
+        AdminUserRightsTypeEnum rightsType = AdminUserRightsTypeEnum.getByType(reduceRightsDTO.getRightType());
+        AdminUserRightsBizTypeEnum bizType = AdminUserRightsBizTypeEnum.getByType(reduceRightsDTO.getBizType());
+
+        // 获取可用权益列表
+        List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(reduceUserId,rightsType );
+        if (validRightsList.isEmpty()) {
+            if (AdminUserRightsTypeEnum.MAGIC_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_BEAN_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
+            throw exception(USER_RIGHTS_NOT_ENOUGH);
+
+        }
+
+
+        List<AdminUserRightsDO> deductRightsList = deduct(validRightsList, rightsType, reduceRightsDTO.getReduceNums());
+
+        // 批量更新数据
+        adminUserRightsMapper.updateBatch(deductRightsList, deductRightsList.size());
+
+        // 使用流API提取Id并使用逗号分割
+        String deductIds = deductRightsList.stream()
+                .map(adminUserRightsDO -> adminUserRightsDO.getId().toString()) // 提取Id
+                .collect(Collectors.joining(",")); // 使用逗号连接
+
+        adminUserRightsRecordService.createRightsRecord(reduceRightsDTO.getUserId(), reduceRightsDTO.getTeamOwnerId(), reduceRightsDTO.getTeamId(), reduceRightsDTO.getReduceNums(), rightsType, bizType.getType() + 50, reduceRightsDTO.getBizId(), deductIds);
 
     }
 
