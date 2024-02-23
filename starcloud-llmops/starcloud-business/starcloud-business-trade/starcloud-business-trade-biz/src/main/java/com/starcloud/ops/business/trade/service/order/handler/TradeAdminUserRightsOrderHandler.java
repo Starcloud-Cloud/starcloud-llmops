@@ -57,7 +57,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                         .setMatrixBean(rightsBasicDTO.getMatrixBean())
                         .setTimeNums(rightsBasicDTO.getTimesRange().getNums())
                         .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
-                        .setBizType(AdminUserRightsBizTypeEnum.REDEEM_CODE.getType())
+                        .setBizType(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType())
                         .setBizId(String.valueOf(order.getId()))
                         .setLevelId(giveRight.getLevelBasicDTO() != null ? giveRight.getLevelBasicDTO().getLevelId() : null);
                 adminUserRightsApi.addRights(addRightsDTO);

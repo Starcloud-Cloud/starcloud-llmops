@@ -46,6 +46,7 @@ public class TradeRightsServiceImpl implements TradeRightsService {
         // 1.2 获得商品 SPU 数组
         List<ProductSpuRespDTO> spuList = checkSpuList(skuList);
 
+        // TODO 如果需要从 sku 获取权益信息 则在此处修改
         // 2.0 设置权益相关字段
         TradeRightsCalculateRespBO calculateRespBO = new TradeRightsCalculateRespBO();
          List<AdminUserRightsCommonDTO> giveRights = new ArrayList<>();
