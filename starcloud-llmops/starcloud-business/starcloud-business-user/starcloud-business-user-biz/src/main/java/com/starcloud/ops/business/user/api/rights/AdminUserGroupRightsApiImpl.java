@@ -1,22 +1,11 @@
 package com.starcloud.ops.business.user.api.rights;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
-import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
-import cn.iocoder.yudao.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
-import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
-import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
-import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.dept.UserDeptService;
-import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -24,13 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
 
 /**
  * 用户积分的 API 实现类, 团队权益包装类
@@ -41,7 +24,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ
 @Slf4j
 @Service
 @Validated
-public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
+public class  AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
 
 
     @Autowired
@@ -55,7 +38,7 @@ public class AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
 
     @Override
     public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount,
-                             Integer bizType, String bizId) {
+                             Integer bizType, String bizId)  {
         UserDeptDO userDeptDO = this.getDeptRightsUserId(userId, rightsType, rightAmount);
         userDeptService.recordRights(userDeptDO, userId, rightsType, rightAmount);
         Long deptUserId = Optional.ofNullable(userDeptDO).map(UserDeptDO::getUserId).orElse(userId);

@@ -186,7 +186,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
                     .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
                     .setBizType(AdminUserRightsBizTypeEnum.REDEEM_CODE.getType())
                     .setBizId(String.valueOf(convert.getId()))
-                    .setLevelId(giveRights.getLevelBasicDTO() != null ? giveRights.getLevelBasicDTO().getLevelId() : null);
+                    .setLevelId(giveRights.getLevelBasicDTO() != null ? giveRights.getLevelBasicDTO().getLevelId() == null ? null : giveRights.getLevelBasicDTO().getLevelId() : null);
             adminUserRightsApi.addRights(addRightsDTO);
         }
 

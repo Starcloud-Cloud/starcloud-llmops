@@ -37,7 +37,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
 
 
         for (AdminUserRightsCommonDTO giveRight : order.getGiveRights()) {
-            if (Objects.nonNull(giveRight.getLevelBasicDTO())){
+            if (Objects.nonNull(giveRight.getLevelBasicDTO())) {
                 // 设置会员等级
                 adminUserLevelApi.addAdminUserLevel(
                         order.getUserId(),
@@ -47,7 +47,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                         AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
                         String.valueOf(order.getId()));
             }
-            if (Objects.nonNull(giveRight.getRightsBasicDTO())){
+            if (Objects.nonNull(giveRight.getRightsBasicDTO())) {
                 UserRightsBasicDTO rightsBasicDTO = giveRight.getRightsBasicDTO();
                 // 设置会员权益
                 AddRightsDTO addRightsDTO = new AddRightsDTO();
@@ -59,7 +59,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                         .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
                         .setBizType(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType())
                         .setBizId(String.valueOf(order.getId()))
-                        .setLevelId(giveRight.getLevelBasicDTO() != null ? giveRight.getLevelBasicDTO().getLevelId() : null);
+                        .setLevelId(giveRight.getLevelBasicDTO() != null ? giveRight.getLevelBasicDTO().getLevelId() == null ? null : giveRight.getLevelBasicDTO().getLevelId() : null);
                 adminUserRightsApi.addRights(addRightsDTO);
             }
 
