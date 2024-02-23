@@ -35,6 +35,9 @@ public class AppAdminUserRightsRespVO {
     @Schema(description = "图片", requiredMode = Schema.RequiredMode.REQUIRED, example = "100")
     private Integer magicImageInit;
 
+    @Schema(description = "矩阵豆", requiredMode = Schema.RequiredMode.REQUIRED, example = "100")
+    private Integer matrixBeanInit;
+
     /**
      * '关联用户等级ID'
      * <p>
