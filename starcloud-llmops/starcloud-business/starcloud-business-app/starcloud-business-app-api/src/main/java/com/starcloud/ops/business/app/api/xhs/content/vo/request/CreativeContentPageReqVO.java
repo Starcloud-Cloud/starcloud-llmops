@@ -17,6 +17,9 @@ public class CreativeContentPageReqVO extends PageParam {
     @Schema(description = "创作计划Uid")
     private String planUid;
 
+    @Schema(description = "计划执行批次")
+    private Long batch;
+
     @Schema(description = "任务状态", example = "execute_success")
     private String status;
 

@@ -36,6 +36,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDT
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -53,6 +54,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
@@ -77,11 +79,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -115,6 +113,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private AppMarketService appMarketService;
+
+    @Resource
+    private CreativePlanBatchService planBatchService;
 
     /**
      * 上传图片
@@ -159,9 +160,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             return PageResp.of(Collections.emptyList(), page.getTotal(), page.getCurrent(), page.getSize());
         }
         List<String> planUidList = records.stream().map(CreativePlanPO::getUid).collect(Collectors.toList());
-        List<CreativeContentBusinessPO> businessList = creativeContentService.listGroupByPlanUid(planUidList);
-        Map<String, List<CreativeContentBusinessPO>> businessMap = businessList.stream().collect(Collectors.groupingBy(CreativeContentBusinessPO::getPlanUid));
 
+        Map<String, CreativePlanBatchRespVO> planBatchRespMap = planBatchService.latestBatch(planUidList).stream().collect(Collectors.toMap(CreativePlanBatchRespVO::getPlanUid, Function.identity()));
         // 用户创建者ID列表。
         List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).distinct().collect(Collectors.toList());
         // 获取用户创建者ID，昵称 Map。
@@ -170,20 +170,17 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<CreativePlanRespVO> collect = records.stream().map(item -> {
             CreativePlanRespVO response = CreativePlanConvert.INSTANCE.convertResponse(item);
             response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
-            // 总数
-            List<CreativeContentBusinessPO> businessItemList = CollectionUtil.emptyIfNull(businessMap.get(item.getUid()));
 
-            int successCount = (int) businessItemList.stream()
-                    .filter(businessItem -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(businessItem.getStatus()))
-                    .count();
-
-            int failureCount = (int) businessItemList.stream()
-                    .filter(businessItem -> CreativeContentStatusEnum.EXECUTE_ERROR_FINISHED.getCode().equals(businessItem.getStatus()))
-                    .count();
-
-            response.setTotal(businessItemList.size());
-            response.setSuccessCount(successCount);
-            response.setFailureCount(failureCount);
+            CreativePlanBatchRespVO creativePlanBatchRespVO = planBatchRespMap.get(item.getUid());
+            if (Objects.isNull(creativePlanBatchRespVO)) {
+                response.setTotal(0);
+                response.setSuccessCount(0);
+                response.setFailureCount(0);
+            } else {
+                response.setTotal(creativePlanBatchRespVO.getTotalCount());
+                response.setSuccessCount(creativePlanBatchRespVO.getSuccessCount());
+                response.setFailureCount(creativePlanBatchRespVO.getFailureCount());
+            }
             return response;
         }).collect(Collectors.toList());
 
@@ -297,7 +294,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param planUid 计划UID
      */
     @Override
-    public void updatePlanStatus(String planUid) {
+    public void updatePlanStatus(String planUid, Long batch) {
         log.info("开始更新计划状态，planUid: {}", planUid);
         String key = "creative-plan-update-status-" + planUid;
         RLock lock = redissonClient.getLock(key);
@@ -305,7 +302,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
                 return;
             }
-            List<CreativeContentDO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listByPlanUid(planUid));
+            // 更新批次状态
+            planBatchService.updateCompleteStatus(planUid, batch);
+            List<CreativeContentDO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listByPlanUid(planUid, batch));
             // 当前计划下只有全部执行成功的，则计划完成
             boolean complete = contentList.stream().allMatch(item -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(item.getStatus()));
             if (complete) {
@@ -353,14 +352,38 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void execute(String uid) {
+        RLock lock = redissonClient.getLock(uid);
+        try {
+            if (!lock.tryLock(1, TimeUnit.MINUTES)) {
+                return;
+            }
+            execute0(uid);
+        } catch (InterruptedException e) {
+            log.warn("InterruptedException");
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void execute0(String uid) {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO plan = this.get(uid);
+        // 校验是否有在执行的批次
+        if (CreativePlanStatusEnum.RUNNING.name().equals(plan.getStatus())
+                || CreativePlanStatusEnum.PAUSE.name().equals(plan.getStatus())) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_IS_EXECUTING, uid);
+        }
+
         // 目前只支持随机执行
         if (!CreativeRandomTypeEnum.RANDOM.name().equals(plan.getRandomType())) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_RANDOM_TYPE_NOT_SUPPORTED, plan.getRandomType());
         }
-        // 批量执行随机任务
+        // 批量执行随机任务  新增批次
+        long batch = System.currentTimeMillis();
+        planBatchService.createBatch(batch, plan);
+        plan.setBatch(batch);
+
         this.bathRandomTask(plan);
         // 更新状态
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
@@ -457,6 +480,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 appResponse.setWorkflowConfig(workflowConfig);
 
                 appCreateRequest.setPlanUid(plan.getUid());
+                appCreateRequest.setBatch(plan.getBatch());
                 appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
                 appCreateRequest.setBusinessUid(businessUid);
                 appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
@@ -476,6 +500,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
                 CreativePlanAppExecuteDTO appExecuteRequest = executeParam.getAppExecuteRequest();
                 appCreateRequest.setPlanUid(plan.getUid());
+                appCreateRequest.setBatch(plan.getBatch());
                 appCreateRequest.setSchemeUid(executeParam.getSchemeUid());
                 appCreateRequest.setBusinessUid(businessUid);
                 appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
@@ -524,6 +549,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
                 String tempUid = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests()).stream().map(CreativePlanImageExecuteDTO::getId).collect(Collectors.joining(","));
                 imageCreateRequest.setPlanUid(plan.getUid());
+                imageCreateRequest.setBatch(plan.getBatch());
                 imageCreateRequest.setSchemeUid(executeParam.getSchemeUid());
                 imageCreateRequest.setBusinessUid(businessUid);
                 imageCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());

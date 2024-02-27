@@ -167,7 +167,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(EXECTURE_ERROR, "文案和图片", content.getId());
         }
 
-        creativePlanService.updatePlanStatus(content.getPlanUid());
+        creativePlanService.updatePlanStatus(content.getPlanUid(), content.getBatch());
         return detail(businessUid);
     }
 
@@ -231,8 +231,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     @TenantIgnore
-    public List<CreativeContentDO> listByPlanUid(String planUid) {
-        return creativeContentMapper.selectByPlanUid(planUid);
+    public List<CreativeContentDO> listByPlanUid(String planUid, Long batch) {
+        return creativeContentMapper.selectByPlanUid(planUid, batch);
     }
 
     /**
@@ -315,7 +315,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         PageResult<CreativeContentRespVO> page = page(pageReq);
         com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<CreativeContentRespVO> result = new com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<>(page.getList(), page.getTotal());
 
-        List<CreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid());
+        List<CreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid(), req.getBatch());
         Map<String, List<CreativeContentDO>> contentGroup = xhsCreativeContents.stream().collect(Collectors.groupingBy(CreativeContentDO::getBusinessUid));
         int successCount = 0, errorCount = 0;
 

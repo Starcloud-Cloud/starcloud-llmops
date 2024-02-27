@@ -92,6 +92,17 @@ public interface CreativeErrorCodeConstants {
     ErrorCode PLAN_UPDATE_STATUS_FAILED = new ErrorCode(710100125, "更新创作计划状态失败，请稍后重试({})！{}!");
 
     /**
+     * 创作计划正在执行中
+     */
+    ErrorCode PLAN_IS_EXECUTING = new ErrorCode(710100126, "创作计划正在执行中，请稍后重试 {}!");
+
+    /**
+     * 计划执行批次不存在
+     */
+    ErrorCode PLAN_BATCH_NOT_EXIST = new ErrorCode(710100127, "计划执行批次不存在 planUid = {} , batch = {}");
+
+
+    /**
      * 创作方案不存在
      */
     ErrorCode SCHEME_NOT_EXIST = new ErrorCode(720100110, "创作方案不存在，请重新输入！");

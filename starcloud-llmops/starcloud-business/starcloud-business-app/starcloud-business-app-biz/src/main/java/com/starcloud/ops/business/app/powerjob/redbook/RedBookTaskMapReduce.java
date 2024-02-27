@@ -101,13 +101,14 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         List<SubTask> subTasks = new ArrayList<>(planUidGroup.size());
         Integer subSize = params.getSubSize() == null ? 5 : params.getSubSize();
         for (String planUid : planUidGroup.keySet()) {
-            List<Long> ids = planUidGroup.get(planUid).stream().map(CreativeContentDO::getId).collect(Collectors.toList());
-            List<List<Long>> split = CollUtil.split(ids, subSize);
-            for (List<Long> longs : split) {
+            List<CreativeContentDO> creativeContentDOList = planUidGroup.get(planUid);
+            List<List<CreativeContentDO>> split = CollUtil.split(creativeContentDOList, subSize);
+            for (List<CreativeContentDO> creativeContents : split) {
                 SubTask subTask = new SubTask();
                 subTask.setPlanUid(planUid);
+                subTask.setBatch(planUidGroup.get(planUid).get(0).getBatch());
                 subTask.setRunType(params.getRunType());
-                subTask.setRedBookIdList(longs);
+                subTask.setRedBookIdList(creativeContents.stream().map(CreativeContentDO::getId).collect(Collectors.toList()));
                 subTask.setTenantId(planUidGroup.get(planUid).get(0).getTenantId());
                 subTasks.add(subTask);
             }
@@ -154,7 +155,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             //servide.batch(1,2,3,4)
 
 
-            return new SubTaskResult(true, sj.toString(), subTask.planUid, redBookTask, errorTasks);
+            return new SubTaskResult(true, sj.toString(), subTask.planUid, subTask.getBatch(), redBookTask, errorTasks);
         } catch (Exception e) {
             //不会调用到这里，兜底错误和日志
             return new SubTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
@@ -176,9 +177,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         }
 
         //查询计划表下的 所有状态，并更新计划表的状态
-        List<String> planUids = taskResults.stream().map(sub -> {
-            SubTaskResult subTaskResult = JSON.parseObject(sub.getResult(), SubTaskResult.class);
-            return subTaskResult.getPlanUid();
+        List<SubTaskResult> planUids = taskResults.stream().map(sub -> {
+            return JSON.parseObject(sub.getResult(), SubTaskResult.class);
         }).collect(Collectors.toList());
 
         updateInstance(planUids);
@@ -186,14 +186,15 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         return new ProcessResult(true, taskResults.toString());
     }
 
-    private void updateInstance(List<String> planUidList) {
+    private void updateInstance(List<SubTaskResult> subTaskResultList) {
 
         //根据创作任务找到所有创作计划
 
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
-        planUidList = planUidList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
-        for (String planUid : planUidList) {
-            creativePlanService.updatePlanStatus(planUid);
+        List<SubTaskResult> distinct = CollUtil.distinct(subTaskResultList, SubTaskResult::getPlanUid, false);
+
+        for (SubTaskResult subTaskResult : distinct) {
+            creativePlanService.updatePlanStatus(subTaskResult.getPlanUid(), subTaskResult.getBatch());
         }
     }
 
@@ -214,6 +215,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
          * 生成计划ID
          */
         private String planUid;
+
+        private Long batch;
 
         //带入一些上游的参数做校验
         private String runType;

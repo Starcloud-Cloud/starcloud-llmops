@@ -38,6 +38,12 @@ public class CreativePlanRespVO implements java.io.Serializable {
     private String name;
 
     /**
+     * 执行批次
+     */
+    @Schema(description = "执行批次")
+    private Long batch;
+
+    /**
      * 创作计划类型
      */
     @Schema(description = "创作计划类型")
