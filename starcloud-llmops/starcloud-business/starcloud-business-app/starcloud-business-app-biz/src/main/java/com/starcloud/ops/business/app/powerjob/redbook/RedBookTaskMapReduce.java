@@ -178,8 +178,10 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         //查询计划表下的 所有状态，并更新计划表的状态
         List<SubTaskResult> planUids = taskResults.stream().map(sub -> {
-            return JSON.parseObject(sub.getResult(), SubTaskResult.class);
-        }).collect(Collectors.toList());
+                    return JSON.parseObject(sub.getResult(), SubTaskResult.class);
+                })
+                .filter(subTaskResult -> subTaskResult.getPlanUid() != null && subTaskResult.getBatch() != null)
+                .collect(Collectors.toList());
 
         updateInstance(planUids);
 
