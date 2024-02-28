@@ -42,9 +42,11 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
     }
 
 
-    default List<CreativeContentDO> selectByPlanUid(String planUid) {
+    default List<CreativeContentDO> selectByPlanUid(String planUid, Long batch) {
         LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class)
-                .eq(CreativeContentDO::getPlanUid, planUid);
+                .eq(CreativeContentDO::getPlanUid, planUid)
+                .eq(CreativeContentDO::getBatch,batch)
+                ;
         return selectList(wrapper);
     }
 
@@ -102,10 +104,11 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
     List<CreativeContentDTO> pageSelect(@Param("req") CreativeContentPageReqVO req,
                                         @Param("start") Integer start, @Param("end") Integer end);
 
-    Page<CreativeContentDTO> allTypePage(IPage<CreativeContentDTO> page,  @Param("req") CreativeContentPageReqVO req);
+    Page<CreativeContentDTO> allTypePage(IPage<CreativeContentDTO> page, @Param("req") CreativeContentPageReqVO req);
 
 
     CreativeContentDTO detail(@Param("businessUid") String businessUid);
+
     CreativeContentDTO allTypeDetail(@Param("businessUid") String businessUid);
 
     List<CreativeContentDO> jobQuery(@Param("req") CreativeQueryReqVO queryReq);

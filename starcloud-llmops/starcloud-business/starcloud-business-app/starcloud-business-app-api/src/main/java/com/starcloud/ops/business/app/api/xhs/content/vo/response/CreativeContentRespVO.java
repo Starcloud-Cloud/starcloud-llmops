@@ -123,6 +123,9 @@ public class CreativeContentRespVO {
     @Schema(description = "是否是测试数据")
     private Boolean isTest;
 
+    @Schema(description = "标签")
+    private List<String> tags;
+
     private Integer totalStep;
 
     private Integer successStepCount;

@@ -13,7 +13,7 @@
         text.copy_writing_title as copyWritingTitle,text.copy_writing_content as copyWritingContent, pic.picture_num as pictureNum,
         pic.picture_content as pictureContent, pic.error_msg as pictureErrorMsg, text.error_msg as copyWritingErrorMsg,
         pic.retry_count as pictureRetryCount, text.retry_count as copyWritingRetryCount,text.copy_writing_count as copyWritingCount,
-        pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim, text.liked as liked
+        pic.extend as pictureExtend, text.extend as copyWritingExtend,pic.claim as claim, text.liked as liked,text.tags as tags
     </sql>
     
     
@@ -25,6 +25,9 @@
         and pic.deleted = false and text.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.batch != null and req.batch != ''">
+            and pic.batch = #{req.batch} and text.batch = #{req.batch}
         </if>
         <if test="req.schemeUid != null and req.schemeUid != ''">
             and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
@@ -50,6 +53,9 @@
         and pic.deleted = false and text.deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             and pic.plan_uid = #{req.planUid} and text.plan_uid = #{req.planUid}
+        </if>
+        <if test="req.batch != null and req.batch != ''">
+            and pic.batch = #{req.batch} and text.batch = #{req.batch}
         </if>
         <if test="req.schemeUid != null and req.schemeUid != ''">
             and pic.scheme_uid = #{req.schemeUid} and text.scheme_uid = #{req.schemeUid}
@@ -96,12 +102,16 @@
         extend AS pictureExtend,
         extend AS copyWritingExtend,
         claim AS claim,
-        liked AS liked
+        liked AS liked,
+        tags AS tags
         FROM llm_creative_content
         WHERE type = 'all'
         AND deleted = false
         <if test="req.planUid != null and req.planUid != ''">
             AND plan_uid = #{req.planUid}
+        </if>
+        <if test="req.batch != null and req.batch != ''">
+            and batch = #{req.batch} and batch = #{req.batch}
         </if>
         <if test="req.schemeUid != null and req.schemeUid != ''">
             AND scheme_uid = #{req.schemeUid}
@@ -160,7 +170,8 @@
             extend AS pictureExtend,
             extend AS copyWritingExtend,
             claim AS claim,
-            liked AS liked
+            liked AS liked,
+            tags AS tags
         FROM
         llm_creative_content
         WHERE type = 'all'

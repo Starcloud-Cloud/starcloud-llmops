@@ -24,6 +24,9 @@ public class CreativeContentCreateReqVO {
     @NotBlank(message = "创作计划uid 不能为空")
     private String planUid;
 
+    @Schema(description = "执行批次")
+    private Long batch;
+
     /**
      * {@link CreativeContentTypeEnum}
      * XhsCreativeContentTypeEnums.code
@@ -54,5 +57,8 @@ public class CreativeContentCreateReqVO {
 
     @Schema(description = "是否测试")
     private Boolean isTest;
+
+    @Schema(description = "标签")
+    private List<String> tags;
 
 }

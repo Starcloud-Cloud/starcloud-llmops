@@ -245,6 +245,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             option.setMode(item.getMode());
             option.setDescription(item.getDescription());
             option.setCreateTime(item.getCreateTime());
+            option.setTags(item.getTags());
             return option;
         }).collect(Collectors.toList());
     }
