@@ -12,6 +12,7 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
@@ -1049,6 +1050,8 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime) {
 
         try {
+            Long tenantId = TenantContextHolder.getTenantId();
+            String from =  tenantId!= null ? tenantId==2? "魔法 AI": "魔法矩阵":null;
             AdminUserDO user = userService.getUser(userId);
 
             Map<String, Object> templateParams = new HashMap<>();

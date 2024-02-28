@@ -103,6 +103,17 @@ public class AppProductSpuPageRespVO {
         @Schema(description = "商品体积", example = "1024") // 单位：m^3 平米
         private Double volume;
 
+        /**
+         * 商品附属权益
+         */
+        @Schema(description = "商品权益", example = "1024") // 单位：m^3 平米
+        private AdminUserRightsCommonDTO rightsConfig;
+        /**
+         * 商品签约配置
+         */
+        @Schema(description = "订阅信息", example = "1024") // 单位：m^3 平米
+        private com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO subscribeConfig;
+
     }
 
 }

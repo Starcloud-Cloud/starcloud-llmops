@@ -365,7 +365,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                             .setTemplateCode("NOTICE_SELLER_SPRITE_WARN")
                             .setTemplateParams(templateParams));
         } catch (RuntimeException e) {
-            log.error("系统支付通知信息发送失败", e);
+            log.error("卖家精灵通知信息发送失败", e);
         }
     }
 

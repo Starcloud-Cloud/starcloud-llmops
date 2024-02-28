@@ -20,13 +20,12 @@ public class AdminUsersApiImpl implements AdminUsersApi {
 
 
     /**
-     * 增加用户积分
+     * 是否是新用户
      *
      * @param userId    用户编号
-     * @param limitDays
      */
     @Override
-    public Boolean isNewUser(Long userId, Long limitDays) {
-        return starUserService.isNewUser(userId,limitDays);
+    public Boolean isNewUser(Long userId) {
+        return starUserService.isNewUser(userId);
     }
 }

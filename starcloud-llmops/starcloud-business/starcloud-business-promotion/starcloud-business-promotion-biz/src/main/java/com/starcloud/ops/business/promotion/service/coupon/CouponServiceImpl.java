@@ -188,7 +188,7 @@ public class CouponServiceImpl implements CouponService {
                 return;
             }
             List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(template.getId()));
-            couponDOS.forEach(couponDO -> this.expireCoupon(couponDO));
+            couponDOS.forEach(this::expireCoupon);
 
         });
     }
@@ -299,6 +299,18 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public List<CouponDO> getTakeListByTemplateId(Long userId, Long templateId) {
         return couponMapper.selectListByUserIdAndTemplateIdIn(userId, Collections.singletonList(templateId));
+    }
+
+    /**
+     * 统计会员领取优惠券的列表
+     *
+     * @param userId     用户编号
+     * @param templateId 优惠券模板编号列表
+     * @return 领取优惠券的数量
+     */
+    @Override
+    public List<CouponDO> getTakeListByTemplateId(Long userId, List<Long> templateId) {
+        return couponMapper.selectCanUseListByUserIdAndTemplateIdIn(userId, templateId);
     }
 
     /**

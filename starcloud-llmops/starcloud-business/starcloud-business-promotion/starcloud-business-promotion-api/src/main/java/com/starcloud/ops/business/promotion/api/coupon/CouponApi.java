@@ -76,4 +76,7 @@ public interface CouponApi {
     CouponRespDTO getCoupon(Long couponId, Long userId);
 
 
+    Boolean validateUserExitTemplateId(Long userId, List<Long> templateId);
+
+
 }

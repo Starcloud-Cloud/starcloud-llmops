@@ -50,8 +50,8 @@ public class TradeRightsServiceImpl implements TradeRightsService {
         // 2.0 设置权益相关字段
         TradeRightsCalculateRespBO calculateRespBO = new TradeRightsCalculateRespBO();
          List<AdminUserRightsCommonDTO> giveRights = new ArrayList<>();
-        for (ProductSpuRespDTO productSpuRespDTO : spuList) {
-            giveRights.add(productSpuRespDTO.getGiveRights());
+        for (ProductSkuRespDTO productSkuRespDTO : skuList) {
+            giveRights.add(productSkuRespDTO.getRightsConfig());
         }
         calculateRespBO.setGiveRights(giveRights);
         return calculateRespBO;
@@ -73,7 +73,7 @@ public class TradeRightsServiceImpl implements TradeRightsService {
         // 2.0 设置权益相关字段
         new SubscribeConfigDTO();
         SubscribeConfigDTO subscribeConfigDTO;
-        subscribeConfigDTO =spuList.get(0).getSubscribeConfig() ;
+        subscribeConfigDTO =skuList.get(0).getSubscribeConfig() ;
         return subscribeConfigDTO;
     }
 

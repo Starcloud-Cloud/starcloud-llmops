@@ -106,5 +106,19 @@ public class CouponApiImpl implements CouponApi {
         return CouponConvert.INSTANCE.convert(coupon);
     }
 
+    /**
+     * @param userId
+     * @param templateId
+     * @return
+     */
+    @Override
+    public Boolean validateUserExitTemplateId(Long userId, List<Long> templateId) {
+        List<CouponDO> couponDOList = couponService.getTakeListByTemplateId(userId, templateId);
+        if (couponDOList.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
 
 }
