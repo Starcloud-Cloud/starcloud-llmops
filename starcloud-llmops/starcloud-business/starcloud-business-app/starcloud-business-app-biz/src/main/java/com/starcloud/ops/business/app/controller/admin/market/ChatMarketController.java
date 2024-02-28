@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.market;
 
 
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -12,6 +13,7 @@ import com.starcloud.ops.business.log.api.conversation.vo.response.LogAppConvers
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -19,6 +21,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 @Tag(name = "星河云海 - 聊天市场")
 @RestController
@@ -33,12 +37,18 @@ public class ChatMarketController {
 
     @Operation(summary = "应用市场聊天")
     @PostMapping("/chat")
-    public SseEmitter market(@RequestBody @Valid ChatRequestVO request, HttpServletResponse httpServletResponse) {
+    public SseEmitter market(@RequestBody ChatRequestVO request, HttpServletResponse httpServletResponse) {
         httpServletResponse.setHeader("Cache-Control", "no-cache, no-transform");
         httpServletResponse.setHeader("X-Accel-Buffering", "no");
 
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
+
+        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() >= 800) {
+            emitter.completeWithError(exception(new ErrorCode(500,"问题字符数大于0且小于800")));
+            return emitter;
+        }
+
         request.setScene(AppSceneEnum.CHAT_MARKET.name());
         Long loginUserId = WebFrameworkUtils.getLoginUserId();
         request.setUserId(loginUserId);
