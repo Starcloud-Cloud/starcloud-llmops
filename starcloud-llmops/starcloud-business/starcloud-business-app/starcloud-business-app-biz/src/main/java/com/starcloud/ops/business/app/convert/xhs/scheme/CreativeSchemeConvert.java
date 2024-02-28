@@ -1,31 +1,21 @@
 package com.starcloud.ops.business.app.convert.xhs.scheme;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
-import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -54,21 +44,12 @@ public interface CreativeSchemeConvert {
         creativeScheme.setTags(StringUtil.toString(request.getTags()));
         creativeScheme.setDescription(request.getDescription());
         creativeScheme.setMode(request.getMode());
-        if (CollectionUtil.isNotEmpty(request.getRefers())) {
-            creativeScheme.setRefers(JSONUtil.toJsonStr(request.getRefers()));
+        if (request.getConfiguration() != null) {
+            creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
         }
-        if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(request.getMode())) {
-            if (request.getConfiguration() != null) {
-                creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
-            }
-        } else {
-            if (request.getCustomConfiguration() != null) {
-                creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getCustomConfiguration()));
-            }
+        if (CollectionUtil.isNotEmpty(request.getUseImages())) {
+            creativeScheme.setUseImages(JSONUtil.toJsonStr(request.getUseImages()));
         }
-
-        creativeScheme.setUseImages(JSONUtil.toJsonStr(request.getUseImages()));
-        creativeScheme.setExample(JSONUtil.toJsonStr(request.getExample()));
         creativeScheme.setCreateTime(LocalDateTime.now());
         creativeScheme.setUpdateTime(LocalDateTime.now());
         creativeScheme.setDeleted(Boolean.FALSE);
@@ -102,28 +83,14 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
         creativeSchemeResponse.setMode(creativeScheme.getMode());
-        if (StringUtils.isNotBlank(creativeScheme.getRefers())) {
-            TypeReference<List<ReferenceSchemeDTO>> typeReference = new TypeReference<List<ReferenceSchemeDTO>>() {
-            };
-            creativeSchemeResponse.setRefers(JSONUtil.toBean(creativeScheme.getRefers(), typeReference, Boolean.TRUE));
-        }
+
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
-            if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(creativeScheme.getMode())) {
-                creativeSchemeResponse.setConfiguration(JSONUtil.toBean(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
-            } else {
-                creativeSchemeResponse.setCustomConfiguration(JsonUtils.parseObject(creativeScheme.getConfiguration(), CustomCreativeSchemeConfigDTO.class));
-            }
+            creativeSchemeResponse.setConfiguration(JsonUtils.parseObject(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
         }
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
-            TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {
-            };
-            creativeSchemeResponse.setUseImages(JSONUtil.toBean(creativeScheme.getUseImages(), typeReference, Boolean.TRUE));
+            creativeSchemeResponse.setUseImages(JSONUtil.toList(creativeScheme.getUseImages(), String.class));
         }
-        if (StringUtils.isNotBlank(creativeScheme.getExample())) {
-            TypeReference<List<CreativeSchemeExampleDTO>> typeReference = new TypeReference<List<CreativeSchemeExampleDTO>>() {
-            };
-            creativeSchemeResponse.setExample(JSONUtil.toBean(creativeScheme.getExample(), typeReference, Boolean.TRUE));
-        }
+
         creativeSchemeResponse.setCreator(creativeScheme.getCreator());
         creativeSchemeResponse.setUpdater(creativeScheme.getUpdater());
         creativeSchemeResponse.setCreateTime(creativeScheme.getCreateTime());
@@ -141,38 +108,4 @@ public interface CreativeSchemeConvert {
         return CollectionUtil.emptyIfNull(list).stream().map(this::convertResponse).collect(Collectors.toList());
     }
 
-    /**
-     * 转换为 PageResult<CreativeSchemeRespVO>
-     *
-     * @param page 创作方案分页
-     * @return PageResult<CreativeSchemeRespVO>
-     */
-    default PageResult<CreativeSchemeRespVO> convertPage(IPage<CreativeSchemeDO> page) {
-        PageResult<CreativeSchemeRespVO> pageResult = new PageResult<>();
-        if (CollectionUtil.isEmpty(page.getRecords())) {
-            return new PageResult<>(Collections.emptyList(), page.getTotal());
-        }
-        List<CreativeSchemeDO> records = page.getRecords();
-
-        // 用户创建者ID列表。
-        List<Long> creatorList = records.stream().map(item -> Long.valueOf(item.getCreator())).distinct().collect(Collectors.toList());
-        // 获取用户创建者ID，昵称 Map。
-        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
-
-        // 用户更新者ID列表。
-        List<Long> updaterList = records.stream().map(item -> Long.valueOf(item.getUpdater())).distinct().collect(Collectors.toList());
-        // 获取用户更新者ID，昵称 Map。
-        Map<Long, String> updaterMap = UserUtils.getUserNicknameMapByIds(updaterList);
-
-        List<CreativeSchemeRespVO> collect = records.stream().map(item -> {
-            CreativeSchemeRespVO response = this.convertResponse(item);
-            response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
-            response.setUpdater(updaterMap.get(Long.valueOf(item.getUpdater())));
-            return response;
-        }).collect(Collectors.toList());
-
-        pageResult.setTotal(page.getTotal());
-        pageResult.setList(collect);
-        return pageResult;
-    }
 }

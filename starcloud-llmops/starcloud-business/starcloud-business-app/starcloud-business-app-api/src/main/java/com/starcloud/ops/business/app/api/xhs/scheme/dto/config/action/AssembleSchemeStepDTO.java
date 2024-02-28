@@ -38,12 +38,4 @@ public class AssembleSchemeStepDTO extends BaseSchemeStepDTO {
         }
     }
 
-    /**
-     * 简化
-     */
-    @Override
-    public void easy() {
-
-    }
-
 }

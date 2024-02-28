@@ -3,8 +3,9 @@ package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,7 +14,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,10 +76,18 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        this.model = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
-        this.referList = Collections.emptyList();
-        this.requirement = "";
-        this.variableList = Collections.emptyList();
+        VariableRespVO variable = stepWrapper.getVariable();
+        List<VariableItemRespVO> variables = variable.getVariables();
+
+        for (VariableItemRespVO variableItem : variables) {
+            if (CreativeConstants.GENERATE_MODE.equals(variableItem.getField())) {
+                this.model = (String) variableItem.getValue();
+            } else if (CreativeConstants.REFERS.equals(variableItem.getField())) {
+                this.referList = JSONUtil.toList((String) variableItem.getValue(), ReferenceSchemeEntity.class);
+            } else if (CreativeConstants.REQUIREMENT.equals(variableItem.getField())) {
+                this.requirement = (String) variableItem.getValue();
+            }
+        }
     }
 
 }

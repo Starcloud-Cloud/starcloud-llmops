@@ -1,17 +1,13 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeExampleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,6 +34,9 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     @Schema(description = "创作方案UID")
     private String uid;
 
+    /**
+     * 应用名称
+     */
     @Schema(description = "应用名称")
     private String appName;
 
@@ -56,7 +55,6 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     /**
      * 创作方案类目
      */
-
     @Schema(description = "创作方案类目")
     private String category;
 
@@ -79,35 +77,16 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     private String mode;
 
     /**
-     * 创作方案参考
-     */
-    @Schema(description = "创作方案参考账号")
-    private List<ReferenceSchemeDTO> refers;
-
-    /**
      * 创作方案配置信息
      */
     @Schema(description = "创作方案配置信息")
     private CreativeSchemeConfigDTO configuration;
 
     /**
-     * 自定义创作方案配置信息
-     */
-    @Valid
-    @Schema(description = "自定义创作方案配置信息")
-    private CustomCreativeSchemeConfigDTO customConfiguration;
-
-    /**
      * 创作方案图片
      */
     @Schema(description = "创作方案图片")
     private List<String> useImages;
-
-    /**
-     * 创作方案示例
-     */
-    @Schema(description = "创作方案示例")
-    private List<CreativeSchemeExampleDTO> example;
 
     /**
      * 创建人

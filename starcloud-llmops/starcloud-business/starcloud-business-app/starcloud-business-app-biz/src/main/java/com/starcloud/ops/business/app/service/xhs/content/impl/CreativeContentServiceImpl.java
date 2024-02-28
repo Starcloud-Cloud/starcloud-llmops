@@ -2,12 +2,10 @@ package com.starcloud.ops.business.app.service.xhs.content.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -24,9 +22,7 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -35,13 +31,10 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -61,7 +54,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -248,31 +240,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
-        if (StringUtils.isNoneBlank(query.getPlanUid())) {
-            CreativePlanRespVO plan = creativePlanService.get(query.getPlanUid());
-            CreativePlanConfigDTO config = plan.getConfig();
-            List<CreativeSchemeListOptionRespVO> schemeList = config.getSchemeList();
-            // 老数据
-            if (CollectionUtils.isEmpty(schemeList)) {
-                Long count = creativeContentMapper.selectCount(query);
-                if (count == null || count <= 0) {
-                    return PageResult.empty();
-                }
-                List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
-                return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
-            }
-
-            // 新数据，取第一条
-            CreativeSchemeListOptionRespVO schemeListOption = schemeList.get(0);
-            if (!CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(schemeListOption.getMode())) {
-                Long count = creativeContentMapper.selectCount(query);
-                if (count == null || count <= 0) {
-                    return PageResult.empty();
-                }
-                List<CreativeContentDTO> pageSelect = creativeContentMapper.pageSelect(query, PageUtils.getStart(query), query.getPageSize());
-                return new PageResult<>(CreativeContentConvert.INSTANCE.convertDto(pageSelect), count);
-            }
-        }
 
         // 自定义类型
         IPage<CreativeContentDTO> page = new Page<>(query.getPageNo(), query.getPageSize());

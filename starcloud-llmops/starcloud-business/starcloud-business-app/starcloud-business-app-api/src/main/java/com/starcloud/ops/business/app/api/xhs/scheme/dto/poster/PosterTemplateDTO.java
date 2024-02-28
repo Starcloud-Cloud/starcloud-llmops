@@ -57,6 +57,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Boolean isMain;
 
     /**
+     * 图片模板生成模式
+     */
+    @Schema(description = "图片模板生成模式")
+    private String mode;
+
+    /**
      * 图片数量
      */
     @Schema(description = "图片数量")

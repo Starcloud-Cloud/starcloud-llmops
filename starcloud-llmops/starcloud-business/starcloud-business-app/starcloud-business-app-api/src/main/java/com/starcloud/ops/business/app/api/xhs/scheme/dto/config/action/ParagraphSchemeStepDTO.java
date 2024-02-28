@@ -40,13 +40,4 @@ public class ParagraphSchemeStepDTO extends StandardSchemeStepDTO {
         }
     }
 
-    /**
-     * 简化
-     */
-    @Override
-    public void easy() {
-        super.easy();
-        this.paragraphCount = null;
-    }
-
 }

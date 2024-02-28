@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatAc
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -94,6 +95,28 @@ public class RecommendActionFactory {
         step.setTags(Arrays.asList("Open AI", "Completion", "Chat"));
         step.setScenes(scenes);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, isShow));
+        return step;
+    }
+
+    /**
+     * 默认生成内容步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepRespVO defVariableActionStep() {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName("变量步骤");
+        step.setDescription("变量步骤");
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(VariableActionHandler.class.getSimpleName());
+        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("variable");
+        step.setTags(Collections.singletonList("Variable"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        step.setVariable(RecommendVariableFactory.defVariableVariable());
         return step;
     }
 

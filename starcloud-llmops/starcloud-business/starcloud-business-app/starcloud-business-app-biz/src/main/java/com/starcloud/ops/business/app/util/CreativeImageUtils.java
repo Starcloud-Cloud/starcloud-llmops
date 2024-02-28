@@ -635,52 +635,6 @@ public class CreativeImageUtils {
     }
 
     /**
-     * 合并模板
-     *
-     * @param posterStyle     模板
-     * @param latestPosterMap 最新模板
-     * @return 合并后的模板
-     */
-    public static PosterStyleDTO mergePosterTemplate(PosterStyleDTO posterStyle, Map<String, PosterTemplateDTO> latestPosterMap) {
-
-        List<PosterTemplateDTO> templateList = posterStyle.getTemplateList();
-        if (CollectionUtil.isEmpty(templateList)) {
-            return posterStyle;
-        }
-
-        List<PosterTemplateDTO> templates = Lists.newArrayList();
-
-        for (int i = 0; i < templateList.size(); i++) {
-            PosterTemplateDTO posterTemplate = templateList.get(i);
-            // 获取最新模板
-            PosterTemplateDTO latestPosterTemplate = latestPosterMap.get(posterTemplate.getId());
-            // 如果模板不存在，跳过，不对应模板进行处理
-            if (Objects.isNull(latestPosterTemplate)) {
-                continue;
-            }
-            // 复制一份新模板
-            PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
-            // 处理变量信息
-            List<PosterVariableDTO> latestVariableList = CollectionUtil.emptyIfNull(latestPosterTemplate.getVariableList());
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
-            // 获取图片数量
-            Integer latestImageNumber = (int) latestVariableList.stream().filter(item -> IMAGE.equals(item.getType())).count();
-            List<PosterVariableDTO> mergeVariableList = mergePosterVariableList(variableList, latestVariableList);
-            // 更新模板信息
-            template.setIndex(i + 1);
-            template.setIsMain(i == 0);
-            template.setExample(latestPosterTemplate.getExample());
-            template.setName(latestPosterTemplate.getName());
-            template.setImageNumber(latestImageNumber);
-            template.setVariableList(mergeVariableList);
-            templates.add(template);
-        }
-
-        posterStyle.setTemplateList(templates);
-        return posterStyle;
-    }
-
-    /**
      * 合并海报模板变量列表
      *
      * @param variableList       variableList

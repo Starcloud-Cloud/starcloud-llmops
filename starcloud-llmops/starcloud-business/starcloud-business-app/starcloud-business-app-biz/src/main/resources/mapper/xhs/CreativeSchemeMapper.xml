@@ -4,7 +4,7 @@
     
     <!-- 通用字段查询 -->
     <sql id="SELECT_GENERAL_COLUMNS">
-        `id`, `uid`, `name`, `type`, `category`, `tags`, `description`, `mode`, `use_images`, `example`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
+        `id`, `uid`, `name`, `type`, `category`, `tags`, `description`, `mode`, `use_images`, `deleted`, `creator`, `updater`, `create_time`, `update_time`, `tenant_id`
     </sql>
     
     <!-- 列表查询条件 -->
@@ -42,7 +42,7 @@
     <!-- 根据UID查询创作方案详情 -->
     <select id="get" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `configuration`
         FROM llm_creative_scheme
         WHERE uid = #{uid}
         AND `deleted` = 0
@@ -51,7 +51,7 @@
     <!-- 根据条件查询创作方案列表 -->
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `configuration`
         FROM llm_creative_scheme
         <include refid="LIST_SELECT_QUERY_CONDITION"/>
     </select>
@@ -59,7 +59,7 @@
     <!-- 根据 UID 列表查询创作方案列表 -->
     <select id="listByUidList" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT
-        <include refid="SELECT_GENERAL_COLUMNS"/>, `refers`, `configuration`
+        <include refid="SELECT_GENERAL_COLUMNS"/>, `configuration`
         FROM llm_creative_scheme
         <where>
             <if test="uidList != null and uidList.size() > 0 ">

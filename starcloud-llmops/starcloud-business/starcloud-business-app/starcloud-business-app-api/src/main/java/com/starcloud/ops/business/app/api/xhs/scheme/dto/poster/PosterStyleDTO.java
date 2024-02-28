@@ -47,6 +47,24 @@ public class PosterStyleDTO implements java.io.Serializable {
     private String name;
 
     /**
+     * 图片数量
+     */
+    @Schema(description = "图片数量")
+    private Integer imageCount;
+
+    /**
+     * 最大图片数量
+     */
+    @Schema(description = "最大图片数量")
+    private Integer maxImageCount;
+
+    /**
+     * 图片素材列表
+     */
+    @Schema(description = "图片素材列表")
+    private List<String> imageMaterialList;
+
+    /**
      * 模板列表
      */
     @Schema(description = "模板列表")
