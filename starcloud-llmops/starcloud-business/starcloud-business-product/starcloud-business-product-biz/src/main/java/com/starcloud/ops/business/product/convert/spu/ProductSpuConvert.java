@@ -72,8 +72,8 @@ public interface ProductSpuConvert {
         return spuExcelVOs;
     }
 
-    @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsVO(spu.getGiveRights()))")
-    @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigVO(spu.getSubscribeConfig()))")
+    // @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsVO(spu.getGiveRights()))")
+    // @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigVO(spu.getSubscribeConfig()))")
     ProductSpuDetailRespVO convert03(ProductSpuDO spu);
 
     public static SubscribeConfigVO mapToSubscribeConfigVO(ProductSpuDO.SubscribeConfig subscribeConfig) {
@@ -83,8 +83,8 @@ public interface ProductSpuConvert {
         return BeanUtil.toBean(giveRights,GiveRightsVO.class);
     }
 
-    @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsDTO(bean.getGiveRights()))")
-    @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigDTO(bean.getSubscribeConfig()))")
+    // @Mapping(target = "giveRights", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToGiveRightsDTO(bean.getGiveRights()))")
+    // @Mapping(target = "subscribeConfig", expression = "java(com.starcloud.ops.business.product.convert.spu.ProductSpuConvert.mapToSubscribeConfigDTO(bean.getSubscribeConfig()))")
     ProductSpuRespDTO convert02(ProductSpuDO bean);
 
     public static SubscribeConfigDTO mapToSubscribeConfigDTO(ProductSpuDO.SubscribeConfig subscribeConfig) {

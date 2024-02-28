@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
@@ -52,6 +53,7 @@ import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
+import com.starcloud.ops.business.user.framework.user.config.NewUserProperties;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
 import com.starcloud.ops.business.user.pojo.request.RecoverPasswordRequest;
@@ -77,6 +79,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -161,6 +164,9 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Resource
     private List<UserRegisterHandler> userRegisterHandlers;
+
+    @Resource
+    private NewUserProperties newUserProperties;
 
 
     @Override
@@ -400,19 +406,24 @@ public class StarUserServiceImpl implements StarUserService {
     /**
      * 用户是否是新用户
      *
-     * @param userId
-     * @param limitDay
-     * @return
+     * @param userId 用户 ID
+     * @return 是否是新用户
      */
     @Override
-    public Boolean isNewUser(Long userId, Long limitDay) {
-        if (Objects.isNull(limitDay)) {
-            limitDay = 3L;
-        }
+    public Boolean isNewUser(Long userId) {
+
         AdminUserDO userDO = adminUserMapper.selectById(userId);
 
-        // 注册时间3天内
-        return tradeOrderApi.getSuccessOrderCount(userId) <= 0 && userDO.getCreateTime().isAfter(LocalDateTime.now().minusDays(3));
+        if (!userDO.getCreateTime().isAfter(
+                LocalDateTimeUtils.minusTime(newUserProperties.getRegisterTime()))) {
+            return false;
+        }
+
+        if (!newUserProperties.getValidOrder()) {
+            return tradeOrderApi.getSuccessOrderCount(userId) >= 0;
+        }
+
+        return true;
     }
 
     private void createLoginLog(Long userId, String username,

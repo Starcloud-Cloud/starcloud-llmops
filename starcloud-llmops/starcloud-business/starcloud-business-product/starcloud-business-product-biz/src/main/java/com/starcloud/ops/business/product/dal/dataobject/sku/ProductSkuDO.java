@@ -2,15 +2,15 @@ package com.starcloud.ops.business.product.dal.dataobject.sku;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
-import com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO;
-import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
-import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyValueDO;
-import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO;
+import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
+import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyValueDO;
+import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.*;
 
@@ -38,7 +38,7 @@ public class ProductSkuDO extends BaseDO {
     private Long id;
     /**
      * SPU 编号
-     *
+     * <p>
      * 关联 {@link ProductSpuDO#getId()}
      */
     private Long spuId;
@@ -59,6 +59,11 @@ public class ProductSkuDO extends BaseDO {
      * 成本价，单位：分
      */
     private Integer costPrice;
+
+    /**
+     * 商品编码
+     */
+    private String productCode;
     /**
      * 商品条码
      */
@@ -90,6 +95,9 @@ public class ProductSkuDO extends BaseDO {
      */
     @TableField(typeHandler = SubscribeConfigTypeHandler.class)
     private SubscribeConfigDTO subscribeConfig;
+
+    @TableField(typeHandler = OrderLimitConfigTypeHandler.class)
+    private OrderLimitConfig orderLimitConfig;
 
     /**
      * 一级分销的佣金，单位：分
@@ -124,7 +132,7 @@ public class ProductSkuDO extends BaseDO {
         /**
          * 属性名字
          * 冗余 {@link ProductPropertyDO#getName()}
-         *
+         * <p>
          * 注意：每次属性名字发生变化时，需要更新该冗余
          */
         private String propertyName;
@@ -137,10 +145,54 @@ public class ProductSkuDO extends BaseDO {
         /**
          * 属性值名字
          * 冗余 {@link ProductPropertyValueDO#getName()}
-         *
+         * <p>
          * 注意：每次属性值名字发生变化时，需要更新该冗余
          */
         private String valueName;
+        /**
+         * 属性值备注 冗余 ProductPropertyValueDO.getRemark()
+         * 注意：每次属性值备注发生变化时，需要更新该冗余
+         */
+        private String remark;
+
+    }
+
+    /**
+     * 下单限制配置
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OrderLimitConfig {
+
+        /**
+         * 是否限制仅新用户下单
+         * 关联 {@link ProductPropertyDO#getId()}
+         */
+        private Boolean isNewUser;
+        /**
+         * 限制的优惠券模板编号
+         */
+        private List<Long> limitCouponTemplateId;
+
+    }
+
+
+
+
+
+    // TODO @芋艿：可以找一些新的思路
+    public static class OrderLimitConfigTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, OrderLimitConfig.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
 
     }
 
@@ -158,7 +210,6 @@ public class ProductSkuDO extends BaseDO {
         }
 
     }
-
 
 
     public static class RightsTypeHandler extends AbstractJsonTypeHandler<Object> {
@@ -188,6 +239,7 @@ public class ProductSkuDO extends BaseDO {
         }
 
     }
+
 
     // TODO @芋艿：可以找一些新的思路
 

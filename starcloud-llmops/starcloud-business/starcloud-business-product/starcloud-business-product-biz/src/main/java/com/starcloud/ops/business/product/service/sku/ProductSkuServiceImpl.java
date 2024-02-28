@@ -14,6 +14,8 @@ import com.starcloud.ops.business.product.dal.mysql.sku.ProductSkuMapper;
 import com.starcloud.ops.business.product.service.property.ProductPropertyService;
 import com.starcloud.ops.business.product.service.property.ProductPropertyValueService;
 import com.starcloud.ops.business.product.service.spu.ProductSpuService;
+import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,11 @@ public class ProductSkuServiceImpl implements ProductSkuService {
     private ProductPropertyService productPropertyService;
     @Resource
     private ProductPropertyValueService productPropertyValueService;
+
+    @Resource
+    private AdminUsersApi adminUsersApi;
+    @Resource
+    private CouponApi couponApi;
 
     @Override
     public void deleteSku(Long id) {
@@ -151,6 +158,53 @@ public class ProductSkuServiceImpl implements ProductSkuService {
         return productSkuMapper.selectListBySpuId(spuId);
     }
 
+    /**
+     * 获得商品 SKU 集合
+     *
+     * @param spuId  spu 编号
+     * @param filter 是否开启过滤
+     * @return 商品sku 集合
+     */
+    @Override
+    public List<ProductSkuDO> getSkuListBySpuId(Long spuId, Boolean filter, Long userId, Long categoryId) {
+        List<ProductSkuDO> productSkuDOS = productSkuMapper.selectListBySpuId(spuId);
+        if (Objects.isNull(userId)) {
+            return productSkuDOS;
+        }
+        if (filter) {
+            // List<ProductSkuDO> filteredSkus = productSkuDOS.stream()
+            //         .filter(sku -> {
+            //             ProductSkuDO.OrderLimitConfig config = sku.getOrderLimitConfig();
+            //             return config != null && (
+            //                     (config.getIsNewUser() && !adminUsersApi.isNewUser(userId)) ||
+            //                             (CollUtil.isNotEmpty(config.getLimitCouponTemplateId()) &&
+            //                                     couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(categoryId)) == 0)
+            //             );
+            //         })
+            //         .collect(Collectors.toList());
+            //
+            // return filteredSkus;
+            List<ProductSkuDO> collect = productSkuDOS.stream().filter(sku -> {
+                if (Objects.nonNull(sku.getOrderLimitConfig())) {
+                    if (sku.getOrderLimitConfig().getIsNewUser()) {
+                        if (!adminUsersApi.isNewUser(userId)) {
+                            return false;
+                        }
+                    }
+
+                    if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
+                        return couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(categoryId)) != 0;
+                    }
+                    return true;
+
+                }
+                return true;
+            }).collect(Collectors.toList());
+            return collect;
+        }
+        return productSkuDOS;
+    }
+
     @Override
     public List<ProductSkuDO> getSkuListBySpuId(Collection<Long> spuIds) {
         if (CollUtil.isEmpty(spuIds)) {
@@ -194,7 +248,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
     }
 
     @Override
-    public int updateSkuPropertyValue(Long propertyValueId, String propertyValueName) {
+    public int updateSkuPropertyValue(Long propertyValueId, String propertyValueName, String propertyValueRemark) {
         // 获取所有的 sku
         List<ProductSkuDO> skuDOList = productSkuMapper.selectList();
         // 处理后需要更新的 sku
@@ -207,6 +261,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
                 .forEach(sku -> sku.getProperties().forEach(property -> {
                     if (property.getValueId().equals(propertyValueId)) {
                         property.setValueName(propertyValueName);
+                        property.setRemark(propertyValueRemark);
                         updateSkus.add(sku);
                     }
                 }));
@@ -216,6 +271,30 @@ public class ProductSkuServiceImpl implements ProductSkuService {
 
         productSkuMapper.updateBatch(updateSkus);
         return updateSkus.size();
+    }
+
+    /**
+     * @param userId 用户编号
+     * @param skuId  SKU 编号
+     */
+    @Override
+    public void canPlaceOrder(Long userId, Long skuId) {
+        ProductSkuDO sku = getSku(skuId);
+
+        if (Objects.isNull(sku.getOrderLimitConfig())) {
+            return;
+        }
+
+        if (Objects.nonNull(sku.getOrderLimitConfig().getIsNewUser()) && sku.getOrderLimitConfig().getIsNewUser()) {
+            if (!adminUsersApi.isNewUser(userId)) {
+                throw exception(SKU_FAIL_NEW_USER_LIMIT);
+            }
+        }
+        if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
+            if (couponApi.validateUserExitTemplateId(userId,sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
+                throw exception(SKU_FAIL_COUPON_LIMIT);
+            }
+        }
     }
 
     @Override

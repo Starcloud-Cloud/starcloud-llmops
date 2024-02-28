@@ -105,8 +105,7 @@ public interface StarUserService {
     /**
      * 用户是否是新用户
      * @param userId
-     * @param limitDay
      * @return
      */
-    Boolean isNewUser(Long userId, Long limitDay);
+    Boolean isNewUser(Long userId);
 }

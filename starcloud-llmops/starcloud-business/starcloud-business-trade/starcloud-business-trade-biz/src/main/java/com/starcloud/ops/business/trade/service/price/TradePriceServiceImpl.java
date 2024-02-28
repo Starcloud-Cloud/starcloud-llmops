@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.trade.service.price;
 
 
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
@@ -23,7 +21,6 @@ import java.util.Map;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_STOCK_NOT_ENOUGH;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.PRICE_CALCULATE_PAY_PRICE_ILLEGAL;
@@ -77,7 +74,7 @@ public class TradePriceServiceImpl implements TradePriceService {
         // 2.1 计算价格
         TradePriceCalculateRespBO calculateRespBO = TradePriceCalculatorHelper
                 .buildSignCalculateResp(calculateReqBO, spuList, skuList);
-        spuList.forEach(spu->buildSignPrice(spu, calculateRespBO));
+        skuList.forEach(spu->buildSignPrice(spu, calculateRespBO));
         // 2.2  如果最终支付金额小于等于 0，则抛出业务异常
         if (calculateRespBO.getPrice().getPayPrice() <= 0) {
             log.error("[calculatePrice][价格计算不正确，请求 calculateReqDTO({})，结果 priceCalculate({})]",
@@ -113,12 +110,12 @@ public class TradePriceServiceImpl implements TradePriceService {
         return productSpuApi.validateSpuList(convertSet(skuList, ProductSkuRespDTO::getSpuId));
     }
 
-    private void buildSignPrice(ProductSpuRespDTO spu, TradePriceCalculateRespBO result) {
+    private void buildSignPrice(ProductSkuRespDTO sku, TradePriceCalculateRespBO result) {
 
         // 2. 计算每个 SKU 的优惠金额
         result.getItems().forEach(orderItem -> {
             // 2.1 计算优惠金额
-            Integer discountPrice = spu.getPrice()- spu.getSubscribeConfig().getPrice();
+            Integer discountPrice = sku.getPrice()- sku.getSubscribeConfig().getPrice();
             if (discountPrice <= 0) {
                 return;
             }

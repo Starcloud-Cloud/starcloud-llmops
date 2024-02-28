@@ -198,4 +198,13 @@ public interface CouponService {
      */
     List<CouponDO> getTakeListByTemplateId(Long userId, Long templateId);
 
+    /**
+     * 统计会员领取优惠券的列表
+     *
+     * @param templateId 优惠券模板编号列表
+     * @param userId      用户编号
+     * @return 领取优惠券的数量
+     */
+    List<CouponDO> getTakeListByTemplateId(Long userId, List<Long> templateId);
+
 }
