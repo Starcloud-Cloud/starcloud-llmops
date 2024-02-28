@@ -37,7 +37,7 @@ public class CreativePlanBatchRespVO {
      * 创作方案json
      */
     @Schema(description = "创作方案json")
-    private List<CreativeSchemeRespVO> schemeConfig;
+    private CreativeSchemeRespVO schemeConfig;
 
     /**
      * 批次状态，执行中，执行结束 {@link CreativePlanBatchStatusEnum}

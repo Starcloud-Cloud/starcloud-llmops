@@ -41,8 +41,8 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
 
     @Override
     public void createBatch(Long batch, CreativePlanRespVO creativePlan) {
-        List<String> schemeUidList = creativePlan.getConfig().getSchemeUidList();
-        List<CreativeSchemeRespVO> schemeRespVOList = schemeService.list(schemeUidList);
+        String schemeUidList = creativePlan.getConfiguration().getSchemeUid();
+        CreativeSchemeRespVO schemeRespVOList = schemeService.get(schemeUidList);
 
         CreativePlanBatchDO batchDO = new CreativePlanBatchDO();
         batchDO.setPlanUid(creativePlan.getUid());

@@ -44,7 +44,7 @@ public class CreativePlanBatchDO extends TenantBaseDO {
      * 创作方案json
      */
     @TableField(typeHandler = CreativeSchemeTypeHandler.class)
-    private List<CreativeSchemeRespVO> schemeConfig;
+    private CreativeSchemeRespVO schemeConfig;
 
     /**
      * 批次状态，执行中，执行结束 {@link CreativePlanBatchStatusEnum}
@@ -95,14 +95,14 @@ public class CreativePlanBatchDO extends TenantBaseDO {
         }
     }
 
-    public static class CreativeSchemeTypeHandler extends AbstractJsonTypeHandler<List<CreativeSchemeRespVO>> {
+    public static class CreativeSchemeTypeHandler extends AbstractJsonTypeHandler<CreativeSchemeRespVO> {
         @Override
-        protected List<CreativeSchemeRespVO> parse(String json) {
-            return JsonUtils.parseArray(json, CreativeSchemeRespVO.class);
+        protected CreativeSchemeRespVO parse(String json) {
+            return JsonUtils.parseObject(json, CreativeSchemeRespVO.class);
         }
 
         @Override
-        protected String toJson(List<CreativeSchemeRespVO> obj) {
+        protected String toJson(CreativeSchemeRespVO obj) {
             return JsonUtils.toJsonString(obj);
         }
     }
