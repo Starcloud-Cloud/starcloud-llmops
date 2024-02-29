@@ -69,4 +69,9 @@ public class LoginLogDO extends BaseDO {
      */
     private String userAgent;
 
+    /**
+     * 客户端类型
+     */
+    private Integer clientType;
+
 }

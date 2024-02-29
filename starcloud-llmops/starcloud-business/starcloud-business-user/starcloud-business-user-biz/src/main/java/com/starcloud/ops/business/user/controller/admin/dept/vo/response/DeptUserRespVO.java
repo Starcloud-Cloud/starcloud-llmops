@@ -29,8 +29,8 @@ public class DeptUserRespVO {
     private String email;
 
     @Schema(description = "消耗总魔法豆")
-    private Long costPoints;
+    private Long costPoints = 0L;
 
     @Schema(description = "消耗总图片数")
-    private Long imageCount;
+    private Long imageCount = 0L;
 }

@@ -262,6 +262,11 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
         return tradeOrderMapper.selectWithinContractPeriod(signId,LocalDateTimeUtil.endOfDay(signPayTime.atStartOfDay()));
     }
 
+    public Integer getSignPaySuccessCountBySignId(Long signId) {
+        return tradeOrderMapper.selectSucceedOrderBySignId(signId).size();
+    }
+
+
     /**
      * 获得自身的代理对象，解决 AOP 生效问题
      *
