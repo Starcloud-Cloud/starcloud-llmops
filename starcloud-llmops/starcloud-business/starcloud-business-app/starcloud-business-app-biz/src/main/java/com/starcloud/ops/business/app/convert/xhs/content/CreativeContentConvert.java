@@ -64,7 +64,7 @@ public interface CreativeContentConvert {
         xhsCreativeContentDO.setType(createReq.getType());
         xhsCreativeContentDO.setIsTest(createReq.getIsTest());
         xhsCreativeContentDO.setTags(createReq.getTags());
-
+        xhsCreativeContentDO.setBatch(createReq.getBatch());
         return xhsCreativeContentDO;
     }
 

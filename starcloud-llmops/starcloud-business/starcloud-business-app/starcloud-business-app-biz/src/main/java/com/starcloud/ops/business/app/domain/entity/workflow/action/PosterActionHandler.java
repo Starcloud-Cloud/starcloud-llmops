@@ -25,6 +25,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
@@ -123,6 +124,11 @@ public class PosterActionHandler extends BaseActionHandler {
         String posterStyle = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_STYLE, "{}"));
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
+        // 海报模版方式
+        String posterMode = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_MODE, PosterModeEnum.RANDOM.name()));
+        if (PosterModeEnum.SEQUENCE.name().equals(posterMode)) {
+            style.assemble();
+        }
 
         // 获取段落配置，如果有段落配置，则说明是段落模版
         List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);

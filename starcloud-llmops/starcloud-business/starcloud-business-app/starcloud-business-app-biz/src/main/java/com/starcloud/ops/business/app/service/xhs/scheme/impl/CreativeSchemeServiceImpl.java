@@ -19,12 +19,10 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
@@ -34,8 +32,6 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePa
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
@@ -44,10 +40,9 @@ import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
@@ -62,6 +57,7 @@ import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeS
 import com.starcloud.ops.business.app.service.xhs.scheme.factory.SchemeStepFactory;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -75,6 +71,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -131,9 +128,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 创作方案配置
      */
     @Override
-    public List<CustomCreativeSchemeConfigDTO> configurationList(String model) {
+    public List<CreativeSchemeConfigDTO> configurationList(String model) {
         List<AppMarketRespVO> appList = creativeAppManager.appMarketplaceList(model);
-        List<CustomCreativeSchemeConfigDTO> customConfigurationList = Lists.newArrayList();
+        List<CreativeSchemeConfigDTO> configurationList = Lists.newArrayList();
         for (AppMarketRespVO appMarketResponse : appList) {
             // 获取所有步骤
             List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
@@ -148,16 +145,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             }
 
             // 构建创作方案配置
-            CustomCreativeSchemeConfigDTO customConfiguration = new CustomCreativeSchemeConfigDTO();
-            customConfiguration.setAppUid(appMarketResponse.getUid());
-            customConfiguration.setAppName(appMarketResponse.getName());
-            customConfiguration.setDescription(appMarketResponse.getDescription());
-            customConfiguration.setVersion(appMarketResponse.getVersion());
-            customConfiguration.setSteps(schemeStepList);
-            customConfigurationList.add(customConfiguration);
+            CreativeSchemeConfigDTO configuration = new CreativeSchemeConfigDTO();
+            configuration.setAppUid(appMarketResponse.getUid());
+            configuration.setAppName(appMarketResponse.getName());
+            configuration.setDescription(appMarketResponse.getDescription());
+            configuration.setVersion(appMarketResponse.getVersion());
+            configuration.setSteps(schemeStepList);
+            configurationList.add(configuration);
         }
 
-        return customConfigurationList;
+        return configurationList;
     }
 
     /**
@@ -192,7 +189,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     }
 
     /**
-     * 查询并且校验创作方案是否存在
+     * 根据创作方案UID列表获取创作方案列表
      *
      * @param uidList 创作方案UID列表
      * @return 创作方案列表
@@ -223,25 +220,24 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<CreativeSchemeRespVO> list = list(query);
         return CollectionUtil.emptyIfNull(list).stream().map(item -> {
             CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
+            List<BaseSchemeStepDTO> steps = item.getConfiguration().getSteps();
 
-            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equals(item.getMode())) {
-                List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
-                List<BaseSchemeStepDTO> steps = item.getCustomConfiguration().getSteps();
-                for (BaseSchemeStepDTO step : steps) {
-                    if (step instanceof AssembleSchemeStepDTO || (step instanceof PosterSchemeStepDTO)) {
-                        continue;
-                    }
-                    step.easy();
-                    schemeStepList.add(step);
-                }
-                option.setSteps(schemeStepList);
-
+            // 变量信息填充
+            VariableSchemeStepDTO variableSchemeStep = CreativeUtils.getVariableSchemeStep(steps);
+            if (variableSchemeStep != null) {
+                option.setVariableList(CollectionUtil.emptyIfNull(variableSchemeStep.getVariableList()));
             } else {
-                List<VariableItemRespVO> variable = Optional.ofNullable(item.getConfiguration())
-                        .map(CreativeSchemeConfigDTO::getCopyWritingTemplate)
-                        .map(CreativeSchemeCopyWritingTemplateDTO::getVariableList)
-                        .orElse(Lists.newArrayList());
-                option.setVariables(variable);
+                option.setVariableList(Collections.emptyList());
+            }
+
+            // 海报信息填充
+            PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(steps);
+            if (posterSchemeStep != null) {
+                option.setPosterMode(posterSchemeStep.getMode());
+                option.setPosterImageCount(posterSchemeStep.getStyleList().get(0).getMaxImageCount());
+            } else {
+                option.setPosterMode(PosterModeEnum.RANDOM.name());
+                option.setPosterImageCount(0);
             }
 
             option.setUid(item.getUid());
@@ -285,7 +281,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<String> appUidList = records.stream().map(item -> {
             if (StringUtils.isNotBlank(item.getConfiguration())) {
                 if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
-                    CustomCreativeSchemeConfigDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CustomCreativeSchemeConfigDTO.class);
+                    CreativeSchemeConfigDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CreativeSchemeConfigDTO.class);
                     if (configuration != null) {
                         return configuration.getAppUid();
                     }
@@ -304,7 +300,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
             response.setUpdater(updaterMap.get(Long.valueOf(item.getUpdater())));
             if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
-                response.setAppName(appMap.get(response.getCustomConfiguration().getAppUid()).getName());
+                response.setAppName(appMap.get(response.getConfiguration().getAppUid()).getName());
             }
             return response;
         }).collect(Collectors.toList());
@@ -347,10 +343,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setTags(creativeScheme.getTags());
         scheme.setDescription(creativeScheme.getDescription());
         scheme.setMode(creativeScheme.getMode());
-        scheme.setRefers(creativeScheme.getRefers());
         scheme.setConfiguration(creativeScheme.getConfiguration());
         scheme.setUseImages(creativeScheme.getUseImages());
-        scheme.setExample(creativeScheme.getExample());
         scheme.setCreateTime(LocalDateTime.now());
         scheme.setUpdateTime(LocalDateTime.now());
         scheme.setDeleted(Boolean.FALSE);
@@ -386,34 +380,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
         AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
         creativeSchemeMapper.deleteById(creativeScheme.getId());
-    }
-
-    /**
-     * 分析生成要求
-     *
-     * @param request 创作方案需求请求
-     */
-    @Override
-    public void summary(CreativeSchemeSseReqVO request) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (Objects.isNull(loginUserId)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        }
-        AppMarketRespVO executeApp = creativeAppManager.getExecuteApp(request.getMode());
-        WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.firstStep(executeApp);
-
-        AppExecuteReqVO executeRequest = new AppExecuteReqVO();
-        if (Objects.nonNull(request.getSseEmitter())) {
-            executeRequest.setSseEmitter(request.getSseEmitter());
-        }
-        executeRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
-        executeRequest.setMode(AppModelEnum.COMPLETION.name());
-        executeRequest.setScene(AppSceneEnum.XHS_WRITING.name());
-        executeRequest.setAppUid(executeApp.getUid());
-        executeRequest.setStepId(stepWrapper.getField());
-        executeRequest.setN(1);
-        executeRequest.setAppReqVO(CreativeAppUtils.transform(executeApp, request, stepWrapper.getField()));
-        creativeAppManager.asyncAppExecute(executeRequest);
     }
 
     /**
@@ -536,7 +502,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         // 获取自定义配置并且校验
-        CustomCreativeSchemeConfigDTO customConfiguration = schemeRequest.getCustomConfiguration();
+        CreativeSchemeConfigDTO customConfiguration = schemeRequest.getConfiguration();
         customConfiguration.validate();
         // 查询应用信息
         AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
@@ -546,26 +512,26 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         Optional<BaseSchemeStepDTO> posterStepOptional = steps.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
 
         // 如果没有海报步骤，直接创建一个执行参数
-        if (!posterStepOptional.isPresent()) {
-            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, SerializationUtils.clone(appMarketRespVO));
-            CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
-            planExecute.setSchemeUid(schemeRequest.getUid());
-            planExecute.setSchemeMode(schemeRequest.getMode());
-            planExecute.setAppResponse(app);
-            list.add(planExecute);
-        }
-
-        // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
-        PosterSchemeStepDTO schemeStep = (PosterSchemeStepDTO) posterStepOptional.get();
-        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(schemeStep.getStyleList())) {
-            PosterStyleDTO style = CreativeImageUtils.mergePosterTemplate(posterStyle, latestPosterMap);
-            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(steps, style, SerializationUtils.clone(appMarketRespVO), schemeRequest.getUseImages());
-            CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
-            planExecute.setSchemeUid(schemeRequest.getUid());
-            planExecute.setSchemeMode(schemeRequest.getMode());
-            planExecute.setAppResponse(app);
-            list.add(planExecute);
-        }
+//        if (!posterStepOptional.isPresent()) {
+//            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(customConfiguration, SerializationUtils.clone(appMarketRespVO));
+//            CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+//            planExecute.setSchemeUid(schemeRequest.getUid());
+//            planExecute.setSchemeMode(schemeRequest.getMode());
+//            planExecute.setAppResponse(app);
+//            list.add(planExecute);
+//        }
+//
+//        // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
+//        PosterSchemeStepDTO schemeStep = (PosterSchemeStepDTO) posterStepOptional.get();
+//        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(schemeStep.getStyleList())) {
+//            PosterStyleDTO style = CreativeImageUtils.mergePosterTemplate(posterStyle, latestPosterMap);
+//            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(steps, style, SerializationUtils.clone(appMarketRespVO), schemeRequest.getUseImages());
+//            CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
+//            planExecute.setSchemeUid(schemeRequest.getUid());
+//            planExecute.setSchemeMode(schemeRequest.getMode());
+//            planExecute.setAppResponse(app);
+//            list.add(planExecute);
+//        }
         return list;
     }
 
@@ -597,5 +563,36 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         if (StringUtils.isBlank(request.getDescription())) {
             request.setDescription(StringUtils.EMPTY);
         }
+
+        // 处理创作方案配置
+        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        List<BaseSchemeStepDTO> steps = configuration.getSteps();
+        List<BaseSchemeStepDTO> handlerStepList = Lists.newArrayList();
+
+        for (BaseSchemeStepDTO step : steps) {
+            // 海报步骤
+            if (PosterActionHandler.class.getSimpleName().equals(step.getCode())) {
+                PosterSchemeStepDTO posterStep = (PosterSchemeStepDTO) step;
+                List<PosterStyleDTO> styleList = posterStep.getStyleList();
+                List<PosterStyleDTO> handlerStyleList = Lists.newArrayList();
+                for (PosterStyleDTO posterStyle : styleList) {
+                    PosterStyleDTO style = CreativeUtils.handlerPosterStyle(posterStyle);
+                    handlerStyleList.add(style);
+                }
+                // 获取最多的图片数量
+                Integer maxImageCount = handlerStyleList.stream()
+                        .max(Comparator.comparingInt(PosterStyleDTO::getImageCount))
+                        .map(PosterStyleDTO::getImageCount).orElse(0);
+                // 设置最多的图片数量
+                handlerStyleList = handlerStyleList.stream().peek(item -> item.setMaxImageCount(maxImageCount)).collect(Collectors.toList());
+
+                posterStep.setStyleList(handlerStyleList);
+                handlerStepList.add(posterStep);
+            } else {
+                handlerStepList.add(step);
+            }
+        }
+        configuration.setSteps(handlerStepList);
+        request.setConfiguration(configuration);
     }
 }

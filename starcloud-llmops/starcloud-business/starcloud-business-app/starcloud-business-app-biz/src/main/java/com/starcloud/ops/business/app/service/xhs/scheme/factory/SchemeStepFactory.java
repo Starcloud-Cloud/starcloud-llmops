@@ -4,12 +4,14 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.AssembleSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.CustomSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.VariableSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.ParagraphSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.PosterSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.TitleSchemeStepEntity;
@@ -26,6 +28,11 @@ public class SchemeStepFactory {
     public static BaseSchemeStepEntity factory(WorkflowStepWrapperRespVO stepWrapper) {
         WorkflowStepRespVO step = Optional.ofNullable(stepWrapper.getFlowStep()).orElseThrow(() -> new RuntimeException("流程步骤不能为空！"));
         String handler = step.getHandler();
+        if (VariableActionHandler.class.getSimpleName().equals(handler)) {
+            VariableSchemeStepEntity emptySchemeStep = new VariableSchemeStepEntity();
+            emptySchemeStep.transformSchemeStep(stepWrapper);
+            return emptySchemeStep;
+        }
         if (TitleActionHandler.class.getSimpleName().equals(handler)) {
             TitleSchemeStepEntity titleSchemeStep = new TitleSchemeStepEntity();
             titleSchemeStep.transformSchemeStep(stepWrapper);

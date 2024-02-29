@@ -75,7 +75,7 @@ public interface CreativePlanService {
     /**
      * 更新计划状态
      */
-    void updatePlanStatus(String planUid);
+    void updatePlanStatus(String planUid,Long batch);
 
     /**
      * 删除创作计划

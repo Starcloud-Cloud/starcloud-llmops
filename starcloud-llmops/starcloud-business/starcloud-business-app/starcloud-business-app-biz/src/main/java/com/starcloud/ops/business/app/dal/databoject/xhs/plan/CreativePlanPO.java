@@ -43,7 +43,7 @@ public class CreativePlanPO implements java.io.Serializable {
     /**
      * 创作计划详细配置信息
      */
-    private String config;
+    private String configuration;
 
     /**
      * 执行随机方式

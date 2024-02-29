@@ -4,9 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
@@ -48,13 +47,13 @@ public interface CreativePlanConvert {
      * @return 数据对象
      */
     default CreativePlanDO convertCreateRequest(CreativePlanReqVO request) {
-        CreativePlanConfigDTO config = request.getConfig();
+        CreativePlanConfigurationDTO config = request.getConfiguration();
         AppValidate.notNull(config, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
         CreativePlanDO creativePlan = new CreativePlanDO();
         creativePlan.setUid(IdUtil.fastSimpleUUID());
         creativePlan.setName(request.getName());
         creativePlan.setType(StringUtils.isBlank(request.getType()) ? CreativeTypeEnum.XHS.name() : request.getType());
-        creativePlan.setConfig(JSONUtil.toJsonStr(request.getConfig()));
+        creativePlan.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
         creativePlan.setRandomType(request.getRandomType());
         creativePlan.setTotal(request.getTotal());
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
@@ -75,13 +74,13 @@ public interface CreativePlanConvert {
      * @return CreationPlanDO
      */
     default CreativePlanDO convertModifyRequest(CreativePlanModifyReqVO request) {
-        CreativePlanConfigDTO config = request.getConfig();
+        CreativePlanConfigurationDTO config = request.getConfiguration();
         AppValidate.notNull(config, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
         CreativePlanDO creativePlan = new CreativePlanDO();
         creativePlan.setUid(request.getUid());
         creativePlan.setName(request.getName());
         creativePlan.setType(StringUtils.isBlank(request.getType()) ? CreativeTypeEnum.XHS.name() : request.getType());
-        creativePlan.setConfig(JSONUtil.toJsonStr(request.getConfig()));
+        creativePlan.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
         creativePlan.setRandomType(request.getRandomType());
         creativePlan.setTotal(request.getTotal());
         creativePlan.setDescription(StringUtils.isBlank(creativePlan.getDescription()) ? "" : creativePlan.getDescription());
@@ -102,8 +101,8 @@ public interface CreativePlanConvert {
         response.setUid(creativePlan.getUid());
         response.setName(creativePlan.getName());
         response.setType(creativePlan.getType());
-        if (StringUtils.isNotBlank(creativePlan.getConfig())) {
-            response.setConfig(JsonUtils.parseObject(creativePlan.getConfig(), CreativePlanConfigDTO.class));
+        if (StringUtils.isNotBlank(creativePlan.getConfiguration())) {
+            response.setConfiguration(JsonUtils.parseObject(creativePlan.getConfiguration(), CreativePlanConfigurationDTO.class));
         }
         response.setRandomType(creativePlan.getRandomType());
         response.setSuccessCount(creativePlan.getSuccessCount());
@@ -133,8 +132,8 @@ public interface CreativePlanConvert {
         response.setUid(creativePlan.getUid());
         response.setName(creativePlan.getName());
         response.setType(creativePlan.getType());
-        if (StringUtils.isNotBlank(creativePlan.getConfig())) {
-            response.setConfig(JsonUtils.parseObject(creativePlan.getConfig(), CreativePlanConfigDTO.class));
+        if (StringUtils.isNotBlank(creativePlan.getConfiguration())) {
+            response.setConfiguration(JsonUtils.parseObject(creativePlan.getConfiguration(), CreativePlanConfigurationDTO.class));
         }
         response.setRandomType(creativePlan.getRandomType());
         response.setTotal(creativePlan.getTotal());

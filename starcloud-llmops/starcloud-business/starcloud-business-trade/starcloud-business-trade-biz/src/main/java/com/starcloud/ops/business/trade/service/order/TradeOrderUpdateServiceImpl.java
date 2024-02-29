@@ -116,6 +116,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Resource
     private TradeOrderProperties tradeOrderProperties;
 
+    @Resource
+    private TradeOrderQueryService tradeOrderQueryService;
+
+
     // =================== 钉钉通知 ===================
     @Resource
     private SmsSendApi smsSendApi;
@@ -397,11 +401,15 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
 
         // 如果是签约订单 则更新下次扣款时间
+        Integer count = 0;
         if (Objects.nonNull(order.getTradeSignId())) {
             tradeSignUpdateService.updatePayTime(order.getTradeSignId());
+            // 获取当前签约成功次数
+            count = tradeOrderQueryService.getSignPaySuccessCountBySignId(order.getTradeSignId());
+
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now());
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(),count);
 
     }
 
@@ -1047,7 +1055,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      * @param payTime       支付时间
      */
     @TenantIgnore
-    private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime) {
+    private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime,Integer successCount) {
 
         try {
             Long tenantId = TenantContextHolder.getTenantId();
@@ -1068,6 +1076,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
             templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
             templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
+            templateParams.put("successCount", successCount);
 
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()

@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.plan.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +39,12 @@ public class CreativePlanRespVO implements java.io.Serializable {
     private String name;
 
     /**
+     * 执行批次
+     */
+    @Schema(description = "执行批次")
+    private Long batch;
+
+    /**
      * 创作计划类型
      */
     @Schema(description = "创作计划类型")
@@ -48,7 +54,7 @@ public class CreativePlanRespVO implements java.io.Serializable {
      * 创作计划详细配置信息
      */
     @Schema(description = "创作计划详细配置信息")
-    private CreativePlanConfigDTO config;
+    private CreativePlanConfigurationDTO configuration;
 
     /**
      * 成功数量

@@ -56,8 +56,8 @@ public class CreativePlanDO extends TenantBaseDO {
     /**
      * 创作计划详细配置信息
      */
-    @TableField("config")
-    private String config;
+    @TableField("configuration")
+    private String configuration;
 
     /**
      * 执行随机方式

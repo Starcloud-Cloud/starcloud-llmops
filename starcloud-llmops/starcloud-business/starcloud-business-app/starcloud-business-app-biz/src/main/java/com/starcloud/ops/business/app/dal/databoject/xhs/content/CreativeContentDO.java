@@ -46,6 +46,11 @@ public class CreativeContentDO extends TenantBaseDO {
     private String planUid;
 
     /**
+     * 执行批次
+     */
+    private Long batch;
+
+    /**
      * 创作方案UID
      */
     private String schemeUid;

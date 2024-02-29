@@ -23,7 +23,7 @@
     <!-- 根据 UID 查询创意计划详情 -->
     <select id="getByUid" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO">
         SELECT
-        <include refid="SELECT_COLUMNS"/>, config, `description`
+        <include refid="SELECT_COLUMNS"/>, configuration, `description`
         FROM llm_creative_plan a
         LEFT JOIN llm_creative_content b ON a.`uid` = b.`plan_uid`
         WHERE a.`uid` = #{uid}

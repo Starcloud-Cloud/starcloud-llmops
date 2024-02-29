@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -10,6 +13,7 @@ import lombok.ToString;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -22,8 +26,13 @@ import java.util.List;
 @NoArgsConstructor
 public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
 
-
     private static final long serialVersionUID = 1488877429722884016L;
+
+    /**
+     * 海报生成模式
+     */
+    @Schema(description = "海报生成模式")
+    private String mode;
 
     /**
      * 创作方案步骤图片风格
@@ -38,7 +47,7 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-
+        stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_MODE, this.mode));
     }
 
     /**
@@ -48,6 +57,12 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        this.styleList = Collections.singletonList(PosterStyleEntity.ofOne());
+        VariableItemRespVO modeVariable = stepWrapper.getVariable(CreativeConstants.POSTER_MODE);
+        this.mode = String.valueOf(Optional.ofNullable(modeVariable).map(VariableItemRespVO::getValue).orElse(PosterModeEnum.RANDOM.name()));
+
+//        VariableItemRespVO variable = stepWrapper.getVariable(CreativeConstants.POSTER_STYLE);
+//        String styles = String.valueOf(Optional.ofNullable(variable).map(VariableItemRespVO::getValue).orElse("[]"));
+//        styles = StringUtil.isBlank(styles) ? "[]" : styles;
+//        this.styleList = JSONUtil.toList(JSONUtil.parseArray(styles), PosterStyleEntity.class);
     }
 }

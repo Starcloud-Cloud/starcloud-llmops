@@ -165,4 +165,6 @@ public interface TradeOrderQueryService {
      */
     TradeOrderDO getOrderBySignPayTime(Long signId, LocalDate signPayTime);
 
+    Integer getSignPaySuccessCountBySignId(Long signId);
+
 }

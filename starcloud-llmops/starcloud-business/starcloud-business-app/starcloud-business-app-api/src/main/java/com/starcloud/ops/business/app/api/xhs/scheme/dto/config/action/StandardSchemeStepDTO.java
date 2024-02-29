@@ -73,14 +73,4 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
             }
         }
     }
-
-    /**
-     * 简化
-     */
-    @Override
-    public void easy() {
-        this.model = null;
-        this.referList = null;
-        this.requirement = null;
-    }
 }
