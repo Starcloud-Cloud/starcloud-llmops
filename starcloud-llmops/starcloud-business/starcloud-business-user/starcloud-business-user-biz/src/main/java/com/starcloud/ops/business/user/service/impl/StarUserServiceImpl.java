@@ -419,8 +419,8 @@ public class StarUserServiceImpl implements StarUserService {
             return false;
         }
 
-        if (!newUserProperties.getValidOrder()) {
-            return tradeOrderApi.getSuccessOrderCount(userId) >= 0;
+        if (newUserProperties.getValidOrder()) {
+            return tradeOrderApi.getSuccessOrderCount(userId)== 0;
         }
 
         return true;
