@@ -44,6 +44,11 @@
             <artifactId>yudao-module-system-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
     </dependencies>
 
 </project>

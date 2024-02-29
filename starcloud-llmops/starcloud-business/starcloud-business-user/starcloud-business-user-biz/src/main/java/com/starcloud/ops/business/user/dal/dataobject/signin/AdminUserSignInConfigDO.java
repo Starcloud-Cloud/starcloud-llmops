@@ -39,6 +39,10 @@ public class AdminUserSignInConfigDO extends BaseDO {
      * 奖励经验
      */
     private Integer magicImage;
+    /**
+     * 矩阵豆
+     */
+    private Integer matrixBean;
 
     /**
      * 状态

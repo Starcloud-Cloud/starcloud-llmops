@@ -69,7 +69,7 @@ public class ProductPropertyValueServiceImpl implements ProductPropertyValueServ
         ProductPropertyValueDO updateObj = ProductPropertyValueConvert.INSTANCE.convert(updateReqVO);
         productPropertyValueMapper.updateById(updateObj);
         // 更新 sku 相关属性
-        productSkuService.updateSkuPropertyValue(updateObj.getId(), updateObj.getName());
+        productSkuService.updateSkuPropertyValue(updateObj.getId(), updateObj.getName(),updateObj.getRemark());
     }
 
     @Override

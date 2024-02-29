@@ -365,7 +365,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                             .setTemplateCode("NOTICE_SELLER_SPRITE_WARN")
                             .setTemplateParams(templateParams));
         } catch (RuntimeException e) {
-            log.error("系统支付通知信息发送失败", e);
+            log.error("卖家精灵通知信息发送失败", e);
         }
     }
 
@@ -401,6 +401,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     }
 
 
+    /**
+     * 发送登录失败消息
+     */
     @TenantIgnore
     private void sendLoginFailMessage() {
         log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
@@ -416,6 +419,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             log.error("卖家精灵登录失败，通知信息发送失败", e);
         }
     }
+
 
 
     /**

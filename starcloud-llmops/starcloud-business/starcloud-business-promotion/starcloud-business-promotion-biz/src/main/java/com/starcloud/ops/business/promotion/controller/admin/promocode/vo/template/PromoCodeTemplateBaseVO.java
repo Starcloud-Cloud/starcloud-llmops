@@ -1,25 +1,13 @@
 package com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.iocoder.yudao.framework.common.validation.InEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
-import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
-import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
-import com.starcloud.ops.business.promotion.enums.coupon.CouponTemplateValidityTypeEnum;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.TIME_ZONE_DEFAULT;
@@ -67,7 +55,7 @@ public class PromoCodeTemplateBaseVO {
     private Long couponTemplateId;
 
     @Schema(description = "权益参数")
-    private GiveRightsDTO giveRights;
+    private AdminUserRightsCommonDTO giveRights;
 
 
 
