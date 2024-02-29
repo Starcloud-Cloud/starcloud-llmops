@@ -79,7 +79,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -420,7 +419,7 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         if (newUserProperties.getValidOrder()) {
-            return tradeOrderApi.getSuccessOrderCount(userId)== 0;
+            return tradeOrderApi.getSuccessOrderCount(userId) == 0;
         }
 
         return true;
