@@ -1,16 +1,19 @@
 package com.starcloud.ops.business.trade.service.order.handler;
 
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.UserRightsBasicDTO;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 会员积分、等级的 {@link TradeOrderHandler} 实现类
@@ -32,25 +35,35 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
             return;
         }
 
-        for (GiveRightsDTO giveRight : order.getGiveRights()) {
-            // 设置会员等级
-            adminUserLevelApi.addAdminUserLevel(
-                    order.getUserId(),
-                    giveRight.getLevelId(),
-                    giveRight.getLevelTimeNums(),
-                    giveRight.getLevelTimeRange(),
-                    AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
-                    String.valueOf(order.getId()));
-            // 设置会员权益
-            adminUserRightsApi.addRights(
-                    order.getUserId(),
-                    giveRight.getGiveMagicBean(),
-                    giveRight.getGiveImage(),
-                    giveRight.getRightsTimeNums(),
-                    giveRight.getRightsTimeRange(),
-                    AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(),
-                    String.valueOf(order.getId()),
-                    giveRight.getLevelId());
+
+        for (AdminUserRightsCommonDTO giveRight : order.getGiveRights()) {
+            if (Objects.nonNull(giveRight.getLevelBasicDTO())) {
+                // 设置会员等级
+                adminUserLevelApi.addAdminUserLevel(
+                        order.getUserId(),
+                        giveRight.getLevelBasicDTO().getLevelId(),
+                        giveRight.getLevelBasicDTO().getTimesRange().getNums(),
+                        giveRight.getLevelBasicDTO().getTimesRange().getRange(),
+                        AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(),
+                        String.valueOf(order.getId()));
+            }
+            if (Objects.nonNull(giveRight.getRightsBasicDTO())) {
+                UserRightsBasicDTO rightsBasicDTO = giveRight.getRightsBasicDTO();
+                // 设置会员权益
+                AddRightsDTO addRightsDTO = new AddRightsDTO();
+                addRightsDTO.setUserId(order.getUserId())
+                        .setMagicBean(rightsBasicDTO.getMagicBean())
+                        .setMagicImage(rightsBasicDTO.getMagicImage())
+                        .setMatrixBean(rightsBasicDTO.getMatrixBean())
+                        .setTimeNums(rightsBasicDTO.getTimesRange().getNums())
+                        .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
+                        .setBizType(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType())
+                        .setBizId(String.valueOf(order.getId()))
+                        .setLevelId(giveRight.getLevelBasicDTO() != null ? giveRight.getLevelBasicDTO().getLevelId() == null ? null : giveRight.getLevelBasicDTO().getLevelId() : null);
+                adminUserRightsApi.addRights(addRightsDTO);
+            }
+
+
         }
 
     }

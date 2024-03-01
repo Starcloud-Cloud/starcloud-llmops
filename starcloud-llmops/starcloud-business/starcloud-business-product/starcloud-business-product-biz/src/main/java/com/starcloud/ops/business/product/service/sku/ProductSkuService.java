@@ -84,6 +84,16 @@ public interface ProductSkuService {
      */
     List<ProductSkuDO> getSkuListBySpuId(Long spuId);
 
+
+    /**
+     * 获得商品 SKU 集合
+     *
+     * @param spuId spu 编号
+     * @return 商品sku 集合
+     */
+    List<ProductSkuDO> getSkuListBySpuId(Long spuId, Boolean filter,Long userId, Long categoryId);
+
+
     /**
      * 获得 spu 对应的 SKU 集合
      *
@@ -122,6 +132,7 @@ public interface ProductSkuService {
      * @param propertyValueName 属性值名字
      * @return int 影响的行数
      */
-    int updateSkuPropertyValue(Long propertyValueId, String propertyValueName);
+    int updateSkuPropertyValue(Long propertyValueId, String propertyValueName, String propertyValueRemark);
 
+    void canPlaceOrder(Long userId, Long skuId);
 }

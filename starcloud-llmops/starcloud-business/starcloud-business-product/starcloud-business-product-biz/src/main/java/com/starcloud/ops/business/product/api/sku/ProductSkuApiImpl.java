@@ -50,5 +50,16 @@ public class ProductSkuApiImpl implements ProductSkuApi {
         productSkuService.updateSkuStock(updateStockReqDTO);
     }
 
+    /**
+     * 验证订单是否可以下单
+     *
+     * @param userId 用户编号
+     * @param skuId  SKU 编号
+     */
+    @Override
+    public void canPlaceOrder(Long userId, Long skuId) {
+        productSkuService.canPlaceOrder(userId, skuId);
+    }
+
 
 }

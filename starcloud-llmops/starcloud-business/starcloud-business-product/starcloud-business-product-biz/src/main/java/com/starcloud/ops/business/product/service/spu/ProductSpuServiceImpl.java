@@ -28,7 +28,6 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getMinValue;
@@ -189,7 +188,7 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         List<Long> limitCouponTemplateIds = spu.getLimitCouponTemplateIds();
         CouponRespDTO coupon = couponApi.getCoupon(couponId, userId);
         if (!limitCouponTemplateIds.contains(coupon.getTemplateId())) {
-            throw exception(SPU_FAIL_SPU_LIMIT);
+            throw exception(SKU_FAIL_COUPON_LIMIT);
         }
     }
 
@@ -206,8 +205,8 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         if (spu.getRegisterDays().equals(-1)) {
             return;
         }
-        if (!adminUsersApi.isNewUser(userId, Long.valueOf(spu.getRegisterDays()))) {
-            throw exception(SPU_FAIL_NEW_USER_LIMIT);
+        if (!adminUsersApi.isNewUser(userId)) {
+            throw exception(SKU_FAIL_NEW_USER_LIMIT);
         }
     }
 
@@ -289,28 +288,27 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         }
         // 分页查询
         PageResult<ProductSpuDO> pageResult = productSpuMapper.selectPage(pageReqVO, categoryIds);
-        // 执行商品过滤
-        if (Objects.isNull(userId)) {
-            return pageResult;
-        }
+        // // 执行商品过滤
+        // if (Objects.isNull(userId)) {
+        //     return pageResult;
+        // }
+        //
+        // List<ProductSpuDO> collect = pageResult.getList().stream()
+        //         .filter(spu -> {
+        //             Integer registerDays = spu.getRegisterDays();
+        //             if (registerDays != -1) {
+        //                 return (boolean) adminUsersApi.isNewUser(userId);
+        //             }
+        //             return true;
+        //         })
+        //         .filter(spu -> {
+        //             if (CollUtil.isNotEmpty(spu.getLimitCouponTemplateIds())) {
+        //                 return couponApi.getMatchCouponCount(userId, spu.getPrice(), Collections.singletonList(spu.getId()), Collections.singletonList(spu.getCategoryId())) != 0;
+        //             }
+        //             return true;
+        //         }).collect(Collectors.toList());
 
-        List<ProductSpuDO> collect = pageResult.getList().stream()
-                .filter(spu -> {
-                    Integer registerDays = spu.getRegisterDays();
-                    if (registerDays != -1) {
-                        boolean isNewUser = adminUsersApi.isNewUser(userId, Long.valueOf(registerDays));
-                        return isNewUser;
-                    }
-                    return true;
-                })
-                .filter(spu -> {
-                    if (CollUtil.isNotEmpty(spu.getLimitCouponTemplateIds())) {
-                        return couponApi.getMatchCouponCount(userId, spu.getPrice(), Collections.singletonList(spu.getId()), Collections.singletonList(spu.getCategoryId())) != 0;
-                    }
-                    return true;
-                }).collect(Collectors.toList());
-
-        return pageResult.setList(collect).setTotal((long) collect.size());
+        return pageResult;
     }
 
     @Override

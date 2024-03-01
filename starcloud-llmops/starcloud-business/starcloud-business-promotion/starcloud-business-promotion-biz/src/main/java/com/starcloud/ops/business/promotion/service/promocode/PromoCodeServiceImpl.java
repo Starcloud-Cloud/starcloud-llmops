@@ -14,7 +14,11 @@ import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
 import com.starcloud.ops.business.promotion.service.coupon.CouponService;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
+import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.UserRightsBasicDTO;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +76,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
         PromoCodeDO PromoCode = promoCodeMapper.selectByIdAndUserId(id, userId);
         if (PromoCode == null) {
-            // throw exception(PromoCode_NOT_EXISTS);
+            throw exception(PROMO_CODE_NOT_EXISTS);
         }
         validPromoCode(PromoCode);
         return PromoCode;
@@ -156,17 +160,34 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         promoCodeTemplateService.updateTemplateTakeCount(template.getId(), 1);
 
         if (ObjectUtil.isNull(template.getGiveRights())) {
-            log.error("权益信息缺失");
+            log.error("兑换码中权益信息缺失，添加权益失败，当前兑换码为{}，当前用户为{}", code, userId);
+            return;
         }
         // 增加权益
-        PromoCodeTemplateDO.GiveRights giveRights = template.getGiveRights();
+        AdminUserRightsCommonDTO giveRights = template.getGiveRights();
 
-        if (Objects.nonNull(giveRights.getLevelId()) && Objects.nonNull(giveRights.getLevelTimeNums()) && Objects.nonNull(giveRights.getLevelTimeRange())) {
-            adminUserLevelApi.addAdminUserLevel(userId, giveRights.getLevelId(), giveRights.getLevelTimeNums(), giveRights.getLevelTimeRange(), AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
+        // 增加用户等级
+        if (Objects.nonNull(giveRights.getLevelBasicDTO())) {
+            log.info("增加用户等级");
+            UserLevelBasicDTO levelBasicDTO = giveRights.getLevelBasicDTO();
+            adminUserLevelApi.addAdminUserLevel(userId, levelBasicDTO.getLevelId(), levelBasicDTO.getTimesRange().getNums(), levelBasicDTO.getTimesRange().getRange(), AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
         }
+        // 增加用户权益
+        if (Objects.nonNull(giveRights.getRightsBasicDTO())) {
+            log.info("增加用户权益");
+            UserRightsBasicDTO rightsBasicDTO = giveRights.getRightsBasicDTO();
 
-        if (giveRights.getGiveMagicBean() > 0 || giveRights.getGiveImage() > 0) {
-            adminUserRightsApi.addRights(userId, giveRights.getGiveMagicBean(), giveRights.getGiveImage(), giveRights.getRightsTimeNums(), giveRights.getRightsTimeRange(), AdminUserRightsBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()),giveRights.getLevelId());
+            AddRightsDTO addRightsDTO = new AddRightsDTO();
+            addRightsDTO.setUserId(userId)
+                    .setMagicBean(rightsBasicDTO.getMagicBean())
+                    .setMagicImage(rightsBasicDTO.getMagicImage())
+                    .setMatrixBean(rightsBasicDTO.getMatrixBean())
+                    .setTimeNums(rightsBasicDTO.getTimesRange().getNums())
+                    .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
+                    .setBizType(AdminUserRightsBizTypeEnum.REDEEM_CODE.getType())
+                    .setBizId(String.valueOf(convert.getId()))
+                    .setLevelId(giveRights.getLevelBasicDTO() != null ? giveRights.getLevelBasicDTO().getLevelId() == null ? null : giveRights.getLevelBasicDTO().getLevelId() : null);
+            adminUserRightsApi.addRights(addRightsDTO);
         }
 
 
@@ -207,7 +228,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         Long useCount = promoCodeMapper.selectCountByUserId(userId, PromoCodeTemplate.getId());
         // 校验超过兑换限制
         if (useCount >= PromoCodeTemplate.getTakeLimitCount()) {
-            throw exception(PROMO_CODE_TEMPLATE_LIMIT,useCount);
+            throw exception(PROMO_CODE_TEMPLATE_LIMIT, useCount);
         }
         // 校验是否过期
         if (LocalDateTimeUtils.beforeNow(PromoCodeTemplate.getValidEndTime())) {

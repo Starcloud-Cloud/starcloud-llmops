@@ -12,12 +12,14 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.api.tenant.TenantApi;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -132,6 +134,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Resource
     @Lazy
     private TradeSignUpdateService tradeSignUpdateService;
+
+    @Resource
+    private TenantApi tenantApi;
+
 
     // @Resource
     // @Lazy
@@ -408,7 +414,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(),count);
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(),orderItems.get(0).getProperties().get(0).getValueName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count);
 
     }
 
@@ -1054,9 +1060,12 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      * @param payTime       支付时间
      */
     @TenantIgnore
-    private void sendPaySuccessMsg(Long userId, String productName, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime,Integer successCount) {
+    private void sendPaySuccessMsg(Long userId, String productName, String productType,Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount) {
 
         try {
+            Long tenantId = TenantContextHolder.getTenantId();
+            // 获取订单来源
+            String from = tenantId != null ? tenantApi.getTenantById(tenantId).getContactName() : null;
             AdminUserDO user = userService.getUser(userId);
 
             Map<String, Object> templateParams = new HashMap<>();
@@ -1069,11 +1078,13 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());
             templateParams.put("productName", productName);
+            templateParams.put("productType", productType);
             templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(totalPrice));
             templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
             templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
             templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
             templateParams.put("successCount", successCount);
+            templateParams.put("from", successCount);
 
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()

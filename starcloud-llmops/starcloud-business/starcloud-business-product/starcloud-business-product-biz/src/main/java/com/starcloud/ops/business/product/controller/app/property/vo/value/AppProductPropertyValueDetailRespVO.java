@@ -19,4 +19,7 @@ public class AppProductPropertyValueDetailRespVO {
     @Schema(description = "属性值的名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "红色")
     private String valueName;
 
+    @Schema(description = "属性值的备注", requiredMode = Schema.RequiredMode.REQUIRED, example = "红色")
+    private String remark;
+
 }

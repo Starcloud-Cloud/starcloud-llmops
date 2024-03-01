@@ -79,7 +79,6 @@ public class PayNotifyController {
         }
 
         // 2. 解析通知数据
-        // https://1707-240e-391-edc-3d80-45c2-8ecd-7752-bd35.ngrok-free.app
         Map<String, String> bodyObj = HttpUtil.decodeParamMap(body, StandardCharsets.UTF_8);
         if (bodyObj.containsKey("trade_status")){
             PayOrderRespDTO notify = payClient.parseOrderNotify(params, body);

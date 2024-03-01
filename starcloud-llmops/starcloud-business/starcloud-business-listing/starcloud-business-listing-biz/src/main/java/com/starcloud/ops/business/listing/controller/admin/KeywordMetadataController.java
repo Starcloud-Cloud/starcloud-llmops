@@ -3,10 +3,7 @@ package com.starcloud.ops.business.listing.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
-import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
-import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
@@ -24,10 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -87,29 +81,6 @@ public class KeywordMetadataController {
     @Operation(summary = "根据asin 获取拓展词数据", description = "根据asin 获取拓展词数据\"")
     public CommonResult<ExtendAsinReposeDTO> extendAsin(@Validated ExtendAsinRequestDTO extendAsinRequestDTO) {
         return CommonResult.success(keywordMetadataService.extendAsin(extendAsinRequestDTO));
-    }
-
-
-    @TenantIgnore
-    private void sendMessage( Integer amount) {
-
-        try {
-            Map<String, Object> templateParams = new HashMap<>();
-            String environmentName = dingTalkNoticeProperties.getName().equals("Test")?"测试环境":"正式环境";
-            templateParams.put("environmentName", environmentName);
-            templateParams.put("userName", "测试");
-            templateParams.put("productName", "测试");
-            templateParams.put("amount", amount / 100);
-            smsSendApi.sendSingleSmsToAdmin(
-                    new SmsSendSingleToUserReqDTO()
-                            .setUserId(1L).setMobile("17835411844")
-                            // .setTemplateCode("SMS_2023_PAY")
-                            .setTemplateCode(dingTalkNoticeProperties.getSmsCode())
-                            .setTemplateParams(templateParams));
-        } catch (RuntimeException e) {
-            log.error("系统支付通知信息发送失败", e);
-        }
-
     }
 
 }

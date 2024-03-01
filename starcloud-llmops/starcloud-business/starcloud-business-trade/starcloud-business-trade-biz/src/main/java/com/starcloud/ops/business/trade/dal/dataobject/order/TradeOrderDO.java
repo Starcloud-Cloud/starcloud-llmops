@@ -2,11 +2,11 @@ package com.starcloud.ops.business.trade.dal.dataobject.order;
 
 import cn.iocoder.yudao.framework.common.enums.TerminalEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.product.api.spu.dto.GiveRightsDTO;
 import com.starcloud.ops.business.trade.dal.dataobject.brokerage.BrokerageUserDO;
 import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryExpressDO;
 import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryPickUpStoreDO;
@@ -15,8 +15,7 @@ import com.starcloud.ops.business.trade.enums.order.TradeOrderCancelTypeEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderRefundStatusEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
 import com.starcloud.ops.business.trade.enums.order.TradeOrderTypeEnum;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -345,7 +344,7 @@ public class TradeOrderDO extends TenantBaseDO {
      * 属性，JSON 格式
      */
     @TableField(typeHandler = GiveRightsDTOTypeHandler.class)
-    private List<GiveRightsDTO> giveRights;
+    private List<AdminUserRightsCommonDTO> giveRights;
 
 
     private Long tradeSignId;
@@ -355,7 +354,7 @@ public class TradeOrderDO extends TenantBaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseArray(json, GiveRightsDTO.class);
+            return JsonUtils.parseArray(json, AdminUserRightsCommonDTO.class);
         }
 
         @Override

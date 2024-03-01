@@ -45,6 +45,13 @@ public interface ProductSkuApi {
      */
     void updateSkuStock(ProductSkuUpdateStockReqDTO updateStockReqDTO);
 
+    /**
+     * 验证订单是否可以下单 @针对 ProductSkuDO.getOrderLimitConfig() 进行验证
+     *
+     * @param userId 用户编号
+     * @param skuId  SKU 编号
+     */
+    void canPlaceOrder(Long userId, Long skuId);
 
 
 }
