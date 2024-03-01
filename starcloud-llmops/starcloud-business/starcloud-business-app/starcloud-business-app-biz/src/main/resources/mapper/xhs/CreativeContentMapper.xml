@@ -249,26 +249,51 @@
     <select id="selectByBusinessUid"
             resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select
-        <include refid="page_column"/>
+        plan_uid AS planUid,
+        business_uid AS businessUid,
+        conversation_uid AS conversationUid,
+        temp_uid AS copyWritingUid,
+        temp_uid AS pictureTempUid,
+        use_picture AS usePicture,
+        execute_params AS pictureParams,
+        execute_params AS copyWritingParams,
+        status AS pictureStatus,
+        status AS copyWritingStatus,
+        start_time AS pictureStartTime,
+        end_time AS pictureEndTime,
+        execute_time AS pictureExecuteTime,
+        start_time AS copyWritingStartTime,
+        end_time AS copyWritingEndTime,
+        execute_time AS copyWritingExecuteTime,
+        copy_writing_title AS copyWritingTitle,
+        copy_writing_content AS copyWritingContent,
+        picture_num AS pictureNum,
+        picture_content AS pictureContent,
+        error_msg AS pictureErrorMsg,
+        error_msg AS copyWritingErrorMsg,
+        retry_count AS pictureRetryCount,
+        retry_count AS copyWritingRetryCount,
+        copy_writing_count AS copyWritingCount,
+        extend AS pictureExtend,
+        extend AS copyWritingExtend,
+        claim AS claim,
+        liked AS liked,
+        tags AS tags
         FROM
-        llm_creative_content pic
-        INNER JOIN llm_creative_content text on pic.business_uid = text.business_uid
-        WHERE pic.type = 'picture' and text.type = 'copy_writing'
-        and pic.deleted = false and text.deleted = false
+        llm_creative_content
+        WHERE type = 'all'
+        AND deleted = false
+
         <if test="claim != null">
-            and pic.claim = #{claim} and text.claim = #{claim}
+            and claim = #{claim}
         </if>
         <if test="businessUids != null and businessUids.size() > 0">
-            and pic.business_uid in
-            <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
-                #{item}
-            </foreach>
-            and text.business_uid in
+            and business_uid in
             <foreach collection="businessUids" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
-        order by pic.create_time desc
+        order by create_time desc
     </select>
     
     <select id="listGroupByPlanUid"
