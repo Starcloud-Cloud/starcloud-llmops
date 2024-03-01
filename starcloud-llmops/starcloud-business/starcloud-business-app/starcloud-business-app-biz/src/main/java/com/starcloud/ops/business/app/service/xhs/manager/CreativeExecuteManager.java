@@ -43,8 +43,11 @@ import com.starcloud.ops.business.app.service.xhs.convert.AppResponseConverter;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterStyleThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -71,6 +74,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * @author nacoyer
@@ -101,6 +106,9 @@ public class CreativeExecuteManager {
 
     @Resource
     private AppLogService appLogService;
+
+    @Resource
+    private AdminUserRightsApi adminUserRightsApi;
 
     public Map<Long, Boolean> executeAppALl(List<CreativeContentDO> contentList, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(contentList.size());
@@ -149,6 +157,9 @@ public class CreativeExecuteManager {
             log.warn("创作中心：生成内容和图片正在执行中，重复调用(内容ID：{})！", content.getId());
             return failure(content, 350600110, "生成内容和图片正在执行中，请稍后再试");
         }
+        if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(content.getCreator()), AdminUserRightsTypeEnum.MATRIX_BEAN, null)) {
+            throw ServiceExceptionUtil.exception(USER_RIGHTS_NOT_ENOUGH);
+        }
 
         try {
             LocalDateTime start = LocalDateTime.now();
@@ -159,7 +170,7 @@ public class CreativeExecuteManager {
             // 更新任务状态为执行中
             latestContent.setStatus(CreativeContentStatusEnum.EXECUTING.getCode());
             creativeContentMapper.updateById(latestContent);
-            
+
             try {
                 CreativePlanExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativePlanExecuteDTO.class);
                 AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
@@ -212,7 +223,14 @@ public class CreativeExecuteManager {
                 updateContent.setUpdateTime(end);
                 updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
                 creativeContentMapper.updateById(updateContent);
-
+                // 扣除权益
+                adminUserRightsApi.reduceRights(
+                        Long.valueOf(latestContent.getCreator()), null, null, // 用户ID
+                        AdminUserRightsTypeEnum.MATRIX_BEAN, // 权益类型
+                        1, // 权益点数
+                        UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType(), // 业务类型
+                        latestContent.getConversationUid() // 会话ID
+                );
                 return result;
             } catch (Exception exception) {
                 //log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
