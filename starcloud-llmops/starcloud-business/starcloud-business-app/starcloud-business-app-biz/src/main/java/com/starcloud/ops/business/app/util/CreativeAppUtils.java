@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
@@ -17,24 +16,17 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteReque
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeSchemeCopyWritingTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CustomCreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.StandardSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -49,7 +41,6 @@ import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.validate.AppValidate;
@@ -120,42 +111,6 @@ public class CreativeAppUtils {
     }
 
     /**
-     * 获取小红书应用执行参数
-     *
-     * @param scheme             创作任务
-     * @param listOptionResponse 计划配置
-     * @param appUid             应用UID
-     * @return 应用执行参数
-     */
-    public static CreativePlanAppExecuteDTO getXhsAppExecuteRequest(CreativeSchemeRespVO scheme, CreativeSchemeListOptionRespVO listOptionResponse, String appUid) {
-
-        CreativeSchemeConfigDTO configuration = scheme.getConfiguration();
-        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-
-        List<VariableItemRespVO> variableList = CollectionUtil.emptyIfNull(listOptionResponse.getVariables());
-
-        List<VariableItemRespVO> params = Lists.newArrayList();
-        params.add(ofInputVariableItem(NAME, scheme.getName()));
-        params.add(ofInputVariableItem(TYPE, scheme.getType()));
-        params.add(ofInputVariableItem(CATEGORY, scheme.getCategory()));
-        params.add(ofInputVariableItem(TAGS, String.join(",", CollectionUtil.emptyIfNull(scheme.getTags()))));
-        params.add(ofTextAreaVariableItem(DESCRIPTION, scheme.getDescription()));
-        params.add(ofTextAreaVariableItem(REFERS, JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(scheme.getRefers()))));
-        params.add(ofTextAreaVariableItem(SUMMARY, copyWritingTemplate.getSummary()));
-        params.add(ofTextAreaVariableItem(DEMAND, CreativeAppUtils.handlerDemand(copyWritingTemplate, variableList)));
-        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(scheme.getMode())) {
-            params.add(ofInputVariableItem(PARAGRAPH_COUNT, configuration.getParagraphCount()));
-            params.add(ofInputVariableItem(PARAGRAPH_DEMAND, StrUtil.EMPTY));
-        }
-
-        CreativePlanAppExecuteDTO appExecute = new CreativePlanAppExecuteDTO();
-        appExecute.setUid(appUid);
-        appExecute.setParams(params);
-        appExecute.setScene(AppSceneEnum.XHS_WRITING.name());
-        return appExecute;
-    }
-
-    /**
      * 构建执行请求
      *
      * @param app     应用
@@ -210,110 +165,6 @@ public class CreativeAppUtils {
             reference.setId(null);
             return reference;
         }).collect(Collectors.toList());
-    }
-
-
-    /**
-     * 处理需求文本，变量填充等
-     *
-     * @param copyWritingTemplate 文案生成模板
-     * @param variableList        创作计划配置变量
-     * @return 处理后的文案
-     */
-    public static String handlerDemand(CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate, List<VariableItemRespVO> variableList) {
-        String demand = copyWritingTemplate.getDemand();
-        if (CollectionUtil.isEmpty(variableList)) {
-            variableList = Optional.ofNullable(copyWritingTemplate.getVariableList()).orElse(Lists.newArrayList());
-        }
-        Map<String, VariableItemRespVO> variableMap = CollectionUtil.emptyIfNull(variableList).stream().collect(Collectors.toMap(VariableItemRespVO::getField, item -> item));
-        for (VariableItemRespVO variableItem : CollectionUtil.emptyIfNull(copyWritingTemplate.getVariableList())) {
-            String field = variableItem.getField();
-            VariableItemRespVO variable = variableMap.getOrDefault(field, variableItem);
-            Object value = variable.getValue();
-            if (Objects.isNull(value)) {
-                value = Optional.ofNullable(variable.getDefaultValue()).orElse("");
-            }
-            demand = demand.replace("{" + field + "}", String.valueOf(value));
-        }
-        return demand;
-    }
-
-    /**
-     * 将数据转为应用，参数替换
-     *
-     * @param app     应用市场应用
-     * @param request 创作方案请求
-     * @return 应用市场应用
-     */
-    public static AppReqVO transform(AppMarketRespVO app, CreativeSchemeReqVO request, String stepId) {
-        // 参数信息
-        CreativeSchemeConfigDTO configuration = request.getConfiguration();
-        CreativeSchemeCopyWritingTemplateDTO copyWritingTemplate = configuration.getCopyWritingTemplate();
-
-        // 获取步骤配置信息
-        WorkflowConfigRespVO config = app.getWorkflowConfig();
-        AppValidate.notNull(config, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
-
-        List<WorkflowStepWrapperRespVO> stepWrapperList = config.getSteps();
-        AppValidate.notEmpty(stepWrapperList, ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
-
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-            if (Objects.isNull(stepId) || !stepId.equalsIgnoreCase(stepWrapper.getField())) {
-                continue;
-            }
-            VariableRespVO variable = stepWrapper.getVariable();
-            List<VariableItemRespVO> variableList = variable.getVariables();
-            if (CollectionUtil.isEmpty(variableList)) {
-                continue;
-            }
-            for (VariableItemRespVO variableItem : variableList) {
-                if (NAME.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getName())) {
-                    String name = request.getName();
-                    variableItem.setValue(name);
-                    variableItem.setDefaultValue(name);
-
-                } else if (TYPE.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getType())) {
-                    String type = request.getType();
-                    variableItem.setValue(type);
-                    variableItem.setDefaultValue(type);
-
-                } else if (CATEGORY.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getCategory())) {
-                    String category = request.getCategory();
-                    variableItem.setValue(category);
-                    variableItem.setDefaultValue(category);
-
-                } else if (TAGS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getTags())) {
-                    String tags = String.join(",", request.getTags());
-                    variableItem.setValue(tags);
-                    variableItem.setDefaultValue(tags);
-
-                } else if (DESCRIPTION.equals(variableItem.getField()) && StringUtils.isNotBlank(request.getDescription())) {
-                    String description = request.getDescription();
-                    variableItem.setValue(description);
-                    variableItem.setDefaultValue(description);
-
-                } else if (REFERS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
-                    String refers = JSONUtil.toJsonStr(handlerReferences(request.getRefers()));
-                    variableItem.setValue(refers);
-                    variableItem.setDefaultValue(refers);
-                } else if (SUMMARY.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getSummary())) {
-                    String summary = copyWritingTemplate.getSummary();
-                    variableItem.setValue(summary);
-                    variableItem.setDefaultValue(summary);
-
-                } else if (DEMAND.equals(variableItem.getField()) && StringUtils.isNotBlank(copyWritingTemplate.getDemand())) {
-                    String demand = handlerDemand(copyWritingTemplate, null);
-                    variableItem.setValue(demand);
-                    variableItem.setDefaultValue(demand);
-                }
-            }
-            variable.setVariables(variableList);
-            stepWrapper.setVariable(variable);
-        }
-
-        config.setSteps(stepWrapperList);
-        app.setWorkflowConfig(config);
-        return AppMarketConvert.INSTANCE.convert(app);
     }
 
     /**
@@ -629,26 +480,6 @@ public class CreativeAppUtils {
         return content.toString();
     }
 
-    public static AppMarketRespVO transformCustomExecute(CustomCreativeSchemeConfigDTO customConfiguration, AppMarketRespVO appResponse) {
-        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(customConfiguration.getSteps());
-        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = steps.stream()
-                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
-
-        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
-        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-            Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
-            if (!stepEntityOptional.isPresent()) {
-                continue;
-            }
-            BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
-            schemeStepEntity.transformAppStep(stepWrapper);
-        }
-        workflowConfig.setSteps(stepWrapperList);
-        appResponse.setWorkflowConfig(workflowConfig);
-        return appResponse;
-    }
-
     public static AppMarketRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
                                                          PosterStyleDTO posterStyle,
                                                          AppMarketRespVO appResponse,
@@ -659,8 +490,10 @@ public class CreativeAppUtils {
 
         WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
         List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+
         // 段落步骤。
         Optional<BaseSchemeStepDTO> paragraphOptional = schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
+
         for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
             if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
                 PosterStyleDTO style;

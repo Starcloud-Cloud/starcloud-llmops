@@ -38,6 +38,11 @@ public interface CreativeConstants {
     String POSTER_STYLE = "POSTER_STYLE";
 
     /**
+     * 海报风格
+     */
+    String POSTER_MODE = "POSTER_MODE";
+
+    /**
      * 标题
      */
     String TITLE = "TITLE";
@@ -51,5 +56,7 @@ public interface CreativeConstants {
      * 生成数量
      */
     String GENERATE_COUNT = "GENERATE_COUNT";
+
+    String IMAGE = "IMAGE";
 
 }

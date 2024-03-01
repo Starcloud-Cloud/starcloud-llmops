@@ -30,6 +30,11 @@ public abstract class BaseSchemeStepEntity implements java.io.Serializable {
     private String name;
 
     /**
+     * 描述
+     */
+    private String description;
+
+    /**
      * 组装为应用步骤信息
      *
      * @param stepWrapper 应用步骤
@@ -60,6 +65,7 @@ public abstract class BaseSchemeStepEntity implements java.io.Serializable {
     public void transformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
         this.code = stepWrapper.getFlowStep().getHandler();
         this.name = stepWrapper.getName();
+        this.description = stepWrapper.getDescription();
         this.doTransformSchemeStep(stepWrapper);
     }
 

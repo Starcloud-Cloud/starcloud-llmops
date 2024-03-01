@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
@@ -12,11 +14,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -76,10 +79,20 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        this.model = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
-        this.referList = Collections.emptyList();
-        this.requirement = "";
-        this.variableList = Collections.emptyList();
+        VariableRespVO variable = stepWrapper.getVariable();
+        List<VariableItemRespVO> variables = variable.getVariables();
+
+        for (VariableItemRespVO variableItem : variables) {
+            if (CreativeConstants.GENERATE_MODE.equals(variableItem.getField())) {
+                this.model = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
+            } else if (CreativeConstants.REFERS.equals(variableItem.getField())) {
+                String refers = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse("[]"));
+                refers = StringUtils.isBlank(refers) ? "[]" : refers;
+                this.referList = JSONUtil.toList(JSONUtil.parseArray(refers), ReferenceSchemeEntity.class);
+            } else if (CreativeConstants.REQUIREMENT.equals(variableItem.getField())) {
+                this.requirement = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
+            }
+        }
     }
 
 }

@@ -18,6 +18,9 @@ public class CreativeContentDTO {
     @Schema(description = "创作计划uid")
     private String planUid;
 
+    @Schema(description = "执行批次")
+    private Long batch;
+
     @Schema(description = "业务uid")
     private String businessUid;
 
@@ -123,4 +126,7 @@ public class CreativeContentDTO {
      */
     @Schema(description = "是否是测试数据")
     private Boolean isTest;
+
+    @Schema(description = "标签")
+    private String tags;
 }

@@ -47,7 +47,7 @@ public interface CreativeContentService {
     /**
      * 查询计划的所有任务
      */
-    List<CreativeContentDO> listByPlanUid(String planUid);
+    List<CreativeContentDO> listByPlanUid(String planUid, Long batch);
 
     /**
      * 计划下的所有任务根据 业务uid 分组
