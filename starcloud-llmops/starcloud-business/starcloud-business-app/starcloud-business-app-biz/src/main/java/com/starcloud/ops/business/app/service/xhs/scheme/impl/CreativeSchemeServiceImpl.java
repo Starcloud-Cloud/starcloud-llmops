@@ -234,7 +234,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(steps);
             if (posterSchemeStep != null) {
                 option.setPosterMode(posterSchemeStep.getMode());
-                option.setPosterImageCount(posterSchemeStep.getStyleList().get(0).getMaxImageCount());
+                Integer maxImageCount = Optional.ofNullable(posterSchemeStep.getStyleList())
+                        .map(l -> l.get(0)).map(PosterStyleDTO::getMaxImageCount).orElse(0);
+                option.setPosterImageCount(maxImageCount);
             } else {
                 option.setPosterMode(PosterModeEnum.RANDOM.name());
                 option.setPosterImageCount(0);
