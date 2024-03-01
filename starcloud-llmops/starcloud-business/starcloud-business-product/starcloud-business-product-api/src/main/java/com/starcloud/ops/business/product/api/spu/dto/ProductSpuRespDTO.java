@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.product.api.spu.dto;
 
 import com.starcloud.ops.business.product.enums.spu.ProductSpuStatusEnum;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.Valid;
 import java.util.List;
 
 // TODO @LeeYan9: ProductSpuRespDTO
@@ -30,7 +28,6 @@ public class ProductSpuRespDTO {
     private String name;
     /**
      * 单位
-     *
      * 对应 product_unit 数据字典
      */
     private Integer unit;
@@ -57,7 +54,6 @@ public class ProductSpuRespDTO {
 
     /**
      * 规格类型
-     *
      * false - 单规格
      * true - 多规格
      */
@@ -83,7 +79,6 @@ public class ProductSpuRespDTO {
 
     /**
      * 物流配置模板编号
-     *
      * 对应 TradeDeliveryExpressTemplateDO 的 id 编号
      */
     private Long deliveryTemplateId;
@@ -112,20 +107,12 @@ public class ProductSpuRespDTO {
 
     /**
      * 分销类型
-     *
      * false - 默认
      * true - 自行设置
      */
     private Boolean subCommissionType;
 
-    // ========== 权益 相关字段 =========
-    @Schema(description = "权益参数")
-    @Valid
-    private GiveRightsDTO giveRights;
 
-    @Schema(description = "订阅参数")
-    @Valid
-    private SubscribeConfigDTO subscribeConfig;
 
 
 }

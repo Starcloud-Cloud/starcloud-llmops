@@ -57,7 +57,6 @@ public class AdminUserRightsDO extends BaseDO {
      * 权益描述
      */
     private String description;
-
     /**
      * 魔法豆
      */
@@ -66,6 +65,10 @@ public class AdminUserRightsDO extends BaseDO {
      * 图片值
      */
     private Integer magicImage;
+    /**
+     * 矩阵点
+     */
+    private Integer matrixBean;
 
 
     /**
@@ -76,12 +79,14 @@ public class AdminUserRightsDO extends BaseDO {
      * 图片初始值
      */
     private Integer magicImageInit;
-
+    /**
+     * 矩阵点初始值
+     */
+    private Integer matrixBeanInit;
 
 
     /**
      * '关联用户等级ID'
-     * <p>
      */
     private Long userLevelId;
 

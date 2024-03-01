@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.trade.service.order.handler;
 
-import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import org.springframework.stereotype.Component;
@@ -17,18 +17,17 @@ import java.util.List;
 public class TradeProductSpuOrderHandler implements TradeOrderHandler {
 
     @Resource
-    private ProductSpuApi productSpuApi;
+    private ProductSkuApi productSkuApi;
 
     @Override
     public void beforeOrderValidate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
-        // 新用户检测
-        orderItems.forEach( orderItem->
-                productSpuApi.validateSpuRegisterLimit(order.getUserId(),orderItem.getSpuId()));
 
-        // 下单检测
-        orderItems.forEach( orderItem->
-               productSpuApi.validateSpuAndCoupon(orderItem.getSpuId(),order.getCouponId(),order.getUserId()));
 
+        // 用户与商品检验
+        // 1. 新用户检验
+        // 2. 特定优惠券检验
+        orderItems.forEach( orderItem->
+                productSkuApi.canPlaceOrder(order.getUserId(),orderItem.getSkuId()));
 
     }
 }

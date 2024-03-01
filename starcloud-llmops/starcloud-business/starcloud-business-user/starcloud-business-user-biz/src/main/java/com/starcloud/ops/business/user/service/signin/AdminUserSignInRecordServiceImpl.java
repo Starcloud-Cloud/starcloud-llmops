@@ -8,7 +8,9 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.controller.admin.signin.vo.record.AdminUserSignInRecordPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.signin.vo.record.AppAdminUserSignInRecordSummaryRespVO;
 import com.starcloud.ops.business.user.convert.signin.AdminUserSignInRecordConvert;
@@ -156,7 +158,17 @@ public class AdminUserSignInRecordServiceImpl implements AdminUserSignInRecordSe
 
         // 4. 增加权益
         if (!ObjectUtils.equalsAny(record.getMagicBean(), null, 0)) {
-            adminUserRightsService.createRights(userId, record.getMagicBean(), record.getMagicImage(), null, null, AdminUserRightsBizTypeEnum.SIGN, String.valueOf(record.getId()),null);
+            AddRightsDTO signInRightsDTO = new AddRightsDTO()
+                    .setUserId(userId)
+                    .setMagicBean(record.getMagicBean())
+                    .setMagicImage(record.getMagicImage())
+                    .setMatrixBean(record.getMatrixBean())
+                    .setTimeNums(1)
+                    .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                    .setBizId(String.valueOf(record.getId()))
+                    .setBizType(AdminUserRightsBizTypeEnum.SIGN.getType())
+                    .setLevelId(null);
+            adminUserRightsService.createRights(signInRightsDTO);
         }
 
         return record;

@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.user.service.user.handler;
 
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
@@ -10,7 +12,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 /**
  * 新用户注册权益发送的 {@link UserRegisterHandler} 实现类
@@ -43,15 +44,18 @@ public class UserRegisterRightsHandler implements UserRegisterHandler{
     public void afterUserRegister(AdminUserDO adminUserDO, AdminUserDO inviteUserDO) {
         log.info("【afterUserRegister】用户注册，准备新增用户注册权益");
 
-        AdminUserRightsBizTypeEnum rightsBizTypeEnum = AdminUserRightsBizTypeEnum.USER_INVITE;
-        if (Objects.isNull(inviteUserDO)){
-            rightsBizTypeEnum =AdminUserRightsBizTypeEnum.REGISTER;
-        }
-        adminUserRightsService.createRights(adminUserDO.getId(),
-                rightsBizTypeEnum.getMagicBean(),
-                rightsBizTypeEnum.getMagicImage(),
-                null, null, rightsBizTypeEnum,
-                String.valueOf(adminUserDO.getId()),null);
+        AddRightsDTO newUserRightsDTO = new AddRightsDTO()
+                .setUserId(adminUserDO.getId())
+                .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
+                .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
+                .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
+                .setTimeNums(1)
+                .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+                .setBizId(String.valueOf(adminUserDO.getId()))
+                .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
+                .setLevelId(null);
+
+        adminUserRightsService.createRights(newUserRightsDTO);
         // 发放新人优惠券
         couponApi.takeCouponByRegister(adminUserDO.getId());
 

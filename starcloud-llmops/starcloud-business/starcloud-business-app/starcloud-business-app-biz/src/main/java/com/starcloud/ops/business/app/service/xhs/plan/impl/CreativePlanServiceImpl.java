@@ -601,8 +601,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         if (!CreativeTypeEnum.contains(request.getType())) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_TYPE_NOT_SUPPORTED, request.getType());
         }
-        CreativePlanConfigurationDTO config = request.getConfiguration();
-        AppValidate.notNull(config, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
-        config.validate();
+        CreativePlanConfigurationDTO configuration = request.getConfiguration();
+        AppValidate.notNull(configuration, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
+        configuration.validate();
     }
 }

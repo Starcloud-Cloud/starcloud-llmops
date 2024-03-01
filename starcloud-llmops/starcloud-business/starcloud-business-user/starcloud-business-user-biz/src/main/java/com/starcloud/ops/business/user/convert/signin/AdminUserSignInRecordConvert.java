@@ -61,7 +61,7 @@ public interface AdminUserSignInRecordConvert {
 
         // 2.1 初始化签到信息
         AdminUserSignInRecordDO record = new AdminUserSignInRecordDO().setUserId(userId)
-                .setDay(day).setMagicBean(0).setMagicImage(0);
+                .setDay(day).setMagicBean(0).setMagicImage(0).setMatrixBean(0);
         // 2.2 获取签到对应的积分
         AdminUserSignInConfigDO config = CollUtil.findOne(configs, item -> ObjUtil.equal(item.getDay(), record.getDay()));
         if (config == null) {
@@ -69,6 +69,7 @@ public interface AdminUserSignInRecordConvert {
         }
         record.setMagicBean(config.getMagicBean());
         record.setMagicImage(config.getMagicImage());
+        record.setMatrixBean(config.getMatrixBean());
         return record;
     }
 

@@ -156,7 +156,7 @@ public class ProductSpuController {
     @PermitAll
     @Operation(summary = "系统会员-获得商品 SPU 分页")
     public CommonResult<PageResult<AppProductSpuPageRespVO>> getSpuPage(@Valid AppProductSpuPageReqVO pageVO) {
-        PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO,getLoginUserId());
+        PageResult<ProductSpuDO> pageResult = productSpuService.getSpuPage(pageVO);
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }
@@ -164,7 +164,7 @@ public class ProductSpuController {
         PageResult<AppProductSpuPageRespVO> voPageResult = ProductSpuConvert.INSTANCE.convertPageForGetSpuPage(pageResult);
 
         voPageResult.getList().stream().forEach(spu -> {
-            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId());
+            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId(),true,getLoginUserId(),spu.getCategoryId());
             spu.setSkus(ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus));
 
         });

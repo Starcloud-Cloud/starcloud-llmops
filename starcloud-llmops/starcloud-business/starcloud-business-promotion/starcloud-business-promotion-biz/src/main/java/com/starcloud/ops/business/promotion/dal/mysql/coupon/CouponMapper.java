@@ -91,6 +91,13 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
                 .eq(CouponDO::getUserId, userId)
                 .in(CouponDO::getTemplateId, templateIds));
     }
+    default List<CouponDO> selectCanUseListByUserIdAndTemplateIdIn(Long userId, Collection<Long> templateIds) {
+        return selectList(new LambdaQueryWrapperX<CouponDO>()
+                .eq(CouponDO::getUserId, userId)
+                .eq(CouponDO::getStatus, CouponStatusEnum.UNUSED.getStatus())
+                .ge(CouponDO::getValidEndTime, LocalDateTime.now())
+                .in(CouponDO::getTemplateId, templateIds));
+    }
 
     default List<CouponDO> selectListByUserIdAndStatusAndUsePriceLeAndProductScope(
             Long userId, Integer status, Integer usePrice, List<Long> spuIds, List<Long> categoryIds) {
