@@ -39,7 +39,7 @@ public interface CreativeErrorCodeConstants {
     /**
      * 只有待执行的创作计划才允许修改
      */
-    ErrorCode PLAN_STATUS_NOT_SUPPORT_MODIFY = new ErrorCode(710100115, "当前计划不支持修改，只有待执行的创作计划才允许修改！");
+    ErrorCode PLAN_STATUS_NOT_SUPPORT_MODIFY = new ErrorCode(710100115, "当前计划不支持修改，只有待执行,执行完成和执行失败的创作计划才允许修改！");
 
     /**
      * 图片素材不能为空
