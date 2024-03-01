@@ -327,6 +327,7 @@ public class PosterActionHandler extends BaseActionHandler {
             response.setUrlList(urlList);
             response.setCostPoints(1);
             response.setPosterTitle(posterTitle);
+
             return response;
         } catch (Exception exception) {
             log.error("通义千问多模态执行失败：{}", exception.getMessage());

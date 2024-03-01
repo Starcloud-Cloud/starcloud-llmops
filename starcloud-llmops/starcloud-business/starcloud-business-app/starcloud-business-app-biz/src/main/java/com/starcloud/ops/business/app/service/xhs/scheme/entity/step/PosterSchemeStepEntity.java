@@ -63,6 +63,6 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
 //        VariableItemRespVO variable = stepWrapper.getVariable(CreativeConstants.POSTER_STYLE);
 //        String styles = String.valueOf(Optional.ofNullable(variable).map(VariableItemRespVO::getValue).orElse("[]"));
 //        styles = StringUtil.isBlank(styles) ? "[]" : styles;
-//        this.styleList = JSONUtil.toList(JSONUtil.parseArray(styles), PosterStyleEntity.class);
+        this.styleList = Collections.singletonList(PosterStyleEntity.ofOne());
     }
 }
