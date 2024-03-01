@@ -244,7 +244,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         handlerAndValidate(request);
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
-        if (!CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
+        if (!CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())
+                && !CreativePlanStatusEnum.COMPLETE.name().equals(plan.getStatus())
+                && !CreativePlanStatusEnum.FAILURE.name().equals(plan.getStatus())) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
         }
         // 名称做了修改，且修改之后的名称已经存在
