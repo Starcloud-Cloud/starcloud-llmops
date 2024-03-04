@@ -2,6 +2,7 @@ package com.starcloud.ops.business.listing.convert;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.ExtendAsinReposeExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
 import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.*;
@@ -11,6 +12,7 @@ import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface KeywordMetadataConvert {
@@ -66,6 +68,38 @@ public interface KeywordMetadataConvert {
         return JSONUtil.toJsonStr(data);
     }
 
+
+
+    default List<ExtendAsinReposeExcelVO> convertList(List<ItemsDTO> beans){
+        return beans.stream().map(bean -> {
+            ExtendAsinReposeExcelVO vo = new ExtendAsinReposeExcelVO();
+            vo.setAdProducts(bean.getAdProducts());
+            vo.setMarketId(bean.getMarketId());
+            vo.setMonopolyAsinDtos(bean.getMonopolyAsinDtos());
+            vo.setAvgRating(bean.getAvgRating());
+            vo.setPurchases(bean.getPurchases());
+            vo.setCvsShareRate(bean.getCvsShareRate());
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    default ExtendAsinReposeExcelVO convertExcelVO(ItemsDTO bean){
+        ExtendAsinReposeExcelVO excelVO = new ExtendAsinReposeExcelVO();
+        excelVO.setKeywords(bean.getKeyword());
+        excelVO.setKeywordCn(bean.getMarketId());
+        excelVO.setTrafficPercentage(bean.getMonopolyAsinDtos());
+        excelVO.setCalculatedWeeklySearches(bean.getPurchases());
+        excelVO.setRelationVariationsItem(bean.getAvgRating());
+        excelVO.setSearchesRank(bean.getSearchesRank());
+        excelVO.setSearches(bean.getSearches());
+        excelVO.setSearchesDays(bean.getSearches()/30);
+        excelVO.setPurchases(bean.getPurchases());
+        excelVO.setPurchaseRate(bean.getPurchaseRate());
+        excelVO.setCprExact(bean.getPurchaseRate());
+
+
+        return excelVO;
+    }
 
 
 

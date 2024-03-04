@@ -3,6 +3,7 @@ package com.starcloud.ops.business.listing.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
@@ -14,6 +15,9 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.Extend
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
+import com.starcloud.ops.business.log.controller.admin.LogAppMessageSaveExcelVO;
+import com.starcloud.ops.business.log.convert.LogAppMessageSaveConvert;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageSaveDO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -78,8 +82,21 @@ public class KeywordMetadataController {
 
 
     @GetMapping("/extendAsin")
-    @Operation(summary = "根据asin 获取拓展词数据", description = "根据asin 获取拓展词数据\"")
+    @Operation(summary = "根据asin 获取拓展词数据", description = "根据asin 获取拓展词数据")
     public CommonResult<ExtendAsinReposeDTO> extendAsin(@Validated ExtendAsinRequestDTO extendAsinRequestDTO) {
+        return CommonResult.success(keywordMetadataService.extendAsin(extendAsinRequestDTO));
+    }
+
+
+    @GetMapping("/extendAsin")
+    @Operation(summary = "根据asin 获取拓展词数据", description = "根据asin 获取拓展词数据")
+    public CommonResult<ExtendAsinReposeDTO> exportExtendAsin(@Validated ExtendAsinRequestDTO extendAsinRequestDTO) {
+
+        ExtendAsinReposeDTO extendAsinReposeDTO = keywordMetadataService.extendAsin(extendAsinRequestDTO);
+
+        // 导出 Excel
+        List<LogAppMessageSaveExcelVO> datas = LogAppMessageSaveConvert.INSTANCE.convertList02(list);
+        ExcelUtils.write(response, "应用执行日志结果保存.xls", "数据", LogAppMessageSaveExcelVO.class, datas);
         return CommonResult.success(keywordMetadataService.extendAsin(extendAsinRequestDTO));
     }
 
