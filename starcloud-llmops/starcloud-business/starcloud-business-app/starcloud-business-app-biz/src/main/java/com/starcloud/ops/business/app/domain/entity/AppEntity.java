@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
@@ -27,7 +28,10 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -240,7 +244,67 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected String obtainLlmAiModelType(AppExecuteReqVO request) {
-        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        // 如果传入了 AI 模型类型，使用传入的
+        if (StringUtils.isNotBlank(request.getAiModel())) {
+            return request.getAiModel();
+        }
+
+        // 默认使用 GPT-3.5-Turbo-16K
+        String resultModel = ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
+
+        // 如果没有传入步骤 ID，使用默认的
+        if (StringUtils.isBlank(request.getStepId())) {
+            return resultModel;
+        }
+
+
+        Optional<List<WorkflowStepWrapper>> stepWrappersOptional = Optional.ofNullable(this.getWorkflowConfig()).map(WorkflowConfigEntity::getSteps);
+
+        // 如果没有找到步骤，使用默认的
+        if (!stepWrappersOptional.isPresent() || CollectionUtil.isEmpty(stepWrappersOptional.get())) {
+            return resultModel;
+        }
+
+        List<WorkflowStepWrapper> stepWrapperList = stepWrappersOptional.get();
+        Optional<WorkflowStepWrapper> stepWrapperOptional = stepWrapperList.stream()
+                .filter(stepWrapper -> (request.getStepId().equals(stepWrapper.getName())) || (request.getStepId().equals(stepWrapper.getField())))
+                .findFirst();
+
+        // 如果没有找到步骤，使用默认的
+        if (!stepWrapperOptional.isPresent()) {
+            return resultModel;
+        }
+
+        WorkflowStepWrapper workflowStepWrapper = stepWrapperOptional.get();
+        Optional<List<VariableItemEntity>> variableItemListOptional = Optional.ofNullable(workflowStepWrapper.getFlowStep())
+                .map(WorkflowStepEntity::getVariable).map(VariableEntity::getVariables);
+
+        // 如果没有找到变量，使用默认的
+        if (!variableItemListOptional.isPresent() || CollectionUtil.isEmpty(variableItemListOptional.get())) {
+            return resultModel;
+        }
+
+        List<VariableItemEntity> variableItemList = variableItemListOptional.get();
+        Optional<VariableItemEntity> modelOptional = variableItemList.stream()
+                .filter(variableItem -> "MODEL".equalsIgnoreCase(variableItem.getField()))
+                .findFirst();
+
+        // 如果没有找到模型变量，使用默认的
+        if (!modelOptional.isPresent()) {
+            return resultModel;
+        }
+
+        VariableItemEntity variableItemEntity = modelOptional.get();
+
+        if (Objects.nonNull(variableItemEntity.getValue())) {
+            return String.valueOf(variableItemEntity.getValue());
+        }
+        if (Objects.nonNull(variableItemEntity.getDefaultValue())) {
+            return String.valueOf(variableItemEntity.getDefaultValue());
+        }
+
+        // 如果没有找到模型变量，使用默认的
+        return ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
     }
 
     /**
