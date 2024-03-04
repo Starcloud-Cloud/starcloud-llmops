@@ -157,9 +157,6 @@ public class CreativeExecuteManager {
             log.warn("创作中心：生成内容和图片正在执行中，重复调用(内容ID：{})！", content.getId());
             return failure(content, 350600110, "生成内容和图片正在执行中，请稍后再试");
         }
-//        if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(content.getCreator()), AdminUserRightsTypeEnum.MATRIX_BEAN, null)) {
-//            throw ServiceExceptionUtil.exception(USER_RIGHTS_NOT_ENOUGH);
-//        }
 
         try {
             LocalDateTime start = LocalDateTime.now();
@@ -167,6 +164,12 @@ public class CreativeExecuteManager {
             Integer maxRetry = getMaxRetry(force);
             // 获取最新的创作内容并且校验
             CreativeContentDO latestContent = getAppContent(content.getId(), start, maxRetry, force);
+            // 校验用户权益，判断是否有足够的权益
+            if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(content.getCreator()), AdminUserRightsTypeEnum.MATRIX_BEAN, null)) {
+                updateFailureFinished(content.getId(), start, "用户矩阵权益不足，请及时升级或者充值！", maxRetry);
+                throw exception(USER_RIGHTS_NOT_ENOUGH.getCode(), "用户矩阵权益不足，请及时升级或者充值！");
+            }
+
             // 更新任务状态为执行中
             latestContent.setStatus(CreativeContentStatusEnum.EXECUTING.getCode());
             creativeContentMapper.updateById(latestContent);
@@ -224,13 +227,13 @@ public class CreativeExecuteManager {
                 updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
                 creativeContentMapper.updateById(updateContent);
                 // 扣除权益
-//                adminUserRightsApi.reduceRights(
-//                        Long.valueOf(latestContent.getCreator()), null, null, // 用户ID
-//                        AdminUserRightsTypeEnum.MATRIX_BEAN, // 权益类型
-//                        1, // 权益点数
-//                        UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType(), // 业务类型
-//                        latestContent.getConversationUid() // 会话ID
-//                );
+                adminUserRightsApi.reduceRights(
+                        Long.valueOf(latestContent.getCreator()), null, null, // 用户ID
+                        AdminUserRightsTypeEnum.MATRIX_BEAN, // 权益类型
+                        1, // 权益点数
+                        UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType(), // 业务类型
+                        latestContent.getConversationUid() // 会话ID
+                );
                 return result;
             } catch (Exception exception) {
                 //log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);

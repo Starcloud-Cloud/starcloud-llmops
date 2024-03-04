@@ -10,6 +10,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
+@Getter
 public enum AppVariableStyleEnum implements IEnumable<Integer> {
 
     /**
@@ -30,18 +31,21 @@ public enum AppVariableStyleEnum implements IEnumable<Integer> {
     /**
      * 下拉框样式
      */
-    SELECT(3, "下拉框样式");
+    SELECT(3, "下拉框样式"),
+
+    /**
+     * 物料库
+     */
+    MATERIAL(4, "物料库");
 
     /**
      * 变量样式Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 变量样式说明
      */
-    @Getter
     private final String label;
 
     /**
