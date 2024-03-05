@@ -46,7 +46,7 @@ public enum MaterialTypeEnum {
     }
 
     /**
-     * 元素数据结构
+     * 素材数据结构
      *
      * @param typeCode
      * @return
