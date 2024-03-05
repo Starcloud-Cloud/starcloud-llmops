@@ -71,7 +71,7 @@ public class CreativeSchemeController {
     @Operation(summary = "获取创作方案详情", description = "获取创作方案详情")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<CreativeSchemeRespVO> get(@PathVariable String uid) {
-        return CommonResult.success(creativeSchemeService.get(uid));
+        return CommonResult.success(creativeSchemeService.get(uid, Boolean.TRUE));
     }
 
     @GetMapping("/list")

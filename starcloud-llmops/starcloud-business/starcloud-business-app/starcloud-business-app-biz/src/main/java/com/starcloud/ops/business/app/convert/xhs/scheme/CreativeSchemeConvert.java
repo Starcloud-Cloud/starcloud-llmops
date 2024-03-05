@@ -52,10 +52,7 @@ public interface CreativeSchemeConvert {
         if (CollectionUtil.isNotEmpty(request.getUseImages())) {
             creativeScheme.setUseImages(JsonUtils.toJsonString(request.getUseImages()));
         }
-        // 创作计划示例
-        if (CollectionUtil.isNotEmpty(request.getExample())) {
-            creativeScheme.setExample(JsonUtils.toJsonString(request.getExample()));
-        }
+
         // 创作计划物料
         creativeScheme.setMateriel(request.getMateriel());
         creativeScheme.setCreateTime(LocalDateTime.now());
@@ -101,11 +98,6 @@ public interface CreativeSchemeConvert {
         // 创作计划使用图片
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
             creativeSchemeResponse.setUseImages(JSONUtil.toList(creativeScheme.getUseImages(), String.class));
-        }
-
-        // 创作计划示例
-        if (StringUtils.isNotBlank(creativeScheme.getExample())) {
-            creativeSchemeResponse.setExample(JSONUtil.toList(creativeScheme.getExample(), String.class));
         }
 
         // 创作计划物料

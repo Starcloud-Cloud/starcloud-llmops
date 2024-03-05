@@ -190,6 +190,12 @@ public class AppMarketRespVO implements Serializable {
     private String example;
 
     /**
+     * 应用演示
+     */
+    @Schema(description = "应用演示")
+    private String demo;
+
+    /**
      * 创建时间
      */
     @Schema(description = "创建时间")

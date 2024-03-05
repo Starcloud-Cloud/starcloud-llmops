@@ -95,12 +95,6 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     private String materiel;
 
     /**
-     * 创作方案示例
-     */
-    @Schema(description = "创作方案示例")
-    private List<String> example;
-
-    /**
      * 创建人
      */
     @Schema(description = "创建人")

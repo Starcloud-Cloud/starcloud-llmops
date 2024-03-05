@@ -159,6 +159,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String description;
 
     /**
+     * 应用示例
+     */
+    private String example;
+
+    /**
+     * 应用演示
+     */
+    private String demo;
+
+    /**
      * 应用发布成功后，应用市场 uid-version
      */
     private String publishUid;

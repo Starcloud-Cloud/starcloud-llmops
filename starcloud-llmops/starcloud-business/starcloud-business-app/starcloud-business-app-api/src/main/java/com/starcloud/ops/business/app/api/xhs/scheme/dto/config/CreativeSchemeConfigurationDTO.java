@@ -54,6 +54,12 @@ public class CreativeSchemeConfigurationDTO implements java.io.Serializable {
     private Integer version;
 
     /**
+     * 应用示例
+     */
+    @Schema(description = "示例")
+    private String example;
+
+    /**
      * 抽象的 创作方案 流程节点配置
      */
     private List<BaseSchemeStepDTO> steps;

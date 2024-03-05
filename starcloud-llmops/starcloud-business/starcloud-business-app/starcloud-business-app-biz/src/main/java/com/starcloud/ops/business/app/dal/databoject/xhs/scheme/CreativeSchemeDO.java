@@ -92,10 +92,4 @@ public class CreativeSchemeDO extends TenantBaseDO {
     @TableField("materiel")
     private String materiel;
 
-    /**
-     * 创作方案示例
-     */
-    @TableField(value = "example")
-    private String example;
-
 }

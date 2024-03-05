@@ -135,6 +135,18 @@ public class AppRespVO implements Serializable {
     private String description;
 
     /**
+     * 应用示例
+     */
+    @Schema(description = "应用示例")
+    private String example;
+
+    /**
+     * 应用演示
+     */
+    @Schema(description = "应用演示")
+    private String demo;
+
+    /**
      * 应用发布成功后，应用市场 uid-version
      */
     @Schema(description = "应用发布成功后，应用市场 uid-version")

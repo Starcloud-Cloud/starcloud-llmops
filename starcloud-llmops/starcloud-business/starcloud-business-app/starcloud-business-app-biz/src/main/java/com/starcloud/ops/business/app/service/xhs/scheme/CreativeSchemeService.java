@@ -45,6 +45,14 @@ public interface CreativeSchemeService {
     CreativeSchemeRespVO get(String uid);
 
     /**
+     * 获取创作方案详情
+     *
+     * @param uid 创作方案UID
+     * @return 创作方案详情
+     */
+    CreativeSchemeRespVO get(String uid, Boolean isLatestExample);
+
+    /**
      * 获取创作方案列表
      *
      * @param query 查询条件

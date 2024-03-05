@@ -150,6 +150,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             configuration.setAppName(appMarketResponse.getName());
             configuration.setDescription(appMarketResponse.getDescription());
             configuration.setVersion(appMarketResponse.getVersion());
+            configuration.setExample(appMarketResponse.getExample());
             configuration.setSteps(schemeStepList);
             configurationList.add(configuration);
         }
@@ -165,9 +166,32 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public CreativeSchemeRespVO get(String uid) {
+        return get(uid, Boolean.FALSE);
+    }
+
+    /**
+     * 获取创作方案详情
+     *
+     * @param uid             创作方案UID
+     * @param isLatestExample 是否获取最新的示例
+     * @return 创作方案详情
+     */
+    @Override
+    public CreativeSchemeRespVO get(String uid, Boolean isLatestExample) {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
         AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
-        return CreativeSchemeConvert.INSTANCE.convertResponse(creativeScheme);
+        CreativeSchemeRespVO schemeResponse = CreativeSchemeConvert.INSTANCE.convertResponse(creativeScheme);
+        // 如果不需要获取最新的示例，则直接返回
+        if (!isLatestExample) {
+            return schemeResponse;
+        }
+        // 否则需要从应用中获取最新的示例
+        CreativeSchemeConfigurationDTO configuration = schemeResponse.getConfiguration();
+        String appUid = configuration.getAppUid();
+        AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
+        configuration.setExample(appMarketResponse.getExample());
+        schemeResponse.setConfiguration(configuration);
+        return schemeResponse;
     }
 
     /**
@@ -296,14 +320,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<AppMarketRespVO> list = appMarketService.list(marketQuery);
         Map<String, AppMarketRespVO> appMap = list.stream().collect(Collectors.toMap(AppMarketRespVO::getUid, item -> item));
 
-
         List<CreativeSchemeRespVO> collect = records.stream().map(item -> {
             CreativeSchemeRespVO response = CreativeSchemeConvert.INSTANCE.convertResponse(item);
             response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
             response.setUpdater(updaterMap.get(Long.valueOf(item.getUpdater())));
-            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
-                response.setAppName(appMap.get(response.getConfiguration().getAppUid()).getName());
-            }
+            response.setAppName(appMap.get(response.getConfiguration().getAppUid()).getName());
             return response;
         }).collect(Collectors.toList());
 

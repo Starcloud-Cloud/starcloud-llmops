@@ -84,12 +84,8 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
     /**
      * 物料
      */
+    @Schema(description = "创作方案物料")
     private String materiel;
-
-    /**
-     * 创作方案示例
-     */
-    private List<String> example;
 
     /**
      * 校验创作方案

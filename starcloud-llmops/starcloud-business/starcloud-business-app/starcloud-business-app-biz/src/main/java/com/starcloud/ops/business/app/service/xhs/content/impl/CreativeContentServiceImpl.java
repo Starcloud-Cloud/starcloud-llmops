@@ -238,6 +238,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         return creativeContentMapper.listGroupByPlanUid(planUidList);
     }
 
+    /***
+     * 根据 UID List 查询
+     * @param businessUidList list
+     * @return 内容列表
+     */
+    @Override
+    public List<CreativeContentRespVO> list(List<String> businessUidList) {
+        List<CreativeContentDO> list = creativeContentMapper.list(businessUidList);
+        return CollectionUtil.emptyIfNull(list).stream()
+                .map(CreativeContentConvert.INSTANCE::convert).collect(Collectors.toList());
+    }
+
     @Override
     public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
 

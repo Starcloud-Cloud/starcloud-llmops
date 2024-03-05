@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.content;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentBusinessReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
@@ -19,10 +20,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/llm/xhs/content")
@@ -96,6 +99,21 @@ public class CreativeContentController {
     public CommonResult<String> unlike(@Validated @RequestBody CreativeContentBusinessReqVO request) {
         creativeContentService.unlike(request.getBusinessUid());
         return CommonResult.success("取消点赞成功");
+    }
+
+    @GetMapping("/getExample")
+    @Operation(summary = "分页查询")
+    @DataPermission(enable = false)
+    public CommonResult<List<CreativeContentRespVO>> page(@RequestParam("businessUidList") List<String> businessUidList) {
+        List<CreativeContentRespVO> result = creativeContentService.list(businessUidList);
+        return CommonResult.success(result);
+    }
+
+    @GetMapping("/exampleDetail")
+    @Operation(summary = "创作内容详情")
+    @DataPermission(enable = false)
+    public CommonResult<CreativeContentRespVO> exampleDetail(@RequestParam("businessUid") String businessUid) {
+        return CommonResult.success(creativeContentService.detail(businessUid));
     }
 
 }
