@@ -2,13 +2,13 @@ package com.starcloud.ops.business.app.service.xhs.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public interface CreativeSchemeService {
      *
      * @return 创作方案配置
      */
-    List<CreativeSchemeConfigurationDTO> configurationList(String model);
+    List<SchemeAppCategoryRespVO> appGroupList();
 
     /**
      * 获取创作方案详情

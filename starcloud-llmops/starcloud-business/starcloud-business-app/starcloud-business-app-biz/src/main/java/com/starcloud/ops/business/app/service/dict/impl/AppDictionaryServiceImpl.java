@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.dict.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -45,8 +46,16 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      */
     @Override
     public List<AppCategoryVO> categoryList(Boolean isRoot) {
+        String categoryType = AppConstants.APP_CATEGORY_DICT_TYPE;
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+        if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId)) {
+            categoryType = AppConstants.APP_CATEGORY_DICT_TYPE;
+        } else if (AppConstants.JU_ZHEN_TENANT_ID.equals(tenantId)) {
+            categoryType = AppConstants.APP_CATEGORY_DICT_TYPE_JU_ZHEN;
+        }
+
         // 查询应用分类字典数据
-        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_CATEGORY_DICT_TYPE);
+        List<DictDataDO> dictDataList = getDictionaryList(categoryType);
         if (CollectionUtil.isEmpty(dictDataList)) {
             return Collections.emptyList();
         }
@@ -76,13 +85,15 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      */
     @Override
     public List<String> hotSearchMarketAppNameList() {
-        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.APP_HOT_SEARCH_MARKET);
-        return CollectionUtil.emptyIfNull(dictDataList).stream()
-                .sorted(Comparator.comparingInt(DictDataDO::getSort))
-                .map(DictDataDO::getLabel)
-                .filter(StringUtils::isNotBlank)
-                .distinct()
-                .collect(Collectors.toList());
+        String hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET;
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+        if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId)) {
+            hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET;
+        } else if (AppConstants.JU_ZHEN_TENANT_ID.equals(tenantId)) {
+            hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET_JU_ZHEN;
+        }
+        List<DictDataDO> dictDataList = getDictionaryList(hotSearchMarket);
+        return CollectionUtil.emptyIfNull(dictDataList).stream().sorted(Comparator.comparingInt(DictDataDO::getSort)).map(DictDataDO::getLabel).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
     }
 
     /**
@@ -93,14 +104,12 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     @Override
     public List<ImageMetaDTO> examplePrompt() {
         List<DictDataDO> dictDataList = getDictionaryList(AppConstants.IMAGE_EXAMPLE_PROMPT);
-        return CollectionUtil.emptyIfNull(dictDataList).stream()
-                .filter(Objects::nonNull)
-                .map(dictData -> {
-                    ImageMetaDTO imageMetaDTO = new ImageMetaDTO();
-                    imageMetaDTO.setLabel(dictData.getLabel());
-                    imageMetaDTO.setValue(dictData.getValue());
-                    return imageMetaDTO;
-                }).collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(dictDataList).stream().filter(Objects::nonNull).map(dictData -> {
+            ImageMetaDTO imageMetaDTO = new ImageMetaDTO();
+            imageMetaDTO.setLabel(dictData.getLabel());
+            imageMetaDTO.setValue(dictData.getValue());
+            return imageMetaDTO;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -173,9 +182,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     @Override
     public List<String> appLimitUserWhiteList() {
         List<DictDataDO> dictionaryList = getDictionaryList(AppConstants.APP_LIMIT_USER_WHITE_LIST);
-        return CollectionUtil.emptyIfNull(dictionaryList).stream()
-                .filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue()))
-                .map(DictDataDO::getValue).collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(dictionaryList).stream().filter(item -> Objects.nonNull(item) && StringUtils.isNotBlank(item.getValue())).map(DictDataDO::getValue).collect(Collectors.toList());
     }
 
     /**
@@ -190,9 +197,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         if (CollectionUtil.isEmpty(dictDataList)) {
             return Collections.emptyList();
         }
-        List<AppCategoryVO> collect = dictDataList.stream()
-                .map(CategoryConvert.INSTANCE::convert).sorted(Comparator.comparingInt(AppCategoryVO::getSort))
-                .collect(Collectors.toList());
+        List<AppCategoryVO> collect = dictDataList.stream().map(CategoryConvert.INSTANCE::convert).sorted(Comparator.comparingInt(AppCategoryVO::getSort)).collect(Collectors.toList());
         // 递归实现分类树
         return categoryListToTree(collect, AppConstants.ROOT);
     }
@@ -232,11 +237,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      */
     private static List<AppCategoryVO> categoryListToTree(List<AppCategoryVO> categoryList, String parentCode) {
         // 利用 stream 进行递归，尽可能的效率高
-        return categoryList.stream()
-                .filter(category -> parentCode.equalsIgnoreCase(category.getParentCode()))
-                .filter(category -> !"ALL".equalsIgnoreCase(category.getCode()))
-                .peek(category -> category.setChildren(categoryListToTree(categoryList, category.getCode())))
-                .collect(Collectors.toList());
+        return categoryList.stream().filter(category -> parentCode.equalsIgnoreCase(category.getParentCode())).filter(category -> !"ALL".equalsIgnoreCase(category.getCode())).peek(category -> category.setChildren(categoryListToTree(categoryList, category.getCode()))).collect(Collectors.toList());
     }
 
 }

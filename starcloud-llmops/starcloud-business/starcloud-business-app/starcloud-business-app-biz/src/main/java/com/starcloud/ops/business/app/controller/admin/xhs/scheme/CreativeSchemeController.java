@@ -6,13 +6,13 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,11 +53,11 @@ public class CreativeSchemeController {
         return CommonResult.success(creativeSchemeService.metadata());
     }
 
-    @GetMapping("/appList/{model}")
+    @GetMapping("/appGroupList")
     @Operation(summary = "获取应用列表", description = "获取应用列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<List<CreativeSchemeConfigurationDTO>> appList(@PathVariable(value = "model") String model) {
-        return CommonResult.success(creativeSchemeService.configurationList(model));
+    public CommonResult<List<SchemeAppCategoryRespVO>> appList() {
+        return CommonResult.success(creativeSchemeService.appGroupList());
     }
 
     @GetMapping("/templateGroupByType")

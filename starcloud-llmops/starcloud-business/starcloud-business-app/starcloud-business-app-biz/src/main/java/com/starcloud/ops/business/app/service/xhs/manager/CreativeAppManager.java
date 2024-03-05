@@ -15,13 +15,10 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
+import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -50,31 +47,14 @@ public class CreativeAppManager {
     private AppMarketService appMarketService;
 
     /**
-     * 根据类型获取需要执行的应用信息
-     *
-     * @param model 计划类型
-     * @return 应用信息
-     */
-    public AppMarketRespVO getExecuteApp(String model) {
-        List<AppMarketRespVO> apps = appMarketplaceList(model);
-        AppValidate.notEmpty(apps, CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
-        AppMarketRespVO app = apps.get(0);
-        AppValidate.notNull(app, CreativeErrorCodeConstants.PLAN_APP_NOT_EXIST);
-        return app;
-    }
-
-    /**
      * 根据类型获取应用列表
      *
-     * @param model 类型
      * @return 文案模板列表
      */
-    public List<AppMarketRespVO> appMarketplaceList(String model) {
-        AppValidate.notNull(model, CreativeErrorCodeConstants.SCHEME_MODE_REQUIRED);
-        CreativeSchemeModeEnum schemeModeEnum = IEnumable.nameOf(model.toUpperCase(), CreativeSchemeModeEnum.class);
+    public List<AppMarketRespVO> juzhenAppMarketplaceList() {
         AppMarketListQuery query = new AppMarketListQuery();
         query.setIsSimple(Boolean.FALSE);
-        query.setTags(schemeModeEnum.getTagType().getTags());
+        query.setTags(AppMarketTagTypeEnum.XIAO_HONG_SHU_CUSTOM_WRITING.getTags());
         List<AppMarketRespVO> list = appMarketService.list(query);
         return CollectionUtil.emptyIfNull(list);
     }

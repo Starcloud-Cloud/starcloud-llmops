@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -32,6 +33,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePa
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
@@ -128,34 +130,50 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 创作方案配置
      */
     @Override
-    public List<CreativeSchemeConfigurationDTO> configurationList(String model) {
-        List<AppMarketRespVO> appList = creativeAppManager.appMarketplaceList(model);
-        List<CreativeSchemeConfigurationDTO> configurationList = Lists.newArrayList();
-        for (AppMarketRespVO appMarketResponse : appList) {
-            // 获取所有步骤
-            List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
-                    .map(WorkflowConfigRespVO::getSteps)
-                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+    public List<SchemeAppCategoryRespVO> appGroupList() {
 
-            // 构建创作方案步骤
-            List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
-            for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-                BaseSchemeStepEntity schemeStep = SchemeStepFactory.factory(stepWrapper);
-                schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
-            }
+        // 查询符合条件的应用列表
+        List<AppMarketRespVO> appList = creativeAppManager.juzhenAppMarketplaceList();
 
-            // 构建创作方案配置
-            CreativeSchemeConfigurationDTO configuration = new CreativeSchemeConfigurationDTO();
-            configuration.setAppUid(appMarketResponse.getUid());
-            configuration.setAppName(appMarketResponse.getName());
-            configuration.setDescription(appMarketResponse.getDescription());
-            configuration.setVersion(appMarketResponse.getVersion());
-            configuration.setExample(appMarketResponse.getExample());
-            configuration.setSteps(schemeStepList);
-            configurationList.add(configuration);
-        }
+        // 查询分类列表，因为目前只有一级分类，所以直接使用一级分类
+        List<AppCategoryVO> appCategoryList = appDictionaryService.categoryList(Boolean.TRUE);
 
-        return configurationList;
+        // 应用列表按照分类分组
+        Map<String, List<CreativeSchemeConfigurationDTO>> map = CollectionUtil.emptyIfNull(appList).stream().collect(Collectors.groupingBy(
+                AppMarketRespVO::getCategory,
+                Collectors.mapping(item -> {
+                    // 获取所有步骤
+                    List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(item.getWorkflowConfig())
+                            .map(WorkflowConfigRespVO::getSteps)
+                            .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+
+                    // 构建创作方案步骤
+                    List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
+                    for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+                        BaseSchemeStepEntity schemeStep = SchemeStepFactory.factory(stepWrapper);
+                        schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
+                    }
+
+                    CreativeSchemeConfigurationDTO configuration = new CreativeSchemeConfigurationDTO();
+                    configuration.setAppUid(item.getUid());
+                    configuration.setAppName(item.getName());
+                    configuration.setDescription(item.getDescription());
+                    configuration.setVersion(item.getVersion());
+                    configuration.setExample(item.getExample());
+                    configuration.setSteps(schemeStepList);
+                    return configuration;
+                }, Collectors.toList())
+
+        ));
+
+        return CollectionUtil.emptyIfNull(appCategoryList).stream().map(item -> {
+            SchemeAppCategoryRespVO response = new SchemeAppCategoryRespVO();
+            response.setParentCode(item.getParentCode());
+            response.setCode(item.getCode());
+            response.setName(item.getName());
+            response.setAppConfigurationList(CollectionUtil.emptyIfNull(map.get(item.getCode())));
+            return response;
+        }).collect(Collectors.toList());
     }
 
     /**
