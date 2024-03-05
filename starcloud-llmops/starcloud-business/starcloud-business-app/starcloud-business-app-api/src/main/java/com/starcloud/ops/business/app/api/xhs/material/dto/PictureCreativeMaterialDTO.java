@@ -8,13 +8,13 @@ import org.apache.tika.utils.StringUtils;
 @Data
 public class PictureCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
 
-    @FieldDefine(fieldName = "pictureOneUrl", desc = "图片1", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "图片1", type = FieldTypeEnum.image)
     private String pictureOneUrl;
 
-    @FieldDefine(fieldName = "pictureTwoUrl", desc = "图片2", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "图片2", type = FieldTypeEnum.image)
     private String pictureTwoUrl;
 
-    @FieldDefine(fieldName = "pictureThreeUrl", desc = "图片3", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "图片3", type = FieldTypeEnum.image)
     private String pictureThreeUrl;
 
     @Override

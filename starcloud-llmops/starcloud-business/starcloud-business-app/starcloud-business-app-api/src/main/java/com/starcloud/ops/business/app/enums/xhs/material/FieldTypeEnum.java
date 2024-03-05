@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.app.enums.xhs.material;
 
+import lombok.Getter;
+
+@Getter
 public enum FieldTypeEnum {
 
     image("image", "图片"),

@@ -12,8 +12,6 @@ import static java.lang.annotation.ElementType.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FieldDefine {
 
-    String fieldName();
-
     String desc();
 
     FieldTypeEnum type();

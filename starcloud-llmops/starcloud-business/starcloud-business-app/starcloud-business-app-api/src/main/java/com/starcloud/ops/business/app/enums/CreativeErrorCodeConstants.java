@@ -172,6 +172,12 @@ public interface CreativeErrorCodeConstants {
      */
     ErrorCode SCHEME_EXAMPLE_FAILURE = new ErrorCode(720100123, "生成文案示例失败, 请稍候重试！{}");
 
+
+    ErrorCode MATERIAL_TYPE_NOT_EXIST = new ErrorCode(730000001, "元素类型不存在 {}");
+
+
+
+
     /**
      * 图片模板ID不能为空
      */

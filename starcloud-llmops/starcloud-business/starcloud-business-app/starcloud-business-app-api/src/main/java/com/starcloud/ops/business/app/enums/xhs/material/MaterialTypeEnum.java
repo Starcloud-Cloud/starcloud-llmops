@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.enums.xhs.material;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefinitionDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.PersonaCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.PictureCreativeMaterialDTO;
 import lombok.Getter;
@@ -12,12 +13,14 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST;
+
 @Getter
 public enum MaterialTypeEnum {
     PICTURE("picture", "基础仿写-图片", PictureCreativeMaterialDTO.class),
-    BOOK_LIST("bookList", "书单",null),
-    PERSONA("persona","人设", PersonaCreativeMaterialDTO.class)
-    ;
+    BOOK_LIST("bookList", "书单", BookListCreativeMaterialDTO.class),
+    PERSONA("persona", "人设", PersonaCreativeMaterialDTO.class);
 
     private String typeCode;
 
@@ -37,13 +40,14 @@ public enum MaterialTypeEnum {
     public static MaterialTypeEnum of(String typeCode) {
         MaterialTypeEnum typeEnum = enumMap.get(typeCode);
         if (Objects.isNull(typeEnum)) {
-//
+            throw exception(MATERIAL_TYPE_NOT_EXIST);
         }
         return typeEnum;
     }
 
     /**
      * 元素数据结构
+     *
      * @param typeCode
      * @return
      */
@@ -55,7 +59,9 @@ public enum MaterialTypeEnum {
             FieldDefine annotation = field.getAnnotation(FieldDefine.class);
             if (!Objects.isNull(annotation)) {
                 FieldDefinitionDTO definitionDTO = new FieldDefinitionDTO();
-                definitionDTO.setFieldName(annotation.fieldName());
+                definitionDTO.setFieldName(field.getName());
+                definitionDTO.setType(annotation.type().getTypeCode());
+                definitionDTO.setDesc(annotation.desc());
                 result.add(definitionDTO);
             }
         }
