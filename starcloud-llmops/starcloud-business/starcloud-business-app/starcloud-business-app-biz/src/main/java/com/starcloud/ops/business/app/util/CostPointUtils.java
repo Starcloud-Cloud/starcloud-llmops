@@ -32,7 +32,7 @@ public class CostPointUtils {
         model = StringUtils.isNoneBlank(model) ? model : ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
         // GPT-4 模型消耗30个权益点
         if (GPT_4_MODEL_LIST.contains(model)) {
-            return 30;
+            return 15;
         }
         return 1;
     }
