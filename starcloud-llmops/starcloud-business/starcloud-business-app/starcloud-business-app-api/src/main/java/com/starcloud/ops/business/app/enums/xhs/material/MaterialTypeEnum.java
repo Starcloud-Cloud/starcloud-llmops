@@ -1,19 +1,22 @@
 package com.starcloud.ops.business.app.enums.xhs.material;
 
+import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
+import com.starcloud.ops.business.app.api.xhs.material.FieldDefinitionDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.PersonaCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.PictureCreativeMaterialDTO;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
 public enum MaterialTypeEnum {
-    picture("picture", "基础仿写-图片", PictureCreativeMaterialDTO.class),
-    BOOK_LIST("bookList", "书单",null)
+    PICTURE("picture", "基础仿写-图片", PictureCreativeMaterialDTO.class),
+    BOOK_LIST("bookList", "书单",null),
+    PERSONA("persona","人设", PersonaCreativeMaterialDTO.class)
     ;
 
     private String typeCode;
@@ -37,6 +40,26 @@ public enum MaterialTypeEnum {
 //
         }
         return typeEnum;
+    }
+
+    /**
+     * 元素数据结构
+     * @param typeCode
+     * @return
+     */
+    public static List<FieldDefinitionDTO> fieldDefine(String typeCode) {
+        MaterialTypeEnum typeEnum = of(typeCode);
+        Field[] fields = typeEnum.getAClass().getDeclaredFields();
+        List<FieldDefinitionDTO> result = new ArrayList<>();
+        for (Field field : fields) {
+            FieldDefine annotation = field.getAnnotation(FieldDefine.class);
+            if (!Objects.isNull(annotation)) {
+                FieldDefinitionDTO definitionDTO = new FieldDefinitionDTO();
+                definitionDTO.setFieldName(annotation.fieldName());
+                result.add(definitionDTO);
+            }
+        }
+        return result;
     }
 
 }
