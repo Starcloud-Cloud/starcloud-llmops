@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
+import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
-import org.apache.tika.utils.StringUtils;
 
 @Data
 public class PersonaCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
@@ -19,6 +19,6 @@ public class PersonaCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
 
     @Override
     String generateContent() {
-        return StringUtils.EMPTY;
+        return StrUtil.EMPTY;
     }
 }

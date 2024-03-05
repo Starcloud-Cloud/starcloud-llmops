@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -56,7 +56,7 @@ public class CreativeSchemeController {
     @GetMapping("/appList/{model}")
     @Operation(summary = "获取应用列表", description = "获取应用列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<List<CreativeSchemeConfigDTO>> appList(@PathVariable(value = "model") String model) {
+    public CommonResult<List<CreativeSchemeConfigurationDTO>> appList(@PathVariable(value = "model") String model) {
         return CommonResult.success(creativeSchemeService.configurationList(model));
     }
 

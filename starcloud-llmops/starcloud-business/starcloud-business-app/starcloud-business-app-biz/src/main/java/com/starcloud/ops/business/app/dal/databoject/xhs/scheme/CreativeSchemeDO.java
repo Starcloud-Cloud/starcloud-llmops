@@ -86,4 +86,16 @@ public class CreativeSchemeDO extends TenantBaseDO {
     @TableField("use_images")
     private String useImages;
 
+    /**
+     * 物料
+     */
+    @TableField("materiel")
+    private String materiel;
+
+    /**
+     * 创作方案示例
+     */
+    @TableField(value = "example")
+    private String example;
+
 }

@@ -19,7 +19,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
@@ -128,9 +128,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 创作方案配置
      */
     @Override
-    public List<CreativeSchemeConfigDTO> configurationList(String model) {
+    public List<CreativeSchemeConfigurationDTO> configurationList(String model) {
         List<AppMarketRespVO> appList = creativeAppManager.appMarketplaceList(model);
-        List<CreativeSchemeConfigDTO> configurationList = Lists.newArrayList();
+        List<CreativeSchemeConfigurationDTO> configurationList = Lists.newArrayList();
         for (AppMarketRespVO appMarketResponse : appList) {
             // 获取所有步骤
             List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
@@ -145,7 +145,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             }
 
             // 构建创作方案配置
-            CreativeSchemeConfigDTO configuration = new CreativeSchemeConfigDTO();
+            CreativeSchemeConfigurationDTO configuration = new CreativeSchemeConfigurationDTO();
             configuration.setAppUid(appMarketResponse.getUid());
             configuration.setAppName(appMarketResponse.getName());
             configuration.setDescription(appMarketResponse.getDescription());
@@ -283,7 +283,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<String> appUidList = records.stream().map(item -> {
             if (StringUtils.isNotBlank(item.getConfiguration())) {
                 if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
-                    CreativeSchemeConfigDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CreativeSchemeConfigDTO.class);
+                    CreativeSchemeConfigurationDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CreativeSchemeConfigurationDTO.class);
                     if (configuration != null) {
                         return configuration.getAppUid();
                     }
@@ -504,7 +504,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         // 获取自定义配置并且校验
-        CreativeSchemeConfigDTO customConfiguration = schemeRequest.getConfiguration();
+        CreativeSchemeConfigurationDTO customConfiguration = schemeRequest.getConfiguration();
         customConfiguration.validate();
         // 查询应用信息
         AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
@@ -567,7 +567,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
 
         // 处理创作方案配置
-        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        CreativeSchemeConfigurationDTO configuration = request.getConfiguration();
         List<BaseSchemeStepDTO> steps = configuration.getSteps();
         List<BaseSchemeStepDTO> handlerStepList = Lists.newArrayList();
 

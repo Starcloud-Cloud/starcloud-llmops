@@ -6,7 +6,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
@@ -130,7 +130,7 @@ public class CreativeUtils {
      * @param app           应用信息
      * @return 处理后的应用信息
      */
-    public static AppMarketRespVO handlerExecuteApp(CreativeSchemeConfigDTO configuration, AppMarketRespVO app) {
+    public static AppMarketRespVO handlerExecuteApp(CreativeSchemeConfigurationDTO configuration, AppMarketRespVO app) {
 
         // 复制一份，避免修改原数据
         AppMarketRespVO appMarket = SerializationUtils.clone(app);

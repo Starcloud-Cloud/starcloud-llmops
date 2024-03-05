@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.vo.request;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -73,13 +73,23 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
      * 创作方案配置信息
      */
     @Schema(description = "创作方案配置信息")
-    private CreativeSchemeConfigDTO configuration;
+    private CreativeSchemeConfigurationDTO configuration;
 
     /**
      * 创作方案图片
      */
     @Schema(description = "创作方案图片")
     private List<String> useImages;
+
+    /**
+     * 物料
+     */
+    private String materiel;
+
+    /**
+     * 创作方案示例
+     */
+    private List<String> example;
 
     /**
      * 校验创作方案

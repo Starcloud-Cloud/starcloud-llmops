@@ -25,7 +25,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Schema(description = "自定义创作方案配置")
-public class CreativeSchemeConfigDTO implements java.io.Serializable {
+public class CreativeSchemeConfigurationDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -1278431625060498370L;
 

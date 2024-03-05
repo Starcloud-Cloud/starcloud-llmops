@@ -18,7 +18,6 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
