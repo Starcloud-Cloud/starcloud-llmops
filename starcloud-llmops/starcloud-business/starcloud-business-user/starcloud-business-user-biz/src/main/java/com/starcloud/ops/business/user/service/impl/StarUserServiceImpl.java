@@ -216,95 +216,95 @@ public class StarUserServiceImpl implements StarUserService {
 
     @Override
     public void addBenefits(Long currentUserId, Long inviteUserId) {
-        try {
-            Long tenantId = TenantContextHolder.getTenantId();
-            if (inviteUserId != null && inviteUserId > 0) {
-
-                // 增加邀请记录
-                Long invitationId = adminUserInviteService.createInvitationRecords(inviteUserId, currentUserId);
-                log.info("邀请记录添加成功，开始发送注册与邀请权益");
-
-                TenantUtils.execute(tenantId, () -> {
-                    AddRightsDTO newUserRightsDTO = new AddRightsDTO()
-                            .setUserId(currentUserId)
-                            .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
-                            .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
-                            .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
-                            .setTimeNums(1)
-                            .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
-                            .setBizId(String.valueOf(currentUserId))
-                            .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
-                            .setLevelId(null);
-
-                    // 增加注册人权益
-                    adminUserRightsService.createRights(newUserRightsDTO);
-
-                    AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
-                            .setUserId(inviteUserId)
-                            .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean())
-                            .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage())
-                            .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMatrixBean())
-                            .setTimeNums(1)
-                            .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
-                            .setBizId(String.valueOf(invitationId))
-                            .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE.getType())
-                            .setLevelId(null);
-                    // 增加邀请人权益
-                    adminUserRightsService.createRights(inviteUserRightsDTO);
-                });
-
-                sendSocialMsgService.sendInviteMsg(inviteUserId);
-
-                // 获取当天的邀请记录
-                List<AdminUserInviteDO> todayInvitations = adminUserInviteService.getTodayInvitations(inviteUserId);
-                if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
-                    log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
-                    TenantUtils.execute(tenantId, () -> {
-                        AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
-                                .setUserId(inviteUserId)
-                                .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean())
-                                .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage())
-                                .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMatrixBean())
-                                .setTimeNums(1)
-                                .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
-                                .setBizId(String.valueOf(invitationId))
-                                .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getType())
-                                .setLevelId(null);
-                        adminUserRightsService.createRights(inviteUserRightsDTO);
-                    });
-
-                    try {
-                        sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
-                                "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
-                                        "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
-                    } catch (Exception e) {
-                        log.error("邀请达人公众号信息发送失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
-                    }
-
-                }
-
-            } else {
-                // 普通注册权益
-                TenantUtils.execute(tenantId, () -> {
-
-                    AddRightsDTO newUserRightsDTO = new AddRightsDTO()
-                            .setUserId(currentUserId)
-                            .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
-                            .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
-                            .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
-                            .setTimeNums(1)
-                            .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
-                            .setBizId(String.valueOf(currentUserId))
-                            .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
-                            .setLevelId(null);
-
-                    adminUserRightsService.createRights(newUserRightsDTO);
-                });
-            }
-
-        } catch (Exception e) {
-            log.warn("新增权益失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
-        }
+        // try {
+        //     Long tenantId = TenantContextHolder.getTenantId();
+        //     if (inviteUserId != null && inviteUserId > 0) {
+        //
+        //         // 增加邀请记录
+        //         Long invitationId = adminUserInviteService.createInvitationRecords(inviteUserId, currentUserId);
+        //         log.info("邀请记录添加成功，开始发送注册与邀请权益");
+        //
+        //         TenantUtils.execute(tenantId, () -> {
+        //             AddRightsDTO newUserRightsDTO = new AddRightsDTO()
+        //                     .setUserId(currentUserId)
+        //                     .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
+        //                     .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
+        //                     .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
+        //                     .setTimeNums(1)
+        //                     .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+        //                     .setBizId(String.valueOf(currentUserId))
+        //                     .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
+        //                     .setLevelId(null);
+        //
+        //             // 增加注册人权益
+        //             adminUserRightsService.createRights(newUserRightsDTO);
+        //
+        //             AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
+        //                     .setUserId(inviteUserId)
+        //                     .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicBean())
+        //                     .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE.getMagicImage())
+        //                     .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE.getMatrixBean())
+        //                     .setTimeNums(1)
+        //                     .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+        //                     .setBizId(String.valueOf(invitationId))
+        //                     .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE.getType())
+        //                     .setLevelId(null);
+        //             // 增加邀请人权益
+        //             adminUserRightsService.createRights(inviteUserRightsDTO);
+        //         });
+        //
+        //         sendSocialMsgService.sendInviteMsg(inviteUserId);
+        //
+        //         // 获取当天的邀请记录
+        //         List<AdminUserInviteDO> todayInvitations = adminUserInviteService.getTodayInvitations(inviteUserId);
+        //         if (todayInvitations.size() % 3 == 0 && CollUtil.isNotEmpty(todayInvitations)) {
+        //             log.info("用户【{}】已经邀请了【{}】人，开始赠送额外的权益", inviteUserId, todayInvitations.size());
+        //             TenantUtils.execute(tenantId, () -> {
+        //                 AddRightsDTO inviteUserRightsDTO = new AddRightsDTO()
+        //                         .setUserId(inviteUserId)
+        //                         .setMagicBean(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicBean())
+        //                         .setMagicImage(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMagicImage())
+        //                         .setMatrixBean(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getMatrixBean())
+        //                         .setTimeNums(1)
+        //                         .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+        //                         .setBizId(String.valueOf(invitationId))
+        //                         .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getType())
+        //                         .setLevelId(null);
+        //                 adminUserRightsService.createRights(inviteUserRightsDTO);
+        //             });
+        //
+        //             try {
+        //                 sendUserMsgService.sendMsgToWx(inviteUserId, String.format(
+        //                         "您已成功邀请了【%s】位朋友加入魔法AI大家庭，并成功解锁了一份独特的权益礼包【送3000字】" + "我们已经将这份珍贵的礼物送至您的账户中。" + "\n" + "\n" +
+        //                                 "值得一提的是，每邀请三位朋友，您都将再次解锁一个全新的权益包，彰显您的独特地位。", todayInvitations.size()));
+        //             } catch (Exception e) {
+        //                 log.error("邀请达人公众号信息发送失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
+        //             }
+        //
+        //         }
+        //
+        //     } else {
+        //         // 普通注册权益
+        //         TenantUtils.execute(tenantId, () -> {
+        //
+        //             AddRightsDTO newUserRightsDTO = new AddRightsDTO()
+        //                     .setUserId(currentUserId)
+        //                     .setMagicBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicBean())
+        //                     .setMagicImage(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMagicImage())
+        //                     .setMatrixBean(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getMatrixBean())
+        //                     .setTimeNums(1)
+        //                     .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
+        //                     .setBizId(String.valueOf(currentUserId))
+        //                     .setBizType(AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER.getType())
+        //                     .setLevelId(null);
+        //
+        //             adminUserRightsService.createRights(newUserRightsDTO);
+        //         });
+        //     }
+        //
+        // } catch (Exception e) {
+        //     log.warn("新增权益失败，currentUserId={},inviteUserId={}", currentUserId, inviteUserId, e);
+        // }
     }
 
     @Override

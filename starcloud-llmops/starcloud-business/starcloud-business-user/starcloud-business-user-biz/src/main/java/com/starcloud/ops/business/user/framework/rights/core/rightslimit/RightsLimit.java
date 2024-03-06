@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.user.framework.rights.core.rightslimit;
 
+import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -8,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * 权益请求限制
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RightsLimit {
     /**
@@ -16,7 +18,8 @@ public @interface RightsLimit {
      *
      * @return 权益类型
      */
-    String value();
+    // @InEnum(LevelRightsLimitEnums.class)
+    LevelRightsLimitEnums value();
 
 
     /**

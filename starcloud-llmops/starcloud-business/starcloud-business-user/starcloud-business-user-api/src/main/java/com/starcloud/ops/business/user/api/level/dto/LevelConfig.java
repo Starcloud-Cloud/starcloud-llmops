@@ -44,4 +44,35 @@ public class LevelConfig {
      */
     private Integer usableTeamUsers;
 
+    /**
+     * listing 查询
+     */
+    private Integer listingQuery;
+
+    /**
+     * listing 查询一键发布次数
+     */
+    private Integer listingQueryTimeNums;
+
+    /**
+     * listing 查询一键发布次数
+     */
+    private Integer listingQueryTimeRange;
+
+    /**
+     * 一键发布次数
+     */
+    private Integer quickPublishCount;
+
+    /**
+     * 一键发布 时间范围
+     */
+    private Integer quickPublishCountTimeNums;
+
+    /**
+     * 一键发布 时间范围
+     */
+    private Integer quickPublishCountTimeRange;
+
+
 }

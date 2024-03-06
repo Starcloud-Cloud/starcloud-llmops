@@ -84,7 +84,7 @@ public class ExtendAsinReposeExcelVO {
      * PPC 竞价 范围最小值
      */
     @ExcelProperty("PPC 竞价 范围最小值")
-    private Double bidMin;
+    private String bidRate;
 
     /**
      * PPC 竞价 范围最大值

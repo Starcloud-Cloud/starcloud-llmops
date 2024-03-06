@@ -8,16 +8,17 @@ import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.QueryKeywordMetadataPageReqVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
+import com.starcloud.ops.business.listing.controller.admin.vo.response.ExtendAsinReposeExcelVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataBasicRespVO;
 import com.starcloud.ops.business.listing.controller.admin.vo.response.KeywordMetadataRespVO;
+import com.starcloud.ops.business.listing.convert.KeywordMetadataConvert;
 import com.starcloud.ops.business.listing.service.KeywordMetadataService;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
-import com.starcloud.ops.business.log.controller.admin.LogAppMessageSaveExcelVO;
-import com.starcloud.ops.business.log.convert.LogAppMessageSaveConvert;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageSaveDO;
+import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
+import com.starcloud.ops.business.user.framework.rights.core.rightslimit.RightsLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -74,6 +77,7 @@ public class KeywordMetadataController {
 
 
     @GetMapping("/extendPrepare")
+
     @Operation(summary = " 根据 ASIN 获取变体", description = "根据 ASIN 获取变体")
     public CommonResult<PrepareReposeDTO> extendPrepare(@Validated PrepareRequestDTO prepareRequestDTO) {
         return CommonResult.success(keywordMetadataService.extendPrepare(prepareRequestDTO));
@@ -88,15 +92,15 @@ public class KeywordMetadataController {
     }
 
 
-    @GetMapping("/extendAsin")
-    @Operation(summary = "根据asin 获取拓展词数据", description = "根据asin 获取拓展词数据")
-    public CommonResult<ExtendAsinReposeDTO> exportExtendAsin(@Validated ExtendAsinRequestDTO extendAsinRequestDTO) {
+    @GetMapping("/exportExtendAsin")
+    @Operation(summary = "根据asin 导出拓展词数据", description = "根据asin 导出拓展词数据")
+    public CommonResult<ExtendAsinReposeDTO> exportExtendAsin(HttpServletResponse response, @Validated ExtendAsinRequestDTO extendAsinRequestDTO) throws IOException {
 
         ExtendAsinReposeDTO extendAsinReposeDTO = keywordMetadataService.extendAsin(extendAsinRequestDTO);
 
         // 导出 Excel
-        List<LogAppMessageSaveExcelVO> datas = LogAppMessageSaveConvert.INSTANCE.convertList02(list);
-        ExcelUtils.write(response, "应用执行日志结果保存.xls", "数据", LogAppMessageSaveExcelVO.class, datas);
+        List<ExtendAsinReposeExcelVO> datas = KeywordMetadataConvert.INSTANCE.convertExcelVOList(extendAsinReposeDTO.getItems());
+        ExcelUtils.write(response, "Asin扩展结果.xls", "数据", ExtendAsinReposeExcelVO.class, datas);
         return CommonResult.success(keywordMetadataService.extendAsin(extendAsinRequestDTO));
     }
 

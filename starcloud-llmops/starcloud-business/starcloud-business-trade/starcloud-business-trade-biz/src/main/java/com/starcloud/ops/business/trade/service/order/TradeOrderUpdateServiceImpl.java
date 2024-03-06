@@ -1084,7 +1084,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
             templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
             templateParams.put("successCount", successCount);
-            templateParams.put("from", successCount);
+            templateParams.put("from", from);
 
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()

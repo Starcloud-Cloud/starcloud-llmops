@@ -532,6 +532,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                     wrapper.gt(AdminUserRightsDO::getMagicBean, 0L);
                     wrapper.orderByAsc(AdminUserRightsDO::getMagicBean);
                     break;
+                case MATRIX_BEAN:
+                    wrapper.gt(AdminUserRightsDO::getMatrixBean, 0L);
+                    wrapper.orderByAsc(AdminUserRightsDO::getMatrixBean);
+                    break;
             }
         }
 

@@ -70,32 +70,35 @@ public interface KeywordMetadataConvert {
 
 
 
-    default List<ExtendAsinReposeExcelVO> convertList(List<ItemsDTO> beans){
-        return beans.stream().map(bean -> {
-            ExtendAsinReposeExcelVO vo = new ExtendAsinReposeExcelVO();
-            vo.setAdProducts(bean.getAdProducts());
-            vo.setMarketId(bean.getMarketId());
-            vo.setMonopolyAsinDtos(bean.getMonopolyAsinDtos());
-            vo.setAvgRating(bean.getAvgRating());
-            vo.setPurchases(bean.getPurchases());
-            vo.setCvsShareRate(bean.getCvsShareRate());
-            return vo;
-        }).collect(Collectors.toList());
+    default List<ExtendAsinReposeExcelVO> convertExcelVOList(List<ItemsDTO> beans){
+        return beans.stream().map(bean -> convertExcelVO(bean)).collect(Collectors.toList());
     }
 
     default ExtendAsinReposeExcelVO convertExcelVO(ItemsDTO bean){
         ExtendAsinReposeExcelVO excelVO = new ExtendAsinReposeExcelVO();
         excelVO.setKeywords(bean.getKeyword());
-        excelVO.setKeywordCn(bean.getMarketId());
-        excelVO.setTrafficPercentage(bean.getMonopolyAsinDtos());
-        excelVO.setCalculatedWeeklySearches(bean.getPurchases());
-        excelVO.setRelationVariationsItem(bean.getAvgRating());
+        excelVO.setKeywordCn(bean.getKeywordCn());
+        excelVO.setTrafficPercentage(bean.getTrafficPercentage());
+        excelVO.setCalculatedWeeklySearches(bean.getCalculatedWeeklySearches());
+        excelVO.setRelationVariationsItem(bean.getRelationVariationsItems().stream().map(RelationVariationsItemsDTO::getAsin).collect(Collectors.joining("/")));
         excelVO.setSearchesRank(bean.getSearchesRank());
         excelVO.setSearches(bean.getSearches());
         excelVO.setSearchesDays(bean.getSearches()/30);
         excelVO.setPurchases(bean.getPurchases());
         excelVO.setPurchaseRate(bean.getPurchaseRate());
-        excelVO.setCprExact(bean.getPurchaseRate());
+        excelVO.setCprExact(bean.getCprExact());
+        excelVO.setTitleDensityExact(bean.getTitleDensityExact());
+        excelVO.setProducts(bean.getProducts());
+        excelVO.setSupplyDemandRatio(bean.getSupplyDemandRatio());
+        excelVO.setLatest1daysAds(bean.getLatest1daysAds());
+        excelVO.setLatest7daysAds(bean.getLatest7daysAds());
+        excelVO.setLatest30daysAds(bean.getLatest30daysAds());
+        excelVO.setClickTop3s(bean.getClickTop3s().stream().map(ClickTop3sDTO::getAsin).collect(Collectors.joining("/")));
+        excelVO.setTop3ClickingRate(bean.getTop3ClickingRate());
+        excelVO.setTop3ConversionRate(bean.getTop3ConversionRate());
+        excelVO.setBid(bean.getBid());
+        excelVO.setBidRate(bean.getBidMin()+"-"+bean.getBidMax());
+        excelVO.setBadges(bean.getBadges().stream().map(Object::toString).collect(Collectors.joining("/")));
 
 
         return excelVO;
