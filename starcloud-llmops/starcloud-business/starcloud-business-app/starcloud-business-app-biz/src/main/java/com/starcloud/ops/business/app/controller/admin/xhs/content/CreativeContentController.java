@@ -101,10 +101,10 @@ public class CreativeContentController {
         return CommonResult.success("取消点赞成功");
     }
 
-    @GetMapping("/getExample")
+    @PostMapping("/getExample")
     @Operation(summary = "分页查询")
     @DataPermission(enable = false)
-    public CommonResult<List<CreativeContentRespVO>> page(@RequestParam("businessUidList") List<String> businessUidList) {
+    public CommonResult<List<CreativeContentRespVO>> page(@RequestBody List<String> businessUidList) {
         List<CreativeContentRespVO> result = creativeContentService.list(businessUidList);
         return CommonResult.success(result);
     }

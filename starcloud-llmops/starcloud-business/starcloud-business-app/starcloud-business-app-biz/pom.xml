@@ -154,11 +154,11 @@
             <version>0.21.0</version>
         </dependency>
         
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>4.5.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.rest-assured</groupId>-->
+<!--            <artifactId>json-schema-validator</artifactId>-->
+<!--            <version>4.5.1</version>-->
+<!--        </dependency>-->
     </dependencies>
     
     <dependencyManagement>
