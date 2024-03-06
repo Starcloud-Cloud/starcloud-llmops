@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
@@ -654,9 +655,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     }
 
     private Long computationalPower(String modelType, Integer tokens) {
-        Long model = computationalPower(modelType);
-        Long token = calculationTokens(tokens);
-        return model * token;
+        return Long.valueOf(CostPointUtils.obtainMagicBeanCostPoint(modelType, Long.valueOf(tokens)));
     }
 
     /**
