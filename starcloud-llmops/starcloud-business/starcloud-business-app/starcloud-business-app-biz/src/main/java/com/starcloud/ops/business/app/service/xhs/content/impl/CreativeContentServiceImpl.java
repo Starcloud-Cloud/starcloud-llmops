@@ -245,7 +245,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public List<CreativeContentRespVO> list(List<String> businessUidList) {
-        List<CreativeContentDO> list = creativeContentMapper.list(businessUidList);
+        List<CreativeContentDTO> list = creativeContentMapper.list(businessUidList);
         return CollectionUtil.emptyIfNull(list).stream()
                 .map(CreativeContentConvert.INSTANCE::convert).collect(Collectors.toList());
     }
