@@ -15,14 +15,34 @@ public interface AppConstants {
     Integer DEFAULT_VERSION = 1;
 
     /**
+     * 魔法AI 租户ID
+     */
+    Long MO_FA_AI_TENANT_ID = 2L;
+
+    /**
+     * 矩阵租户ID
+     */
+    Long JU_ZHEN_TENANT_ID = 3L;
+
+    /**
      * 应用分类字典类型
      */
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";
 
     /**
+     * 矩阵应用分类字典类型
+     */
+    String APP_CATEGORY_DICT_TYPE_JU_ZHEN = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE_JU_ZHEN";
+
+    /**
      * 热门应用分类字典类型
      */
     String APP_HOT_SEARCH_MARKET = "STAR_CLOUD_LLM_APP_HOT_SEARCH_MARKET";
+
+    /**
+     * 热门应用分类字典类型
+     */
+    String APP_HOT_SEARCH_MARKET_JU_ZHEN = "STAR_CLOUD_LLM_APP_HOT_SEARCH_MARKET_JU_ZHEN";
 
     /**
      * 图片生成 Prompt 案例

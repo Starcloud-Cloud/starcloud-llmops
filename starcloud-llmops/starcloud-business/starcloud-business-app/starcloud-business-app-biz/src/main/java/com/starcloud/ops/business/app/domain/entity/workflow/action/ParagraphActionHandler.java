@@ -74,19 +74,6 @@ public class ParagraphActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        String aiModel = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        return CostPointUtils.obtainMagicBeanCostPoint(aiModel);
-    }
-
-    /**
      * 执行OpenApi生成的步骤
      *
      * @return 执行结果
@@ -324,8 +311,12 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
+
+        // 计算权益点数
+        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
         return actionResponse;
     }
 

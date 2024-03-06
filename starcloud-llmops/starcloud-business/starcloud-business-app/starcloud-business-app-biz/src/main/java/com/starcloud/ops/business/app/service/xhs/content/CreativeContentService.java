@@ -57,6 +57,13 @@ public interface CreativeContentService {
      */
     List<CreativeContentBusinessPO> listGroupByPlanUid(List<String> planUidList);
 
+    /***
+     * 根据 UID List 查询
+     * @param businessUidList list
+     * @return 内容列表
+     */
+    List<CreativeContentRespVO> list(List<String> businessUidList);
+
     /**
      * 分页查询创作内容
      */

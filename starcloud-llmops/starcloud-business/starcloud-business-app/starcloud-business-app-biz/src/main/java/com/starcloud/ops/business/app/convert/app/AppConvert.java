@@ -90,6 +90,8 @@ public interface AppConvert {
         app.setImages(AppUtils.join(appEntity.getImages()));
         app.setIcon(appEntity.getIcon());
         app.setDescription(appEntity.getDescription());
+        app.setExample(appEntity.getExample());
+        app.setDemo(appEntity.getDemo());
         app.setPublishUid(appEntity.getPublishUid());
         app.setInstallUid(appEntity.getInstallUid());
         app.setLastPublish(appEntity.getLastPublish());
@@ -158,6 +160,8 @@ public interface AppConvert {
         appEntity.setImages(AppUtils.split(app.getImages()));
         appEntity.setIcon(app.getIcon());
         appEntity.setDescription(app.getDescription());
+        appEntity.setExample(app.getExample());
+        appEntity.setDemo(app.getDemo());
         appEntity.setPublishUid(app.getPublishUid());
         appEntity.setInstallUid(app.getInstallUid());
         appEntity.setLastPublish(app.getLastPublish());
@@ -198,6 +202,8 @@ public interface AppConvert {
         appEntity.setImages(respVO.getImages());
         appEntity.setIcon(respVO.getIcon());
         appEntity.setDescription(respVO.getDescription());
+        appEntity.setExample(respVO.getExample());
+        appEntity.setDemo(respVO.getDemo());
         appEntity.setPublishUid(respVO.getPublishUid());
         appEntity.setInstallUid(respVO.getInstallUid());
         appEntity.setLastPublish(respVO.getLastPublish());
@@ -250,6 +256,8 @@ public interface AppConvert {
         appResponse.setImages(AppUtils.split(app.getImages()));
         appResponse.setIcon(app.getIcon());
         appResponse.setDescription(app.getDescription());
+        appResponse.setExample(app.getExample());
+        appResponse.setDemo(app.getDemo());
         appResponse.setPublishUid(app.getPublishUid());
         appResponse.setInstallUid(app.getInstallUid());
         appResponse.setCreator(app.getCreator());
@@ -335,6 +343,8 @@ public interface AppConvert {
         appRespVO.setImages(appEntity.getImages());
         appRespVO.setIcon(appEntity.getIcon());
         appRespVO.setDescription(appEntity.getDescription());
+        appRespVO.setExample(appEntity.getExample());
+        appRespVO.setDemo(appEntity.getDemo());
         appRespVO.setPublishUid(appEntity.getPublishUid());
         appRespVO.setInstallUid(appEntity.getInstallUid());
         appRespVO.setCreator(appEntity.getCreator());

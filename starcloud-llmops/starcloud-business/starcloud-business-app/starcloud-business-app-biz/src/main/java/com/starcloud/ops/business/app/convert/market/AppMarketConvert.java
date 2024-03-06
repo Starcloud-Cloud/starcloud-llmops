@@ -95,6 +95,7 @@ public interface AppMarketConvert {
         appMarket.setInstallCount(appMarketEntity.getInstallCount());
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
+        appMarket.setDemo(appMarketEntity.getDemo());
         appMarket.setAudit(appMarketEntity.getAudit());
         appMarket.setDeleted(Boolean.FALSE);
         // 处理配置信息
@@ -154,6 +155,8 @@ public interface AppMarketConvert {
         appMarketEntity.setInstallCount(0);
         appMarketEntity.setAudit(AppPublishAuditEnum.APPROVED.getCode());
         appMarketEntity.setDescription(app.getDescription());
+        appMarketEntity.setExample(app.getExample());
+        appMarketEntity.setDemo(app.getDemo());
         // 处理配置信息
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
@@ -200,6 +203,7 @@ public interface AppMarketConvert {
         appMarketEntity.setUpdateTime(appMarket.getUpdateTime());
         appMarketEntity.setAudit(appMarket.getAudit());
         appMarketEntity.setExample(appMarket.getExample());
+        appMarketEntity.setDemo(appMarket.getDemo());
         appMarketEntity.setTenantId(appMarket.getTenantId());
         // 处理配置信息
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
@@ -260,6 +264,7 @@ public interface AppMarketConvert {
         appMarketResponse.setInstallCount(appMarket.getInstallCount());
         appMarketResponse.setDescription(appMarket.getDescription());
         appMarketResponse.setExample(appMarket.getExample());
+        appMarketResponse.setDemo(appMarket.getDemo());
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息

@@ -25,7 +25,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Schema(description = "自定义创作方案配置")
-public class CreativeSchemeConfigDTO implements java.io.Serializable {
+public class CreativeSchemeConfigurationDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -1278431625060498370L;
 
@@ -48,10 +48,28 @@ public class CreativeSchemeConfigDTO implements java.io.Serializable {
     private String description;
 
     /**
+     * 应用标签
+     */
+    @Schema(description = "创作应用标签")
+    private List<String> tags;
+
+    /**
+     * 步骤数量
+     */
+    @Schema(description = "创作应用步骤数量")
+    private Integer stepCount;
+
+    /**
      * 应用版本号
      */
     @Schema(description = "创作应用版本号")
     private Integer version;
+
+    /**
+     * 应用示例
+     */
+    @Schema(description = "示例")
+    private String example;
 
     /**
      * 抽象的 创作方案 流程节点配置

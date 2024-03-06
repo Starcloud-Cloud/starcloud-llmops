@@ -40,11 +40,6 @@ public class AppMarketEntity extends AppEntity {
     private Integer audit;
 
     /**
-     * 示例
-     */
-    private String example;
-
-    /**
      * 应用是否是免费的
      */
     private Boolean free;

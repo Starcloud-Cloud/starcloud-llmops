@@ -96,18 +96,6 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        return 0;
-    }
-
-    /**
      * 执行OpenApi生成的步骤
      *
      * @return 执行结果
@@ -143,7 +131,7 @@ public class PosterActionHandler extends BaseActionHandler {
         }
 
         // 处理图片标题生成
-        handlerPosterTitle(style, title, content);
+        Integer multimodalCostPoints = handlerPosterTitle(style, title, content);
 
         // 校验海报模版
         style.validate();
@@ -185,7 +173,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setMessage(JSONUtil.toJsonStr(style));
         response.setAnswer(JSONUtil.toJsonStr(list));
         response.setOutput(JsonData.of(list));
-        response.setCostPoints(list.size());
+        response.setCostPoints(list.size() + multimodalCostPoints);
         log.info("海报生成 Action 执行结束......");
         return response;
     }
@@ -199,7 +187,9 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
+    private Integer handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
+        Integer costPoints = 0;
+
         List<PosterTemplateEntity> templates = new ArrayList<>();
         List<PosterTemplateEntity> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
         for (PosterTemplateEntity posterTemplate : templateList) {
@@ -245,6 +235,7 @@ public class PosterActionHandler extends BaseActionHandler {
                     // 复制变量, 添加到模版列表中
                     variables.add(SerializationUtils.clone(variable));
                 }
+                costPoints += 1;
                 posterTemplate.setVariableList(variables);
             } else {
                 log.error("不支持的图片标题生成模式: {}", titleGenerateMode);
@@ -253,6 +244,8 @@ public class PosterActionHandler extends BaseActionHandler {
             templates.add(SerializationUtils.clone(posterTemplate));
         }
         posterStyle.setTemplateList(templates);
+
+        return costPoints;
     }
 
     /**
@@ -260,6 +253,8 @@ public class PosterActionHandler extends BaseActionHandler {
      *
      * @param posterTemplate 海报模版
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public MultimodalPosterTitleResponse multimodalPosterTitle(PosterTemplateEntity posterTemplate) {
         try {
             // 获取变量值

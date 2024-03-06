@@ -23,7 +23,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModify
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
@@ -538,7 +538,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 查询创作方案
         CreativeSchemeRespVO scheme = creativeSchemeService.get(configuration.getSchemeUid());
         // 获取配置并且校验
-        CreativeSchemeConfigDTO schemeConfiguration = scheme.getConfiguration();
+        CreativeSchemeConfigurationDTO schemeConfiguration = scheme.getConfiguration();
         schemeConfiguration.validate();
 
         // 处理创作内容执行参数

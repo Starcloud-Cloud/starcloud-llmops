@@ -15,11 +15,12 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
@@ -32,6 +33,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePa
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
@@ -128,33 +130,52 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @return 创作方案配置
      */
     @Override
-    public List<CreativeSchemeConfigDTO> configurationList(String model) {
-        List<AppMarketRespVO> appList = creativeAppManager.appMarketplaceList(model);
-        List<CreativeSchemeConfigDTO> configurationList = Lists.newArrayList();
-        for (AppMarketRespVO appMarketResponse : appList) {
-            // 获取所有步骤
-            List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
-                    .map(WorkflowConfigRespVO::getSteps)
-                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+    public List<SchemeAppCategoryRespVO> appGroupList() {
 
-            // 构建创作方案步骤
-            List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
-            for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-                BaseSchemeStepEntity schemeStep = SchemeStepFactory.factory(stepWrapper);
-                schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
-            }
+        // 查询符合条件的应用列表
+        List<AppMarketRespVO> appList = creativeAppManager.juzhenAppMarketplaceList();
 
-            // 构建创作方案配置
-            CreativeSchemeConfigDTO configuration = new CreativeSchemeConfigDTO();
-            configuration.setAppUid(appMarketResponse.getUid());
-            configuration.setAppName(appMarketResponse.getName());
-            configuration.setDescription(appMarketResponse.getDescription());
-            configuration.setVersion(appMarketResponse.getVersion());
-            configuration.setSteps(schemeStepList);
-            configurationList.add(configuration);
-        }
+        // 查询分类列表，因为目前只有一级分类，所以直接使用一级分类
+        List<AppCategoryVO> appCategoryList = appDictionaryService.categoryList(Boolean.TRUE);
 
-        return configurationList;
+        // 应用列表按照分类分组
+        Map<String, List<CreativeSchemeConfigurationDTO>> map = CollectionUtil.emptyIfNull(appList).stream().collect(Collectors.groupingBy(
+                AppMarketRespVO::getCategory,
+                Collectors.mapping(item -> {
+                    // 获取所有步骤
+                    List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(item.getWorkflowConfig())
+                            .map(WorkflowConfigRespVO::getSteps)
+                            .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+
+                    // 构建创作方案步骤
+                    List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
+                    for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+                        BaseSchemeStepEntity schemeStep = SchemeStepFactory.factory(stepWrapper);
+                        schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
+                    }
+
+                    CreativeSchemeConfigurationDTO configuration = new CreativeSchemeConfigurationDTO();
+                    configuration.setAppUid(item.getUid());
+                    configuration.setAppName(item.getName());
+                    configuration.setTags(item.getTags());
+                    configuration.setStepCount(stepWrapperList.size());
+                    configuration.setDescription(item.getDescription());
+                    configuration.setVersion(item.getVersion());
+                    configuration.setExample(item.getExample());
+                    configuration.setSteps(schemeStepList);
+                    return configuration;
+                }, Collectors.toList())
+
+        ));
+
+        return CollectionUtil.emptyIfNull(appCategoryList).stream().map(item -> {
+            SchemeAppCategoryRespVO response = new SchemeAppCategoryRespVO();
+            response.setParentCode(item.getParentCode());
+            response.setCode(item.getCode());
+            response.setName(item.getName());
+            response.setAppConfigurationList(CollectionUtil.emptyIfNull(map.get(item.getCode())));
+            return response;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -165,9 +186,32 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public CreativeSchemeRespVO get(String uid) {
+        return get(uid, Boolean.FALSE);
+    }
+
+    /**
+     * 获取创作方案详情
+     *
+     * @param uid             创作方案UID
+     * @param isLatestExample 是否获取最新的示例
+     * @return 创作方案详情
+     */
+    @Override
+    public CreativeSchemeRespVO get(String uid, Boolean isLatestExample) {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
         AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
-        return CreativeSchemeConvert.INSTANCE.convertResponse(creativeScheme);
+        CreativeSchemeRespVO schemeResponse = CreativeSchemeConvert.INSTANCE.convertResponse(creativeScheme);
+        // 如果不需要获取最新的示例，则直接返回
+        if (!isLatestExample) {
+            return schemeResponse;
+        }
+        // 否则需要从应用中获取最新的示例
+        CreativeSchemeConfigurationDTO configuration = schemeResponse.getConfiguration();
+        String appUid = configuration.getAppUid();
+        AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
+        configuration.setExample(appMarketResponse.getExample());
+        schemeResponse.setConfiguration(configuration);
+        return schemeResponse;
     }
 
     /**
@@ -283,7 +327,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<String> appUidList = records.stream().map(item -> {
             if (StringUtils.isNotBlank(item.getConfiguration())) {
                 if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
-                    CreativeSchemeConfigDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CreativeSchemeConfigDTO.class);
+                    CreativeSchemeConfigurationDTO configuration = JsonUtils.parseObject(item.getConfiguration(), CreativeSchemeConfigurationDTO.class);
                     if (configuration != null) {
                         return configuration.getAppUid();
                     }
@@ -296,14 +340,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<AppMarketRespVO> list = appMarketService.list(marketQuery);
         Map<String, AppMarketRespVO> appMap = list.stream().collect(Collectors.toMap(AppMarketRespVO::getUid, item -> item));
 
-
         List<CreativeSchemeRespVO> collect = records.stream().map(item -> {
             CreativeSchemeRespVO response = CreativeSchemeConvert.INSTANCE.convertResponse(item);
             response.setCreator(creatorMap.get(Long.valueOf(item.getCreator())));
             response.setUpdater(updaterMap.get(Long.valueOf(item.getUpdater())));
-            if (CreativeSchemeModeEnum.CUSTOM_IMAGE_TEXT.name().equalsIgnoreCase(item.getMode())) {
-                response.setAppName(appMap.get(response.getConfiguration().getAppUid()).getName());
-            }
+            response.setAppName(appMap.get(response.getConfiguration().getAppUid()).getName());
             return response;
         }).collect(Collectors.toList());
 
@@ -504,7 +545,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         // 处理创作内容执行参数
         List<CreativePlanExecuteDTO> list = Lists.newArrayList();
         // 获取自定义配置并且校验
-        CreativeSchemeConfigDTO customConfiguration = schemeRequest.getConfiguration();
+        CreativeSchemeConfigurationDTO customConfiguration = schemeRequest.getConfiguration();
         customConfiguration.validate();
         // 查询应用信息
         AppMarketRespVO appMarketRespVO = appMarketService.get(customConfiguration.getAppUid());
@@ -567,7 +608,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
 
         // 处理创作方案配置
-        CreativeSchemeConfigDTO configuration = request.getConfiguration();
+        CreativeSchemeConfigurationDTO configuration = request.getConfiguration();
         List<BaseSchemeStepDTO> steps = configuration.getSteps();
         List<BaseSchemeStepDTO> handlerStepList = Lists.newArrayList();
 
