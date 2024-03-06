@@ -288,9 +288,10 @@ public class WechatServiceImpl implements WechatService {
 
         if (appId.equals(dictDataDO.getValue())) {
 //            改为扣应用所有者权益
-//            AdminUserDO userDO = socialUserService.getSocialUser(fromUser, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
+            AdminUserDO userDO = socialUserService.getSocialUser(fromUser, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
 //            chatRequestVO.setUserId(userDO.getId());
 //            UserContextHolder.setUserId(userDO.getId());
+            chatRequestVO.setEndUser(userDO.getId().toString());
         } else {
             String endUserId = endUserService.weMpLogin(appId + "-" + fromUser);
             chatRequestVO.setEndUser(endUserId);
