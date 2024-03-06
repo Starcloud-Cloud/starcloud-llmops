@@ -129,7 +129,47 @@
         ORDER BY id
     </select>
     
-    
+    <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
+        SELECT plan_uid             AS planUid,
+               business_uid         AS businessUid,
+               conversation_uid     AS conversationUid,
+               temp_uid             AS copyWritingUid,
+               temp_uid             AS pictureTempUid,
+               use_picture          AS usePicture,
+               execute_params       AS pictureParams,
+               execute_params       AS copyWritingParams,
+               status               AS pictureStatus,
+               status               AS copyWritingStatus,
+               start_time           AS pictureStartTime,
+               end_time             AS pictureEndTime,
+               execute_time         AS pictureExecuteTime,
+               start_time           AS copyWritingStartTime,
+               end_time             AS copyWritingEndTime,
+               execute_time         AS copyWritingExecuteTime,
+               copy_writing_title   AS copyWritingTitle,
+               copy_writing_content AS copyWritingContent,
+               picture_num          AS pictureNum,
+               picture_content      AS pictureContent,
+               error_msg            AS pictureErrorMsg,
+               error_msg            AS copyWritingErrorMsg,
+               retry_count          AS pictureRetryCount,
+               retry_count          AS copyWritingRetryCount,
+               copy_writing_count   AS copyWritingCount,
+               extend               AS pictureExtend,
+               extend               AS copyWritingExtend,
+               claim                AS claim,
+               liked                AS liked,
+               tags                 AS tags,
+               batch                AS batch
+        FROM llm_creative_content
+        WHERE deleted = false
+            AND business_uid IN
+            <foreach collection="businessUidList" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        
+        ORDER BY id
+    </select>
     
     <select id="detail" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO">
         select

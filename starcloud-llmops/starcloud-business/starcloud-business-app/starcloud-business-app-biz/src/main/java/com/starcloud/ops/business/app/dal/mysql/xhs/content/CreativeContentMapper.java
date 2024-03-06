@@ -100,16 +100,12 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
 
     Long selectCount(@Param("req") CreativeContentPageReqVO req);
 
-    default List<CreativeContentDO> list(List<String> businessUidList) {
-        LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class)
-                .in(CreativeContentDO::getBusinessUid, businessUidList);
-        return selectList(wrapper);
-    }
-
     List<CreativeContentDTO> pageSelect(@Param("req") CreativeContentPageReqVO req,
                                         @Param("start") Integer start, @Param("end") Integer end);
 
     Page<CreativeContentDTO> allTypePage(IPage<CreativeContentDTO> page, @Param("req") CreativeContentPageReqVO req);
+
+    List<CreativeContentDTO> list(@Param("businessUidList") List<String> businessUidList);
 
 
     CreativeContentDTO detail(@Param("businessUid") String businessUid);
