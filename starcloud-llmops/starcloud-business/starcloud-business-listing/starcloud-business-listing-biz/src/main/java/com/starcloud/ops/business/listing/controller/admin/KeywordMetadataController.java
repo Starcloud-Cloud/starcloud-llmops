@@ -17,8 +17,6 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.Extend
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.PrepareReposeDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
-import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
-import com.starcloud.ops.business.user.framework.rights.core.rightslimit.RightsLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -39,12 +37,6 @@ public class KeywordMetadataController {
     @Resource
     private KeywordMetadataService keywordMetadataService;
 
-    @Resource
-    private SmsSendApi smsSendApi;
-
-
-    @Resource
-    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     @PutMapping("/add")
     @Operation(summary = "新增关键词", description = "新增关键词")

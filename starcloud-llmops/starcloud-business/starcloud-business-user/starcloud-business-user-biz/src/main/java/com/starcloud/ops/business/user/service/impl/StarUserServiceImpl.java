@@ -23,7 +23,6 @@ import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
-import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
@@ -38,7 +37,6 @@ import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
 import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
 import com.starcloud.ops.business.trade.api.order.TradeOrderApi;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
-import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
@@ -48,11 +46,9 @@ import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
 import com.starcloud.ops.business.user.dal.dataobject.RecoverPasswordDO;
 import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
-import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.framework.user.config.NewUserProperties;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.pojo.request.ChangePasswordRequest;
@@ -705,10 +701,6 @@ public class StarUserServiceImpl implements StarUserService {
         }
 
         // 注册时间3天内
-        if (RegisterTime.isAfter(LocalDateTime.now().minusDays(3))) {
-            return true;
-
-        }
-        return false;
+        return RegisterTime.isAfter(LocalDateTime.now().minusDays(3));
     }
 }

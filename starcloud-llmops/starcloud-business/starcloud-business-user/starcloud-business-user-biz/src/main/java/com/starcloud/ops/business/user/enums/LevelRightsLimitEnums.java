@@ -9,19 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Filename:     starcloud-llmops
- * Description:  com.starcloud.ops.business.user.enums
- * Company:      mdc.ai Inc.
- *
- * @Author: djl
- * @version: 1.0
- * Create at:    2024/03/05  13:46
- * Modification History:
- * Date          Author      Version     Description
- * ------------------------------------------------------------------
- * 2024/03/05   djl     1.0         1.0 Version
+ * 用户权益限制枚举
  */
-
 @AllArgsConstructor
 @Getter
 public enum LevelRightsLimitEnums implements IntArrayValuable {

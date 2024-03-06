@@ -71,7 +71,7 @@ public interface KeywordMetadataConvert {
 
 
     default List<ExtendAsinReposeExcelVO> convertExcelVOList(List<ItemsDTO> beans){
-        return beans.stream().map(bean -> convertExcelVO(bean)).collect(Collectors.toList());
+        return beans.stream().map(this::convertExcelVO).collect(Collectors.toList());
     }
 
     default ExtendAsinReposeExcelVO convertExcelVO(ItemsDTO bean){

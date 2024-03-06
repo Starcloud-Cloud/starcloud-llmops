@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * @author Yang
- * @date 2023/1/29
  */
 @Aspect
 @AllArgsConstructor
@@ -41,7 +40,6 @@ public class RightsLimitAspect {
      * 接口请求频率限制切面逻辑
      *
      * @param rightsLimit 访问限制
-     * @return
      */
     @Before(value = "@annotation(rightsLimit)")
     public void beforePointCut(JoinPoint joinPoint, RightsLimit rightsLimit) {
@@ -77,9 +75,7 @@ public class RightsLimitAspect {
             redisDAO.increment(value.getRedisKey());
             return;
         }
+        throw new RuntimeException(rightsLimit.info());
 
-        if (data <= result) {
-            throw new RuntimeException(rightsLimit.info());
-        }
     }
 }
