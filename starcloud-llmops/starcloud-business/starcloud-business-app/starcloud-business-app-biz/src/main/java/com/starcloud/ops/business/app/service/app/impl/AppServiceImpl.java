@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -315,7 +316,8 @@ public class AppServiceImpl implements AppService {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
             }
             AppCategoryVO category = categoryOptional.get();
-            if (AppConstants.ROOT.equals(category.getParentCode())) {
+            Long tenantId = TenantContextHolder.getRequiredTenantId();
+            if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
             }
             if (StringUtils.isBlank(request.getIcon())) {
