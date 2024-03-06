@@ -157,6 +157,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                     CreativeSchemeConfigurationDTO configuration = new CreativeSchemeConfigurationDTO();
                     configuration.setAppUid(item.getUid());
                     configuration.setAppName(item.getName());
+                    configuration.setTags(item.getTags());
+                    configuration.setStepCount(stepWrapperList.size());
                     configuration.setDescription(item.getDescription());
                     configuration.setVersion(item.getVersion());
                     configuration.setExample(item.getExample());

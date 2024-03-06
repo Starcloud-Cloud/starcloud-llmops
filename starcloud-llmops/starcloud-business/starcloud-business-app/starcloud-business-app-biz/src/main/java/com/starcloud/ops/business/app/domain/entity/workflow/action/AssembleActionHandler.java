@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -52,18 +53,6 @@ public class AssembleActionHandler extends BaseActionHandler {
     @Override
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
-    }
-
-    /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        return 0;
     }
 
     /**
@@ -103,6 +92,14 @@ public class AssembleActionHandler extends BaseActionHandler {
         actionResponse.setOutput(JsonData.of(assemble));
         actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
+        actionResponse.setMessageTokens(0L);
+        actionResponse.setMessageUnitPrice(new BigDecimal("0"));
+        actionResponse.setAnswerTokens(0L);
+        actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
+        actionResponse.setTotalTokens(0L);
+        actionResponse.setTotalPrice(new BigDecimal("0"));
+        // 组装消耗为 0
+        actionResponse.setCostPoints(0);
         return actionResponse;
     }
 

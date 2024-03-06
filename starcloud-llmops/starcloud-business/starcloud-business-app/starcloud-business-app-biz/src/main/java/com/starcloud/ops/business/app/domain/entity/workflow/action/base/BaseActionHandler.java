@@ -76,15 +76,6 @@ public abstract class BaseActionHandler extends Object {
     protected abstract AdminUserRightsTypeEnum getUserRightsType();
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected abstract Integer getCostPoints();
-
-    /**
      * 执行具体的步骤
      *
      * @return 执行结果

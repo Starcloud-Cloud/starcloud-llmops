@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.json.JSONUtil;
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,19 +60,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @Override
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
-    }
-
-    /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        String aiModel = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        return CostPointUtils.obtainMagicBeanCostPoint(aiModel);
     }
 
     /**
@@ -144,8 +135,12 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
+
+        // 计算权益点数
+        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
         return actionResponse;
     }
 

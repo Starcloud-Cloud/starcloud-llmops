@@ -50,16 +50,6 @@ public class VariableActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    protected Integer getCostPoints() {
-        return 0;
-    }
-
-    /**
      * 执行具体的步骤
      *
      * @return 执行结果
@@ -82,7 +72,7 @@ public class VariableActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(0L);
         actionResponse.setTotalPrice(new BigDecimal("0"));
         actionResponse.setStepConfig("{}");
-        actionResponse.setCostPoints(this.getCostPoints());
+        actionResponse.setCostPoints(0);
 
         log.info("VariableActionHandler doExecute end");
         return actionResponse;

@@ -48,6 +48,18 @@ public class CreativeSchemeConfigurationDTO implements java.io.Serializable {
     private String description;
 
     /**
+     * 应用标签
+     */
+    @Schema(description = "创作应用标签")
+    private List<String> tags;
+
+    /**
+     * 步骤数量
+     */
+    @Schema(description = "创作应用步骤数量")
+    private Integer stepCount;
+
+    /**
      * 应用版本号
      */
     @Schema(description = "创作应用版本号")
