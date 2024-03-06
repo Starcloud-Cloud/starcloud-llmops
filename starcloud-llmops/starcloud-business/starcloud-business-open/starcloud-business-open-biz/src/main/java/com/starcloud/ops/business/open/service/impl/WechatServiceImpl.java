@@ -163,7 +163,7 @@ public class WechatServiceImpl implements WechatService {
             return;
         }
 
-        ChatRequestVO chatRequestVO = preChatRequest(request.getFromUser(), wxAppId, request.getQuery());
+        ChatRequestVO chatRequestVO = preChatRequest(request.getFromUser(), StringUtils.EMPTY, request.getQuery());
 
         // 限流
         AppLimitRequest limitRequest = AppLimitRequest.of(wxAppId, AppSceneEnum.MP.name(),
@@ -287,9 +287,11 @@ public class WechatServiceImpl implements WechatService {
         chatRequestVO.setScene(AppSceneEnum.MP.name());
 
         if (appId.equals(dictDataDO.getValue())) {
+//            改为扣应用所有者权益
             AdminUserDO userDO = socialUserService.getSocialUser(fromUser, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
-            chatRequestVO.setUserId(userDO.getId());
-            UserContextHolder.setUserId(userDO.getId());
+//            chatRequestVO.setUserId(userDO.getId());
+//            UserContextHolder.setUserId(userDO.getId());
+            chatRequestVO.setEndUser(userDO.getId().toString());
         } else {
             String endUserId = endUserService.weMpLogin(appId + "-" + fromUser);
             chatRequestVO.setEndUser(endUserId);
