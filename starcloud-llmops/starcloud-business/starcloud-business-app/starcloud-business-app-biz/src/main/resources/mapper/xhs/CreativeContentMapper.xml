@@ -216,7 +216,8 @@
         FROM
         llm_creative_content
         WHERE type = 'all'
-        and business_uid = #{businessUid}
+        AND business_uid = #{businessUid}
+        Limit 1
     </select>
     
     <select id="jobQuery" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO">

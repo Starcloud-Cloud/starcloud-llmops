@@ -171,11 +171,13 @@
             <version>4.31.1</version>
             <scope>compile</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>io.rest-assured</groupId>-->
-<!--            <artifactId>json-schema-validator</artifactId>-->
-<!--            <version>4.5.1</version>-->
-<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/com.networknt/json-schema-validator -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+    
     </dependencies>
     
     <dependencyManagement>
