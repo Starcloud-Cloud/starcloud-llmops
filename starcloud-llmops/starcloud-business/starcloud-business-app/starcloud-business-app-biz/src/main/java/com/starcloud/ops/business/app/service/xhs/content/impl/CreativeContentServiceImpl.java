@@ -318,7 +318,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public CreativeContentRespVO detail(String businessUid) {
-        CreativeContentDTO detail = byBusinessUid(businessUid);
+        CreativeContentDTO detail = creativeContentMapper.detail(businessUid);
+        if (detail == null) {
+            detail = creativeContentMapper.allTypeDetail(businessUid);
+            if (detail == null) {
+                throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
+            }
+        }
         return CreativeContentConvert.INSTANCE.convert(detail);
     }
 
@@ -429,17 +435,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             return;
         }
         creativeContentMapper.claim(businessUids, false);
-    }
-
-    private CreativeContentDTO byBusinessUid(String businessUid) {
-        CreativeContentDTO detail = creativeContentMapper.detail(businessUid);
-        if (detail == null) {
-            detail = creativeContentMapper.allTypeDetail(businessUid);
-            if (detail == null) {
-                throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
-            }
-        }
-        return detail;
     }
 
     private Integer getMaxRetry(Boolean force) {
