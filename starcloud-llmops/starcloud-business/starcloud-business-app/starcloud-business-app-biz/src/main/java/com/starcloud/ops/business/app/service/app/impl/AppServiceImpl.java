@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,6 +12,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -212,12 +215,40 @@ public class AppServiceImpl implements AppService {
      * @param request 模版应用
      */
     @Override
-    public AppRespVO copy(AppReqVO request) {
-        handlerAndValidateRequest(request);
-        request.setName(request.getName() + " - Copy");
-        AppEntity appEntity = AppConvert.INSTANCE.convert(request);
+    public AppRespVO copy(UidRequest request) {
+
+        String uid = request.getUid();
+        AppValidate.notBlank(uid, ErrorCodeConstants.APP_UID_REQUIRED);
+
+        AppDO app = appMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
+        // 转换应用信息
+        AppEntity appEntity = (AppEntity) AppConvert.INSTANCE.convert(app, Boolean.FALSE);
+        // 新的UID
+        appEntity.setUid(IdUtil.fastSimpleUUID());
+        // 新的名称
+        appEntity.setName(getCopyName(appEntity.getName()));
+        appEntity.setCreator(null);
+        appEntity.setUpdater(null);
+        appEntity.setCreateTime(LocalDateTime.now());
+        appEntity.setUpdateTime(LocalDateTime.now());
+        // 插入数据库
         appEntity.insert();
         return AppConvert.INSTANCE.convertResponse(appEntity);
+    }
+
+    /**
+     * 生成一个复制名称的私有方法
+     *
+     * @param name 原始名称
+     * @return 复制名称
+     */
+    private String getCopyName(String name) {
+        String copyName = name + "-Copy";
+        if (!appMapper.duplicateName(copyName)) {
+            return copyName;
+        }
+        return getCopyName(copyName);
     }
 
     /**

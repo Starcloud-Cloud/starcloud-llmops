@@ -181,6 +181,8 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getLikeCount,
                 AppMarketDO::getInstallCount,
                 AppMarketDO::getDescription,
+                AppMarketDO::getExample,
+                AppMarketDO::getDemo,
                 AppMarketDO::getCreator,
                 AppMarketDO::getUpdater,
                 AppMarketDO::getCreateTime,
