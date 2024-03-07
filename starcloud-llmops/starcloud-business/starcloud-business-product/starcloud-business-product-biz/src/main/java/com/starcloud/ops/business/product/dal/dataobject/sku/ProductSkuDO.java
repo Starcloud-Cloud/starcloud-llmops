@@ -99,6 +99,13 @@ public class ProductSkuDO extends BaseDO {
     @TableField(typeHandler = OrderLimitConfigTypeHandler.class)
     private OrderLimitConfig orderLimitConfig;
 
+
+    /**
+     * 活动详情
+     */
+    private String activeData;
+
+
     /**
      * 一级分销的佣金，单位：分
      */
