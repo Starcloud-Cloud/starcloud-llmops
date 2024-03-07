@@ -90,5 +90,22 @@ public enum TimeRangeTypeEnum implements IntArrayValuable {
     }
 
 
+    public static String getChineseName(Integer type) {
+        TimeRangeTypeEnum timeRange = getByType(type);
+        switch (timeRange) {
+            case DAY:
+                return "天";
+            case WEEK:
+                return "周";
+            case MONTH:
+                return "月";
+            case YEAR:
+                return "年";
+            default:
+                return "未知";
+        }
+    }
+
+
 
 }

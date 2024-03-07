@@ -24,8 +24,6 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.Prepar
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
-import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
-import com.starcloud.ops.business.user.framework.rights.core.rightslimit.RightsLimit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -194,7 +192,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * @return
      */
     @Override
-    @RightsLimit(value= LevelRightsLimitEnums.LISTING_QUERY,info = "111111111")
+    // @RightsLimit(value= LevelRightsLimitEnums.LISTING_QUERY,info = "111111111")
     public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
         Assert.notNull(prepareRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
         return sellerSpriteService.extendPrepare(prepareRequestDTO);

@@ -17,6 +17,7 @@ import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO
 import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.listing.controller.admin.vo.request.SellerSpriteListingVO;
 import com.starcloud.ops.business.listing.dal.redis.no.SellerSpriteNoRedisDAO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.ExtendAsinReposeDTO;
@@ -58,6 +59,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private SellerSpriteNoRedisDAO sellerSpriteNoRedisDAO;
 
     @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
+
+    @Resource
     @Lazy // 循环依赖（自己依赖自己），避免报错
     private SellerSpriteServiceImpl self;
 
@@ -94,7 +98,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private final static String DICT_DATA_TYPE = "SELLER_SPRITE";
     private final static String SELLER_SPRITE_ACCOUNT = "SELLER_SPRITE_ACCOUNT";
 
-    private final static String DICT_DATA_VALUE = "COOKIE";
 
 
     /**
@@ -158,7 +161,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     /**
      * 根据 ASIN 获取变种
      *
-     * @param prepareRequestDTO
+     * @param prepareRequestDTO 变种信息 DTO
      */
     @Override
     public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
@@ -225,6 +228,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
             if (between >= maxNums) {
                 updateSellStripeCookie(cookie);
+            }
+            if (CollUtil.isNotEmpty(cookieList)){
+                sendLoginSuccessMessage(cookie.getValue());
             }
 
         });
@@ -358,6 +364,8 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         log.error("卖家精灵Cookie 失效，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+            templateParams.put("environmentName", environmentName);
             templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
@@ -382,7 +390,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             JSONObject entries = JSONUtil.parseObj(result);
             if (!entries.getBool("success") && !(Boolean) entries.get("success")) {
                 cookie = null;
-                sendLoginFailMessage();
+                sendLoginFailMessage(userName);
             } else {
                 cookie = JSONUtil.toJsonStr(entries.get("data").toString());
             }
@@ -394,7 +402,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
         if (StrUtil.isBlank(cookie)) {
             // 发送报警
-            sendLoginFailMessage();
+            sendLoginFailMessage(userName);
             return null;
         }
         return cookie;
@@ -405,10 +413,13 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 发送登录失败消息
      */
     @TenantIgnore
-    private void sendLoginFailMessage() {
+    private void sendLoginFailMessage(String account) {
         log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+            templateParams.put("environmentName", environmentName);
+            templateParams.put("account", account);
             templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
@@ -417,6 +428,25 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                             .setTemplateParams(templateParams));
         } catch (RuntimeException e) {
             log.error("卖家精灵登录失败，通知信息发送失败", e);
+        }
+    }
+
+    @TenantIgnore
+    private void sendLoginSuccessMessage(String account) {
+        log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+            templateParams.put("environmentName", environmentName);
+            templateParams.put("account", account);
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("NOTICE_SELLER_SPRITE_LOGIN_SUCCESS")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("卖家精灵登录成功，通知信息发送失败", e);
         }
     }
 

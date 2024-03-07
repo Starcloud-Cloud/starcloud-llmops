@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.controller.admin.vo;
 
 import cn.iocoder.yudao.framework.common.validation.Mobile;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,16 +17,16 @@ import java.util.List;
 public class AdminUserInfoRespVO {
 
 
-    @Schema(description = "用户编号", required = true, example = "1")
+    @Schema(description = "用户编号", requiredMode = Schema.RequiredMode.REQUIRED , example = "1")
     private Long id;
 
-    @Schema(description = "状态,参见 CommonStatusEnum 枚举类", required = true, example = "1")
+    @Schema(description = "状态,参见 CommonStatusEnum 枚举类", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     private Integer status;
 
-    @Schema(description = "用户账号", required = true, example = "yudao")
+    @Schema(description = "用户账号", requiredMode = Schema.RequiredMode.REQUIRED, example = "yudao")
     private String username;
 
-    @Schema(description = "用户昵称", required = true, example = "芋艿")
+    @Schema(description = "用户昵称", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private String nickname;
 
     @Schema(description = "备注", example = "我是一个用户")
@@ -88,59 +89,59 @@ public class AdminUserInfoRespVO {
         private Integer levelId;
 
         @Schema(description = "会员等级配置信息", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-        private LevelConfig levelConfig;
+        private LevelConfigDTO levelConfigDTO;
 
 
     }
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LevelConfig {
-
-        /**
-         *  可使用的应用数
-         */
-        @Schema(description = "可使用的应用数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-        private Integer usableApp;
-
-        /**
-         *  可使用的基础版机器人数
-         */
-        @Schema(description = "可使用的基础版机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-        private Integer usableBasicBot;
-
-        /**
-         *  可使用的微信机器人数
-         */
-        @Schema(description = "可使用的微信机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-        private Integer usableWechatBot;
-
-        /**
-         *  可使用的机器人文档数
-         */
-        @Schema(description = "可使用的机器人文档数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-        private Integer usableBotDocument;
-
-        /**
-         *  技能插件数
-         */
-        @Schema(description = "技能插件数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-        private Integer usableSkillPlugin;
-
-        /**
-         *  可创建的团队数
-         */
-        private Integer usableTeams;
-
-
-        /**
-         *  团队可以添加的人数
-         */
-        private Integer usableTeamUsers;
-
-
-
-    }
+    // @Data
+    // @NoArgsConstructor
+    // @AllArgsConstructor
+    // public static class LevelConfigDTO {
+    //
+    //     /**
+    //      *  可使用的应用数
+    //      */
+    //     @Schema(description = "可使用的应用数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    //     private Integer usableApp;
+    //
+    //     /**
+    //      *  可使用的基础版机器人数
+    //      */
+    //     @Schema(description = "可使用的基础版机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    //     private Integer usableBasicBot;
+    //
+    //     /**
+    //      *  可使用的微信机器人数
+    //      */
+    //     @Schema(description = "可使用的微信机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    //     private Integer usableWechatBot;
+    //
+    //     /**
+    //      *  可使用的机器人文档数
+    //      */
+    //     @Schema(description = "可使用的机器人文档数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    //     private Integer usableBotDocument;
+    //
+    //     /**
+    //      *  技能插件数
+    //      */
+    //     @Schema(description = "技能插件数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    //     private Integer usableSkillPlugin;
+    //
+    //     /**
+    //      *  可创建的团队数
+    //      */
+    //     private Integer usableTeams;
+    //
+    //
+    //     /**
+    //      *  团队可以添加的人数
+    //      */
+    //     private Integer usableTeamUsers;
+    //
+    //
+    //
+    // }
 
     @Schema(description = "系统用户会员- 会员权益")
     @Data

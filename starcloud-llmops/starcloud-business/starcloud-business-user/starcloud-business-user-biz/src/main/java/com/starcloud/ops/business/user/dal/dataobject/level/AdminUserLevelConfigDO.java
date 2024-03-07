@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.user.api.level.dto.LevelConfig;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import lombok.*;
 
 /**
@@ -67,12 +67,12 @@ public class AdminUserLevelConfigDO extends BaseDO {
      * 属性数组，JSON 格式
      */
     @TableField(typeHandler = LevelConfigTypeHandler.class)
-    private LevelConfig levelConfig;
+    private LevelConfigDTO levelConfig;
     /**
      * 等级背景图
      */
     private String backgroundUrl;
-    /**
+     /**
      * 状态
      * <p>
      * 枚举 {@link CommonStatusEnum}
@@ -88,7 +88,7 @@ public class AdminUserLevelConfigDO extends BaseDO {
     // @Data
     // @NoArgsConstructor
     // @AllArgsConstructor
-    // public static class LevelConfig {
+    // public static class LevelConfigDTO {
     //     /**
     //      *  可使用的应用数
     //      */
@@ -131,7 +131,7 @@ public class AdminUserLevelConfigDO extends BaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseObject(json, LevelConfig.class);
+            return JsonUtils.parseObject(json, LevelConfigDTO.class);
         }
 
         @Override
