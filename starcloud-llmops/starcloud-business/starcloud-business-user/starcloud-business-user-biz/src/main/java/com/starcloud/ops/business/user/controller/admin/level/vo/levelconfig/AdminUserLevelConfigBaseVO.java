@@ -1,15 +1,10 @@
 package com.starcloud.ops.business.user.controller.admin.level.vo.levelconfig;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.alibaba.excel.annotation.ExcelProperty;
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotBlank;
@@ -44,7 +39,7 @@ public class AdminUserLevelConfigBaseVO {
      * 等级配置
      */
     @Schema(description = "等级配置", example = "xxx")
-    private LevelConfig levelConfig;
+    private LevelConfigDTO levelConfigDTO;
 
     @Schema(description = "等级图标", example = "https://www.iocoder.cn/yudao.jpg")
     @URL(message = "等级图标必须是 URL 格式")
@@ -60,43 +55,43 @@ public class AdminUserLevelConfigBaseVO {
     private Integer status;
 
 
-    /**
-     * 魔法 AI 专属
-     * 商品订阅配置
-     *
-     * @author Alan Cusack
-     */
-    @Schema(description = "等级配置")
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LevelConfig {
-        /**
-         *  可使用的应用数
-         */
-        private Integer usableApp;
-
-        /**
-         *  可使用的基础版机器人数
-         */
-        private Integer usableBasicBot;
-
-        /**
-         *  可使用的微信机器人数
-         */
-        private Integer usableWechatBot;
-
-        /**
-         *  可使用的机器人文档数
-         */
-        private Integer usableBotDocument;
-
-        /**
-         *  技能插件数
-         */
-        private Integer usableSkillPlugin;
-
-    }
+    // /**
+    //  * 魔法 AI 专属
+    //  * 商品订阅配置
+    //  *
+    //  * @author Alan Cusack
+    //  */
+    // @Schema(description = "等级配置")
+    // @Data
+    // @NoArgsConstructor
+    // @AllArgsConstructor
+    // public static class LevelConfigDTO {
+    //     /**
+    //      *  可使用的应用数
+    //      */
+    //     private Integer usableApp;
+    //
+    //     /**
+    //      *  可使用的基础版机器人数
+    //      */
+    //     private Integer usableBasicBot;
+    //
+    //     /**
+    //      *  可使用的微信机器人数
+    //      */
+    //     private Integer usableWechatBot;
+    //
+    //     /**
+    //      *  可使用的机器人文档数
+    //      */
+    //     private Integer usableBotDocument;
+    //
+    //     /**
+    //      *  技能插件数
+    //      */
+    //     private Integer usableSkillPlugin;
+    //
+    // }
 
 
 }

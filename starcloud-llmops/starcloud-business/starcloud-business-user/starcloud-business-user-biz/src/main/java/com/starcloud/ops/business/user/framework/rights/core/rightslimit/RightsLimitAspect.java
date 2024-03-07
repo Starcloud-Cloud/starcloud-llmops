@@ -1,10 +1,9 @@
 package com.starcloud.ops.business.user.framework.rights.core.rightslimit;
 
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
-import com.starcloud.ops.business.user.api.level.dto.LevelConfig;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
-import com.starcloud.ops.business.user.dal.redis.UserLevelConfigLimitRedisDAO;
 import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelConfigService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
@@ -13,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
@@ -25,10 +25,11 @@ import java.util.List;
 @Aspect
 @AllArgsConstructor
 @Slf4j
+@Component
 public class RightsLimitAspect {
 
-
-    private final UserLevelConfigLimitRedisDAO redisDAO;
+    // @Resource
+    // private final UserLevelConfigLimitRedisDAO userLevelConfigLimitRedisDAO;
 
     @Resource
     private AdminUserLevelService adminUserLevelService;
@@ -57,25 +58,25 @@ public class RightsLimitAspect {
         }
         AdminUserLevelConfigDO levelConfigDO = adminUserLevelConfigService.getLevelConfig(levelList.get(0).getLevelId());
         // 获取用户当前权益最大的值
-        LevelConfig levelConfig = levelConfigDO.getLevelConfig();
+        LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
 
         LevelRightsLimitEnums value = rightsLimit.value();
 
-        Integer data = (Integer) value.getExtractor().apply(levelConfig);
+        Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
 
         //  如果不做限制
         if (data == -1) {
             return;
         }
-
-        Integer result = redisDAO.get(value.getRedisKey());
-
-        //  如果第一次访问
-        if (result == 0 || data >= result) {
-            redisDAO.increment(value.getRedisKey());
-            return;
-        }
-        throw new RuntimeException(rightsLimit.info());
+        //
+        // Integer result = userLevelConfigLimitRedisDAO.get(value.getRedisKey());
+        //
+        // //  如果第一次访问
+        // if (result == 0 || data >= result) {
+        //     userLevelConfigLimitRedisDAO.increment(value.getRedisKey());
+        //     return;
+        // }
+        // throw new RuntimeException(rightsLimit.info());
 
     }
 }

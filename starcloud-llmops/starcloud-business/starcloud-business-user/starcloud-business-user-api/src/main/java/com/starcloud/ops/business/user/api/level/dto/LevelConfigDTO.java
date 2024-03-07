@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LevelConfig {
+public class LevelConfigDTO {
     /**
      * 可使用的应用数
      */
@@ -49,30 +49,36 @@ public class LevelConfig {
      */
     private Integer listingQuery;
 
-    /**
-     * listing 查询一键发布次数
-     */
-    private Integer listingQueryTimeNums;
-
-    /**
-     * listing 查询一键发布次数
-     */
-    private Integer listingQueryTimeRange;
+    // /**
+    //  * listing 查询一键发布次数
+    //  */
+    // private Integer listingQueryTimeNums;
+    //
+    // /**
+    //  * listing 查询一键发布次数
+    //  */
+    // private Integer listingQueryTimeRange;
 
     /**
      * 一键发布次数
      */
     private Integer quickPublishCount;
+    //
+    // /**
+    //  * 一键发布 时间范围
+    //  */
+    // private Integer quickPublishCountTimeNums;
+    //
+    // /**
+    //  * 一键发布 时间范围
+    //  */
+    // private Integer quickPublishCountTimeRange;
 
-    /**
-     * 一键发布 时间范围
-     */
-    private Integer quickPublishCountTimeNums;
 
-    /**
-     * 一键发布 时间范围
-     */
-    private Integer quickPublishCountTimeRange;
+    private Integer accountManagementCount;
 
+    private Integer accountGroupingCount;
+
+    private Integer maxAccountsPerPublish;
 
 }

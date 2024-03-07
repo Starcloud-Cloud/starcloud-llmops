@@ -1,20 +1,17 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
-import cn.iocoder.yudao.module.pay.enums.notify.PayNotifyTypeEnum;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderCreateReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSettlementReqVO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
@@ -65,6 +62,9 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     @Resource
     private SmsSendApi smsSendApi;
 
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
+
 
     /**
      * 获得指定编号的交易订单
@@ -90,7 +90,6 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
     }
 
     /**
-     * @return
      */
     @Override
     public int executeAutoTradeSignPay() {
@@ -119,7 +118,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             try {
                 count += autoTradeSignPay(waitePaySign) ? 1 : 0;
             }catch (Exception e){
-                log.error("签约失败", e.getMessage(), e);
+                log.error("签约失败，errMsg{}", e.getMessage(), e);
             }
 
         }
@@ -157,7 +156,12 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             AdminUserRespDTO user = adminUserApi.getUser(tradeSignDO.getUserId());
 
             Map<String, Object> templateParams = new HashMap<>();
+            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
 
+            //
+            // couponTemplateApi.getCouponTemplate(1L);
+
+            templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname() );
             templateParams.put("tradeSignId", tradeSignDO.getId());
             templateParams.put("exception", submitRespDTO.getDisplayContent());
