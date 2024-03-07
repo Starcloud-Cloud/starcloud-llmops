@@ -59,6 +59,7 @@ import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalcu
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -73,6 +74,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.*;
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.minusTime;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
+import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.getChineseName;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 /**
@@ -414,7 +416,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(),orderItems.get(0).getProperties().get(0).getValueName(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count);
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count);
 
     }
 
@@ -1060,7 +1062,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      * @param payTime       支付时间
      */
     @TenantIgnore
-    private void sendPaySuccessMsg(Long userId, String productName, String productType,Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount) {
+    private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount) {
 
         try {
             Long tenantId = TenantContextHolder.getTenantId();
@@ -1079,12 +1081,13 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             templateParams.put("userName", user.getNickname());
             templateParams.put("productName", productName);
             templateParams.put("productType", productType);
+            templateParams.put("purchaseDuration", giveRights.get(0).getRightsBasicDTO().getTimesRange().getNums() + getChineseName(giveRights.get(0).getRightsBasicDTO().getTimesRange().getRange()));
             templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(totalPrice));
             templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
             templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
             templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
             templateParams.put("successCount", successCount);
-            templateParams.put("from", successCount);
+            templateParams.put("from", from);
 
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
