@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -20,7 +23,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName("llm_creative_plan")
+@TableName(value = "llm_creative_plan", autoResultMap = true)
 @KeySequence("llm_creative_plan_seq")
 public class CreativePlanDO extends TenantBaseDO {
 
@@ -53,8 +56,8 @@ public class CreativePlanDO extends TenantBaseDO {
     /**
      * 创作计划详细配置信息
      */
-    @TableField("config")
-    private String config;
+    @TableField("configuration")
+    private String configuration;
 
     /**
      * 执行随机方式
@@ -98,4 +101,9 @@ public class CreativePlanDO extends TenantBaseDO {
     @TableField("description")
     private String description;
 
+    /**
+     * 创作计划标签
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<String> tags;
 }

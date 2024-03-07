@@ -23,6 +23,9 @@ public class CreativeContentRespVO {
     @Schema(description = "创作计划uid")
     private String planUid;
 
+    @Schema(description = "执行批次")
+    private Long batch;
+
     @Schema(description = "业务uid")
     private String businessUid;
 
@@ -122,6 +125,9 @@ public class CreativeContentRespVO {
      */
     @Schema(description = "是否是测试数据")
     private Boolean isTest;
+
+    @Schema(description = "标签")
+    private List<String> tags;
 
     private Integer totalStep;
 

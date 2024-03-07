@@ -19,7 +19,7 @@ public class RecommendVariableFactory {
      *
      * @return VariableRespVO
      */
-    public static VariableRespVO defEmptyVariable() {
+    public static VariableRespVO defVariableVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.emptyList());
         return variable;
@@ -34,6 +34,7 @@ public class RecommendVariableFactory {
     public static VariableRespVO defOpenAiVariable(String defaultPrompt, Boolean isShow) {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defModelVariable(),
                 RecommendVariableItemFactory.defMaxTokenVariable(),
                 RecommendVariableItemFactory.defTemperatureVariable(),
                 RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow)

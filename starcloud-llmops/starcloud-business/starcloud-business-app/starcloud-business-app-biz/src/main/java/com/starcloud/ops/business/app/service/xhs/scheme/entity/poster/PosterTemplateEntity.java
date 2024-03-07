@@ -60,6 +60,12 @@ public class PosterTemplateEntity implements java.io.Serializable {
     private Boolean isMain;
 
     /**
+     * 海报生成模式
+     */
+    @Schema(description = "海报生成模式")
+    private String mode;
+
+    /**
      * 图片数量
      */
     @Schema(description = "图片数量")
@@ -105,17 +111,6 @@ public class PosterTemplateEntity implements java.io.Serializable {
         if (CollectionUtil.isEmpty(this.variableList)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
         }
-    }
-
-    /**
-     * 获取变量为 标题 的变量列表
-     *
-     * @return 标题变量列表
-     */
-    public List<PosterVariableEntity> getVariableTitleListByModel(String model) {
-        return CollectionUtil.emptyIfNull(this.variableList).stream()
-                .filter(variableItem -> "TITLE".equals(variableItem.getField()))
-                .collect(Collectors.toList());
     }
 
     /**

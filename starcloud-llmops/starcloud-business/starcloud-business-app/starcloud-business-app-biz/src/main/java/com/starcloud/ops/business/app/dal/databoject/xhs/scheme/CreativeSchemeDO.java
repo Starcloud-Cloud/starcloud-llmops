@@ -75,12 +75,6 @@ public class CreativeSchemeDO extends TenantBaseDO {
     private String mode;
 
     /**
-     * 创作方案参考
-     */
-    @TableField("refers")
-    private String refers;
-
-    /**
      * 创作方案配置信息
      */
     @TableField("configuration")
@@ -91,11 +85,5 @@ public class CreativeSchemeDO extends TenantBaseDO {
      */
     @TableField("use_images")
     private String useImages;
-
-    /**
-     * 创作方案示例
-     */
-    @TableField("example")
-    private String example;
 
 }

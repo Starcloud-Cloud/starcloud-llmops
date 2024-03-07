@@ -27,6 +27,12 @@ public class PosterSchemeStepDTO extends BaseSchemeStepDTO {
     private static final long serialVersionUID = 1488877429722884016L;
 
     /**
+     * 海报生成模式
+     */
+    @Schema(description = "海报生成模式")
+    private String mode;
+
+    /**
      * 创作方案步骤图片风格
      */
     @Schema(description = "创作方案步骤图片风格")
@@ -43,12 +49,4 @@ public class PosterSchemeStepDTO extends BaseSchemeStepDTO {
         styleList.forEach(PosterStyleDTO::validate);
     }
 
-    /**
-     * 简化
-     */
-    @Override
-    public void easy() {
-
-    }
-    
 }

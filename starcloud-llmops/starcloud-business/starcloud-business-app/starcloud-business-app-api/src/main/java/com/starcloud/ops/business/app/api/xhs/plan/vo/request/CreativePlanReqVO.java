@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.plan.vo.request;
 
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
@@ -15,6 +15,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -51,7 +52,7 @@ public class CreativePlanReqVO implements java.io.Serializable {
     @Schema(description = "创作计划详细配置信息")
     @Valid
     @NotNull(message = "创作计划：配置参数是必填项！")
-    private CreativePlanConfigDTO config;
+    private CreativePlanConfigurationDTO configuration;
 
     /**
      * 执行随机方式
@@ -76,5 +77,10 @@ public class CreativePlanReqVO implements java.io.Serializable {
     @Schema(description = "创作计划描述")
     private String description;
 
+    /**
+     * 标签
+     */
+    @Schema(description = "标签")
+    private List<String> tags;
 
 }
