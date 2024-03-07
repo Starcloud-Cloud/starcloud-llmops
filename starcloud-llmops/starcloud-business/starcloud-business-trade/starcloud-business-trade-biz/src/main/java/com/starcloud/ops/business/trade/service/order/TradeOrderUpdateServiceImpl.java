@@ -1081,7 +1081,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             templateParams.put("userName", user.getNickname());
             templateParams.put("productName", productName);
             templateParams.put("productType", productType);
-            templateParams.put("purchaseDuration", "(" + giveRights.get(0).getRightsBasicDTO().getTimesRange().getNums() + ")" + getChineseName(giveRights.get(0).getRightsBasicDTO().getTimesRange().getRange()));
+            templateParams.put("purchaseDuration", giveRights.get(0).getRightsBasicDTO().getTimesRange().getNums() + getChineseName(giveRights.get(0).getRightsBasicDTO().getTimesRange().getRange()));
             templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(totalPrice));
             templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
             templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
