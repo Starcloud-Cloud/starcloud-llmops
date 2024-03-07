@@ -104,6 +104,9 @@ public class AppProductSpuDetailRespVO {
         @Schema(description = "商品体积", example = "1024") // 单位：m^3 平米
         private Double volume;
 
+        @Schema(description = "活动详情", example = "活动详情") // 单位：m^3 平米
+        private String activeData;
+
     }
 
 }
