@@ -101,24 +101,21 @@ public class CreativeSchemeController {
     @Operation(summary = "创建创作方案", description = "创建创作方案")
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<String> create(@Validated @RequestBody CreativeSchemeReqVO request) {
-        creativeSchemeService.create(request);
-        return CommonResult.success("创作方案创建成功");
+        return CommonResult.success(creativeSchemeService.create(request));
     }
 
     @PostMapping("/copy")
     @Operation(summary = "复制创作方案", description = "复制创作方案")
     @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<String> copy(@Validated @RequestBody UidRequest request) {
-        creativeSchemeService.copy(request);
-        return CommonResult.success("创作方案复制成功");
+        return CommonResult.success(creativeSchemeService.copy(request));
     }
 
     @PostMapping("/modify")
     @Operation(summary = "更新创作方案", description = "更新创作方案")
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<String> modify(@Validated @RequestBody CreativeSchemeModifyReqVO request) {
-        creativeSchemeService.modify(request);
-        return CommonResult.success("创作方案更新成功");
+        return CommonResult.success(creativeSchemeService.modify(request));
     }
 
     @DeleteMapping("/delete/{uid}")

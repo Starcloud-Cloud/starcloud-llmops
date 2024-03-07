@@ -359,13 +359,15 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 创作方案请求
      */
     @Override
-    public void create(CreativeSchemeReqVO request) {
+    public String create(CreativeSchemeReqVO request) {
         handlerAndValidate(request);
         if (creativeSchemeMapper.distinctName(request.getName())) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_NAME_EXIST);
         }
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertCreateRequest(request);
         creativeSchemeMapper.insert(scheme);
+        // 返回创作方案UID
+        return scheme.getUid();
     }
 
     /**
@@ -374,7 +376,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 请求
      */
     @Override
-    public void copy(UidRequest request) {
+    public String copy(UidRequest request) {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(request.getUid());
         AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
 
@@ -392,6 +394,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         scheme.setUpdateTime(LocalDateTime.now());
         scheme.setDeleted(Boolean.FALSE);
         creativeSchemeMapper.insert(scheme);
+        // 返回创作方案UID
+        return scheme.getUid();
     }
 
     /**
@@ -400,7 +404,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param request 创作方案请求
      */
     @Override
-    public void modify(CreativeSchemeModifyReqVO request) {
+    public String modify(CreativeSchemeModifyReqVO request) {
         handlerAndValidate(request);
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(request.getUid());
         AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
@@ -411,6 +415,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertModifyRequest(request);
         scheme.setId(creativeScheme.getId());
         creativeSchemeMapper.updateById(scheme);
+        // 返回创作方案UID
+        return scheme.getUid();
     }
 
     /**
