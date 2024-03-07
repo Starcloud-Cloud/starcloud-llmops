@@ -107,7 +107,7 @@ public class PayNotifyServiceImpl implements PayNotifyService {
     private SmsSendApi smsSendApi;
 
     // @Resource
-    // private AdminUserApi adminUserApi;
+    // private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -443,7 +443,12 @@ public class PayNotifyServiceImpl implements PayNotifyService {
             // AdminUserRespDTO user = adminUserApi.getUser(userId);
 
             Map<String, Object> templateParams = new HashMap<>();
-
+            // String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+            //
+            // //
+            // // couponTemplateApi.getCouponTemplate(1L);
+            //
+            // templateParams.put("environmentName", environmentName);
             templateParams.put("notifyType", notifyType + "异常");
             templateParams.put("payId", payId);
             templateParams.put("tradeId", tradeId);

@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateDeptReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUserDeptReqVO;
@@ -150,7 +151,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             }
 
             AdminUserLevelDetailRespVO userLevelDetailRespVO = adminUserLevelService.getLevelList(superUser.get().getUserId()).get(0);
-            Integer usableTeamUsers = Optional.ofNullable(userLevelDetailRespVO).map(AdminUserLevelDetailRespVO::getLevelConfig).map(AdminUserLevelDetailRespVO.LevelConfig::getUsableTeamUsers).orElse(1);
+            Integer usableTeamUsers = Optional.ofNullable(userLevelDetailRespVO).map(AdminUserLevelDetailRespVO::getLevelConfigDTO).map(LevelConfigDTO::getUsableTeamUsers).orElse(1);
             if (usableTeamUsers <= userDeptDOS.size()) {
                 throw exception(DEPT_IS_FULL, usableTeamUsers);
             }
@@ -326,7 +327,7 @@ public class UserDeptServiceImpl implements UserDeptService {
 
     private void validDeptNum(Long userId) {
         AdminUserLevelDetailRespVO userLevelDetailRespVO = adminUserLevelService.getLevelList(userId).get(0);
-        Integer usableTeams = Optional.ofNullable(userLevelDetailRespVO).map(AdminUserLevelDetailRespVO::getLevelConfig).map(AdminUserLevelDetailRespVO.LevelConfig::getUsableTeams).orElse(1);
+        Integer usableTeams = Optional.ofNullable(userLevelDetailRespVO).map(AdminUserLevelDetailRespVO::getLevelConfigDTO).map(LevelConfigDTO::getUsableTeams).orElse(1);
         List<UserDeptDO> userDepts = userDeptMapper.selectByUserId(WebFrameworkUtils.getLoginUserId());
         if (usableTeams <= userDepts.size()) {
             throw exception(TOO_MANY_DEPT_NUM, usableTeams);

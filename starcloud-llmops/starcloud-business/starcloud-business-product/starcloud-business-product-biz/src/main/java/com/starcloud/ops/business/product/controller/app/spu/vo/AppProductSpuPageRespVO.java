@@ -112,7 +112,10 @@ public class AppProductSpuPageRespVO {
          * 商品签约配置
          */
         @Schema(description = "订阅信息", example = "1024") // 单位：m^3 平米
-        private com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO subscribeConfig;
+        private SubscribeConfigDTO subscribeConfig;
+
+        @Schema(description = "活动详情", example = "活动详情") // 单位：m^3 平米
+        private String activeData;
 
     }
 

@@ -16,6 +16,7 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
@@ -177,7 +178,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
                     .setLevelName(level.getLevelName())
                     .setBizType(level.getBizType());
             adminUserLevelDetailRespVO.setSort(levelConfig.getSort())
-                    .setLevelConfig(BeanUtil.toBean(levelConfig.getLevelConfig(), AdminUserLevelDetailRespVO.LevelConfig.class));
+                    .setLevelConfigDTO(BeanUtil.toBean(levelConfig.getLevelConfig(), LevelConfigDTO.class));
 
             adminUserLevelDetailRespVOS.add(adminUserLevelDetailRespVO);
         }
