@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.common.core.IntArrayValuable;
 
 import java.util.function.Function;
 
-import com.starcloud.ops.business.user.api.level.dto.LevelConfig;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,8 +16,8 @@ import lombok.Getter;
 public enum LevelRightsLimitEnums implements IntArrayValuable {
 
 
-    LISTING_QUERY("listing_query", LevelConfig::getListingQuery, "Listing 查询"),
-    QUICK_PUBLISH_COUNT("quick_publish_count", LevelConfig::getQuickPublishCount, "一键发布"),
+    LISTING_QUERY("listing_query", LevelConfigDTO::getListingQuery, "Listing 查询"),
+    QUICK_PUBLISH_COUNT("quick_publish_count", LevelConfigDTO::getQuickPublishCount, "一键发布"),
     ;
 
     /**
@@ -25,7 +25,7 @@ public enum LevelRightsLimitEnums implements IntArrayValuable {
      */
     private final String redisKey;
 
-    private final Function<LevelConfig, Object> extractor;
+    private final Function<LevelConfigDTO, Object> extractor;
     /**
      * 描述
      */
