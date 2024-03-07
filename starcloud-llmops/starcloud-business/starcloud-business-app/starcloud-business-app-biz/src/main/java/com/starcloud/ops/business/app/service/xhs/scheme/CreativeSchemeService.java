@@ -89,21 +89,21 @@ public interface CreativeSchemeService {
      *
      * @param request 创作方案请求
      */
-    void create(CreativeSchemeReqVO request);
+    String create(CreativeSchemeReqVO request);
 
     /**
      * 复制创作方案
      *
      * @param request 请求
      */
-    void copy(UidRequest request);
+    String copy(UidRequest request);
 
     /**
      * 修改创作方案
      *
      * @param request 创作方案请求
      */
-    void modify(CreativeSchemeModifyReqVO request);
+    String modify(CreativeSchemeModifyReqVO request);
 
     /**
      * 删除创作方案
