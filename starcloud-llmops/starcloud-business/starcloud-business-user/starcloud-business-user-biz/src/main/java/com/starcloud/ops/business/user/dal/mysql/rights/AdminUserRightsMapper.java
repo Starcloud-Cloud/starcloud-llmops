@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.user.dal.mysql.rights;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
@@ -8,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -33,9 +32,10 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .orderByDesc(AdminUserRightsDO::getId));
     }
 
-    default PageResult<AdminUserRightsDO> selectPage(Long userId, PageParam pageVO) {
+    default PageResult<AdminUserRightsDO> selectPage(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         return selectPage(pageVO, new LambdaQueryWrapperX<AdminUserRightsDO>()
-                .eq(AdminUserRightsDO::getUserId, userId)
+                .eqIfPresent(AdminUserRightsDO::getBizId, pageVO.getBizId())
+                .eqIfPresent(AdminUserRightsDO::getUserId, userId)
                 .orderByDesc(AdminUserRightsDO::getId));
     }
 
