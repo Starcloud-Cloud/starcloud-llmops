@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
@@ -455,6 +456,29 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 生成图片的数量
+     *
+     * @return VariableItemRespVO
+     */
+    public static VariableItemRespVO defPosterModeVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.POSTER_MODE);
+        variableItem.setLabel("海报生成模式");
+        variableItem.setDescription("海报生成模式");
+        variableItem.setDefaultValue(PosterModeEnum.RANDOM.name());
+        variableItem.setValue(PosterModeEnum.RANDOM.name());
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.addOption(PosterModeEnum.RANDOM.getLabel(), PosterModeEnum.RANDOM.name());
+        variableItem.addOption(PosterModeEnum.SEQUENCE.getLabel(), PosterModeEnum.SEQUENCE.name());
+        return variableItem;
+    }
+
+    /**
      * 海报风格变量
      *
      * @return 参考内容变量
@@ -467,6 +491,27 @@ public class RecommendVariableItemFactory {
         variableItem.setDefaultValue("{}");
         variableItem.setValue("{}");
         variableItem.setOrder(2);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 海报风格变量
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defPosterStyleConfigVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.POSTER_STYLE_CONFIG);
+        variableItem.setLabel("海报风格配置");
+        variableItem.setDescription("海报风格配置");
+        variableItem.setDefaultValue("[]");
+        variableItem.setValue("[]");
+        variableItem.setOrder(3);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());

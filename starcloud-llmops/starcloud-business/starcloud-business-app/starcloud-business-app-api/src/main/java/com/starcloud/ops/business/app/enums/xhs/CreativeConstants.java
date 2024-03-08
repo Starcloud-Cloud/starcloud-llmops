@@ -33,14 +33,19 @@ public interface CreativeConstants {
     String REQUIREMENT = "REQUIREMENT";
 
     /**
+     * 海报生成模式
+     */
+    String POSTER_MODE = "POSTER_MODE";
+
+    /**
      * 海报风格
      */
     String POSTER_STYLE = "POSTER_STYLE";
 
     /**
-     * 海报风格
+     * 海报生成模式
      */
-    String POSTER_MODE = "POSTER_MODE";
+    String POSTER_STYLE_CONFIG = "POSTER_STYLE_CONFIG";
 
     /**
      * 标题

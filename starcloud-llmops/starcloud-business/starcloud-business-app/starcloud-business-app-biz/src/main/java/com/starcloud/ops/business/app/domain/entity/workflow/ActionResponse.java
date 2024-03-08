@@ -57,7 +57,9 @@ public class ActionResponse {
      */
     private String answer;
 
-
+    /**
+     * 返回数据
+     */
     private JsonData output;
 
     /**

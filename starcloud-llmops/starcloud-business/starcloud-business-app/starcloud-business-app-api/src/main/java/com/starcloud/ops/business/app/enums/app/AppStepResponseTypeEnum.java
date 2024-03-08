@@ -10,6 +10,7 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
+@Getter
 public enum AppStepResponseTypeEnum implements IEnumable<Integer> {
 
     /**
@@ -23,30 +24,33 @@ public enum AppStepResponseTypeEnum implements IEnumable<Integer> {
     ARRAY(1, "数组类型"),
 
     /**
+     * JSON类型
+     */
+    JSON(2, "JSON类型"),
+
+    /**
      * 跳转类型
      */
-    REDIRECT(2, "跳转类型"),
+    REDIRECT(3, "跳转类型"),
 
     /**
      * 复制类型
      */
-    COPY(3, "复制类型"),
+    COPY(4, "复制类型"),
 
     /**
      * 弹窗类型
      */
-    DIALOG(4, "弹窗类型");
+    DIALOG(5, "弹窗类型");
 
     /**
      * 步骤返回类型Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 步骤返回类型说明
      */
-    @Getter
     private final String label;
 
     /**
