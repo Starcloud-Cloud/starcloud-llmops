@@ -346,6 +346,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             case MAGIC_BEAN:
                 validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
                 break;
+
+            case MATRIX_BEAN:
+                validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMatrixBean).sum();
+                break;
         }
         if (Objects.isNull(rightAmount) || rightAmount == 0) {
             return validSum > 0;
@@ -413,6 +417,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
             if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MATRIX_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH);
             }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
 
