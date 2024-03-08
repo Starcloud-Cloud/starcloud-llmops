@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -10,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +50,7 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_MODE, this.mode));
+        stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE_CONFIG, this.styleList));
     }
 
     /**
@@ -60,9 +63,13 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
         VariableItemRespVO modeVariable = stepWrapper.getVariable(CreativeConstants.POSTER_MODE);
         this.mode = String.valueOf(Optional.ofNullable(modeVariable).map(VariableItemRespVO::getValue).orElse(PosterModeEnum.RANDOM.name()));
 
-//        VariableItemRespVO variable = stepWrapper.getVariable(CreativeConstants.POSTER_STYLE);
-//        String styles = String.valueOf(Optional.ofNullable(variable).map(VariableItemRespVO::getValue).orElse("[]"));
-//        styles = StringUtil.isBlank(styles) ? "[]" : styles;
-        this.styleList = Collections.singletonList(PosterStyleEntity.ofOne());
+        VariableItemRespVO styleVariable = stepWrapper.getVariable(CreativeConstants.POSTER_STYLE_CONFIG);
+        String posterStyleConfig = String.valueOf(Optional.ofNullable(styleVariable).map(VariableItemRespVO::getValue).orElse(StringUtils.EMPTY));
+        if (StringUtils.isBlank(posterStyleConfig) || "[]".equals(posterStyleConfig) || "null".equals(posterStyleConfig)) {
+            this.styleList = Collections.singletonList(PosterStyleEntity.ofOne());
+        } else {
+            this.styleList = JSONUtil.toList(posterStyleConfig, PosterStyleEntity.class);
+        }
+
     }
 }

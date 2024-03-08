@@ -23,7 +23,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @Order(UserRegisterHandler.USER_REGISTER_RIGHTS)
-public class UserRegisterRightsHandler implements UserRegisterHandler{
+public class UserRegisterRightsHandler implements UserRegisterHandler {
 
 
     @Resource
@@ -31,7 +31,7 @@ public class UserRegisterRightsHandler implements UserRegisterHandler{
 
 
     @Resource
-    private    CouponApi couponApi;
+    private CouponApi couponApi;
 
     @Resource
     private SendSocialMsgService sendSocialMsgService;
@@ -48,16 +48,16 @@ public class UserRegisterRightsHandler implements UserRegisterHandler{
 
         AdminUserRightsBizTypeEnum rightsBizTypeEnum;
         // 邀请人为空
-        if (Objects.isNull(inviteUserDO)){
+        if (Objects.isNull(inviteUserDO)) {
             rightsBizTypeEnum = AdminUserRightsBizTypeEnum.REGISTER;
-        }else {
+        } else {
             rightsBizTypeEnum = AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER;
         }
 
         Long tenantId = TenantContextHolder.getTenantId();
         AddRightsDTO newUserRightsDTO;
-        if (tenantId ==3){
-             newUserRightsDTO = new AddRightsDTO()
+        if (tenantId == 3) {
+            newUserRightsDTO = new AddRightsDTO()
                     .setUserId(adminUserDO.getId())
                     .setMagicBean(99999)
                     .setMagicImage(99999)
@@ -67,8 +67,8 @@ public class UserRegisterRightsHandler implements UserRegisterHandler{
                     .setBizId(String.valueOf(adminUserDO.getId()))
                     .setBizType(rightsBizTypeEnum.getType())
                     .setLevelId(null);
-        }else {
-             newUserRightsDTO = new AddRightsDTO()
+        } else {
+            newUserRightsDTO = new AddRightsDTO()
                     .setUserId(adminUserDO.getId())
                     .setMagicBean(rightsBizTypeEnum.getMagicBean())
                     .setMagicImage(rightsBizTypeEnum.getMagicImage())
