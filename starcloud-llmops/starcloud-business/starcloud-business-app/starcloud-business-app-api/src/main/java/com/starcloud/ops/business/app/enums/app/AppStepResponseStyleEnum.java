@@ -31,22 +31,22 @@ public enum AppStepResponseStyleEnum implements IEnumable<Integer> {
     /**
      * 图片样式
      */
-    IMAGE(2, "图片样式"),
+    IMAGE(3, "图片样式"),
 
     /**
      * Base64图片样式
      */
-    BASE64(3, "Base64样式"),
+    BASE64(4, "Base64样式"),
 
     /**
      * 按钮样式
      */
-    BUTTON(4, "按钮样式"),
+    BUTTON(5, "按钮样式"),
 
     /**
      * 商品样式
      */
-    PRODUCT(5, "商品样式");
+    PRODUCT(6, "商品样式");
 
     /**
      * 步骤返回样式Code
