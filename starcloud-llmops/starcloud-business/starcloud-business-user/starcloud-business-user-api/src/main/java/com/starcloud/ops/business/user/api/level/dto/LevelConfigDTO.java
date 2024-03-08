@@ -74,11 +74,16 @@ public class LevelConfigDTO {
     //  */
     // private Integer quickPublishCountTimeRange;
 
-
+    //账号管理数量
     private Integer accountManagementCount;
+//账号分组数量
 
     private Integer accountGroupingCount;
 
+    ////每次发布账号数上限
     private Integer maxAccountsPerPublish;
+
+    //  AI 创作生成数量
+    private Integer aiCreationCount;
 
 }
