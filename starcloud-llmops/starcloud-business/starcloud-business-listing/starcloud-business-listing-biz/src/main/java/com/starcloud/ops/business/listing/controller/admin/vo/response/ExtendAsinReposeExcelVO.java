@@ -20,8 +20,6 @@ public class ExtendAsinReposeExcelVO {
 
     @ExcelProperty("预估周曝光量")
     private Double calculatedWeeklySearches;
-
-
     /**
      * 相关 ASIN
      */
@@ -78,19 +76,19 @@ public class ExtendAsinReposeExcelVO {
     private Double top3ConversionRate;
 
 
-    @ExcelProperty("PPC 竞价")
+    @ExcelProperty("PPC竞价")
     private Double bid;
     /**
      * PPC 竞价 范围最小值
      */
-    @ExcelProperty("PPC 竞价 范围最小值")
+    @ExcelProperty("PPC竞价范围")
     private String bidRate;
 
-    /**
-     * PPC 竞价 范围最大值
-     */
-    @ExcelProperty("PPC 竞价 范围最大值")
-    private Double bidMax;
+    // /**
+    //  * PPC 竞价 范围最大值
+    //  */
+    // @ExcelProperty("PPC 竞价 范围最大值")
+    // private Double bidMax;
 
     /**
      * 搜索流量词
