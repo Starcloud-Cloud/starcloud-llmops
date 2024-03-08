@@ -191,6 +191,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         if (magicImage > 0) {
             adminUserRightsRecordService.createRightsRecord(userId, null, null, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
+        if (matrixBean > 0) {
+            adminUserRightsRecordService.createRightsRecord(userId, null, null, matrixBean, AdminUserRightsTypeEnum.MATRIX_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
+
 
 
     }
@@ -567,6 +571,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             case MAGIC_BEAN:
                 getter = AdminUserRightsDO::getMagicBean;
                 setter = AdminUserRightsDO::setMagicBean;
+                break;
+            case MATRIX_BEAN:
+                getter = AdminUserRightsDO::getMatrixBean;
+                setter = AdminUserRightsDO::setMatrixBean;
                 break;
         }
 
