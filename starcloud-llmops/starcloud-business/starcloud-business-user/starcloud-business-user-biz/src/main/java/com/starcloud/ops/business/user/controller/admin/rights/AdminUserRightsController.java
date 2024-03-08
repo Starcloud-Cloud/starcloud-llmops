@@ -102,28 +102,6 @@ public class AdminUserRightsController {
         return success(Boolean.TRUE);
     }
 
-//    @GetMapping("/u/page")
-//    @Operation(summary = "系统会员-权益过期提醒")
-//    @PreAuthenticated
-//    public CommonResult<PageResult<AppAdminUserRightsRespVO>> getPointRecordPage(@Valid PageParam pageVO) {
-//        PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(getLoginUserId(), pageVO);
-//        return success(AdminUserRightsConvert.INSTANCE.convertPage02(pageResult));
-//    }
 
-
-
-//    @PostMapping("/expendBenefits")
-//    @Operation(summary = "权益扣减测试")
-//    @Deprecated
-//    public CommonResult<Boolean> expendBenefits(String benefitsType, Long amount, Long userId, String outId) {
-//        userBenefitsService.expendBenefits(benefitsType, amount, userId, outId);
-//        return success(true);
-//    }
-//
-//    @PostMapping("/expiredReminder")
-//    @Operation(summary = "权益过期提醒")
-//    public CommonResult<ExpiredReminderVO> expiredReminder() {
-//        return success(userBenefitsService.getBenefitsExpired());
-//    }
 
 }
