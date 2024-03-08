@@ -89,7 +89,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      * 获取权益数据汇总
      *
      * @param userId 用户编号
-     * @return
      */
     @Override
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
@@ -346,7 +345,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             case MAGIC_BEAN:
                 validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
                 break;
-
             case MATRIX_BEAN:
                 validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMatrixBean).sum();
                 break;
@@ -401,7 +399,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     /**
      * 权益扣减
      *
-     * @param reduceRightsDTO
+     * @param reduceRightsDTO 权益扣减 DTO
      */
     @Override
     public void reduceRights(ReduceRightsDTO reduceRightsDTO) {
@@ -451,7 +449,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = new NotifyExpiringRightsRespVO();
         notifyExpiringRightsRespVO.setIsNotify(false);
 
-        LocalDateTime today = LocalDateTime.now();
         // LocalDateTime nextWeek = today.plusDays(7);
         // 获取有效的魔法豆
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, AdminUserRightsTypeEnum.MAGIC_BEAN);
@@ -498,7 +495,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     }
 
     /**
-     * @param rightsDO
+     * @param rightsDO 权益 DO
      */
     @Override
     public void expireRightsBySystem(AdminUserRightsDO rightsDO) {
@@ -515,7 +512,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      *
      * @param userId     用户 ID
      * @param rightsType 权益类型 如果为空 查询所有有效数据
-     * @return
+     * @return List<AdminUserRightsDO>
      */
     private List<AdminUserRightsDO> getValidAndCountableRightsList(Long userId, AdminUserRightsTypeEnum rightsType) {
         LocalDateTime now = LocalDateTime.now();
