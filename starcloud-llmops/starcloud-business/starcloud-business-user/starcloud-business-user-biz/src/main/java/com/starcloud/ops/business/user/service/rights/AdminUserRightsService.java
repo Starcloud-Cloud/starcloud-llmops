@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.user.service.rights;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -36,7 +36,7 @@ public interface AdminUserRightsService {
      * @param pageVO 分页查询
      * @return 签到记录分页
      */
-    PageResult<AdminUserRightsDO> getRightsPage(Long userId, PageParam pageVO);
+    PageResult<AdminUserRightsDO> getRightsPage(Long userId, AppAdminUserRightsPageReqVO pageVO);
 
     /**
      * 获取权益数据汇总
