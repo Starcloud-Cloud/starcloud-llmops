@@ -99,7 +99,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private final static String SELLER_SPRITE_ACCOUNT = "SELLER_SPRITE_ACCOUNT";
 
 
-
     /**
      * 获取可查询时间
      */
@@ -219,17 +218,22 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         }
         // 遍历账号池
         cookies.forEach(cookie -> {
-            // 判断当前 cookie 是否过期
-            if (!checkCookieIsEnable(cookie.getRemark())) {
-                updateSellStripeCookie(cookie);
-            }
 
             long maxNums = RandomUtil.randomLong(6) + 6;
             long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
+
+            //更新时间 过期就直接刷新cookie
             if (between >= maxNums) {
                 updateSellStripeCookie(cookie);
+            } else {
+
+                // API判断当前 cookie 是否过期
+                if (!checkCookieIsEnable(cookie.getRemark())) {
+                    updateSellStripeCookie(cookie);
+                }
             }
-            if (CollUtil.isNotEmpty(cookieList)){
+
+            if (CollUtil.isNotEmpty(cookieList)) {
                 sendLoginSuccessMessage(cookie.getValue());
             }
 
@@ -449,7 +453,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             log.error("卖家精灵登录成功，通知信息发送失败", e);
         }
     }
-
 
 
     /**
