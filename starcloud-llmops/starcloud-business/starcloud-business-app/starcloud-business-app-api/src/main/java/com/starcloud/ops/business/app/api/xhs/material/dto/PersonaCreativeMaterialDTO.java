@@ -18,7 +18,12 @@ public class PersonaCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
     private String sceneryImageUrl;
 
     @Override
-    String generateContent() {
+    public String generateContent() {
         return StrUtil.EMPTY;
+    }
+
+    @Override
+    public void valid() {
+
     }
 }
