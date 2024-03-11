@@ -297,7 +297,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             try {
                 String requestResult = HttpRequest.post(url).cookie(data.getRemark())
                         .body(requestData)
-                        .timeout(10000)
+                        .timeout(15000)
                         .execute().body();
                 JSONObject entries = JSONUtil.parseObj(requestResult);
                 if (!requestResult.isEmpty() && entries.getBool("success", false)) {
