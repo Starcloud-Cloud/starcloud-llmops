@@ -253,12 +253,31 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         // 取出对应账号
         DictDataDO account = dictDataService.getDictData(SELLER_SPRITE_ACCOUNT, cookie.getValue());
         JSONObject accountJson = JSONUtil.parseObj(account.getRemark());
-        String cookieData = getCookie(accountJson.getStr("userName"), accountJson.getStr("pwd"));
-        if (Objects.nonNull(cookieData)) {
-            updateReqVO.setRemark(cookieData);
-            dictDataService.updateDictData(updateReqVO);
-            log.info("卖家精灵账号更新成功，当前账号为{}", account.getValue());
+
+        String userName = accountJson.getStr("userName");
+
+        try {
+
+            String cookieData = getCookie(userName, accountJson.getStr("pwd"));
+            if (Objects.nonNull(cookieData)) {
+                updateReqVO.setRemark(cookieData);
+                dictDataService.updateDictData(updateReqVO);
+                log.info("卖家精灵账号更新成功，当前账号为{}", account.getValue());
+            } else {
+
+                log.error("卖家精灵账号登录失败:{}", userName);
+
+                sendLoginFailMessage(userName);
+            }
+
+        } catch (Exception e) {
+
+            log.error("卖家精灵账号登录异常:{} {}", userName, e.getMessage(), e);
+
+            sendLoginFailMessage(userName);
         }
+
+
     }
 
 
@@ -389,26 +408,16 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         map.put("pwd", pwd);
 
         String cookie;
-        try {
-            String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
-            JSONObject entries = JSONUtil.parseObj(result);
-            if (!entries.getBool("success") && !(Boolean) entries.get("success")) {
-                cookie = null;
-                sendLoginFailMessage(userName);
-            } else {
-                cookie = JSONUtil.toJsonStr(entries.get("data").toString());
-            }
+        String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
+        JSONObject entries = JSONUtil.parseObj(result);
 
-        } catch (RuntimeException e) {
-            log.error("卖家精灵账号登录失败");
+        if (!entries.getBool("success") && !(Boolean) entries.get("success")) {
             cookie = null;
+
+        } else {
+            cookie = JSONUtil.toJsonStr(entries.get("data").toString());
         }
 
-        if (StrUtil.isBlank(cookie)) {
-            // 发送报警
-            sendLoginFailMessage(userName);
-            return null;
-        }
         return cookie;
     }
 
