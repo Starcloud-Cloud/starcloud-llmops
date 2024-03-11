@@ -2,11 +2,13 @@ package com.starcloud.ops.business.app.api.xhs.plan.dto;
 
 import cn.hutool.core.lang.Assert;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.util.CollectionUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -40,6 +42,9 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     @Schema(description = "上传图片地址列表")
     private List<String> imageUrlList;
 
+    @Schema(description = "素材列表")
+    private List<AbstractBaseCreativeMaterialDTO> creativeMaterialList;
+
     /**
      * 变量列表
      */
@@ -51,6 +56,10 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
      */
     public void validate() {
         Assert.notBlank(this.schemeUid, "创作方案不能为空！");
+        // 校验素材
+        if (CollectionUtils.isEmpty(creativeMaterialList)) {
+            creativeMaterialList.forEach(AbstractBaseCreativeMaterialDTO::valid);
+        }
     }
 
 }
