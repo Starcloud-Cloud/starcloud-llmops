@@ -267,14 +267,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
                 log.error("卖家精灵账号登录失败:{}", userName);
 
-                sendLoginFailMessage(userName);
+                sendLoginFailMessage(userName, "登录失败");
             }
 
         } catch (Exception e) {
 
             log.error("卖家精灵账号登录异常:{} {}", userName, e.getMessage(), e);
 
-            sendLoginFailMessage(userName);
+            sendLoginFailMessage(userName, "登录异常: " + e.getMessage());
         }
 
 
@@ -297,6 +297,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             try {
                 String requestResult = HttpRequest.post(url).cookie(data.getRemark())
                         .body(requestData)
+                        .timeout(10000)
                         .execute().body();
                 JSONObject entries = JSONUtil.parseObj(requestResult);
                 if (!requestResult.isEmpty() && entries.getBool("success", false)) {
@@ -308,14 +309,16 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                     tag++;
                     self.executeCookieUpdateAsync(data);
                 } else {
-                    tag++;
+
                     log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
                 }
             } catch (Exception e) {
-                tag++;
+
                 log.error("卖家精灵未知问题: ", e); // 记录异常信息
             }
         }
+
+        //只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
         if (StrUtil.isBlank(result) && tag >= cookies.size()) {
             this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
@@ -426,13 +429,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 发送登录失败消息
      */
     @TenantIgnore
-    private void sendLoginFailMessage(String account) {
+    private void sendLoginFailMessage(String account, String error) {
         log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
             templateParams.put("environmentName", environmentName);
             templateParams.put("account", account);
+            templateParams.put("error", error);
             templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
