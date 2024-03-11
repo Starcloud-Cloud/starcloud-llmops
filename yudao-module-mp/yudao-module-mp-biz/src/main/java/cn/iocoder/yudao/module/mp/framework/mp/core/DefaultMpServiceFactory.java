@@ -124,20 +124,6 @@ public class DefaultMpServiceFactory implements MpServiceFactory {
         return service;
     }
 
-    public static void main(String[] args) throws WxErrorException {
-        WxMpDefaultConfigImpl configStorage = new WxMpDefaultConfigImpl();
-        configStorage.setAppId("wxb65ca2d31b32e362");
-        configStorage.setSecret("35775009bbebf626e7aaa53c940ca5de");
-        configStorage.setToken("mofaaimofaai");
-        configStorage.setAesKey("bueGX2gieRZNeTlfnTHJ25IvBiug22o47flMuz0bBjZ");
-        WxMpService service = new WxMpServiceImpl();
-        service.setWxMpConfigStorage(configStorage);
-
-
-        WxMpGetSelfMenuInfoResult selfMenuInfo = service.getMenuService().getSelfMenuInfo();
-        System.out.println(selfMenuInfo);
-    }
-
 
     private WxMpMessageRouter buildMpMessageRouter(WxMpService mpService) {
         WxMpMessageRouter router = new WxMpMessageRouter(mpService);
