@@ -128,7 +128,7 @@ public class CreativeSchemeController {
         return CommonResult.success(true);
     }
 
-    @DeleteMapping("/options")
+    @GetMapping("/options")
     @Operation(summary = "删除创作方案", description = "删除创作方案")
     @ApiOperationSupport(order = 110, author = "nacoyer")
     public CommonResult<List<CreativeOptionDTO>> options(@RequestParam("appUid") String appUid) {
