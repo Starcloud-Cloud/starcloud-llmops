@@ -192,7 +192,6 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * @return
      */
     @Override
-    // @RightsLimit(value= LevelRightsLimitEnums.LISTING_QUERY,info = "111111111")
     public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
         Assert.notNull(prepareRequestDTO, "根据 ASIN获取变体失败，请求对象不可为空");
         return sellerSpriteService.extendPrepare(prepareRequestDTO);
