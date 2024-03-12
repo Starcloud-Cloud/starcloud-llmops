@@ -82,6 +82,7 @@ public interface AppConvert {
         app.setName(appEntity.getName());
         app.setModel(appEntity.getModel());
         app.setType(appEntity.getType());
+        app.setMaterialType(appEntity.getMaterialType());
         app.setSource(appEntity.getSource());
         app.setSort(appEntity.getSort());
         app.setCategory(appEntity.getCategory());
@@ -152,6 +153,7 @@ public interface AppConvert {
         appEntity.setName(app.getName());
         appEntity.setModel(app.getModel());
         appEntity.setType(app.getType());
+        appEntity.setMaterialType(app.getMaterialType());
         appEntity.setSource(app.getSource());
         appEntity.setSort(app.getSort());
         appEntity.setCategory(app.getCategory());
@@ -194,6 +196,7 @@ public interface AppConvert {
         appEntity.setName(respVO.getName());
         appEntity.setModel(respVO.getModel());
         appEntity.setType(respVO.getType());
+        appEntity.setMaterialType(respVO.getMaterialType());
         appEntity.setSource(respVO.getSource());
         appEntity.setSort(respVO.getSort());
         appEntity.setCategory(respVO.getCategory());
@@ -248,6 +251,7 @@ public interface AppConvert {
         appResponse.setSpellSimple(PinyinCache.getSimple(app.getName()));
         appResponse.setModel(app.getModel());
         appResponse.setType(app.getType());
+        appResponse.setMaterialType(app.getMaterialType());
         appResponse.setSource(app.getSource());
         appResponse.setSort(app.getSort());
         appResponse.setCategory(app.getCategory());
@@ -335,6 +339,7 @@ public interface AppConvert {
         appRespVO.setName(appEntity.getName());
         appRespVO.setModel(appEntity.getModel());
         appRespVO.setType(appEntity.getType());
+        appRespVO.setMaterialType(appEntity.getMaterialType());
         appRespVO.setSource(appEntity.getSource());
         appRespVO.setSort(appEntity.getSort());
         appRespVO.setCategory(appEntity.getCategory());

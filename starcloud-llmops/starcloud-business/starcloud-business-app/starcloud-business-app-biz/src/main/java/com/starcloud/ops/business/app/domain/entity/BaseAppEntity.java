@@ -104,6 +104,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String type;
 
     /**
+     * 资料类型
+     */
+    private String materialType;
+
+    /**
      * 应用来源类型：表示应用的是从那个平台创建，或者下载的。
      */
     private String source;

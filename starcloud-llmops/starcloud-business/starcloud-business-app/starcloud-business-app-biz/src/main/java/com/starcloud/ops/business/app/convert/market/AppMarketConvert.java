@@ -29,6 +29,7 @@ import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import scala.App;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -78,6 +79,7 @@ public interface AppMarketConvert {
         appMarket.setUid(appMarketEntity.getUid());
         appMarket.setName(appMarketEntity.getName());
         appMarket.setType(appMarketEntity.getType());
+        appMarket.setMaterialType(appMarketEntity.getMaterialType());
         appMarket.setModel(appMarketEntity.getModel());
         appMarket.setVersion(appMarketEntity.getVersion());
         appMarket.setLanguage(appMarketEntity.getLanguage());
@@ -139,6 +141,7 @@ public interface AppMarketConvert {
         appMarketEntity.setName(app.getName());
         appMarketEntity.setModel(app.getModel());
         appMarketEntity.setType(appPublish.getType());
+        appMarketEntity.setMaterialType(appPublish.getMaterialType());
         appMarketEntity.setVersion(appPublish.getVersion());
         appMarketEntity.setLanguage(appPublish.getLanguage());
         appMarketEntity.setSort(appPublish.getSort());
@@ -181,6 +184,7 @@ public interface AppMarketConvert {
         appMarketEntity.setUid(appMarket.getUid());
         appMarketEntity.setName(appMarket.getName());
         appMarketEntity.setType(appMarket.getType());
+        appMarketEntity.setMaterialType(appMarket.getMaterialType());
         appMarketEntity.setModel(appMarket.getModel());
         appMarketEntity.setVersion(appMarket.getVersion());
         appMarketEntity.setLanguage(appMarket.getLanguage());
@@ -247,6 +251,7 @@ public interface AppMarketConvert {
         appMarketResponse.setSpell(PinyinCache.get(appMarket.getName()));
         appMarketResponse.setSpellSimple(PinyinCache.getSimple(appMarket.getName()));
         appMarketResponse.setType(appMarket.getType());
+        appMarketResponse.setMaterialType(appMarket.getMaterialType());
         appMarketResponse.setModel(appMarket.getModel());
         appMarketResponse.setVersion(appMarket.getVersion());
         appMarketResponse.setLanguage(appMarket.getLanguage());

@@ -59,6 +59,12 @@ public class AppDO extends TenantBaseDO {
     private String type;
 
     /**
+     * 资料类型
+     */
+    @TableField("material_type")
+    private String materialType;
+
+    /**
      * 应用来源类型：表示应用的是从那个平台创建，或者下载的。
      */
     @TableField("source")

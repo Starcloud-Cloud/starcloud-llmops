@@ -58,6 +58,12 @@ public class AppPublishLatestRespVO implements Serializable {
     private String type;
 
     /**
+     * 资料类型
+     */
+    @Schema(description = "资料类型")
+    private String materialType;
+
+    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @Schema(description = "应用模型")
