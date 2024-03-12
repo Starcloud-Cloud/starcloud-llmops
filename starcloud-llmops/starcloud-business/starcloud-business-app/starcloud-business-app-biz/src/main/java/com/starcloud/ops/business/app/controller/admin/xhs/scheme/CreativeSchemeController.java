@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -124,6 +126,13 @@ public class CreativeSchemeController {
     public CommonResult<Boolean> delete(@PathVariable String uid) {
         creativeSchemeService.delete(uid);
         return CommonResult.success(true);
+    }
+
+    @DeleteMapping("/options")
+    @Operation(summary = "删除创作方案", description = "删除创作方案")
+    @ApiOperationSupport(order = 110, author = "nacoyer")
+    public CommonResult<List<CreativeOptionDTO>> options(@RequestParam("appUid") String appUid) {
+        return CommonResult.success(creativeSchemeService.options(appUid));
     }
 
     @PostMapping(value = "/example")

@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.params;
 
-import cn.hutool.json.JSONUtil;
-import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -10,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
+@NoArgsConstructor
 public class JsonData extends BaseDataEntity {
 
     /**
@@ -23,16 +23,13 @@ public class JsonData extends BaseDataEntity {
     private String jsonSchema;
 
     /**
-     * 校验jsonSchema
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
      */
-    public void validateJsonSchema() {
-        JsonSchemaUtils.validate(this.jsonSchema);
-    }
-
     public static JsonData of(Object data) {
-
         JsonData jsonData = new JsonData();
-
         jsonData.setData(data);
         return jsonData;
     }
