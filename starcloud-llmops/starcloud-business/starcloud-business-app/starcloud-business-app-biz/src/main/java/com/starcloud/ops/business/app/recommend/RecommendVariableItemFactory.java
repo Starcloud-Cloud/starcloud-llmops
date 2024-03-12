@@ -456,6 +456,48 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 拼接标题
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defMediaMatrixTitle() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.TITLE);
+        variableItem.setLabel("标题");
+        variableItem.setDescription("标题");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(105);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 拼接内容
+     *
+     * @return 参考内容变量
+     */
+    public static VariableItemRespVO defMediaMatrixContent() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.CONTENT);
+        variableItem.setLabel("内容");
+        variableItem.setDescription("内容");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(104);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
      * 生成图片的数量
      *
      * @return VariableItemRespVO

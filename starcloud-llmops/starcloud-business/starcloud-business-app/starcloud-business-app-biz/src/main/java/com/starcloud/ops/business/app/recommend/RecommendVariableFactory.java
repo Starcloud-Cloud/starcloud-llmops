@@ -140,7 +140,10 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defAssembleVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(RecommendVariableItemFactory.defMediaMatrixRequirement()));
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMediaMatrixTitle(),
+                RecommendVariableItemFactory.defMediaMatrixContent()
+        ));
         return variable;
     }
 

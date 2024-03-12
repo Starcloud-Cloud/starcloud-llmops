@@ -9,6 +9,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -68,10 +69,15 @@ public class AssembleActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
         // 获取所有上游信息
         final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        // 获取到参考文案
-        String assemble = (String) params.get(CreativeConstants.REQUIREMENT);
+        // 获取到参考文案标题
+        String title = (String) params.get(CreativeConstants.TITLE);
+        // 获取到参考文案内容
+        String content = (String) params.get(CreativeConstants.CONTENT);
+        CopyWritingContentDTO copyWriting = new CopyWritingContentDTO();
+        copyWriting.setTitle(title);
+        copyWriting.setContent(content);
         // 转换响应结果
-        ActionResponse response = convert(assemble);
+        ActionResponse response = convert(copyWriting);
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
@@ -85,11 +91,13 @@ public class AssembleActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(String assemble) {
+    private ActionResponse convert(CopyWritingContentDTO copyWriting) {
+        StringBuilder assemble = new StringBuilder();
+        assemble.append(copyWriting.getTitle()).append("\n").append(copyWriting.getContent());
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
-        actionResponse.setAnswer(assemble);
-        actionResponse.setOutput(JsonData.of(assemble));
+        actionResponse.setAnswer(assemble.toString());
+        actionResponse.setOutput(JsonData.of(copyWriting));
         actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
         actionResponse.setMessageTokens(0L);

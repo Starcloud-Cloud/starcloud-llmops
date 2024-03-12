@@ -49,9 +49,11 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
@@ -451,8 +453,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<CreativeOptionDTO> optionList = new ArrayList<>();
 
         AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
-        List<WorkflowStepWrapperRespVO> stepWrapperResponseList = Optional.ofNullable(appMarketResponse)
-                .map(AppMarketRespVO::getWorkflowConfig)
+        // 判断应用类型是否为媒体矩阵
+        if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarketResponse.getType())) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
+        }
+        List<WorkflowStepWrapperRespVO> stepWrapperResponseList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
                 .map(WorkflowConfigRespVO::getSteps)
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
 
@@ -488,6 +493,30 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
 
         // 2.素材处理
+        String materialType = appMarketResponse.getMaterialType();
+        MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
+        if (materialTypeEnum == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MATERIAL_TYPE_NONSUPPORT);
+        }
+
+        // 媒体矩阵应用的素材类型
+        CreativeOptionDTO materialTypeOption = JsonSchemaUtils.jsonSchemaToOptions(
+                materialTypeEnum.getAClass(),
+                CreativeOptionModelEnum.MATERIAL.getPrefix(),
+                materialTypeEnum.getDesc(),
+                CreativeOptionModelEnum.MATERIAL.name()
+        );
+
+        CreativeOptionDTO materialOption = new CreativeOptionDTO();
+        materialOption.setParentCode(JsonSchemaUtils.ROOT);
+        materialOption.setCode(CreativeOptionModelEnum.MATERIAL.getPrefix());
+        materialOption.setName("素材");
+        materialOption.setType(JsonSchemaUtils.OBJECT);
+        materialOption.setDescription("素材");
+        materialOption.setModel(CreativeOptionModelEnum.MATERIAL.name());
+        materialOption.setChildren(Collections.singletonList(materialTypeOption));
+        optionList.add(materialOption);
+
 
         // 3.步骤响应结果
         List<CreativeOptionDTO> stepOptionList = new ArrayList<>();

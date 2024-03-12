@@ -57,6 +57,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode WORKFLOW_STEP_NOT_EXIST = new ErrorCode(300000407, "应用执行步骤不存在，请稍后重试或者联系管理员！");
 
+    /**
+     * 不支持的素材类型
+     */
+    ErrorCode APP_MATERIAL_TYPE_NONSUPPORT = new ErrorCode(300000408, "不支持的素材类型，请检查后重试（{}）！");
+
     // ========== 基本增删改查错误码 ==========
 
     // 1.========== 应用错误码 300 100 xxx ==========
