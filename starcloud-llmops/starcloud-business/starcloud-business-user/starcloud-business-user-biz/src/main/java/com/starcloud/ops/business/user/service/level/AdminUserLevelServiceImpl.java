@@ -17,14 +17,13 @@ import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
+import com.starcloud.ops.business.user.dal.redis.UserLevelConfigLimitRedisDAO;
+import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +38,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_EXISTS;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 /**
  * 会员等级记录 Service 实现类
@@ -54,6 +52,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Resource
     private AdminUserLevelMapper adminUserLevelMapper;
+
+    @Resource
+    private UserLevelConfigLimitRedisDAO userLevelConfigLimitRedisDAO;
 
     @Resource
     private AdminUserLevelConfigService levelConfigService;
@@ -309,7 +310,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         levelConfigDOS.removeIf(config -> Objects.equals(config.getId(), levelDO.getLevelId()));
         int count = 0;
-        if (!levelConfigDOS.isEmpty()){
+        if (!levelConfigDOS.isEmpty()) {
             List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
 
             List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectList(Wrappers.lambdaQuery(AdminUserLevelDO.class)
@@ -337,6 +338,78 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (updateCount == 0) {
             throw exception(LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE);
         }
+    }
+
+    /**
+     * @param levelRightsCode 权益限制编码
+     * @param userId          用户 ID
+     */
+    @Override
+    public AdminUserLevelLimitRespVO validateLevelRightsLimit(String levelRightsCode, Long userId) {
+        AdminUserLevelLimitRespVO adminUserLevelLimitRespVO = new AdminUserLevelLimitRespVO();
+        // 获取用户等级信息
+        List<AdminUserLevelDetailRespVO> levelList = getLevelList(userId);
+
+        AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelConfig(levelList.get(0).getLevelId());
+        // 获取用户当前权益最大的值
+        LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
+
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
+                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+
+        Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
+
+        //  如果不做限制
+        if (data == -1) {
+            adminUserLevelLimitRespVO.setPass(true);
+            adminUserLevelLimitRespVO.setUsedCount(-1);
+            return adminUserLevelLimitRespVO;
+        }
+        String redisKey = userLevelConfigLimitRedisDAO.buildRedisKey(value.getRedisKey(), userId);
+
+        Integer result = userLevelConfigLimitRedisDAO.get(redisKey);
+
+        //  如果第一次访问
+        if (result == 0 || data > result) {
+            userLevelConfigLimitRedisDAO.increment(redisKey);
+            adminUserLevelLimitRespVO.setPass(true);
+            adminUserLevelLimitRespVO.setUsedCount(result+1);
+            return adminUserLevelLimitRespVO;
+        }
+        adminUserLevelLimitRespVO.setPass(false);
+        adminUserLevelLimitRespVO.setUsedCount(result);
+        return adminUserLevelLimitRespVO;
+
+    }
+
+    /**
+     * @param levelRightsCode
+     * @param userId
+     * @return
+     */
+    @Override
+    public AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId) {
+        AdminUserLevelLimitUsedRespVO adminUserLevelLimitUsedRespVO = new AdminUserLevelLimitUsedRespVO();
+
+        // 获取用户等级信息
+        List<AdminUserLevelDetailRespVO> levelList = getLevelList(userId);
+
+        AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelConfig(levelList.get(0).getLevelId());
+        // 获取用户当前权益最大的值
+        LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
+
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
+                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+
+        Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
+
+        String redisKey = userLevelConfigLimitRedisDAO.buildRedisKey(value.getRedisKey(), userId);
+
+        Integer result = userLevelConfigLimitRedisDAO.get(redisKey);
+
+        adminUserLevelLimitUsedRespVO.setTotal(data);
+        adminUserLevelLimitUsedRespVO.setUsedCount(result);
+        return adminUserLevelLimitUsedRespVO;
     }
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
