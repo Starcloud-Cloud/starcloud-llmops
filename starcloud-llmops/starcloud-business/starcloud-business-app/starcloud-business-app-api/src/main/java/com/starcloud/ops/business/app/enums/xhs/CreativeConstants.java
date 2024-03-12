@@ -62,6 +62,14 @@ public interface CreativeConstants {
      */
     String GENERATE_COUNT = "GENERATE_COUNT";
 
+    /**
+     * 资料类型
+     */
+    String MATERIAL_TYPE = "MATERIAL_TYPE";
+
+    /**
+     * 图片
+     */
     String IMAGE = "IMAGE";
 
 }

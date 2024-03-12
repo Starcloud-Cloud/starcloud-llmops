@@ -165,7 +165,6 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getUid,
                 AppMarketDO::getName,
                 AppMarketDO::getType,
-                AppMarketDO::getMaterialType,
                 AppMarketDO::getModel,
                 AppMarketDO::getVersion,
                 AppMarketDO::getLanguage,

@@ -47,7 +47,6 @@ public interface AppFavoriteConvert {
         response.setSpell(PinyinCache.get(favorite.getName()));
         response.setSpellSimple(PinyinCache.getSimple(favorite.getName()));
         response.setType(favorite.getType());
-        response.setMaterialType(favorite.getMaterialType());
         response.setModel(favorite.getModel());
         response.setVersion(favorite.getVersion());
         response.setLanguage(favorite.getLanguage());

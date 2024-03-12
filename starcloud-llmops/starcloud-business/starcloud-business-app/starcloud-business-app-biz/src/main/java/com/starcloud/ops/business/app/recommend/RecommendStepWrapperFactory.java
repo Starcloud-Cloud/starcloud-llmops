@@ -139,6 +139,22 @@ public class RecommendStepWrapperFactory {
      *
      * @return WorkflowStepRespVO
      */
+    public static WorkflowStepWrapperRespVO defMaterialStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField("资料库步骤");
+        stepWrapper.setName("资料库步骤");
+        stepWrapper.setDescription("资料库步骤");
+        stepWrapper.setButtonLabel("资料库");
+        stepWrapper.setFlowStep(RecommendActionFactory.defMaterialActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defMaterialVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 默认生成内容步骤
+     *
+     * @return WorkflowStepRespVO
+     */
     public static WorkflowStepWrapperRespVO defTitleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME");
         String field = AppUtils.obtainField(name);
@@ -250,6 +266,7 @@ public class RecommendStepWrapperFactory {
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
                 defVariableStepWrapper(),
+                defMaterialStepWrapper(),
                 defTitleStepWrapper(),
                 defCustomStepWrapper(),
                 defParagraphStepWrapper(),

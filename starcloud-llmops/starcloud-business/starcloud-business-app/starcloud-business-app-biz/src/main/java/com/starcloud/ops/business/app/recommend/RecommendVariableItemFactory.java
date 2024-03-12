@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
@@ -623,6 +624,28 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 生成图片的数量
+     *
+     * @return VariableItemRespVO
+     */
+    public static VariableItemRespVO defMaterialTypeVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField("MATERIAL_TYPE");
+        variableItem.setLabel("资料库类型");
+        variableItem.setDescription("资料库类型");
+        variableItem.setDefaultValue(MaterialTypeEnum.BOOK_LIST.getCode());
+        variableItem.setValue(MaterialTypeEnum.BOOK_LIST.getCode());
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setOptions(MaterialTypeEnum.options());
         return variableItem;
     }
 }

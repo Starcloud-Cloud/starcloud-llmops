@@ -164,4 +164,17 @@ public class RecommendVariableFactory {
         ));
         return variable;
     }
+
+    /**
+     * 空变量
+     *
+     * @return VariableRespVO
+     */
+    public static VariableRespVO defMaterialVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.singletonList(
+                RecommendVariableItemFactory.defMaterialTypeVariable()
+        ));
+        return variable;
+    }
 }

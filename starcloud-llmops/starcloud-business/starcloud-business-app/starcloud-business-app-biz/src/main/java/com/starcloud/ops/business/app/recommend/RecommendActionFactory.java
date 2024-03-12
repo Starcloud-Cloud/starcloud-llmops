@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseR
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
@@ -115,6 +116,28 @@ public class RecommendActionFactory {
         step.setVersion(AppConstants.DEFAULT_VERSION);
         step.setIcon("variable");
         step.setTags(Collections.singletonList("Variable"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        step.setVariable(RecommendVariableFactory.defVariableVariable());
+        return step;
+    }
+
+    /**
+     * 默认生成内容步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepRespVO defMaterialActionStep() {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName("资料库步骤");
+        step.setDescription("资料库步骤");
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(MaterialActionHandler.class.getSimpleName());
+        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("material");
+        step.setTags(Collections.singletonList("Material"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defVariableVariable());
         return step;
