@@ -54,12 +54,6 @@ public class AppMarketDO extends TenantBaseDO {
     private String type;
 
     /**
-     * 资料类型
-     */
-    @TableField("material_type")
-    private String materialType;
-
-    /**
      * 应用模型：CHAT：聊天式应用，COMPLETION：生成式应用
      */
     @TableField("model")

@@ -53,7 +53,6 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
@@ -493,30 +492,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
 
         // 2.素材处理
-        String materialType = appMarketResponse.getMaterialType();
-        MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
-        if (materialTypeEnum == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_MATERIAL_TYPE_NONSUPPORT);
-        }
-
-        // 媒体矩阵应用的素材类型
-        CreativeOptionDTO materialTypeOption = JsonSchemaUtils.jsonSchemaToOptions(
-                materialTypeEnum.getAClass(),
-                CreativeOptionModelEnum.MATERIAL.getPrefix(),
-                materialTypeEnum.getDesc(),
-                CreativeOptionModelEnum.MATERIAL.name()
-        );
-
-        CreativeOptionDTO materialOption = new CreativeOptionDTO();
-        materialOption.setParentCode(JsonSchemaUtils.ROOT);
-        materialOption.setCode(CreativeOptionModelEnum.MATERIAL.getPrefix());
-        materialOption.setName("素材");
-        materialOption.setType(JsonSchemaUtils.OBJECT);
-        materialOption.setDescription("素材");
-        materialOption.setModel(CreativeOptionModelEnum.MATERIAL.name());
-        materialOption.setChildren(Collections.singletonList(materialTypeOption));
-        optionList.add(materialOption);
-
 
         // 3.步骤响应结果
         List<CreativeOptionDTO> stepOptionList = new ArrayList<>();

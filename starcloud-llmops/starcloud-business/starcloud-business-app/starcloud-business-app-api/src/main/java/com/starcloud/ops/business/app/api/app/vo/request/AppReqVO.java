@@ -55,12 +55,6 @@ public class AppReqVO implements Serializable {
     private String type;
 
     /**
-     * 资料类型
-     */
-    @Schema(description = "资料类型")
-    private String materialType;
-
-    /**
      * 应用来源类型，表示应用的是从那个平台创建，或者下载的。比如 WrdPress，Chrome插件等
      */
     @Schema(description = "应用来源类型", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -46,7 +46,6 @@ public interface AppPublishConverter {
         appPublishDO.setAppUid(appDO.getUid());
         appPublishDO.setName(appDO.getName());
         appPublishDO.setType(appDO.getType());
-        appPublishDO.setMaterialType(appDO.getMaterialType());
         appPublishDO.setModel(appDO.getModel());
         appPublishDO.setVersion(AppConstants.DEFAULT_VERSION);
         appPublishDO.setSort(appDO.getSort());
@@ -82,7 +81,6 @@ public interface AppPublishConverter {
         appPublishResponse.setMarketUid(appPublish.getMarketUid());
         appPublishResponse.setName(appPublish.getName());
         appPublishResponse.setType(appPublish.getType());
-        appPublishResponse.setMaterialType(appPublish.getMaterialType());
         appPublishResponse.setModel(appPublish.getModel());
         appPublishResponse.setVersion(appPublish.getVersion());
         appPublishResponse.setCategory(appPublish.getCategory());
@@ -142,7 +140,6 @@ public interface AppPublishConverter {
         latestResponse.setMarketUid(appPublish.getMarketUid());
         latestResponse.setName(appPublish.getName());
         latestResponse.setType(appPublish.getType());
-        latestResponse.setMaterialType(appPublish.getMaterialType());
         latestResponse.setModel(appPublish.getModel());
         latestResponse.setVersion(appPublish.getVersion());
         latestResponse.setAudit(appPublish.getAudit());
@@ -173,7 +170,6 @@ public interface AppPublishConverter {
         if (app != null) {
             latestResponse.setName(app.getName());
             latestResponse.setType(app.getType());
-            latestResponse.setMaterialType(app.getMaterialType());
             latestResponse.setModel(app.getModel());
             latestResponse.setDescription(app.getDescription());
             latestResponse.setAppLastUpdateTime(app.getUpdateTime());
