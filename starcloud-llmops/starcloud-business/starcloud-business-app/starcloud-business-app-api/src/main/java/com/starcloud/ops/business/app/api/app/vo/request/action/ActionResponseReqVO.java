@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.request.action;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
@@ -84,6 +85,12 @@ public class ActionResponseReqVO implements Serializable {
      */
     @Schema(description = "响应数据")
     private String answer;
+
+    /**
+     * 返回数据
+     */
+    @Schema(description = "返回数据")
+    private JsonDataVO output;
 
     /**
      * 请求 token 使用

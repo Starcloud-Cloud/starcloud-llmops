@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -111,6 +112,14 @@ public interface CreativeSchemeService {
      * @param uid 创作方案UID
      */
     void delete(String uid);
+
+    /**
+     * 获取创作方案选项
+     *
+     * @param appUid 应用UID
+     * @return 创作方案选项
+     */
+    List<CreativeOptionDTO> options(String appUid);
 
     /**
      * 创建文案示例
