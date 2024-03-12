@@ -15,6 +15,7 @@ import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import lombok.experimental.UtilityClass;
@@ -39,7 +40,7 @@ public class JsonSchemaUtils {
     /**
      * 根节点编码。
      */
-    public static final String ROOT = "root";
+    public static final String ROOT = "ROOT";
 
     /**
      * JSON Schema 的 $schema 字段。
@@ -100,6 +101,8 @@ public class JsonSchemaUtils {
      * JSON Schema 的 boolean 类型。
      */
     public static final String BOOLEAN = "boolean";
+
+    public static final String ALL_OF = "allOf";
 
 
     /**
@@ -236,6 +239,10 @@ public class JsonSchemaUtils {
                     "The given JSON is not a JSON Schema"
             );
 
+            if (jsonNode.has(ALL_OF)) {
+                jsonNode = jsonNode.get(ALL_OF).get(0);
+            }
+
             // 获取类型
             String type = getJsonSchemaFieldType(jsonNode);
             String filedCode = getCode(code, optionModel.getPrefix());
@@ -369,7 +376,7 @@ public class JsonSchemaUtils {
      * @return 字段的名称
      */
     private static String getCode(String code, String parentCode) {
-        return parentCode + "." + code;
+        return /*parentCode + "." +*/ code;
     }
 
     /**
@@ -423,6 +430,8 @@ public class JsonSchemaUtils {
     }
 
     public static void main(String[] args) {
+        String string = generateJsonSchema(BookListCreativeMaterialDTO.class);
+        System.out.println(string);
         CreativeOptionDTO a = jsonSchemaToOptions(CreativeOptionDTO.class, "生成文本", CreativeOptionModelEnum.STEP_RESPONSE.name());
         System.out.println(a);
     }

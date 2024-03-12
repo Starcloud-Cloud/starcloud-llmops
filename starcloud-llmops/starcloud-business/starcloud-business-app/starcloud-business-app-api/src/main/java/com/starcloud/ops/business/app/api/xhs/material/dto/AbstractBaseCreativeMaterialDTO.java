@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,6 +25,7 @@ public abstract class AbstractBaseCreativeMaterialDTO {
      * 素材类型
      */
     @Schema(description = "素材类型")
+    @JsonPropertyDescription("素材类型")
     private String type;
 
     /**

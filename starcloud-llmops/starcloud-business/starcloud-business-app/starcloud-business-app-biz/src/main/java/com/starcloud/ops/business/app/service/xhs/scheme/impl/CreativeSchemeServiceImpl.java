@@ -466,7 +466,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(variableWrapper.getVariable().getVariables());
             for (VariableItemRespVO variableItem : variables) {
                 CreativeOptionDTO option = new CreativeOptionDTO();
-                option.setParentCode(CreativeOptionModelEnum.BASE_INFO.name());
+                option.setParentCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
                 option.setCode(variableItem.getField());
                 option.setName(variableItem.getLabel());
                 option.setType(JsonSchemaUtils.OBJECT);
@@ -478,7 +478,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
             CreativeOptionDTO baseOption = new CreativeOptionDTO();
             baseOption.setParentCode(JsonSchemaUtils.ROOT);
-            baseOption.setCode(CreativeOptionModelEnum.BASE_INFO.name());
+            baseOption.setCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
             baseOption.setName("基本信息");
             baseOption.setType(JsonSchemaUtils.OBJECT);
             baseOption.setDescription("基本信息");
@@ -521,12 +521,13 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         }
         CreativeOptionDTO stepOption = new CreativeOptionDTO();
         stepOption.setParentCode(JsonSchemaUtils.ROOT);
-        stepOption.setCode(CreativeOptionModelEnum.STEP_RESPONSE.name());
+        stepOption.setCode(CreativeOptionModelEnum.STEP_RESPONSE.getPrefix());
         stepOption.setName("步骤响应结果");
         stepOption.setType(JsonSchemaUtils.OBJECT);
         stepOption.setDescription("步骤响应结果");
         stepOption.setModel(CreativeOptionModelEnum.STEP_RESPONSE.name());
         stepOption.setChildren(stepOptionList);
+        optionList.add(stepOption);
 
         return optionList;
     }
