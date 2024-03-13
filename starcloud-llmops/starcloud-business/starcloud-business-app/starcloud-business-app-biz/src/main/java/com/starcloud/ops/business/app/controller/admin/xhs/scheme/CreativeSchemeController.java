@@ -125,7 +125,7 @@ public class CreativeSchemeController {
         return CommonResult.success(true);
     }
 
-    @PostMapping("/options")
+    @PostMapping("/appStepOptions")
     @Operation(summary = "应用节点出入参数列表", description = "应用节点出入参数列表")
     @ApiOperationSupport(order = 110, author = "nacoyer")
     public CommonResult<List<CreativeOptionDTO>> options(@Validated @RequestBody CreativeAppStepSchemeReqVO stepSchemeReqVO) {
