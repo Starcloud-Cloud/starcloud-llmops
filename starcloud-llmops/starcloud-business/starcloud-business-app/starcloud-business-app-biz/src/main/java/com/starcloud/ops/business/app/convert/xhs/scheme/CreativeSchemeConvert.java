@@ -43,7 +43,6 @@ public interface CreativeSchemeConvert {
         creativeScheme.setCategory(request.getCategory());
         creativeScheme.setTags(StringUtil.toString(request.getTags()));
         creativeScheme.setDescription(request.getDescription());
-        creativeScheme.setMode(request.getMode());
         // 创作计划配置信息
         if (request.getConfiguration() != null) {
             creativeScheme.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
@@ -88,7 +87,6 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setCategory(creativeScheme.getCategory());
         creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
-        creativeSchemeResponse.setMode(creativeScheme.getMode());
 
         // 创作计划配置信息
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {

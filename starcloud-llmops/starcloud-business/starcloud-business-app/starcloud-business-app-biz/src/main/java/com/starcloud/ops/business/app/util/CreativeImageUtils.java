@@ -20,7 +20,6 @@ import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -85,11 +84,9 @@ public class CreativeImageUtils {
 
         // 干货图文生成
         List<ParagraphDTO> paragraphList = Lists.newArrayList();
-        if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
-            paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList());
-            if (paragraphList.size() != executeParams.getParagraphCount()) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
-            }
+        paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList());
+        if (paragraphList.size() != executeParams.getParagraphCount()) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
         }
 
         for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
@@ -98,53 +95,8 @@ public class CreativeImageUtils {
             request.setName(imageRequest.getName());
             request.setIndex(imageRequest.getIndex());
             request.setIsMain(imageRequest.getIsMain());
-            if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
-                // 随机图文生成
-                request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
-            } else {
-                Map<String, Object> params = Maps.newHashMap();
-                // 图片集合，用于替换图片。
-                List<String> imageList = Lists.newArrayList();
-                List<PosterVariableDTO> variableItemList = CollectionUtil.emptyIfNull(imageRequest.getParams());
-                List<PosterVariableDTO> imageVariableItemList = imageTypeVariableList(variableItemList);
-
-                for (PosterVariableDTO variableItem : variableItemList) {
-                    if (force && IMAGE.equalsIgnoreCase(variableItem.getType())) {
-                        // 如果变量图片数量大于使用的图片数量，说明图片不够用，随机获取图片，但是可能会重复。
-                        params.put(variableItem.getField(), randomImage(imageList, useImageList, imageVariableItemList.size()));
-                    } else {
-                        if (Objects.isNull(variableItem.getValue()) || ((variableItem.getValue() instanceof String) && StringUtils.isBlank((String) variableItem.getValue()))) {
-                            // 只有主图才会替换标题和副标题
-                            if (imageRequest.getIsMain()) {
-                                if (TITLE.equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgTitle()).orElse(StringUtils.EMPTY));
-                                } else if (SUB_TITLE.equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getImgSubTitle()).orElse(StringUtils.EMPTY));
-                                } else if (TEXT_TITLE.equalsIgnoreCase(variableItem.getField())) {
-                                    params.put(variableItem.getField(), Optional.ofNullable(copyWriting.getTitle()).orElse(StringUtils.EMPTY));
-                                } else if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
-                                    paragraphTitle(params, variableItem, paragraphList);
-                                } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
-                                    paragraphContent(params, variableItem, paragraphList);
-                                } else {
-                                    params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
-                                }
-                            } else {
-                                if (PARAGRAPH_TITLE.contains(variableItem.getField())) {
-                                    paragraphTitle(params, variableItem, paragraphList);
-                                } else if (PARAGRAPH_CONTENT.contains(variableItem.getField())) {
-                                    paragraphContent(params, variableItem, paragraphList);
-                                } else {
-                                    params.put(variableItem.getField(), Optional.ofNullable(variableItem.getDefaultValue()).orElse(StringUtils.EMPTY));
-                                }
-                            }
-                        } else {
-                            params.put(variableItem.getField(), Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
-                        }
-                    }
-                }
-                request.setParams(params);
-            }
+            // 随机图文生成
+            request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
             imageExecuteRequests.add(request);
         }
         executeRequest.setId(imageStyleExecuteRequest.getId());

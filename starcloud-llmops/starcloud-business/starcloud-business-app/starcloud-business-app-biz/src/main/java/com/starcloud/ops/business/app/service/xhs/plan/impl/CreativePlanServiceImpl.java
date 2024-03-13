@@ -49,8 +49,6 @@ import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
@@ -100,12 +98,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private CreativePlanMapper creativePlanMapper;
-
-    @Resource
-    private CreativeAppManager creativeAppManager;
-
-    @Resource
-    private CreativeImageManager creativeImageManager;
 
     @Resource
     private RedissonClient redissonClient;
@@ -359,7 +351,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (!lock.tryLock(1, TimeUnit.MINUTES)) {
                 return;
             }
-            execute0(uid);
+            doExecute(uid);
         } catch (InterruptedException e) {
             log.warn("InterruptedException");
         } finally {
@@ -367,7 +359,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
     }
 
-    public void execute0(String uid) {
+    public void doExecute(String uid) {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO plan = this.get(uid);
@@ -560,7 +552,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO app = CreativeUtils.handlerExecuteApp(schemeConfiguration, appMarket);
             CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setSchemeMode(scheme.getMode());
             planExecute.setAppResponse(app);
             list.add(planExecute);
         }
@@ -570,7 +561,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(schemeStepList, posterStyle, appMarket, configuration.getImageUrlList());
             CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setSchemeMode(scheme.getMode());
             planExecute.setAppResponse(app);
             list.add(planExecute);
         }
