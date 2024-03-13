@@ -105,6 +105,11 @@ public class CreativeUtils {
      * @param planVariableList 计划变量列表
      */
     public static List<BaseSchemeStepDTO> mergeSchemeStepVariable(List<BaseSchemeStepDTO> schemeStepList, List<VariableItemRespVO> planVariableList) {
+        // 如果方案步骤列表为空，则直接返回
+        if (CollectionUtil.isEmpty(planVariableList)) {
+            return schemeStepList;
+        }
+        
         List<BaseSchemeStepDTO> list = new ArrayList<>();
         for (BaseSchemeStepDTO schemeStep : schemeStepList) {
             // 如果不是全局变量步骤，则直接添加返回步骤中
@@ -112,14 +117,15 @@ public class CreativeUtils {
                 list.add(schemeStep);
                 continue;
             }
+
             // 如果是全局变量步骤，则合并变量
+            VariableSchemeStepDTO variableSchemeStep = (VariableSchemeStepDTO) schemeStep;
+            // 获取全局变量的变量列表
+            List<VariableItemRespVO> variables = variableSchemeStep.getVariableList();
+            
             List<VariableItemRespVO> variableItemList = new ArrayList<>();
             // 将计划变量转换成map，方便后续处理
             Map<String, VariableItemRespVO> planVariableMap = planVariableList.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
-
-            VariableSchemeStepDTO emptySchemeStep = (VariableSchemeStepDTO) schemeStep;
-            // 获取全局变量的变量列表
-            List<VariableItemRespVO> variables = emptySchemeStep.getVariableList();
             // 遍历全局变量的变量列表，进行合并
             for (VariableItemRespVO item : variables) {
                 if (planVariableMap.containsKey(item.getField())) {
@@ -131,25 +137,24 @@ public class CreativeUtils {
                 variableItemList.add(item);
             }
 
-            emptySchemeStep.setVariableList(variableItemList);
-            list.add(emptySchemeStep);
+            variableSchemeStep.setVariableList(variableItemList);
+            list.add(variableSchemeStep);
         }
 
         return list;
     }
 
-
     /**
      * 处理执行的应用，参数填充等
      *
      * @param configuration 方案配置
-     * @param app           应用信息
+     * @param appMarketResponse           应用信息
      * @return 处理后的应用信息
      */
-    public static AppMarketRespVO handlerExecuteApp(CreativeSchemeConfigurationDTO configuration, AppMarketRespVO app) {
+    public static AppMarketRespVO handlerExecuteApp(CreativeSchemeConfigurationDTO configuration, AppMarketRespVO appMarketResponse) {
 
         // 复制一份，避免修改原数据
-        AppMarketRespVO appMarket = SerializationUtils.clone(app);
+        AppMarketRespVO appMarket = SerializationUtils.clone(appMarketResponse);
 
         // 获取应用的工作流配置
         WorkflowConfigRespVO workflowConfig = appMarket.getWorkflowConfig();
