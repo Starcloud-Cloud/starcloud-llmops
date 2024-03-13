@@ -102,12 +102,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private CreativePlanMapper creativePlanMapper;
 
     @Resource
-    private CreativeAppManager creativeAppManager;
-
-    @Resource
-    private CreativeImageManager creativeImageManager;
-
-    @Resource
     private RedissonClient redissonClient;
 
     @Resource
@@ -560,7 +554,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO app = CreativeUtils.handlerExecuteApp(schemeConfiguration, appMarket);
             CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setSchemeMode(scheme.getMode());
             planExecute.setAppResponse(app);
             list.add(planExecute);
         }
@@ -570,7 +563,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(schemeStepList, posterStyle, appMarket, configuration.getImageUrlList());
             CreativePlanExecuteDTO planExecute = new CreativePlanExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setSchemeMode(scheme.getMode());
             planExecute.setAppResponse(app);
             list.add(planExecute);
         }

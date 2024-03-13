@@ -37,7 +37,6 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.xhs.convert.AppResponseConverter;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterStyleThreadPoolHolder;
@@ -341,35 +340,22 @@ public class CreativeExecuteManager {
                 executeRequest.setScene(appExecuteRequest.getScene());
                 executeRequest.setUserId(Long.valueOf(content.getCreator()));
                 executeRequest.setSchemeMode(executeParams.getSchemeMode());
-                if (CreativeSchemeModeEnum.PRACTICAL_IMAGE_TEXT.name().equals(executeParams.getSchemeMode())) {
-                    CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), CreativeContentTypeEnum.PICTURE.getCode());
-                    Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
-                            .stream()
-                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
-                                if (CreativeAppUtils.PARAGRAPH_DEMAND.equals(item.getField())) {
-                                    return CreativeImageUtils.handlerParagraphDemand(business);
-                                }
-                                if (Objects.isNull(item.getValue())) {
-                                    return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
-                                }
-                                return item.getValue();
-                            }));
-                    executeRequest.setParams(params);
-                    // 干货图文：一次执行一个
-                    XhsAppCreativeExecuteResponse response = creativeAppManager.creativePracticalExecute(executeRequest);
-                    resp.add(response);
-                } else {
-                    Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
-                            .stream()
-                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
-                                if (Objects.isNull(item.getValue())) {
-                                    return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
-                                }
-                                return item.getValue();
-                            }));
-                    executeRequest.setParams(params);
-                    requests.add(executeRequest);
-                }
+                CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), CreativeContentTypeEnum.PICTURE.getCode());
+                Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
+                        .stream()
+                        .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
+                            if (CreativeAppUtils.PARAGRAPH_DEMAND.equals(item.getField())) {
+                                return CreativeImageUtils.handlerParagraphDemand(business);
+                            }
+                            if (Objects.isNull(item.getValue())) {
+                                return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
+                            }
+                            return item.getValue();
+                        }));
+                executeRequest.setParams(params);
+                // 干货图文：一次执行一个
+                XhsAppCreativeExecuteResponse response = creativeAppManager.creativePracticalExecute(executeRequest);
+                resp.add(response);
             }
 
             if (CollectionUtils.isNotEmpty(requests)) {
@@ -394,47 +380,21 @@ public class CreativeExecuteManager {
                 }
 
                 CopyWritingContentDTO copyWriting = executeResponse.getCopyWriting();
-                if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equals(executeResponse.getSchemeMode())) {
-                    if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
-                        result.put(contentDO.getId(), false);
-                        updateFailure(contentDO.getId(), start, "文案内容为空", contentDO.getRetryCount(), maxRetry);
-                        continue;
-                    }
-                } else {
-                    CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(contentDO.getExecuteParams());
-                    if (executeParams == null) {
-                        continue;
-                    }
-                    CreativePlanAppExecuteDTO appExecuteRequest = executeParams.getAppExecuteRequest();
-                    Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
-                            .stream()
-                            .collect(Collectors.toMap(VariableItemRespVO::getField, item -> {
-                                if (Objects.isNull(item.getValue())) {
-                                    return Optional.ofNullable(item.getDefaultValue()).orElse(StringUtils.EMPTY);
-                                }
-                                return item.getValue();
-                            }));
-                    Integer count = (Integer) params.get(CreativeAppUtils.PARAGRAPH_COUNT);
-                    if (CollectionUtil.isEmpty(copyWriting.getParagraphList()) || copyWriting.getParagraphList().size() != count) {
-                        result.put(contentDO.getId(), false);
-                        updateFailure(contentDO.getId(), start, "文案段落数据为空或者生成格式不正确(段落数量不正确)", contentDO.getRetryCount(), maxRetry);
-                        continue;
-                    }
+                if (Objects.isNull(copyWriting) || StringUtils.isBlank(copyWriting.getTitle()) || StringUtils.isBlank(copyWriting.getContent())) {
+                    result.put(contentDO.getId(), false);
+                    updateFailure(contentDO.getId(), start, "文案内容为空", contentDO.getRetryCount(), maxRetry);
+                    continue;
                 }
 
                 CreativeContentDO updateContent = new CreativeContentDO();
                 updateContent.setId(contentDO.getId());
                 // 根据模式把 干货图文的 md 格式 转换为 纯文本格式
-                if (CreativeSchemeModeEnum.RANDOM_IMAGE_TEXT.name().equals(executeResponse.getSchemeMode())) {
-                    updateContent.setCopyWritingContent(copyWriting.getContent());
-                    updateContent.setCopyWritingTitle(copyWriting.getTitle());
-                    updateContent.setCopyWritingCount(copyWriting.getContent().length());
-                } else {
-                    String copyWritingContent = CreativeAppUtils.buildPracticalCopyWritingContent(copyWriting);
-                    updateContent.setCopyWritingTitle(copyWriting.getTitle());
-                    updateContent.setCopyWritingContent(copyWritingContent);
-                    updateContent.setCopyWritingCount(copyWritingContent.length());
-                }
+                updateContent.setCopyWritingContent(copyWriting.getContent());
+                updateContent.setCopyWritingTitle(copyWriting.getTitle());
+                updateContent.setCopyWritingCount(copyWriting.getContent().length());
+
+
+
                 updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
                 updateContent.setStartTime(start);
                 updateContent.setEndTime(end);
