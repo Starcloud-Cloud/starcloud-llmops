@@ -11,9 +11,6 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -22,11 +19,12 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
@@ -45,17 +43,11 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
@@ -134,7 +126,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
         metadata.put("refersSource", CreativeSchemeRefersSourceEnum.options());
         metadata.put("generateMode", CreativeSchemeGenerateModeEnum.options());
-        metadata.put("materialType", MaterialTypeEnum.allOptions());
         return metadata;
     }
 
@@ -276,6 +267,16 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
             List<BaseSchemeStepDTO> steps = item.getConfiguration().getSteps();
 
+            // 资料库类型字段获取
+            MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(steps);
+            if (materialSchemeStep == null) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
+            }
+            MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
+            if (materialType == null) {
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
+            }
+
             // 变量信息填充
             VariableSchemeStepDTO variableSchemeStep = CreativeUtils.getVariableSchemeStep(steps);
             if (variableSchemeStep != null) {
@@ -297,6 +298,8 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
             option.setUid(item.getUid());
             option.setName(item.getName());
+            option.setMaterialType(materialType.getTypeCode());
+            option.setMaterialTypeName(materialType.getDesc());
             option.setDescription(item.getDescription());
             option.setCreateTime(item.getCreateTime());
             option.setTags(item.getTags());
@@ -589,14 +592,14 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         // 随机打散图片素材列表
         List<String> disperseImageUrlList = CreativeImageUtils.disperseImageUrlList(imageUrlList, total);
         // 处理创作内容执行参数
-        List<CreativePlanExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(schemeRequest);
+        List<CreativeContentExecuteDTO> executeParamsList = handlerCreativeContentExecuteParams(schemeRequest);
         // 循环处理创作内容
         List<CreativeContentCreateReqVO> creativeContentCreateRequestList = new ArrayList<>(total * 2);
         for (int i = 0; i < total; i++) {
             // 业务UID
             String businessUid = IdUtil.fastSimpleUUID();
             // 随机获取执行参数
-            CreativePlanExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(RandomUtil.randomInt(executeParamsList.size())));
+            CreativeContentExecuteDTO executeParam = SerializationUtils.clone(executeParamsList.get(RandomUtil.randomInt(executeParamsList.size())));
             CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
             AppMarketRespVO appResponse = executeParam.getAppResponse();
             if (appResponse == null) {
@@ -665,10 +668,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
             appCreateRequest.setTempUid(appResponse.getUid());
 
-            CreativePlanExecuteDTO appPlanExecute = new CreativePlanExecuteDTO();
+            CreativeContentExecuteDTO appPlanExecute = new CreativeContentExecuteDTO();
             appPlanExecute.setAppResponse(appResponse);
             appPlanExecute.setSchemeUid(executeParam.getSchemeUid());
-            appPlanExecute.setSchemeMode(executeParam.getSchemeMode());
 
             appCreateRequest.setExecuteParams(appPlanExecute);
             appCreateRequest.setIsTest(Boolean.TRUE);
@@ -685,11 +687,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param schemeRequest 创作方案
      * @return 创作内容执行参数
      */
-    private List<CreativePlanExecuteDTO> handlerCreativeContentExecuteParams(CreativeSchemeModifyReqVO schemeRequest) {
+    private List<CreativeContentExecuteDTO> handlerCreativeContentExecuteParams(CreativeSchemeModifyReqVO schemeRequest) {
         // 获取最新的海报模板参数。避免海报模板修改无法感知
         Map<String, PosterTemplateDTO> latestPosterMap = creativeImageManager.mapTemplate();
         // 处理创作内容执行参数
-        List<CreativePlanExecuteDTO> list = Lists.newArrayList();
+        List<CreativeContentExecuteDTO> list = Lists.newArrayList();
         // 获取自定义配置并且校验
         CreativeSchemeConfigurationDTO customConfiguration = schemeRequest.getConfiguration();
         customConfiguration.validate();

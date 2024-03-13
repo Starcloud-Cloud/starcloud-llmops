@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.CreativeAppExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.PosterImageDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteRequest;
@@ -23,7 +24,6 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRes
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanAppExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -174,7 +174,7 @@ public class CreativeExecuteManager {
             creativeContentMapper.updateById(latestContent);
 
             try {
-                CreativePlanExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativePlanExecuteDTO.class);
+                CreativeContentExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativeContentExecuteDTO.class);
                 AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
 
                 AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
@@ -327,11 +327,11 @@ public class CreativeExecuteManager {
             List<XhsAppCreativeExecuteRequest> requests = new ArrayList<>(contentList.size());
             for (CreativeContentDO content : contentList) {
                 XhsAppCreativeExecuteRequest executeRequest = new XhsAppCreativeExecuteRequest();
-                CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+                CreativeContentExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
                 if (executeParams == null) {
                     continue;
                 }
-                CreativePlanAppExecuteDTO appExecuteRequest = executeParams.getAppExecuteRequest();
+                CreativePlanAppExecuteDTO appExecuteRequest = new CreativePlanAppExecuteDTO();
                 executeRequest.setPlanUid(content.getPlanUid());
                 executeRequest.setSchemeUid(content.getSchemeUid());
                 executeRequest.setBusinessUid(content.getBusinessUid());
@@ -339,7 +339,6 @@ public class CreativeExecuteManager {
                 executeRequest.setUid(appExecuteRequest.getUid());
                 executeRequest.setScene(appExecuteRequest.getScene());
                 executeRequest.setUserId(Long.valueOf(content.getCreator()));
-                executeRequest.setSchemeMode(executeParams.getSchemeMode());
                 CreativeContentDO business = creativeContentMapper.selectByType(content.getBusinessUid(), CreativeContentTypeEnum.PICTURE.getCode());
                 Map<String, Object> params = CollectionUtil.emptyIfNull(appExecuteRequest.getParams())
                         .stream()
@@ -392,7 +391,6 @@ public class CreativeExecuteManager {
                 updateContent.setCopyWritingContent(copyWriting.getContent());
                 updateContent.setCopyWritingTitle(copyWriting.getTitle());
                 updateContent.setCopyWritingCount(copyWriting.getContent().length());
-
 
 
                 updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
@@ -644,7 +642,7 @@ public class CreativeExecuteManager {
         }
 
         // 获取并且校验执行参数
-        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+        CreativeContentExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
         if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getAppResponse())) {
             // 执行参数为空，说明该任务数据存在问题。需要更新状态
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：应用执行参数不存在，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
@@ -692,8 +690,8 @@ public class CreativeExecuteManager {
 //            throw exception(350600113, "创作中心：图片执行可使用图片为空，请联系管理员(ID: %s)！", content.getUid());
 //        }
         // 获取并且校验执行参数
-        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
-        if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getImageStyleExecuteRequest())) {
+        CreativeContentExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+        if (Objects.isNull(executeParams)) {
             // 执行参数为空，说明该任务数据存在问题。需要更新状态
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", content.getUid()), maxRetry);
             throw exception(350600114, "创作中心：图片执行参数不存在，请联系管理员(ID: %s)！", content.getUid());

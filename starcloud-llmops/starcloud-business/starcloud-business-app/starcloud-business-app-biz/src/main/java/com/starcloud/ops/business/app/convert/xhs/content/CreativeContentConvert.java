@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -76,7 +76,7 @@ public interface CreativeContentConvert {
         return JSONUtil.toJsonStr(images);
     }
 
-    default String toStr(CreativePlanExecuteDTO executeParamsDTO) {
+    default String toStr(CreativeContentExecuteDTO executeParamsDTO) {
         return JSONUtil.toJsonStr(executeParamsDTO);
     }
 
@@ -91,11 +91,11 @@ public interface CreativeContentConvert {
         return JSONUtil.parseArray(string).toList(String.class);
     }
 
-    default CreativePlanExecuteDTO toExecuteParams(String string) {
+    default CreativeContentExecuteDTO toExecuteParams(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.toBean(string, CreativePlanExecuteDTO.class);
+        return JSONUtil.toBean(string, CreativeContentExecuteDTO.class);
     }
 
     default CreativeContentExtendDTO toExtend(String string) {
