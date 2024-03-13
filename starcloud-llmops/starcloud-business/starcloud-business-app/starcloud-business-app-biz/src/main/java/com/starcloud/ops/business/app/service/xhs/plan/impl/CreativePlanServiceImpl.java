@@ -49,8 +49,6 @@ import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
@@ -353,7 +351,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (!lock.tryLock(1, TimeUnit.MINUTES)) {
                 return;
             }
-            execute0(uid);
+            doExecute(uid);
         } catch (InterruptedException e) {
             log.warn("InterruptedException");
         } finally {
@@ -361,7 +359,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
     }
 
-    public void execute0(String uid) {
+    public void doExecute(String uid) {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO plan = this.get(uid);
