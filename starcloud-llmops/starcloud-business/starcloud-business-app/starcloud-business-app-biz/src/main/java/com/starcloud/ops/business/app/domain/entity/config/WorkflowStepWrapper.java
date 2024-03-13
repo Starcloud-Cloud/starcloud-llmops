@@ -1,20 +1,30 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -63,6 +73,36 @@ public class WorkflowStepWrapper {
      */
     private VariableEntity variable;
 
+
+    /**
+     * 获取节点的入参结构
+     */
+    public JsonNode getInVariableJsonSchema() {
+
+        //只是拿到实例，并没有初始化相关上下文
+        BaseActionHandler baseActionHandler = BaseActionHandler.of(this.getFlowStep().getHandler());
+
+
+        JsonNode inJsonNode = baseActionHandler.getInVariableJsonSchema(this);
+
+        return inJsonNode;
+    }
+
+
+    /**
+     * 获取节点的出参结构
+     */
+    public JsonNode getOutVariableJsonSchema() {
+
+        //只是拿到实例，并没有初始化相关上下文
+        BaseActionHandler baseActionHandler = BaseActionHandler.of(this.getFlowStep().getHandler());
+
+        //区分类型，普通节点
+        JsonNode outJsonNode = baseActionHandler.getOutVariableJsonSchema(this);
+
+        return outJsonNode;
+    }
+
     /**
      * 基础校验模版
      */
@@ -99,6 +139,24 @@ public class WorkflowStepWrapper {
         variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_OUT"), this.flowStep.getValue());
         variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_DATA"), this.flowStep.getOutput());
         return variableMap;
+
+    }
+
+    /**
+     * 获取当前步骤的指定变量的 value
+     *
+     * @return 变量的 values 集合
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public <T> T getContextVariablesValue(String field) {
+        Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
+
+        Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, "");
+
+        variableMap.put(VariableEntity.generateKey("_OUT"), this.flowStep.getValue());
+        variableMap.put(VariableEntity.generateKey("_DATA"), this.flowStep.getOutput());
+        return (T) variableMap.getOrDefault(field, null);
 
     }
 

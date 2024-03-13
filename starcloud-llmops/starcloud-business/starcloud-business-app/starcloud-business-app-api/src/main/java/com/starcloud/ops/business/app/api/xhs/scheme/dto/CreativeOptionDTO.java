@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.validation.ObjectError;
 
 import java.io.Serializable;
 import java.util.List;
@@ -64,5 +65,19 @@ public class CreativeOptionDTO implements Serializable {
     @Schema(description = "子选项")
     @JsonPropertyDescription("子选项")
     private List<CreativeOptionDTO> children;
+
+
+    /**
+     * 节点入参
+     */
+    @Schema(description = "节点入参")
+    private String inJsonSchema;
+
+    /**
+     * 节点出参
+     */
+    @Schema(description = "节点出参")
+    private String outJsonSchema;
+
 
 }

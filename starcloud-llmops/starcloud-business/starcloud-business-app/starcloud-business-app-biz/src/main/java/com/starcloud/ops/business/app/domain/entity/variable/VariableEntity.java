@@ -5,13 +5,13 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
+import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,6 +34,19 @@ public class VariableEntity {
      * 应用变量
      */
     private List<VariableItemEntity> variables;
+
+
+    /**
+     * 获取 JsonSchema 格式的参数对象
+     */
+    public JsonNode getJsonSchema() {
+
+        for (VariableItemEntity variableItem : this.getVariables()) {
+
+        }
+
+        return null;
+    }
 
     /**
      * 获取指定类型的变量集合

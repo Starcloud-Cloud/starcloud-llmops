@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action.base;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -11,11 +12,20 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.victools.jsonschema.generator.SchemaBuilder;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
@@ -83,6 +93,65 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     protected abstract ActionResponse doExecute();
+
+    /**
+     * 生成个handler 实例
+     *
+     * @param name handler 名称
+     * @return handler
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static BaseActionHandler of(String name) {
+        try {
+            //头部小写驼峰
+            return SpringUtil.getBean(StrUtil.lowerFirst(name));
+        } catch (Exception e) {
+            log.error("BaseActionHandler of is fail: {}", name);
+        }
+        return null;
+    }
+
+    /**
+     * 具体handler的入参定义
+     *
+     * @return
+     */
+    public JsonNode getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //获取所有节点入参
+
+        //这里应该要获取2部分变量
+        workflowStepWrapper.getVariable().getJsonSchema();
+        workflowStepWrapper.getFlowStep().getVariable().getJsonSchema();
+
+        return workflowStepWrapper.getVariable().getJsonSchema();
+    }
+
+
+    /**
+     * 具体handler的出参定义
+     *
+     * @return
+     */
+    public JsonNode getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //如果配置了返回结构定义就获取，不然就创建一个默认的
+        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
+        if (StrUtil.isNotBlank(json)) {
+            //有配置，直接返回
+
+            JsonNode jsonNode = JsonSchemaUtils.str2JsonSchema(json);
+
+            return jsonNode;
+
+        } else {
+
+            //定义一个默认的JsonSchema结构， xxx._DATA
+            return JsonSchemaUtils.generateJsonSchemaNode(JsonDataDefSchema.class);
+        }
+
+    }
 
     /**
      * 获取应用的UID

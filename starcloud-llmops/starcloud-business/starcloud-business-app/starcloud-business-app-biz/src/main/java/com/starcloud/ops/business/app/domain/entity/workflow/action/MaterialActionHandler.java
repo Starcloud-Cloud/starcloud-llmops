@@ -9,11 +9,16 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,6 +78,27 @@ public class MaterialActionHandler extends BaseActionHandler {
         ActionResponse response = convert(materialType);
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
+    }
+
+    @Override
+    public JsonNode getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+        //不用返回入参
+        return null;
+    }
+
+
+    /**
+     * 只根据配置的 素材类型，直接获取对应的 素材类型 对象的结构
+     *
+     * @return
+     */
+    @Override
+    public JsonNode getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        // 获取到资料库类型
+        String materialType = workflowStepWrapper.getContextVariablesValue(CreativeConstants.MATERIAL_TYPE);
+
+        return JsonSchemaUtils.generateJsonSchemaNode(MaterialTypeEnum.of(materialType).getAClass());
     }
 
     /**

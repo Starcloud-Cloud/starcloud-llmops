@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -124,12 +125,8 @@ public class JsonSchemaUtils {
      */
     public static String generateJsonSchema(Class<?> clazz) {
         try {
-            JacksonModule jacksonModule = new JacksonModule();
-            SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
-                    .with(jacksonModule);
-            SchemaGeneratorConfig config = configBuilder.build();
-            SchemaGenerator generator = new SchemaGenerator(config);
-            JsonNode jsonNode = generator.generateSchema(clazz);
+
+            JsonNode jsonNode = generateJsonSchemaNode(clazz);
             DefaultIndenter defaultIndenter = new DefaultIndenter()
                     .withLinefeed("\n");
             DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
@@ -140,6 +137,54 @@ public class JsonSchemaUtils {
             return objectWriter.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not pretty print json schema for " + clazz, e);
+        }
+    }
+
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param clazz 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static JsonNode generateJsonSchemaNode(Class<?> clazz) {
+        try {
+            JacksonModule jacksonModule = new JacksonModule();
+            SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
+                    .with(jacksonModule);
+            SchemaGeneratorConfig config = configBuilder.build();
+            SchemaGenerator generator = new SchemaGenerator(config);
+            return generator.generateSchema(clazz);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateSchema for " + clazz, e);
+        }
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param jsonNode 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static String jsonNode2Str(JsonNode jsonNode) {
+
+        if (ObjectUtil.isNull(jsonNode)) {
+            return null;
+        }
+
+        try {
+
+            DefaultIndenter defaultIndenter = new DefaultIndenter()
+                    .withLinefeed("\n");
+            DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
+                    .withObjectIndenter(defaultIndenter);
+            ObjectWriter objectWriter = new ObjectMapper()
+                    .writer(defaultPrettyPrinter);
+            // 生成 JSON Schema
+            return objectWriter.writeValueAsString(jsonNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JsonNode Could not pretty print json schema: " + e.getMessage(), e);
         }
     }
 
@@ -209,6 +254,32 @@ public class JsonSchemaUtils {
         return jsonSchemaToOptions(jsonSchema, code, name, description, model, Boolean.FALSE);
     }
 
+
+    public static JsonNode str2JsonSchema(String jsonSchema) {
+
+        try {
+
+            JsonNode jsonNode = OBJECT_MAPPER.readTree(jsonSchema);
+            // 检查是否为 JSON Schema，如果不是，则抛出异常
+            Assert.isTrue(
+                    ObjectUtil.isNotNull(jsonNode) &&
+                            jsonNode.has(JSON_SCHEMA) && StringUtils.isNotBlank(jsonNode.get(JSON_SCHEMA).asText()),
+                    "The given JSON is not a JSON Schema"
+            );
+
+//        if (jsonNode.has(ALL_OF)) {
+//            jsonNode = jsonNode.get(ALL_OF).get(0);
+//        }
+
+            return jsonNode;
+
+        } catch (Exception e) {
+            //
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+    }
+
     /**
      * 将JSON Schema 转换为选项列表。
      *
@@ -232,12 +303,7 @@ public class JsonSchemaUtils {
             CreativeOptionModelEnum optionModel = CreativeOptionModelEnum.of(model);
             Assert.notNull(optionModel, "Model must be a valid enum value");
 
-            JsonNode jsonNode = OBJECT_MAPPER.readTree(jsonSchema);
-            // 检查是否为 JSON Schema，如果不是，则抛出异常
-            Assert.isTrue(
-                    jsonNode.has(JSON_SCHEMA) && StringUtils.isNotBlank(jsonNode.get(JSON_SCHEMA).asText()),
-                    "The given JSON is not a JSON Schema"
-            );
+            JsonNode jsonNode = str2JsonSchema(jsonSchema);
 
             if (jsonNode.has(ALL_OF)) {
                 jsonNode = jsonNode.get(ALL_OF).get(0);

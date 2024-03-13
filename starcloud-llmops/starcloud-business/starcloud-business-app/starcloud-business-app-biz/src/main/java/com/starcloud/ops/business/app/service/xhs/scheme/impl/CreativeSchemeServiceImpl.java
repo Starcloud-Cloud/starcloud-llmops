@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
@@ -42,9 +43,12 @@ import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
@@ -451,90 +455,131 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     public List<CreativeOptionDTO> options(String appUid) {
         List<CreativeOptionDTO> optionList = new ArrayList<>();
 
-        AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
-        // 判断应用类型是否为媒体矩阵
-        if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarketResponse.getType())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
-        }
-        List<WorkflowStepWrapperRespVO> stepWrapperResponseList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
-                .map(WorkflowConfigRespVO::getSteps)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+        //AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
 
-        // 1.基本信息处理
-        List<CreativeOptionDTO> baseOptionList = new ArrayList<>();
-        Optional<WorkflowStepWrapperRespVO> variableStepWrapperOptional = stepWrapperResponseList.stream()
-                .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                .findFirst();
-        if (variableStepWrapperOptional.isPresent()) {
-            WorkflowStepWrapperRespVO variableWrapper = variableStepWrapperOptional.get();
-            List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(variableWrapper.getVariable().getVariables());
-            for (VariableItemRespVO variableItem : variables) {
-                CreativeOptionDTO option = new CreativeOptionDTO();
-                option.setParentCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
-                option.setCode(variableItem.getField());
-                option.setName(variableItem.getLabel());
-                option.setType(JsonSchemaUtils.OBJECT);
-                option.setDescription(variableItem.getDescription());
-                option.setModel(CreativeOptionModelEnum.BASE_INFO.name());
-                option.setChildren(Collections.emptyList());
-                baseOptionList.add(option);
-            }
+        //前端要传VO的
+        AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);
 
-            CreativeOptionDTO baseOption = new CreativeOptionDTO();
-            baseOption.setParentCode(JsonSchemaUtils.ROOT);
-            baseOption.setCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
-            baseOption.setName("基本信息");
-            baseOption.setType(JsonSchemaUtils.OBJECT);
-            baseOption.setDescription("基本信息");
-            baseOption.setModel(CreativeOptionModelEnum.BASE_INFO.name());
-            baseOption.setChildren(baseOptionList);
-            optionList.add(baseOption);
-        }
-
-        // 2.素材处理
-
-        // 3.步骤响应结果
-        List<CreativeOptionDTO> stepOptionList = new ArrayList<>();
-        for (WorkflowStepWrapperRespVO wrapper : stepWrapperResponseList) {
-            // 获取响应
-            ActionResponseRespVO actionResponse = Optional.ofNullable(wrapper)
-                    .map(WorkflowStepWrapperRespVO::getFlowStep)
-                    .map(WorkflowStepRespVO::getResponse)
-                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
-            // 如果不是 JSON 类型的响应，直接跳过
-            if (!AppStepResponseTypeEnum.JSON.name().equals(actionResponse.getType()) &&
-                    !AppStepResponseStyleEnum.JSON.name().equals(actionResponse.getStyle())) {
-                continue;
-            }
-            // 获取 JSON Schema
-            Optional<String> optional = Optional.ofNullable(actionResponse.getOutput())
-                    .map(JsonDataVO::getJsonSchema);
-            // 如果 JSON Schema 为空，直接跳过
-            if (!optional.isPresent() || StringUtils.isBlank(optional.get())) {
-                continue;
-            }
-            String jsonSchema = optional.get();
-            CreativeOptionDTO stepOption = JsonSchemaUtils.jsonSchemaToOptions(
-                    jsonSchema,
-                    wrapper.getField(),
-                    wrapper.getName(),
-                    wrapper.getDescription(),
-                    CreativeOptionModelEnum.STEP_RESPONSE.name()
-            );
-            stepOptionList.add(stepOption);
-        }
-        CreativeOptionDTO stepOption = new CreativeOptionDTO();
-        stepOption.setParentCode(JsonSchemaUtils.ROOT);
-        stepOption.setCode(CreativeOptionModelEnum.STEP_RESPONSE.getPrefix());
-        stepOption.setName("步骤响应结果");
-        stepOption.setType(JsonSchemaUtils.OBJECT);
-        stepOption.setDescription("步骤响应结果");
-        stepOption.setModel(CreativeOptionModelEnum.STEP_RESPONSE.name());
-        stepOption.setChildren(stepOptionList);
-        optionList.add(stepOption);
-
-        return optionList;
+        return this.workflowStepOptions(appMarketEntity);
+//
+//
+//        // 判断应用类型是否为媒体矩阵
+//        if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarketResponse.getType())) {
+//            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
+//        }
+//        List<WorkflowStepWrapperRespVO> stepWrapperResponseList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
+//                .map(WorkflowConfigRespVO::getSteps)
+//                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+//
+//        // 1.基本信息处理
+//        List<CreativeOptionDTO> baseOptionList = new ArrayList<>();
+//        Optional<WorkflowStepWrapperRespVO> variableStepWrapperOptional = stepWrapperResponseList.stream()
+//                .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+//                .findFirst();
+//        if (variableStepWrapperOptional.isPresent()) {
+//            WorkflowStepWrapperRespVO variableWrapper = variableStepWrapperOptional.get();
+//            List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(variableWrapper.getVariable().getVariables());
+//            for (VariableItemRespVO variableItem : variables) {
+//                CreativeOptionDTO option = new CreativeOptionDTO();
+//                option.setParentCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
+//                option.setCode(variableItem.getField());
+//                option.setName(variableItem.getLabel());
+//                option.setType(JsonSchemaUtils.OBJECT);
+//                option.setDescription(variableItem.getDescription());
+//                option.setModel(CreativeOptionModelEnum.BASE_INFO.name());
+//                option.setChildren(Collections.emptyList());
+//                baseOptionList.add(option);
+//            }
+//
+//            CreativeOptionDTO baseOption = new CreativeOptionDTO();
+//            baseOption.setParentCode(JsonSchemaUtils.ROOT);
+//            baseOption.setCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
+//            baseOption.setName("基本信息");
+//            baseOption.setType(JsonSchemaUtils.OBJECT);
+//            baseOption.setDescription("基本信息");
+//            baseOption.setModel(CreativeOptionModelEnum.BASE_INFO.name());
+//            baseOption.setChildren(baseOptionList);
+//            optionList.add(baseOption);
+//        }
+//
+//        // 2.素材处理
+//
+//        // 3.步骤响应结果
+//        List<CreativeOptionDTO> stepOptionList = new ArrayList<>();
+//        for (WorkflowStepWrapperRespVO wrapper : stepWrapperResponseList) {
+//            // 获取响应
+//            ActionResponseRespVO actionResponse = Optional.ofNullable(wrapper)
+//                    .map(WorkflowStepWrapperRespVO::getFlowStep)
+//                    .map(WorkflowStepRespVO::getResponse)
+//                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
+//            // 如果不是 JSON 类型的响应，直接跳过
+//            if (!AppStepResponseTypeEnum.JSON.name().equals(actionResponse.getType()) &&
+//                    !AppStepResponseStyleEnum.JSON.name().equals(actionResponse.getStyle())) {
+//                continue;
+//            }
+//            // 获取 JSON Schema
+//            Optional<String> optional = Optional.ofNullable(actionResponse.getOutput())
+//                    .map(JsonDataVO::getJsonSchema);
+//            // 如果 JSON Schema 为空，直接跳过
+//            if (!optional.isPresent() || StringUtils.isBlank(optional.get())) {
+//                continue;
+//            }
+//            String jsonSchema = optional.get();
+//            CreativeOptionDTO stepOption = JsonSchemaUtils.jsonSchemaToOptions(
+//                    jsonSchema,
+//                    wrapper.getField(),
+//                    wrapper.getName(),
+//                    wrapper.getDescription(),
+//                    CreativeOptionModelEnum.STEP_RESPONSE.name()
+//            );
+//            stepOptionList.add(stepOption);
+//        }
+//        CreativeOptionDTO stepOption = new CreativeOptionDTO();
+//        stepOption.setParentCode(JsonSchemaUtils.ROOT);
+//        stepOption.setCode(CreativeOptionModelEnum.STEP_RESPONSE.getPrefix());
+//        stepOption.setName("步骤响应结果");
+//        stepOption.setType(JsonSchemaUtils.OBJECT);
+//        stepOption.setDescription("步骤响应结果");
+//        stepOption.setModel(CreativeOptionModelEnum.STEP_RESPONSE.name());
+//        stepOption.setChildren(stepOptionList);
+//        optionList.add(stepOption);
+//
+//        return optionList;
     }
+
+
+    /**
+     * 直接遍历所有节点，每个节点返回入参和出参的两种结构
+     *
+     * @param appMarketEntity
+     */
+    protected List<CreativeOptionDTO> workflowStepOptions(AppMarketEntity appMarketEntity) {
+
+        List<CreativeOptionDTO> baseOptionList = new ArrayList<>();
+
+        baseOptionList = Optional.ofNullable(appMarketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>()).stream().map((stepWrapper) -> {
+
+            String stepCode = stepWrapper.getStepCode();
+            String desc = stepWrapper.getDescription();
+
+            JsonNode intJsonNode = stepWrapper.getInVariableJsonSchema();
+            JsonNode outJsonNode = stepWrapper.getOutVariableJsonSchema();
+
+            CreativeOptionDTO stepOption = new CreativeOptionDTO();
+            stepOption.setName(stepCode);
+            stepOption.setDescription(desc);
+            stepOption.setCode(stepCode);
+
+            stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
+            stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+
+            return stepOption;
+        }).collect(Collectors.toList());
+
+        return baseOptionList;
+
+    }
+
 
     /**
      * 创建文案示例
