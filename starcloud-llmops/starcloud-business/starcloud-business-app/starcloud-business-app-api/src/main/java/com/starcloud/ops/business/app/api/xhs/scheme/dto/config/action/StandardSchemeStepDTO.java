@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
@@ -64,9 +64,7 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
      */
     @Override
     public void validate() {
-        if (StrUtil.isBlank(model)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成模式不能为空！"));
-        }
+        AppValidate.notBlank(model, "缺少必填项：创作方案生成模式！");
         // 非自定义模式，参考文案不能为空
         if (!CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
             if (CollectionUtil.isEmpty(referList)) {
@@ -81,9 +79,7 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
         }
         // 自定义模式下，要求不能为空
         if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
-            if (StrUtil.isBlank(requirement)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成要求不能为空！"));
-            }
+            AppValidate.notBlank(requirement, "缺少必填项：生成要求！");
         }
     }
 }

@@ -23,7 +23,7 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.listing.enums.ListingLanguageEnum;
 import com.starcloud.ops.business.listing.enums.ListingWritingStyleEnum;
 import com.starcloud.ops.business.listing.service.ListingGenerateService;

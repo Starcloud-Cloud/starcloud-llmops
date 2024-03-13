@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -43,9 +41,7 @@ public class PosterSchemeStepDTO extends BaseSchemeStepDTO {
      */
     @Override
     public void validate() {
-        if (CollectionUtil.isEmpty(styleList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "海报风格不能为空"));
-        }
+        AppValidate.notEmpty(styleList, "缺少必填项：海报风格不能为空！");
         styleList.forEach(PosterStyleDTO::validate);
     }
 
