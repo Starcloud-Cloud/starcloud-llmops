@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -89,6 +90,8 @@ public class AppServiceImpl implements AppService {
         metadata.put("aiModel", AppUtils.aiModelList());
         // 应用类型
         metadata.put("type", AppTypeEnum.options(UserUtils.isAdmin()));
+        // 素材类型
+        metadata.put("materialType", MaterialTypeEnum.referOptions());
         return metadata;
     }
 

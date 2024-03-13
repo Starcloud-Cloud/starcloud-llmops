@@ -19,6 +19,9 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 public enum MaterialTypeEnum implements IEnumable<String> {
     BOOK_LIST("bookList", "书单", BookListCreativeMaterialDTO.class),
     CONTRACT("contract", "合同模板", ContractCreativeMaterialDTO.class),
+    NOTE("note", "普通笔记", OrdinaryNoteMaterialDTO.class),
+    NOTE_TITLE("noteTitle", "普通笔记标题", OrdinaryNoteTitleMaterialDTO.class),
+    NOTE_CONTENT("noteContent", "普通笔记内容", OrdinaryNoteContentMaterialDTO.class),
     PERSONA("persona", "人设", PersonaCreativeMaterialDTO.class),
     PICTURE("picture", "图片", PictureCreativeMaterialDTO.class),
     QUOTATION("quotation", "语录号", PositiveQuotationCreativeMaterialDTO.class),
@@ -32,6 +35,9 @@ public enum MaterialTypeEnum implements IEnumable<String> {
 
     private static final Map<String, MaterialTypeEnum> ENUM_MAP = Arrays.stream(MaterialTypeEnum.values())
             .collect(Collectors.toMap(MaterialTypeEnum::getTypeCode, Function.identity()));
+
+    // 参考素材类型
+    private static final List<MaterialTypeEnum> REFER_MATERIALS = Arrays.asList(NOTE, NOTE_TITLE, NOTE_CONTENT);
 
     MaterialTypeEnum(String typeCode, String desc, Class<? extends AbstractBaseCreativeMaterialDTO> aClass) {
         this.typeCode = typeCode;
@@ -74,14 +80,21 @@ public enum MaterialTypeEnum implements IEnumable<String> {
         return result;
     }
 
-    public static List<Option> options() {
+    public static List<Option> allOptions() {
         return Arrays.stream(values()).sorted(Comparator.comparingInt(MaterialTypeEnum::ordinal))
-                .map(item -> {
-                    Option option = new Option();
-                    option.setLabel(item.getDesc());
-                    option.setValue(item.getCode());
-                    return option;
-                }).collect(Collectors.toList());
+                .map(MaterialTypeEnum::option).collect(Collectors.toList());
+    }
+
+    public static List<Option> referOptions() {
+        return REFER_MATERIALS.stream().sorted(Comparator.comparingInt(MaterialTypeEnum::ordinal))
+                .map(MaterialTypeEnum::option).collect(Collectors.toList());
+    }
+
+    public Option option() {
+        Option option = new Option();
+        option.setLabel(desc);
+        option.setValue(typeCode);
+        return option;
     }
 
     @Override

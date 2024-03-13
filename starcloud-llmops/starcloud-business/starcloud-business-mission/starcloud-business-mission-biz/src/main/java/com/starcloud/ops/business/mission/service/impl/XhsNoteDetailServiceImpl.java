@@ -1,18 +1,19 @@
 package com.starcloud.ops.business.mission.service.impl;
 
-import cn.hutool.core.util.ReUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
+import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
 import com.starcloud.ops.business.mission.api.vo.request.PreSettlementRecordReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
 import com.starcloud.ops.business.mission.convert.XhsNoteDetailConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.XhsNoteDetailDO;
 import com.starcloud.ops.business.mission.dal.mysql.XhsNoteDetailMapper;
-import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
-import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,8 +21,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -48,6 +47,17 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
         XhsDetailConstants.validNoteUrl(noteUrl);
         String noteId = XhsDetailConstants.parsingNoteId(noteUrl);
         return selectByNoteId(noteId);
+    }
+
+    @Override
+    public AbstractBaseCreativeMaterialDTO mapMaterialDetail(String noteUrl, String materialType) {
+        XhsNoteDetailRespVO respVO = selectByNoteUrl(noteUrl);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", materialType);
+        jsonObject.put("title", respVO.getTitle());
+        jsonObject.put("content", respVO.getDesc());
+        jsonObject.put("link", noteUrl);
+        return JsonUtils.parseObject(jsonObject.toJSONString(), AbstractBaseCreativeMaterialDTO.class);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.mission.service;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.mission.api.vo.request.PreSettlementRecordReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
@@ -17,6 +18,14 @@ public interface XhsNoteDetailService {
      * @param noteUrl 小红书访问url
      */
     XhsNoteDetailRespVO selectByNoteUrl(String noteUrl);
+
+    /**
+     *
+     * @param noteUrl
+     * @param materialType 素材类型
+     * @return
+     */
+    AbstractBaseCreativeMaterialDTO mapMaterialDetail(String noteUrl, String materialType);
 
     /**
      * 实时数据

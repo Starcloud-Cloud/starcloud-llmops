@@ -645,7 +645,7 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.PARAMS.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
-        variableItem.setOptions(MaterialTypeEnum.options());
+        variableItem.setOptions(MaterialTypeEnum.allOptions());
         return variableItem;
     }
 }

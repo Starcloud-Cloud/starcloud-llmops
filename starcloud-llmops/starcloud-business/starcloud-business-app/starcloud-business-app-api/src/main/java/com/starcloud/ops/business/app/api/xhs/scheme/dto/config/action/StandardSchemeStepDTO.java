@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -41,6 +42,12 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
     private List<ReferenceSchemeDTO> referList;
 
     /**
+     * 参考内容 素材库格式
+     */
+    @Schema(description = "参考内容-素材库格式")
+    private List<AbstractBaseCreativeMaterialDTO> materialList;
+
+    /**
      * 创作方案步骤要求
      */
     @Schema(description = "创作方案步骤要求")
@@ -64,6 +71,12 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
         if (!CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
             if (CollectionUtil.isEmpty(referList)) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
+            }
+            if (CollectionUtil.isEmpty(materialList)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考素材不能为空！"));
+            }
+            for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : materialList) {
+                abstractBaseCreativeMaterialDTO.valid();
             }
         }
         // 自定义模式下，要求不能为空

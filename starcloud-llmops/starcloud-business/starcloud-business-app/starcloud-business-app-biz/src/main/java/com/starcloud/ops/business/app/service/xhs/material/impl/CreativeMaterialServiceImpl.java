@@ -34,7 +34,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     @Override
     public Map<String, Object> metadata() {
         Map<String, Object> result = new HashMap<>();
-        result.put(MaterialTypeEnum.class.getSimpleName(), MaterialTypeEnum.options());
+        result.put(MaterialTypeEnum.class.getSimpleName(), MaterialTypeEnum.allOptions());
         result.put(FieldTypeEnum.class.getSimpleName(), FieldTypeEnum.options());
         return result;
     }
