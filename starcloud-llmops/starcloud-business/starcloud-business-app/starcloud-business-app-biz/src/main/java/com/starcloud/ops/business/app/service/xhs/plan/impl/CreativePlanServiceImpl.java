@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
@@ -44,7 +45,6 @@ import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -384,17 +384,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     private void bathCreativeContent(CreativePlanRespVO creativePlan) {
 
-
-    }
-
-    /**
-     * 处理创作内容执行参数
-     *
-     * @param creativePlan 创作计划
-     * @return 创作内容执行参数
-     */
-    private List<CreativeContentExecuteDTO> handlerCreativeContentExecuteParams(CreativePlanRespVO creativePlan) {
-
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         // 查询最新创作方案
@@ -406,7 +395,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appMarket = appMarketService.get(schemeConfiguration.getAppUid());
 
         // 处理创作内容执行参数
-        List<CreativeContentExecuteDTO> list = Lists.newArrayList();
+        List<CreativeContentExecuteDTO> resultList = Lists.newArrayList();
 
         // 获取计划配置的变量列表
         List<VariableItemRespVO> planVariableList = configuration.getVariableList();
@@ -418,23 +407,22 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 如果没有海报步骤，直接创建一个执行参数
         if (Objects.isNull(posterSchemeStep)) {
-            AppMarketRespVO app = CreativeUtils.handlerExecuteApp(schemeConfiguration, appMarket);
+            AppMarketRespVO appMarketResponse = CreativeUtils.handlerExecuteApp(schemeConfiguration, appMarket);
             CreativeContentExecuteDTO planExecute = new CreativeContentExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setAppResponse(app);
-            list.add(planExecute);
+            planExecute.setAppResponse(appMarketResponse);
+            resultList.add(planExecute);
         }
 
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList())) {
-            AppMarketRespVO app = CreativeAppUtils.transformCustomExecute(schemeStepList, posterStyle, appMarket, configuration.getImageUrlList());
+            AppMarketRespVO appMarketResponse = CreativeAppUtils.transformCustomExecute(schemeStepList, posterStyle, appMarket, configuration.getImageUrlList());
             CreativeContentExecuteDTO planExecute = new CreativeContentExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setAppResponse(app);
-            list.add(planExecute);
+            planExecute.setAppResponse(appMarketResponse);
+            resultList.add(planExecute);
         }
 
-        return list;
     }
 
     /**
