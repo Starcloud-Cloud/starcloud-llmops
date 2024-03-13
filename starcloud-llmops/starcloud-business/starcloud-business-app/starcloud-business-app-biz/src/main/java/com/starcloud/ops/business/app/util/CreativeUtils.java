@@ -46,6 +46,32 @@ import java.util.stream.Collectors;
 public class CreativeUtils {
 
     /**
+     * 获取段落方案步骤, 如果没有则返回null
+     *
+     * @param schemeStepList 方案步骤列表
+     * @return 段落方案步骤
+     */
+    public static VariableSchemeStepDTO getVariableSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
+        return (VariableSchemeStepDTO) schemeStepList.stream()
+                .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getCode()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 获取段落方案步骤, 如果没有则返回null
+     *
+     * @param schemeStepList 方案步骤列表
+     * @return 段落方案步骤
+     */
+    public static MaterialSchemeStepDTO getMaterialSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
+        return (MaterialSchemeStepDTO) schemeStepList.stream()
+                .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getCode()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * 获取海报方案步骤, 如果没有则返回null
      *
      * @param schemeStepList 方案步骤列表
@@ -71,31 +97,6 @@ public class CreativeUtils {
                 .orElse(null);
     }
 
-    /**
-     * 获取段落方案步骤, 如果没有则返回null
-     *
-     * @param schemeStepList 方案步骤列表
-     * @return 段落方案步骤
-     */
-    public static VariableSchemeStepDTO getVariableSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (VariableSchemeStepDTO) schemeStepList.stream()
-                .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getCode()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * 获取段落方案步骤, 如果没有则返回null
-     *
-     * @param schemeStepList 方案步骤列表
-     * @return 段落方案步骤
-     */
-    public static MaterialSchemeStepDTO getMaterialSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (MaterialSchemeStepDTO) schemeStepList.stream()
-                .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getCode()))
-                .findFirst()
-                .orElse(null);
-    }
 
     /**
      * 将变量合并到方案全局变量步骤中

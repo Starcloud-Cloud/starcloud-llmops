@@ -395,13 +395,15 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     private List<CreativeContentExecuteDTO> handlerCreativeContentExecuteParams(CreativePlanRespVO creativePlan) {
 
-        // 配置信息
+        // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-        // 查询创作方案
+        // 查询最新创作方案
         CreativeSchemeRespVO scheme = creativeSchemeService.get(configuration.getSchemeUid());
         // 获取配置并且校验
         CreativeSchemeConfigurationDTO schemeConfiguration = scheme.getConfiguration();
         schemeConfiguration.validate();
+        // 查询应用详细信息
+        AppMarketRespVO appMarket = appMarketService.get(schemeConfiguration.getAppUid());
 
         // 处理创作内容执行参数
         List<CreativeContentExecuteDTO> list = Lists.newArrayList();
@@ -410,9 +412,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         List<VariableItemRespVO> planVariableList = configuration.getVariableList();
         // 获取方案配置的步骤列表, 把计划配置的变量列表合并到方案配置的步骤列表中
         List<BaseSchemeStepDTO> schemeStepList = CreativeUtils.mergeSchemeStepVariable(schemeConfiguration.getSteps(), planVariableList);
-
-        // 查询应用信息
-        AppMarketRespVO appMarket = appMarketService.get(schemeConfiguration.getAppUid());
 
         // 获取海报步骤
         PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(schemeStepList);

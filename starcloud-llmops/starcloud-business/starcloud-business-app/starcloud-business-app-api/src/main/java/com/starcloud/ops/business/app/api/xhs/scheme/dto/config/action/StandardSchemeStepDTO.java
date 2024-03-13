@@ -72,12 +72,12 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
             if (CollectionUtil.isEmpty(referList)) {
                 throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
             }
-            if (CollectionUtil.isEmpty(materialList)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考素材不能为空！"));
-            }
-            for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : materialList) {
-                abstractBaseCreativeMaterialDTO.valid();
-            }
+//            if (CollectionUtil.isEmpty(materialList)) {
+//                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考素材不能为空！"));
+//            }
+//            for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : materialList) {
+//                abstractBaseCreativeMaterialDTO.valid();
+//            }
         }
         // 自定义模式下，要求不能为空
         if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
