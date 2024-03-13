@@ -42,7 +42,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.reference.ReferenceSchemeEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.extern.slf4j.Slf4j;

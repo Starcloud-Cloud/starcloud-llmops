@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
-import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,8 +31,6 @@ public class MaterialSchemeStepDTO extends BaseSchemeStepDTO {
      */
     @Override
     public void validate() {
-        if (StrUtil.isBlank(materialType)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "资料库类型不能为空！"));
-        }
+        AppValidate.notBlank(materialType, "缺少必填项：资料库类型！请联系管理员！");
     }
 }

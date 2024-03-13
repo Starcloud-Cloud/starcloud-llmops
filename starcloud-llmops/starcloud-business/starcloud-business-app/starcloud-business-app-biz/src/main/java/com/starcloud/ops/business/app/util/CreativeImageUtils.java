@@ -2,13 +2,10 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageStyleExecuteRequest;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanImageStyleExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
@@ -16,7 +13,6 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
@@ -70,39 +66,39 @@ public class CreativeImageUtils {
                                                                           CopyWritingContentDTO copyWriting,
                                                                           Boolean force) {
         // 获取使用图片
-        List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
-        // 获取执行参数
-        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
-
-        // 获取图片风格执行参数
-        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
-        // 获取风格中图片执行参数
-        List<CreativePlanImageExecuteDTO> imageRequests = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests());
-        // 转换成执行参数
-        XhsImageStyleExecuteRequest executeRequest = new XhsImageStyleExecuteRequest();
-        List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
-
-        // 干货图文生成
-        List<ParagraphDTO> paragraphList = Lists.newArrayList();
-        paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList());
-        if (paragraphList.size() != executeParams.getParagraphCount()) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
-        }
-
-        for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
-            XhsImageExecuteRequest request = new XhsImageExecuteRequest();
-            request.setId(imageRequest.getId());
-            request.setName(imageRequest.getName());
-            request.setIndex(imageRequest.getIndex());
-            request.setIsMain(imageRequest.getIsMain());
-            // 随机图文生成
-            request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
-            imageExecuteRequests.add(request);
-        }
-        executeRequest.setId(imageStyleExecuteRequest.getId());
-        executeRequest.setName(imageStyleExecuteRequest.getName());
-        executeRequest.setImageRequests(imageExecuteRequests);
-        return executeRequest;
+//        List<String> useImageList = JSONUtil.parseArray(content.getUsePicture()).toList(String.class);
+//        // 获取执行参数
+//        CreativeContentExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(content.getExecuteParams());
+//
+//        // 获取图片风格执行参数
+//        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
+//        // 获取风格中图片执行参数
+//        List<CreativePlanImageExecuteDTO> imageRequests = CollectionUtil.emptyIfNull(imageStyleExecuteRequest.getImageRequests());
+//        // 转换成执行参数
+//        XhsImageStyleExecuteRequest executeRequest = new XhsImageStyleExecuteRequest();
+//        List<XhsImageExecuteRequest> imageExecuteRequests = Lists.newArrayList();
+//
+//        // 干货图文生成
+//        List<ParagraphDTO> paragraphList = Lists.newArrayList();
+//        paragraphList = CollectionUtil.emptyIfNull(copyWriting.getParagraphList());
+//        if (paragraphList.size() != executeParams.getParagraphCount()) {
+//            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PARAGRAPH_SIZE_NOT_EQUAL);
+//        }
+//
+//        for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
+//            XhsImageExecuteRequest request = new XhsImageExecuteRequest();
+//            request.setId(imageRequest.getId());
+//            request.setName(imageRequest.getName());
+//            request.setIndex(imageRequest.getIndex());
+//            request.setIsMain(imageRequest.getIsMain());
+//            // 随机图文生成
+//            request.setParams(transformParams(imageRequest, useImageList, copyWriting, force));
+//            imageExecuteRequests.add(request);
+//        }
+//        executeRequest.setId(imageStyleExecuteRequest.getId());
+//        executeRequest.setName(imageStyleExecuteRequest.getName());
+//        executeRequest.setImageRequests(imageExecuteRequests);
+        return null;
     }
 
     /**
@@ -470,30 +466,31 @@ public class CreativeImageUtils {
     }
 
     public static String handlerParagraphDemand(CreativeContentDO business) {
-        StringBuilder builder = new StringBuilder();
-        // 获取执行参数
-        CreativePlanExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(business.getExecuteParams());
-        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
-        List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
-        int titleIndex = 1, contentIndex = 1;
-        for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
-            List<PosterVariableDTO> params = imageRequest.getParams();
-            for (PosterVariableDTO param : params) {
-                if ("TEXT".equalsIgnoreCase(param.getType())) {
-                    if (PARAGRAPH_TITLE.contains(param.getField())) {
-                        builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
-                        titleIndex = titleIndex + 1;
-                    }
-                    if (PARAGRAPH_CONTENT.contains(param.getField())) {
-                        builder.append("第 ").append(contentIndex).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
-                        contentIndex = contentIndex + 1;
-                    }
-                }
-            }
-
-        }
-
-        return builder.toString();
+//        StringBuilder builder = new StringBuilder();
+//        // 获取执行参数
+//        CreativeContentExecuteDTO executeParams = CreativeContentConvert.INSTANCE.toExecuteParams(business.getExecuteParams());
+//        CreativePlanImageStyleExecuteDTO imageStyleExecuteRequest = executeParams.getImageStyleExecuteRequest();
+//        List<CreativePlanImageExecuteDTO> imageRequests = imageStyleExecuteRequest.getImageRequests();
+//        int titleIndex = 1, contentIndex = 1;
+//        for (CreativePlanImageExecuteDTO imageRequest : imageRequests) {
+//            List<PosterVariableDTO> params = imageRequest.getParams();
+//            for (PosterVariableDTO param : params) {
+//                if ("TEXT".equalsIgnoreCase(param.getType())) {
+//                    if (PARAGRAPH_TITLE.contains(param.getField())) {
+//                        builder.append("第 ").append(titleIndex).append(" 个段落标题，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+//                        titleIndex = titleIndex + 1;
+//                    }
+//                    if (PARAGRAPH_CONTENT.contains(param.getField())) {
+//                        builder.append("第 ").append(contentIndex).append(" 个段落内容，需要满足：").append(param.getCount()).append("左右的字符数量。").append("\n");
+//                        contentIndex = contentIndex + 1;
+//                    }
+//                }
+//            }
+//
+//        }
+//
+//        return builder.toString();
+        return "";
     }
 
     /**

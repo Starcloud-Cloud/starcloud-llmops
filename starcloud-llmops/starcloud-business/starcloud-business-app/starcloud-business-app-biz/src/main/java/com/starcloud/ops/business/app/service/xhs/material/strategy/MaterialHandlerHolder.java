@@ -1,9 +1,9 @@
-package com.starcloud.ops.business.app.service.image.strategy;
+package com.starcloud.ops.business.app.service.xhs.material.strategy;
 
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.api.AppValidate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -29,28 +29,33 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("all")
 @Slf4j
 @Component
-public class ImageHandlerHolder implements ApplicationContextAware {
+public class MaterialHandlerHolder implements ApplicationContextAware {
 
     /**
-     * 发布渠道配置处理器映射, 存放所有发布渠道配置处理器
+     * 资料库处理器映射。key 为发布渠道类型，value 为对应的发布渠道配置处理器
      */
-    private static final Map<String, BaseImageHandler> IMAGE_HANDLER_MAP = new ConcurrentHashMap<>(8);
+    private static final Map<String, AbstractMaterialHandler> MATERIAL_HANDLER_MAP = new ConcurrentHashMap<>(8);
 
     /**
      * 根据 type 值获取对应的发布渠道配置处理器
      *
-     * @param scene 发布渠道类型
+     * @param type 发布渠道类型
      * @return 发布渠道配置处理器
      */
-    public BaseImageHandler getHandler(String scene) {
-        AppValidate.notBlank(scene, ErrorCodeConstants.EXECUTE_SCENE_REQUIRED);
-        if (!AppSceneEnum.SUPPORT_IMAGE_SCENE.contains(scene)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_SCENE_UNSUPPORTED);
+    public AbstractMaterialHandler getHandler(String type) {
+
+        AppValidate.notBlank(type, CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
+        MaterialTypeEnum materialType = MaterialTypeEnum.of(type);
+
+        if (materialType == null) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
         }
-        if (IMAGE_HANDLER_MAP.containsKey(scene)) {
-            return IMAGE_HANDLER_MAP.get(scene);
+
+        if (MATERIAL_HANDLER_MAP.containsKey(type)) {
+            return MATERIAL_HANDLER_MAP.get(type);
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_SCENE_UNSUPPORTED);
+
+        throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
     }
 
     /**
@@ -70,21 +75,21 @@ public class ImageHandlerHolder implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         // 清空渠道配置映射
-        IMAGE_HANDLER_MAP.clear();
-        // 获取所有翻译器
-        Map<String, BaseImageHandler> imageHandlerMap = applicationContext.getBeansOfType(BaseImageHandler.class);
-        // 遍历所有翻译器
-        for (Map.Entry<String, BaseImageHandler> imageHandler : imageHandlerMap.entrySet()) {
-            ImageScene annotation = AnnotationUtils.findAnnotation(imageHandler.getValue().getClass(), ImageScene.class);
+        MATERIAL_HANDLER_MAP.clear();
+        // 获取所有资料库处理器
+        Map<String, AbstractMaterialHandler> matterialHandlerMap = applicationContext.getBeansOfType(AbstractMaterialHandler.class);
+        // 遍历资料库处理器，初始化渠道配置映射
+        for (Map.Entry<String, AbstractMaterialHandler> matterialHandler : matterialHandlerMap.entrySet()) {
+            MaterialType annotation = AnnotationUtils.findAnnotation(matterialHandler.getValue().getClass(), MaterialType.class);
             if (annotation == null) {
-                log.warn("图片处理器[{}]未配置图片处理器场景", imageHandler.getKey());
+                log.warn("资料库处理器[{}]未配置资料库类型！", matterialHandler.getKey());
                 continue;
             }
-            AppSceneEnum value = annotation.value();
-            if (!IMAGE_HANDLER_MAP.containsKey(value.name())) {
-                IMAGE_HANDLER_MAP.put(value.name(), imageHandler.getValue());
+            MaterialTypeEnum value = annotation.value();
+            if (!MATERIAL_HANDLER_MAP.containsKey(value.getTypeCode())) {
+                MATERIAL_HANDLER_MAP.put(value.getTypeCode(), matterialHandler.getValue());
             }
         }
-        log.info("初始化图片生成配置处理器完成: IMAGE_HANDLER_MAP: {}", IMAGE_HANDLER_MAP);
+        log.info("初始化资料库处理器完成: MATERIAL_HANDLER_MAP: {}", MATERIAL_HANDLER_MAP);
     }
 }

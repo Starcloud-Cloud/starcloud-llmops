@@ -13,6 +13,11 @@ public interface ErrorCodeConstants {
     // 1.========== 通用错误 300 000 xxx ==========
 
     /**
+     * 通用参数异常错误码
+     */
+    ErrorCode PARAMETER_EXCEPTION = new ErrorCode(300000400, "参数异常，请检查后重试！");
+
+    /**
      * 用户未登录
      */
     ErrorCode USER_MAY_NOT_LOGIN = new ErrorCode(300000401, "用户未登录，请先登录您的账号！");

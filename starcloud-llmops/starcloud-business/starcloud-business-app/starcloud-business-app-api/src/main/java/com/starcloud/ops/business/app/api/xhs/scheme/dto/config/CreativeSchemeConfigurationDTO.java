@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
-import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -80,12 +77,8 @@ public class CreativeSchemeConfigurationDTO implements java.io.Serializable {
      * 验证
      */
     public void validate() {
-        if (StrUtil.isBlank(appUid)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_APP_UID_REQUIRED);
-        }
-        if (CollectionUtil.isEmpty(steps)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CONFIGURATION_NOT_NULL);
-        }
+        AppValidate.notBlank(appUid, "缺少必填项：创作模板！");
+        AppValidate.notEmpty(steps, "创作模板配置异常，请联系管理员！");
         steps.forEach(BaseSchemeStepDTO::validate);
     }
 }

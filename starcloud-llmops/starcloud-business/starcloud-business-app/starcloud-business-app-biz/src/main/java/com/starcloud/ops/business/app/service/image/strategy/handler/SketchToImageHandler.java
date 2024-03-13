@@ -15,7 +15,7 @@ import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageServic
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

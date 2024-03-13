@@ -41,10 +41,16 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
     private String name;
 
     /**
-     * 创作方案模式
+     * 资料库类型
      */
-    @Schema(description = "创作方案模式")
-    private String mode;
+    @Schema(description = "资料库类型")
+    private String materialType;
+
+    /**
+     * 资料库类型名称
+     */
+    @Schema(description = "资料库类型名称")
+    private String materialTypeName;
 
     /**
      * 创作方案描述
@@ -81,5 +87,6 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作方案标签")
     private List<String> tags;
+
 
 }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
+import com.starcloud.ops.business.app.api.AppValidate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,7 +37,8 @@ public class AssembleSchemeStepDTO extends BaseSchemeStepDTO {
      */
     @Override
     public void validate() {
-
+        AppValidate.notBlank(title, "缺少必填项：内容拼接步骤标题不能为空！");
+        AppValidate.notBlank(content, "缺少必填项：内容拼接步骤内容不能为空！");
     }
 
 }
