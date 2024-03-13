@@ -4,6 +4,10 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +17,10 @@ import java.util.Map;
  * @version 1.0.0
  * @since 2021-06-22
  */
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class MaterialSchemeStepEntity extends BaseSchemeStepEntity {
 
     private static final long serialVersionUID = -1431157620004839828L;

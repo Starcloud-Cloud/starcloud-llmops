@@ -53,6 +53,7 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
@@ -131,6 +132,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         metadata.put("refersSource", CreativeSchemeRefersSourceEnum.options());
         metadata.put("mode", CreativeSchemeModeEnum.options());
         metadata.put("generateMode", CreativeSchemeGenerateModeEnum.options());
+        metadata.put("materialType", MaterialTypeEnum.allOptions());
         return metadata;
     }
 
