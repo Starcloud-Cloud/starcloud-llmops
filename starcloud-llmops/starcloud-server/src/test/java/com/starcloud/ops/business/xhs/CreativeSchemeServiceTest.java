@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -62,7 +63,11 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     @Test
     public void optionsTest() {
 
-        List<CreativeOptionDTO> optionDTOS = creativeSchemeService.options("89d53fccfffa4cb0954618dcf1a0d93e");
+        CreativeAppStepSchemeReqVO stepSchemeReqVO = new CreativeAppStepSchemeReqVO();
+        stepSchemeReqVO.setAppUid("89d53fccfffa4cb0954618dcf1a0d93e");
+        stepSchemeReqVO.setStepCode("sd");
+
+        List<CreativeOptionDTO> optionDTOS = creativeSchemeService.options(stepSchemeReqVO);
 
         log.info("optionDTOS: {}", JSONUtil.toJsonPrettyStr(optionDTOS));
 

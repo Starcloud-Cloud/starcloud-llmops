@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.scheme.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -11,6 +12,7 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -30,10 +32,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableS
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
@@ -442,114 +441,34 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     /**
      * 获取创作方案选项
      *
-     * @param appUid 应用UID
+     * @param stepSchemeReqVO 应用UID
      * @return 创作方案选项
      */
     @Override
-    public List<CreativeOptionDTO> options(String appUid) {
-        List<CreativeOptionDTO> optionList = new ArrayList<>();
+    public List<CreativeOptionDTO> options(CreativeAppStepSchemeReqVO stepSchemeReqVO) {
+
+        AppMarketEntity appMarketEntity;
+
+        if (ObjectUtil.isNotNull(stepSchemeReqVO.getAppReqVO())) {
+
+            appMarketEntity = AppFactory.factoryMarket(stepSchemeReqVO.getAppUid(), stepSchemeReqVO.getAppReqVO());
+        } else {
+
+            appMarketEntity = AppFactory.factoryMarket(stepSchemeReqVO.getAppUid());
+        }
 
 
-        //AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
-
-        //前端要传VO的
-        AppMarketEntity appMarketEntity = AppFactory.factoryMarket(appUid);
-
-        return this.workflowStepOptions(appMarketEntity);
-//
-//
-//        // 判断应用类型是否为媒体矩阵
-//        if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarketResponse.getType())) {
-//            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
-//        }
-//        List<WorkflowStepWrapperRespVO> stepWrapperResponseList = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
-//                .map(WorkflowConfigRespVO::getSteps)
-//                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
-//
-//        // 1.基本信息处理
-//        List<CreativeOptionDTO> baseOptionList = new ArrayList<>();
-//        Optional<WorkflowStepWrapperRespVO> variableStepWrapperOptional = stepWrapperResponseList.stream()
-//                .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-//                .findFirst();
-//        if (variableStepWrapperOptional.isPresent()) {
-//            WorkflowStepWrapperRespVO variableWrapper = variableStepWrapperOptional.get();
-//            List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(variableWrapper.getVariable().getVariables());
-//            for (VariableItemRespVO variableItem : variables) {
-//                CreativeOptionDTO option = new CreativeOptionDTO();
-//                option.setParentCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
-//                option.setCode(variableItem.getField());
-//                option.setName(variableItem.getLabel());
-//                option.setType(JsonSchemaUtils.OBJECT);
-//                option.setDescription(variableItem.getDescription());
-//                option.setModel(CreativeOptionModelEnum.BASE_INFO.name());
-//                option.setChildren(Collections.emptyList());
-//                baseOptionList.add(option);
-//            }
-//
-//            CreativeOptionDTO baseOption = new CreativeOptionDTO();
-//            baseOption.setParentCode(JsonSchemaUtils.ROOT);
-//            baseOption.setCode(CreativeOptionModelEnum.BASE_INFO.getPrefix());
-//            baseOption.setName("基本信息");
-//            baseOption.setType(JsonSchemaUtils.OBJECT);
-//            baseOption.setDescription("基本信息");
-//            baseOption.setModel(CreativeOptionModelEnum.BASE_INFO.name());
-//            baseOption.setChildren(baseOptionList);
-//            optionList.add(baseOption);
-//        }
-//
-//        // 2.素材处理
-//
-//        // 3.步骤响应结果
-//        List<CreativeOptionDTO> stepOptionList = new ArrayList<>();
-//        for (WorkflowStepWrapperRespVO wrapper : stepWrapperResponseList) {
-//            // 获取响应
-//            ActionResponseRespVO actionResponse = Optional.ofNullable(wrapper)
-//                    .map(WorkflowStepWrapperRespVO::getFlowStep)
-//                    .map(WorkflowStepRespVO::getResponse)
-//                    .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
-//            // 如果不是 JSON 类型的响应，直接跳过
-//            if (!AppStepResponseTypeEnum.JSON.name().equals(actionResponse.getType()) &&
-//                    !AppStepResponseStyleEnum.JSON.name().equals(actionResponse.getStyle())) {
-//                continue;
-//            }
-//            // 获取 JSON Schema
-//            Optional<String> optional = Optional.ofNullable(actionResponse.getOutput())
-//                    .map(JsonDataVO::getJsonSchema);
-//            // 如果 JSON Schema 为空，直接跳过
-//            if (!optional.isPresent() || StringUtils.isBlank(optional.get())) {
-//                continue;
-//            }
-//            String jsonSchema = optional.get();
-//            CreativeOptionDTO stepOption = JsonSchemaUtils.jsonSchemaToOptions(
-//                    jsonSchema,
-//                    wrapper.getField(),
-//                    wrapper.getName(),
-//                    wrapper.getDescription(),
-//                    CreativeOptionModelEnum.STEP_RESPONSE.name()
-//            );
-//            stepOptionList.add(stepOption);
-//        }
-//        CreativeOptionDTO stepOption = new CreativeOptionDTO();
-//        stepOption.setParentCode(JsonSchemaUtils.ROOT);
-//        stepOption.setCode(CreativeOptionModelEnum.STEP_RESPONSE.getPrefix());
-//        stepOption.setName("步骤响应结果");
-//        stepOption.setType(JsonSchemaUtils.OBJECT);
-//        stepOption.setDescription("步骤响应结果");
-//        stepOption.setModel(CreativeOptionModelEnum.STEP_RESPONSE.name());
-//        stepOption.setChildren(stepOptionList);
-//        optionList.add(stepOption);
-//
-//        return optionList;
-
+        return this.workflowStepOptions(appMarketEntity, stepSchemeReqVO.getStepCode());
     }
 
 
     /**
      * 直接遍历所有节点，每个节点返回入参和出参的两种结构
+     * 只返回当前stepCode 上游的节点参数
      *
      * @param appMarketEntity
      */
-    protected List<CreativeOptionDTO> workflowStepOptions(AppMarketEntity appMarketEntity) {
+    protected List<CreativeOptionDTO> workflowStepOptions(AppMarketEntity appMarketEntity, String currentStepCode) {
 
         List<CreativeOptionDTO> baseOptionList = new ArrayList<>();
 
@@ -557,6 +476,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
             String stepCode = stepWrapper.getStepCode();
             String desc = stepWrapper.getDescription();
+
+            if (stepCode.equals(currentStepCode)) {
+                return null;
+            }
 
             JsonNode intJsonNode = stepWrapper.getInVariableJsonSchema();
             JsonNode outJsonNode = stepWrapper.getOutVariableJsonSchema();
@@ -570,7 +493,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
 
             return stepOption;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
         return baseOptionList;
 

@@ -1,12 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
@@ -116,10 +114,10 @@ public interface CreativeSchemeService {
     /**
      * 获取创作方案选项
      *
-     * @param appUid 应用UID
+     * @param stepSchemeReqVO 应用UID
      * @return 创作方案选项
      */
-    List<CreativeOptionDTO> options(String appUid);
+    List<CreativeOptionDTO> options(CreativeAppStepSchemeReqVO stepSchemeReqVO);
 
     /**
      * 创建文案示例
