@@ -223,7 +223,7 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defAssembleActionStep(String defaultPrompt) {
         // 固定的 jsonSchema，不可编辑。
-        String jsonSchema = JsonSchemaUtils.generateJsonSchema(AssembleDTO.class);
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(AssembleDTO.class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("ASSEMBLE_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("ASSEMBLE_ACTION_DESCRIPTION"));
@@ -246,7 +246,7 @@ public class RecommendActionFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepRespVO defPosterActionStep(String defaultPrompt) {
-        String jsonSchema = JsonSchemaUtils.generateJsonSchema(PosterGenerationHandler.Response[].class);
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(PosterGenerationHandler.Response[].class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("POSTER_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("POSTER_ACTION_DESCRIPTION"));
