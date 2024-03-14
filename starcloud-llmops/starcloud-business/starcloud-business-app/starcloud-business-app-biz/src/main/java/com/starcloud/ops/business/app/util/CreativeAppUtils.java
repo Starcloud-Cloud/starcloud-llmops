@@ -479,45 +479,6 @@ public class CreativeAppUtils {
         return content.toString();
     }
 
-    public static AppMarketRespVO transformCustomExecute(List<BaseSchemeStepDTO> schemeStepList,
-                                                         PosterStyleDTO posterStyle,
-                                                         AppMarketRespVO appResponse,
-                                                         List<String> useImageList) {
-
-        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
-                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
-
-        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
-        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
-
-        // 段落步骤。
-        Optional<BaseSchemeStepDTO> paragraphOptional = schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
-
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-            if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
-                PosterStyleDTO style;
-                if (!paragraphOptional.isPresent()) {
-                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList);
-                } else {
-                    ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) paragraphOptional.get();
-                    Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
-                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount);
-                }
-                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(style)));
-            } else {
-                Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
-                if (!stepEntityOptional.isPresent()) {
-                    continue;
-                }
-                BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
-                schemeStepEntity.transformAppStep(stepWrapper);
-            }
-        }
-        workflowConfig.setSteps(stepWrapperList);
-        appResponse.setWorkflowConfig(workflowConfig);
-        return appResponse;
-    }
-
     /**
      * 处理需求文本，变量填充等
      *

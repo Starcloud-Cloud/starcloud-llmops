@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto;
 
-import cn.hutool.core.lang.Assert;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,6 +42,9 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     @Schema(description = "上传图片地址列表")
     private List<String> imageUrlList;
 
+    /**
+     * 资料列表
+     */
     @Schema(description = "素材列表")
     private List<AbstractBaseCreativeMaterialDTO> creativeMaterialList;
 
@@ -55,7 +58,7 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
      * 校验配置信息
      */
     public void validate() {
-        Assert.notBlank(this.schemeUid, "创作方案不能为空！");
+        AppValidate.notBlank(this.schemeUid, "缺少必填项：创作方案为选择！");
         // 校验素材
         if (CollectionUtils.isEmpty(creativeMaterialList)) {
             creativeMaterialList.forEach(AbstractBaseCreativeMaterialDTO::valid);
