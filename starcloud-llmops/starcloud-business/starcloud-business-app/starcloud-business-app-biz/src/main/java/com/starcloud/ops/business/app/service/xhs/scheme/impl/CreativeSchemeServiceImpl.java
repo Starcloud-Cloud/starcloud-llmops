@@ -477,19 +477,19 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             String stepCode = stepWrapper.getStepCode();
             String desc = stepWrapper.getDescription();
 
-            if (stepCode.equals(currentStepCode)) {
-                return null;
-            }
-
-            JsonNode intJsonNode = stepWrapper.getInVariableJsonSchema();
-            JsonNode outJsonNode = stepWrapper.getOutVariableJsonSchema();
-
             CreativeOptionDTO stepOption = new CreativeOptionDTO();
             stepOption.setName(stepCode);
             stepOption.setDescription(desc);
             stepOption.setCode(stepCode);
 
+            JsonNode intJsonNode = stepWrapper.getInVariableJsonSchema();
             stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
+
+            if (stepCode.equals(currentStepCode)) {
+                return null;
+            }
+
+            JsonNode outJsonNode = stepWrapper.getOutVariableJsonSchema();
             stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
 
             return stepOption;

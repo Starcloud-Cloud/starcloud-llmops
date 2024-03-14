@@ -244,7 +244,7 @@ public class AppContext {
         List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
 
         Map<String, Object> allVariablesValues = MapUtil.newHashMap();
-
+        
         Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
 
             Map<String, Object> variablesValues = wrapper.getContextVariablesValues(STEP_PREFIX);
