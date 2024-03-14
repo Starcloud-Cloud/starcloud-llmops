@@ -48,6 +48,11 @@ public class ActionResponse {
     private Boolean isShow;
 
     /**
+     * 是否只读
+     */
+    private Boolean readOnly;
+
+    /**
      * 请求数据
      */
     private String message;

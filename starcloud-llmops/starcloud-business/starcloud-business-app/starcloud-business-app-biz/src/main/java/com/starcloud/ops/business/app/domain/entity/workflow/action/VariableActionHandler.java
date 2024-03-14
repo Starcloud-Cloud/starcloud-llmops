@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -65,9 +66,10 @@ public class VariableActionHandler extends BaseActionHandler {
         log.info("VariableActionHandler doExecute");
 
         ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(true);
+        actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
-        actionResponse.setIsShow(true);
+        actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
+        actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage("variable");
         actionResponse.setAnswer("variable");
         actionResponse.setOutput(JsonData.of("variable"));

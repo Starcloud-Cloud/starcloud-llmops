@@ -1,12 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
@@ -15,7 +10,6 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableS
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
@@ -23,17 +17,14 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActi
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -109,7 +100,7 @@ public class CreativeUtils {
         if (CollectionUtil.isEmpty(planVariableList)) {
             return schemeStepList;
         }
-        
+
         List<BaseSchemeStepDTO> list = new ArrayList<>();
         for (BaseSchemeStepDTO schemeStep : schemeStepList) {
             // 如果不是全局变量步骤，则直接添加返回步骤中
@@ -122,7 +113,7 @@ public class CreativeUtils {
             VariableSchemeStepDTO variableSchemeStep = (VariableSchemeStepDTO) schemeStep;
             // 获取全局变量的变量列表
             List<VariableItemRespVO> variables = variableSchemeStep.getVariableList();
-            
+
             List<VariableItemRespVO> variableItemList = new ArrayList<>();
             // 将计划变量转换成map，方便后续处理
             Map<String, VariableItemRespVO> planVariableMap = planVariableList.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
@@ -142,84 +133,6 @@ public class CreativeUtils {
         }
 
         return list;
-    }
-
-    /**
-     * 处理执行的应用，参数填充等
-     *
-     * @param configuration 方案配置
-     * @param appMarketResponse           应用信息
-     * @return 处理后的应用信息
-     */
-    public static AppMarketRespVO handlerExecuteApp(CreativeSchemeConfigurationDTO configuration, AppMarketRespVO appMarketResponse) {
-
-        // 复制一份，避免修改原数据
-        AppMarketRespVO appMarket = SerializationUtils.clone(appMarketResponse);
-
-        // 获取应用的工作流配置
-        WorkflowConfigRespVO workflowConfig = appMarket.getWorkflowConfig();
-
-        // 获取工作流配置的步骤列表
-        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
-
-        // 获取方案步骤，并且转换成map，方便后续处理
-        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = CollectionUtil.emptyIfNull(configuration.getSteps()).stream()
-                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
-
-        // 遍历工作流配置的步骤列表，根据方案步骤进行填充
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-            Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
-            if (!stepEntityOptional.isPresent()) {
-                continue;
-            }
-            BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
-            schemeStepEntity.transformAppStep(stepWrapper);
-        }
-        workflowConfig.setSteps(stepWrapperList);
-        appMarket.setWorkflowConfig(workflowConfig);
-        return appMarket;
-    }
-
-    public static AppMarketRespVO handlerExecuteApp(List<BaseSchemeStepDTO> schemeStepList,
-                                                    PosterStyleDTO posterStyle,
-                                                    AppMarketRespVO app,
-                                                    List<String> useImageList) {
-
-        // 复制一份，避免修改原数据
-        AppMarketRespVO appMarket = SerializationUtils.clone(app);
-
-        WorkflowConfigRespVO workflowConfig = appMarket.getWorkflowConfig();
-        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
-
-        // 获取方案步骤，并且转换成map，方便后续处理
-        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
-                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
-
-        // 段落步骤。
-        ParagraphSchemeStepDTO paragraphSchemeStep = getParagraphSchemeStep(schemeStepList);
-
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
-            if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
-                PosterStyleDTO style;
-                if (Objects.isNull(paragraphSchemeStep)) {
-                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList);
-                } else {
-                    Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
-                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount);
-                }
-                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(style)));
-            } else {
-                Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
-                if (!stepEntityOptional.isPresent()) {
-                    continue;
-                }
-                BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
-                schemeStepEntity.transformAppStep(stepWrapper);
-            }
-        }
-        workflowConfig.setSteps(stepWrapperList);
-        appMarket.setWorkflowConfig(workflowConfig);
-        return appMarket;
     }
 
     /**

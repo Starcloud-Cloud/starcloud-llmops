@@ -2,17 +2,20 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
@@ -20,17 +23,24 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
+import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
@@ -39,7 +49,8 @@ import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
-import com.starcloud.ops.business.app.util.CreativeAppUtils;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
+import com.starcloud.ops.business.app.util.CreativeImageUtils;
 import com.starcloud.ops.business.app.util.CreativeUploadUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
@@ -47,6 +58,7 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -56,6 +68,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -386,44 +399,62 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
+        // 获取创作计划的创作方案配置
+        String schemeUid = configuration.getSchemeUid();
+        // 获取创作计划的资料库配置
+        List<AbstractBaseCreativeMaterialDTO> materialList = configuration.getCreativeMaterialList();
+
         // 查询最新创作方案
-        CreativeSchemeRespVO scheme = creativeSchemeService.get(configuration.getSchemeUid());
+        CreativeSchemeRespVO scheme = creativeSchemeService.get(schemeUid);
         // 获取配置并且校验
         CreativeSchemeConfigurationDTO schemeConfiguration = scheme.getConfiguration();
         schemeConfiguration.validate();
+        // 获取创作方案步骤
+        List<BaseSchemeStepDTO> steps = schemeConfiguration.getSteps();
+
+        // 资料库步骤校验
+        MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(steps);
+        AppValidate.notNull(materialSchemeStep, "创作模版配置异常，资料库步骤是必须的！请联系管理员！");
+        // 获取到具体的资料库类型枚举
+        MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
+        AppValidate.notNull(materialType, "资料库类型不支持，请联系管理员{}！", materialSchemeStep.getMaterialType());
+
         // 查询应用详细信息
         AppMarketRespVO appMarket = appMarketService.get(schemeConfiguration.getAppUid());
 
-        // 处理创作内容执行参数
-        List<CreativeContentExecuteDTO> resultList = Lists.newArrayList();
-
         // 获取计划配置的变量列表
-        List<VariableItemRespVO> planVariableList = configuration.getVariableList();
+        List<VariableItemRespVO> planVariableList = CollectionUtil.emptyIfNull(configuration.getVariableList());
         // 获取方案配置的步骤列表, 把计划配置的变量列表合并到方案配置的步骤列表中
-        List<BaseSchemeStepDTO> schemeStepList = CreativeUtils.mergeSchemeStepVariable(schemeConfiguration.getSteps(), planVariableList);
+        List<BaseSchemeStepDTO> schemeStepList = CreativeUtils.mergeSchemeStepVariable(steps, planVariableList);
+        // 设置方案配置的步骤列表
+        schemeConfiguration.setSteps(schemeStepList);
+
+        // 将创作方案配置，进行平铺，生成执行参数，方便后续进行随机。
+        List<CreativeContentExecuteDTO> creativeContentExecuteList = CollectionUtil.newArrayList();
 
         // 获取海报步骤
         PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(schemeStepList);
-
         // 如果没有海报步骤，直接创建一个执行参数
         if (Objects.isNull(posterSchemeStep)) {
-            AppMarketRespVO appMarketResponse = CreativeUtils.handlerExecuteApp(schemeConfiguration, appMarket);
             CreativeContentExecuteDTO planExecute = new CreativeContentExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
-            planExecute.setAppResponse(appMarketResponse);
-            resultList.add(planExecute);
+            planExecute.setAppResponse(handlerExecuteApp(schemeConfiguration, appMarket));
+            creativeContentExecuteList.add(planExecute);
         }
 
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
-        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList())) {
-            AppMarketRespVO appMarketResponse = CreativeAppUtils.transformCustomExecute(schemeStepList, posterStyle, appMarket, configuration.getImageUrlList());
+        List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
+        for (PosterStyleDTO posterStyle : posterStyleList) {
+            AppMarketRespVO appMarketResponse = handlerExecuteApp(schemeStepList, posterStyle, appMarket, configuration.getImageUrlList());
             CreativeContentExecuteDTO planExecute = new CreativeContentExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
             planExecute.setAppResponse(appMarketResponse);
-            resultList.add(planExecute);
+            creativeContentExecuteList.add(planExecute);
         }
 
+
     }
+
 
     /**
      * 获取复制名称
@@ -451,5 +482,84 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         AppValidate.notNull(configuration, CreativeErrorCodeConstants.PLAN_CONFIG_NOT_NULL, request.getName());
         configuration.validate();
+    }
+
+    /**
+     * 处理执行的应用，参数填充等
+     *
+     * @param configuration     方案配置
+     * @param appMarketResponse 应用信息
+     * @return 处理后的应用信息
+     */
+    private AppMarketRespVO handlerExecuteApp(CreativeSchemeConfigurationDTO configuration, AppMarketRespVO appMarketResponse) {
+        // 复制一份，避免修改原应用的数据
+        AppMarketRespVO appMarket = SerializationUtils.clone(appMarketResponse);
+        // 获取应用的工作流配置
+        WorkflowConfigRespVO workflowConfig = appMarket.getWorkflowConfig();
+        // 获取工作流配置的步骤列表
+        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+
+        // 获取方案步骤，并且转换成map，方便后续处理
+        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = configuration.getSteps().stream()
+                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
+
+        // 遍历工作流配置的步骤列表，根据方案步骤进行填充
+        List<WorkflowStepWrapperRespVO> wrapperList = new ArrayList<>();
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            WorkflowStepWrapperRespVO wrapper = SerializationUtils.clone(stepWrapper);
+            if (!schemeStepEntityMap.containsKey(wrapper.getName())) {
+                continue;
+            }
+            Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(wrapper.getName()));
+            if (!stepEntityOptional.isPresent()) {
+                continue;
+            }
+            // 将方案步骤填充到工作流配置的步骤中
+            BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
+            schemeStepEntity.transformAppStep(wrapper);
+            wrapperList.add(wrapper);
+        }
+        workflowConfig.setSteps(wrapperList);
+        appMarket.setWorkflowConfig(workflowConfig);
+        return appMarket;
+    }
+
+    private AppMarketRespVO handlerExecuteApp(List<BaseSchemeStepDTO> schemeStepList,
+                                              PosterStyleDTO posterStyle,
+                                              AppMarketRespVO appResponse,
+                                              List<String> useImageList) {
+
+        Map<String, BaseSchemeStepEntity> schemeStepEntityMap = schemeStepList.stream()
+                .collect(Collectors.toMap(BaseSchemeStepDTO::getName, CreativeSchemeStepConvert.INSTANCE::convert));
+
+        WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
+        List<WorkflowStepWrapperRespVO> stepWrapperList = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
+
+        // 段落步骤。
+        Optional<BaseSchemeStepDTO> paragraphOptional = schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst();
+
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrapperList) {
+            if (PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                PosterStyleDTO style;
+                if (!paragraphOptional.isPresent()) {
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList);
+                } else {
+                    ParagraphSchemeStepDTO paragraphSchemeStep = (ParagraphSchemeStepDTO) paragraphOptional.get();
+                    Integer paragraphCount = paragraphSchemeStep.getParagraphCount();
+                    style = CreativeImageUtils.handlerPosterStyleExecute(posterStyle, useImageList, paragraphCount);
+                }
+                stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE, JSONUtil.toJsonStr(style)));
+            } else {
+                Optional<BaseSchemeStepEntity> stepEntityOptional = Optional.ofNullable(schemeStepEntityMap.get(stepWrapper.getName()));
+                if (!stepEntityOptional.isPresent()) {
+                    continue;
+                }
+                BaseSchemeStepEntity schemeStepEntity = stepEntityOptional.get();
+                schemeStepEntity.transformAppStep(stepWrapper);
+            }
+        }
+        workflowConfig.setSteps(stepWrapperList);
+        appResponse.setWorkflowConfig(workflowConfig);
+        return appResponse;
     }
 }
