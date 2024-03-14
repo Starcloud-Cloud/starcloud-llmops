@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.recommend;
 
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
@@ -19,10 +20,19 @@ public class RecommendResponseFactory {
      * @return ActionResponseRespVO
      */
     public static ActionResponseRespVO defTextResponse() {
+        return defTextResponse(Boolean.TRUE);
+    }
+
+    /**
+     * 默认文本响应
+     *
+     * @return ActionResponseRespVO
+     */
+    public static ActionResponseRespVO defTextResponse(Boolean isShow) {
         ActionResponseRespVO response = new ActionResponseRespVO();
+        response.setIsShow(isShow);
         response.setType(AppStepResponseTypeEnum.TEXT.name());
         response.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
-        response.setIsShow(Boolean.TRUE);
         return response;
     }
 
@@ -33,9 +43,35 @@ public class RecommendResponseFactory {
      */
     public static ActionResponseRespVO defInputResponse() {
         ActionResponseRespVO response = new ActionResponseRespVO();
+        response.setIsShow(Boolean.TRUE);
         response.setType(AppStepResponseTypeEnum.TEXT.name());
         response.setStyle(AppStepResponseStyleEnum.INPUT.name());
-        response.setIsShow(Boolean.TRUE);
+        return response;
+    }
+
+    /**
+     * 只读JSON响应
+     *
+     * @return ActionResponseRespVO
+     */
+    public static ActionResponseRespVO defReadOnlyResponse(String jsonSchema) {
+        return defReadOnlyResponse(Boolean.TRUE, jsonSchema);
+    }
+
+    /**
+     * 只读JSON响应
+     *
+     * @return ActionResponseRespVO
+     */
+    public static ActionResponseRespVO defReadOnlyResponse(Boolean isShow, String jsonSchema) {
+        JsonDataVO jsonData = new JsonDataVO();
+        jsonData.setJsonSchema(jsonSchema);
+
+        ActionResponseRespVO response = new ActionResponseRespVO();
+        response.setIsShow(isShow);
+        response.setType(AppStepResponseTypeEnum.READ_ONLY.name());
+        response.setStyle(AppStepResponseStyleEnum.JSON.name());
+        response.setOutput(jsonData);
         return response;
     }
 }

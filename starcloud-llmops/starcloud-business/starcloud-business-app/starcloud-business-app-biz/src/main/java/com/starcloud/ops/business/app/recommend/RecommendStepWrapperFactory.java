@@ -119,7 +119,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 变量步骤
      *
      * @return WorkflowStepRespVO
      */
@@ -135,7 +135,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 资料库生成步骤
      *
      * @return WorkflowStepRespVO
      */
@@ -151,7 +151,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 标题生成步骤
      *
      * @return WorkflowStepRespVO
      */
@@ -171,7 +171,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 自定义生成步骤
      *
      * @return WorkflowStepRespVO
      */
@@ -191,7 +191,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 段落生成步骤
      *
      * @return WorkflowStepRespVO
      */
@@ -211,7 +211,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 内容拼接步骤
      *
      * @return WorkflowStepRespVO
      */
@@ -231,7 +231,7 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 海报生成步骤
      *
      * @return WorkflowStepRespVO
      */

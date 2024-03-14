@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
@@ -90,7 +89,7 @@ public class MaterialActionHandler extends BaseActionHandler {
     /**
      * 只根据配置的 素材类型，直接获取对应的 素材类型 对象的结构
      *
-     * @return
+     * @return 输出变量的jsonSchema
      */
     @Override
     public JsonNode getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
@@ -112,7 +111,8 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private ActionResponse convert(String answer) {
         ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(true);
+        actionResponse.setSuccess(Boolean.TRUE);
+        actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setAnswer(answer);
         actionResponse.setOutput(JsonData.of(answer));
         actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));

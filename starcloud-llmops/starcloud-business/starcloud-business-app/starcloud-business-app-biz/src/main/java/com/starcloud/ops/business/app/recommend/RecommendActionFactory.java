@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.AssembleDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -10,9 +11,11 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphAct
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 
 import java.util.Arrays;
@@ -110,7 +113,7 @@ public class RecommendActionFactory {
         step.setDescription("变量步骤");
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(VariableActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setResponse(RecommendResponseFactory.defTextResponse(Boolean.FALSE));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
@@ -132,7 +135,7 @@ public class RecommendActionFactory {
         step.setDescription("资料库步骤");
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(MaterialActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setResponse(RecommendResponseFactory.defTextResponse(Boolean.FALSE));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
@@ -159,7 +162,7 @@ public class RecommendActionFactory {
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
-        step.setIcon("open-ai");
+        step.setIcon("title");
         step.setTags(Collections.singletonList("Title"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
@@ -182,7 +185,7 @@ public class RecommendActionFactory {
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
-        step.setIcon("open-ai");
+        step.setIcon("content");
         step.setTags(Collections.singletonList("Custom"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
@@ -205,7 +208,7 @@ public class RecommendActionFactory {
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
-        step.setIcon("open-ai");
+        step.setIcon("paragraph");
         step.setTags(Collections.singletonList("Paragraph"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
@@ -219,16 +222,18 @@ public class RecommendActionFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepRespVO defAssembleActionStep(String defaultPrompt) {
+        // 固定的 jsonSchema，不可编辑。
+        String jsonSchema = JsonSchemaUtils.generateJsonSchema(AssembleDTO.class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("ASSEMBLE_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("ASSEMBLE_ACTION_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(AssembleActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setResponse(RecommendResponseFactory.defReadOnlyResponse(jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
-        step.setIcon("open-ai");
+        step.setIcon("assemble");
         step.setTags(Collections.singletonList("Assemble"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
@@ -241,12 +246,13 @@ public class RecommendActionFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepRespVO defPosterActionStep(String defaultPrompt) {
+        String jsonSchema = JsonSchemaUtils.generateJsonSchema(PosterGenerationHandler.Response[].class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("POSTER_ACTION_NAME"));
         step.setDescription(MessageUtil.getMessage("POSTER_ACTION_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(PosterActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setResponse(RecommendResponseFactory.defReadOnlyResponse(jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
@@ -256,6 +262,5 @@ public class RecommendActionFactory {
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
         return step;
     }
-
 
 }

@@ -141,8 +141,8 @@ public class RecommendVariableFactory {
     public static VariableRespVO defAssembleVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defMediaMatrixTitle(),
-                RecommendVariableItemFactory.defMediaMatrixContent()
+                RecommendVariableItemFactory.defAssembleTitle(),
+                RecommendVariableItemFactory.defAssembleContent()
         ));
         return variable;
     }

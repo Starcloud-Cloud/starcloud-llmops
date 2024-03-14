@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
@@ -178,30 +179,35 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
          * 海报图片模板ID
          */
         @Schema(description = "图片模板")
+        @JsonPropertyDescription("图片模板ID")
         private String id;
 
         /**
          * 海报图片模板名称
          */
         @Schema(description = "图片模板名称")
+        @JsonPropertyDescription("图片模板名称")
         private String name;
 
         /**
          * 是否是海报主图
          */
         @Schema(description = "是否是主图")
+        @JsonPropertyDescription("是否是主图")
         private Boolean isMain;
 
         /**
          * 海报图片序号
          */
         @Schema(description = "图片序号")
+        @JsonPropertyDescription("图片序号")
         private Integer index;
 
         /**
          * 海报图片地址
          */
         @Schema(description = "海报图片地址")
+        @JsonPropertyDescription("海报图片地址")
         private String url;
 
     }
