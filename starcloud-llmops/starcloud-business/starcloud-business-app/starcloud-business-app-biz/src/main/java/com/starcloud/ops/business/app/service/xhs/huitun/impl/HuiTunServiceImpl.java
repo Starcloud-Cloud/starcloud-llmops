@@ -203,6 +203,7 @@ public class HuiTunServiceImpl implements HuiTunService {
                 return extractCookiesAsString(cookies);
             }
         } catch (Exception e) {
+
             e.printStackTrace(); // 更细致的异常处理可以在这里实现
         }
         return null;

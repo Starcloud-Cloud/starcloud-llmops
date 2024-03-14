@@ -1,11 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.huitun;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
-
-import java.util.List;
 
 /**
  * 灰豚数据
@@ -35,9 +30,8 @@ public interface HuiTunService {
     /**
      * 灰豚手机登录接口
      *
-     * @param mobile
-     * @param password
-     * @return
+     * @param mobile 手机号
+     * @param password 密码
      */
     String phoneLogin(String mobile, String password);
 
