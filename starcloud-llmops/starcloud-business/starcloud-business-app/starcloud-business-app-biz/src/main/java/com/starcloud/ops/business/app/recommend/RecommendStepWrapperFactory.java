@@ -158,7 +158,6 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defTitleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -178,7 +177,6 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -198,7 +196,6 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defParagraphStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -218,8 +215,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
-        String defaultPrompt = "";
+        String defaultPrompt = "{STEP." + field + ".TITLE} \n\n {STEP." + field + ".CONTENT}";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -238,7 +234,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
         String field = AppUtils.obtainField(name);
-        String defaultPrompt = "";
+        String defaultPrompt = "为图片配上一个符合图片场景和意境的标题和副标题，标题在30到50个字内。\n {STEP." + field + ".REQUIREMENT}\n\n 输出格式：\n```\n标题:\n副标题:\n```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
