@@ -31,6 +31,7 @@ public class RecommendResponseFactory {
     public static ActionResponseRespVO defTextResponse(Boolean isShow) {
         ActionResponseRespVO response = new ActionResponseRespVO();
         response.setIsShow(isShow);
+        response.setReadOnly(Boolean.FALSE);
         response.setType(AppStepResponseTypeEnum.TEXT.name());
         response.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
         return response;
@@ -44,6 +45,7 @@ public class RecommendResponseFactory {
     public static ActionResponseRespVO defInputResponse() {
         ActionResponseRespVO response = new ActionResponseRespVO();
         response.setIsShow(Boolean.TRUE);
+        response.setReadOnly(Boolean.FALSE);
         response.setType(AppStepResponseTypeEnum.TEXT.name());
         response.setStyle(AppStepResponseStyleEnum.INPUT.name());
         return response;
@@ -69,7 +71,8 @@ public class RecommendResponseFactory {
 
         ActionResponseRespVO response = new ActionResponseRespVO();
         response.setIsShow(isShow);
-        response.setType(AppStepResponseTypeEnum.READ_ONLY.name());
+        response.setReadOnly(Boolean.TRUE);
+        response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setStyle(AppStepResponseStyleEnum.JSON.name());
         response.setOutput(jsonData);
         return response;

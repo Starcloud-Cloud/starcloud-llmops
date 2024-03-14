@@ -29,24 +29,19 @@ public enum AppStepResponseTypeEnum implements IEnumable<Integer> {
     JSON(2, "JSON类型"),
 
     /**
-     * 只读类型
-     */
-    READ_ONLY(3, "只读类型"),
-
-    /**
      * 跳转类型
      */
-    REDIRECT(4, "跳转类型"),
+    REDIRECT(3, "跳转类型"),
 
     /**
      * 复制类型
      */
-    COPY(5, "复制类型"),
+    COPY(4, "复制类型"),
 
     /**
      * 弹窗类型
      */
-    DIALOG(6, "弹窗类型");
+    DIALOG(5, "弹窗类型");
 
     /**
      * 步骤返回类型Code
