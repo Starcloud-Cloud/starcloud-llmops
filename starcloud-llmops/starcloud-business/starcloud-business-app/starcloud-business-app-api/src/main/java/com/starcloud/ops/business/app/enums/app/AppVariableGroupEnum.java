@@ -10,33 +10,37 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
+@Getter
 public enum AppVariableGroupEnum implements IEnumable<Integer> {
 
     /**
      * 变量类型为
      */
-    SYSTEM(0, "应用内全局参数"),
+    SYSTEM(0, "系统变量"),
+
+    /**
+     * 高级变量
+     */
+    ADVANCED(1, "高级变量"),
 
     /**
      * 参数变量
      */
-    PARAMS(1, "参数"),
+    PARAMS(1, "通用变量"),
 
     /**
      * 模型变量
      */
-    MODEL(2, "具体步骤模型参数");
+    MODEL(2, "模型变量");
 
     /**
      * 变量组Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 变量组说明
      */
-    @Getter
     private final String label;
 
     /**
