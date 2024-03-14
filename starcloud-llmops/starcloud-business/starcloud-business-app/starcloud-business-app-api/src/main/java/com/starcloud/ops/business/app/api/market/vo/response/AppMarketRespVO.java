@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用市场对象响应实体VO
@@ -224,5 +225,17 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "是否收藏")
     private Boolean isFavorite;
+
+    /**
+     * 设置应用变量值
+     *
+     * @param stepId      步骤ID
+     * @param variableMap 变量值
+     */
+    public void putStepVariable(String stepId, Map<String, Object> variableMap) {
+        if (workflowConfig != null) {
+            workflowConfig.putVariable(stepId, variableMap);
+        }
+    }
 
 }
