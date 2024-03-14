@@ -6,11 +6,17 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,4 +83,22 @@ public class VariableActionHandler extends BaseActionHandler {
         log.info("VariableActionHandler doExecute end");
         return actionResponse;
     }
+
+    /**
+     * 具体handler的入参定义
+     *
+     * @return
+     */
+    @Override
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        ObjectSchema objectSchema = workflowStepWrapper.getVariable().getJsonSchema();
+
+        objectSchema.setTitle(workflowStepWrapper.getStepCode());
+        objectSchema.setDescription(workflowStepWrapper.getDescription());
+        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
+
+        return objectSchema;
+    }
+
 }

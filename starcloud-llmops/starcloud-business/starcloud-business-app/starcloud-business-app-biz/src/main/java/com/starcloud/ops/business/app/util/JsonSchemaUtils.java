@@ -5,11 +5,12 @@ import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
@@ -119,10 +120,10 @@ public class JsonSchemaUtils {
      * @param clazz 给定的 Java 类
      * @return 生成的 JSON Schema
      */
-    public static String generateJsonSchema(Class<?> clazz) {
+    public static String generateJsonSchemaStr(Class<?> clazz) {
         try {
 
-            JsonNode jsonNode = generateJsonSchemaNode(clazz);
+            JsonNode jsonNode = generateJsonNode(clazz);
             DefaultIndenter defaultIndenter = new DefaultIndenter()
                     .withLinefeed("\n");
             DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
@@ -143,7 +144,8 @@ public class JsonSchemaUtils {
      * @param clazz 给定的 Java 类
      * @return 生成的 JSON Schema
      */
-    public static JsonNode generateJsonSchemaNode(Class<?> clazz) {
+    @Deprecated
+    public static JsonNode generateJsonNode(Class<?> clazz) {
         try {
             JacksonModule jacksonModule = new JacksonModule();
             SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
@@ -153,6 +155,25 @@ public class JsonSchemaUtils {
             SchemaGenerator generator = new SchemaGenerator(config);
 
             return generator.generateSchema(clazz);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateJsonSchemaNode for " + clazz, e);
+        }
+    }
+
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param clazz 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static JsonSchema generateJsonSchema(Class<?> clazz) {
+        try {
+
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
+
+            return jsonSchemaGenerator.generateSchema(clazz);
 
         } catch (Exception e) {
             throw new RuntimeException("Could not generateSchema for " + clazz, e);
@@ -165,7 +186,7 @@ public class JsonSchemaUtils {
      * @param jsonNode 给定的 Java 类
      * @return 生成的 JSON Schema
      */
-    public static String jsonNode2Str(JsonNode jsonNode) {
+    public static String jsonNode2Str(Object jsonNode) {
 
         if (ObjectUtil.isNull(jsonNode)) {
             return null;
@@ -195,7 +216,7 @@ public class JsonSchemaUtils {
      * @return 选项列表
      */
     public static CreativeOptionDTO jsonSchemaToOptions(Class<?> clazz, String code, String model) {
-        String jsonSchema = generateJsonSchema(clazz);
+        String jsonSchema = generateJsonSchemaStr(clazz);
         return jsonSchemaToOptions(jsonSchema, code, code, StringUtils.EMPTY, model, Boolean.FALSE);
     }
 
@@ -209,7 +230,7 @@ public class JsonSchemaUtils {
      * @return 选项列表
      */
     public static CreativeOptionDTO jsonSchemaToOptions(Class<?> clazz, String code, String name, String model) {
-        String jsonSchema = generateJsonSchema(clazz);
+        String jsonSchema = generateJsonSchemaStr(clazz);
         return jsonSchemaToOptions(jsonSchema, code, name, StringUtils.EMPTY, model, Boolean.FALSE);
     }
 
@@ -253,7 +274,7 @@ public class JsonSchemaUtils {
     }
 
 
-    public static JsonNode str2JsonSchema(String jsonSchema) {
+    public static JsonNode str2JsonNode(String jsonSchema) {
 
         try {
 
@@ -274,6 +295,20 @@ public class JsonSchemaUtils {
         } catch (Exception e) {
             //
             throw new RuntimeException(e.getMessage(), e);
+        }
+
+    }
+
+
+    public static JsonSchema str2JsonSchema(String jsonSchema) {
+
+        try {
+
+            JsonSchema jsonNode = OBJECT_MAPPER.readValue(jsonSchema, ObjectSchema.class);
+
+            return jsonNode;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not str2JsonSchema for " + jsonSchema, e);
         }
 
     }
@@ -301,7 +336,7 @@ public class JsonSchemaUtils {
             CreativeOptionModelEnum optionModel = CreativeOptionModelEnum.of(model);
             Assert.notNull(optionModel, "Model must be a valid enum value");
 
-            JsonNode jsonNode = str2JsonSchema(jsonSchema);
+            JsonNode jsonNode = str2JsonNode(jsonSchema);
 
             if (jsonNode.has(ALL_OF)) {
                 jsonNode = jsonNode.get(ALL_OF).get(0);
@@ -494,7 +529,7 @@ public class JsonSchemaUtils {
     }
 
     public static void main(String[] args) {
-        String string = generateJsonSchema(BookListCreativeMaterialDTO.class);
+        String string = generateJsonSchemaStr(BookListCreativeMaterialDTO.class);
         System.out.println(string);
         CreativeOptionDTO a = jsonSchemaToOptions(CreativeOptionDTO.class, "生成文本", CreativeOptionModelEnum.STEP_RESPONSE.name());
         System.out.println(a);

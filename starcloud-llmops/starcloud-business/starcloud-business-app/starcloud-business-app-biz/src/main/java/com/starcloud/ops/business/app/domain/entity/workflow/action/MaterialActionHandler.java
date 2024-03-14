@@ -10,6 +10,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
@@ -81,7 +82,7 @@ public class MaterialActionHandler extends BaseActionHandler {
     }
 
     @Override
-    public JsonNode getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
         //不用返回入参
         return null;
     }
@@ -93,12 +94,12 @@ public class MaterialActionHandler extends BaseActionHandler {
      * @return
      */
     @Override
-    public JsonNode getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
         // 获取到资料库类型
         String materialType = workflowStepWrapper.getContextVariablesValue(CreativeConstants.MATERIAL_TYPE);
 
-        return JsonSchemaUtils.generateJsonSchemaNode(MaterialTypeEnum.of(materialType).getAClass());
+        return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
     }
 
     /**

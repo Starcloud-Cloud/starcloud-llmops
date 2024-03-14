@@ -6,9 +6,18 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ValueTypeSchema;
+import com.networknt.schema.SpecVersion;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 
 import java.util.*;
@@ -39,13 +48,39 @@ public class VariableEntity {
     /**
      * 获取 JsonSchema 格式的参数对象
      */
-    public JsonNode getJsonSchema() {
+    public ObjectSchema getJsonSchema() {
+
+        JsonSchemaFactory jsonSchemaFactory = new JsonSchemaFactory();
+
+        ObjectSchema objectSchema = jsonSchemaFactory.objectSchema();
+        //objectSchema.set$schema(SpecVersion.VersionFlag.V202012.getId());
+
+        Map<String, JsonSchema> properties = new HashMap<>();
 
         for (VariableItemEntity variableItem : this.getVariables()) {
 
+            //现在只支持string
+            if (Arrays.asList(AppVariableStyleEnum.INPUT.name(),
+                            AppVariableStyleEnum.TEXTAREA.name(),
+                            AppVariableStyleEnum.SELECT.name())
+                    .contains(variableItem.getStyle())) {
+
+                ValueTypeSchema valueTypeSchema = new StringSchema();
+                valueTypeSchema.setTitle(variableItem.getLabel());
+                valueTypeSchema.setDescription(variableItem.getDescription());
+                valueTypeSchema.setDefault((String) Optional.ofNullable(variableItem.getValue()).orElseGet(variableItem::getDefaultValue));
+
+                if (Arrays.asList(AppVariableStyleEnum.SELECT.name()).contains(variableItem.getType())) {
+                    valueTypeSchema.setEnums(Optional.ofNullable(variableItem.getOptions()).orElse(new ArrayList<>()).stream().map(Option::getValue).map(String::valueOf).collect(Collectors.toSet()));
+                }
+
+                properties.put(variableItem.getField(), valueTypeSchema);
+            }
         }
 
-        return null;
+        objectSchema.setProperties(properties);
+
+        return objectSchema;
     }
 
     /**

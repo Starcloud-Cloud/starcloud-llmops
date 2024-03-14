@@ -14,6 +14,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.github.victools.jsonschema.generator.SchemaBuilder;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
@@ -117,15 +118,11 @@ public abstract class BaseActionHandler extends Object {
      *
      * @return
      */
-    public JsonNode getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
-        //获取所有节点入参
+        //默认所有节点的入参都不返回支持
 
-        //这里应该要获取2部分变量
-        workflowStepWrapper.getVariable().getJsonSchema();
-        workflowStepWrapper.getFlowStep().getVariable().getJsonSchema();
-
-        return workflowStepWrapper.getVariable().getJsonSchema();
+       return null;
     }
 
 
@@ -134,21 +131,21 @@ public abstract class BaseActionHandler extends Object {
      *
      * @return
      */
-    public JsonNode getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
         //如果配置了返回结构定义就获取，不然就创建一个默认的
         String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
         if (StrUtil.isNotBlank(json)) {
             //有配置，直接返回
 
-            JsonNode jsonNode = JsonSchemaUtils.str2JsonSchema(json);
+            JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
 
-            return jsonNode;
+            return jsonSchema;
 
         } else {
 
             //定义一个默认的JsonSchema结构， xxx._DATA
-            return JsonSchemaUtils.generateJsonSchemaNode(JsonDataDefSchema.class);
+            return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
         }
 
     }

@@ -6,6 +6,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
@@ -77,30 +78,30 @@ public class WorkflowStepWrapper {
     /**
      * 获取节点的入参结构
      */
-    public JsonNode getInVariableJsonSchema() {
+    public JsonSchema getInVariableJsonSchema() {
 
         //只是拿到实例，并没有初始化相关上下文
         BaseActionHandler baseActionHandler = BaseActionHandler.of(this.getFlowStep().getHandler());
 
 
-        JsonNode inJsonNode = baseActionHandler.getInVariableJsonSchema(this);
+        JsonSchema jsonSchema = baseActionHandler.getInVariableJsonSchema(this);
 
-        return inJsonNode;
+        return jsonSchema;
     }
 
 
     /**
      * 获取节点的出参结构
      */
-    public JsonNode getOutVariableJsonSchema() {
+    public JsonSchema getOutVariableJsonSchema() {
 
         //只是拿到实例，并没有初始化相关上下文
         BaseActionHandler baseActionHandler = BaseActionHandler.of(this.getFlowStep().getHandler());
 
         //区分类型，普通节点
-        JsonNode outJsonNode = baseActionHandler.getOutVariableJsonSchema(this);
+        JsonSchema jsonSchema = baseActionHandler.getOutVariableJsonSchema(this);
 
-        return outJsonNode;
+        return jsonSchema;
     }
 
     /**

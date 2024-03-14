@@ -11,6 +11,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -482,14 +483,14 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             stepOption.setDescription(desc);
             stepOption.setCode(stepCode);
 
-            JsonNode intJsonNode = stepWrapper.getInVariableJsonSchema();
+            JsonSchema intJsonNode = stepWrapper.getInVariableJsonSchema();
             stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
 
             if (stepCode.equals(currentStepCode)) {
                 return null;
             }
 
-            JsonNode outJsonNode = stepWrapper.getOutVariableJsonSchema();
+            JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
             stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
 
             return stepOption;

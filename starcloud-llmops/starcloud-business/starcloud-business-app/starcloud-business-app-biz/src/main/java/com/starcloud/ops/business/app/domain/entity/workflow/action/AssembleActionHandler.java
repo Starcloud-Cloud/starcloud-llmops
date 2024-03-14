@@ -9,7 +9,9 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -110,6 +112,5 @@ public class AssembleActionHandler extends BaseActionHandler {
         actionResponse.setCostPoints(0);
         return actionResponse;
     }
-
 
 }
