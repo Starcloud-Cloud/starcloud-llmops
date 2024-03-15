@@ -81,7 +81,7 @@ public class CreativeImageManager {
             response.setName(item.getLabel());
             response.setExample(item.getTempUrl());
             response.setVariableList(variables);
-            response.setImageNumber(imageNumber);
+            response.setTotalImageCount(imageNumber);
             return response;
         }).collect(Collectors.toList());
     }
@@ -128,7 +128,7 @@ public class CreativeImageManager {
                                 template.setName(templateItem.getLabel());
                                 template.setExample(templateItem.getTempUrl());
                                 template.setVariableList(variables);
-                                template.setImageNumber(imageNumber);
+                                template.setTotalImageCount(imageNumber);
                                 return template;
                             }).collect(Collectors.toList());
                     // 组装模板类型

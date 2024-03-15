@@ -65,18 +65,6 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
     private List<VariableItemRespVO> variableList;
 
     /**
-     * 创作方案海报生成模式
-     */
-    @Schema(description = "创作方案步骤列表")
-    private String posterMode;
-
-    /**
-     * 创作方案海报每一组的图片数量
-     */
-    @Schema(description = "创作方案步骤列表")
-    private Integer posterImageCount;
-
-    /**
      * 创建时间
      */
     @Schema(description = "创建时间")

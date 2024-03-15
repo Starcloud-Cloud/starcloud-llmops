@@ -66,7 +66,7 @@ public class PosterTemplateDTO implements java.io.Serializable {
      * 图片数量
      */
     @Schema(description = "图片数量")
-    private Integer imageNumber;
+    private Integer totalImageCount;
 
     /**
      * 标题生成模式

@@ -21,7 +21,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -136,6 +136,17 @@ public class CreativeUtils {
     }
 
     /**
+     * 预处理海报风格列表，一些数据处理，填充。
+     * @param posterStyleList
+     * @return
+     */
+    public static List<PosterStyleDTO> preHandlerPosterStyleList(List<PosterStyleDTO> posterStyleList) {
+        List<PosterStyleDTO> handlerPosterStyleList = posterStyleList.stream().map(CreativeUtils::handlerPosterStyle).collect(Collectors.toList());
+        Integer maxTotalImageCount = handlerPosterStyleList.stream().max(Comparator.comparingInt(PosterStyleDTO::getTotalImageCount)).map(PosterStyleDTO::getTotalImageCount).orElse(0);
+        return handlerPosterStyleList.stream().peek(item -> item.setMaxTotalImageCount(maxTotalImageCount)).collect(Collectors.toList());
+    }
+
+    /**
      * 处理海报风格
      *
      * @param style 海报风格
@@ -154,43 +165,31 @@ public class CreativeUtils {
         for (int i = 0; i < posterTemplateList.size(); i++) {
             PosterTemplateDTO posterTemplate = posterTemplateList.get(i);
             PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
+            // 获取到模板变量列表
             List<PosterVariableDTO> variableList = template.getVariableList();
-            // 获取图片数量
-            Integer imageNumber = (int) variableList.stream().filter(item -> CreativeConstants.IMAGE.equals(item.getType())).count();
+            // 获取模板变量重图片类型变量的数量
+            Integer totalImageCount = (int) variableList.stream().filter(item -> CreativeConstants.IMAGE.equals(item.getType())).count();
+            // 获取模板模式，如果为空则默认为随机模式
             String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.RANDOM.name() : template.getMode();
+            // 获取模板标题生成模式，如果为空则默认为默认模式
             String titleGenerateMode = StringUtils.isBlank(template.getTitleGenerateMode()) ? PosterTitleModeEnum.DEFAULT.name() : template.getTitleGenerateMode();
-            // 更新模板信息
+
+            // 模板信息补充
             template.setIndex(i + 1);
             template.setIsMain(i == 0);
-            template.setImageNumber(imageNumber);
+            template.setTotalImageCount(totalImageCount);
             template.setMode(mode);
             template.setTitleGenerateMode(titleGenerateMode);
+
             // 添加到列表
             templateList.add(template);
         }
-        Integer imageCount = templateList.stream().mapToInt(PosterTemplateDTO::getImageNumber).sum();
-        posterStyle.setImageCount(imageCount);
+        Integer imageCount = templateList.stream().mapToInt(PosterTemplateDTO::getTotalImageCount).sum();
+        posterStyle.setTotalImageCount(imageCount);
         posterStyle.setTemplateList(templateList);
         return posterStyle;
     }
 
-    public static Map<Integer, List<String>> splitImageListToMap(List<String> imageList, int maxSize) {
-        Map<Integer, List<String>> resultMap = new HashMap<>();
-
-        int index = 0;
-        int imageListSize = imageList.size();
-
-        while (index < imageListSize) {
-            int endIndex = Math.min(index + maxSize, imageListSize);
-            List<String> sublist = new ArrayList<>(imageList.subList(index, endIndex));
-
-            resultMap.put(resultMap.size() + 1, sublist);
-
-            index += maxSize;
-        }
-
-        return resultMap;
-    }
 }
 
 

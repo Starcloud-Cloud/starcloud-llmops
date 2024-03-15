@@ -369,7 +369,7 @@ public class CreativeImageUtils {
         merge.setId(template.getId());
         merge.setName(template.getName());
         merge.setExample(posterTemplate.getExample());
-        merge.setImageNumber(posterTemplate.getImageNumber());
+        merge.setTotalImageCount(posterTemplate.getTotalImageCount());
         merge.setVariableList(mergeVariables(CollectionUtil.emptyIfNull(template.getVariableList()), CollectionUtil.emptyIfNull(posterTemplate.getVariableList())));
         merge.setIndex(null);
         merge.setIsMain(null);

@@ -522,29 +522,6 @@ public class RecommendVariableItemFactory {
     }
 
     /**
-     * 海报生成模式
-     *
-     * @return 海报生成模式
-     */
-    public static VariableItemRespVO defPosterModeVariable() {
-        VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.POSTER_MODE);
-        variableItem.setLabel("海报生成模式");
-        variableItem.setDescription("海报生成模式");
-        variableItem.setDefaultValue(PosterModeEnum.RANDOM.name());
-        variableItem.setValue(PosterModeEnum.RANDOM.name());
-        variableItem.setOrder(1);
-        variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
-        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
-        variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.TRUE);
-        variableItem.addOption(PosterModeEnum.RANDOM.getLabel(), PosterModeEnum.RANDOM.name());
-        variableItem.addOption(PosterModeEnum.SEQUENCE.getLabel(), PosterModeEnum.SEQUENCE.name());
-        return variableItem;
-    }
-
-    /**
      * 海报风格变量
      *
      * @return 海报风格变量

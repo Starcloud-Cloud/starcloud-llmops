@@ -155,7 +155,6 @@ public class RecommendVariableFactory {
     public static VariableRespVO defPosterVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defPosterModeVariable(),
                 RecommendVariableItemFactory.defPosterStyleVariable(),
                 RecommendVariableItemFactory.defPosterStyleConfigVariable(),
                 RecommendVariableItemFactory.defPosterTitleVariable(),

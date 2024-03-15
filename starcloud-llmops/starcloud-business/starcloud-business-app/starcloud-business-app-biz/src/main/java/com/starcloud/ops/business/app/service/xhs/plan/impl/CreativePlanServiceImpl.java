@@ -454,7 +454,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
         for (PosterStyleDTO posterStyle : posterStyleList) {
-            // 处理海报风格
+            // 处理海报风格w
             PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, materialList);
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appMarket, schemeConfiguration);
@@ -468,7 +468,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 批量创建创作内容任务
-        creativeContentService.create(buildContentCreateRequestList(creativePlan, creativeContentExecuteList));
+        List<CreativeContentCreateReqVO> contentCreateRequestList = buildContentCreateRequestList(creativePlan, creativeContentExecuteList);
+        creativeContentService.create(contentCreateRequestList);
 
     }
 
@@ -552,7 +553,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private List<CreativeContentCreateReqVO> buildContentCreateRequestList(CreativePlanRespVO creativePlan, List<CreativeContentExecuteDTO> creativeContentExecuteList) {
 
         List<CreativeContentCreateReqVO> creativeContentCreateRequestList = CollectionUtil.newArrayList();
+
+
         for (int i = 0; i < creativePlan.getTotal(); i++) {
+
+
             // 随机获取一条执行参数
             int randomInt = RandomUtil.randomInt(creativeContentExecuteList.size());
             CreativeContentExecuteDTO contentExecute = SerializationUtils.clone(creativeContentExecuteList.get(randomInt));
