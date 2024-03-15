@@ -4,15 +4,12 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeVar;
-import cn.kstry.framework.core.annotation.ReqTaskParam;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -24,21 +21,15 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
-import com.starcloud.ops.business.app.util.ActionUtils;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -127,18 +118,18 @@ public class CustomActionHandler extends BaseActionHandler {
         if (StrUtil.isBlank(refers)) {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
-        List<ReferenceSchemeDTO> refersList = JSONUtil.toList(refers, ReferenceSchemeDTO.class);
-        if (CollectionUtil.isEmpty(refersList)) {
+        List<AbstractBaseCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
+        if (CollectionUtil.isEmpty(referList)) {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
-        ReferenceSchemeDTO reference = refersList.get(RandomUtil.randomInt(refersList.size()));
+        AbstractBaseCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
         actionResponse.setIsShow(Boolean.TRUE);
         actionResponse.setMessage(" ");
-        actionResponse.setAnswer(reference.getContent());
-        actionResponse.setOutput(JsonData.of(reference.getContent()));
+        actionResponse.setAnswer(reference.generateContent());
+        actionResponse.setOutput(JsonData.of(reference.generateContent()));
         actionResponse.setMessageTokens((long) actionResponse.getMessage().length());
         actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, true));
         actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
@@ -176,13 +167,13 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
-        List<ReferenceSchemeDTO> referList = JSONUtil.toList(refers, ReferenceSchemeDTO.class);
+        List<AbstractBaseCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
 
         // 需要交给 ChatGPT 的参考内容数量
         Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
 
         // 处理参考内容
-        List<ReferenceSchemeDTO> handlerReferList = handlerReferList(referList, refersCount);
+        List<AbstractBaseCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JSONUtil.toJsonStr(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
@@ -343,34 +334,19 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param refersCount 参考内容数量
      * @return 处理后的参考内容
      */
-    private List<ReferenceSchemeDTO> handlerReferList(List<ReferenceSchemeDTO> refersList, Integer refersCount) {
-        // 为 refersList 添加 ID。ID为随机值，以防 refersList 无ID值
-        refersList = refersList.stream().peek(item -> item.setId(RandomUtil.randomLong())).collect(Collectors.toList());
-        List<ReferenceSchemeDTO> result = new ArrayList<>();
-        // 如果参考内容数量小于需要的，直接返回数量
-        if (refersList.size() <= refersCount) {
-            result = refersList.stream().map(item -> {
-                ReferenceSchemeDTO reference = SerializationUtils.clone(item);
-                reference.setId(null);
-                reference.setSource(null);
-                reference.setLink(null);
-                reference.setTagList(null);
-                reference.setImageList(null);
-                reference.setTitle(null);
-                return reference;
-            }).collect(Collectors.toList());
-        } else {
-            List<ReferenceSchemeDTO> recordList = new ArrayList<>();
-            for (int i = 0; i < refersCount; i++) {
-                ReferenceSchemeDTO reference = SerializationUtils.clone(ActionUtils.randomReference(refersList, recordList));
-                reference.setId(null);
-                reference.setSource(null);
-                reference.setLink(null);
-                reference.setTagList(null);
-                reference.setImageList(null);
-                reference.setTitle(null);
-                result.add(reference);
-            }
+    private List<AbstractBaseCreativeMaterialDTO> handlerReferList(List<AbstractBaseCreativeMaterialDTO> refersList, Integer refersCount) {
+        // 随机选取
+        Collections.shuffle(refersList);
+        List<AbstractBaseCreativeMaterialDTO> result = refersList.stream()
+                .peek(AbstractBaseCreativeMaterialDTO::clean)
+                .limit(refersCount).collect(Collectors.toList());
+        int i = 0;
+        if ((i = refersCount - result.size()) == 0) {
+            return result;
+        }
+        //  补齐元素
+        for (int j = 0; j < i; j++) {
+            result.add(refersList.get(RandomUtil.randomInt(refersList.size())));
         }
         return result;
     }

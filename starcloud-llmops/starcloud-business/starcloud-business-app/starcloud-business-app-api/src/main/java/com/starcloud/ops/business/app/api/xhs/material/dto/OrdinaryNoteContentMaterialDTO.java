@@ -5,6 +5,10 @@ import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
@@ -14,7 +18,6 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     @FieldDefine(desc = "内容", type = FieldTypeEnum.string)
     private String content;
 
-    @FieldDefine(desc = "参考链接", type = FieldTypeEnum.string)
     private String link;
 
     @Override
@@ -28,4 +31,11 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
             throw exception(MATERIAL_FIELD_NOT_VALID,"笔记内容不能为空");
         }
     }
+
+    @Override
+    public void clean() {
+        this.link = null;
+        super.clean();
+    }
+
 }

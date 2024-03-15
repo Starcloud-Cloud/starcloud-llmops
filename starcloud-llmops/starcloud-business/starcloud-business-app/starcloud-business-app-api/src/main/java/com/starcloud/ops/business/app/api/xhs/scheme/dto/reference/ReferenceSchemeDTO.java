@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.reference;
 
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -15,6 +16,8 @@ import java.util.List;
  * @author nacoyer
  * @version 1.0.0
  * @since 2023-11-14
+ *
+ *  废弃 使用{@link AbstractBaseCreativeMaterialDTO}
  */
 @Valid
 @Data
@@ -23,6 +26,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "ReferenceSchemeDTO", description = "创作方案配置")
+@Deprecated
 public class ReferenceSchemeDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -8215160775720598169L;

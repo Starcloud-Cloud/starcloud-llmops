@@ -17,7 +17,6 @@ public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
     @FieldDefine(desc = "内容", type = FieldTypeEnum.string)
     private String content;
 
-    @FieldDefine(desc = "参考链接", type = FieldTypeEnum.string)
     private String link;
 
     @Override
@@ -33,5 +32,11 @@ public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
         if (StrUtil.isBlank(title)) {
             throw exception(MATERIAL_FIELD_NOT_VALID,"笔记标题不能为空");
         }
+    }
+
+    @Override
+    public void clean() {
+        this.link = null;
+        super.clean();
     }
 }

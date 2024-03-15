@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -16,6 +17,7 @@ import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteReque
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsAppExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
@@ -25,7 +27,6 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSch
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.StandardSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo.CreativeSchemeSseReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -134,18 +135,18 @@ public class CreativeAppUtils {
      * @param referenceList 处理参考内容
      * @return 参考内容
      */
-    public static List<ReferenceSchemeDTO> handlerReferences(List<ReferenceSchemeDTO> referenceList) {
-        return CollectionUtil.emptyIfNull(referenceList).stream().map(item -> {
-            ReferenceSchemeDTO reference = new ReferenceSchemeDTO();
-            reference.setTitle(item.getTitle());
-            reference.setContent(item.getContent());
-            reference.setImageList(null);
-            reference.setLink(null);
-            reference.setSource(null);
-            reference.setId(null);
-            return reference;
-        }).collect(Collectors.toList());
-    }
+//    public static List<ReferenceSchemeDTO> handlerReferences(List<ReferenceSchemeDTO> referenceList) {
+//        return CollectionUtil.emptyIfNull(referenceList).stream().map(item -> {
+//            ReferenceSchemeDTO reference = new ReferenceSchemeDTO();
+//            reference.setTitle(item.getTitle());
+//            reference.setContent(item.getContent());
+//            reference.setImageList(null);
+//            reference.setLink(null);
+//            reference.setSource(null);
+//            reference.setId(null);
+//            return reference;
+//        }).collect(Collectors.toList());
+//    }
 
     /**
      * 处理参考内容
@@ -218,7 +219,7 @@ public class CreativeAppUtils {
                     variableItem.setDefaultValue(description);
 
                 } else if (REFERS.equals(variableItem.getField()) && CollectionUtil.isNotEmpty(request.getRefers())) {
-                    String refers = JSONUtil.toJsonStr(handlerReferences(request.getRefers()));
+                    String refers = JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(request.getRefers()));
                     variableItem.setValue(refers);
                     variableItem.setDefaultValue(refers);
                 }
@@ -265,10 +266,9 @@ public class CreativeAppUtils {
                 if (REFERS.equals(variableItem.getField())) {
                     Object value = appParams.get(variableItem.getField());
                     if (value instanceof String && StringUtils.isNoneBlank((String) value)) {
-                        TypeReference<List<ReferenceSchemeDTO>> typeReference = new TypeReference<List<ReferenceSchemeDTO>>() {
-                        };
-                        List<ReferenceSchemeDTO> refers = JSONUtil.toBean((String) value, typeReference, false);
-                        String refs = JSONUtil.toJsonStr(handlerReferences(refers));
+
+                        List<AbstractBaseCreativeMaterialDTO> referList = JsonUtils.parseArray((String) value, AbstractBaseCreativeMaterialDTO.class);
+                        String refs = JSONUtil.toJsonStr(CollectionUtil.emptyIfNull(referList));
                         variableItem.setValue(refs);
                         variableItem.setDefaultValue(refs);
                     }

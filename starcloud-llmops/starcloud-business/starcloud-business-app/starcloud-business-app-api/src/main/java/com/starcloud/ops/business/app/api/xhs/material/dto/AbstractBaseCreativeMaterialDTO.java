@@ -42,4 +42,11 @@ public abstract class AbstractBaseCreativeMaterialDTO {
      * 校验参数
      */
     public abstract void valid();
+
+    /**
+     * 去除冗余字段
+     */
+    public void clean() {
+        this.type = null;
+    }
 }
