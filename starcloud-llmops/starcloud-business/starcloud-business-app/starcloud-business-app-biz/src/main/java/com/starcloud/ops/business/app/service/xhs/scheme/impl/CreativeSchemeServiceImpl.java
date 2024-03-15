@@ -47,6 +47,7 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.factory.SchemeStepFactory;
@@ -91,6 +92,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private AppMarketService appMarketService;
+
+    @Resource
+    private CreativePlanService creativePlanService;
 
     /**
      * 获取创作方案元数据
@@ -473,7 +477,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         handlerAndValidate(schemeRequest);
         // 获取生成任务数量量
         int total = 3;
-
+        creativePlanService.get("");
     }
 
     /**

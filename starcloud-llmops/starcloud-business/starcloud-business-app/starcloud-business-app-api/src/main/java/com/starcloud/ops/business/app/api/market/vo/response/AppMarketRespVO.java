@@ -238,4 +238,18 @@ public class AppMarketRespVO implements Serializable {
         }
     }
 
+    /**
+     * 获取应用变量值
+     *
+     * @param stepId       步骤ID
+     * @param variableName 变量名称
+     * @return 变量值
+     */
+    public Object getStepVariable(String stepId, String variableName) {
+        if (workflowConfig != null) {
+            return workflowConfig.getStepVariable(stepId, variableName);
+        }
+        return null;
+    }
+
 }

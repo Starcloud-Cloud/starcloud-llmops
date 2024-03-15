@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -70,11 +69,21 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @Schema(description = "步骤变量")
     private VariableRespVO variable;
 
-
+    /**
+     * 添加步骤变量
+     *
+     * @param variable 变量
+     */
     public void putVariable(Map<String, Object> variable) {
         this.variable.putVariable(variable);
     }
 
+    /**
+     * 获取步骤变量
+     *
+     * @param key 变量key
+     * @return VariableItemRespVO
+     */
     public VariableItemRespVO getVariable(String key) {
         List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
         Map<String, VariableItemRespVO> collect = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));

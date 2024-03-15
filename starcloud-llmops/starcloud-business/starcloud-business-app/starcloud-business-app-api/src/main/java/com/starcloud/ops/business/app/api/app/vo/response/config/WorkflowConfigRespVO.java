@@ -50,4 +50,13 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             }
         }
     }
+
+    public Object getStepVariable(String stepId, String variableName) {
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (stepId.equals(step.getField())) {
+                return step.getVariable(variableName);
+            }
+        }
+        return null;
+    }
 }

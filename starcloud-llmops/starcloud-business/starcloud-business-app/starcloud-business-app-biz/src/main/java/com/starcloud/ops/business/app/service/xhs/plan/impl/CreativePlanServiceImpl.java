@@ -4,9 +4,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -360,6 +362,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
     }
 
+    /**
+     * 执行创作计划
+     *
+     * @param uid 创作计划UID
+     */
     public void doExecute(String uid) {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
@@ -454,12 +461,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
         for (PosterStyleDTO posterStyle : posterStyleList) {
-            // 处理海报风格w
-            PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, materialList);
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appMarket, schemeConfiguration);
             // 将处理后的应用填充到执行参数中
-            appMarketResponse.putStepVariable(posterSchemeStep.getName(), Collections.singletonMap(CreativeConstants.POSTER_STYLE, style));
+            Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
+            appMarketResponse.putStepVariable(posterSchemeStep.getName(), variableMap);
 
             CreativeContentExecuteDTO planExecute = new CreativeContentExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
@@ -468,9 +474,42 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 批量创建创作内容任务
-        List<CreativeContentCreateReqVO> contentCreateRequestList = buildContentCreateRequestList(creativePlan, creativeContentExecuteList);
-        creativeContentService.create(contentCreateRequestList);
+        List<CreativeContentCreateReqVO> contentCreateRequestList = Lists.newArrayList();
+        for (int i = 0; i < creativePlan.getTotal(); i++) {
+            // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
+            int sequenceInt = i % creativeContentExecuteList.size();
+            CreativeContentExecuteDTO contentExecute = SerializationUtils.clone(creativeContentExecuteList.get(sequenceInt));
 
+            AppMarketRespVO appResponse = contentExecute.getAppResponse();
+            if (posterSchemeStep != null) {
+                Object postStyleObject = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
+                if (postStyleObject != null) {
+
+                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(postStyleObject), PosterStyleDTO.class);
+                    // 处理海报风格
+                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, materialList);
+                    // 将处理后的海报风格填充到执行参数中
+                    Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
+                    appResponse.putStepVariable(posterSchemeStep.getName(), variableMap);
+                }
+            }
+
+            // 构造创作内容创建请求
+            CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
+            appCreateRequest.setPlanUid(creativePlan.getUid());
+            appCreateRequest.setBatch(creativePlan.getBatch());
+            appCreateRequest.setSchemeUid(contentExecute.getSchemeUid());
+            appCreateRequest.setBusinessUid(IdUtil.fastSimpleUUID());
+            appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
+            appCreateRequest.setTempUid(appResponse.getUid());
+            appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
+            appCreateRequest.setTags(creativePlan.getTags());
+            appCreateRequest.setIsTest(Boolean.FALSE);
+            appCreateRequest.setExecuteParams(contentExecute);
+
+            contentCreateRequestList.add(appCreateRequest);
+        }
+        creativeContentService.create(contentCreateRequestList);
     }
 
     /**
@@ -562,6 +601,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             int randomInt = RandomUtil.randomInt(creativeContentExecuteList.size());
             CreativeContentExecuteDTO contentExecute = SerializationUtils.clone(creativeContentExecuteList.get(randomInt));
 
+            AppMarketRespVO appResponse = contentExecute.getAppResponse();
+
+
             // 构造创作内容创建请求
             CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
             appCreateRequest.setPlanUid(creativePlan.getUid());
@@ -569,7 +611,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             appCreateRequest.setSchemeUid(contentExecute.getSchemeUid());
             appCreateRequest.setBusinessUid(IdUtil.fastSimpleUUID());
             appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
-            appCreateRequest.setTempUid(contentExecute.getAppResponse().getUid());
+            appCreateRequest.setTempUid(appResponse.getUid());
             appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
             appCreateRequest.setTags(creativePlan.getTags());
             appCreateRequest.setIsTest(Boolean.FALSE);
