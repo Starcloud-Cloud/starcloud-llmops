@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
@@ -139,6 +140,7 @@ public class WorkflowStepWrapper {
 
         variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_OUT"), this.flowStep.getValue());
         variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), "_DATA"), this.flowStep.getOutput());
+        variableMap.put(VariableEntity.generateKey(prefixKey, this.getStepCode(), CreativeConstants.STEP_RESP_JSONSCHEMA), this.flowStep.getOutputJsonSchema());
         return variableMap;
 
     }
@@ -157,6 +159,9 @@ public class WorkflowStepWrapper {
 
         variableMap.put(VariableEntity.generateKey("_OUT"), this.flowStep.getValue());
         variableMap.put(VariableEntity.generateKey("_DATA"), this.flowStep.getOutput());
+
+        variableMap.put(VariableEntity.generateKey(CreativeConstants.STEP_RESP_JSONSCHEMA), this.flowStep.getOutputJsonSchema());
+
         return (T) variableMap.getOrDefault(field, null);
 
     }
