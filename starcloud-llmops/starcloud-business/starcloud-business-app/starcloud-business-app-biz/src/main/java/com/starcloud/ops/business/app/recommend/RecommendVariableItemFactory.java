@@ -437,6 +437,57 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
+    public static VariableItemRespVO defMediaMatrixMaterialType() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_TYPE);
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_DESCRIPTION"));
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(10000);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setOptions(MaterialTypeEnum.referOptions());
+        return variableItem;
+    }
+
+    public static VariableItemRespVO defMediaMatrixMaterialJsonSchema() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_JSONSCHEMA);
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_JSONSCHEMA_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_JSONSCHEMA_DESCRIPTION"));
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(10001);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+
+    public static VariableItemRespVO defMediaMatrixStepRespJsonSchema() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.STEP_RESP_JSONSCHEMA);
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_STEP_RESP_JSONSCHEMA_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_STEP_RESP_JSONSCHEMA_DESCRIPTION"));
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(10002);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+
     /**
      * 生成段落数量
      *

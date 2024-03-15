@@ -111,7 +111,10 @@ public class RecommendVariableFactory {
                 RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
                 RecommendVariableItemFactory.defMediaMatrixRefersCount(),
                 RecommendVariableItemFactory.defMediaMatrixRefers(),
-                RecommendVariableItemFactory.defMediaMatrixRequirement()
+                RecommendVariableItemFactory.defMediaMatrixRequirement(),
+                RecommendVariableItemFactory.defMediaMatrixMaterialType(),
+                RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema(),
+                RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema()
         ));
         return variable;
     }

@@ -181,6 +181,7 @@ public class TitleActionHandler extends BaseActionHandler {
         List<AbstractBaseCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JSONUtil.toJsonStr(handlerReferList));
 
+
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
         log.info("标题生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JSONUtil.parse(params).toStringPretty());
