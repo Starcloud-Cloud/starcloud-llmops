@@ -9,9 +9,13 @@ import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -22,6 +26,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -64,6 +69,46 @@ public class CustomActionHandler extends BaseActionHandler {
     @Override
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
+    }
+
+
+    /**
+     * 具体handler的出参定义
+     *
+     * @return
+     */
+    @Override
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //如果配置了返回结构定义就获取，不然就创建一个默认的
+        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
+        if (StrUtil.isNotBlank(json)) {
+            //有配置，直接返回
+
+            JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
+
+            return jsonSchema;
+
+        } else {
+
+            //优先返回 素材类型的结构
+            String refers = this.getAppContext().getContextVariablesValue(CreativeConstants.REFERS, "");
+            if (StrUtil.isNotBlank(refers)) {
+
+                List<AbstractBaseCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
+                if (CollectionUtil.isNotEmpty(referList)) {
+
+                    AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO = referList.get(0);
+                    //获取参考素材的结构
+                    return JsonSchemaUtils.generateJsonSchema(abstractBaseCreativeMaterialDTO.getClass());
+                }
+
+            }
+
+            //定义一个默认的JsonSchema结构， xxx._DATA
+            return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
+        }
+
     }
 
     /**
@@ -122,6 +167,7 @@ public class CustomActionHandler extends BaseActionHandler {
         if (CollectionUtil.isEmpty(referList)) {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
+
         AbstractBaseCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
@@ -129,7 +175,7 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setIsShow(Boolean.TRUE);
         actionResponse.setMessage(" ");
         actionResponse.setAnswer(reference.generateContent());
-        actionResponse.setOutput(JsonData.of(reference.generateContent()));
+        actionResponse.setOutput(JsonData.of(reference.generateContent(), reference.getClass()));
         actionResponse.setMessageTokens((long) actionResponse.getMessage().length());
         actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, true));
         actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
@@ -174,6 +220,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 处理参考内容
         List<AbstractBaseCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
+        AbstractBaseCreativeMaterialDTO reference = handlerReferList.get(0);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JSONUtil.toJsonStr(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
@@ -210,6 +257,9 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
+
+        actionResponse.setOutput(JsonData.of(actionResponse.getOutput(), reference.getClass()));
+
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JSONUtil.parse(actionResponse).toStringPretty()
@@ -259,6 +309,11 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
+
+        //@todo 现在用户无法设置返回结构，所以现在只按字符串返回结构data
+        actionResponse.setOutput(JsonData.of(actionResponse.getOutput()));
+
+
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JSONUtil.parse(actionResponse).toStringPretty()

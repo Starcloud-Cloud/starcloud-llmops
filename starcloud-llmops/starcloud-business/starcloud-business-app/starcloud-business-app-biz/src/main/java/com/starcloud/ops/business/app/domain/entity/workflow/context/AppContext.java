@@ -210,6 +210,18 @@ public class AppContext {
     }
 
     /**
+     * 获取当前步骤的指定变量值
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public <V> V getContextVariablesValue(String key, V def) {
+
+        return (V) this.getContextVariablesValues(this.getStepId()).getOrDefault(key, def);
+    }
+
+    /**
      * 获取当前步骤前最后一个适配的handler的变量结果
      *
      * @return 当前步骤的所有变量值 Maps
@@ -244,7 +256,7 @@ public class AppContext {
         List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
 
         Map<String, Object> allVariablesValues = MapUtil.newHashMap();
-        
+
         Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
 
             Map<String, Object> variablesValues = wrapper.getContextVariablesValues(STEP_PREFIX);

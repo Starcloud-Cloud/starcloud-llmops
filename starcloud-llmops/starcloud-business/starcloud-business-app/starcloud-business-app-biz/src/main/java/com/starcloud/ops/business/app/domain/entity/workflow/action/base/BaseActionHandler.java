@@ -140,7 +140,7 @@ public abstract class BaseActionHandler extends Object {
 
         } else {
 
-            //定义一个默认的JsonSchema结构， xxx._DATA
+            //定义一个默认的JsonSchema结构， xxx.data
             return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
         }
 
