@@ -9,11 +9,17 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -98,7 +104,17 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 获取到资料库类型
         String materialType = workflowStepWrapper.getContextVariablesValue(CreativeConstants.MATERIAL_TYPE);
 
-        return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
+        //构造一层 array schema
+        ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
+        docSchema.setTitle("上传素材");
+        docSchema.setTitle("上传素材集合");
+
+        ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
+
+        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
+        arraySchema.setItemsSchema(materialSchema);
+
+        return docSchema;
     }
 
     /**

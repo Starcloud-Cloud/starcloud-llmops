@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.QLExpressUtils;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import javassist.CtField;
@@ -103,6 +104,45 @@ public class WorkflowV2Test extends BaseUserContextTest {
         app.execute(executeReqVO);
 
     }
+
+
+    @Test
+    public void str2JsonSchema() {
+
+        String json = "{\n" +
+                "  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\n" +
+                "  \"type\" : \"array\",\n" +
+                "  \"items\" : {\n" +
+                "    \"type\" : \"object\",\n" +
+                "    \"properties\" : {\n" +
+                "      \"id\" : {\n" +
+                "        \"type\" : \"string\",\n" +
+                "        \"description\" : \"图片模板ID\"\n" +
+                "      },\n" +
+                "      \"index\" : {\n" +
+                "        \"type\" : \"integer\",\n" +
+                "        \"description\" : \"图片序号\"\n" +
+                "      },\n" +
+                "      \"isMain\" : {\n" +
+                "        \"type\" : \"boolean\",\n" +
+                "        \"description\" : \"是否是主图\"\n" +
+                "      },\n" +
+                "      \"name\" : {\n" +
+                "        \"type\" : \"string\",\n" +
+                "        \"description\" : \"图片模板名称\"\n" +
+                "      },\n" +
+                "      \"url\" : {\n" +
+                "        \"type\" : \"string\",\n" +
+                "        \"description\" : \"海报图片地址\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        JsonSchemaUtils.str2JsonSchema(json);
+
+    }
+
 
     @Test
     public void spelTest() {
