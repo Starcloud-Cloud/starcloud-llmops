@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
@@ -304,7 +305,7 @@ public class JsonSchemaUtils {
 
         try {
 
-            JsonSchema jsonNode = OBJECT_MAPPER.readValue(jsonSchema, ObjectSchema.class);
+            JsonSchema jsonNode = OBJECT_MAPPER.readValue(jsonSchema, ContainerTypeSchema.class);
 
             return jsonNode;
         } catch (Exception e) {
