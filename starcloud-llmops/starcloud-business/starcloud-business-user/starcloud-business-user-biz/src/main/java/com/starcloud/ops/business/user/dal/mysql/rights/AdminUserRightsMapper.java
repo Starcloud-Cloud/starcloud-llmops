@@ -34,7 +34,7 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
 
     default PageResult<AdminUserRightsDO> selectPage(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         return selectPage(pageVO, new LambdaQueryWrapperX<AdminUserRightsDO>()
-                .eqIfPresent(AdminUserRightsDO::getBizId, pageVO.getBizId())
+                .eqIfPresent(AdminUserRightsDO::getBizType, pageVO.getBizId())
                 .eqIfPresent(AdminUserRightsDO::getUserId, userId)
                 .orderByDesc(AdminUserRightsDO::getId));
     }
