@@ -9,6 +9,8 @@ import lombok.Data;
 @Data
 public class PersonaCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
 
+    private static final long serialVersionUID = -174052880963691840L;
+
     @JsonPropertyDescription("头像图片")
     @FieldDefine(desc = "头像图片", type = FieldTypeEnum.image)
     private String avatarImageUrl;
