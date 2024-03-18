@@ -14,7 +14,11 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractBaseCreativeMaterialDT
     @FieldDefine(desc = "标题", type = FieldTypeEnum.string)
     private String title;
 
+    @FieldDefine(desc = "参考链接地址", type = FieldTypeEnum.string)
     private String link;
+
+    @FieldDefine(desc = "参考来源", type = FieldTypeEnum.string)
+    private String source;
 
     @Override
     public String generateContent() {
@@ -31,6 +35,7 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractBaseCreativeMaterialDT
     @Override
     public void clean() {
         this.link = null;
+        this.source = null;
         super.clean();
     }
 }
