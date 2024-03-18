@@ -407,7 +407,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param creativePlan 创作计划
      */
     @SuppressWarnings("all")
-    private void bathCreativeContent(CreativePlanRespVO creativePlan) {
+    @Override
+    public void bathCreativeContent(CreativePlanRespVO creativePlan) {
 
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();

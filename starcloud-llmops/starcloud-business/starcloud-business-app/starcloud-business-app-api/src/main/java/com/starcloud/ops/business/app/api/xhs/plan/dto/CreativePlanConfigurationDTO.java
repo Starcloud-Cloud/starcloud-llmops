@@ -37,12 +37,6 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     private String schemeUid;
 
     /**
-     * 上传图片地址列表
-     */
-    @Schema(description = "上传图片地址列表")
-    private List<String> imageUrlList;
-
-    /**
      * 资料列表
      */
     @Schema(description = "素材列表")

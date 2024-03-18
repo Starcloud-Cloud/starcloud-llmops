@@ -7,7 +7,12 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
@@ -22,7 +27,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -135,8 +139,8 @@ public class CreativeSchemeController {
     @PostMapping(value = "/example")
     @Operation(summary = "小红书文案测试生成")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<Boolean> example(@Validated @RequestBody CreativeSchemeModifyReqVO executeRequest) {
-        creativeSchemeService.example(executeRequest);
+    public CommonResult<Boolean> example(@Validated @RequestBody CreativeSchemeExampleReqVO request) {
+        creativeSchemeService.example(request);
         return CommonResult.success(Boolean.TRUE);
     }
 
