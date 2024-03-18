@@ -1,21 +1,17 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.poster;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.api.AppValidate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -69,7 +65,7 @@ public class PosterTemplateEntity implements java.io.Serializable {
      * 图片数量
      */
     @Schema(description = "图片数量")
-    private Integer imageNumber;
+    private Integer totalImageCount;
 
     /**
      * 标题生成模式
@@ -105,12 +101,9 @@ public class PosterTemplateEntity implements java.io.Serializable {
      * 校验
      */
     public void validate() {
-        if (StringUtils.isBlank(id)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_ID_REQUIRED);
-        }
-        if (CollectionUtil.isEmpty(this.variableList)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
-        }
+        AppValidate.notBlank(this.id, "缺少系统必填项！图片模板ID不能为空！请联系管理员！");
+        AppValidate.notEmpty(this.variableList, "缺少系统必填项！图片模板变量不能为空！请联系管理员！");
+        this.variableList.forEach(PosterVariableEntity::validate);
     }
 
     /**
@@ -122,7 +115,7 @@ public class PosterTemplateEntity implements java.io.Serializable {
         PosterTemplateEntity posterTemplate = new PosterTemplateEntity();
         posterTemplate.setId("");
         posterTemplate.setName("首图");
-        posterTemplate.setImageNumber(0);
+        posterTemplate.setTotalImageCount(0);
         posterTemplate.setExample("");
         posterTemplate.setVariableList(Collections.emptyList());
         return posterTemplate;
