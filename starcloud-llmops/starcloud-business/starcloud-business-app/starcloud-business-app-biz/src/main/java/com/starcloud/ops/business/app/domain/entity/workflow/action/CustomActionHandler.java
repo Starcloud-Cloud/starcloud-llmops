@@ -11,6 +11,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
@@ -92,17 +94,10 @@ public class CustomActionHandler extends BaseActionHandler {
         } else {
 
             //优先返回 素材类型的结构
-            String refers = this.getAppContext().getContextVariablesValue(CreativeConstants.REFERS, "");
+            String refers = this.getAppContext().getContextVariablesValue(CreativeConstants.MATERIAL_TYPE, MaterialTypeEnum.BOOK_LIST.getTypeCode());
             if (StrUtil.isNotBlank(refers)) {
-
-                List<AbstractBaseCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
-                if (CollectionUtil.isNotEmpty(referList)) {
-
-                    AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO = referList.get(0);
-                    //获取参考素材的结构
-                    return JsonSchemaUtils.generateJsonSchema(abstractBaseCreativeMaterialDTO.getClass());
-                }
-
+                //获取参考素材的结构
+                return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
             }
 
             //定义一个默认的JsonSchema结构， xxx._DATA

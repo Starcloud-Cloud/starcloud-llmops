@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ql.util.express.DefaultContext;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -16,6 +17,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.util.QLExpressUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -252,36 +254,50 @@ public class AppContext {
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String stepId) {
 
-        // 获取当前步骤前的所有变量的值
+        // 获取当前步骤前的所有步骤
         List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
 
         Map<String, Object> allVariablesValues = MapUtil.newHashMap();
 
+        //获取所有节点变量的值 kv
         Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).forEach(wrapper -> {
 
             Map<String, Object> variablesValues = wrapper.getContextVariablesValues(STEP_PREFIX);
-
             allVariablesValues.putAll(Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()));
+
+
+            //新版本的变量
+            Map<String, Object> variablesValuesV2 = wrapper.getContextVariablesValuesV2(null, true);
+            allVariablesValues.putAll(Optional.ofNullable(variablesValuesV2).orElse(MapUtil.newHashMap()));
+
         });
 
+        //当前步骤的所有变量 kv，不加前缀
         WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
-        //当前步骤的所有变量
-        Map<String, Object> variables = wrapper.getContextVariablesValues(null);
+        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+
 
         Map<String, Object> fieldVariables = new HashMap<>();
+        //遍历当前变量
         Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
-            String filedKey = StrUtil.replace(entrySet.getKey(), stepId + ".", "");
-            filedKey = StrUtil.replace(filedKey, this.stepId, "");
+            //把当前变量的前缀去掉
+//            String filedKey = StrUtil.replace(entrySet.getKey(), stepId + ".", "");
+//            filedKey = StrUtil.replace(filedKey, this.stepId, "");
 
+            String filedKey = entrySet.getKey();
             Object value = entrySet.getValue();
             if (value != null) {
-                //做一次字符串替换， {}会被替换掉
+                //把当前变量的内容中的 占位符与所有上下游变量做占位符替换，替换为具体的值
                 String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
-                //做一次spel，spel 语法会被替换掉
-                StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
-                Expression exp = SpelParser.parseExpression(val, ParserContext);
-                value = exp.getValue(context);
+
+//                //做一次spel，spel 语法会被替换掉
+//                StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
+//                Expression exp = SpelParser.parseExpression(val, ParserContext);
+//                value = exp.getValue(context);
+
+                value = QLExpressUtils.execute(val, allVariablesValues);
+
             }
 
             fieldVariables.put(filedKey, value);

@@ -1,5 +1,6 @@
 package com.starcloud.ops;
 
+import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.config.YudaoTenantAutoConfiguration;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
@@ -53,7 +55,7 @@ import java.util.List;
  */
 @Slf4j
 @ComponentScan(basePackages = "cn.iocoder.yudao.module.system")
-@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class, YudaoTenantAutoConfiguration.class})
+@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class, YudaoDictAutoConfiguration.class, YudaoTenantAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 public class BaseUserContextTest extends BaseDbUnitTest {
 
@@ -82,6 +84,9 @@ public class BaseUserContextTest extends BaseDbUnitTest {
 
     @MockBean
     private FileApi fileApi;
+
+    @MockBean
+    private RedissonClient redissonClient;
 
 
 //
