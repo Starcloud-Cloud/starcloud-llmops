@@ -12,6 +12,8 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 @Data
 public class PictureCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
 
+    private static final long serialVersionUID = 2659140387627230195L;
+
     @JsonPropertyDescription("图片")
     @FieldDefine(desc = "图片", type = FieldTypeEnum.image)
     private String pictureUrl;
@@ -24,7 +26,7 @@ public class PictureCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
     @Override
     public void valid() {
         if (StrUtil.isBlank(pictureUrl)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID,"图片不能为空");
+            throw exception(MATERIAL_FIELD_NOT_VALID, "图片不能为空");
         }
     }
 }

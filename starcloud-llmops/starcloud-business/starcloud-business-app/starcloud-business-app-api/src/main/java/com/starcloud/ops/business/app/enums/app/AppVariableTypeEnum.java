@@ -10,23 +10,27 @@ import lombok.Getter;
  * @version 1.0.0
  * @since 2023-06-13
  */
+@Getter
 public enum AppVariableTypeEnum implements IEnumable<Integer> {
 
     /**
      * 文本变量类型
      */
-    TEXT(0, "文本");
+    TEXT(0, "文本"),
+
+    /**
+     * 图片变量类型
+     */
+    IMAGE(1, "图片");
 
     /**
      * 变量类型Code
      */
-    @Getter
     private final Integer code;
 
     /**
      * 变量类型说明
      */
-    @Getter
     private final String label;
 
     /**
