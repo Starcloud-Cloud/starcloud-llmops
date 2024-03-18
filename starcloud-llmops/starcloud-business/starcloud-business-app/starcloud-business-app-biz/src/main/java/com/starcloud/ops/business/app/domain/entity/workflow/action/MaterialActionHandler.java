@@ -106,6 +106,9 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         //构造一层 array schema
         ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
+        docSchema.setTitle("上传素材");
+        docSchema.setTitle("上传素材集合");
+
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
 
         ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
