@@ -47,7 +47,7 @@ public class ActionEntity extends BaseActionEntity {
     @JsonIgnore
     @JSONField(serialize = false)
     public String getOutputJsonSchema() {
-        String jsonSchema = ObjectUtil.isNotEmpty(this.getResponse()) ? ObjectUtil.isNotEmpty(this.getResponse().getOutput()) ? this.getResponse().getOutput().getJsonSchema() : "" : "";
+        String jsonSchema = ObjectUtil.isNotEmpty(this.getResponse()) ? ObjectUtil.isNotEmpty(this.getResponse().getOutput()) ? this.getResponse().getOutput().getJsonSchema() : null : null;
 
         //@todo 还是需要做精简处理，完整的jsonSchema 太多了
         return jsonSchema;

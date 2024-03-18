@@ -1,5 +1,9 @@
 package com.starcloud.ops.business.app;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
@@ -13,8 +17,12 @@ import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import cn.kstry.framework.core.engine.StoryEngine;
 import com.google.common.collect.Sets;
+import com.ql.util.express.*;
+import com.ql.util.express.config.QLExpressRunStrategy;
+import com.ql.util.express.instruction.op.OperatorBase;
 import com.starcloud.ops.BaseUserContextTest;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -23,7 +31,9 @@ import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.util.QLExpressUtils;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
+import javassist.CtField;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,15 +46,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.SpelCompilerMode;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 /**
@@ -53,8 +69,14 @@ import java.util.*;
 @Slf4j
 public class WorkflowV2Test extends BaseUserContextTest {
 
-    @Autowired
-    private StoryEngine storyEngine;
+//    @Autowired
+//    private StoryEngine storyEngine;
+
+    @MockBean
+    private StringRedisTemplate stringRedisTemplate;
+
+    @MockBean
+    private RedisMQTemplate redisMQTemplate;
 
     final String appId = "appId-test";
 
@@ -84,8 +106,14 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
     @Test
     public void spelTest() {
+
+        SpelParserConfiguration config = new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null, true, true, 1);
+
+        //SpelParserConfiguration config = new SpelParserConfiguration(true, true);
+
+
         // 创建spel表达式分析器
-        ExpressionParser parser = new SpelExpressionParser();
+        ExpressionParser parser = new SpelExpressionParser(config);
 
 
         ParserContext parserContext = new ParserContext() {
@@ -96,52 +124,268 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
             @Override
             public String getExpressionPrefix() {
-                return "#{";
+                return "{{";
             }
 
             @Override
             public String getExpressionSuffix() {
-                return "}";
+                return "}}";
             }
         };
 
 
         HashMap<String, Object> rootMap = new HashMap<>();
 
-        rootMap.put("STEP.开头._OUT", "77882323");
+
+        BookListCreativeMaterialDTO bookList = new BookListCreativeMaterialDTO();
+        bookList.setBookName("nnn");
+        bookList.setAuthor("authtrr");
 
 
-        List<HashMap> content = Arrays.asList(
+        SC sc = new SC();
+        sc.setDocs(Arrays.asList(
+                bookList,
+                bookList,
+                bookList,
+                bookList
 
-                new HashMap() {{
-                    put("title", "title1");
-                    put("content", "content1");
-                }},
-                new HashMap() {{
-                    put("title", "title2");
-                    put("content", "content2");
-                }},
-                new HashMap() {{
-                    put("title", "title3");
-                    put("content", "content3");
-                }}
-        );
+        ));
 
-        StandardEvaluationContext context = new StandardEvaluationContext(rootMap);
-        context.setVariable("STEP.段落._OUT", "3333");
-        context.setVariable("STEP.TTT._DATA", "3333");
-        context.setVariable("_DATA", "3333");
+
+        rootMap.put("素材", sc);
+
+
+        rootMap.put("内容生成", new HashMap() {{
+            put("data", "title13343434");
+        }});
+
+        rootMap.put("内容生成2", new HashMap() {{
+            put("data", "[1,2,3]");
+        }});
+
+        rootMap.put("内容生成4", new HashMap() {{
+            put("data", "{\"dsd\": 12, \"tt\": 343}");
+        }});
+
+
+        rootMap.put("内容生成5", bookList);
+
+
+        Root root = new Root();
+
+        root.setSC(sc);
+
+
+        StandardEvaluationContext context = new StandardEvaluationContext(root);
+        //context.setVariable("内容生成.data", "3333");
 
         // 输入表达式
-        Expression exp = parser.parseExpression("测试：{STEP.开头._OUT}。。#{['STEP.开头._OUT']}", parserContext);
+        Expression exp = parser.parseExpression("测试：{{SC.docs[1].author}}", parserContext);
         // 获取表达式的输出结果，getValue入参是返回参数的类型
         Object value = exp.getValue(context);
-        System.out.println(value);
 
+        log.info("out: {}", value);
+
+    }
+
+
+    @Test
+    public void qlTest() {
+
+
+        ExpressRunner runner = new ExpressRunner();
+
+        DefaultContext<String, Object> rootMap = new DefaultContext<String, Object>();
+
+        rootMap.put("a", 1);
+        rootMap.put("b", 2);
+        rootMap.put("c", 3);
+
+        BookListCreativeMaterialDTO bookList = new BookListCreativeMaterialDTO();
+        bookList.setBookName("nnn");
+        bookList.setAuthor("authtrr");
+
+
+        SC sc = new SC();
+        sc.setDocs(Arrays.asList(
+                bookList,
+                bookList,
+                bookList,
+                bookList
+
+        ));
+
+
+        rootMap.put("素材", sc);
+
+
+        rootMap.put("内容生成", new HashMap() {{
+            put("data", "title13343434");
+        }});
+
+        rootMap.put("内容生成2", new HashMap() {{
+            put("sss", "[1,  2,    3]");
+            put("list", Arrays.asList(6, 7, 8));
+        }});
+
+        rootMap.put("内容生成4", new HashMap() {{
+            put("data", "{\"dsd\": 12, \"tt\": 343}");
+        }});
+
+
+        rootMap.put("内容生成5", bookList);
+
+
+        try {
+
+
+            // setSecureMethods 设置方式
+            Set<String> secureMethods = new HashSet<>();
+            secureMethods.add("SC");
+
+            //QLExpressRunStrategy.setSecureMethods(secureMethods);
+
+            //QLExpressRunStrategy.setSandBoxMode(true);
+            QLExpressRunStrategy.setMaxArrLength(50);
+
+//            runner.addOperator("join", new JoinOperator());
+//
+//            runner.replaceOperator("+", new JoinOperator());
+
+            //runner.addFunction("join", new JoinOperator());
+
+            runner.addMacro("计算平均成绩", "(语文+数学+英语)/3.0");
+            //runner.addOperatorWithAlias();
+
+            ListOperator listOperator = new ListOperator();
+            runner.addClassMethod("list", List.class, listOperator);
+
+            //添加类的属性字段
+            //runner.addClassField(String field, Class<?>bindingClass, Class<?>returnType, Operator op);
+
+            //添加类的方法
+            //runner.addClassMethod(String name, Class<?>bindingClass, OperatorBase op);
+
+            String content = "体育; 1 join 2 join 3";
+
+            runner.addMacro("飞机", "素材.docs[1].author");
+
+            content = "素材.docs.list(author)";
+
+            content = "素材.docs[1].author";
+
+            content = "素材.docs.list('author')";
+
+            content = "内容生成2.sss";
+
+            content = "内容生成2.list";
+
+            content = "内容生成4.data";
+
+            content = "内容生成5.bookName";
+
+            content = "String[] ds = {内容生成5.bookName, 内容生成5.bookName}; return ds;";
+
+            content = "[内容生成5.bookName, 素材.docs.list('author'), 素材.docs[1].author, 内容生成4.data]";
+
+            content = "sdsd{{内容生成5.bookName}} ++ {{素材.docs.list('author')}} sdas";
+
+//            String vars[] = runner.getOutVarNames(content);
+//
+//            log.info("vars:{}", vars);
+
+
+            Object r = QLExpressUtils.execute(content, rootMap);
+
+            //Object r = runner.execute(content, rootMap, null, false, false);
+//
+            log.info("data:{}", r);
+            log.info("data type: {}", r.getClass());
+
+        } catch (Exception e) {
+
+
+            log.error(e.getMessage(), e);
+        }
+
+    }
+
+    @Test
+    public void mainTest() {
+        String input = "sdsdsd{{变量1}}sdsdsd {{变量2}}sdsdsd {{变量3}}sdsdsdsd";
+
+
+        // 定义正则表达式
+        String regex = "\\{\\{\\}\\}";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+
+        StringBuffer result = new StringBuffer();
+
+
+        while (matcher.find()) {
+            String variable = matcher.group(1);
+            System.out.println("Found variable: " + variable);
+        }
+
+
+        matcher.reset();
+
+        // 找到所有匹配项并提取变量名
+        while (matcher.find()) {
+            String variable = matcher.group(1);
+
+            matcher.appendReplacement(result, "new+" + variable);
+        }
+
+        //matcher.appendTail(result);
+
+        log.info("rr: {}", result.toString());
+    }
+
+
+    /**
+     * 定义一个继承自com.ql.util.express.Operator的操作符
+     */
+    public static class ListOperator extends OperatorBase {
+
+        @Override
+        public OperateData executeInner(InstructionSetContext parent, ArraySwap list) throws Exception {
+
+            OperateData docs = list.get(0);
+            OperateData field = list.get(1);
+
+            log.info("list: {}", list);
+
+            Object ddocs = docs.getObject(parent);
+
+            List<Object> result = new ArrayList<>();
+            if (ddocs instanceof List) {
+                List<Object> fdocs = (List<Object>) ddocs;
+
+                for (int i = 0; i < fdocs.size(); i++) {
+                    Object fieldValue = BeanUtil.getFieldValue(fdocs.get(i), (String) field.getObject(parent));
+                    result.add(fieldValue);
+                }
+
+                return new OperateData(StrUtil.join("\r\n", result), String.class);
+            }
+
+            return null;
+        }
+    }
+
+
+    @Data
+    public static class SC {
+
+        private List<Object> docs;
     }
 
     @Data
     public static class Root {
+
+        private SC SC;
 
         private String TTT = "333";
 
