@@ -22,13 +22,13 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     @FieldDefine(desc = "内容", type = FieldTypeEnum.string)
     private String content;
 
-    @JsonPropertyDescription("参考链接地址")
-    @FieldDefine(desc = "参考链接地址", type = FieldTypeEnum.string)
-    private String link;
-
     @JsonPropertyDescription("参考来源")
-    @FieldDefine(desc = "参考来源", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "参考来源", type = FieldTypeEnum.select)
     private String source;
+
+    @JsonPropertyDescription("参考链接地址")
+    @FieldDefine(desc = "参考链接地址", type = FieldTypeEnum.weburl)
+    private String link;
 
     @Override
     public String generateContent() {

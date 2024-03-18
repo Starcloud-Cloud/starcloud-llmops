@@ -18,6 +18,10 @@ public enum FieldTypeEnum {
     decimal("decimal","小数"),
 
     integer("integer","整数"),
+
+    select("select","下拉框"),
+
+    weburl("weburl","http地址"),
     ;
 
     private String typeCode;
