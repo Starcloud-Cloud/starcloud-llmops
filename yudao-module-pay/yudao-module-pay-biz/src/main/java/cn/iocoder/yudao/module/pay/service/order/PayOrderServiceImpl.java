@@ -513,7 +513,7 @@ public PayOrderExtensionDO getOrderExtensionByNo(String no) {
 @Override
 public int syncOrder(LocalDateTime minCreateTime) {
     // 1. 查询指定创建时间内的待支付订单
-    List<PayOrderExtensionDO> orderExtensions = orderExtensionMapper.selectListByStatusAndCreateTimeGe(
+    List<PayOrderExtensionDO> orderExtensions = orderExtensionMapper.selectListByStatusAndCreateTimeLe(
             PayOrderStatusEnum.WAITING.getStatus(), minCreateTime);
     if (CollUtil.isEmpty(orderExtensions)) {
         return 0;
