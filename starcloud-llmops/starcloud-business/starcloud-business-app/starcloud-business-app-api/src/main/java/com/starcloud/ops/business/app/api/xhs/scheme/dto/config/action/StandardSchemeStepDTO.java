@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.alibaba.excel.util.StringUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
@@ -46,6 +47,9 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
     @Schema(description = "参考内容-素材库格式")
     private List<AbstractBaseCreativeMaterialDTO> materialList;
 
+    @Schema(description = "素材类型")
+    private String materialType;
+
     /**
      * 创作方案步骤要求
      */
@@ -75,6 +79,10 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
             for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : materialList) {
                 abstractBaseCreativeMaterialDTO.valid();
             }
+            if (StringUtils.isBlank(materialType)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(720100401, "参考素材类型不能为空！"));
+            }
+
         }
         // 自定义模式下，要求不能为空
         if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
