@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.poster;
 
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -88,4 +89,7 @@ public class PosterVariableEntity implements java.io.Serializable {
      */
     private Integer count;
 
+    public void validate() {
+        AppValidate.notBlank(this.field, "缺少系统必填项！变量field不能为空！请联系管理员！");
+    }
 }

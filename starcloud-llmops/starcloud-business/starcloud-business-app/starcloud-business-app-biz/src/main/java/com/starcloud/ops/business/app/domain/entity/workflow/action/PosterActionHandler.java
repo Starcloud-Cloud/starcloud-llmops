@@ -43,6 +43,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,26 +127,11 @@ public class PosterActionHandler extends BaseActionHandler {
         String posterStyle = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_STYLE, "{}"));
         // 转为海报模版对象
         PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
-        // 海报模版方式
-        style.assemble();
-
-        // 获取段落配置，如果有段落配置，则说明是段落模版
-        List<ParagraphDTO> paragraphList = (List<ParagraphDTO>) this.getAppContext().getStepResponseData(ParagraphActionHandler.class);
-        // 获取生成的标题
-        String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
-        // 获取整个拼接内容
-        String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
-        // 找到段落配置，说明是段落模版
-        if (CollectionUtil.isNotEmpty(paragraphList)) {
-            // 处理海报模版参数
-            style.assemble(title, paragraphList);
-        }
-
-        // 处理图片标题生成
-        Integer multimodalCostPoints = handlerPosterTitle(style, title, content);
-
         // 校验海报模版
         style.validate();
+
+        // 海报风格参数填充
+        assemble(style);
 
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
@@ -157,21 +143,11 @@ public class PosterActionHandler extends BaseActionHandler {
                 .thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
         // 获取结果
         List<HandlerResponse<PosterGenerationHandler.Response>> handlerResponseList = allFuture.join();
+
         // 如果有一个失败，则返回失败
         Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream().filter(item -> !item.getSuccess()).findFirst();
         if (failureOption.isPresent()) {
-            HandlerResponse<PosterGenerationHandler.Response> failure = failureOption.get();
-            log.info("海报生成 Action 执行失败......");
-            ActionResponse response = new ActionResponse();
-            response.setSuccess(Boolean.FALSE);
-            response.setErrorCode(String.valueOf(failure.getErrorCode()));
-            response.setErrorMsg(failure.getErrorMsg());
-            response.setType(failure.getType());
-            response.setIsShow(Boolean.TRUE);
-            response.setMessage(JSONUtil.toJsonStr(style));
-            response.setStepConfig(JSONUtil.toJsonStr(style));
-            response.setCostPoints(0);
-            return response;
+            return failureResponse(failureOption.get(), style);
         }
 
         // 构建响应结果
@@ -184,9 +160,24 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setMessage(JSONUtil.toJsonStr(style));
         response.setAnswer(JSONUtil.toJsonStr(list));
         response.setOutput(JsonData.of(list));
-        response.setCostPoints(list.size() + multimodalCostPoints);
+        response.setCostPoints(list.size());
         log.info("海报生成 Action 执行结束......");
         return response;
+    }
+
+    /**
+     * 海报风格参数填充
+     *
+     * @param posterStyle 海报风格
+     */
+    private void assemble(PosterStyleEntity posterStyle) {
+        // 获取生成的标题
+        String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
+        // 获取整个拼接内容
+        String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
+
+        // 处理图片标题生成
+        handlerPosterTitle(posterStyle, title, content);
     }
 
     /**
@@ -387,6 +378,28 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerResponse.setErrorMsg(exception.getMessage());
             return handlerResponse;
         }
+    }
+
+    /**
+     * 失败返回结果
+     *
+     * @param failure 失败结果
+     * @param style   海报风格
+     * @return 失败返回结果
+     */
+    @NotNull
+    private static ActionResponse failureResponse(HandlerResponse<PosterGenerationHandler.Response> failure, PosterStyleEntity style) {
+        log.info("海报生成 Action 执行失败......");
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(Boolean.FALSE);
+        response.setErrorCode(String.valueOf(failure.getErrorCode()));
+        response.setErrorMsg(failure.getErrorMsg());
+        response.setType(failure.getType());
+        response.setIsShow(Boolean.TRUE);
+        response.setMessage(JSONUtil.toJsonStr(style));
+        response.setStepConfig(JSONUtil.toJsonStr(style));
+        response.setCostPoints(0);
+        return response;
     }
 
     /**

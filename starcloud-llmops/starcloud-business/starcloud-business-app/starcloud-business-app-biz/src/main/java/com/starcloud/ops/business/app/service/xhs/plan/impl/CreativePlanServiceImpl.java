@@ -451,7 +451,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取海报步骤
         PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(schemeStepList);
         // 如果没有海报步骤，直接创建一个执行参数
-        if (Objects.isNull(posterSchemeStep)) {
+        if (Objects.isNull(posterSchemeStep) ||
+                CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList()).stream().filter(PosterStyleDTO::getEnable).count() == 0) {
             CreativeContentExecuteDTO planExecute = new CreativeContentExecuteDTO();
             planExecute.setSchemeUid(scheme.getUid());
             planExecute.setAppResponse(handlerExecuteApp(appMarket, schemeConfiguration));
@@ -461,6 +462,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
         for (PosterStyleDTO posterStyle : posterStyleList) {
+            if (!posterStyle.getEnable()) {
+                continue;
+            }
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appMarket, schemeConfiguration);
             // 将处理后的应用填充到执行参数中
@@ -475,19 +479,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 批量创建创作内容任务
         List<CreativeContentCreateReqVO> contentCreateRequestList = Lists.newArrayList();
-        for (int i = 0; i < creativePlan.getTotal(); i++) {
+        for (int index = 0; index < creativePlan.getTotal(); index++) {
             // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
-            int sequenceInt = i % creativeContentExecuteList.size();
+            int sequenceInt = index % creativeContentExecuteList.size();
             CreativeContentExecuteDTO contentExecute = SerializationUtils.clone(creativeContentExecuteList.get(sequenceInt));
 
+            // 获取应用，处理海报相关信息
             AppMarketRespVO appResponse = contentExecute.getAppResponse();
             if (posterSchemeStep != null) {
                 Object postStyleObject = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
                 if (postStyleObject != null) {
-
                     PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(postStyleObject), PosterStyleDTO.class);
+                    // 处理上传素材
+                    List<AbstractBaseCreativeMaterialDTO> handleMaterialList = materialHandler.handleMaterialList(materialList, posterStyle, creativePlan.getTotal(), index);
                     // 处理海报风格
-                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, materialList);
+                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList);
                     // 将处理后的海报风格填充到执行参数中
                     Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
                     appResponse.putStepVariable(posterSchemeStep.getName(), variableMap);

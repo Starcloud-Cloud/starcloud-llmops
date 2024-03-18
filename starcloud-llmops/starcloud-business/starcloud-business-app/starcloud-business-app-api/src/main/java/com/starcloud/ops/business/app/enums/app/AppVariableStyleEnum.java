@@ -36,7 +36,12 @@ public enum AppVariableStyleEnum implements IEnumable<Integer> {
     /**
      * 物料库
      */
-    MATERIAL(4, "物料库");
+    MATERIAL(4, "物料库"),
+
+    /**
+     * 图片
+     */
+    IMAGE(5, "图片");
 
     /**
      * 变量样式Code

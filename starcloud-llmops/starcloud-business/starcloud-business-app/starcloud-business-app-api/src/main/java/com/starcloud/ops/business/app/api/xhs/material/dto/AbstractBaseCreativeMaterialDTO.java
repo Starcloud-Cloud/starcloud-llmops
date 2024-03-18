@@ -22,8 +22,9 @@ import lombok.Data;
 })
 @Schema(description = "素材内容")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class AbstractBaseCreativeMaterialDTO {
+public abstract class AbstractBaseCreativeMaterialDTO implements java.io.Serializable {
 
+    private static final long serialVersionUID = 3089429508471148974L;
     /**
      * 素材类型 {@link BookListCreativeMaterialDTO#getType()}
      */
@@ -34,6 +35,7 @@ public abstract class AbstractBaseCreativeMaterialDTO {
     /**
      * 导入素材: 摘要内容 用于筛选
      * 参考素材: 获取参考内容
+     *
      * @return
      */
     public abstract String generateContent();
