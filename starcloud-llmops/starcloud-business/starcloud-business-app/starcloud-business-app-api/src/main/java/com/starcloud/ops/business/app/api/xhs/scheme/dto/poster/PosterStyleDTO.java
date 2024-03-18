@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.xhs.scheme.dto.poster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,6 +12,7 @@ import lombok.ToString;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -44,6 +46,13 @@ public class PosterStyleDTO implements java.io.Serializable {
     private String name;
 
     /**
+     * 是否启用
+     */
+    @Schema(description = "是否启用")
+    @NotNull(message = "是否启用不能为空！")
+    private Boolean enable;
+
+    /**
      * 该风格下的图片类型变量总数量
      */
     @Schema(description = "该风格下的图片类型变量总数量")
@@ -56,10 +65,16 @@ public class PosterStyleDTO implements java.io.Serializable {
     private Integer maxTotalImageCount;
 
     /**
-     * 图片素材列表
+     * 素材列表
      */
-    @Schema(description = "图片素材列表")
-    private List<String> imageMaterialList;
+    @Schema(description = "素材列表")
+    private List<? extends AbstractBaseCreativeMaterialDTO> materialList;
+
+    /**
+     * 海报风格描述
+     */
+    @Schema(description = "海报风格描述")
+    private String description;
 
     /**
      * 模板列表

@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class PositiveQuotationCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO{
 
+    private static final long serialVersionUID = 8909813313202932654L;
+
     @JsonPropertyDescription("标题")
     @FieldDefine(desc = "标题", type = FieldTypeEnum.string)
     private String title;

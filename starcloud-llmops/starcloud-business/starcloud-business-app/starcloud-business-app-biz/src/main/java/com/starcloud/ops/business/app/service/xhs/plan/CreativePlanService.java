@@ -75,7 +75,7 @@ public interface CreativePlanService {
     /**
      * 更新计划状态
      */
-    void updatePlanStatus(String planUid,Long batch);
+    void updatePlanStatus(String planUid, Long batch);
 
     /**
      * 删除创作计划
@@ -90,5 +90,12 @@ public interface CreativePlanService {
      * @param uid 创作计划UID
      */
     void execute(String uid);
+
+    /**
+     * 批量执行任务创建
+     *
+     * @param creativePlan 创作计划
+     */
+    void bathCreativeContent(CreativePlanRespVO creativePlan);
 
 }

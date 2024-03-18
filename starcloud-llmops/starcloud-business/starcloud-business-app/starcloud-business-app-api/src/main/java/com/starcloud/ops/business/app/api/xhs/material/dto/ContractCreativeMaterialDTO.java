@@ -12,6 +12,8 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 @Data
 public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO{
 
+    private static final long serialVersionUID = -3928689367907211655L;
+
     @JsonPropertyDescription("合同名称")
     @FieldDefine(desc = "合同名称", type = FieldTypeEnum.string)
     private String name;

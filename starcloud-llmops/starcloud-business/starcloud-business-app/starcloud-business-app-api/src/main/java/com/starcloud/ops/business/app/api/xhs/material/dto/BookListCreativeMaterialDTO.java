@@ -15,6 +15,8 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 @Accessors(chain = false)
 public class BookListCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
 
+    private static final long serialVersionUID = -7802198500802130936L;
+
     @ExcelProperty("书名")
     @JsonPropertyDescription("书名")
     @FieldDefine(desc = "书名", type = FieldTypeEnum.string)

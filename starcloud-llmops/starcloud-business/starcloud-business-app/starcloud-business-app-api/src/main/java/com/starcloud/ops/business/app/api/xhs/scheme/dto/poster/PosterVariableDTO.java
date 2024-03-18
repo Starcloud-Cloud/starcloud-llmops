@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.poster;
 
-import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -92,9 +90,6 @@ public class PosterVariableDTO implements java.io.Serializable {
     private Integer count;
 
     public void validate() {
-
-        if (StrUtil.isBlank(field)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "变量field不能为空！"));
-        }
+        AppValidate.notBlank(field, "缺少系统必填项！系统变量field不能为空！请联系管理员！");
     }
 }

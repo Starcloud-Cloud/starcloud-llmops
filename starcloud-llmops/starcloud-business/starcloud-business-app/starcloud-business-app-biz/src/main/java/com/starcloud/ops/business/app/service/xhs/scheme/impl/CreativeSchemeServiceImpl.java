@@ -17,6 +17,8 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
@@ -24,6 +26,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialS
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
@@ -41,6 +44,8 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativeRandomTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
@@ -466,18 +471,30 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     }
 
-
     /**
      * 创建文案示例
      *
-     * @param schemeRequest 创作方案需求请求
+     * @param request 创作方案需求请求
      */
     @Override
-    public void example(CreativeSchemeModifyReqVO schemeRequest) {
-        handlerAndValidate(schemeRequest);
-        // 获取生成任务数量量
-        int total = 3;
-        creativePlanService.get("");
+    public void example(CreativeSchemeExampleReqVO request) {
+        CreativeSchemeRespVO scheme = get(request.getSchemeUid(), Boolean.FALSE);
+        // 构造一个测试创作计划
+        CreativePlanRespVO creativePlan = new CreativePlanRespVO();
+        creativePlan.setUid("TEST");
+        creativePlan.setTotal(3);
+        creativePlan.setBatch(1L);
+        creativePlan.setRandomType(CreativeRandomTypeEnum.RANDOM.name());
+        creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
+
+        CreativePlanConfigurationDTO planConfiguration = new CreativePlanConfigurationDTO();
+        planConfiguration.setSchemeUid(scheme.getUid());
+        planConfiguration.setCreativeMaterialList(request.getCreativeMaterialList());
+        planConfiguration.setVariableList(Collections.emptyList());
+
+        creativePlan.setConfiguration(planConfiguration);
+
+        creativePlanService.bathCreativeContent(creativePlan);
     }
 
     /**
