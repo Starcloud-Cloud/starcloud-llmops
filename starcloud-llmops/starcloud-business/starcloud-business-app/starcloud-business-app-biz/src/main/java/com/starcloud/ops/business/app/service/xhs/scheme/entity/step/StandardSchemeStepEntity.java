@@ -52,6 +52,9 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
     @Schema(description = "参考内容-素材库格式")
     private List<AbstractBaseCreativeMaterialDTO> materialList;
 
+    @Schema(description = "素材类型")
+    private String materialType;
+
     /**
      * 创作方案步骤要求
      */
@@ -73,6 +76,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         Map<String, Object> variableMap = new HashMap<>();
         variableMap.put(CreativeConstants.REFERS, JsonUtils.toJsonString(this.materialList));
+        variableMap.put(CreativeConstants.MATERIAL_TYPE, materialType);
         variableMap.put(CreativeConstants.GENERATE_MODE, this.model);
         variableMap.put(CreativeConstants.REQUIREMENT, CreativeAppUtils.handlerRequirement(this.requirement, this.variableList));
         stepWrapper.putVariable(variableMap);
@@ -97,6 +101,8 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
                 this.materialList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
             } else if (CreativeConstants.REQUIREMENT.equals(variableItem.getField())) {
                 this.requirement = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
+            } else if (CreativeConstants.MATERIAL_TYPE.equals(variableItem.getField())) {
+                this.materialType = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
             }
         }
     }
