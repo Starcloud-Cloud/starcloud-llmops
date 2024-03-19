@@ -8,7 +8,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespV
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
-import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -78,7 +77,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
         variableMap.put(CreativeConstants.REFERS, JsonUtils.toJsonString(this.materialList));
         variableMap.put(CreativeConstants.MATERIAL_TYPE, materialType);
         variableMap.put(CreativeConstants.GENERATE_MODE, this.model);
-        variableMap.put(CreativeConstants.REQUIREMENT, CreativeAppUtils.handlerRequirement(this.requirement, this.variableList));
+        variableMap.put(CreativeConstants.REQUIREMENT, this.requirement);
         stepWrapper.putVariable(variableMap);
     }
 

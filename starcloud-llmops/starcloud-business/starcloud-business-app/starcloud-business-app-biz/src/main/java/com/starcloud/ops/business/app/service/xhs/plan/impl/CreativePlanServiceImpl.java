@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -488,9 +487,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 获取应用，处理海报相关信息
             AppMarketRespVO appResponse = contentExecute.getAppResponse();
             if (posterSchemeStep != null) {
-                Object postStyleObject = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
-                if (postStyleObject != null) {
-                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(postStyleObject), PosterStyleDTO.class);
+                VariableItemRespVO posterVariable = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
+                if (posterVariable != null && posterVariable.getValue() != null) {
+                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterVariable.getValue()), PosterStyleDTO.class);
                     // 处理上传素材
                     List<AbstractBaseCreativeMaterialDTO> handleMaterialList = materialHandler.handleMaterialList(materialList, posterStyle, creativePlan.getTotal(), index);
                     // 处理海报风格
@@ -589,44 +588,4 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return appMarket;
     }
 
-    /**
-     * 构造创作内容创建请求列表
-     *
-     * @param creativePlan               创作计划
-     * @param creativeContentExecuteList 执行参数列表
-     * @return 创作内容创建请求列表
-     */
-    private List<CreativeContentCreateReqVO> buildContentCreateRequestList(CreativePlanRespVO creativePlan, List<CreativeContentExecuteDTO> creativeContentExecuteList) {
-
-        List<CreativeContentCreateReqVO> creativeContentCreateRequestList = CollectionUtil.newArrayList();
-
-
-        for (int i = 0; i < creativePlan.getTotal(); i++) {
-
-
-            // 随机获取一条执行参数
-            int randomInt = RandomUtil.randomInt(creativeContentExecuteList.size());
-            CreativeContentExecuteDTO contentExecute = SerializationUtils.clone(creativeContentExecuteList.get(randomInt));
-
-            AppMarketRespVO appResponse = contentExecute.getAppResponse();
-
-
-            // 构造创作内容创建请求
-            CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
-            appCreateRequest.setPlanUid(creativePlan.getUid());
-            appCreateRequest.setBatch(creativePlan.getBatch());
-            appCreateRequest.setSchemeUid(contentExecute.getSchemeUid());
-            appCreateRequest.setBusinessUid(IdUtil.fastSimpleUUID());
-            appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
-            appCreateRequest.setTempUid(appResponse.getUid());
-            appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
-            appCreateRequest.setTags(creativePlan.getTags());
-            appCreateRequest.setIsTest(Boolean.FALSE);
-            appCreateRequest.setExecuteParams(contentExecute);
-
-            creativeContentCreateRequestList.add(appCreateRequest);
-        }
-
-        return creativeContentCreateRequestList;
-    }
 }

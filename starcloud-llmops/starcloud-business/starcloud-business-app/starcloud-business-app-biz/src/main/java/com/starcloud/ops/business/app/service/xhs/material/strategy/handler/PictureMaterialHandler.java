@@ -27,7 +27,7 @@ import java.util.Map;
  */
 @Component
 @MaterialType(MaterialTypeEnum.PICTURE)
-public class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMaterialDTO> {
+class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMaterialDTO> {
 
     /**
      * 处理资料库列表，返回处理后的资料库列表

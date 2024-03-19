@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -245,7 +246,7 @@ public class AppMarketRespVO implements Serializable {
      * @param variableName 变量名称
      * @return 变量值
      */
-    public Object getStepVariable(String stepId, String variableName) {
+    public VariableItemRespVO getStepVariable(String stepId, String variableName) {
         if (workflowConfig != null) {
             return workflowConfig.getStepVariable(stepId, variableName);
         }
