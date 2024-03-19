@@ -254,7 +254,7 @@ public class CustomActionHandler extends BaseActionHandler {
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
 
-        actionResponse.setOutput(JsonData.of(actionResponse.getOutput(), reference.getClass()));
+        actionResponse.setOutput(JsonData.of(actionResponse.getOutput().getData(), reference.getClass()));
 
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
@@ -307,7 +307,7 @@ public class CustomActionHandler extends BaseActionHandler {
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
 
         //@todo 现在用户无法设置返回结构，所以现在只按字符串返回结构data
-        actionResponse.setOutput(JsonData.of(actionResponse.getOutput()));
+        actionResponse.setOutput(JsonData.of(actionResponse.getOutput().getData()));
 
 
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),

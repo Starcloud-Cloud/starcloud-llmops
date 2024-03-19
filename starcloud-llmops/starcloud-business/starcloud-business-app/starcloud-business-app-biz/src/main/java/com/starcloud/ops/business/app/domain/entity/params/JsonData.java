@@ -35,7 +35,7 @@ public class JsonData extends BaseDataEntity {
         JsonData jsonData = new JsonData();
 
         JsonDataDefSchema jsonDataDefSchema = new JsonDataDefSchema();
-        jsonDataDefSchema.setData((String) data);
+        jsonDataDefSchema.setData(String.valueOf(data));
 
         jsonData.setData(jsonDataDefSchema);
         jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(JsonDataDefSchema.class));
@@ -53,7 +53,7 @@ public class JsonData extends BaseDataEntity {
         JsonData jsonData = new JsonData();
 
         JsonDataDefSchema jsonDataDefSchema = new JsonDataDefSchema();
-        jsonDataDefSchema.setData((String) data);
+        jsonDataDefSchema.setData(String.valueOf(data));
 
         jsonData.setData(jsonDataDefSchema);
         jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(tClass));

@@ -34,16 +34,6 @@ public class AppResponseConverter {
         }
         List<WorkflowStepWrapperRespVO> steps = CollectionUtil.emptyIfNull(workflowConfig.getSteps());
 
-        Optional<WorkflowStepWrapperRespVO> titleOption = steps.stream().filter(item -> TitleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
-        if (!titleOption.isPresent()) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "标题步骤未找到！"));
-        }
-        WorkflowStepWrapperRespVO titleStepWrapper = titleOption.get();
-        ActionResponseRespVO titleResponse = titleStepWrapper.getFlowStep().getResponse();
-        if (titleResponse == null || !titleResponse.getSuccess() || StringUtil.isBlank(titleResponse.getAnswer())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "标题结果未找到！"));
-        }
-
 
         Optional<WorkflowStepWrapperRespVO> assembleOption = steps.stream().filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).findFirst();
         if (!assembleOption.isPresent()) {
@@ -68,7 +58,6 @@ public class AppResponseConverter {
         List<PosterImageDTO> posterList = JSONUtil.toList(posterResponse.getAnswer(), PosterImageDTO.class);
 
         CopyWritingContentDTO copyWritingContent = new CopyWritingContentDTO();
-        copyWritingContent.setTitle(titleResponse.getAnswer());
         copyWritingContent.setContent(assembleResponse.getAnswer());
 
         CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();

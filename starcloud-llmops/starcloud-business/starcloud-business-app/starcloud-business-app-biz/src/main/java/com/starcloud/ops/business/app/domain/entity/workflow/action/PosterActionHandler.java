@@ -172,9 +172,9 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     private void assemble(PosterStyleEntity posterStyle) {
         // 获取生成的标题
-        String title = (String) this.getAppContext().getStepResponseData(TitleActionHandler.class);
+        String title = "sss";
         // 获取整个拼接内容
-        String content = (String) this.getAppContext().getStepResponseData(AssembleActionHandler.class);
+        String content = "ddd";
 
         // 处理图片标题生成
         handlerPosterTitle(posterStyle, title, content);
