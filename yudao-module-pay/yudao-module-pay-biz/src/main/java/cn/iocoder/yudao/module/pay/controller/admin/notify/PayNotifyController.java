@@ -80,16 +80,14 @@ public class PayNotifyController {
 
         // 2. 解析通知数据
         Map<String, String> bodyObj = HttpUtil.decodeParamMap(body, StandardCharsets.UTF_8);
-        if (bodyObj.containsKey("trade_status")){
+
+        if (bodyObj.containsKey("agreement_no")) {
+            PayAgreementRespDTO notify = payClient.parseAgreementNotify(params, body);
+            paySignService.notifySignStatus(channelId, notify);
+        } else {
             PayOrderRespDTO notify = payClient.parseOrderNotify(params, body);
             orderService.notifyOrder(channelId, notify);
         }
-
-        if (bodyObj.containsKey("agreement_no")){
-            PayAgreementRespDTO notify = payClient.parseAgreementNotify(params, body);
-            paySignService.notifySignStatus(channelId,notify);
-        }
-
 
         return "success";
     }
@@ -99,8 +97,8 @@ public class PayNotifyController {
     @PermitAll
     @OperateLog(enable = false) // 回调地址，无需记录操作日志
     public String notifyRefund(@PathVariable("channelId") Long channelId,
-                              @RequestParam(required = false) Map<String, String> params,
-                              @RequestBody(required = false) String body) {
+                               @RequestParam(required = false) Map<String, String> params,
+                               @RequestBody(required = false) String body) {
         log.info("[notifyRefund][channelId({}) 回调数据({}/{})]", channelId, params, body);
         // 1. 校验支付渠道是否存在
         PayClient payClient = channelService.getPayClient(channelId);
