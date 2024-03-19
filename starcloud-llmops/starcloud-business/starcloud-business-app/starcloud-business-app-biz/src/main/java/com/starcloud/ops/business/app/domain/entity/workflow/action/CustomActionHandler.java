@@ -93,8 +93,9 @@ public class CustomActionHandler extends BaseActionHandler {
 
         } else {
 
+            Map<String, Object> params = workflowStepWrapper.getContextVariablesValues(null, false);
             //优先返回 素材类型的结构
-            String refers = this.getAppContext().getContextVariablesValue(CreativeConstants.MATERIAL_TYPE, MaterialTypeEnum.BOOK_LIST.getTypeCode());
+            String refers = (String) params.get(CreativeConstants.MATERIAL_TYPE);
             if (StrUtil.isNotBlank(refers)) {
                 //获取参考素材的结构
                 return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
