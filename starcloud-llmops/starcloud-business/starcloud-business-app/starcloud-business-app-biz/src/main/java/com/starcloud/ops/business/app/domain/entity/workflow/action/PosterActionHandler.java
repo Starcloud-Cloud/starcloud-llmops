@@ -171,10 +171,14 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param posterStyle 海报风格
      */
     private void assemble(PosterStyleEntity posterStyle) {
+
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
         // 获取生成的标题
-        String title = "sss";
+        String title = String.valueOf(params.getOrDefault(CreativeConstants.TITLE, "标题"));
+
         // 获取整个拼接内容
-        String content = "ddd";
+        String content = String.valueOf(params.getOrDefault(CreativeConstants.CONTENT, "内容"));
 
         // 处理图片标题生成
         handlerPosterTitle(posterStyle, title, content);

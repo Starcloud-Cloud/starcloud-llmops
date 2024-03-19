@@ -124,7 +124,7 @@ public class JsonSchemaUtils {
     public static String generateJsonSchemaStr(Class<?> clazz) {
         try {
 
-            JsonNode jsonNode = generateJsonNode(clazz);
+            JsonSchema jsonSchema = generateJsonSchema(clazz);
             DefaultIndenter defaultIndenter = new DefaultIndenter()
                     .withLinefeed("\n");
             DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
@@ -132,7 +132,7 @@ public class JsonSchemaUtils {
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
             // 生成 JSON Schema
-            return objectWriter.writeValueAsString(jsonNode);
+            return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not pretty print json schema for " + clazz, e);
         }
@@ -203,6 +203,30 @@ public class JsonSchemaUtils {
                     .writer(defaultPrettyPrinter);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JsonNode Could not pretty print json schema: " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param jsonSchema 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static String jsonSchema2Str(JsonSchema jsonSchema) {
+
+        try {
+
+            DefaultIndenter defaultIndenter = new DefaultIndenter()
+                    .withLinefeed("\n");
+            DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
+                    .withObjectIndenter(defaultIndenter);
+            ObjectWriter objectWriter = new ObjectMapper()
+                    .writer(defaultPrettyPrinter);
+            // 生成 JSON Schema
+            return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("JsonNode Could not pretty print json schema: " + e.getMessage(), e);
         }

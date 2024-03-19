@@ -117,10 +117,13 @@ public class AssembleActionHandler extends BaseActionHandler {
     private ActionResponse convert(CopyWritingContentDTO copyWriting) {
         StringBuilder assemble = new StringBuilder();
         assemble.append(copyWriting.getTitle()).append("\n").append(copyWriting.getContent());
+
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
+
         actionResponse.setAnswer(assemble.toString());
-        actionResponse.setOutput(JsonData.of(copyWriting));
+        actionResponse.setOutput(JsonData.of(copyWriting, CopyWritingContentDTO.class));
+
         actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
         actionResponse.setMessageTokens(0L);
