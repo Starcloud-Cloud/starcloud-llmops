@@ -2,11 +2,13 @@ package com.starcloud.ops.business.trade.controller.admin.order;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.module.pay.api.notify.dto.PayOrderNotifyReqDTO;
+import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.google.common.collect.Maps;
@@ -73,6 +75,10 @@ public class TradeOrderController {
 
     @Resource
     private ProductSpuApi productSpuApi;
+
+    @Resource
+    private PayOrderApi payOrderApi;
+
 
     @Resource
     private DeliveryExpressService deliveryExpressService;
@@ -274,6 +280,16 @@ public class TradeOrderController {
     public CommonResult<PageResult<AppTradeOrderPageItemRespVO>> getOrderPage(AppTradeOrderPageReqVO reqVO) {
         // 查询订单
         PageResult<TradeOrderDO> pageResult = tradeOrderQueryService.getOrderPage(getLoginUserId(), reqVO);
+
+        // 如果支付渠道为空 则获取支付渠道
+        pageResult.getList().stream().forEach(tradeOrderDO -> {
+            if (StrUtil.isBlank(tradeOrderDO.getPayChannelCode())){
+                String orderPayChannelCode = payOrderApi.getOrderPayChannelCode(tradeOrderProperties.getAppId(), tradeOrderDO.getId());
+                tradeOrderDO.setPayChannelCode(orderPayChannelCode);
+            }
+
+        });
+
         // 查询订单项
         List<TradeOrderItemDO> orderItems = tradeOrderQueryService.getOrderItemListByOrderId(
                 convertSet(pageResult.getList(), TradeOrderDO::getId));

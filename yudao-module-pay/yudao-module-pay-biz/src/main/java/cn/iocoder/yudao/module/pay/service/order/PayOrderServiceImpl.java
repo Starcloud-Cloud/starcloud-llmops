@@ -578,7 +578,17 @@ public int expireOrder() {
     return count;
 }
 
-/**
+    /**
+     * @param merchantOrderId
+     * @return
+     */
+    @Override
+    public String getOrderPayChannelCode(Long appId,Long merchantOrderId) {
+        PayOrderDO payOrderDO = orderMapper.selectByAppIdAndMerchantOrderId(appId, String.valueOf(merchantOrderId));
+        return orderExtensionMapper.selectListByOrderId(payOrderDO.getId()).get(0).getChannelCode();
+    }
+
+    /**
  * 同步单个支付单
  *
  * @param order 支付单

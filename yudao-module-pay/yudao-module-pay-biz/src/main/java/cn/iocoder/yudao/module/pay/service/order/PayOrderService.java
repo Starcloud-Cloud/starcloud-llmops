@@ -143,4 +143,5 @@ public interface PayOrderService {
      */
     int expireOrder();
 
+    String getOrderPayChannelCode(Long appId,Long merchantOrderId);
 }
