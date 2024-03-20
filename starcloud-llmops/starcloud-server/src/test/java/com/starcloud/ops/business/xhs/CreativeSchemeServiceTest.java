@@ -74,6 +74,9 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     @Resource
     private CreativeSchemeService creativeSchemeService;
 
+    @Resource
+    private CreativeContentService creativeContentService;
+
 
     @Test
     public void optionsTest() {
@@ -89,6 +92,19 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     }
 
 
+    //执行创作任务
+    @Test
+    public void executeTest() {
+
+        Map<Long, Boolean> result = creativeContentService.execute(Arrays.asList(
+                3789L
+        ), CreativeContentTypeEnum.ALL.getCode(), Boolean.FALSE);
+
+        log.info("executeTest: {}", result);
+
+    }
+
+
     @Test
     public void sdTest() {
 
@@ -98,7 +114,6 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
 
         try {
             JsonSchema jsonSchema = jsonSchemaGenerator.generateSchema(BookListCreativeMaterialDTO.class);
-
 
 
             String jj = JsonSchemaUtils.jsonNode2Str(jsonSchema);

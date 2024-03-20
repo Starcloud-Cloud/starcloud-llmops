@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -16,6 +18,7 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import cn.kstry.framework.core.engine.StoryEngine;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.ql.util.express.*;
 import com.ql.util.express.config.QLExpressRunStrategy;
@@ -235,7 +238,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
         ExpressRunner runner = new ExpressRunner();
 
-        DefaultContext<String, Object> rootMap = new DefaultContext<String, Object>();
+        HashMap<String, Object> rootMap = new HashMap<>();
 
         rootMap.put("a", 1);
         rootMap.put("b", 2);
@@ -255,6 +258,17 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
         ));
 
+
+        String json = "{\n" +
+                "\t\"fff\": 12,\n" +
+                "\t\"zzz\": \"dsd\"\n" +
+                "}";
+
+        JSONObject jsonObject = JSONUtil.parseObj(json);
+
+        //JsonNode jsonNode = JsonSchemaUtils.str2JsonNode(json);
+
+        rootMap.put("素材2", jsonObject);
 
         rootMap.put("素材", sc);
 
@@ -329,6 +343,9 @@ public class WorkflowV2Test extends BaseUserContextTest {
             content = "[内容生成5.bookName, 素材.docs.list('author'), 素材.docs[1].author, 内容生成4.data]";
 
             content = "sdsd{{内容生成5.bookName}} ++ {{素材.docs.list('author')}} sdas";
+
+            content = "{{素材2.zzz}}";
+           // content = "{{素材2.get('zzz')}}";
 
 //            String vars[] = runner.getOutVarNames(content);
 //

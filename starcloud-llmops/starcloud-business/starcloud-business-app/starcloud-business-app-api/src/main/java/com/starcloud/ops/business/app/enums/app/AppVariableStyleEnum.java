@@ -41,7 +41,12 @@ public enum AppVariableStyleEnum implements IEnumable<Integer> {
     /**
      * 图片
      */
-    IMAGE(5, "图片");
+    IMAGE(5, "图片"),
+
+    /**
+     * 表格
+     */
+    TABLE(6, "表格");
 
     /**
      * 变量样式Code

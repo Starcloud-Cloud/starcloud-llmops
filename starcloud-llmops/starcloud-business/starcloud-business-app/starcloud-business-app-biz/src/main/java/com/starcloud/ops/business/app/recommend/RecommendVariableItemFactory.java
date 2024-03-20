@@ -430,7 +430,7 @@ public class RecommendVariableItemFactory {
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(101);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setStyle(AppVariableStyleEnum.TABLE.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
