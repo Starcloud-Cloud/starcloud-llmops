@@ -224,28 +224,6 @@ public class AppContext {
     }
 
     /**
-     * 获取当前步骤前最后一个适配的handler的变量结果
-     *
-     * @return 当前步骤的所有变量值 Maps
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public Object getStepResponseData(Class<? extends BaseActionHandler> actionHandler) {
-
-        // 获取当前步骤前的所有变量的值
-        List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(this.getStepId());
-
-        Object data = Optional.ofNullable(workflowStepWrappers).orElse(new ArrayList<>()).stream().filter(wrapper -> {
-            return actionHandler.getSimpleName().equals(wrapper.getFlowStep().getHandler());
-        }).findFirst().map(wrapper -> {
-            Map<String, Object> params = Optional.ofNullable(wrapper.getContextVariablesValues(null)).orElse(MapUtil.empty());
-            return params.getOrDefault(wrapper.getStepCode() + "._DATA", null);
-        }).orElse(null);
-
-        return data;
-    }
-
-    /**
      * 获取当前步骤的所有变量值 Maps
      *
      * @return 当前步骤的所有变量值 Maps
@@ -265,10 +243,15 @@ public class AppContext {
             Map<String, Object> variablesValues = wrapper.getContextVariablesValues(STEP_PREFIX);
             allVariablesValues.putAll(Optional.ofNullable(variablesValues).orElse(MapUtil.newHashMap()));
 
-
             //新版本的变量
-            Map<String, Object> variablesValuesV2 = wrapper.getContextVariablesValuesV2(null, true);
+            Map<String, Object> variablesValuesV2 = wrapper.getContextVariablesValues(null, true);
             allVariablesValues.putAll(Optional.ofNullable(variablesValuesV2).orElse(MapUtil.newHashMap()));
+
+            //无前缀的占位符表示当前节点变量（可以引用自己节点的变量）
+            if (wrapper.getStepCode().equals(stepId)) {
+                Map<String, Object> variablesValuesV3 = wrapper.getContextVariablesValues(null, false);
+                allVariablesValues.putAll(Optional.ofNullable(variablesValuesV3).orElse(MapUtil.newHashMap()));
+            }
 
         });
 
@@ -281,23 +264,19 @@ public class AppContext {
         //遍历当前变量
         Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
-            //把当前变量的前缀去掉
-//            String filedKey = StrUtil.replace(entrySet.getKey(), stepId + ".", "");
-//            filedKey = StrUtil.replace(filedKey, this.stepId, "");
-
             String filedKey = entrySet.getKey();
             Object value = entrySet.getValue();
+
             if (value != null) {
+
+                String val = String.valueOf(entrySet.getValue());
+
+                value = QLExpressUtils.execute(val, allVariablesValues);
                 //把当前变量的内容中的 占位符与所有上下游变量做占位符替换，替换为具体的值
-                String val = StrUtil.format(String.valueOf(entrySet.getValue()), allVariablesValues);
 
-//                //做一次spel，spel 语法会被替换掉
-//                StandardEvaluationContext context = new StandardEvaluationContext(allVariablesValues);
-//                Expression exp = SpelParser.parseExpression(val, ParserContext);
-//                value = exp.getValue(context);
-
-                // value = QLExpressUtils.execute(val, allVariablesValues);
-
+                if (value instanceof String) {
+                    value = StrUtil.format(String.valueOf(value), allVariablesValues);
+                }
             }
 
             fieldVariables.put(filedKey, value);

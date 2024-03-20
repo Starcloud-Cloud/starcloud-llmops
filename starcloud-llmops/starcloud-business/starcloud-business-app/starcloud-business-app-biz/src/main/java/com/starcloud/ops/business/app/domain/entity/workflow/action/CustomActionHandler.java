@@ -3,12 +3,14 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
@@ -361,7 +363,10 @@ public class CustomActionHandler extends BaseActionHandler {
         if (this.hasResponseJsonSchema()) {
             //获取当前定义的返回结构
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
-            actionResponse.setOutput(JsonData.of(actionResponse.getAnswer(), JsonSchemaUtils.jsonSchema2Str(jsonSchema)));
+
+            JSONObject jsonObject = JSONUtil.parseObj(actionResponse.getAnswer());
+
+            actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
         } else {
             //如果还是字符串结构，就自动包一层 data 结构
             actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));

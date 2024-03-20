@@ -146,6 +146,40 @@ public class WorkflowStepWrapper {
     @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String prefixKey, Boolean hasStepCode) {
+
+        Map<String, Object> variableMap = this.getOriginalVariablesValues(prefixKey, hasStepCode);
+
+        String stepCode = null;
+        if (hasStepCode) {
+            stepCode = this.getStepCode();
+        }
+
+        variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, CreativeConstants.STEP_RESP_JSONSCHEMA), JsonSchemaUtils.jsonSchema2Str(this.getOutVariableJsonSchema()));
+        return variableMap;
+
+    }
+
+    /**
+     * 获取当前步骤的指定变量的 value
+     *
+     * @return 变量的 values 集合
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public <T> T getVariablesValue(String field) {
+
+        Map<String, Object> variableMap = this.getOriginalVariablesValues(null, false);
+
+        return (T) variableMap.getOrDefault(field, null);
+
+    }
+
+    /**
+     * 获取当前步骤的所有变量的 values 集合
+     *
+     * @return 变量的 values 集合
+     */
+    private Map<String, Object> getOriginalVariablesValues(String prefixKey, Boolean hasStepCode) {
         Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
 
         String stepCode = null;
@@ -158,56 +192,11 @@ public class WorkflowStepWrapper {
 
         variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, "_OUT"), this.flowStep.getValue());
         variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, "_DATA"), this.flowStep.getOutput());
-        variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, CreativeConstants.STEP_RESP_JSONSCHEMA), this.flowStep.getOutputJsonSchema());
+
+        //新版
+        variableMap.put(VariableEntity.generateKey(prefixKey, stepCode), this.flowStep.getOutput());
+
         return variableMap;
-
-    }
-
-    /**
-     * 获取当前步骤的所有变量的 values 集合
-     *
-     * @return 变量的 values 集合
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public Map<String, Object> getContextVariablesValuesV2(String prefixKey, Boolean hasStepCode) {
-        Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
-
-        String stepCode = null;
-        if (hasStepCode) {
-            stepCode = this.getStepCode();
-        }
-
-        String key = VariableEntity.generateKey(prefixKey, stepCode);
-        Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, key);
-
-//        variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, "_OUT"), this.flowStep.getValue());
-
-        //直接把output 放进去，因为新节点所有返回结构是 object了
-        variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, "data"), this.flowStep.getOutput());
-        variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, CreativeConstants.STEP_RESP_JSONSCHEMA), this.flowStep.getOutputJsonSchema());
-        return variableMap;
-
-    }
-
-    /**
-     * 获取当前步骤的指定变量的 value
-     *
-     * @return 变量的 values 集合
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public <T> T getContextVariablesValue(String field) {
-        Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
-
-        Map<String, Object> variableMap = VariableEntity.mergeVariables(this.variable, this.flowStep.getVariable(), consumer, "");
-
-        variableMap.put(VariableEntity.generateKey("_OUT"), this.flowStep.getValue());
-        variableMap.put(VariableEntity.generateKey("_DATA"), this.flowStep.getOutput());
-
-        variableMap.put(VariableEntity.generateKey(CreativeConstants.STEP_RESP_JSONSCHEMA), this.flowStep.getOutputJsonSchema());
-
-        return (T) variableMap.getOrDefault(field, null);
 
     }
 

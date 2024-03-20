@@ -102,12 +102,12 @@ public class MaterialActionHandler extends BaseActionHandler {
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
         // 获取到资料库类型
-        String materialType = workflowStepWrapper.getContextVariablesValue(CreativeConstants.MATERIAL_TYPE);
+        String materialType = workflowStepWrapper.getVariablesValue(CreativeConstants.MATERIAL_TYPE);
 
         //构造一层 array schema
         ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
-        docSchema.setTitle("上传素材");
-        docSchema.setTitle("上传素材集合");
+        docSchema.setTitle(workflowStepWrapper.getStepCode());
+        docSchema.setDescription(workflowStepWrapper.getDescription());
 
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
 

@@ -305,11 +305,11 @@ public class JsonSchemaUtils {
 
             JsonNode jsonNode = OBJECT_MAPPER.readTree(jsonSchema);
             // 检查是否为 JSON Schema，如果不是，则抛出异常
-            Assert.isTrue(
-                    ObjectUtil.isNotNull(jsonNode) &&
-                            jsonNode.has(JSON_SCHEMA) && StringUtils.isNotBlank(jsonNode.get(JSON_SCHEMA).asText()),
-                    "The given JSON is not a JSON Schema"
-            );
+//            Assert.isTrue(
+//                    ObjectUtil.isNotNull(jsonNode) &&
+//                            jsonNode.has(JSON_SCHEMA) && StringUtils.isNotBlank(jsonNode.get(JSON_SCHEMA).asText()),
+//                    "The given JSON is not a JSON Schema"
+//            );
 
 //        if (jsonNode.has(ALL_OF)) {
 //            jsonNode = jsonNode.get(ALL_OF).get(0);
