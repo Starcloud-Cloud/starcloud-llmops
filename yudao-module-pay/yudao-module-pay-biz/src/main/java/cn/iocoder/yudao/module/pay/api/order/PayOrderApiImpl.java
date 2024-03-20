@@ -4,14 +4,12 @@ import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderSubmitRespDTO;
-import cn.iocoder.yudao.module.pay.controller.admin.order.vo.PayOrderSubmitReqVO;
 import cn.iocoder.yudao.module.pay.convert.order.PayOrderConvert;
 import cn.iocoder.yudao.module.pay.dal.dataobject.order.PayOrderDO;
 import cn.iocoder.yudao.module.pay.service.order.PayOrderService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotEmpty;
 
 /**
  * 支付单 API 实现类
@@ -49,6 +47,17 @@ public class PayOrderApiImpl implements PayOrderApi {
     @Override
     public PayOrderSubmitRespDTO submitSignPayOrder(PayOrderSubmitReqDTO reqDTO, String userIp) {
         return payOrderService.submitSignPayOrder(reqDTO,userIp);
+    }
+
+    /**
+     * 获得支付单
+     *
+     * @param merchantOrderId 商户订单编号
+     * @return 支付单
+     */
+    @Override
+    public String getOrderPayChannelCode(Long appId,Long merchantOrderId) {
+        return payOrderService.getOrderPayChannelCode(appId,merchantOrderId);
     }
 
 }

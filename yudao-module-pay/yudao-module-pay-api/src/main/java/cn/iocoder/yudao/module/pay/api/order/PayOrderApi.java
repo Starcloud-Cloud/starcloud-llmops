@@ -34,8 +34,8 @@ public interface PayOrderApi {
     /**
      * 更新支付订单价格
      *
-     * @param id 支付单编号
-     * @param payPrice   支付单价格
+     * @param id       支付单编号
+     * @param payPrice 支付单价格
      */
     void updatePayOrderPrice(Long id, Integer payPrice);
 
@@ -47,5 +47,14 @@ public interface PayOrderApi {
      * @return 支付单编号
      */
     PayOrderSubmitRespDTO submitSignPayOrder(PayOrderSubmitReqDTO reqDTO, String userIp);
+
+    /**
+     * 获得支付单
+     *
+     * @param merchantOrderId 商户订单编号
+     * @return 支付单
+     */
+    String getOrderPayChannelCode(Long appId, Long merchantOrderId);
+
 
 }
