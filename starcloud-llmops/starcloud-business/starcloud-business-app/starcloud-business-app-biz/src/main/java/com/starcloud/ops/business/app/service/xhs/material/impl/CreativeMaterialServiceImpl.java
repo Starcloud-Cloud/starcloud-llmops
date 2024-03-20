@@ -70,6 +70,12 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return CreativeMaterialConvert.INSTANCE.convert(creativeMaterialDOList);
     }
 
+    @Override
+    public void batchInsert(List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList) {
+        List<CreativeMaterialDO> materialDOList = CreativeMaterialConvert.INSTANCE.convert2(materialDTOList);
+        materialMapper.insertBatch(materialDOList);
+    }
+
     private CreativeMaterialDO getByUid(String uid) {
         CreativeMaterialDO materialDO = materialMapper.getByUid(uid);
         if (Objects.isNull(materialDO)) {

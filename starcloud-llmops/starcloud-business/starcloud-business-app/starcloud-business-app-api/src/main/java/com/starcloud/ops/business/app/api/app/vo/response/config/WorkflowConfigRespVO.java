@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -51,7 +52,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         }
     }
 
-    public Object getStepVariable(String stepId, String variableName) {
+    public VariableItemRespVO getStepVariable(String stepId, String variableName) {
         for (WorkflowStepWrapperRespVO step : steps) {
             if (stepId.equals(step.getField())) {
                 return step.getVariable(variableName);

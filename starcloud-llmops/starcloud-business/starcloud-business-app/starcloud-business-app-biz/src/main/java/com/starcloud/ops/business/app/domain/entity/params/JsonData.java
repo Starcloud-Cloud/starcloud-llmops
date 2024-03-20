@@ -34,8 +34,9 @@ public class JsonData extends BaseDataEntity {
     public static JsonData of(Object data) {
         JsonData jsonData = new JsonData();
 
+        //默认套一层 jsonSchema
         JsonDataDefSchema jsonDataDefSchema = new JsonDataDefSchema();
-        jsonDataDefSchema.setData((String) data);
+        jsonDataDefSchema.setData(String.valueOf(data));
 
         jsonData.setData(jsonDataDefSchema);
         jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(JsonDataDefSchema.class));
@@ -51,14 +52,23 @@ public class JsonData extends BaseDataEntity {
      */
     public static <T> JsonData of(Object data, Class<T> tClass) {
         JsonData jsonData = new JsonData();
-
-        JsonDataDefSchema jsonDataDefSchema = new JsonDataDefSchema();
-        jsonDataDefSchema.setData((String) data);
-
-        jsonData.setData(jsonDataDefSchema);
+        jsonData.setData(data);
         jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(tClass));
 
         return jsonData;
     }
 
+    /**
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static <T> JsonData of(Object data, String jsonSchema) {
+        JsonData jsonData = new JsonData();
+        jsonData.setData(data);
+        jsonData.setJsonSchema(jsonSchema);
+
+        return jsonData;
+    }
 }

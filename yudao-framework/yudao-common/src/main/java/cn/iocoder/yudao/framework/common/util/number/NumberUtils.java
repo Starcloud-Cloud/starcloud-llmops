@@ -20,7 +20,7 @@ public class NumberUtils {
 
     /**
      * 通过经纬度获取地球上两点之间的距离
-     *
+     * <p>
      * 参考 <<a href="https://gitee.com/dromara/hutool/blob/1caabb586b1f95aec66a21d039c5695df5e0f4c1/hutool-core/src/main/java/cn/hutool/core/util/DistanceUtil.java">DistanceUtil</a>> 实现，目前它已经被 hutool 删除
      *
      * @param lat1 经度1
@@ -40,6 +40,13 @@ public class NumberUtils {
         distance = distance * 6378.137;
         distance = Math.round(distance * 10000d) / 10000d;
         return distance;
+    }
+
+    /**
+     * 判断数字是否为负数，如果为 null 也返回 true
+     */
+    public static boolean isNegative(Number number) {
+        return number == null || number.doubleValue() < 0;
     }
 
 }

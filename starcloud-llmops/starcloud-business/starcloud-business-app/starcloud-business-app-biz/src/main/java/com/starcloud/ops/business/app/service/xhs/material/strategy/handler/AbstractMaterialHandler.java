@@ -49,7 +49,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
      * @param total        总数
      * @return 分组后的资料库列表
      */
-    protected Map<Integer, List<M>> getMaterialMap(List<M> materialList, int copySize, int total) {
+    protected Map<Integer, List<M>> getMaterialListMap(List<M> materialList, int copySize, int total) {
         // 结果集合
         Map<Integer, List<M>> resultMap = new HashMap<>();
 

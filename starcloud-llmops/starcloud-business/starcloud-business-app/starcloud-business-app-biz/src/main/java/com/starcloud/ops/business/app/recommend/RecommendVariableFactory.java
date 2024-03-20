@@ -110,9 +110,9 @@ public class RecommendVariableFactory {
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
                 RecommendVariableItemFactory.defMediaMatrixRefersCount(),
+                RecommendVariableItemFactory.defMediaMatrixMaterialType(),
                 RecommendVariableItemFactory.defMediaMatrixRefers(),
                 RecommendVariableItemFactory.defMediaMatrixRequirement(),
-                RecommendVariableItemFactory.defMediaMatrixMaterialType(),
                 RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema(),
                 RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema()
         ));

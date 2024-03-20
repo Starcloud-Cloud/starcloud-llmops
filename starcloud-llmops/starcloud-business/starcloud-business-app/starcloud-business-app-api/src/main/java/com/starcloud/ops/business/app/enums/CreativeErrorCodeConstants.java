@@ -183,6 +183,10 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode MATERIAL_PARSE_ERROR = new ErrorCode(730000005, "素材解析异常: {}");
 
+    ErrorCode UPLOAD_QUEUE_FULL = new ErrorCode(730000006, "素材上传队列已满，请稍后重试");
+
+    ErrorCode NOT_ZIP_PACKAGE = new ErrorCode(730000007, "只支持上传zip压缩包");
+
 
     /**
      * 图片模板ID不能为空

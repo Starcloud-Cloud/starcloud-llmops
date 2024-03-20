@@ -296,7 +296,7 @@ public class AppContext {
 //                Expression exp = SpelParser.parseExpression(val, ParserContext);
 //                value = exp.getValue(context);
 
-                value = QLExpressUtils.execute(val, allVariablesValues);
+                // value = QLExpressUtils.execute(val, allVariablesValues);
 
             }
 

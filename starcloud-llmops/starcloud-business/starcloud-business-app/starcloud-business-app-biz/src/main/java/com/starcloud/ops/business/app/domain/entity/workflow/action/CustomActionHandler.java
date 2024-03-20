@@ -33,6 +33,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
+import jakarta.json.Json;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -82,29 +83,14 @@ public class CustomActionHandler extends BaseActionHandler {
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
-        //如果配置了返回结构定义就获取，不然就创建一个默认的
-        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
-        if (StrUtil.isNotBlank(json)) {
-            //有配置，直接返回
+        //优先返回 素材类型的结构
+//        String refers = (String) params.get(CreativeConstants.MATERIAL_TYPE);
+//        if (StrUtil.isNotBlank(refers)) {
+//            //获取参考素材的结构
+//            return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
+//        }
 
-            JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
-
-            return jsonSchema;
-
-        } else {
-
-            Map<String, Object> params = workflowStepWrapper.getContextVariablesValues(null, false);
-            //优先返回 素材类型的结构
-            String refers = (String) params.get(CreativeConstants.MATERIAL_TYPE);
-            if (StrUtil.isNotBlank(refers)) {
-                //获取参考素材的结构
-                return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
-            }
-
-            //定义一个默认的JsonSchema结构， xxx._DATA
-            return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
-        }
-
+        return super.getOutVariableJsonSchema(workflowStepWrapper);
     }
 
     /**
@@ -254,8 +240,6 @@ public class CustomActionHandler extends BaseActionHandler {
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
 
-        actionResponse.setOutput(JsonData.of(actionResponse.getOutput(), reference.getClass()));
-
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JSONUtil.parse(actionResponse).toStringPretty()
@@ -305,10 +289,6 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
-
-        //@todo 现在用户无法设置返回结构，所以现在只按字符串返回结构data
-        actionResponse.setOutput(JsonData.of(actionResponse.getOutput()));
-
 
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
@@ -361,7 +341,7 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
         actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
+        //actionResponse.setOutput(JsonData.of(handlerResponse.getAnswer()));
         actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
         actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
         actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
@@ -375,6 +355,18 @@ public class CustomActionHandler extends BaseActionHandler {
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
 
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+
+
+        //如果配置了 JsonSchema
+        if (this.hasResponseJsonSchema()) {
+            //获取当前定义的返回结构
+            JsonSchema jsonSchema = this.getOutVariableJsonSchema();
+            actionResponse.setOutput(JsonData.of(actionResponse.getAnswer(), JsonSchemaUtils.jsonSchema2Str(jsonSchema)));
+        } else {
+            //如果还是字符串结构，就自动包一层 data 结构
+            actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
+        }
+
         return actionResponse;
     }
 

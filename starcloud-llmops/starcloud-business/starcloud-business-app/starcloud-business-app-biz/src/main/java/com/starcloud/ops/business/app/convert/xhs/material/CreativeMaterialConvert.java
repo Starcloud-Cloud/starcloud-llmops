@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.convert.xhs.material;
 
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
@@ -41,6 +42,17 @@ public interface CreativeMaterialConvert {
         materialDO.setContent(materialDetail.generateContent());
         return materialDO;
     }
+
+    default CreativeMaterialDO convert(AbstractBaseCreativeMaterialDTO materialDetail) {
+        CreativeMaterialDO materialDO = new CreativeMaterialDO();
+        materialDO.setUid(IdUtil.fastSimpleUUID());
+        materialDO.setType(materialDetail.getType());
+        materialDO.setContent(materialDetail.generateContent());
+        materialDO.setMaterialDetail(toJson(materialDetail));
+        return materialDO;
+    }
+
+    List<CreativeMaterialDO> convert2(List<? extends AbstractBaseCreativeMaterialDTO> materialDetailList);
 
     @Mapping(source = "materialDetail", target = "materialDetail", qualifiedByName = "toJson")
     CreativeMaterialDO baseConvert(BaseMaterialVO baseMaterialVO);

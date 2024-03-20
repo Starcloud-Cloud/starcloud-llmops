@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -57,7 +58,7 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
         if (StringUtils.isBlank(posterStyleConfig) || "[]".equals(posterStyleConfig) || "null".equals(posterStyleConfig)) {
             this.styleList = Collections.singletonList(PosterStyleEntity.ofOne());
         } else {
-            this.styleList = JSONUtil.toList(posterStyleConfig, PosterStyleEntity.class);
+            this.styleList = JsonUtils.parseArray(posterStyleConfig, PosterStyleEntity.class);
         }
 
     }

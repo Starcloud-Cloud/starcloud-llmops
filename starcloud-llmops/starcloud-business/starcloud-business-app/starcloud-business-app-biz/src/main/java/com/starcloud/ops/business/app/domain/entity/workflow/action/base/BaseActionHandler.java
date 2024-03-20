@@ -22,6 +22,8 @@ import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
@@ -31,6 +33,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -118,7 +121,7 @@ public abstract class BaseActionHandler extends Object {
 
         //默认所有节点的入参都不返回支持
 
-       return null;
+        return null;
     }
 
 
@@ -144,6 +147,43 @@ public abstract class BaseActionHandler extends Object {
             return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
         }
 
+    }
+
+
+    /**
+     * 具体当前handler的出参定义
+     *
+     * @return
+     */
+    public JsonSchema getOutVariableJsonSchema() {
+
+        WorkflowStepWrapper workflowStepWrapper = this.getAppContext().getStepWrapper(this.getAppContext().getStepId());
+        return this.getOutVariableJsonSchema(workflowStepWrapper);
+    }
+
+    /**
+     * 判断师傅配置了返回结果为JsonSchema
+     *
+     * @param workflowStepWrapper
+     * @return
+     */
+    public Boolean hasResponseJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //如果配置了返回结构定义就获取，不然就创建一个默认的
+        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
+        return StrUtil.isNotBlank(json);
+    }
+
+    /**
+     * 判断师傅配置了返回结果为JsonSchema
+     *
+     * @param workflowStepWrapper
+     * @return
+     */
+    public Boolean hasResponseJsonSchema() {
+
+        WorkflowStepWrapper workflowStepWrapper = this.getAppContext().getStepWrapper(this.getAppContext().getStepId());
+        return this.hasResponseJsonSchema(workflowStepWrapper);
     }
 
     /**
