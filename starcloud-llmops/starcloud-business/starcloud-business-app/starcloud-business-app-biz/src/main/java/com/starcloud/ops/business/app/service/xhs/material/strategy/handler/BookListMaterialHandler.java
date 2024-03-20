@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
 import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
@@ -38,16 +37,7 @@ class BookListMaterialHandler extends AbstractMaterialHandler<BookListCreativeMa
      */
     @Override
     protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
-        List<Integer> materialIndexList = this.findMaterialIndexList(posterStyleList);
-        // 说明均没有匹配到
-        if (materialIndexList.stream().noneMatch(item -> item > 0)) {
-            // 返回图片
-            return CollectionUtil.emptyIfNull(posterStyleList).stream()
-                    .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
-                    .collect(Collectors.toList());
-        }
-
-        return materialIndexList;
+        return this.findMaterialIndexList(posterStyleList);
     }
 
     /**
