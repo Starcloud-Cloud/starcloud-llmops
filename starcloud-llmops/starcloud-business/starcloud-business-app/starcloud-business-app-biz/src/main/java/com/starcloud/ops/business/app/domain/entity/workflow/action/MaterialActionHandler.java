@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -82,6 +84,23 @@ public class MaterialActionHandler extends BaseActionHandler {
         String materialType = (String) params.get(CreativeConstants.MATERIAL_TYPE);
         // 转换响应结果
         ActionResponse response = convert(materialType);
+
+        //把图片生成节点的素材信息 复制到这里，符合变量的替换逻辑
+        final Map<String, Object> posterParams = this.getAppContext().getContextVariablesValues(PosterActionHandler.class);
+
+        // 获取到处理好的上传素材
+        String posterStyle = (String) posterParams.get(CreativeConstants.POSTER_STYLE);
+        PosterStyleDTO posterStyleDTO = JsonUtils.parseObject(posterStyle, PosterStyleDTO.class);
+
+        JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
+
+        if (posterStyleDTO != null) {
+            jsonDocsDefSchema.setDocs(posterStyleDTO.getMaterialList());
+        }
+        //保持跟返回结果一样的JsonSchema
+        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(this.getAppContext().getStepWrapper());
+        response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
+
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }

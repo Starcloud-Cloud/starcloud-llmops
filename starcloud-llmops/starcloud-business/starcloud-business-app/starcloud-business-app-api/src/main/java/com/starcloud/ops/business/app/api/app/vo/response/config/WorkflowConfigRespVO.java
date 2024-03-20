@@ -60,4 +60,20 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         }
         return null;
     }
+
+    /**
+     * 根据节点handler获取第一个节点
+     *
+     * @param handler stepHandler
+     * @return 变量值
+     */
+    public WorkflowStepWrapperRespVO getFirstStepByHandler(String handler) {
+
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (handler.equals(step.getFlowStep().getHandler())) {
+                return step;
+            }
+        }
+        return null;
+    }
 }

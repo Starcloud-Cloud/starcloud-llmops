@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -182,6 +183,23 @@ public class AppContext {
         return this.getStepWrapper(stepId).getFlowStep().getResponse();
     }
 
+
+    /**
+     * 根据当前stepWrapper
+     *
+     * @return 根据 stepId 获取 step
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapper getStepWrapper() {
+
+        // 获取应用配置信息
+        WorkflowConfigEntity config = Optional.ofNullable(this.app)
+                .map(AppEntity::getWorkflowConfig)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
+        return config.getStepWrapper(this.getStepId());
+    }
+
     /**
      * 根据 stepId 获取 stepWrapper
      *
@@ -199,6 +217,24 @@ public class AppContext {
         return config.getStepWrapper(stepId);
     }
 
+
+    /**
+     * 根据 actionHandler 获取 stepWrapper
+     *
+     * @return 根据 stepId 获取 step
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapper getStepWrapper(Class<? extends BaseActionHandler> classz) {
+
+        // 获取应用配置信息
+        WorkflowConfigEntity config = Optional.ofNullable(this.app)
+                .map(AppEntity::getWorkflowConfig)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED));
+
+        return config.getStepWrapper(classz);
+    }
+
     /**
      * 获取当前步骤的所有变量值 Maps
      *
@@ -209,6 +245,21 @@ public class AppContext {
     public Map<String, Object> getContextVariablesValues() {
 
         return this.getContextVariablesValues(this.getStepId());
+    }
+
+    /**
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Map<String, Object> getContextVariablesValues(Class<? extends BaseActionHandler> classz) {
+
+        WorkflowStepWrapper posterWrapper = this.getStepWrapper(classz);
+        String setpCode = posterWrapper.getStepCode();
+        final Map<String, Object> posterParams = this.getContextVariablesValues(setpCode);
+        return posterParams;
     }
 
     /**

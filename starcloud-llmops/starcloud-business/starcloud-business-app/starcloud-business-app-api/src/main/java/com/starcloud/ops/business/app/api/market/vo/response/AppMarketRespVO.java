@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -251,6 +253,48 @@ public class AppMarketRespVO implements Serializable {
             return workflowConfig.getStepVariable(stepId, variableName);
         }
         return null;
+    }
+
+    /**
+     * 根据节点handler获取第一个节点
+     *
+     * @param handler stepHandler
+     * @return 变量值
+     */
+    public WorkflowStepWrapperRespVO getFirstStepByHandler(String handler) {
+        if (workflowConfig != null) {
+            return workflowConfig.getFirstStepByHandler(handler);
+        }
+        return null;
+    }
+
+    /**
+     * 根据节点handler获取第一个节点
+     *
+     * @param handler stepHandler
+     * @return 变量值
+     */
+    public VariableItemRespVO getStepByHandler(String handler, String variableName) {
+
+        WorkflowStepWrapperRespVO workflowStepWrapperRespVO = this.getFirstStepByHandler(handler);
+        if (workflowStepWrapperRespVO != null) {
+            return this.getStepVariable(workflowStepWrapperRespVO.getField(), variableName);
+        }
+        return null;
+    }
+
+    /**
+     * 设置应用变量值
+     *
+     * @param handler     步骤ID
+     * @param variableMap 变量值
+     */
+    public void putStepByHandler(String handler, Map<String, Object> variableMap) {
+
+        WorkflowStepWrapperRespVO workflowStepWrapperRespVO = this.getFirstStepByHandler(handler);
+        if (workflowStepWrapperRespVO != null) {
+            this.putStepVariable(workflowStepWrapperRespVO.getField(), variableMap);
+        }
     }
 
 }
