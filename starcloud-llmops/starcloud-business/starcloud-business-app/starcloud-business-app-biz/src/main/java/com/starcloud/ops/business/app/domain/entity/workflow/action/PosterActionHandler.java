@@ -16,7 +16,6 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -42,7 +41,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -193,25 +191,32 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private Integer handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
-        Integer costPoints = 0;
-
-        List<PosterTemplateEntity> templates = new ArrayList<>();
+    private void handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
         List<PosterTemplateEntity> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+        // 循环处理
         for (PosterTemplateEntity posterTemplate : templateList) {
             // 默认模式生成
             String titleGenerateMode = Optional.ofNullable(posterTemplate.getTitleGenerateMode()).orElse(PosterTitleModeEnum.DEFAULT.name());
             if (PosterTitleModeEnum.DEFAULT.name().equals(titleGenerateMode)) {
-                List<PosterVariableEntity> variables = new ArrayList<>();
                 List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
                 for (PosterVariableEntity variable : variableList) {
-                    if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
-                        variable.setValue(title);
+                    // 获取变量值，不存在取默认值，默认值不存在，为空字符串
+                    Object value = Objects.nonNull(variable.getValue()) ? variable.getValue() :
+                            Objects.nonNull(variable.getDefaultValue()) ? variable.getDefaultValue() : "";
+
+                    // 从变量缓存中获取变量值
+
+                    Map<String, Object> objectMap = this.getAppContext().getContextVariablesValues(MaterialActionHandler.class);
+
+                    objectMap.get("");
+
+                    //素材.docs[1].url
+                    Object replaceValue = null;
+                    if (Objects.nonNull(replaceValue)) {
+                        variable.setValue(replaceValue);
                     }
-                    // 复制变量, 添加到模版列表中
-                    variables.add(SerializationUtils.clone(variable));
                 }
-                posterTemplate.setVariableList(variables);
+                posterTemplate.setVariableList(variableList);
 
             } else if (PosterTitleModeEnum.AI.name().equals(titleGenerateMode)) {
                 this.getAppContext().putVariable(CreativeConstants.TITLE, title);
@@ -225,7 +230,6 @@ public class PosterActionHandler extends BaseActionHandler {
                 // 获取结果，并且进行变量替换
                 PosterTitleDTO posterTitle = response.getPosterTitle();
 
-                List<PosterVariableEntity> variables = new ArrayList<>();
                 // 变量替换
                 List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
                 for (PosterVariableEntity variable : variableList) {
@@ -238,20 +242,14 @@ public class PosterActionHandler extends BaseActionHandler {
                     if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
                         variable.setValue(title);
                     }
-                    // 复制变量, 添加到模版列表中
-                    variables.add(SerializationUtils.clone(variable));
                 }
-                costPoints += 1;
-                posterTemplate.setVariableList(variables);
+                posterTemplate.setVariableList(variableList);
             } else {
                 log.error("不支持的图片标题生成模式: {}", titleGenerateMode);
                 throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "不支持的图片标题生成模式: " + titleGenerateMode));
             }
-            templates.add(SerializationUtils.clone(posterTemplate));
         }
-        posterStyle.setTemplateList(templates);
-
-        return costPoints;
+        posterStyle.setTemplateList(templateList);
     }
 
     /**

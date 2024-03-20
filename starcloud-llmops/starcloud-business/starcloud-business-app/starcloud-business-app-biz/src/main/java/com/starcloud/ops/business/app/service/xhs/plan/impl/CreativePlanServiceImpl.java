@@ -37,6 +37,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
@@ -61,6 +62,7 @@ import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.jetbrains.annotations.NotNull;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -483,23 +485,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
             int sequenceInt = index % creativeContentExecuteList.size();
             CreativeContentExecuteDTO contentExecute = SerializationUtils.clone(creativeContentExecuteList.get(sequenceInt));
-
-            // 获取应用，处理海报相关信息
-            AppMarketRespVO appResponse = contentExecute.getAppResponse();
-            if (posterSchemeStep != null) {
-                VariableItemRespVO posterVariable = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
-                if (posterVariable != null && posterVariable.getValue() != null) {
-                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterVariable.getValue()), PosterStyleDTO.class);
-                    // 处理上传素材
-                    List<AbstractBaseCreativeMaterialDTO> handleMaterialList = materialHandler.handleMaterialList(materialList, posterStyle, creativePlan.getTotal(), index);
-                    // 处理海报风格
-                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList);
-                    // 将处理后的海报风格填充到执行参数中
-                    Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
-                    appResponse.putStepVariable(posterSchemeStep.getName(), variableMap);
-                }
-            }
-
             // 构造创作内容创建请求
             CreativeContentCreateReqVO appCreateRequest = new CreativeContentCreateReqVO();
             appCreateRequest.setPlanUid(creativePlan.getUid());
@@ -507,14 +492,47 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             appCreateRequest.setSchemeUid(contentExecute.getSchemeUid());
             appCreateRequest.setBusinessUid(IdUtil.fastSimpleUUID());
             appCreateRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
-            appCreateRequest.setTempUid(appResponse.getUid());
+            appCreateRequest.setTempUid(contentExecute.getAppResponse().getUid());
             appCreateRequest.setType(CreativeContentTypeEnum.ALL.getCode());
             appCreateRequest.setTags(creativePlan.getTags());
             appCreateRequest.setIsTest(Boolean.FALSE);
             appCreateRequest.setExecuteParams(contentExecute);
-
             contentCreateRequestList.add(appCreateRequest);
         }
+
+        // 如果海报步骤为空，直接创建任务返回即可。
+        if (Objects.isNull(posterSchemeStep)) {
+            creativeContentService.create(contentCreateRequestList);
+            return;
+        }
+
+        // 从创作内容任务列表中获取每个任务的海报配置，组成列表。总数为任务总数。
+        List<PosterStyleDTO> contentPosterStyleList = getPosterStyleList(contentCreateRequestList, posterSchemeStep);
+        // 素材处理器进行素材处理
+        Map<Integer, List<AbstractBaseCreativeMaterialDTO>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList);
+        // 二次处理批量内容任务
+        for (int index = 0; index < contentCreateRequestList.size(); index++) {
+            CreativeContentCreateReqVO contentCreateRequest = contentCreateRequestList.get(index);
+            CreativeContentExecuteDTO contentExecute = contentCreateRequest.getExecuteParams();
+            // 获取应用，处理海报相关信息
+            AppMarketRespVO appResponse = contentExecute.getAppResponse();
+            if (posterSchemeStep != null) {
+                VariableItemRespVO posterVariable = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
+                if (posterVariable != null && posterVariable.getValue() != null) {
+                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterVariable.getValue()), PosterStyleDTO.class);
+                    // 获取到该风格下的素材列表
+                    List<AbstractBaseCreativeMaterialDTO> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
+                    // 处理海报风格
+                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList);
+                    // 将处理后的海报风格填充到执行参数中
+                    Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
+                    appResponse.putStepVariable(posterSchemeStep.getName(), variableMap);
+                }
+            }
+            contentExecute.setAppResponse(appResponse);
+            contentCreateRequest.setExecuteParams(contentExecute);
+        }
+
         creativeContentService.create(contentCreateRequestList);
     }
 
@@ -588,4 +606,36 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return appMarket;
     }
 
+    /**
+     * 从内容任务中获取，海报配置信息。
+     *
+     * @param contentCreateRequestList 内容人物列表
+     * @param posterSchemeStep         海报步骤
+     * @return 海报列表
+     */
+    @NotNull
+    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, PosterSchemeStepDTO posterSchemeStep) {
+        return CollectionUtil.emptyIfNull(contentCreateRequestList).stream().map(item -> {
+
+            Optional<AppMarketRespVO> appMarketResponseOptional = Optional.ofNullable(item)
+                    .map(CreativeContentCreateReqVO::getExecuteParams)
+                    .map(CreativeContentExecuteDTO::getAppResponse);
+
+            if (!appMarketResponseOptional.isPresent()) {
+                return null;
+            }
+
+            VariableItemRespVO variable = appMarketResponseOptional.get().getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
+            if (Objects.isNull(variable) || Objects.isNull(variable.getValue())) {
+                return null;
+            }
+
+            try {
+                return JsonUtils.parseObject(String.valueOf(variable.getValue()), PosterStyleDTO.class);
+            } catch (Exception e) {
+                return null;
+            }
+
+        }).collect(Collectors.toList());
+    }
 }

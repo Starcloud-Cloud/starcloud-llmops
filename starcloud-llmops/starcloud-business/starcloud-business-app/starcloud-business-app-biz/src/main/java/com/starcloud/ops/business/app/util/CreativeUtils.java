@@ -21,8 +21,6 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -138,13 +136,12 @@ public class CreativeUtils {
 
     /**
      * 预处理海报风格列表，一些数据处理，填充。
+     *
      * @param posterStyleList
      * @return
      */
     public static List<PosterStyleDTO> preHandlerPosterStyleList(List<PosterStyleDTO> posterStyleList) {
-        List<PosterStyleDTO> handlerPosterStyleList = posterStyleList.stream().map(CreativeUtils::handlerPosterStyle).collect(Collectors.toList());
-        Integer maxTotalImageCount = handlerPosterStyleList.stream().max(Comparator.comparingInt(PosterStyleDTO::getTotalImageCount)).map(PosterStyleDTO::getTotalImageCount).orElse(0);
-        return handlerPosterStyleList.stream().peek(item -> item.setMaxTotalImageCount(maxTotalImageCount)).collect(Collectors.toList());
+        return posterStyleList.stream().map(CreativeUtils::handlerPosterStyle).collect(Collectors.toList());
     }
 
     /**

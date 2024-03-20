@@ -101,7 +101,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         // 转换响应结果
         ActionResponse response = convert(copyWriting);
 
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        log.info("AssembleActionHandler 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
 

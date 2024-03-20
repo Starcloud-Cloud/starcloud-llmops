@@ -6,7 +6,6 @@ import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
@@ -601,8 +600,8 @@ public class RecommendVariableItemFactory {
     public static VariableItemRespVO defPosterStyleConfigVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.POSTER_STYLE_CONFIG);
-        variableItem.setLabel("海报风格配置");
-        variableItem.setDescription("海报风格配置");
+        variableItem.setLabel("风格配置");
+        variableItem.setDescription("风格配置");
         variableItem.setDefaultValue("[]");
         variableItem.setValue("[]");
         variableItem.setOrder(3);
@@ -664,8 +663,8 @@ public class RecommendVariableItemFactory {
     public static VariableItemRespVO defPosterRequirement() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.REQUIREMENT);
-        variableItem.setLabel("海报生成要求");
-        variableItem.setDescription("海报生成要求");
+        variableItem.setLabel("生成要求");
+        variableItem.setDescription("生成要求");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(1009);

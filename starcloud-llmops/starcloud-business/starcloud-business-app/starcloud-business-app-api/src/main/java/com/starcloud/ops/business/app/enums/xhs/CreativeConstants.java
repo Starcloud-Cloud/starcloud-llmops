@@ -73,13 +73,20 @@ public interface CreativeConstants {
      */
     String MATERIAL_TYPE = "MATERIAL_TYPE";
 
+
+    /**
+     * 素材节点 素材列表
+     */
+    String MATERIAL_LIST = "MATERIAL_LIST";
+
+
     /**
      * 参考素材JsonSchema
      */
     String MATERIAL_JSONSCHEMA = "MATERIAL_JSONSCHEMA";
 
     /**
-     *  步骤返回JsonSchema
+     * 步骤返回JsonSchema
      */
     String STEP_RESP_JSONSCHEMA = "STEP_RESP_JSONSCHEMA";
 

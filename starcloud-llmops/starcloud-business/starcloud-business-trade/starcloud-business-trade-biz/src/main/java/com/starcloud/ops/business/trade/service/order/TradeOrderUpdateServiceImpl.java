@@ -417,7 +417,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count, order.getPayChannelCode());
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count, payOrder.getChannelCode());
 
     }
 
@@ -1064,7 +1064,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      */
     @TenantIgnore
     private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount, String payChannelCode) {
-
+        log.info("[sendPaySuccessMsg]====>params(userId:{},productName:{},productType:{},giveRights:{},totalPrice:{},discountPrice:{},payPrice:{},payTime:{},successCount:{},payChannelCode:{}", userId, productName, productType, giveRights, totalPrice, discountPrice, payPrice, payTime, successCount, payChannelCode);
         try {
             Long tenantId = TenantContextHolder.getTenantId();
             // 获取订单来源

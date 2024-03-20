@@ -58,12 +58,6 @@ public class PosterStyleEntity implements java.io.Serializable {
     private Integer totalImageCount;
 
     /**
-     * 一组风格下的图片类型变量最大数量
-     */
-    @Schema(description = "一组风格下的图片类型变量最大数量")
-    private Integer maxTotalImageCount;
-
-    /**
      * 素材列表
      */
     @Schema(description = "素材列表")
