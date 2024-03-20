@@ -101,7 +101,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         JsonSchema outJsonSchema = this.getOutVariableJsonSchema(this.getAppContext().getStepWrapper());
         response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
 
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        log.info("MaterialActionHandler 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
         return response;
     }
 
