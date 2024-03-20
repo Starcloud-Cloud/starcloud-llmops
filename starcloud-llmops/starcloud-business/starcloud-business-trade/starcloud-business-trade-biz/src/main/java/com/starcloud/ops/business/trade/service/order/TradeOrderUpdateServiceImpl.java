@@ -417,7 +417,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count, order.getPayChannelCode());
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count, payOrder.getChannelCode());
 
     }
 
