@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
 import com.starcloud.ops.business.app.api.xhs.material.dto.PictureCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
@@ -17,9 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-
 /**
- * 资料库处理器抽象类
+ * 图片资料库处理器抽象类
  *
  * @author nacoyer
  * @version 1.0.0
@@ -44,12 +45,12 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
             return Collections.emptyList();
         }
 
-        Integer maxTotalImageCount = posterStyle.getMaxTotalImageCount();
-        Map<Integer, List<PictureCreativeMaterialDTO>> materialMap = this.getMaterialMap(materialList, maxTotalImageCount, total);
+        Integer copySize = posterStyle.getMaxTotalImageCount();
+        Map<Integer, List<PictureCreativeMaterialDTO>> materialMap = this.getMaterialListMap(materialList, copySize, total);
         if (CollectionUtil.isEmpty(materialMap) || !materialMap.containsKey(index)) {
             return Collections.emptyList();
         }
-        return materialMap.get(index);
+        return CollectionUtil.emptyIfNull(materialMap.get(index));
     }
 
     /**
@@ -93,13 +94,10 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
     private Boolean isReturnEmpty(List<PictureCreativeMaterialDTO> materialList, PosterStyleDTO posterStyle, Integer total, Integer index) {
         // 如果资料库为空，或者海报风格为空，或者海报风格的最大图片数量为空，或者海报风格的最大图片数量小于等于0，或者总数为空，或者总数小于等于0，或者索引为空，或者索引小于0，则返回true
         return CollectionUtil.isEmpty(materialList) ||
-                posterStyle == null ||
-                posterStyle.getMaxTotalImageCount() == null ||
-                posterStyle.getMaxTotalImageCount() <= 0 ||
-                total == null ||
-                total <= 0 ||
-                index == null ||
-                index < 0;
+                ObjectUtil.isNull(posterStyle) ||
+                NumberUtils.isNegative(posterStyle.getMaxTotalImageCount()) ||
+                NumberUtils.isNegative(total) ||
+                NumberUtils.isNegative(index);
     }
 
     /**

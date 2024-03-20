@@ -1,5 +1,11 @@
 package com.starcloud.ops.business.app.enums.xhs;
 
+import sun.security.action.GetPropertyAction;
+
+import java.nio.file.Paths;
+
+import static java.security.AccessController.doPrivileged;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -76,6 +82,19 @@ public interface CreativeConstants {
      *  步骤返回JsonSchema
      */
     String STEP_RESP_JSONSCHEMA = "STEP_RESP_JSONSCHEMA";
+
+    /**
+     * redis key
+     */
+    String MATERIAL_PREFIX = "material_parse_";
+
+    String MATERIAL_IMPORT_ERROR = "MATERIAL_IMPORT_ERROR-";
+
+    /**
+     * 素材上传临时路径
+     */
+    String TMP_DIR_PATH = Paths.get(doPrivileged(new GetPropertyAction("java.io.tmpdir")), "material").toString();
+
 
     /**
      * 图片

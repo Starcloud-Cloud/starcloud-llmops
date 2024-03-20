@@ -1,15 +1,17 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.core.util.ZipUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
+import com.starcloud.ops.business.app.service.xhs.material.UploadMaterialImageManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_PARSE_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NOT_ZIP_PACKAGE;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.*;
 
 @Slf4j
 @Service
@@ -38,7 +44,8 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     @Resource
     private DictDataService dataService;
 
-    private static final String prefix = "material_parse_";
+    @Resource
+    private UploadMaterialImageManager uploadMaterialImageManager;
 
     @Override
     public Map<String, Object> template(String type) {
@@ -52,33 +59,62 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     }
 
     @Override
-    public String parseToRedis(MultipartFile file) {
-        // sheet 名为素材类型 同步解析文字 解析图片需并发处理
-        long start = System.currentTimeMillis();
-        String parseUid = IdUtil.fastSimpleUUID();
-        try {
-            String materialType = ExcelUtil.getReader(file.getInputStream()).getSheet().getSheetName();
-            List<? extends AbstractBaseCreativeMaterialDTO> result = ExcelUtils.read(file, MaterialTypeEnum.of(materialType).getAClass());
-            for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : result) {
-                abstractBaseCreativeMaterialDTO.setType(materialType);
-            }
-            long end = System.currentTimeMillis();
-            log.info("material parse success, {} ms", end - start);
-            redisTemplate.boundValueOps("material_parse_" + parseUid).set(JsonUtils.toJsonString(result), 3, TimeUnit.DAYS);
-        } catch (IOException e) {
-            log.info("material parse error");
-            throw exception(MATERIAL_PARSE_ERROR, e.getMessage());
-        }
-        return parseUid;
-    }
-
-    @Override
     public ParseResult parseResult(String parseUid) {
-        String json = redisTemplate.boundValueOps(prefix + parseUid).get();
+        String error = redisTemplate.boundValueOps(MATERIAL_IMPORT_ERROR + parseUid).get();
+        if (StringUtils.isNoneBlank(error)) {
+            throw exception(MATERIAL_PARSE_ERROR, error);
+        }
+        String json = redisTemplate.boundValueOps(MATERIAL_PREFIX + parseUid).get();
         if (StringUtils.isBlank(json)) {
             return new ParseResult();
         }
         List<AbstractBaseCreativeMaterialDTO> materialDTOList = JsonUtils.parseArray(json, AbstractBaseCreativeMaterialDTO.class);
         return new ParseResult(true, materialDTOList);
     }
+
+    @Override
+    public String parseToRedis(MultipartFile file) {
+        String parseUid = IdUtil.fastSimpleUUID();
+        long start = System.currentTimeMillis();
+        try {
+            //文件名 {materialType}.zip
+            String[] split = file.getOriginalFilename().split("\\.");
+            if (split.length != 2 || !Objects.equals("zip", split[1])) {
+                throw exception(NOT_ZIP_PACKAGE);
+            }
+
+            String materialType = split[0];
+            //     系统默认临时文件目录/material/parseUid
+            String dirPath = TMP_DIR_PATH + File.separator + parseUid;
+            File dir = new File(dirPath);
+            dir.mkdirs();
+            File zipFile = new File(dirPath + File.separator + file.getOriginalFilename());
+            file.transferTo(zipFile);
+            ZipUtil.unzip(zipFile, dir, StandardCharsets.UTF_8);
+            // 读取excel 第一行为表结构说明 第二行为表头
+            FileInputStream excelFile = new FileInputStream(dirPath + File.separator + materialType + File.separator + materialType + ".xlsx");
+            List<? extends AbstractBaseCreativeMaterialDTO> result = ExcelUtils.read(excelFile, MaterialTypeEnum.of(materialType).getAClass(), 2);
+            for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : result) {
+                abstractBaseCreativeMaterialDTO.valid();
+                abstractBaseCreativeMaterialDTO.setType(materialType);
+            }
+            // 提交上传任务
+            UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(materialType, parseUid, result);
+            if (uploadMaterialDTO.containsImage()) {
+                // 包含图片上传
+                uploadMaterialImageManager.submit(uploadMaterialDTO);
+            } else {
+                redisTemplate.boundValueOps(MATERIAL_PREFIX + parseUid).set(JsonUtils.toJsonString(result), 3, TimeUnit.DAYS);
+            }
+            long end = System.currentTimeMillis();
+            log.info("material parse success, {} ms", end - start);
+            return parseUid;
+        } catch (Exception e) {
+            log.info("material parse error", e);
+            throw exception(MATERIAL_PARSE_ERROR, e.getMessage());
+        }
+
+    }
+
+
 }

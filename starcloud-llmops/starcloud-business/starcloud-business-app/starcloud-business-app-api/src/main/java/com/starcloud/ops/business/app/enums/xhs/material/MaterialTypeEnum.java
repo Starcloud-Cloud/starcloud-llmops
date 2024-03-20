@@ -80,6 +80,23 @@ public enum MaterialTypeEnum implements IEnumable<String> {
         return result;
     }
 
+    /**
+     * 筛选指定类型的字段
+     * @param fieldTypeEnum
+     * @return
+     */
+    public List<Field> filterField(FieldTypeEnum fieldTypeEnum){
+        Field[] fields = this.getAClass().getDeclaredFields();
+        List<Field> result = new ArrayList<>();
+        for (Field field : fields) {
+            FieldDefine annotation = field.getAnnotation(FieldDefine.class);
+            if (Objects.nonNull(annotation) && fieldTypeEnum.getTypeCode().equals(annotation.type().getTypeCode())) {
+                result.add(field);
+            }
+        }
+        return result;
+    }
+
     public static List<Option> allOptions() {
         return Arrays.stream(values()).sorted(Comparator.comparingInt(MaterialTypeEnum::ordinal))
                 .map(MaterialTypeEnum::option).collect(Collectors.toList());
