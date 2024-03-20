@@ -1064,7 +1064,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      */
     @TenantIgnore
     private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount, String payChannelCode) {
-
+        log.info("[sendPaySuccessMsg]====>params(userId:{},productName:{},productType:{},giveRights:{},totalPrice:{},discountPrice:{},payPrice:{},payTime:{},successCount:{},payChannelCode:{}", userId, productName, productType, giveRights, totalPrice, discountPrice, payPrice, payTime, successCount, payChannelCode);
         try {
             Long tenantId = TenantContextHolder.getTenantId();
             // 获取订单来源
