@@ -2,6 +2,7 @@ package com.starcloud.ops.business.promotion.dal.dataobject.coupon;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponProductRespDTO;
 import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
 import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponStatusEnum;
@@ -95,6 +96,10 @@ public class CouponDO extends BaseDO {
      */
     @TableField(typeHandler = LongListTypeHandler.class)
     private List<Long> productScopeValues;
+
+
+    @TableField(typeHandler = CouponTemplateDO.CouponProductRespDTOTypeHandler.class)
+    private List<CouponProductRespDTO> productSpuAndSkuScopeValues;
     // ========== 使用规则 END ==========
 
     // ========== 使用效果 BEGIN ==========

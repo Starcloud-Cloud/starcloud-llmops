@@ -65,11 +65,16 @@ public interface PromoCodeService {
     /**
      * 使用兑换码 【权益码】
      *
-     * @param id     兑换码编号
+     * @param code   兑换码
      * @param userId 用户编号
      */
     void usePromoCode(String code, Long userId);
 
+    /**
+     * @param templateId 优惠券模板编号
+     * @param userId     用户编号
+     * @return 领取优惠券的数量
+     */
     default Integer getUseCount(Long templateId, Long userId) {
         Map<Long, Integer> map = getUseCountMapByTemplateIds(Collections.singleton(templateId), userId);
         return MapUtil.getInt(map, templateId, 0);
