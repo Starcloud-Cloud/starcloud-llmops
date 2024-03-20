@@ -157,7 +157,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     /**
      * 获取会员下有效的等级列表
      *
-     * @param userId
+     * @param userId 用户 ID
      */
     @Override
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
@@ -201,25 +201,30 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = new NotifyExpiringLevelRespVO();
         notifyExpiringLevelRespVO.setIsNotify(false);
         LocalDateTime today = LocalDateTime.now();
-        LocalDateTime nextWeek = today.plusDays(7);
+        // 一周内提醒
+        // LocalDateTime nextWeek = today.plusDays(7);
+        // fix 三天内提醒
+
+        LocalDateTime ThreeDaysLater = today.plusDays(3);
+
         List<AdminUserLevelDO> validLevelList = adminUserLevelMapper.selectValidList(userId);
         if (CollUtil.isEmpty(validLevelList)) {
             return notifyExpiringLevelRespVO;
         }
 
-        // 1.0 获取 7 天内过期的所有用户等级
+        // 1.0 获取 3 天内过期的所有用户等级
 
         // 判断是否存在生效的用户等级
 
-        // 获取 7 天内即将过期的等级
+        // 获取 3 天内即将过期的等级
         List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream()
-                .filter(level -> level.getValidEndTime().isBefore(nextWeek) && level.getValidEndTime().isAfter(today))
+                .filter(level -> level.getValidEndTime().isBefore(ThreeDaysLater) && level.getValidEndTime().isAfter(today))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
 
-        // 获取大于 7 天的用户等级
+        // 获取大于 3 天的用户等级
         List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream()
-                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(nextWeek))
+                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(ThreeDaysLater))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
 
@@ -272,7 +277,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     }
 
     /**
-     * @return
+     * @return 过期数量
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -299,7 +304,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     }
 
     /**
-     * @param levelDO
+     * @param levelDO 等级 DO
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -373,7 +378,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (result == 0 || data > result) {
             userLevelConfigLimitRedisDAO.increment(redisKey);
             adminUserLevelLimitRespVO.setPass(true);
-            adminUserLevelLimitRespVO.setUsedCount(result+1);
+            adminUserLevelLimitRespVO.setUsedCount(result + 1);
             return adminUserLevelLimitRespVO;
         }
         adminUserLevelLimitRespVO.setPass(false);
@@ -383,9 +388,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     }
 
     /**
-     * @param levelRightsCode
-     * @param userId
-     * @return
+     * @param levelRightsCode  权益限制编码
+     * @param userId 用户ID
+     * @return AdminUserLevelLimitUsedRespVO
      */
     @Override
     public AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId) {
