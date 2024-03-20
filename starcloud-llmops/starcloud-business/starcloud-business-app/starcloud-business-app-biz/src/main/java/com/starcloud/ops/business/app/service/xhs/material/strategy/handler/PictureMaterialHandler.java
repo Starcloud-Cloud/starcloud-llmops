@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,17 +78,19 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      * @param materialList   资料库列表
      */
     private void assembleSequence(PosterTemplateDTO posterTemplate, List<PictureCreativeMaterialDTO> materialList) {
+        // 复制一份的资料库列表，防止对原列表造成影响
+        List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
             if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
                 // 如果资料库为空，直接跳出循环
-                if (CollectionUtil.isEmpty(materialList)) {
+                if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
                 }
-                PictureCreativeMaterialDTO pictureMaterial = materialList.get(0);
+                PictureCreativeMaterialDTO pictureMaterial = copyMaterialList.get(0);
                 variable.setValue(pictureMaterial.getPictureUrl());
                 // 移除已使用的资料库
-                materialList.remove(0);
+                copyMaterialList.remove(0);
             }
         }
         posterTemplate.setVariableList(variableList);
@@ -100,18 +103,20 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      * @param materialList   资料库列表
      */
     private void assembleRandom(PosterTemplateDTO posterTemplate, List<PictureCreativeMaterialDTO> materialList) {
+        // 复制一份的资料库列表，防止对原列表造成影响
+        List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
             if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
                 // 如果资料库为空，直接跳出循环
-                if (CollectionUtil.isEmpty(materialList)) {
+                if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
                 }
-                int randomIndex = RandomUtil.randomInt(materialList.size());
-                PictureCreativeMaterialDTO pictureMaterial = materialList.get(randomIndex);
+                int randomIndex = RandomUtil.randomInt(copyMaterialList.size());
+                PictureCreativeMaterialDTO pictureMaterial = copyMaterialList.get(randomIndex);
                 variable.setValue(pictureMaterial.getPictureUrl());
                 // 移除已使用的资料库
-                materialList.remove(randomIndex);
+                copyMaterialList.remove(randomIndex);
             }
         }
         posterTemplate.setVariableList(variableList);
