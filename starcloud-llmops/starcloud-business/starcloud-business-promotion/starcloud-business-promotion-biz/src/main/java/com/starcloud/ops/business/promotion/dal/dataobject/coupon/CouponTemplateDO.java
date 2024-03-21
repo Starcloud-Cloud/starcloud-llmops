@@ -1,11 +1,8 @@
 package com.starcloud.ops.business.promotion.dal.dataobject.coupon;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponProductRespDTO;
 import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
 import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
@@ -97,10 +94,6 @@ public class CouponTemplateDO extends BaseDO {
      */
     @TableField(typeHandler = LongListTypeHandler.class)
     private List<Long> productScopeValues;
-
-    @TableField(typeHandler = CouponProductRespDTOTypeHandler.class)
-    private List<CouponProductRespDTO> productSpuAndSkuScopeValues;
-
     /**
      * 生效日期类型
      * <p>
@@ -170,19 +163,5 @@ public class CouponTemplateDO extends BaseDO {
      */
     private Integer useCount;
     // ========== 统计信息 END ==========
-
-    public static class CouponProductRespDTOTypeHandler extends AbstractJsonTypeHandler<Object> {
-
-        @Override
-        protected Object parse(String json) {
-            return JsonUtils.parseArray(json, CouponProductRespDTO.class);
-        }
-
-        @Override
-        protected String toJson(Object obj) {
-            return JsonUtils.toJsonString(obj);
-        }
-
-    }
 
 }

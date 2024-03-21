@@ -115,6 +115,26 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
                                 .apply(productScopeValuesFindInSetFunc.apply(categoryIds)))));
     }
 
+    default List<CouponDO> selectListByUserIdAndStatusAndUsePriceLeAndProductScope(
+            Long userId, Integer status, Integer usePrice, List<Long> spuIds,List<Long> skuIds, List<Long> categoryIds) {
+        Function<List<Long>, String> productScopeValuesFindInSetFunc = ids -> ids.stream()
+                .map(id -> StrUtil.format("FIND_IN_SET({}, product_scope_values) ", id))
+                .collect(Collectors.joining(" OR "));
+        return selectList(new LambdaQueryWrapperX<CouponDO>()
+                .eq(CouponDO::getUserId, userId)
+                .eq(CouponDO::getStatus, status)
+                .le(CouponDO::getUsePrice, usePrice) // 价格小于等于，满足价格使用条件
+                .and(w -> w.eq(CouponDO::getProductScope, PromotionProductScopeEnum.ALL.getScope()) // 商品范围一：全部
+                        .or(ww -> ww.eq(CouponDO::getProductScope, PromotionProductScopeEnum.SPU.getScope()) // 商品范围二：满足指定商品
+                                .apply(productScopeValuesFindInSetFunc.apply(spuIds)))
+                        .or(ww -> ww.eq(CouponDO::getProductScope, PromotionProductScopeEnum.SKU.getScope()) // 商品范围二：满足指定商品属性
+                                .apply(productScopeValuesFindInSetFunc.apply(skuIds)))
+                        .or(ww -> ww.eq(CouponDO::getProductScope, PromotionProductScopeEnum.CATEGORY.getScope()) // 商品范围三：满足指定分类
+                                .apply(productScopeValuesFindInSetFunc.apply(categoryIds)))));
+    }
+
+
+
     default List<CouponDO> selectListByStatusAndValidEndTimeLe(Integer status, LocalDateTime validEndTime) {
         return selectList(new LambdaQueryWrapperX<CouponDO>()
                 .eq(CouponDO::getStatus, status)

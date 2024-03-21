@@ -184,7 +184,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             //         .collect(Collectors.toList());
             //
             // return filteredSkus;
-            List<ProductSkuDO> collect = productSkuDOS.stream().filter(sku -> {
+            return productSkuDOS.stream().filter(sku -> {
                 if (Objects.nonNull(sku.getOrderLimitConfig())) {
                     if (sku.getOrderLimitConfig().getIsNewUser()) {
                         if (!adminUsersApi.isNewUser(userId)) {
@@ -193,14 +193,13 @@ public class ProductSkuServiceImpl implements ProductSkuService {
                     }
 
                     if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
-                        return couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(categoryId)) != 0;
+                        return couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(sku.getId()), Collections.singletonList(categoryId)) != 0;
                     }
                     return true;
 
                 }
                 return true;
             }).collect(Collectors.toList());
-            return collect;
         }
         return productSkuDOS;
     }
@@ -291,7 +290,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             }
         }
         if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
-            if (couponApi.validateUserExitTemplateId(userId,sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
+            if (couponApi.validateUserExitTemplateId(userId, sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
                 throw exception(SKU_FAIL_COUPON_LIMIT);
             }
         }

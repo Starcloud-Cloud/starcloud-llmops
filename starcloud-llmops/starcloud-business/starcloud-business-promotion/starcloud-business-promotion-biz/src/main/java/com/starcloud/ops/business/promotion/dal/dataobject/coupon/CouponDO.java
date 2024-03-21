@@ -2,7 +2,6 @@ package com.starcloud.ops.business.promotion.dal.dataobject.coupon;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
-import com.starcloud.ops.business.promotion.api.coupon.dto.CouponProductRespDTO;
 import com.starcloud.ops.business.promotion.enums.common.PromotionDiscountTypeEnum;
 import com.starcloud.ops.business.promotion.enums.common.PromotionProductScopeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponStatusEnum;
@@ -34,19 +33,19 @@ public class CouponDO extends BaseDO {
     private Long id;
     /**
      * 优惠劵模板编号
-     *
+     * <p>
      * 关联 {@link CouponTemplateDO#getId()}
      */
     private Long templateId;
     /**
      * 优惠劵名
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getName()}
      */
     private String name;
     /**
      * 优惠码状态
-     *
+     * <p>
      * 枚举 {@link CouponStatusEnum}
      */
     private Integer status;
@@ -56,13 +55,13 @@ public class CouponDO extends BaseDO {
     // ========== 领取情况 BEGIN ==========
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 MemberUserDO 的 id 字段
      */
     private Long userId;
     /**
      * 领取类型
-     *
+     * <p>
      * 枚举 {@link CouponTakeTypeEnum}
      */
     private Integer takeType;
@@ -71,7 +70,7 @@ public class CouponDO extends BaseDO {
     // ========== 使用规则 BEGIN ==========
     /**
      * 是否设置满多少金额可用，单位：分
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getUsePrice()}
      */
     private Integer usePrice;
@@ -85,45 +84,42 @@ public class CouponDO extends BaseDO {
     private LocalDateTime validEndTime;
     /**
      * 商品范围
-     *
+     * <p>
      * 枚举 {@link PromotionProductScopeEnum}
      */
     private Integer productScope;
     /**
      * 商品范围编号的数组
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getProductScopeValues()}
      */
     @TableField(typeHandler = LongListTypeHandler.class)
     private List<Long> productScopeValues;
 
-
-    @TableField(typeHandler = CouponTemplateDO.CouponProductRespDTOTypeHandler.class)
-    private List<CouponProductRespDTO> productSpuAndSkuScopeValues;
     // ========== 使用规则 END ==========
 
     // ========== 使用效果 BEGIN ==========
     /**
      * 折扣类型
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getDiscountType()}
      */
     private Integer discountType;
     /**
      * 折扣百分比
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getDiscountPercent()}
      */
     private Integer discountPercent;
     /**
      * 优惠金额，单位：分
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getDiscountPrice()}
      */
     private Integer discountPrice;
     /**
      * 折扣上限，仅在 {@link #discountType} 等于 {@link PromotionDiscountTypeEnum#PERCENT} 时生效
-     *
+     * <p>
      * 冗余 {@link CouponTemplateDO#getDiscountLimitPrice()}
      */
     private Integer discountLimitPrice;
