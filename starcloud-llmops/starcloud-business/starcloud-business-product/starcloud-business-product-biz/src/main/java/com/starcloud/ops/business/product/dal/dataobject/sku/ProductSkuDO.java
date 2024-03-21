@@ -2,6 +2,7 @@ package com.starcloud.ops.business.product.dal.dataobject.sku;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -84,6 +85,15 @@ public class ProductSkuDO extends BaseDO {
      * 商品体积，单位：m^3 平米
      */
     private Double volume;
+
+
+    /**
+     * 赠送的优惠劵编号的数组
+     * <p>
+     * 对应 CouponTemplateDO 的 id 属性
+     */
+    @TableField(typeHandler = LongListTypeHandler.class)
+    private List<Long> giveCouponTemplateIds;
 
     /**
      * 商品附属权益
