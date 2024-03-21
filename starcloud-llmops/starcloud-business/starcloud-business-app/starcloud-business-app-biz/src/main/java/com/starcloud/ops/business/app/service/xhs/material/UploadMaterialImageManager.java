@@ -121,7 +121,7 @@ public class UploadMaterialImageManager implements InitializingBean {
             field.setAccessible(true);
             String imageName = (String) field.get(materialDTO);
 
-            // 系统默认临时文件目录/material/{parseUid}/{materialType}/images/imageName
+            // 系统默认临时文件目录/material/{parseUid}/{materialType}/images/{imageName}
             String localPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
                     + materialDTO.getType() + File.separator + "images" + File.separator
                     + imageName;

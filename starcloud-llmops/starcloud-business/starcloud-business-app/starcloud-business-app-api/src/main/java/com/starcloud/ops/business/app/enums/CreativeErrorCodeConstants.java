@@ -187,6 +187,8 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode NOT_ZIP_PACKAGE = new ErrorCode(730000007, "只支持上传zip压缩包");
 
+    ErrorCode DOWNLOAD_TEMPLATE_ERROR = new ErrorCode(730000008, "导出模板异常 {}");
+
 
     /**
      * 图片模板ID不能为空
