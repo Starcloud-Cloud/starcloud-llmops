@@ -123,12 +123,14 @@ public class RecommendStepWrapperFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defVariableStepWrapper() {
+    public static WorkflowStepWrapperRespVO defGlobalVariableStepWrapper() {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("变量步骤");
-        stepWrapper.setName("变量步骤");
-        stepWrapper.setDescription("变量步骤");
-        stepWrapper.setButtonLabel("变量步骤");
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_NAME");
+        String field = AppUtils.obtainField(name);
+        stepWrapper.setField(name);
+        stepWrapper.setName(field);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defVariableActionStep());
         stepWrapper.setVariable(RecommendVariableFactory.defVariableVariable());
         return stepWrapper;
@@ -141,10 +143,12 @@ public class RecommendStepWrapperFactory {
      */
     public static WorkflowStepWrapperRespVO defMaterialStepWrapper() {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("资料库步骤");
-        stepWrapper.setName("资料库步骤");
-        stepWrapper.setDescription("资料库步骤");
-        stepWrapper.setButtonLabel("资料库");
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_NAME");
+        String field = AppUtils.obtainField(name);
+        stepWrapper.setField(name);
+        stepWrapper.setName(field);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defMaterialActionStep());
         stepWrapper.setVariable(RecommendVariableFactory.defMaterialVariable());
         return stepWrapper;
@@ -261,7 +265,7 @@ public class RecommendStepWrapperFactory {
      */
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
-                defVariableStepWrapper(),
+                defGlobalVariableStepWrapper(),
                 defMaterialStepWrapper(),
                 defTitleStepWrapper(),
                 defCustomStepWrapper(),
