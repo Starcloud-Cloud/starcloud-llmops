@@ -385,7 +385,7 @@ public class AppContext {
             fieldVariables.put(filedKey, value);
         });
 
-        return allVariablesValues;
+        return fieldVariables;
     }
 
     /**
