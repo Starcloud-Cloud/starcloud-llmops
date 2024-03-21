@@ -233,15 +233,15 @@ public class CouponServiceImpl implements CouponService {
     public List<CouponDO> getMatchCouponList(Long userId, AppCouponMatchReqVO matchReqVO) {
         return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
-                matchReqVO.getPrice(), matchReqVO.getSpuIds(), matchReqVO.getCategoryIds());
+                matchReqVO.getPrice(), matchReqVO.getSpuIds(), matchReqVO.getSkuIds(), matchReqVO.getCategoryIds());
     }
 
 
     @Override
-    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds) {
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> skuIds, List<Long> categoryIds) {
         return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
-                price, spuIds, categoryIds).size();
+                price, spuIds, skuIds, categoryIds).size();
     }
 
     @Override

@@ -63,7 +63,7 @@ public class AdminUserLevelController {
         return success(adminUserLevelService.validateLevelRightsLimit(levelRightsCode, getLoginUserId()));
     }
 
-    @GetMapping("/user_righs_limit_used_count")
+    @GetMapping("/user_rights_limit_used_count")
     @Operation(summary = "用户权益使用限制查询")
     public CommonResult<AdminUserLevelLimitUsedRespVO> getLevelRightsLimitCount(@RequestParam("levelRightsCode") String levelRightsCode) {
         return success(adminUserLevelService.getLevelRightsLimitCount(levelRightsCode, getLoginUserId()));
