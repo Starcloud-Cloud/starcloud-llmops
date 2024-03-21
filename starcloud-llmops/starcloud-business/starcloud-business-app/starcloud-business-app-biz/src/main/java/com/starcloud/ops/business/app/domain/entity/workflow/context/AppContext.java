@@ -285,6 +285,40 @@ public class AppContext {
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String stepId) {
 
+        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
+
+        //当前步骤的所有变量 kv，不加前缀
+        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
+        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+
+        Map<String, Object> fieldVariables =  this.parseMapFromVariablesValues(variables, allVariablesValues);
+
+        return fieldVariables;
+    }
+
+    /**
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Map<String, Object> parseMapFromVariables(Map<String, Object> values, String stepId) {
+
+        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
+
+        Map<String, Object> fieldVariables =  this.parseMapFromVariablesValues(values, allVariablesValues);
+
+        return fieldVariables;
+    }
+
+
+    /**
+     * 获取步骤的变量内容
+     * @param stepId
+     */
+    private Map<String, Object> getAllVariablesValues(String stepId) {
+
         // 获取当前步骤前的所有步骤
         List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
 
@@ -300,7 +334,7 @@ public class AppContext {
             Map<String, Object> variablesValuesV2 = wrapper.getContextVariablesValues(null, true);
             allVariablesValues.putAll(Optional.ofNullable(variablesValuesV2).orElse(MapUtil.newHashMap()));
 
-            //无前缀的占位符表示当前节点变量（可以引用自己节点的变量）
+            //再生成无前缀的占位符表示当前节点变量（可以引用自己节点的变量）
             if (wrapper.getStepCode().equals(stepId)) {
                 Map<String, Object> variablesValuesV3 = wrapper.getContextVariablesValues(null, false);
                 allVariablesValues.putAll(Optional.ofNullable(variablesValuesV3).orElse(MapUtil.newHashMap()));
@@ -308,14 +342,18 @@ public class AppContext {
 
         });
 
-        //当前步骤的所有变量 kv，不加前缀
-        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
-        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+        return allVariablesValues;
+    }
 
+    /**
+     * 解析传入的value，替换其中的变量占位符
+     *
+     */
+    private Map<String, Object> parseMapFromVariablesValues(Map<String, Object> values, Map<String, Object> allVariablesValues) {
 
         Map<String, Object> fieldVariables = new HashMap<>();
         //遍历当前变量
-        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
+        Optional.ofNullable(values.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
             String filedKey = entrySet.getKey();
             Object value = entrySet.getValue();
@@ -323,7 +361,7 @@ public class AppContext {
             log.info("变量替换解析：当前变量值：{}", value);
             if (value != null) {
 
-                String val = String.valueOf(entrySet.getValue());
+                String val = String.valueOf(value);
 
                 value = QLExpressUtils.execute(val, allVariablesValues);
                 //把当前变量的内容中的 占位符与所有上下游变量做占位符替换，替换为具体的值
@@ -336,8 +374,7 @@ public class AppContext {
             fieldVariables.put(filedKey, value);
         });
 
-        return fieldVariables;
-
+        return allVariablesValues;
     }
 
     /**
