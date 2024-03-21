@@ -2,12 +2,14 @@ package com.starcloud.ops.business.app.feign;
 
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -20,6 +22,14 @@ import java.util.List;
  */
 @FeignClient(name = "${feign.remote.poster.name}", url = "${feign.remote.poster.url}", path = "/api")
 public interface PosterImageClient {
+
+    /**
+     * 生成海报
+     *
+     * @return 海报
+     */
+    @GetMapping(value = "/template/{templateId}")
+    PosterResponse<PosterTemplateJson> getTemplate(@PathVariable("templateId") String templateId);
 
     /**
      * 获取模板列表

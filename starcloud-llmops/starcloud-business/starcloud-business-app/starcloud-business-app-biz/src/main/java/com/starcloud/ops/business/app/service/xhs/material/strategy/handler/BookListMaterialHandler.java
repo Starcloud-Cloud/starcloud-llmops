@@ -10,12 +10,12 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +91,7 @@ class BookListMaterialHandler extends AbstractMaterialHandler<BookListCreativeMa
         for (int i = 0; i < variableList.size(); i++) {
             PosterVariableDTO variable = variableList.get(i);
             // 如果用户没有选择占位符，则按照顺序放置占位符
-            if (Objects.isNull(variable.getValue())) {
+            if (StringUtil.objectBlank(variable.getValue())) {
                 // 防止溢出 i % materialList.size()。
                 variable.setValue(this.materialPlaceholder(i % materialList.size(), "coverUrl"));
             }
@@ -120,7 +120,7 @@ class BookListMaterialHandler extends AbstractMaterialHandler<BookListCreativeMa
         List<String> materialUrlList = materialList.stream().map(BookListCreativeMaterialDTO::getCoverUrl).collect(Collectors.toList());
         for (PosterVariableDTO variable : variableList) {
             // 如果用户没有选择占位符，则随机放置占位符, 否则不做任何处理
-            if (Objects.isNull(variable.getValue())) {
+            if (StringUtil.objectBlank(variable.getValue())) {
                 int randomInt = randomInt(usedMaterialList, materialUrlList);
                 variable.setValue(this.materialPlaceholder(randomInt, "coverUrl"));
             }

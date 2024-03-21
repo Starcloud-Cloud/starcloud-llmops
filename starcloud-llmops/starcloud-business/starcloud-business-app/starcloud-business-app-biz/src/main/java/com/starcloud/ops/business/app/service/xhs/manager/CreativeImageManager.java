@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDT
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
@@ -54,6 +55,16 @@ public class CreativeImageManager {
 
     @Resource
     private PosterTemplateThreadPoolHolder creativeImageStyleThreadPoolHolder;
+
+    /**
+     * 获取图片模板
+     *
+     * @param templateId 模板ID
+     * @return 模板
+     */
+    public PosterTemplateJson getTemplate(String templateId) {
+        return posterService.getTemplate(templateId);
+    }
 
     /**
      * 获取图片模板

@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeRe
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -61,6 +63,13 @@ public class CreativeSchemeController {
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<List<SchemeAppCategoryRespVO>> appList() {
         return CommonResult.success(creativeSchemeService.appGroupList());
+    }
+
+    @GetMapping("/posterTemplate")
+    @Operation(summary = "获取应用列表", description = "获取应用列表")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<PosterTemplateJson> getPosterTemplate(@RequestParam("templateId") String templateId) {
+        return CommonResult.success(creativeImageManager.getTemplate(templateId));
     }
 
     @GetMapping("/templateGroupByType")

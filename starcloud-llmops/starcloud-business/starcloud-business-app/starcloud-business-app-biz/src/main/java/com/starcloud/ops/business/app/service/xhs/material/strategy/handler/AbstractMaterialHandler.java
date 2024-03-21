@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
@@ -184,17 +183,11 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
             // 所有的海报模板中获取最大的那个素材索引。如果没有，为 -1
             Integer maxIndex = templateIndexList.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
             if (maxIndex == -1) {
-                materialIndexList.add(0);
+                // 如果没有找到，设置该值为图片总数
+                materialIndexList.add(posterStyle.getTotalImageCount());
             } else {
                 materialIndexList.add(maxIndex);
             }
-        }
-        // 说明均没有匹配到
-        if (materialIndexList.stream().noneMatch(item -> item > 0)) {
-            // 返回图片
-            return CollectionUtil.emptyIfNull(posterStyleList).stream()
-                    .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
-                    .collect(Collectors.toList());
         }
         return materialIndexList;
     }

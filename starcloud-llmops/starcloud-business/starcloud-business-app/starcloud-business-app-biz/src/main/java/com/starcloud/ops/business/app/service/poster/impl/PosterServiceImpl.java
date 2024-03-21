@@ -2,10 +2,12 @@ package com.starcloud.ops.business.app.service.poster.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.response.PosterResponse;
@@ -30,6 +32,20 @@ public class PosterServiceImpl implements PosterService {
 
     @Resource
     private PosterImageClient posterImageClient;
+
+    /**
+     * 获取模板
+     *
+     * @param templateId 模板ID
+     * @return 模板
+     */
+    @Override
+    public PosterTemplateJson getTemplate(String templateId) {
+        PosterResponse<PosterTemplateJson> response = posterImageClient.getTemplate(templateId);
+        validateResponse(response, "获取海报模板失败");
+        AppValidate.notNull(response.getData(), "海报模板获取失败！");
+        return response.getData();
+    }
 
     /**
      * 获取模板列表

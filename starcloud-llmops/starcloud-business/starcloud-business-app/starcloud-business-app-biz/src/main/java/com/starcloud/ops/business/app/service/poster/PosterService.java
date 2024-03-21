@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.poster;
 
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 
@@ -14,6 +15,14 @@ import java.util.List;
  * @since 2021-06-22
  */
 public interface PosterService {
+
+    /**
+     * 获取模板
+     *
+     * @param templateId 模板ID
+     * @return 模板
+     */
+    PosterTemplateJson getTemplate(String templateId);
 
     /**
      * 获取模板列表

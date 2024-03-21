@@ -7,6 +7,7 @@ import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +64,18 @@ public class StringUtil {
 
     public static Boolean isBlank(String source) {
         return StrUtil.isBlank(source);
+    }
+
+    public static Boolean isNotBlank(String source) {
+        return StrUtil.isNotBlank(source);
+    }
+
+    public static Boolean objectBlank(Object object) {
+        return Objects.isNull(object) || ((object instanceof String) && isBlank((String) object));
+    }
+
+    public static Boolean objectNotBlank(Object object) {
+        return Objects.nonNull(object) && ((object instanceof String) && isNotBlank((String) object));
     }
 
     /**

@@ -99,6 +99,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private List<PosterVariableDTO> variableList;
 
     /**
+     * json
+     */
+    @Schema(description = "json")
+    private String json;
+
+    /**
      * 校验
      */
     public void validate() {
