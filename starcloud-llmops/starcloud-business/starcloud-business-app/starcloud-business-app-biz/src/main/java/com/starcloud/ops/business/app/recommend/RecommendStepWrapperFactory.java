@@ -131,8 +131,8 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setName(field);
         stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_BUTTON_LABEL"));
-        stepWrapper.setFlowStep(RecommendActionFactory.defVariableActionStep());
-        stepWrapper.setVariable(RecommendVariableFactory.defVariableVariable());
+        stepWrapper.setFlowStep(RecommendActionFactory.defGlobalVariableActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
         return stepWrapper;
     }
 

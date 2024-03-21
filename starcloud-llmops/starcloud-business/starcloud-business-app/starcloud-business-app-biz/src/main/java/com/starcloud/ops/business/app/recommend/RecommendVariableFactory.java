@@ -19,7 +19,7 @@ public class RecommendVariableFactory {
      *
      * @return VariableRespVO
      */
-    public static VariableRespVO defVariableVariable() {
+    public static VariableRespVO defGlobalVariableVariable() {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.emptyList());
         return variable;

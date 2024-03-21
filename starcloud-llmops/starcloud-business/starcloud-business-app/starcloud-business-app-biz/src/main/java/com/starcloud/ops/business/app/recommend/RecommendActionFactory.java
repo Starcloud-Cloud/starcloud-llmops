@@ -107,10 +107,10 @@ public class RecommendActionFactory {
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepRespVO defVariableActionStep() {
+    public static WorkflowStepRespVO defGlobalVariableActionStep() {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName("变量步骤");
-        step.setDescription("变量步骤");
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(VariableActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defTextResponse(Boolean.FALSE));
@@ -120,7 +120,7 @@ public class RecommendActionFactory {
         step.setIcon("variable");
         step.setTags(Collections.singletonList("Variable"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defVariableVariable());
+        step.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
         return step;
     }
 
@@ -131,8 +131,8 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defMaterialActionStep() {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName("资料库步骤");
-        step.setDescription("资料库步骤");
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(MaterialActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defTextResponse(Boolean.FALSE));
@@ -142,7 +142,7 @@ public class RecommendActionFactory {
         step.setIcon("material");
         step.setTags(Collections.singletonList("Material"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defVariableVariable());
+        step.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
         return step;
     }
 
@@ -154,8 +154,8 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defTitleActionStep(String defaultPrompt) {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName(MessageUtil.getMessage("TITLE_ACTION_NAME"));
-        step.setDescription(MessageUtil.getMessage("TITLE_ACTION_DESCRIPTION"));
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(TitleActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defTextResponse());
@@ -177,8 +177,8 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defCustomActionStep(String defaultPrompt) {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName(MessageUtil.getMessage("CUSTOM_ACTION_NAME"));
-        step.setDescription(MessageUtil.getMessage("CUSTOM_ACTION_DESCRIPTION"));
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(CustomActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defTextResponse());
@@ -200,8 +200,8 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defParagraphActionStep(String defaultPrompt) {
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName(MessageUtil.getMessage("PARAGRAPH_ACTION_NAME"));
-        step.setDescription(MessageUtil.getMessage("PARAGRAPH_ACTION_DESCRIPTION"));
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(ParagraphActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defTextResponse());
@@ -225,8 +225,8 @@ public class RecommendActionFactory {
         // 固定的 jsonSchema，不可编辑。
         String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(AssembleDTO.class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName(MessageUtil.getMessage("ASSEMBLE_ACTION_NAME"));
-        step.setDescription(MessageUtil.getMessage("ASSEMBLE_ACTION_DESCRIPTION"));
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(AssembleActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defReadOnlyResponse(jsonSchema));
@@ -248,8 +248,8 @@ public class RecommendActionFactory {
     public static WorkflowStepRespVO defPosterActionStep(String defaultPrompt) {
         String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(PosterGenerationHandler.Response[].class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName(MessageUtil.getMessage("POSTER_ACTION_NAME"));
-        step.setDescription(MessageUtil.getMessage("POSTER_ACTION_DESCRIPTION"));
+        step.setName(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME"));
+        step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(PosterActionHandler.class.getSimpleName());
         step.setResponse(RecommendResponseFactory.defReadOnlyResponse(jsonSchema));
