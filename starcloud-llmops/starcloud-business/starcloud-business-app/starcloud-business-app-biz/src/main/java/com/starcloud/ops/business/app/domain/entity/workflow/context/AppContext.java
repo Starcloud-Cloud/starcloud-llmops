@@ -266,14 +266,25 @@ public class AppContext {
 
     /**
      * 获取当前步骤的指定变量值
-     *
-     * @return 当前步骤的所有变量值 Maps
+     * @param key 字段名
+     * @param parse 是否解析变量占位符
+     * @return
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public <V> V getContextVariablesValue(String key, V def) {
+    public Object getContextVariablesValue(String key, Boolean parse) {
 
-        return (V) this.getContextVariablesValues(this.getStepId()).getOrDefault(key, def);
+
+        if (parse) {
+            return this.getContextVariablesValues(this.getStepId()).getOrDefault(key, null);
+        } else {
+
+            //当前步骤的所有变量 kv，不加前缀
+            WorkflowStepWrapper wrapper = this.getStepWrapper(this.getStepId());
+            Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+
+            return variables.getOrDefault(key, null);
+        }
     }
 
     /**
@@ -291,7 +302,7 @@ public class AppContext {
         WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
         Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
 
-        Map<String, Object> fieldVariables =  this.parseMapFromVariablesValues(variables, allVariablesValues);
+        Map<String, Object> fieldVariables = this.parseMapFromVariablesValues(variables, allVariablesValues);
 
         return fieldVariables;
     }
@@ -307,7 +318,7 @@ public class AppContext {
 
         Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
 
-        Map<String, Object> fieldVariables =  this.parseMapFromVariablesValues(values, allVariablesValues);
+        Map<String, Object> fieldVariables = this.parseMapFromVariablesValues(values, allVariablesValues);
 
         return fieldVariables;
     }
@@ -315,6 +326,7 @@ public class AppContext {
 
     /**
      * 获取步骤的变量内容
+     *
      * @param stepId
      */
     private Map<String, Object> getAllVariablesValues(String stepId) {
@@ -347,7 +359,6 @@ public class AppContext {
 
     /**
      * 解析传入的value，替换其中的变量占位符
-     *
      */
     private Map<String, Object> parseMapFromVariablesValues(Map<String, Object> values, Map<String, Object> allVariablesValues) {
 
