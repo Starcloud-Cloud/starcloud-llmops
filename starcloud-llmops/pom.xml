@@ -18,6 +18,7 @@
     <properties>
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
         <java-langchain.version>v1.0.7</java-langchain.version>
+        <poi-version>3.17</poi-version>
     </properties>
 
     <modules>
@@ -78,6 +79,12 @@
                 <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
                 <version>${starcloud.revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi-version}</version>
             </dependency>
 
         </dependencies>

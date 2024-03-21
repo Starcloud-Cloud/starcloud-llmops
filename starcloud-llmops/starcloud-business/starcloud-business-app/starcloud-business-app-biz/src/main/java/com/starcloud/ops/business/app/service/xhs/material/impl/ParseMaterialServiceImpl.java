@@ -1,27 +1,31 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ZipUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import com.starcloud.ops.business.app.service.xhs.material.UploadMaterialImageManager;
+import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +34,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_PARSE_ERROR;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NOT_ZIP_PACKAGE;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.*;
 
 @Slf4j
@@ -42,20 +45,26 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     private StringRedisTemplate redisTemplate;
 
     @Resource
-    private DictDataService dataService;
-
-    @Resource
     private UploadMaterialImageManager uploadMaterialImageManager;
 
     @Override
     public Map<String, Object> template(String type) {
         Map<String, Object> result = new HashMap<>();
         result.put("fieldDefine", MaterialTypeEnum.fieldDefine(type));
-        DictDataDO dictDataDO = dataService.parseDictData("material-template", type);
-        if (Objects.nonNull(dictDataDO)) {
-            result.put("templateUrl", dictDataDO.getValue());
-        }
         return result;
+    }
+
+    @Override
+    public void downloadTemplate(String materialType, HttpServletResponse response) {
+        try {
+            File file = MaterialTemplateUtils.readTemplate(materialType);
+            IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
+            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        } catch (Exception e) {
+            log.error("download template error", e);
+            throw exception(DOWNLOAD_TEMPLATE_ERROR, e.getMessage());
+        }
     }
 
     @Override
@@ -107,7 +116,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
                 redisTemplate.boundValueOps(MATERIAL_PREFIX + parseUid).set(JsonUtils.toJsonString(result), 3, TimeUnit.DAYS);
             }
             long end = System.currentTimeMillis();
-            log.info("material parse success, {} ms", end - start);
+            log.info("material parse success, parseUid={}, {} ms", parseUid, end - start);
             return parseUid;
         } catch (Exception e) {
             log.info("material parse error", e);

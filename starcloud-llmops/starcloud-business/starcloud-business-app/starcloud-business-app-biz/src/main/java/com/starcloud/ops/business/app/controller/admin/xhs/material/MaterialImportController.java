@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
@@ -26,9 +28,18 @@ public class MaterialImportController {
         return CommonResult.success(parseMaterialService.template(type));
     }
 
+    @Operation(summary = "下载素材模板")
+    @GetMapping("/export/{materialType}")
+    @OperateLog(enable = false)
+    public void downloadTemplate(@PathVariable("materialType") String materialType,
+                                HttpServletResponse response){
+        parseMaterialService.downloadTemplate(materialType, response);
+    }
+
     @PostMapping("/import")
     @Operation(summary = "导入素材", description = "导入素材")
-    public CommonResult<String> importMaterial(@RequestParam("file") MultipartFile file){
+    @OperateLog(enable = false)
+    public CommonResult<String> importMaterial(@RequestParam("file") MultipartFile file) {
         return CommonResult.success(parseMaterialService.parseToRedis(file));
     }
 
