@@ -167,7 +167,17 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
                     continue;
                 }
                 // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
-                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream().filter(Objects::nonNull).filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType())).map(item -> matcherFirstInt(String.valueOf(item.getValue()))).max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
+                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream()
+                        .filter(Objects::nonNull)
+                        .filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType()))
+                        .map(item -> {
+                            Integer matcher = matcherFirstInt(String.valueOf(item.getValue()));
+                            if (matcher == -1) {
+                                return -1;
+                            }
+                            return matcher + 1;
+                        })
+                        .max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
                 templateIndexList.add(maxIndex);
             }
 
