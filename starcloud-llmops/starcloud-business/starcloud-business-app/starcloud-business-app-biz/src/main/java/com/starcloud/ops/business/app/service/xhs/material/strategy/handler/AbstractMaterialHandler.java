@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Component
 public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMaterialDTO> {
 
-    private static final String PLACEHOLDER = "{{素材.docs[%s].%s}}";
+    private static final String PLACEHOLDER = "{{docs[%s].%s}}";
 
     private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
 

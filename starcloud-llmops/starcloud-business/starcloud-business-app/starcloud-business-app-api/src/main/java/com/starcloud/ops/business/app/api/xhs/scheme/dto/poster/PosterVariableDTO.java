@@ -25,6 +25,11 @@ public class PosterVariableDTO implements java.io.Serializable {
     private static final long serialVersionUID = -6116842128671853185L;
 
     /**
+     * 变量唯一值标识
+     */
+    private String uuid;
+
+    /**
      * 变量 label
      */
     private String label;

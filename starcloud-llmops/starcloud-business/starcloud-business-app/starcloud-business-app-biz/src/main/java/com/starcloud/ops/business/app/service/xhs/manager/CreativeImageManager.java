@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.service.xhs.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
@@ -159,7 +159,7 @@ public class CreativeImageManager {
      * @return 响应
      */
     public XhsImageExecuteResponse execute(XhsImageExecuteRequest request) {
-        log.info("海报图片生成：执行生成图片开始: 执行参数: \n{}", JSONUtil.parse(request).toStringPretty());
+        log.info("海报图片生成：执行生成图片开始: 执行参数: \n{}", JsonUtils.toJsonPrettyString(request));
         XhsImageExecuteResponse response = XhsImageExecuteResponse.ofBase();
         try {
             String id = request.getId();

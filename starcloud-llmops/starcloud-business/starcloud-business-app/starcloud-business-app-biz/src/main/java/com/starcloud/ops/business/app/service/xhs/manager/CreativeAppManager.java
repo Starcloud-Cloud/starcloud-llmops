@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -100,7 +100,7 @@ public class CreativeAppManager {
 
             //把 uid 和 step ,改成 根据模式 对应的枚举配置写死 在创作的时候保存就行了。
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-            log.info("创作中心：执行应用开始。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
+            log.info("创作中心：执行应用开始。参数为\n：{}", JsonUtils.toJsonPrettyString(request));
 
             // 获取第二步的步骤。约定，生成小红书内容为第二步
             WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(appMarket);
@@ -155,7 +155,7 @@ public class CreativeAppManager {
                 }
 
                 // 执行应用
-                log.info("执行参数：生成条数: {}, 执行参数： \n{}", schemeGroupRequestList.size(), JSONUtil.parse(schemeGroupRequestList).toStringPretty());
+                log.info("执行参数：生成条数: {}, 执行参数： \n{}", schemeGroupRequestList.size(), JsonUtils.toJsonPrettyString(schemeGroupRequestList));
                 XhsAppCreativeExecuteRequest request = schemeGroupRequestList.get(0);
                 request.setN(schemeGroupRequestList.size());
                 List<XhsAppExecuteResponse> responses = this.execute(request);
@@ -180,7 +180,7 @@ public class CreativeAppManager {
             }
             log.info("创作计划UID：{}，执行结束！", planEntry.getKey());
         }
-        log.info("创作中心：执行批量生成应用结束......! \n {}", JSONUtil.parse(responseList).toStringPretty());
+        log.info("创作中心：执行批量生成应用结束......! \n {}", JsonUtils.toJsonPrettyString(responseList));
         return responseList;
     }
 
@@ -198,7 +198,7 @@ public class CreativeAppManager {
 
             //把 uid 和 step ,改成 根据模式 对应的枚举配置写死 在创作的时候保存就行了。
             AppMarketRespVO appMarket = appMarketService.get(request.getUid());
-            log.info("创作中心：执行应用开始(干货文模式)。参数为\n：{}", JSONUtil.parse(request).toStringPretty());
+            log.info("创作中心：执行应用开始(干货文模式)。参数为\n：{}", JsonUtils.toJsonPrettyString(request));
 
             // 获取第二步的步骤。约定，生成小红书内容为第二步
             WorkflowStepWrapperRespVO stepWrapper = CreativeAppUtils.secondStep(appMarket);

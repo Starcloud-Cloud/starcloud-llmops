@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -22,8 +23,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
@@ -33,7 +32,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -77,24 +75,6 @@ public abstract class BaseActionHandler extends Object {
     private AppContext appContext;
 
     /**
-     * 获取用户权益类型
-     *
-     * @return 权益类型
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected abstract AdminUserRightsTypeEnum getUserRightsType();
-
-    /**
-     * 执行具体的步骤
-     *
-     * @return 执行结果
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected abstract ActionResponse doExecute();
-
-    /**
      * 生成个handler 实例
      *
      * @param name handler 名称
@@ -111,6 +91,24 @@ public abstract class BaseActionHandler extends Object {
         }
         return null;
     }
+
+    /**
+     * 获取用户权益类型
+     *
+     * @return 权益类型
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract AdminUserRightsTypeEnum getUserRightsType();
+
+    /**
+     * 执行具体的步骤
+     *
+     * @return 执行结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract ActionResponse doExecute();
 
     /**
      * 具体handler的入参定义

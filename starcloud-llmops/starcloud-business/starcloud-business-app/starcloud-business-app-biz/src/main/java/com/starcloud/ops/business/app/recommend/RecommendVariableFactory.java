@@ -160,8 +160,6 @@ public class RecommendVariableFactory {
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defPosterStyleVariable(),
                 RecommendVariableItemFactory.defPosterStyleConfigVariable(),
-                RecommendVariableItemFactory.defPosterTitleVariable(),
-                RecommendVariableItemFactory.defPosterContentVariable(),
                 RecommendVariableItemFactory.defPosterRequirement()
         ));
         return variable;

@@ -25,6 +25,11 @@ public class PosterVariableEntity implements java.io.Serializable {
     private static final long serialVersionUID = 6480659210329672254L;
 
     /**
+     * 变量唯一值标识
+     */
+    private String uuid;
+
+    /**
      * 变量 label
      */
     private String label;

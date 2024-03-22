@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.convert.channel;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.channel.vo.request.AppPublishChannelReqVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.dal.databoject.channel.AppPublishChannelDO;
@@ -39,7 +39,7 @@ public interface AppPublishChannelConvert {
         appPublishChannel.setName(request.getName());
         appPublishChannel.setType(request.getType());
         appPublishChannel.setMediumUid(request.getMediumUid());
-        appPublishChannel.setConfig(JSONUtil.toJsonStr(request.getConfig()));
+        appPublishChannel.setConfig(JsonUtils.toJsonString(request.getConfig()));
         appPublishChannel.setStatus(Objects.isNull(request.getStatus()) ? StateEnum.DISABLE.getCode() : request.getStatus());
         appPublishChannel.setDescription(request.getDescription());
         appPublishChannel.setDeleted(Boolean.FALSE);

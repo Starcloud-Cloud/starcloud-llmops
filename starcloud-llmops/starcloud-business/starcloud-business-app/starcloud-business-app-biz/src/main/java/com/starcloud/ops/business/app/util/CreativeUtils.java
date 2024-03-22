@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.IdUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
@@ -163,8 +164,13 @@ public class CreativeUtils {
         for (int i = 0; i < posterTemplateList.size(); i++) {
             PosterTemplateDTO posterTemplate = posterTemplateList.get(i);
             PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
+
             // 获取到模板变量列表
-            List<PosterVariableDTO> variableList = template.getVariableList();
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList())
+                    .stream()
+                    .peek(item -> item.setUuid(IdUtil.fastSimpleUUID()))
+                    .collect(Collectors.toList());
+
             // 获取模板变量重图片类型变量的数量
             Integer totalImageCount = (int) variableList.stream().filter(item -> CreativeConstants.IMAGE.equals(item.getType())).count();
             // 获取模板模式，如果为空则默认为随机模式
@@ -178,6 +184,7 @@ public class CreativeUtils {
             template.setTotalImageCount(totalImageCount);
             template.setMode(mode);
             template.setTitleGenerateMode(titleGenerateMode);
+            template.setVariableList(variableList);
 
             // 添加到列表
             templateList.add(template);
