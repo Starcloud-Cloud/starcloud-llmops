@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @since 2021-06-22
  */
 @Component
-class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCreativeMaterialDTO> {
+public class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCreativeMaterialDTO> {
 
     /**
      * 获取每个海报风格需要的素材数量
