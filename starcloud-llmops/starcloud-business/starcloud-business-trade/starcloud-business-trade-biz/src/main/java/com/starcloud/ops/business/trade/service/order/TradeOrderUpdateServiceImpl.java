@@ -11,6 +11,7 @@ import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
@@ -379,7 +380,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         PayOrderRespDTO payOrder = orderResult.getValue();
 
         // 2. 更新 TradeOrderDO 状态为已支付，等待发货
-        int updateCount = 0;
+        int updateCount;
         // 判断是否需要发货
         if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
             updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),
@@ -416,7 +417,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         }
 
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count);
+        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count, payOrder.getChannelCode());
 
     }
 
@@ -981,7 +982,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     }
 
     /**
-     * @param bean
+     * @param bean 交易 DO
      */
     @Override
     public void updateOrderTimeAndStatus(TradeOrderDO bean) {
@@ -1062,8 +1063,8 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      * @param payTime       支付时间
      */
     @TenantIgnore
-    private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount) {
-
+    private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount, String payChannelCode) {
+        log.info("[sendPaySuccessMsg]====>params(userId:{},productName:{},productType:{},giveRights:{},totalPrice:{},discountPrice:{},payPrice:{},payTime:{},successCount:{},payChannelCode:{}", userId, productName, productType, giveRights, totalPrice, discountPrice, payPrice, payTime, successCount, payChannelCode);
         try {
             Long tenantId = TenantContextHolder.getTenantId();
             // 获取订单来源
@@ -1088,6 +1089,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
             templateParams.put("successCount", successCount);
             templateParams.put("from", from);
+            templateParams.put("payChannelCode", PayChannelEnum.isAlipay(payChannelCode) ? "支付宝" : "微信");
 
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()

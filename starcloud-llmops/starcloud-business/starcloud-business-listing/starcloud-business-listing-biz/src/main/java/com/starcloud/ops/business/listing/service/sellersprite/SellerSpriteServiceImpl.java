@@ -99,7 +99,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private final static String SELLER_SPRITE_ACCOUNT = "SELLER_SPRITE_ACCOUNT";
 
 
-
     /**
      * 获取可查询时间
      */
@@ -219,17 +218,22 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         }
         // 遍历账号池
         cookies.forEach(cookie -> {
-            // 判断当前 cookie 是否过期
-            if (!checkCookieIsEnable(cookie.getRemark())) {
-                updateSellStripeCookie(cookie);
-            }
 
             long maxNums = RandomUtil.randomLong(6) + 6;
             long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
+
+            //更新时间 过期就直接刷新cookie
             if (between >= maxNums) {
                 updateSellStripeCookie(cookie);
+            } else {
+
+                // API判断当前 cookie 是否过期
+                if (!checkCookieIsEnable(cookie.getRemark())) {
+                    updateSellStripeCookie(cookie);
+                }
             }
-            if (CollUtil.isNotEmpty(cookieList)){
+
+            if (CollUtil.isNotEmpty(cookieList)) {
                 sendLoginSuccessMessage(cookie.getValue());
             }
 
@@ -249,12 +253,31 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         // 取出对应账号
         DictDataDO account = dictDataService.getDictData(SELLER_SPRITE_ACCOUNT, cookie.getValue());
         JSONObject accountJson = JSONUtil.parseObj(account.getRemark());
-        String cookieData = getCookie(accountJson.getStr("userName"), accountJson.getStr("pwd"));
-        if (Objects.nonNull(cookieData)) {
-            updateReqVO.setRemark(cookieData);
-            dictDataService.updateDictData(updateReqVO);
-            log.info("卖家精灵账号更新成功，当前账号为{}", account.getValue());
+
+        String userName = accountJson.getStr("userName");
+
+        try {
+
+            String cookieData = getCookie(userName, accountJson.getStr("pwd"));
+            if (Objects.nonNull(cookieData)) {
+                updateReqVO.setRemark(cookieData);
+                dictDataService.updateDictData(updateReqVO);
+                log.info("卖家精灵账号更新成功，当前账号为{}", account.getValue());
+            } else {
+
+                log.error("卖家精灵账号登录失败:{}", userName);
+
+                sendLoginFailMessage(userName, "登录失败");
+            }
+
+        } catch (Exception e) {
+
+            log.error("卖家精灵账号登录异常:{} {}", userName, e.getMessage(), e);
+
+            sendLoginFailMessage(userName, "登录异常: " + e.getMessage());
         }
+
+
     }
 
 
@@ -274,6 +297,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             try {
                 String requestResult = HttpRequest.post(url).cookie(data.getRemark())
                         .body(requestData)
+                        .timeout(15000)
                         .execute().body();
                 JSONObject entries = JSONUtil.parseObj(requestResult);
                 if (!requestResult.isEmpty() && entries.getBool("success", false)) {
@@ -285,14 +309,16 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                     tag++;
                     self.executeCookieUpdateAsync(data);
                 } else {
-                    tag++;
+
                     log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
                 }
             } catch (Exception e) {
-                tag++;
+
                 log.error("卖家精灵未知问题: ", e); // 记录异常信息
             }
         }
+
+        //只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
         if (StrUtil.isBlank(result) && tag >= cookies.size()) {
             this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
@@ -385,26 +411,16 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         map.put("pwd", pwd);
 
         String cookie;
-        try {
-            String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
-            JSONObject entries = JSONUtil.parseObj(result);
-            if (!entries.getBool("success") && !(Boolean) entries.get("success")) {
-                cookie = null;
-                sendLoginFailMessage(userName);
-            } else {
-                cookie = JSONUtil.toJsonStr(entries.get("data").toString());
-            }
+        String result = HttpUtil.post("http://cn-test.playwright.hotsalestar.com/playwright/sprite/get-cookie", map, 1000 * 30);
+        JSONObject entries = JSONUtil.parseObj(result);
 
-        } catch (RuntimeException e) {
-            log.error("卖家精灵账号登录失败");
+        if (!entries.getBool("success") && !(Boolean) entries.get("success")) {
             cookie = null;
+
+        } else {
+            cookie = JSONUtil.toJsonStr(entries.get("data").toString());
         }
 
-        if (StrUtil.isBlank(cookie)) {
-            // 发送报警
-            sendLoginFailMessage(userName);
-            return null;
-        }
         return cookie;
     }
 
@@ -413,13 +429,14 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
      * 发送登录失败消息
      */
     @TenantIgnore
-    private void sendLoginFailMessage(String account) {
+    private void sendLoginFailMessage(String account, String error) {
         log.error("卖家精灵登录失败，准备发送预警，当前时间【{}】", DateUtil.now());
         try {
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
             templateParams.put("environmentName", environmentName);
             templateParams.put("account", account);
+            templateParams.put("error", error);
             templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
@@ -449,7 +466,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             log.error("卖家精灵登录成功，通知信息发送失败", e);
         }
     }
-
 
 
     /**
