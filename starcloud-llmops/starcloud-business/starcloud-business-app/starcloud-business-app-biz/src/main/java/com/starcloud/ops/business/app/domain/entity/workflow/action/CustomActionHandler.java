@@ -6,19 +6,19 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -26,20 +26,21 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
-import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
-import jakarta.json.Json;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -108,7 +109,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         log.info("自定义内容生成[{}][{}]：执行开始......", this.getClass().getSimpleName(), this.getAppContext().getStepId());
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JSONUtil.parse(params).toStringPretty());
+        log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到生成模式
         String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
@@ -177,7 +178,7 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setCostPoints(costPoints);
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 CreativeSchemeGenerateModeEnum.RANDOM.name(),
-                JSONUtil.parse(actionResponse).toStringPretty()
+                JsonUtils.toJsonPrettyString(actionResponse)
         );
 
         return actionResponse;
@@ -205,11 +206,11 @@ public class CustomActionHandler extends BaseActionHandler {
         // 处理参考内容
         List<AbstractBaseCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractBaseCreativeMaterialDTO reference = handlerReferList.get(0);
-        this.getAppContext().putVariable(CreativeConstants.REFERS, JSONUtil.toJsonStr(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
-        log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JSONUtil.parse(params).toStringPretty());
+        log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
@@ -244,7 +245,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
-                JSONUtil.parse(actionResponse).toStringPretty()
+                JsonUtils.toJsonPrettyString(actionResponse)
         );
         return actionResponse;
     }
@@ -294,7 +295,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
-                JSONUtil.parse(actionResponse).toStringPretty()
+                JsonUtils.toJsonPrettyString(actionResponse)
         );
         return actionResponse;
     }
@@ -363,12 +364,12 @@ public class CustomActionHandler extends BaseActionHandler {
         if (this.hasResponseJsonSchema()) {
             //获取当前定义的返回结构
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
-
+            log.info("自定义内容JSON生成结果：{}", actionResponse.getAnswer());
             JSONObject jsonObject = JSONUtil.parseObj(actionResponse.getAnswer());
 
             actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
         } else {
-            //如果还是字符串结构，就自动包一层 data 结构
+            //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
             actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
         }
 

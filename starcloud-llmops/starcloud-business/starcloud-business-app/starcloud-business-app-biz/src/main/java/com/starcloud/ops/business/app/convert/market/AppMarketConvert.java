@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.convert.market;
 
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
@@ -29,7 +29,6 @@ import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import scala.App;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -103,17 +102,17 @@ public interface AppMarketConvert {
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
             WorkflowConfigEntity config = appMarketEntity.getWorkflowConfig();
             if (Objects.nonNull(config)) {
-                appMarket.setConfig(JSONUtil.toJsonStr(config));
+                appMarket.setConfig(JsonUtils.toJsonString(config));
             }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
             ChatConfigEntity config = appMarketEntity.getChatConfig();
             if (Objects.nonNull(config)) {
-                appMarket.setConfig(JSONUtil.toJsonStr(config));
+                appMarket.setConfig(JsonUtils.toJsonString(config));
             }
         } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
             ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
-                appMarket.setConfig(JSONUtil.toJsonStr(config));
+                appMarket.setConfig(JsonUtils.toJsonString(config));
             }
         }
         return appMarket;
@@ -132,7 +131,7 @@ public interface AppMarketConvert {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.PUBLISH_APP_INFO_NON_EXISTENT);
         }
 
-        AppDO app = JSONUtil.toBean(appInfo, AppDO.class);
+        AppDO app = JsonUtils.parseObject(appInfo, AppDO.class);
         if (StringUtils.isBlank(app.getCategory())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NON_EXISTENT);
         }
@@ -161,11 +160,11 @@ public interface AppMarketConvert {
         // 处理配置信息
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appMarketEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
+                appMarketEntity.setWorkflowConfig(JsonUtils.parseObject(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-                appMarketEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
+                appMarketEntity.setChatConfig(JsonUtils.parseObject(app.getConfig(), ChatConfigEntity.class));
             } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
-                appMarketEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
+                appMarketEntity.setImageConfig(JsonUtils.parseObject(app.getConfig(), ImageConfigEntity.class));
             }
         }
         return appMarketEntity;
@@ -209,11 +208,11 @@ public interface AppMarketConvert {
         // 处理配置信息
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-                appMarketEntity.setWorkflowConfig(JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigEntity.class));
+                appMarketEntity.setWorkflowConfig(JsonUtils.parseObject(appMarket.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-                appMarketEntity.setChatConfig(JSONUtil.toBean(appMarket.getConfig(), ChatConfigEntity.class));
+                appMarketEntity.setChatConfig(JsonUtils.parseObject(appMarket.getConfig(), ChatConfigEntity.class));
             } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
-                appMarketEntity.setImageConfig(JSONUtil.toBean(appMarket.getConfig(), ImageConfigEntity.class));
+                appMarketEntity.setImageConfig(JsonUtils.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
         return appMarketEntity;
@@ -270,18 +269,18 @@ public interface AppMarketConvert {
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息
         if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
-            WorkflowConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), WorkflowConfigRespVO.class);
+            WorkflowConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), WorkflowConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setWorkflowConfig(config);
                 appMarketResponse.setStepCount(Optional.of(config).map(WorkflowConfigRespVO::getSteps).map(List::size).orElse(0));
             }
         } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
-            ChatConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), ChatConfigRespVO.class);
+            ChatConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), ChatConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setChatConfig(config);
             }
         } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
-            ImageConfigRespVO config = JSONUtil.toBean(appMarket.getConfig(), ImageConfigRespVO.class);
+            ImageConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), ImageConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setImageConfig(config);
             }

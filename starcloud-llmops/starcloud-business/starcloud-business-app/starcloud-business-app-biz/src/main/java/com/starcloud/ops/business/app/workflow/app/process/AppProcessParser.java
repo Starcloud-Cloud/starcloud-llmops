@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.app.workflow.app.process;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
-import cn.kstry.framework.core.component.bpmn.joinpoint.InclusiveJoinPoint;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.bpmn.link.StartProcessLink;
 import cn.kstry.framework.core.component.expression.Exp;
@@ -55,7 +54,7 @@ public class AppProcessParser implements ConfigResource {
         List<WorkflowStepWrapper> stepWrappers = CollectionUtil.defaultIfEmpty(this.app.getWorkflowConfig().getSteps(), new ArrayList<>());
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             ProcessLink processLink = bpmnLink.nextService(KeyUtil.req("stepId == '" + stepWrapper.getStepCode() + "'"), stepWrapper.getFlowStep().getHandler()).name(stepWrapper.getStepCode())
-                    .property(JSONUtil.toJsonStr(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
+                    .property(JsonUtils.toJsonString(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
                     .build();
 
             processLink.end();
@@ -88,7 +87,7 @@ public class AppProcessParser implements ConfigResource {
 
             processLink = processLink.nextService(Exp.b(e -> e.equals("req.uid", "'" + this.app.getUid() + "'")), service)
                     .name(stepWrapper.getStepCode())
-                    .property(JSONUtil.toJsonStr(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
+                    .property(JsonUtils.toJsonString(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
                     .build();
         }
 

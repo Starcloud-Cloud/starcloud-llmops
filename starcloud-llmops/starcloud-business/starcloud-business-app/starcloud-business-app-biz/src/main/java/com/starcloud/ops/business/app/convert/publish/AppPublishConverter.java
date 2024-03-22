@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.convert.publish;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
@@ -50,7 +50,7 @@ public interface AppPublishConverter {
         appPublishDO.setVersion(AppConstants.DEFAULT_VERSION);
         appPublishDO.setSort(appDO.getSort());
         appPublishDO.setCategory(appDO.getCategory());
-        appPublishDO.setAppInfo(JSONUtil.toJsonStr(appDO));
+        appPublishDO.setAppInfo(JsonUtils.toJsonString(appDO));
         appPublishDO.setDescription(appDO.getDescription());
         appPublishDO.setAudit(AppPublishAuditEnum.UN_PUBLISH.getCode());
         appPublishDO.setDeleted(Boolean.FALSE);
@@ -92,7 +92,7 @@ public interface AppPublishConverter {
         }
         String appInfo = appPublish.getAppInfo();
         if (StringUtils.isNotBlank(appInfo)) {
-            AppDO appDO = JSONUtil.toBean(appInfo, AppDO.class);
+            AppDO appDO = JsonUtils.parseObject(appInfo, AppDO.class);
             appPublishResponse.setAppInfo(AppConvert.INSTANCE.convertResponse(appDO));
         }
         appPublishResponse.setDescription(appPublish.getDescription());

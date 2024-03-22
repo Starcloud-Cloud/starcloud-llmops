@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -133,7 +133,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             // 扣除权益
             Integer imagePoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
             adminUserRightsApi.reduceRights(
-                    request.getUserId(), null,null,// 用户ID
+                    request.getUserId(), null, null,// 用户ID
                     AdminUserRightsTypeEnum.MAGIC_IMAGE, // 权益类型
                     imagePoints, // 权益点数
                     UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType(), // 业务类型
@@ -145,7 +145,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
                 buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
-                messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse));
+                messageRequest.setAnswer(JsonUtils.toJsonString(imageResponse));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setImagePoints(imagePoints);
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
@@ -241,7 +241,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void buildAppConversationLog(ImageReqVO request, LogAppConversationCreateReqVO createRequest) {
-        createRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
+        createRequest.setAppConfig(JsonUtils.toJsonString(request.getImageRequest()));
     }
 
     /**
@@ -300,8 +300,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setAppStep(request.getScene());
         messageRequest.setFromScene(request.getScene());
         messageRequest.setAiModel(this.obtainLlmAiModelType(request));
-        messageRequest.setAppConfig(JSONUtil.toJsonStr(this));
-        messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
+        messageRequest.setAppConfig(JsonUtils.toJsonString(this));
+        messageRequest.setVariables(JsonUtils.toJsonString(request.getImageRequest()));
         messageRequest.setMessage("");
         messageRequest.setMessageTokens(0);
         messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));

@@ -185,7 +185,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             SHARE_WEB,
             SHARE_IFRAME,
             SHARE_JS,
-            SHARE_API
+            SHARE_API,
+            XHS_WRITING
     );
 
     /**

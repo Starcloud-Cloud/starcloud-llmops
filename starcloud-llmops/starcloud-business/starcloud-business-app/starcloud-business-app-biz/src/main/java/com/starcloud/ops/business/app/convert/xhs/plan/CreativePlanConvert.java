@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.convert.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
@@ -15,7 +15,6 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativeTypeEnum;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -53,7 +52,7 @@ public interface CreativePlanConvert {
         creativePlan.setUid(IdUtil.fastSimpleUUID());
         creativePlan.setName(request.getName());
         creativePlan.setType(StringUtils.isBlank(request.getType()) ? CreativeTypeEnum.XHS.name() : request.getType());
-        creativePlan.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
+        creativePlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         creativePlan.setRandomType(request.getRandomType());
         creativePlan.setTotal(request.getTotal());
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
@@ -80,7 +79,7 @@ public interface CreativePlanConvert {
         creativePlan.setUid(request.getUid());
         creativePlan.setName(request.getName());
         creativePlan.setType(StringUtils.isBlank(request.getType()) ? CreativeTypeEnum.XHS.name() : request.getType());
-        creativePlan.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
+        creativePlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         creativePlan.setRandomType(request.getRandomType());
         creativePlan.setTotal(request.getTotal());
         creativePlan.setDescription(StringUtils.isBlank(creativePlan.getDescription()) ? "" : creativePlan.getDescription());

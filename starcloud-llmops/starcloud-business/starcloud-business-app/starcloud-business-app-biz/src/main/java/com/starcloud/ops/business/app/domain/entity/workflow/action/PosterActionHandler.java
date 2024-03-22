@@ -3,10 +3,10 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -41,11 +41,13 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -95,7 +97,6 @@ public class PosterActionHandler extends BaseActionHandler {
         return AdminUserRightsTypeEnum.MAGIC_IMAGE;
     }
 
-
     /**
      * 暂时不返回任何结构
      *
@@ -119,12 +120,10 @@ public class PosterActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
 
         log.info("海报生成 Action 执行开始......");
-
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
         // 海报模版参数
-        String posterStyle = String.valueOf(params.getOrDefault(CreativeConstants.POSTER_STYLE, "{}"));
+        String posterStyle = String.valueOf(this.getAppContext().getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
         // 转为海报模版对象
-        PosterStyleEntity style = JSONUtil.toBean(posterStyle, PosterStyleEntity.class);
+        PosterStyleEntity style = JsonUtils.parseObject(posterStyle, PosterStyleEntity.class);
         // 校验海报模版
         style.validate();
 
@@ -154,9 +153,9 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setSuccess(Boolean.TRUE);
         response.setType(handlerResponseList.get(0).getType());
         response.setIsShow(Boolean.TRUE);
-        response.setStepConfig(JSONUtil.toJsonStr(style));
-        response.setMessage(JSONUtil.toJsonStr(style));
-        response.setAnswer(JSONUtil.toJsonStr(list));
+        response.setStepConfig(JsonUtils.toJsonString(style));
+        response.setMessage(JsonUtils.toJsonString(style));
+        response.setAnswer(JsonUtils.toJsonString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());
         log.info("海报生成 Action 执行结束......");
@@ -169,17 +168,23 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param posterStyle 海报风格
      */
     private void assemble(PosterStyleEntity posterStyle) {
+        List<PosterTemplateEntity> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        // 把每一个变量的uuid和value放到此map中
+        Map<String, Object> templateVariableMap = getTemplateVariableMap(posterTemplateList);
+        Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(templateVariableMap, this.getAppContext().getStepId());
 
-        // 获取生成的标题
-        String title = String.valueOf(params.getOrDefault(CreativeConstants.TITLE, "标题"));
+        // 循环处理，进行变量替换
+        for (PosterTemplateEntity posterTemplate : posterTemplateList) {
+            List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+            for (PosterVariableEntity variable : variableList) {
+                Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
+                variable.setValue(value);
+            }
+            posterTemplate.setVariableList(variableList);
+        }
 
-        // 获取整个拼接内容
-        String content = String.valueOf(params.getOrDefault(CreativeConstants.CONTENT, "内容"));
-
-        // 处理图片标题生成
-        handlerPosterTitle(posterStyle, title, content);
+        posterStyle.setTemplateList(posterTemplateList);
     }
 
     /**
@@ -193,6 +198,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private void handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
         List<PosterTemplateEntity> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+
         // 循环处理
         for (PosterTemplateEntity posterTemplate : templateList) {
             // 默认模式生成
@@ -205,16 +211,11 @@ public class PosterActionHandler extends BaseActionHandler {
                             Objects.nonNull(variable.getDefaultValue()) ? variable.getDefaultValue() : "";
 
                     // 从变量缓存中获取变量值
-
                     Map<String, Object> objectMap = this.getAppContext().getContextVariablesValues(MaterialActionHandler.class);
 
-                    objectMap.get("");
-
                     //素材.docs[1].url
-                    Object replaceValue = null;
-                    if (Objects.nonNull(replaceValue)) {
-                        variable.setValue(replaceValue);
-                    }
+                    Object replaceValue = objectMap.getOrDefault(value, value);
+                    variable.setValue(replaceValue);
                 }
                 posterTemplate.setVariableList(variableList);
 
@@ -350,8 +351,14 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                    .collect(Collectors.toMap(PosterVariableEntity::getField, PosterVariableEntity::getValue));
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            PosterVariableEntity::getField,
+                            // 如果变量为值为空，则设置为空字符串
+                            item -> Optional.ofNullable(item.getValue()).orElse(StringUtils.EMPTY))
+                    );
+            
             handlerRequest.setParams(params);
 
             // 构建请求
@@ -382,6 +389,17 @@ public class PosterActionHandler extends BaseActionHandler {
         }
     }
 
+    private Map<String, Object> getTemplateVariableMap(List<PosterTemplateEntity> posterTemplateList) {
+        Map<String, Object> variableValueMap = new HashMap<>();
+        for (PosterTemplateEntity posterTemplate : posterTemplateList) {
+            List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+            for (PosterVariableEntity variable : variableList) {
+                variableValueMap.put(variable.getUuid(), variable.getValue());
+            }
+        }
+        return variableValueMap;
+    }
+
     /**
      * 失败返回结果
      *
@@ -398,8 +416,8 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setErrorMsg(failure.getErrorMsg());
         response.setType(failure.getType());
         response.setIsShow(Boolean.TRUE);
-        response.setMessage(JSONUtil.toJsonStr(style));
-        response.setStepConfig(JSONUtil.toJsonStr(style));
+        response.setMessage(JsonUtils.toJsonString(style));
+        response.setStepConfig(JsonUtils.toJsonString(style));
         response.setCostPoints(0);
         return response;
     }

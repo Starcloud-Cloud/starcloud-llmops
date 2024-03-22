@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -57,8 +59,8 @@ public class AppResponseConverter {
 
         List<PosterImageDTO> posterList = JSONUtil.toList(posterResponse.getAnswer(), PosterImageDTO.class);
 
-        CopyWritingContentDTO copyWritingContent = new CopyWritingContentDTO();
-        copyWritingContent.setContent(assembleResponse.getAnswer());
+        JsonDataVO output = assembleResponse.getOutput();
+        CopyWritingContentDTO copyWritingContent =  JsonUtils.parseObject(String.valueOf(output.getData()), CopyWritingContentDTO.class);
 
         CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
         response.setSuccess(Boolean.TRUE);

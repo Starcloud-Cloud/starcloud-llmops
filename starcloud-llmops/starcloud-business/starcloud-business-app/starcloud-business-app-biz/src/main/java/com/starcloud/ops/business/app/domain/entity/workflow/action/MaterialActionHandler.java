@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -10,13 +9,9 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -101,7 +96,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         JsonSchema outJsonSchema = this.getOutVariableJsonSchema(this.getAppContext().getStepWrapper());
         response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
 
-        log.info("MaterialActionHandler 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        log.info("MaterialActionHandler 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 
@@ -151,7 +146,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setAnswer(answer);
         actionResponse.setOutput(JsonData.of(answer));
-        actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
+        actionResponse.setMessage(JsonUtils.toJsonString(this.getAppContext().getContextVariablesValues()));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
         actionResponse.setMessageTokens(0L);
         actionResponse.setMessageUnitPrice(new BigDecimal("0"));
