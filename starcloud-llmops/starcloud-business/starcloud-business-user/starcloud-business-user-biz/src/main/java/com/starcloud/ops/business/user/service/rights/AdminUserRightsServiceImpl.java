@@ -5,7 +5,6 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
@@ -15,6 +14,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.api.rights.dto.*;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
@@ -81,7 +81,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     }
 
     @Override
-    public PageResult<AdminUserRightsDO> getRightsPage(Long userId, PageParam pageVO) {
+    public PageResult<AdminUserRightsDO> getRightsPage(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         return adminUserRightsMapper.selectPage(userId, pageVO);
     }
 
@@ -89,7 +89,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      * 获取权益数据汇总
      *
      * @param userId 用户编号
-     * @return
      */
     @Override
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
@@ -192,6 +191,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         if (magicImage > 0) {
             adminUserRightsRecordService.createRightsRecord(userId, null, null, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
         }
+        if (matrixBean > 0) {
+            adminUserRightsRecordService.createRightsRecord(userId, null, null, matrixBean, AdminUserRightsTypeEnum.MATRIX_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
+        }
+
 
 
     }
@@ -346,6 +349,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             case MAGIC_BEAN:
                 validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
                 break;
+            case MATRIX_BEAN:
+                validSum = validRightsList.stream().mapToInt(AdminUserRightsDO::getMatrixBean).sum();
+                break;
         }
         if (Objects.isNull(rightAmount) || rightAmount == 0) {
             return validSum > 0;
@@ -397,7 +403,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     /**
      * 权益扣减
      *
-     * @param reduceRightsDTO
+     * @param reduceRightsDTO 权益扣减 DTO
      */
     @Override
     public void reduceRights(ReduceRightsDTO reduceRightsDTO) {
@@ -413,6 +419,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
             if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MATRIX_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH);
             }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
 
@@ -444,7 +453,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = new NotifyExpiringRightsRespVO();
         notifyExpiringRightsRespVO.setIsNotify(false);
 
-        LocalDateTime today = LocalDateTime.now();
         // LocalDateTime nextWeek = today.plusDays(7);
         // 获取有效的魔法豆
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, AdminUserRightsTypeEnum.MAGIC_BEAN);
@@ -491,7 +499,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     }
 
     /**
-     * @param rightsDO
+     * @param rightsDO 权益 DO
      */
     @Override
     public void expireRightsBySystem(AdminUserRightsDO rightsDO) {
@@ -508,7 +516,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      *
      * @param userId     用户 ID
      * @param rightsType 权益类型 如果为空 查询所有有效数据
-     * @return
+     * @return List<AdminUserRightsDO>
      */
     private List<AdminUserRightsDO> getValidAndCountableRightsList(Long userId, AdminUserRightsTypeEnum rightsType) {
         LocalDateTime now = LocalDateTime.now();
@@ -563,6 +571,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             case MAGIC_BEAN:
                 getter = AdminUserRightsDO::getMagicBean;
                 setter = AdminUserRightsDO::setMagicBean;
+                break;
+            case MATRIX_BEAN:
+                getter = AdminUserRightsDO::getMatrixBean;
+                setter = AdminUserRightsDO::setMatrixBean;
                 break;
         }
 

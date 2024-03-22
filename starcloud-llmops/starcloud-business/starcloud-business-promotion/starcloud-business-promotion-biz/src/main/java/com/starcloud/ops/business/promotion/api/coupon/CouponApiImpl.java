@@ -46,9 +46,8 @@ public class CouponApiImpl implements CouponApi {
     /**
      * 【管理员发放】领取优惠劵
      *
-     * @param templateId
-     * @param userIds
-     * @return 优惠劵
+     * @param templateId 优惠券模板 ID
+     * @param userIds    用户编号
      */
     @Override
     public void addCoupon(Long templateId, Set<Long> userIds) {
@@ -58,9 +57,8 @@ public class CouponApiImpl implements CouponApi {
     /**
      * 【会员领取】领取优惠劵
      *
-     * @param templateId
-     * @param userId
-     * @return 优惠劵
+     * @param templateId 优惠券模板 ID
+     * @param userId     用户编号
      */
     @Override
     public void addCoupon(Long templateId, Long userId) {
@@ -73,21 +71,21 @@ public class CouponApiImpl implements CouponApi {
     }
 
     /**
-     * @param userId
-     * @param price
-     * @param spuIds
-     * @param categoryIds
-     * @return
+     * @param userId      用户编号
+     * @param price       商品价格
+     * @param spuIds      商品 spuID
+     * @param categoryIds 商品分类ID
+     * @return 符合的数量
      */
     @Override
-    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds) {
-        return couponService.getMatchCouponCount(userId, price, spuIds, categoryIds);
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> skuIds, List<Long> categoryIds) {
+        return couponService.getMatchCouponCount(userId, price, spuIds, skuIds, categoryIds);
     }
 
     /**
-     * @param userId
-     * @param templateId
-     * @return
+     * @param userId     用户编号
+     * @param templateId 优惠券模板 ID
+     * @return 符合的数组
      */
     @Override
     public List<CouponRespDTO> getMatchCouponByTemplateId(Long userId, Long templateId) {
@@ -108,17 +106,14 @@ public class CouponApiImpl implements CouponApi {
     }
 
     /**
-     * @param userId
-     * @param templateId
-     * @return
+     * @param userId     用户编号
+     * @param templateId 优惠券模板 ID
+     * @return Boolean
      */
     @Override
     public Boolean validateUserExitTemplateId(Long userId, List<Long> templateId) {
         List<CouponDO> couponDOList = couponService.getTakeListByTemplateId(userId, templateId);
-        if (couponDOList.isEmpty()) {
-            return false;
-        }
-        return true;
+        return !couponDOList.isEmpty();
     }
 
 

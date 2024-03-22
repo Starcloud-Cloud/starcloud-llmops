@@ -1,29 +1,26 @@
 package com.starcloud.ops.business.user.dal.redis;
 
-import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Repository;
 
-import java.util.Set;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@link OAuth2AccessTokenDO} 的 RedisDAO
+ * 用户权益限制 的 RedisDAO
  *
- * @author 芋道源码
+ * @author AlanCusack
  */
-// @Repository
-// @Component
-// @AllArgsConstructor
+@Repository
 public class UserLevelConfigLimitRedisDAO {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    // 假设你有一个存储需要每天零点删除的键的集合
-    private final Set<String> keysToExpireAtMidnight;
-
-    public UserLevelConfigLimitRedisDAO(StringRedisTemplate redisTemplate, Set<String> keysToExpireAtMidnight) {
+    public UserLevelConfigLimitRedisDAO(StringRedisTemplate redisTemplate) {
         this.stringRedisTemplate = redisTemplate;
-        this.keysToExpireAtMidnight = keysToExpireAtMidnight;
     }
 
 
@@ -40,7 +37,10 @@ public class UserLevelConfigLimitRedisDAO {
     }
 
     public void increment(String redisKey) {
-       stringRedisTemplate.opsForValue().increment(redisKey,1);
+
+        stringRedisTemplate.opsForValue().increment(redisKey, 1);
+        // 设置过期时间
+        stringRedisTemplate.expire(redisKey, Duration.ofSeconds(getRemainSecondsOneDay()));
     }
 
 
@@ -49,13 +49,18 @@ public class UserLevelConfigLimitRedisDAO {
     }
 
 
-    // @Scheduled(cron = "0 0 0 * * ?") // 每天零点执行
-    // public void expireKeysAtMidnight() {
-    //     for (String key : keysToExpireAtMidnight) {
-    //         delete(key); // 删除键
-    //     }
-    // }
+    /**
+     * 获取距离当天零点的秒数
+     *
+     * @return 距离当天零点的秒数
+     */
+    public static Long getRemainSecondsOneDay() {
+        return LocalDateTimeUtil.between(LocalDateTime.now(), LocalDateTimeUtil.endOfDay(LocalDateTime.now()), ChronoUnit.SECONDS);
+    }
 
+    public String buildRedisKey(String key, Long userId) {
+        return String.format(key + ":%s", userId);
+    }
 
 
 }

@@ -43,27 +43,25 @@ public interface CouponApi {
      *
      * @param templateId 校验请求
      * @param userIds    校验请求
-     * @return 优惠劵
      */
     void addCoupon(Long templateId, Set<Long> userIds);
 
     /**
      * 【会员领取】领取优惠劵
      *
-     * @param templateId
-     * @param userId
-     * @return 优惠劵
+     * @param templateId 优惠劵模板 ID
+     * @param userId     会员 ID
      */
     void addCoupon(Long templateId, Long userId);
 
     /**
      * 发送新人优惠券
      *
-     * @param userId
+     * @param userId 会员 ID
      */
     void takeCouponByRegister(Long userId);
 
-    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds);
+    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> skuIds, List<Long> categoryIds);
 
     List<CouponRespDTO> getMatchCouponByTemplateId(Long userId, Long templateId);
 

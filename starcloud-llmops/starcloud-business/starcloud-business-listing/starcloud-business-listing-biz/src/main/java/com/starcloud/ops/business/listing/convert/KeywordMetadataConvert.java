@@ -76,7 +76,7 @@ public interface KeywordMetadataConvert {
 
     default ExtendAsinReposeExcelVO convertExcelVO(ItemsDTO bean){
         ExtendAsinReposeExcelVO excelVO = new ExtendAsinReposeExcelVO();
-        excelVO.setKeywords(bean.getKeyword());
+        excelVO.setKeywords(bean.getKeywords());
         excelVO.setKeywordCn(bean.getKeywordCn());
         excelVO.setTrafficPercentage(bean.getTrafficPercentage());
         excelVO.setCalculatedWeeklySearches(bean.getCalculatedWeeklySearches());

@@ -17,14 +17,13 @@ import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
+import com.starcloud.ops.business.user.dal.redis.UserLevelConfigLimitRedisDAO;
+import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +38,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.LEVEL_NOT_EXISTS;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 /**
  * 会员等级记录 Service 实现类
@@ -54,6 +52,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Resource
     private AdminUserLevelMapper adminUserLevelMapper;
+
+    @Resource
+    private UserLevelConfigLimitRedisDAO userLevelConfigLimitRedisDAO;
 
     @Resource
     private AdminUserLevelConfigService levelConfigService;
@@ -156,7 +157,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     /**
      * 获取会员下有效的等级列表
      *
-     * @param userId
+     * @param userId 用户 ID
      */
     @Override
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
@@ -200,25 +201,30 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         NotifyExpiringLevelRespVO notifyExpiringLevelRespVO = new NotifyExpiringLevelRespVO();
         notifyExpiringLevelRespVO.setIsNotify(false);
         LocalDateTime today = LocalDateTime.now();
-        LocalDateTime nextWeek = today.plusDays(7);
+        // 一周内提醒
+        // LocalDateTime nextWeek = today.plusDays(7);
+        // fix 三天内提醒
+
+        LocalDateTime ThreeDaysLater = today.plusDays(3);
+
         List<AdminUserLevelDO> validLevelList = adminUserLevelMapper.selectValidList(userId);
         if (CollUtil.isEmpty(validLevelList)) {
             return notifyExpiringLevelRespVO;
         }
 
-        // 1.0 获取 7 天内过期的所有用户等级
+        // 1.0 获取 3 天内过期的所有用户等级
 
         // 判断是否存在生效的用户等级
 
-        // 获取 7 天内即将过期的等级
+        // 获取 3 天内即将过期的等级
         List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream()
-                .filter(level -> level.getValidEndTime().isBefore(nextWeek) && level.getValidEndTime().isAfter(today))
+                .filter(level -> level.getValidEndTime().isBefore(ThreeDaysLater) && level.getValidEndTime().isAfter(today))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
 
-        // 获取大于 7 天的用户等级
+        // 获取大于 3 天的用户等级
         List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream()
-                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(nextWeek))
+                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(ThreeDaysLater))
                 .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
                 .collect(Collectors.toList());
 
@@ -271,7 +277,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     }
 
     /**
-     * @return
+     * @return 过期数量
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -298,7 +304,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     }
 
     /**
-     * @param levelDO
+     * @param levelDO 等级 DO
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -309,7 +315,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         levelConfigDOS.removeIf(config -> Objects.equals(config.getId(), levelDO.getLevelId()));
         int count = 0;
-        if (!levelConfigDOS.isEmpty()){
+        if (!levelConfigDOS.isEmpty()) {
             List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
 
             List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectList(Wrappers.lambdaQuery(AdminUserLevelDO.class)
@@ -337,6 +343,78 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (updateCount == 0) {
             throw exception(LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE);
         }
+    }
+
+    /**
+     * @param levelRightsCode 权益限制编码
+     * @param userId          用户 ID
+     */
+    @Override
+    public AdminUserLevelLimitRespVO validateLevelRightsLimit(String levelRightsCode, Long userId) {
+        AdminUserLevelLimitRespVO adminUserLevelLimitRespVO = new AdminUserLevelLimitRespVO();
+        // 获取用户等级信息
+        List<AdminUserLevelDetailRespVO> levelList = getLevelList(userId);
+
+        AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelConfig(levelList.get(0).getLevelId());
+        // 获取用户当前权益最大的值
+        LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
+
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
+                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+
+        Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
+
+        //  如果不做限制
+        if (data == -1) {
+            adminUserLevelLimitRespVO.setPass(true);
+            adminUserLevelLimitRespVO.setUsedCount(-1);
+            return adminUserLevelLimitRespVO;
+        }
+        String redisKey = userLevelConfigLimitRedisDAO.buildRedisKey(value.getRedisKey(), userId);
+
+        Integer result = userLevelConfigLimitRedisDAO.get(redisKey);
+
+        //  如果第一次访问
+        if (result == 0 || data > result) {
+            userLevelConfigLimitRedisDAO.increment(redisKey);
+            adminUserLevelLimitRespVO.setPass(true);
+            adminUserLevelLimitRespVO.setUsedCount(result + 1);
+            return adminUserLevelLimitRespVO;
+        }
+        adminUserLevelLimitRespVO.setPass(false);
+        adminUserLevelLimitRespVO.setUsedCount(result);
+        return adminUserLevelLimitRespVO;
+
+    }
+
+    /**
+     * @param levelRightsCode  权益限制编码
+     * @param userId 用户ID
+     * @return AdminUserLevelLimitUsedRespVO
+     */
+    @Override
+    public AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId) {
+        AdminUserLevelLimitUsedRespVO adminUserLevelLimitUsedRespVO = new AdminUserLevelLimitUsedRespVO();
+
+        // 获取用户等级信息
+        List<AdminUserLevelDetailRespVO> levelList = getLevelList(userId);
+
+        AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelConfig(levelList.get(0).getLevelId());
+        // 获取用户当前权益最大的值
+        LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
+
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
+                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+
+        Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
+
+        String redisKey = userLevelConfigLimitRedisDAO.buildRedisKey(value.getRedisKey(), userId);
+
+        Integer result = userLevelConfigLimitRedisDAO.get(redisKey);
+
+        adminUserLevelLimitUsedRespVO.setTotal(data);
+        adminUserLevelLimitUsedRespVO.setUsedCount(result);
+        return adminUserLevelLimitUsedRespVO;
     }
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {

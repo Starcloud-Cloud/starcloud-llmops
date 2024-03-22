@@ -170,7 +170,7 @@ public interface CouponService {
      * @param categoryIds 匹配参数
      * @return 优惠券列表
      */
-    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds);
+    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds,List<Long> skuIds, List<Long> categoryIds);
 
     /**
      * 过期优惠券

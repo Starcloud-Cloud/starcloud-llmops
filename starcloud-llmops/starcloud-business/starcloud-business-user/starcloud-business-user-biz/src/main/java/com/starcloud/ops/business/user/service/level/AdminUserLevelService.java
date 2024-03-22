@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.user.service.level;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.level.vo.level.NotifyExpiringLevelRespVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 
 import java.util.List;
@@ -48,19 +45,20 @@ public interface AdminUserLevelService {
 
     /**
      * 获取会员下有效的等级列表
+     *
      * @param userId 用户 ID
      */
     List<AdminUserLevelDetailRespVO> getLevelList(Long userId);
 
     /**
      * 等级过期提醒
+     *
      * @param userId 用户 ID
      */
     NotifyExpiringLevelRespVO notifyExpiringLevel(Long userId);
 
     /**
      * 设置默认等级
-     *
      */
     @Deprecated
     void setInitLevel();
@@ -74,7 +72,14 @@ public interface AdminUserLevelService {
 
     /**
      * 【系统】 过期用户等级操作
+     *
      * @param levelDO
      */
     void expireLevelBySystem(AdminUserLevelDO levelDO);
+
+
+    AdminUserLevelLimitRespVO validateLevelRightsLimit(String levelRightsCode, Long userId);
+
+    AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId);
+
 }
