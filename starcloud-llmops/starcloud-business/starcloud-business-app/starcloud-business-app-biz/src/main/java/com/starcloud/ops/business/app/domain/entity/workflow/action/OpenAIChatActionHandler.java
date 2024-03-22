@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -83,7 +83,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
+        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JsonUtils.toJsonPrettyString(params));
 
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
@@ -105,7 +105,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         // 执行步骤
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
         ActionResponse response = convert(handlerResponse);
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

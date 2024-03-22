@@ -7,28 +7,24 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ql.util.express.DefaultContext;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.util.QLExpressUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotBlank;
@@ -266,14 +262,25 @@ public class AppContext {
 
     /**
      * 获取当前步骤的指定变量值
-     *
-     * @return 当前步骤的所有变量值 Maps
+     * @param key 字段名
+     * @param parse 是否解析变量占位符
+     * @return
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public <V> V getContextVariablesValue(String key, V def) {
+    public Object getContextVariablesValue(String key, Boolean parse) {
 
-        return (V) this.getContextVariablesValues(this.getStepId()).getOrDefault(key, def);
+
+        if (parse) {
+            return this.getContextVariablesValues(this.getStepId()).getOrDefault(key, null);
+        } else {
+
+            //当前步骤的所有变量 kv，不加前缀
+            WorkflowStepWrapper wrapper = this.getStepWrapper(this.getStepId());
+            Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+
+            return variables.getOrDefault(key, null);
+        }
     }
 
     /**
@@ -284,6 +291,41 @@ public class AppContext {
     @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String stepId) {
+
+        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
+
+        //当前步骤的所有变量 kv，不加前缀
+        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
+        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+
+        Map<String, Object> fieldVariables = this.parseMapFromVariablesValues(variables, allVariablesValues);
+
+        return fieldVariables;
+    }
+
+    /**
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Map<String, Object> parseMapFromVariables(Map<String, Object> values, String stepId) {
+
+        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
+
+        Map<String, Object> fieldVariables = this.parseMapFromVariablesValues(values, allVariablesValues);
+
+        return fieldVariables;
+    }
+
+
+    /**
+     * 获取步骤的变量内容
+     *
+     * @param stepId
+     */
+    private Map<String, Object> getAllVariablesValues(String stepId) {
 
         // 获取当前步骤前的所有步骤
         List<WorkflowStepWrapper> workflowStepWrappers = this.app.getWorkflowConfig().getPreStepWrappers(stepId);
@@ -300,7 +342,7 @@ public class AppContext {
             Map<String, Object> variablesValuesV2 = wrapper.getContextVariablesValues(null, true);
             allVariablesValues.putAll(Optional.ofNullable(variablesValuesV2).orElse(MapUtil.newHashMap()));
 
-            //无前缀的占位符表示当前节点变量（可以引用自己节点的变量）
+            //再生成无前缀的占位符表示当前节点变量（可以引用自己节点的变量）
             if (wrapper.getStepCode().equals(stepId)) {
                 Map<String, Object> variablesValuesV3 = wrapper.getContextVariablesValues(null, false);
                 allVariablesValues.putAll(Optional.ofNullable(variablesValuesV3).orElse(MapUtil.newHashMap()));
@@ -308,14 +350,17 @@ public class AppContext {
 
         });
 
-        //当前步骤的所有变量 kv，不加前缀
-        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
-        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+        return allVariablesValues;
+    }
 
+    /**
+     * 解析传入的value，替换其中的变量占位符
+     */
+    private Map<String, Object> parseMapFromVariablesValues(Map<String, Object> values, Map<String, Object> allVariablesValues) {
 
         Map<String, Object> fieldVariables = new HashMap<>();
         //遍历当前变量
-        Optional.ofNullable(variables.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
+        Optional.ofNullable(values.entrySet()).orElse(new HashSet<>()).forEach(entrySet -> {
 
             String filedKey = entrySet.getKey();
             Object value = entrySet.getValue();
@@ -323,7 +368,7 @@ public class AppContext {
             log.info("变量替换解析：当前变量值：{}", value);
             if (value != null) {
 
-                String val = String.valueOf(entrySet.getValue());
+                String val = String.valueOf(value);
 
                 value = QLExpressUtils.execute(val, allVariablesValues);
                 //把当前变量的内容中的 占位符与所有上下游变量做占位符替换，替换为具体的值
@@ -337,7 +382,6 @@ public class AppContext {
         });
 
         return fieldVariables;
-
     }
 
     /**

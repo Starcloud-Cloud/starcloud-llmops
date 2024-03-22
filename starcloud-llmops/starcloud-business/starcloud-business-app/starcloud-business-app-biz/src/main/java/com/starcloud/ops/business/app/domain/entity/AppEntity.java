@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -201,7 +201,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected void beforeExecute(AppExecuteReqVO request) {
-        this.appStepStatusCache.init(request.getConversationUid(), this);
+        appStepStatusCache.init(request.getConversationUid(), this);
     }
 
     /**
@@ -234,7 +234,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected void buildAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
-        createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
+        createRequest.setAppConfig(JsonUtils.toJsonString(this.getWorkflowConfig()));
     }
 
     /**
@@ -464,14 +464,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
             // 获取step变量
             Map<String, Object> variables = appContext.getContextVariablesValues(nodeTracking.getNodeName());
-            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
+            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
 
                 messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
-                messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
-                messageCreateRequest.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
+                messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
+                messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
                 messageCreateRequest.setMessageTokens(actionResponse.getMessageTokens().intValue());
                 messageCreateRequest.setMessageUnitPrice(actionResponse.getMessageUnitPrice());
@@ -485,8 +485,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
             // 说明执行handler时异常
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
-            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
+            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
+            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
             messageCreateRequest.setCostPoints(0);
 
             if (storyException.isPresent()) {
@@ -536,8 +536,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAiModel(aiModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
             messageCreateRequest.setCurrency("USD");
-            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
-            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variablesValues));
+            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
+            messageCreateRequest.setVariables(JsonUtils.toJsonString(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault("PROMPT", "")));
             messageCreateRequest.setMessageTokens(0);

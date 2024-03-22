@@ -11,7 +11,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePa
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ public interface CreativeSchemeService {
      *
      * @return 创作方案配置
      */
-    List<SchemeAppCategoryRespVO> appGroupList();
+    List<CreativeSchemeTemplateGroupRespVO> schemeTemplateList();
 
     /**
      * 获取创作方案详情

@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
@@ -109,6 +109,103 @@ public class CreativeExecuteManager {
     @Resource
     private AdminUserRightsApi adminUserRightsApi;
 
+    private static CreativeAppExecuteResponse buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
+        AppRespVO appInfo = logAppMessage.getAppInfo();
+        List<String> tags = appInfo.getTags();
+        if (tags.contains("PracticalConverter")) {
+            CreativeAppExecuteResponse response = AppResponseConverter.practicalConverter(appInfo);
+            response.setContentId(content.getId());
+            response.setContentUid(content.getUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setPlanUid(content.getPlanUid());
+            return response;
+        }
+        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
+    }
+
+    /**
+     * 生成失败返回结果
+     *
+     * @param content      创作内容
+     * @param errorCode    错误码
+     * @param errorMessage 错误信息
+     * @return 返回结果
+     */
+    private static CreativeAppExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage) {
+        CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
+        response.setSuccess(Boolean.FALSE);
+        response.setErrorCode(errorCode);
+        response.setErrorMessage(errorMessage);
+        if (Objects.nonNull(content)) {
+            response.setContentId(content.getId());
+            response.setContentUid(content.getUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setPlanUid(content.getPlanUid());
+        }
+        return response;
+    }
+
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @param args    参数
+     * @return {@link ServiceException}
+     */
+    private static ServiceException exception(Integer code, String message, Object... args) {
+        return ServiceExceptionUtil.exception(ofError(code, message, args));
+    }
+
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @param args    参数
+     * @return {@link ErrorCode}
+     */
+    private static ErrorCode ofError(Integer code, String message, Object... args) {
+        return new ErrorCode(code, formatErrorMsg(message, args));
+    }
+
+    /**
+     * 格式化错误信息
+     *
+     * @param message 错误信息
+     * @param args    参数
+     * @return 格式化后的错误信息
+     */
+    private static String formatErrorMsg(String message, Object... args) {
+        return String.format(message, args);
+    }
+
+    /**
+     * 失败响应
+     *
+     * @param content            请求
+     * @param errorCode          错误码
+     * @param errorMessage       错误信息
+     * @param imageStyleResponse 图片风格响应参数
+     * @return 失败响应
+     */
+    public static XhsImageCreativeExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage, XhsImageStyleExecuteResponse imageStyleResponse) {
+        XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
+        if (Objects.nonNull(content)) {
+            response.setPlanUid(content.getPlanUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setContentUid(content.getUid());
+        }
+        response.setSuccess(false);
+        response.setErrorMessage(errorMessage);
+        response.setErrorCode(errorCode);
+        response.setImageStyleResponse(imageStyleResponse);
+        return response;
+    }
+
     public Map<Long, Boolean> executeAppALl(List<CreativeContentDO> contentList, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(contentList.size());
 
@@ -174,7 +271,7 @@ public class CreativeExecuteManager {
             creativeContentMapper.updateById(latestContent);
 
             try {
-                CreativeContentExecuteDTO creativePlanExecute = JSONUtil.toBean(latestContent.getExecuteParams(), CreativeContentExecuteDTO.class);
+                CreativeContentExecuteDTO creativePlanExecute = JsonUtils.parseObject(latestContent.getExecuteParams(), CreativeContentExecuteDTO.class);
                 AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
 
                 AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
@@ -215,8 +312,8 @@ public class CreativeExecuteManager {
                 updateContent.setCopyWritingTitle(copyWritingContent.getTitle());
                 updateContent.setCopyWritingContent(copyWritingContent.getContent());
                 updateContent.setCopyWritingCount(Optional.ofNullable(copyWritingContent.getContent()).orElse("").length());
-                updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWritingContent));
-                updateContent.setPictureContent(JSONUtil.toJsonStr(posterList));
+                updateContent.setCopyWritingResult(JsonUtils.toJsonString(copyWritingContent));
+                updateContent.setPictureContent(JsonUtils.toJsonString(posterList));
                 updateContent.setPictureNum(posterList.size());
                 updateContent.setStartTime(start);
                 updateContent.setEndTime(end);
@@ -251,44 +348,6 @@ public class CreativeExecuteManager {
                 log.info("创作中心：生成内容和图片解锁成功：{}", lockKey);
             }
         }
-    }
-
-    private static CreativeAppExecuteResponse buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
-        AppRespVO appInfo = logAppMessage.getAppInfo();
-        List<String> tags = appInfo.getTags();
-        if (tags.contains("PracticalConverter")) {
-            CreativeAppExecuteResponse response = AppResponseConverter.practicalConverter(appInfo);
-            response.setContentId(content.getId());
-            response.setContentUid(content.getUid());
-            response.setBusinessUid(content.getBusinessUid());
-            response.setSchemeUid(content.getSchemeUid());
-            response.setPlanUid(content.getPlanUid());
-            return response;
-        }
-        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
-    }
-
-    /**
-     * 生成失败返回结果
-     *
-     * @param content      创作内容
-     * @param errorCode    错误码
-     * @param errorMessage 错误信息
-     * @return 返回结果
-     */
-    private static CreativeAppExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage) {
-        CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
-        response.setSuccess(Boolean.FALSE);
-        response.setErrorCode(errorCode);
-        response.setErrorMessage(errorMessage);
-        if (Objects.nonNull(content)) {
-            response.setContentId(content.getId());
-            response.setContentUid(content.getUid());
-            response.setBusinessUid(content.getBusinessUid());
-            response.setSchemeUid(content.getSchemeUid());
-            response.setPlanUid(content.getPlanUid());
-        }
-        return response;
     }
 
     /**
@@ -393,7 +452,7 @@ public class CreativeExecuteManager {
                 updateContent.setCopyWritingCount(copyWriting.getContent().length());
 
 
-                updateContent.setCopyWritingResult(JSONUtil.toJsonStr(copyWriting));
+                updateContent.setCopyWritingResult(JsonUtils.toJsonString(copyWriting));
                 updateContent.setStartTime(start);
                 updateContent.setEndTime(end);
                 updateContent.setExecuteTime(executeTime);
@@ -522,7 +581,7 @@ public class CreativeExecuteManager {
 
                 CreativeContentDO updateContent = new CreativeContentDO();
                 updateContent.setId(latestContent.getId());
-                updateContent.setPictureContent(JSONUtil.toJsonStr(pictureContent));
+                updateContent.setPictureContent(JsonUtils.toJsonString(pictureContent));
                 updateContent.setPictureNum(pictureContent.size());
                 updateContent.setStartTime(start);
                 updateContent.setEndTime(end);
@@ -602,7 +661,7 @@ public class CreativeExecuteManager {
         }
 
         // 文案执行结果
-        CopyWritingContentDTO copyWriting = JSONUtil.toBean(business.getCopyWritingResult(), CopyWritingContentDTO.class);
+        CopyWritingContentDTO copyWriting = JsonUtils.parseObject(business.getCopyWritingResult(), CopyWritingContentDTO.class);
         if (Objects.isNull(copyWriting)) {
             // 文案执行结果为空，说明数据存在问题，直接更新为最终失败
             updateFailureFinished(content.getId(), start, formatErrorMsg("创作中心：文案执行结果为空，执行文案不存在(ID: %s)！", content.getUid()), maxRetry);
@@ -772,64 +831,5 @@ public class CreativeExecuteManager {
         } catch (Exception exception) {
             return 3;
         }
-    }
-
-    /**
-     * 执行失败，更新创作内容
-     *
-     * @param code    错误码
-     * @param message 错误信息
-     * @param args    参数
-     * @return {@link ServiceException}
-     */
-    private static ServiceException exception(Integer code, String message, Object... args) {
-        return ServiceExceptionUtil.exception(ofError(code, message, args));
-    }
-
-    /**
-     * 执行失败，更新创作内容
-     *
-     * @param code    错误码
-     * @param message 错误信息
-     * @param args    参数
-     * @return {@link ErrorCode}
-     */
-    private static ErrorCode ofError(Integer code, String message, Object... args) {
-        return new ErrorCode(code, formatErrorMsg(message, args));
-    }
-
-    /**
-     * 格式化错误信息
-     *
-     * @param message 错误信息
-     * @param args    参数
-     * @return 格式化后的错误信息
-     */
-    private static String formatErrorMsg(String message, Object... args) {
-        return String.format(message, args);
-    }
-
-    /**
-     * 失败响应
-     *
-     * @param content            请求
-     * @param errorCode          错误码
-     * @param errorMessage       错误信息
-     * @param imageStyleResponse 图片风格响应参数
-     * @return 失败响应
-     */
-    public static XhsImageCreativeExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage, XhsImageStyleExecuteResponse imageStyleResponse) {
-        XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
-        if (Objects.nonNull(content)) {
-            response.setPlanUid(content.getPlanUid());
-            response.setSchemeUid(content.getSchemeUid());
-            response.setBusinessUid(content.getBusinessUid());
-            response.setContentUid(content.getUid());
-        }
-        response.setSuccess(false);
-        response.setErrorMessage(errorMessage);
-        response.setErrorCode(errorCode);
-        response.setImageStyleResponse(imageStyleResponse);
-        return response;
     }
 }

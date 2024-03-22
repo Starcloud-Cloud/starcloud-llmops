@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.convert.category;
 
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import com.starcloud.ops.business.app.api.category.dto.CategoryRemarkDTO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
@@ -39,7 +39,7 @@ public interface CategoryConvert {
         if (StringUtils.isBlank(remark)) {
             return null;
         }
-        CategoryRemarkDTO categoryRemark = JSONUtil.toBean(remark, CategoryRemarkDTO.class, Boolean.TRUE);
+        CategoryRemarkDTO categoryRemark = JsonUtils.parseObject(remark, CategoryRemarkDTO.class);
 
         if (Objects.isNull(categoryRemark)) {
             return null;
