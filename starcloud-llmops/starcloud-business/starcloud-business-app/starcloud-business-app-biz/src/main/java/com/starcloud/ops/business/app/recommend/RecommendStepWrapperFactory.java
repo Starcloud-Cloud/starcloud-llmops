@@ -267,9 +267,7 @@ public class RecommendStepWrapperFactory {
         return Arrays.asList(
                 defGlobalVariableStepWrapper(),
                 defMaterialStepWrapper(),
-                defTitleStepWrapper(),
                 defCustomStepWrapper(),
-                defParagraphStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );
