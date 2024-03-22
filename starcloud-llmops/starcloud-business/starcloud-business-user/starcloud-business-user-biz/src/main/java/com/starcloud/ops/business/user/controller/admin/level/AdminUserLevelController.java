@@ -57,7 +57,7 @@ public class AdminUserLevelController {
     }
 
 
-    @GetMapping("/user_righs_limit_use")
+    @GetMapping("/user_rigths_limit_use")
     @Operation(summary = "用户权益是否超过使用限制")
     public CommonResult<AdminUserLevelLimitRespVO> validateLevelRightsLimit(@RequestParam("levelRightsCode") String levelRightsCode) {
         return success(adminUserLevelService.validateLevelRightsLimit(levelRightsCode, getLoginUserId()));
