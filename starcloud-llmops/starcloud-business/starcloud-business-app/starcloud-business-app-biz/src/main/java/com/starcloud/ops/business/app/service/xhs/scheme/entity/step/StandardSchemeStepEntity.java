@@ -39,18 +39,15 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
     @Schema(description = "创作方案生成模式")
     private String model;
 
-//    /**
-//     * 创作方案参考内容
-//     */
-//    @Schema(description = "创作方案参考内容")
-//    private List<ReferenceSchemeEntity> referList;
-
     /**
      * 参考内容 素材库格式
      */
     @Schema(description = "参考内容-素材库格式")
     private List<AbstractBaseCreativeMaterialDTO> materialList;
 
+    /**
+     * 参考素材类型
+     */
     @Schema(description = "素材类型")
     private String materialType;
 

@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "创作方案详情")
-public class SchemeAppCategoryRespVO implements java.io.Serializable {
+public class CreativeSchemeTemplateGroupRespVO implements java.io.Serializable {
 
     private static final long serialVersionUID = -1820002100761132178L;
 
@@ -46,11 +45,11 @@ public class SchemeAppCategoryRespVO implements java.io.Serializable {
      * 应用分类应用配置
      */
     @Schema(description = "应用分类应用配置")
-    private List<CreativeSchemeConfigurationDTO> appConfigurationList;
+    private List<CreativeSchemeTemplateRespVO> templateList;
 
     /**
      * 子级分类
      */
     @Schema(description = "子级分类")
-    private List<SchemeAppCategoryRespVO> children;
+    private List<CreativeSchemeTemplateGroupRespVO> children;
 }

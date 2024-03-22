@@ -15,7 +15,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePa
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
@@ -58,11 +58,11 @@ public class CreativeSchemeController {
         return CommonResult.success(creativeSchemeService.metadata());
     }
 
-    @GetMapping("/appGroupList")
-    @Operation(summary = "获取应用列表", description = "获取应用列表")
+    @GetMapping("/schemeTemplateList")
+    @Operation(summary = "获取创作方案模板没配置", description = "获取应用列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<List<SchemeAppCategoryRespVO>> appList() {
-        return CommonResult.success(creativeSchemeService.appGroupList());
+    public CommonResult<List<CreativeSchemeTemplateGroupRespVO>> schemeTemplateList() {
+        return CommonResult.success(creativeSchemeService.schemeTemplateList());
     }
 
     @GetMapping("/posterTemplate")

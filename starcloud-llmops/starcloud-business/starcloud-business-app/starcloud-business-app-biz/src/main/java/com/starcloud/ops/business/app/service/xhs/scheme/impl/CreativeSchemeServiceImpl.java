@@ -33,7 +33,8 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePa
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateRespVO;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
@@ -116,12 +117,12 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     }
 
     /**
-     * 获取创作方案配置
+     * 获取创作方案模板配置
      *
      * @return 创作方案配置
      */
     @Override
-    public List<SchemeAppCategoryRespVO> appGroupList() {
+    public List<CreativeSchemeTemplateGroupRespVO> schemeTemplateList() {
 
         // 查询符合条件的应用列表
         List<AppMarketRespVO> appList = creativeAppManager.juzhenAppMarketplaceList();
@@ -130,9 +131,11 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         List<AppCategoryVO> appCategoryList = appDictionaryService.categoryList(Boolean.TRUE);
 
         // 应用列表按照分类分组
-        Map<String, List<CreativeSchemeConfigurationDTO>> map = CollectionUtil.emptyIfNull(appList).stream().collect(Collectors.groupingBy(AppMarketRespVO::getCategory, Collectors.mapping(item -> {
+        Map<String, List<CreativeSchemeTemplateRespVO>> map = CollectionUtil.emptyIfNull(appList).stream().collect(Collectors.groupingBy(AppMarketRespVO::getCategory,
+                Collectors.mapping(item -> {
                     // 获取所有步骤
-                    List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(item.getWorkflowConfig()).map(WorkflowConfigRespVO::getSteps).orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
+                    List<WorkflowStepWrapperRespVO> stepWrapperList = Optional.ofNullable(item.getWorkflowConfig())
+                            .map(WorkflowConfigRespVO::getSteps).orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED));
 
                     // 构建创作方案步骤
                     List<BaseSchemeStepDTO> schemeStepList = Lists.newArrayList();
@@ -141,26 +144,32 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
                         schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
                     }
 
-                    CreativeSchemeConfigurationDTO configuration = new CreativeSchemeConfigurationDTO();
-                    configuration.setAppUid(item.getUid());
-                    configuration.setAppName(item.getName());
-                    configuration.setTags(item.getTags());
-                    configuration.setStepCount(stepWrapperList.size());
-                    configuration.setDescription(item.getDescription());
-                    configuration.setVersion(item.getVersion());
-                    configuration.setExample(item.getExample());
-                    configuration.setSteps(schemeStepList);
-                    return configuration;
+                    // 获取到上传素材步骤
+                    MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(schemeStepList);
+                    // 获取上传素材类型
+                    String materialType = Optional.ofNullable(materialSchemeStep).map(MaterialSchemeStepDTO::getMaterialType).orElse(null);
+                    // 组装创作方案模板信息
+                    CreativeSchemeTemplateRespVO creativeSchemeTemplate = new CreativeSchemeTemplateRespVO();
+                    creativeSchemeTemplate.setAppUid(item.getUid());
+                    creativeSchemeTemplate.setAppName(item.getName());
+                    creativeSchemeTemplate.setTags(item.getTags());
+                    creativeSchemeTemplate.setStepCount(stepWrapperList.size());
+                    creativeSchemeTemplate.setDescription(item.getDescription());
+                    creativeSchemeTemplate.setVersion(item.getVersion());
+                    creativeSchemeTemplate.setExample(item.getExample());
+                    creativeSchemeTemplate.setMaterialType(materialType);
+                    creativeSchemeTemplate.setSteps(schemeStepList);
+                    return creativeSchemeTemplate;
                 }, Collectors.toList())
 
         ));
 
         return CollectionUtil.emptyIfNull(appCategoryList).stream().map(item -> {
-            SchemeAppCategoryRespVO response = new SchemeAppCategoryRespVO();
+            CreativeSchemeTemplateGroupRespVO response = new CreativeSchemeTemplateGroupRespVO();
             response.setParentCode(item.getParentCode());
             response.setCode(item.getCode());
             response.setName(item.getName());
-            response.setAppConfigurationList(CollectionUtil.emptyIfNull(map.get(item.getCode())));
+            response.setTemplateList(CollectionUtil.emptyIfNull(map.get(item.getCode())));
             return response;
         }).collect(Collectors.toList());
     }
