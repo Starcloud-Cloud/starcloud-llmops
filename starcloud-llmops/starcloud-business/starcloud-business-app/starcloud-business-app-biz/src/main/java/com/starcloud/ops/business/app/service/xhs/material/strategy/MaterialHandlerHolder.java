@@ -1,10 +1,13 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.DefaultMaterialHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -36,6 +39,9 @@ public class MaterialHandlerHolder implements ApplicationContextAware {
      */
     private static final Map<String, AbstractMaterialHandler> MATERIAL_HANDLER_MAP = new ConcurrentHashMap<>(8);
 
+    
+    private static final AbstractMaterialHandler DEFAULT_MATERIAL_HANDLER = SpringUtil.getBean(DefaultMaterialHandler.class);
+    
     /**
      * 根据 type 值获取对应的发布渠道配置处理器
      *
@@ -44,18 +50,20 @@ public class MaterialHandlerHolder implements ApplicationContextAware {
      */
     public AbstractMaterialHandler getHandler(String type) {
 
-        AppValidate.notBlank(type, CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
-        MaterialTypeEnum materialType = MaterialTypeEnum.of(type);
+        return MATERIAL_HANDLER_MAP.getOrDefault(type, DEFAULT_MATERIAL_HANDLER);
 
-        if (materialType == null) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
-        }
-
-        if (MATERIAL_HANDLER_MAP.containsKey(type)) {
-            return MATERIAL_HANDLER_MAP.get(type);
-        }
-
-        throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
+//        AppValidate.notBlank(type, CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST);
+//        MaterialTypeEnum materialType = MaterialTypeEnum.of(type);
+//
+//        if (materialType == null) {
+//            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST, type);
+//        }
+//
+//        if (MATERIAL_HANDLER_MAP.containsKey(type)) {
+//            return MATERIAL_HANDLER_MAP.getOrDefault(type, DEFAULT_MATERIAL_HANDLER);
+//        }
+//
+//        throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.MATERIAL_TYPE_NOT_EXIST, type);
     }
 
     /**
