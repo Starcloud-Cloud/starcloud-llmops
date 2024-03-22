@@ -41,6 +41,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -350,8 +351,14 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                    .collect(Collectors.toMap(PosterVariableEntity::getField, PosterVariableEntity::getValue));
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            PosterVariableEntity::getField,
+                            // 如果变量为值为空，则设置为空字符串
+                            item -> Optional.ofNullable(item.getValue()).orElse(StringUtils.EMPTY))
+                    );
+            
             handlerRequest.setParams(params);
 
             // 构建请求

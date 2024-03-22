@@ -364,8 +364,6 @@ public class AppContext {
 
             String filedKey = entrySet.getKey();
             Object value = entrySet.getValue();
-            log.info("变量替换解析：当前变量：{}", filedKey);
-            log.info("变量替换解析：当前变量值：{}", value);
             if (value != null) {
 
                 String val = String.valueOf(value);
@@ -377,7 +375,6 @@ public class AppContext {
                     value = StrUtil.format(String.valueOf(value), allVariablesValues);
                 }
             }
-            log.info("变量替换解析：处理之后的值：{}", value);
             fieldVariables.put(filedKey, value);
         });
 
