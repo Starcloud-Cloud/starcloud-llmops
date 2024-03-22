@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
@@ -66,16 +67,14 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             handlerResponse.setSuccess(Boolean.TRUE);
             handlerResponse.setAnswer(JSONUtil.toJsonStr(response));
             handlerResponse.setOutput(response);
+            return handlerResponse;
         } catch (ServiceException exception) {
             log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
-            handlerResponse.setErrorCode(exception.getCode());
-            handlerResponse.setErrorMsg(exception.getMessage());
+            throw ServiceExceptionUtil.exception(exception.getCode(), exception.getMessage());
         } catch (Exception exception) {
             log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
-            handlerResponse.setErrorCode(350400200);
-            handlerResponse.setErrorMsg(exception.getMessage());
+            throw ServiceExceptionUtil.exception(350400200, exception.getMessage());
         }
-        return handlerResponse;
     }
 
     /**
@@ -111,6 +110,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             posterRequest.setId(request.getId());
             posterRequest.setParams(params);
             String url = POSTER_SERVICE.poster(posterRequest);
+            AppValidate.notBlank(url, "图片生成失败：结果为空！请重试或者联系管理员！");
 
             Response response = new Response();
             response.setId(request.getId());

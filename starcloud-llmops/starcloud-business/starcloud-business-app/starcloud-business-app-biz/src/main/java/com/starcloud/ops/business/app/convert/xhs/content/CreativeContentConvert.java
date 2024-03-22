@@ -1,15 +1,15 @@
 package com.starcloud.ops.business.app.convert.xhs.content;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteResponse;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDTO;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
@@ -69,47 +69,47 @@ public interface CreativeContentConvert {
     }
 
     default String toStr(List<String> list) {
-        return JSONUtil.toJsonStr(list);
+        return JsonUtils.toJsonString(list);
     }
 
     default String imageToStr(List<CreativeImageDTO> images) {
-        return JSONUtil.toJsonStr(images);
+        return JsonUtils.toJsonString(images);
     }
 
     default String toStr(CreativeContentExecuteDTO executeParamsDTO) {
-        return JSONUtil.toJsonStr(executeParamsDTO);
+        return JsonUtils.toJsonString(executeParamsDTO);
     }
 
     default String toStr(CreativeContentExtendDTO extendDTO) {
-        return JSONUtil.toJsonStr(extendDTO);
+        return JsonUtils.toJsonString(extendDTO);
     }
 
     default List<String> toList(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.parseArray(string).toList(String.class);
+        return JsonUtils.parseArray(string, String.class);
     }
 
     default CreativeContentExecuteDTO toExecuteParams(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.toBean(string, CreativeContentExecuteDTO.class);
+        return JsonUtils.parseObject(string, CreativeContentExecuteDTO.class);
     }
 
     default CreativeContentExtendDTO toExtend(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.toBean(string, CreativeContentExtendDTO.class);
+        return JsonUtils.parseObject(string, CreativeContentExtendDTO.class);
     }
 
     default List<CreativeImageDTO> toContent(String string) {
         if (StringUtils.isBlank(string)) {
             return null;
         }
-        return JSONUtil.parseArray(string).toList(CreativeImageDTO.class);
+        return JsonUtils.parseArray(string, CreativeImageDTO.class);
     }
 
 }

@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.convert.xhs.scheme;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
@@ -95,7 +94,7 @@ public interface CreativeSchemeConvert {
 
         // 创作计划使用图片
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
-            creativeSchemeResponse.setUseImages(JSONUtil.toList(creativeScheme.getUseImages(), String.class));
+            creativeSchemeResponse.setUseImages(JsonUtils.parseArray(creativeScheme.getUseImages(), String.class));
         }
 
         // 创作计划物料
