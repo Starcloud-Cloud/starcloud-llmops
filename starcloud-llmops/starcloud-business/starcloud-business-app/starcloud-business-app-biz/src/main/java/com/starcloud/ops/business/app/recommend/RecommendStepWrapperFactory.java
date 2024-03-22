@@ -219,7 +219,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
-        String defaultPrompt = "{STEP." + field + ".TITLE} \n\n {STEP." + field + ".CONTENT}";
+        String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
