@@ -117,8 +117,8 @@ public class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCrea
         for (PosterVariableDTO variable : variableList) {
             // 如果用户没有选择占位符，则随机放置占位符, 否则不做任何处理
             if (StringUtil.objectBlank(variable.getValue())) {
-                int randomInt = randomInt(usedMaterialList, materialUrlList);
-                variable.setValue(this.materialPlaceholder(randomInt, "coverUrl"));
+                //int randomInt = randomInt(usedMaterialList, materialUrlList);
+                //variable.setValue(this.materialPlaceholder(randomInt, "coverUrl"));
             }
         }
         posterTemplate.setVariableList(variableList);
