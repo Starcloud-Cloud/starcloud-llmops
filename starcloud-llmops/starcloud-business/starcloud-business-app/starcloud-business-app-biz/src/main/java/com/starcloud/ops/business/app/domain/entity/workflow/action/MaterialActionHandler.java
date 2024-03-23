@@ -81,7 +81,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         ActionResponse response = convert(materialType);
 
         //把图片生成节点的素材信息 复制到这里，符合变量的替换逻辑
-        final Map<String, Object> posterParams = this.getAppContext().getContextVariablesValues(PosterActionHandler.class);
+        final Map<String, Object> posterParams = this.getAppContext().getContextVariablesValues(PosterActionHandler.class, false);
 
         // 获取到处理好的上传素材
         String posterStyle = (String) posterParams.get(CreativeConstants.POSTER_STYLE);

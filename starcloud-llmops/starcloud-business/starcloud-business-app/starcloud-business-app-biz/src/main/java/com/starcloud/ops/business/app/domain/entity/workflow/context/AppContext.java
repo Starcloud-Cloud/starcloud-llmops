@@ -233,6 +233,22 @@ public class AppContext {
         return config.getStepWrapper(classz);
     }
 
+
+    /**
+     * 获取当前步骤的指定变量值
+     *
+     * @param key   字段名
+     * @param parse 是否解析变量占位符
+     * @return
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getContextVariablesValue(String key, Boolean parse) {
+
+        return this.getContextVariablesValues(this.getStepId(), parse).getOrDefault(key, null);
+    }
+
+
     /**
      * 获取当前步骤的所有变量值 Maps
      *
@@ -252,35 +268,32 @@ public class AppContext {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public Map<String, Object> getContextVariablesValues(Class<? extends BaseActionHandler> classz) {
+    public Map<String, Object> getContextVariablesValues(String stepId) {
 
-        WorkflowStepWrapper posterWrapper = this.getStepWrapper(classz);
-        String setpCode = posterWrapper.getStepCode();
-        final Map<String, Object> posterParams = this.getContextVariablesValues(setpCode);
-        return posterParams;
+        return this.getContextVariablesValues(stepId, true);
     }
 
+
     /**
-     * 获取当前步骤的指定变量值
-     * @param key 字段名
-     * @param parse 是否解析变量占位符
-     * @return
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public Object getContextVariablesValue(String key, Boolean parse) {
+    public Map<String, Object> getContextVariablesValues(String stepId, Boolean parse) {
 
+        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
+
+        //当前步骤的所有变量 kv，不加前缀
+        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
+        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
 
         if (parse) {
-            return this.getContextVariablesValues(this.getStepId()).getOrDefault(key, null);
-        } else {
-
-            //当前步骤的所有变量 kv，不加前缀
-            WorkflowStepWrapper wrapper = this.getStepWrapper(this.getStepId());
-            Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
-
-            return variables.getOrDefault(key, null);
+            variables = this.parseMapFromVariablesValues(variables, allVariablesValues);
         }
+
+        return variables;
     }
 
     /**
@@ -290,18 +303,31 @@ public class AppContext {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public Map<String, Object> getContextVariablesValues(String stepId) {
+    public Map<String, Object> getContextVariablesValues(Class<? extends BaseActionHandler> classz) {
 
-        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
-
-        //当前步骤的所有变量 kv，不加前缀
-        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
-        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
-
-        Map<String, Object> fieldVariables = this.parseMapFromVariablesValues(variables, allVariablesValues);
-
-        return fieldVariables;
+        WorkflowStepWrapper posterWrapper = this.getStepWrapper(classz);
+        String setpCode = posterWrapper.getStepCode();
+        final Map<String, Object> posterParams = this.getContextVariablesValues(setpCode);
+        return posterParams;
     }
+
+    /**
+     * 获取当前步骤的所有变量值 Maps
+     *
+     * @return 当前步骤的所有变量值 Maps
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Map<String, Object> getContextVariablesValues(Class<? extends BaseActionHandler> classz, Boolean parse) {
+
+        WorkflowStepWrapper posterWrapper = this.getStepWrapper(classz);
+        String setpCode = posterWrapper.getStepCode();
+        final Map<String, Object> posterParams = this.getContextVariablesValues(setpCode, parse);
+        return posterParams;
+    }
+
+
+
 
     /**
      * 获取当前步骤的所有变量值 Maps
