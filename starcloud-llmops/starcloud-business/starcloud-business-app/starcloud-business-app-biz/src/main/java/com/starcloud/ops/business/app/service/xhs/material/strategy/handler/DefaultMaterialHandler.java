@@ -57,11 +57,8 @@ public class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCrea
         // 进行海报风格的处理
         List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         for (PosterTemplateDTO template : templateList) {
-            if (PosterModeEnum.SEQUENCE.name().equals(template.getMode())) {
-                assembleSequence(template, materialList);
-            } else {
-                assembleRandom(template, materialList);
-            }
+            //只有顺序
+            assembleSequence(template, materialList);
         }
 
         // 设置资料库列表，后续可能会用到
