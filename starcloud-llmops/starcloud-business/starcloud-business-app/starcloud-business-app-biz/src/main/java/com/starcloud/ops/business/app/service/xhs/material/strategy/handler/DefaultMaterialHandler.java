@@ -87,10 +87,10 @@ public class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCrea
         for (int i = 0; i < variableList.size(); i++) {
             PosterVariableDTO variable = variableList.get(i);
             // 如果用户没有选择占位符，则按照顺序放置占位符
-            if (StringUtil.objectBlank(variable.getValue())) {
-                // 防止溢出 i % materialList.size()。
-                variable.setValue(this.materialPlaceholder(i % materialList.size(), "coverUrl"));
-            }
+//            if (StringUtil.objectBlank(variable.getValue())) {
+//                // 防止溢出 i % materialList.size()。
+//                variable.setValue(this.materialPlaceholder(i % materialList.size(), "coverUrl"));
+//            }
         }
         posterTemplate.setVariableList(variableList);
     }
