@@ -6,8 +6,6 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -17,7 +15,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,6 +77,7 @@ public class VariableActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(0L);
         actionResponse.setTotalPrice(new BigDecimal("0"));
         actionResponse.setStepConfig("{}");
+        actionResponse.setAiModel(null);
         actionResponse.setCostPoints(0);
 
         log.info("VariableActionHandler doExecute end");

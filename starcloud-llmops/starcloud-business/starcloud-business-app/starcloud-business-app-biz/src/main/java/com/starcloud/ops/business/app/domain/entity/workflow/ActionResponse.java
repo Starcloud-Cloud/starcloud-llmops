@@ -98,6 +98,11 @@ public class ActionResponse {
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     /**
+     * 大模型
+     */
+    private String aiModel;
+
+    /**
      * 花费魔法豆
      */
     private Integer costPoints = 0;

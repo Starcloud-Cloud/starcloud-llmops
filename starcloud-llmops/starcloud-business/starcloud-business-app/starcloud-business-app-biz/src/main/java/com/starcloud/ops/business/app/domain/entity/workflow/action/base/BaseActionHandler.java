@@ -6,7 +6,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -15,9 +14,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
@@ -206,7 +207,33 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     protected String getAiModel() {
-        return Optional.ofNullable(this.getAppContext()).map(AppContext::getAiModel).orElse(null);
+        String aiModel = this.getAppContext().getAiModel();
+        if (aiModel != null) {
+            return aiModel;
+        }
+
+        Optional<WorkflowStepWrapper> stepWrapperOptional = Optional.ofNullable(this.getAppContext())
+                .map(AppContext::getApp)
+                .map(AppEntity::getWorkflowConfig)
+                .map(config -> config.getStepWrapperByStepId(this.getAppContext().getStepId()));
+        if (!stepWrapperOptional.isPresent()) {
+            return null;
+        }
+
+        VariableItemEntity modeVariableItem = stepWrapperOptional.get().getModeVariableItem("MODEL");
+        if (modeVariableItem == null) {
+            return null;
+        }
+
+        if (modeVariableItem.getValue() != null) {
+            return String.valueOf(modeVariableItem.getValue());
+        }
+
+        if (modeVariableItem.getDefaultValue() != null) {
+            return String.valueOf(modeVariableItem.getDefaultValue());
+        }
+
+        return null;
     }
 
     /**
@@ -219,12 +246,14 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-        log.info("Action[{}]执行开始，步骤：{}, 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getStepId(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
+        log.info("Action[{}]执行开始： 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
 
         // 从工作流上下文中获取步骤ID
         Optional<String> property = scopeDataOperator.getTaskProperty();
         AppProcessParser.ServiceTaskPropertyDTO serviceTaskProperty = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
         String stepId = serviceTaskProperty.getStepId();
+
+        log.info("当前步骤：{}", stepId);
 
         try {
             if (Objects.isNull(context)) {
@@ -290,7 +319,7 @@ public abstract class BaseActionHandler extends Object {
 
     /**
      * 因为@Data重写了hasCode, equals, 导致子类比较都相等，所以这里改成继承object, 重写equals即可
-     *
+     * @Data注解在派生子类上时默认@EqualsAndHashCode(callSuper = false)，即重写子类的equals和hashcode不包含父类
      * @param obj
      * @return
      */

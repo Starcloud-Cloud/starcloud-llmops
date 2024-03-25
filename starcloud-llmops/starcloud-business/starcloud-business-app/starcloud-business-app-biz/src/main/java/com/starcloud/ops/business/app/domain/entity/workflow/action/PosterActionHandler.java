@@ -158,6 +158,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setAnswer(JsonUtils.toJsonString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());
+        response.setAiModel(null);
         log.info("海报生成 Action 执行结束......");
         return response;
     }
@@ -358,7 +359,7 @@ public class PosterActionHandler extends BaseActionHandler {
                             // 如果变量为值为空，则设置为空字符串
                             item -> Optional.ofNullable(item.getValue()).orElse(StringUtils.EMPTY))
                     );
-            
+
             handlerRequest.setParams(params);
 
             // 构建请求

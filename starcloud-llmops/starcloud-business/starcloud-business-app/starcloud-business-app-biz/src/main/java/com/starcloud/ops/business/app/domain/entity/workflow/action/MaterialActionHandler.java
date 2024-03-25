@@ -154,6 +154,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
         actionResponse.setTotalTokens(0L);
         actionResponse.setTotalPrice(new BigDecimal("0"));
+        actionResponse.setAiModel(null);
         // 组装消耗为 0
         actionResponse.setCostPoints(0);
         return actionResponse;
