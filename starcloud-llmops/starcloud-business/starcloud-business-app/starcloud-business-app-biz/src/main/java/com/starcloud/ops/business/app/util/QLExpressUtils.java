@@ -109,7 +109,7 @@ public class QLExpressUtils {
 
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.execute is fail: {}", e.getMessage(), e);
+            log.error("QLExpressUtils.execute is fail: {}. content: {}", e.getMessage(), content);
         }
 
         return content;
@@ -125,7 +125,7 @@ public class QLExpressUtils {
             return r;
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.execute is fail: {}", e.getMessage(), e);
+            log.error("QLExpressUtils.execute is fail: {}, content: {}", e.getMessage(), content);
 
         }
 

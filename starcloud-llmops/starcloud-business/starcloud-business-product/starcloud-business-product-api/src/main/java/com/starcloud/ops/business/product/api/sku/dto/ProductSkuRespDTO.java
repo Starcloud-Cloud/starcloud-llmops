@@ -72,6 +72,8 @@ public class ProductSkuRespDTO {
      */
     private Integer secondBrokeragePrice;
 
+    private List<Long> giveCouponTemplateIds;
+
 
     /**
      * 商品附属权益

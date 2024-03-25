@@ -106,8 +106,6 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     protected ActionResponse doExecute() {
 
-
-        log.info("自定义内容生成[{}][{}]：执行开始......", this.getClass().getSimpleName(), this.getAppContext().getStepId());
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
         log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
@@ -366,7 +364,7 @@ public class CustomActionHandler extends BaseActionHandler {
         if (this.hasResponseJsonSchema()) {
             //获取当前定义的返回结构
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
-            log.info("自定义内容JSON生成结果：{}", actionResponse.getAnswer());
+            log.info("自定义内容JSON生成结果:\r\n{}", actionResponse.getAnswer());
             JSONObject jsonObject = JSONUtil.parseObj(actionResponse.getAnswer());
 
             actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));

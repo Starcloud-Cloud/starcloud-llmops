@@ -4,6 +4,8 @@ package com.starcloud.ops.business.trade.service.order.handler;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.util.collection.SetUtils;
 import com.alibaba.fastjson.JSON;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
@@ -29,6 +31,9 @@ public class TradeCouponOrderHandler implements TradeOrderHandler {
     @Resource
     private ProductSpuApi productSpuApi;
 
+    @Resource
+    private ProductSkuApi productSkuApi;
+
 
     @Override
     public void afterOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
@@ -41,12 +46,21 @@ public class TradeCouponOrderHandler implements TradeOrderHandler {
     }
 
     public void afterPayOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
-       orderItems.stream().forEach(itemDO->{
+       orderItems.forEach(itemDO->{
+           // 检测商品 SPU下是否有优惠券绑定 存在则赠送优惠券
            ProductSpuRespDTO spu = productSpuApi.getSpu(itemDO.getSpuId());
            if (CollUtil.isNotEmpty(spu.getGiveCouponTemplateIds())){
                List<Long> ids1 = JSON.parseArray(JSON.toJSONString(spu.getGiveCouponTemplateIds()), Long.class);
                ids1.forEach(coupon->  couponApi.addCoupon(coupon,SetUtils.asSet(itemDO.getUserId())));
            }
+
+           // 检测商品 SKU下是否有优惠券绑定 存在则赠送优惠券
+           ProductSkuRespDTO sku = productSkuApi.getSku(itemDO.getSkuId());
+           if (CollUtil.isNotEmpty(sku.getGiveCouponTemplateIds())){
+               List<Long> ids1 = JSON.parseArray(JSON.toJSONString(sku.getGiveCouponTemplateIds()), Long.class);
+               ids1.forEach(coupon->  couponApi.addCoupon(coupon,SetUtils.asSet(itemDO.getUserId())));
+           }
+
        });
     }
 
