@@ -290,7 +290,7 @@ public abstract class BaseActionHandler extends Object {
 
     /**
      * 因为@Data重写了hasCode, equals, 导致子类比较都相等，所以这里改成继承object, 重写equals即可
-     *
+     * @Data注解在派生子类上时默认@EqualsAndHashCode(callSuper = false)，即重写子类的equals和hashcode不包含父类
      * @param obj
      * @return
      */
