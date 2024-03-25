@@ -155,4 +155,12 @@ public class VariableEntity {
             }
         }
     }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getVariableItem(String key) {
+        return this.variables.stream()
+                .filter(item -> item.getField().equalsIgnoreCase(key))
+                .findFirst().orElse(null);
+    }
 }

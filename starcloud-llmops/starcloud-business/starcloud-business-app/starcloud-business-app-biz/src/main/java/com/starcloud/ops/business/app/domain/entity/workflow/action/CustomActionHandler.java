@@ -166,6 +166,7 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
         actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, false));
         actionResponse.setTotalTokens(actionResponse.getMessageTokens() + actionResponse.getAnswerTokens());
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
         BigDecimal messagePrice = new BigDecimal(String.valueOf(actionResponse.getMessageTokens())).multiply(actionResponse.getMessageUnitPrice());
         BigDecimal answerPrice = new BigDecimal(String.valueOf(actionResponse.getAnswerTokens())).multiply(actionResponse.getAnswerUnitPrice());
         actionResponse.setTotalPrice(messagePrice.add(answerPrice));
@@ -352,6 +353,7 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
 
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();

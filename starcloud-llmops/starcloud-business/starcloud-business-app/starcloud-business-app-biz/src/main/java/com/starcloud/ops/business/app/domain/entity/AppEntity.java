@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -28,10 +27,8 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -249,62 +246,32 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             return request.getAiModel();
         }
 
-        // 默认使用 GPT-3.5-Turbo-16K
-        String resultModel = ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
-
-        // 如果没有传入步骤 ID，使用默认的
+        // 如果没有传入步骤 ID，使用第一步参数信息
         if (StringUtils.isBlank(request.getStepId())) {
-            return resultModel;
+            return null;
         }
 
+        WorkflowStepWrapper stepWrapper = this.getWorkflowConfig().getStepWrapper(request.getStepId());
 
-        Optional<List<WorkflowStepWrapper>> stepWrappersOptional = Optional.ofNullable(this.getWorkflowConfig()).map(WorkflowConfigEntity::getSteps);
-
-        // 如果没有找到步骤，使用默认的
-        if (!stepWrappersOptional.isPresent() || CollectionUtil.isEmpty(stepWrappersOptional.get())) {
-            return resultModel;
+        if (stepWrapper == null) {
+            return null;
         }
 
-        List<WorkflowStepWrapper> stepWrapperList = stepWrappersOptional.get();
-        Optional<WorkflowStepWrapper> stepWrapperOptional = stepWrapperList.stream()
-                .filter(stepWrapper -> (request.getStepId().equals(stepWrapper.getName())) || (request.getStepId().equals(stepWrapper.getField())))
-                .findFirst();
-
-        // 如果没有找到步骤，使用默认的
-        if (!stepWrapperOptional.isPresent()) {
-            return resultModel;
+        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem("MODEL");
+        if (modelVariable == null) {
+            return null;
         }
 
-        WorkflowStepWrapper workflowStepWrapper = stepWrapperOptional.get();
-        Optional<List<VariableItemEntity>> variableItemListOptional = Optional.ofNullable(workflowStepWrapper.getFlowStep())
-                .map(WorkflowStepEntity::getVariable).map(VariableEntity::getVariables);
-
-        // 如果没有找到变量，使用默认的
-        if (!variableItemListOptional.isPresent() || CollectionUtil.isEmpty(variableItemListOptional.get())) {
-            return resultModel;
+        if (Objects.nonNull(modelVariable.getValue())) {
+            return String.valueOf(modelVariable.getValue());
         }
 
-        List<VariableItemEntity> variableItemList = variableItemListOptional.get();
-        Optional<VariableItemEntity> modelOptional = variableItemList.stream()
-                .filter(variableItem -> "MODEL".equalsIgnoreCase(variableItem.getField()))
-                .findFirst();
-
-        // 如果没有找到模型变量，使用默认的
-        if (!modelOptional.isPresent()) {
-            return resultModel;
+        if (modelVariable.getDefaultValue() != null) {
+            return String.valueOf(modelVariable.getDefaultValue());
         }
 
-        VariableItemEntity variableItemEntity = modelOptional.get();
-
-        if (Objects.nonNull(variableItemEntity.getValue())) {
-            return String.valueOf(variableItemEntity.getValue());
-        }
-        if (Objects.nonNull(variableItemEntity.getDefaultValue())) {
-            return String.valueOf(variableItemEntity.getDefaultValue());
-        }
-
-        // 如果没有找到模型变量，使用默认的
-        return ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
+        // 如果没有找到模型变量
+        return null;
     }
 
     /**
@@ -468,7 +435,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
-
                 messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
                 messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
                 messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
@@ -480,6 +446,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 messageCreateRequest.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
                 messageCreateRequest.setTotalPrice(actionResponse.getTotalPrice());
                 messageCreateRequest.setCostPoints(actionResponse.getCostPoints());
+                messageCreateRequest.setAiModel(actionResponse.getAiModel());
                 return;
             }
 
@@ -525,9 +492,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             }
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
             String aiModel = this.obtainLlmAiModelType(request);
-            ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
-            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
-            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+            ModelTypeEnum modelType = Objects.isNull(aiModel) ? null : TokenCalculator.fromName(aiModel);
+            BigDecimal messageUnitPrice = Objects.isNull(aiModel) ? new BigDecimal("0.0") : TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+            BigDecimal answerUnitPrice = Objects.isNull(aiModel) ? new BigDecimal("0.0") : TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
 
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(appContext.getStepId());

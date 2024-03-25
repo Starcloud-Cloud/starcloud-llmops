@@ -234,6 +234,12 @@ public class WorkflowStepWrapper {
 
     @JsonIgnore
     @JSONField(serialize = false)
+    public VariableItemEntity getModeVariableItem(String key) {
+        return this.flowStep.getModeVariableItem(key);
+    }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(String key, Object value) {
         this.variable.putVariable(key, value);
     }
