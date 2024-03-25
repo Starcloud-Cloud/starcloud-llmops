@@ -4,6 +4,7 @@ import cn.kstry.framework.core.bus.ScopeDataQuery;
 import cn.kstry.framework.core.component.bpmn.link.ProcessLink;
 import cn.kstry.framework.core.component.dynamic.creator.DynamicProcess;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AppProcessRegister implements DynamicProcess {
 
 
-    private final Map<String, AppEntity> appEntityMap = new ConcurrentHashMap<>();
+    private final Map<String, AppContext> appEntityMap = new ConcurrentHashMap<>();
 
     @Override
     public long version(String appId) {
@@ -31,7 +32,7 @@ public class AppProcessRegister implements DynamicProcess {
 
         String key = scopeDataQuery.getStartId();
 
-        this.appEntityMap.put(key, (AppEntity) scopeDataQuery.getReqData("app").get());
+        this.appEntityMap.put(key, scopeDataQuery.getReqScope());
 
         return scopeDataQuery.getStartId();
     }
@@ -40,16 +41,18 @@ public class AppProcessRegister implements DynamicProcess {
     @Override
     public Optional<ProcessLink> getProcessLink(String startId) {
 
-        AppEntity app = this.appEntityMap.get(startId);
-        AppProcessParser parser = new AppProcessParser(app);
+        AppContext appContext = this.appEntityMap.get(startId);
+        AppProcessParser parser = new AppProcessParser(appContext.getApp());
         this.appEntityMap.remove(startId);
 
         //获取workflow执行类型
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(app.getType())) {
-            return parser.getFlowProcessLink();
+        if (Boolean.TRUE.equals(appContext.getStepOnce())) {
+            return parser.getProcessLink();
         }
 
-        return parser.getProcessLink();
+        return parser.getFlowProcessLink();
+
+
     }
 
 }
