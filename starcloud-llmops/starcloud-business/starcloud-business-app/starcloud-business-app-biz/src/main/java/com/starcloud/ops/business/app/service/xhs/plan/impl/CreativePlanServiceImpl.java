@@ -50,6 +50,7 @@ import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
@@ -59,6 +60,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
@@ -466,6 +468,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (!posterStyle.getEnable()) {
                 continue;
             }
+            // 校验海报样式
+            materialHandler.validatePosterStyle(posterStyle);
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appMarket, schemeConfiguration);
             // 将处理后的应用填充到执行参数中
@@ -516,13 +520,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 获取应用，处理海报相关信息
             AppMarketRespVO appResponse = contentExecute.getAppResponse();
             if (posterSchemeStep != null) {
-                VariableItemRespVO posterVariable = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
-                if (posterVariable != null && posterVariable.getValue() != null) {
-                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterVariable.getValue()), PosterStyleDTO.class);
+                VariableItemRespVO posterStyleVariable = appResponse.getStepVariable(posterSchemeStep.getName(), CreativeConstants.POSTER_STYLE);
+                if (StringUtil.objectNotBlank(posterStyleVariable)) {
+                    PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterStyleVariable.getValue()), PosterStyleDTO.class);
                     // 获取到该风格下的素材列表
                     List<AbstractBaseCreativeMaterialDTO> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
+
                     // 处理海报风格
-                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList);
+                    MaterialMetadata metadata = new MaterialMetadata();
+                    metadata.setMaterialType(materialType.getTypeCode());
+                    metadata.setMaterialStepName(materialSchemeStep.getName());
+                    PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList, metadata);
+
                     // 将处理后的海报风格填充到执行参数中
                     Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
                     appResponse.putStepVariable(posterSchemeStep.getName(), variableMap);

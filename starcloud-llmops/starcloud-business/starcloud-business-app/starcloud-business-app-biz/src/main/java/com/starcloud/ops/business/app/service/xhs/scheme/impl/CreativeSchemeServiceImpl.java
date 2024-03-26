@@ -25,6 +25,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchem
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
@@ -53,6 +54,8 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
@@ -101,6 +104,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private CreativePlanService creativePlanService;
+
+    @Resource
+    private MaterialHandlerHolder materialHandlerHolder;
 
     /**
      * 获取创作方案元数据
@@ -525,6 +531,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      *
      * @param request 创作方案请求对象
      */
+    @SuppressWarnings("all")
     private void handlerAndValidate(CreativeSchemeReqVO request) {
         request.validate();
         // 如果是普通用户或者为空，强制设置为用户类型
@@ -537,14 +544,33 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
         // 处理创作方案配置
         CreativeSchemeConfigurationDTO configuration = request.getConfiguration();
-        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(configuration.getSteps()).stream().map(item -> {
-            if (PosterActionHandler.class.getSimpleName().equals(item.getCode())) {
-                PosterSchemeStepDTO posterStep = (PosterSchemeStepDTO) item;
-                posterStep.setStyleList(CreativeUtils.preHandlerPosterStyleList(posterStep.getStyleList()));
-                return posterStep;
-            }
-            return item;
-        }).collect(Collectors.toList());
+
+        // 资料库步骤校验
+        MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(CollectionUtil.emptyIfNull(configuration.getSteps()));
+        AppValidate.notNull(materialSchemeStep, "创作模版配置异常，资料库步骤是必须的！请联系管理员！");
+        // 获取到具体的资料库类型枚举
+        MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
+        AppValidate.notNull(materialType, "资料库类型不支持，请联系管理员{}！", materialSchemeStep.getMaterialType());
+        // 获取资料库的具体处理器
+        AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType.getTypeCode());
+        AppValidate.notNull(materialHandler, "资料库类型不支持，请联系管理员{}！", materialType.getTypeCode());
+
+        // 处理海报信息，填充必要的信息
+        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(configuration.getSteps())
+                .stream()
+                .map(item -> {
+                    if (!PosterActionHandler.class.getSimpleName().equals(item.getCode())) {
+                        return item;
+                    }
+                    PosterSchemeStepDTO posterStep = (PosterSchemeStepDTO) item;
+                    List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterStep.getStyleList());
+                    // 校验海报样式
+                    posterStyleList.forEach(materialHandler::validatePosterStyle);
+                    // 处理海报样式
+                    posterStep.setStyleList(CreativeUtils.preHandlerPosterStyleList(posterStep.getStyleList()));
+                    return posterStep;
+                })
+                .collect(Collectors.toList());
 
         configuration.setSteps(steps);
         request.setConfiguration(configuration);
