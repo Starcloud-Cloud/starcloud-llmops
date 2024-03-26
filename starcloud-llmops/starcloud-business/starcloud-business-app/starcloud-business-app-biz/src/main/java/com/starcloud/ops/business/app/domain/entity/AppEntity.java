@@ -158,8 +158,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setN(request.getN());
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
+                //前端传入节点，默认当执行一次处理
+                appContext.setStepOnce(true);
             } else {
                 request.setStepId(appContext.getStepId());
+                //不传入节点，默认从头开始执行到最后节点
+                appContext.setStepOnce(false);
             }
         } catch (ServiceException exception) {
             log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
