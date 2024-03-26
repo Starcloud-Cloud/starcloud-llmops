@@ -39,11 +39,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMaterialDTO> {
 
     /**
-     * 占位符正则
-     */
-    private static final String PLACEHOLDER = "\\{\\{.*?}}";
-
-    /**
      * 提取素材索引正则
      */
     private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
@@ -259,10 +254,6 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
             for (PosterVariableDTO variable : variableList) {
                 Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
-                // 如果值依然是占位符，把值中带有 {{上传素材.docs[1].url}} 结构的字符串替换为空字符串
-                if (value instanceof String) {
-                    value = removePlaceholder(String.valueOf(value));
-                }
                 variable.setValue(value);
             }
             template.setVariableList(variableList);
@@ -283,7 +274,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
      */
     protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
         // 获取变量uuid和value的集合
-        Map<String, Object> variableMap = CreativeUtils.getTemplateVariableMap(posterStyle);
+        Map<String, Object> variableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
 
         // 处理素材。变为可以替换的结构化数据
         JsonDocsDefSchema<M> jsonDocsDefSchema = new JsonDocsDefSchema<>();
@@ -312,14 +303,5 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
         return Integer.valueOf(matcher.group(1));
     }
 
-    /**
-     * 移除占位符
-     *
-     * @param input 输入
-     * @return 输出
-     */
-    protected static String removePlaceholder(String input) {
-        return input.replaceAll(PLACEHOLDER, "");
-    }
 
 }

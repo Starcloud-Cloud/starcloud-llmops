@@ -20,6 +20,9 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActi
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterVariableEntity;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -214,7 +217,18 @@ public class CreativeUtils {
      * @param posterTemplateList 模板列表
      * @return 模板变量集合
      */
-    public static Map<String, Object> getTemplateVariableMap(PosterStyleDTO posterStyle) {
+    public static Map<String, Object> getPosterStyleVariableMap(PosterStyleEntity posterStyle) {
+        Map<String, Object> variableValueMap = new HashMap<>();
+        for (PosterTemplateEntity posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
+            List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+            for (PosterVariableEntity variable : variableList) {
+                variableValueMap.put(variable.getUuid(), variable.getValue());
+            }
+        }
+        return variableValueMap;
+    }
+
+    public static Map<String, Object> getPosterStyleVariableMap(PosterStyleDTO posterStyle) {
         Map<String, Object> variableValueMap = new HashMap<>();
         for (PosterTemplateDTO posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
@@ -244,6 +258,16 @@ public class CreativeUtils {
             replaceVariableMap.put(key, value);
         });
         return replaceVariableMap;
+    }
+
+    /**
+     * 移除占位符
+     *
+     * @param input 输入
+     * @return 输出
+     */
+    public static String removePlaceholder(String input) {
+        return input.replaceAll("\\{\\{.*?}}", "");
     }
 
 }

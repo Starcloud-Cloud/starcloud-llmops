@@ -32,6 +32,7 @@ import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterSty
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterVariableEntity;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
 import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.HumanMessage;
@@ -47,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -172,7 +172,7 @@ public class PosterActionHandler extends BaseActionHandler {
         List<PosterTemplateEntity> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
         // 把每一个变量的uuid和value放到此map中
-        Map<String, Object> templateVariableMap = getTemplateVariableMap(posterTemplateList);
+        Map<String, Object> templateVariableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
         Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(templateVariableMap, this.getAppContext().getStepId());
 
         // 循环处理，进行变量替换
@@ -180,6 +180,10 @@ public class PosterActionHandler extends BaseActionHandler {
             List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
             for (PosterVariableEntity variable : variableList) {
                 Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
+                // 如果值依然是占位符，把值中带有 {{上传素材.docs[1].url}} 结构的字符串替换为空字符串
+                if (value instanceof String) {
+                    value = CreativeUtils.removePlaceholder(String.valueOf(value));
+                }
                 variable.setValue(value);
             }
             posterTemplate.setVariableList(variableList);
@@ -388,17 +392,6 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerResponse.setErrorMsg(exception.getMessage());
             return handlerResponse;
         }
-    }
-
-    private Map<String, Object> getTemplateVariableMap(List<PosterTemplateEntity> posterTemplateList) {
-        Map<String, Object> variableValueMap = new HashMap<>();
-        for (PosterTemplateEntity posterTemplate : posterTemplateList) {
-            List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
-            for (PosterVariableEntity variable : variableList) {
-                variableValueMap.put(variable.getUuid(), variable.getValue());
-            }
-        }
-        return variableValueMap;
     }
 
     /**
