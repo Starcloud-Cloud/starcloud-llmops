@@ -70,12 +70,22 @@ public class StringUtil {
         return StrUtil.isNotBlank(source);
     }
 
+    public static void main(String[] args) {
+        System.out.println(objectBlank(null));
+    }
+
     public static Boolean objectBlank(Object object) {
-        return Objects.isNull(object) || ((object instanceof String) && isBlank((String) object));
+        if (object instanceof String) {
+            return isBlank((String) object);
+        }
+        return Objects.isNull(object);
     }
 
     public static Boolean objectNotBlank(Object object) {
-        return Objects.nonNull(object) && ((object instanceof String) && isNotBlank((String) object));
+        if (object instanceof String) {
+            return isNotBlank((String) object);
+        }
+        return Objects.nonNull(object);
     }
 
     /**

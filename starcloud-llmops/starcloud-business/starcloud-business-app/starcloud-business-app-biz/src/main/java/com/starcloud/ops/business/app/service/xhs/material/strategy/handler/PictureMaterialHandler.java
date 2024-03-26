@@ -35,7 +35,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
     @Override
     public void validatePosterStyle(PosterStyleDTO posterStyle) {
         AppValidate.notNull(posterStyle, "创作方案配置异常！海报风格不能为空！");
-        AppValidate.notEmpty(posterStyle.getMaterialList(), "创作方案配置异常！海报模板不能为空！");
+        AppValidate.notEmpty(posterStyle.getTemplateList(), "创作方案配置异常！海报模板不能为空！");
     }
 
     /**
