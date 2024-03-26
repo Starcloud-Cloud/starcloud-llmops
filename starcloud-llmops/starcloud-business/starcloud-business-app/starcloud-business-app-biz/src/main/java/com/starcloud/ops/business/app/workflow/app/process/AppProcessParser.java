@@ -70,6 +70,7 @@ public class AppProcessParser implements ConfigResource {
 
     /**
      * 创建一个串行执行的 process
+     * 需要支持从任意节点开始执行（重试情况），所以需要组装所有节点执行的可能链路
      *
      * @return
      */
@@ -79,21 +80,60 @@ public class AppProcessParser implements ConfigResource {
 
         List<WorkflowStepWrapper> stepWrappers = CollectionUtil.defaultIfEmpty(this.app.getWorkflowConfig().getSteps(), new ArrayList<>());
 
-        ProcessLink processLink = bpmnLink;
+        for (int i = 0; i < CollectionUtil.size(stepWrappers); i++) {
 
-        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+            this.buildServiceFlowByStep(bpmnLink, i, stepWrappers);
+        }
 
-            String service = stepWrapper.getFlowStep().getHandler();
+        bpmnLink.end();
 
-            processLink = processLink.nextService(Exp.b(e -> e.equals("req.uid", "'" + this.app.getUid() + "'")), service)
-                    .name(stepWrapper.getStepCode())
-                    .property(JsonUtils.toJsonString(ServiceTaskPropertyDTO.builder().stepId(stepWrapper.getStepCode()).build()))
+        return Optional.of(bpmnLink);
+    }
+
+
+    /**
+     * 通过步骤下标位置开始 创建一条执行到最后的链路，返回下标步骤的执行节点，
+     * 并绑定到传入的startProcessLink链路中，这样startProcessLink 就是一个带条件的并行多条执行链路
+     * @param startProcessLink
+     * @param startIndex
+     * @param stepWrappers
+     * @return
+     */
+    private Optional<ProcessLink> buildServiceFlowByStep(StartProcessLink startProcessLink, Integer startIndex, List<WorkflowStepWrapper> stepWrappers) {
+
+        //开始的节点单独处理
+        WorkflowStepWrapper startStepWrapper = stepWrappers.get(startIndex);
+
+        ProcessLink startStepProcessLink = startProcessLink.nextService(
+                        Exp.b(e -> e.equals("req.uid", "'" + this.app.getUid() + "'")
+                                .and(Exp.b(ex -> ex.equals("req.stepId", startStepWrapper.getStepCode()))))
+                        , startStepWrapper.getFlowStep().getHandler()
+                )
+                .name(startStepWrapper.getStepCode())
+                .property(JsonUtils.toJsonString(ServiceTaskPropertyDTO.builder().stepId(startStepWrapper.getStepCode()).build()))
+                .build();
+
+        //增加后续节点
+        List<WorkflowStepWrapper> flowsWrappers = CollectionUtil.sub(stepWrappers, startIndex + 1, CollectionUtil.size(stepWrappers));
+
+        ProcessLink processLink = startStepProcessLink;
+
+        for (WorkflowStepWrapper stepWrapper : flowsWrappers) {
+
+            String stepId = stepWrapper.getStepCode();
+            //从启动节点开始增加后续连续的节点
+            processLink = processLink.nextService(
+                            Exp.b(e -> e.equals("req.uid", "'" + this.app.getUid() + "'")),
+                            stepWrapper.getFlowStep().getHandler())
+                    .name(stepId)
+                    .property(JsonUtils.toJsonString(ServiceTaskPropertyDTO.builder().stepId(stepId).build()))
                     .build();
+
         }
 
         processLink.end();
 
-        return Optional.of(bpmnLink);
+        return Optional.of(startStepProcessLink);
     }
 
     @Override

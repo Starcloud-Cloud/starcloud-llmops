@@ -156,14 +156,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setMediumUid(request.getMediumUid());
             appContext.setAiModel(this.obtainLlmAiModelType(request));
             appContext.setN(request.getN());
+            appContext.setContinuous(request.getContinuous());
+
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
-                //前端传入节点，默认当执行一次处理
-                appContext.setStepOnce(true);
             } else {
                 request.setStepId(appContext.getStepId());
                 //不传入节点，默认从头开始执行到最后节点
-                appContext.setStepOnce(false);
+                appContext.setContinuous(true);
             }
         } catch (ServiceException exception) {
             log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());

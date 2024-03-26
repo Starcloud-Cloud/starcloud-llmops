@@ -37,6 +37,12 @@ public class AppExecuteReqVO extends AppContextReqVO {
     private String stepId;
 
     /**
+     * 是否连续执行
+     */
+    @Schema(description = "是否连续执行")
+    private Boolean continuous;
+
+    /**
      * 应用执行AI模型
      */
     @Schema(description = "应用执行AI模型")
