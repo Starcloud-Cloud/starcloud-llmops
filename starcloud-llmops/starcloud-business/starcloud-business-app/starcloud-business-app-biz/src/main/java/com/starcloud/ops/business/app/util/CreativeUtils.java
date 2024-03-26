@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
@@ -15,13 +17,14 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -136,6 +139,16 @@ public class CreativeUtils {
     }
 
     /**
+     * 判断是否是图片类型变量
+     *
+     * @param variable 变量
+     * @return boolean
+     */
+    public static Boolean isImageVariable(PosterVariableDTO variable) {
+        return AppVariableTypeEnum.IMAGE.name().equalsIgnoreCase(variable.getType());
+    }
+
+    /**
      * 预处理海报风格列表，一些数据处理，填充。
      *
      * @param posterStyleList
@@ -172,7 +185,7 @@ public class CreativeUtils {
                     .collect(Collectors.toList());
 
             // 获取模板变量重图片类型变量的数量
-            Integer totalImageCount = (int) variableList.stream().filter(item -> CreativeConstants.IMAGE.equals(item.getType())).count();
+            Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
             // 获取模板模式，如果为空则默认为随机模式
             String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.RANDOM.name() : template.getMode();
             // 获取模板标题生成模式，如果为空则默认为默认模式
@@ -193,6 +206,44 @@ public class CreativeUtils {
         posterStyle.setTotalImageCount(imageCount);
         posterStyle.setTemplateList(templateList);
         return posterStyle;
+    }
+
+    /**
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
+     */
+    public static Map<String, Object> getTemplateVariableMap(PosterStyleDTO posterStyle) {
+        Map<String, Object> variableValueMap = new HashMap<>();
+        for (PosterTemplateDTO posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+            for (PosterVariableDTO variable : variableList) {
+                variableValueMap.put(variable.getUuid(), variable.getValue());
+            }
+        }
+        return variableValueMap;
+    }
+
+    /**
+     * 变量替换
+     *
+     * @param variableMap 变量集合
+     * @param valueMap    值集合
+     * @return 替换之后集合
+     */
+    public static Map<String, Object> replaceVariable(Map<String, Object> variableMap, Map<String, Object> valueMap) {
+        Map<String, Object> replaceVariableMap = new HashMap<>();
+        MapUtil.emptyIfNull(variableMap).forEach((key, value) -> {
+            if (value != null) {
+                value = QLExpressUtils.execute(String.valueOf(value), valueMap);
+                if (value instanceof String) {
+                    value = StrUtil.format(String.valueOf(value), valueMap);
+                }
+            }
+            replaceVariableMap.put(key, value);
+        });
+        return replaceVariableMap;
     }
 
 }

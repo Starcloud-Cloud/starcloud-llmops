@@ -1,10 +1,18 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
+import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -30,28 +38,36 @@ import java.util.stream.Collectors;
 @Component
 public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMaterialDTO> {
 
-    private static final String PLACEHOLDER = "{{docs[%s].%s}}";
+    /**
+     * 占位符正则
+     */
+    private static final String PLACEHOLDER = "\\{\\{.*?}}";
 
+    /**
+     * 提取素材索引正则
+     */
     private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
 
     /**
-     * 获取每个海报风格需要的素材数量
+     * 不同的素材类型，验证海报风格的要求可能不一样。
+     * 提供一个默认的实现，子类可以覆盖
      *
-     * @param posterStyleList 海报风格列表
-     * @return 每个海报风格需要的素材数量
+     * @param posterStyle 海报风格
      */
-    protected abstract List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList);
-
-    /**
-     * 处理素材为一个Map
-     *
-     * @param materialList     素材列表
-     * @param materialSizeList 每个海报风格需要的素材数量
-     * @return 海报素材 map
-     */
-    protected Map<Integer, List<M>> doHandleMaterialMap(List<M> materialList, List<Integer> materialSizeList) {
-        // 提供一个默认的复制逻辑，不同的素材可能需要不同的复制逻辑, 具体子类实现即可
-        return getMaterialListMap(materialList, materialSizeList);
+    public void validatePosterStyle(PosterStyleDTO posterStyle) {
+        AppValidate.notNull(posterStyle, "创作方案配置异常！海报风格不能为空！");
+        AppValidate.notEmpty(posterStyle.getMaterialList(), "创作方案配置异常！海报模板不能为空！");
+        for (PosterTemplateDTO posterTemplate : posterStyle.getTemplateList()) {
+            AppValidate.notNull(posterStyle, "创作方案配置异常！海报模板不能为空！");
+            for (PosterVariableDTO variable : CollectionUtil.emptyIfNull(posterTemplate.getVariableList())) {
+                AppValidate.notNull(variable, "创作方案配比异常！海报模板变量不能为空！");
+                AppValidate.notNull(variable.getType(), "创作方案配置异常！海报模板变量类型不能为空！");
+                AppValidate.notNull(variable.getField(), "创作方案配置异常！海报模板变量不能为空！");
+                if (StringUtil.objectBlank(variable.getValue())) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "创作方案配置异常！海报模板变量值不能为空！"));
+                }
+            }
+        }
     }
 
     /**
@@ -69,26 +85,111 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
         }
-        return doHandleMaterialMap(materialList, needMaterialSizeList);
+        return this.doHandleMaterialMap(materialList, needMaterialSizeList);
     }
 
     /**
-     * 处理资料库列表，返回处理后的资料库列表
+     * 处理资料库列表，返回处理后的资料库列表。
+     * 提供了默认的逻辑，子类可以重写此方法来自定义处理逻辑
      *
      * @param posterStyle  海报风格
      * @param materialList 资料库列表
+     * @param metadata     素材元数据
      * @return 处理后的海报风格
      */
-    public abstract PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList);
+    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
+        return this.defaultHandlePosterStyle(posterStyle, materialList, metadata);
+    }
 
     /**
-     * 将资料库列表按照指定的大小和总数进行分组
+     * 获取每个海报风格需要的素材数量 <p>
+     * 如果需要不同的分组逻辑，子类重写此方法即可
+     *
+     * @param posterStyleList 海报风格列表
+     * @return 每个海报风格需要的素材数量
+     */
+    protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
+        return this.defaultNeedMaterialSizeList(posterStyleList);
+    }
+
+    /**
+     * 处理素材为一个Map，如果需要不同的分组逻辑，子类重写此方法即可
+     *
+     * @param materialList     素材列表
+     * @param materialSizeList 每个海报风格需要的素材数量
+     * @return 海报素材 map
+     */
+    protected Map<Integer, List<M>> doHandleMaterialMap(List<M> materialList, List<Integer> materialSizeList) {
+        // 提供一个默认的复制逻辑，不同的素材可能需要不同的复制逻辑, 具体子类实现即可
+        return this.defaultMaterialListMap(materialList, materialSizeList);
+    }
+
+    /**
+     * 获取风格海报素材选择最大索引列表
+     *
+     * @param posterStyleList 海报列表
+     * @return 风格海报素材选择最大索引列表
+     */
+    protected List<Integer> defaultNeedMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
+        List<Integer> materialIndexList = new ArrayList<>();
+        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
+            // 如果风格为空，填充 0
+            if (Objects.isNull(posterStyle)) {
+                materialIndexList.add(0);
+                continue;
+            }
+
+            List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+            // 如果海报模板为空，填充 0
+            if (CollectionUtil.isEmpty(posterTemplateList)) {
+                materialIndexList.add(0);
+                continue;
+            }
+
+            // 报模板，图片变量值，获取到选择素材的最大索引列表
+            List<Integer> templateIndexList = new ArrayList<>();
+            for (PosterTemplateDTO template : posterTemplateList) {
+                // 如果海报模板为空，设置默认值为 -1
+                if (Objects.isNull(template)) {
+                    templateIndexList.add(-1);
+                    continue;
+                }
+                // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
+                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream()
+                        .filter(Objects::nonNull)
+                        .filter(CreativeUtils::isImageVariable)
+                        .map(item -> {
+                            Integer matcher = matcherFirstInt(String.valueOf(item.getValue()));
+                            if (matcher == -1) {
+                                return -1;
+                            }
+                            return matcher + 1;
+                        })
+                        .max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
+
+                templateIndexList.add(maxIndex);
+            }
+
+            // 所有的海报模板中获取最大的那个素材索引。如果没有，为 -1
+            Integer maxIndex = templateIndexList.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
+            if (maxIndex == -1) {
+                // 如果没有找到，设置该值为图片总数
+                materialIndexList.add(posterStyle.getTotalImageCount());
+            } else {
+                materialIndexList.add(maxIndex);
+            }
+        }
+        return materialIndexList;
+    }
+
+    /**
+     * 默认逻辑： 将资料库列表按照指定的大小和总数进行分组
      *
      * @param materialList 资料库列表
      * @param needSizeList 需要复制的列表
      * @return 分组后的资料库列表
      */
-    private Map<Integer, List<M>> getMaterialListMap(List<M> materialList, List<Integer> needSizeList) {
+    protected Map<Integer, List<M>> defaultMaterialListMap(List<M> materialList, List<Integer> needSizeList) {
         // 结果集合
         Map<Integer, List<M>> resultMap = new HashMap<>();
 
@@ -136,71 +237,59 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
     }
 
     /**
-     * 获取风格海报素材选择最大索引列表
+     * 默认处理海报风格。
      *
-     * @param posterStyleList 海报列表
-     * @return 风格海报素材选择最大索引列表
+     * @param posterStyle  海报风格
+     * @param materialList 素材列表
+     * @param metadata     素材元数据
+     * @return 海报风格
      */
-    protected List<Integer> findMaterialIndexList(List<PosterStyleDTO> posterStyleList) {
-        List<Integer> materialIndexList = new ArrayList<>();
-        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
-            // 如果风格为空，填充 0
-            if (Objects.isNull(posterStyle)) {
-                materialIndexList.add(0);
-                continue;
-            }
-
-            List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-            // 如果海报模板为空，填充 0
-            if (CollectionUtil.isEmpty(posterTemplateList)) {
-                materialIndexList.add(0);
-                continue;
-            }
-
-            // 报模板，图片变量值，获取到选择素材的最大索引列表
-            List<Integer> templateIndexList = new ArrayList<>();
-            for (PosterTemplateDTO template : posterTemplateList) {
-                // 如果海报模板为空，设置默认值为 -1
-                if (Objects.isNull(template)) {
-                    templateIndexList.add(-1);
-                    continue;
-                }
-                // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
-                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream()
-                        .filter(Objects::nonNull)
-                        .filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType()))
-                        .map(item -> {
-                            Integer matcher = matcherFirstInt(String.valueOf(item.getValue()));
-                            if (matcher == -1) {
-                                return -1;
-                            }
-                            return matcher + 1;
-                        })
-                        .max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
-                templateIndexList.add(maxIndex);
-            }
-
-            // 所有的海报模板中获取最大的那个素材索引。如果没有，为 -1
-            Integer maxIndex = templateIndexList.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
-            if (maxIndex == -1) {
-                // 如果没有找到，设置该值为图片总数
-                materialIndexList.add(posterStyle.getTotalImageCount());
-            } else {
-                materialIndexList.add(maxIndex);
-            }
+    protected PosterStyleDTO defaultHandlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
+        // 如果资料库为空，直接返回海报风格，不做处理
+        if (CollectionUtil.isEmpty(materialList)) {
+            return posterStyle;
         }
-        return materialIndexList;
+        PosterStyleDTO style = SerializationUtils.clone(posterStyle);
+        // 进行变量替换
+        Map<String, Object> replaceValueMap = replaceVariable(style, materialList, metadata);
+        // 进行海报风格的处理
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        for (PosterTemplateDTO template : templateList) {
+            // 获取变量列表，进行变量的替换填充
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+            for (PosterVariableDTO variable : variableList) {
+                Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
+                // 如果值依然是占位符，把值中带有 {{上传素材.docs[1].url}} 结构的字符串替换为空字符串
+                if (value instanceof String) {
+                    value = removePlaceholder(String.valueOf(value));
+                }
+                variable.setValue(value);
+            }
+            template.setVariableList(variableList);
+        }
+        // 设置资料库列表，后续可能会用到
+        style.setMaterialList(materialList);
+        style.setTemplateList(templateList);
+        return style;
     }
 
     /**
-     * 获取素材占位符
+     * 变量替换
      *
-     * @param i     素材列表下表
-     * @param field 素材字段
-     * @return 素材占位符
+     * @param posterStyle  变量列表
+     * @param materialList 值列表
+     * @param metadata     素材元数据
+     * @return 变量替换后的值
      */
-    protected String materialPlaceholder(Integer i, String field) {
-        return String.format(PLACEHOLDER, i, field);
+    protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
+        // 获取变量uuid和value的集合
+        Map<String, Object> variableMap = CreativeUtils.getTemplateVariableMap(posterStyle);
+
+        // 处理素材。变为可以替换的结构化数据
+        JsonDocsDefSchema<M> jsonDocsDefSchema = new JsonDocsDefSchema<>();
+        jsonDocsDefSchema.setDocs(materialList);
+        Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepName(), jsonDocsDefSchema);
+        return CreativeUtils.replaceVariable(variableMap, materialMap);
     }
 
     /**
@@ -221,6 +310,16 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
             return -1;
         }
         return Integer.valueOf(matcher.group(1));
+    }
+
+    /**
+     * 移除占位符
+     *
+     * @param input 输入
+     * @return 输出
+     */
+    protected static String removePlaceholder(String input) {
+        return input.replaceAll(PLACEHOLDER, "");
     }
 
 }

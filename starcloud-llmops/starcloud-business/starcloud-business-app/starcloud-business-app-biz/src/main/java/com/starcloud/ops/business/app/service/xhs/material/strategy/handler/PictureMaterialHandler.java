@@ -3,14 +3,17 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.dto.PictureCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
+import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +32,12 @@ import java.util.stream.Collectors;
 @MaterialType(MaterialTypeEnum.PICTURE)
 class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMaterialDTO> {
 
+    @Override
+    public void validatePosterStyle(PosterStyleDTO posterStyle) {
+        AppValidate.notNull(posterStyle, "创作方案配置异常！海报风格不能为空！");
+        AppValidate.notEmpty(posterStyle.getMaterialList(), "创作方案配置异常！海报模板不能为空！");
+    }
+
     /**
      * 获取每个海报风格需要的素材数量
      *
@@ -37,9 +46,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      */
     @Override
     protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
-        return CollectionUtil.emptyIfNull(posterStyleList).stream()
-                .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
-                .collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(posterStyleList).stream().map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount())).collect(Collectors.toList());
     }
 
     /**
@@ -47,10 +54,11 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      *
      * @param posterStyle  海报风格
      * @param materialList 资料库列表
+     * @param metadata     素材元数据
      * @return 处理后的海报风格
      */
     @Override
-    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<PictureCreativeMaterialDTO> materialList) {
+    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<PictureCreativeMaterialDTO> materialList, MaterialMetadata metadata) {
         // 如果资料库为空，直接返回海报风格，不做处理
         if (CollectionUtil.isEmpty(materialList)) {
             return posterStyle;
@@ -68,7 +76,8 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
         // 设置资料库列表，后续可能会用到
         style.setMaterialList(materialList);
         style.setTemplateList(templateList);
-        return style;
+        // 调用父类，文字类型可能需要处理填充
+        return super.handlePosterStyle(style, materialList, metadata);
     }
 
     /**
@@ -82,7 +91,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
         List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
-            if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
+            if (CreativeUtils.isImageVariable(variable) && StringUtil.objectNotBlank(variable.getValue())) {
                 // 如果资料库为空，直接跳出循环
                 if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
@@ -107,7 +116,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
         List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
-            if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
+            if (CreativeUtils.isImageVariable(variable) && StringUtil.objectNotBlank(variable.getValue())) {
                 // 如果资料库为空，直接跳出循环
                 if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
