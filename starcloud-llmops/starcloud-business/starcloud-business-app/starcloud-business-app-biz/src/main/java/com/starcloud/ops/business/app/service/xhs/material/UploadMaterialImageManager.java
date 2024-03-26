@@ -17,7 +17,11 @@ import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
@@ -119,7 +123,31 @@ public class UploadMaterialImageManager implements InitializingBean {
                         CountDownLatch countDownLatch) {
         try {
             field.setAccessible(true);
+            // 图片链接或相对路径
             String imageName = (String) field.get(materialDTO);
+
+            // 判断是不是图片链接  是图片链接跳过
+            InputStream inputStream = null;
+            try {
+                URL url = new URL(imageName);
+                URLConnection urlConnection = url.openConnection();
+                urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+                inputStream = urlConnection.getInputStream();
+
+                BufferedImage read = ImageIO.read(inputStream);
+                if (Objects.nonNull(read)) {
+                    return;
+                }
+            } catch (MalformedURLException ignored) {
+                log.warn("ignored MalformedURLException");
+            } catch (Exception e) {
+                log.warn("image user error, parseUid={}, imageName={}", parseUid, imageName, e);
+                field.set(materialDTO, StringUtils.EMPTY);
+            } finally {
+                if (Objects.nonNull(inputStream)) {
+                    inputStream.close();
+                }
+            }
 
             // 系统默认临时文件目录/material/{parseUid}/{materialType}/images/{imageName}
             String localPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
