@@ -80,67 +80,15 @@ public class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCrea
         }
 
         // 图片类型的变量列表
-        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                .filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType()))
-                .collect(Collectors.toList());
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
 
         for (int i = 0; i < variableList.size(); i++) {
             PosterVariableDTO variable = variableList.get(i);
-            // 如果用户没有选择占位符，则按照顺序放置占位符
-//            if (StringUtil.objectBlank(variable.getValue())) {
-//                // 防止溢出 i % materialList.size()。
-//                variable.setValue(this.materialPlaceholder(i % materialList.size(), "coverUrl"));
-//            }
-        }
-        posterTemplate.setVariableList(variableList);
-    }
-
-    /**
-     * 随机模式变量组装
-     *
-     * @param posterTemplate 海报模板
-     * @param materialList   资料库列表
-     */
-    private void assembleRandom(PosterTemplateDTO posterTemplate, List<BookListCreativeMaterialDTO> materialList) {
-        // 如果资料库为空，直接跳出循环
-        if (CollectionUtil.isEmpty(materialList)) {
-            return;
-        }
-
-        // 图片类型的变量列表
-        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                .filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType()))
-                .collect(Collectors.toList());
-
-        List<String> usedMaterialList = new ArrayList<>();
-        List<String> materialUrlList = materialList.stream().map(BookListCreativeMaterialDTO::getCoverUrl).collect(Collectors.toList());
-        for (PosterVariableDTO variable : variableList) {
-            // 如果用户没有选择占位符，则随机放置占位符, 否则不做任何处理
-            if (StringUtil.objectBlank(variable.getValue())) {
-                //int randomInt = randomInt(usedMaterialList, materialUrlList);
-                //variable.setValue(this.materialPlaceholder(randomInt, "coverUrl"));
+            if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
+                // todo 是否需要数据填充?
             }
         }
         posterTemplate.setVariableList(variableList);
-    }
-
-    /**
-     * 递归实现获取随机下标，且获取到的值不在 usedMaterialList 中
-     *
-     * @param usedMaterialList 已经使用的下标
-     * @param materialList     资料库列表
-     * @return 随机下标
-     */
-    protected Integer randomInt(List<String> usedMaterialList, List<String> materialList) {
-        int randomInt = RandomUtil.randomInt(materialList.size());
-        if (usedMaterialList.size() == materialList.size()) {
-            return randomInt;
-        }
-        if (usedMaterialList.contains(materialList.get(randomInt))) {
-            return randomInt(materialList, usedMaterialList);
-        }
-        usedMaterialList.add(materialList.get(randomInt));
-        return randomInt;
     }
 
 }

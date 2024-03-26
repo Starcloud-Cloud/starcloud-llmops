@@ -83,17 +83,17 @@ class BookListMaterialHandler extends AbstractMaterialHandler<BookListCreativeMa
             return;
         }
 
-        // 图片类型的变量列表
-        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                .filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType()))
-                .collect(Collectors.toList());
+        // 模板的变量列表
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
 
         for (int i = 0; i < variableList.size(); i++) {
             PosterVariableDTO variable = variableList.get(i);
-            // 如果用户没有选择占位符，则按照顺序放置占位符
-            if (StringUtil.objectBlank(variable.getValue())) {
-                // 防止溢出 i % materialList.size()。
-                variable.setValue(this.materialPlaceholder(i % materialList.size(), "coverUrl"));
+            if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
+                // 如果用户没有选择占位符，则按照顺序放置占位符
+                if (StringUtil.objectBlank(variable.getValue())) {
+                    // 防止溢出 i % materialList.size()。
+                    variable.setValue(this.materialPlaceholder(i % materialList.size(), "coverUrl"));
+                }
             }
         }
         posterTemplate.setVariableList(variableList);
@@ -112,17 +112,17 @@ class BookListMaterialHandler extends AbstractMaterialHandler<BookListCreativeMa
         }
 
         // 图片类型的变量列表
-        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                .filter(item -> AppVariableTypeEnum.IMAGE.name().equals(item.getType()))
-                .collect(Collectors.toList());
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
 
         List<String> usedMaterialList = new ArrayList<>();
         List<String> materialUrlList = materialList.stream().map(BookListCreativeMaterialDTO::getCoverUrl).collect(Collectors.toList());
         for (PosterVariableDTO variable : variableList) {
-            // 如果用户没有选择占位符，则随机放置占位符, 否则不做任何处理
-            if (StringUtil.objectBlank(variable.getValue())) {
-                int randomInt = randomInt(usedMaterialList, materialUrlList);
-                variable.setValue(this.materialPlaceholder(randomInt, "coverUrl"));
+            if (AppVariableTypeEnum.IMAGE.name().equals(variable.getType())) {
+                // 如果用户没有选择占位符，则随机放置占位符, 否则不做任何处理
+                if (StringUtil.objectBlank(variable.getValue())) {
+                    int randomInt = randomInt(usedMaterialList, materialUrlList);
+                    variable.setValue(this.materialPlaceholder(randomInt, "coverUrl"));
+                }
             }
         }
         posterTemplate.setVariableList(variableList);
