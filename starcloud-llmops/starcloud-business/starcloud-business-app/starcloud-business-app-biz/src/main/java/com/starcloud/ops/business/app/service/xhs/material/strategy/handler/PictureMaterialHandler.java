@@ -73,8 +73,6 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
                 assembleRandom(template, materialList);
             }
         }
-        // 设置资料库列表，后续可能会用到
-        style.setMaterialList(materialList);
         style.setTemplateList(templateList);
         // 调用父类，文字类型可能需要处理填充
         return super.handlePosterStyle(style, materialList, metadata);

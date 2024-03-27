@@ -258,8 +258,6 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
             }
             template.setVariableList(variableList);
         }
-        // 设置资料库列表，后续可能会用到
-        style.setMaterialList(materialList);
         style.setTemplateList(templateList);
         return style;
     }
