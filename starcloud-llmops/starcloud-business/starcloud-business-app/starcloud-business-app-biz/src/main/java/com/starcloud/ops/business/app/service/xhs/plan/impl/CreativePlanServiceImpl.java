@@ -535,6 +535,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     // 将处理后的海报风格填充到执行参数中
                     Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
                     appResponse.putStepVariable(posterSchemeStep.getName(), variableMap);
+
+                    // 将素材库的素材列表填充上传素材步骤变量中
+                    Map<String, Object> handleMaterialMap = Collections.singletonMap(CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(handleMaterialList));
+                    appResponse.putStepVariable(materialSchemeStep.getName(), handleMaterialMap);
                 }
             }
             contentExecute.setAppResponse(appResponse);

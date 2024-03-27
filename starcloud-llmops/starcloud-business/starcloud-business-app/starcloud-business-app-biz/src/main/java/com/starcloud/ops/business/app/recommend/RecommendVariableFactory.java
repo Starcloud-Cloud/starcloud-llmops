@@ -172,8 +172,9 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defMaterialVariable() {
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.singletonList(
-                RecommendVariableItemFactory.defMaterialTypeVariable()
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defMaterialTypeVariable(),
+                RecommendVariableItemFactory.defMaterialListVariable()
         ));
         return variable;
     }

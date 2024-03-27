@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.xhs.scheme.entity.poster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -56,12 +55,6 @@ public class PosterStyleEntity implements java.io.Serializable {
      */
     @Schema(description = "该风格下的图片类型变量总数量")
     private Integer totalImageCount;
-
-    /**
-     * 素材列表
-     */
-    @Schema(description = "素材列表")
-    private List<? extends AbstractBaseCreativeMaterialDTO> materialList;
 
     /**
      * 海报风格描述

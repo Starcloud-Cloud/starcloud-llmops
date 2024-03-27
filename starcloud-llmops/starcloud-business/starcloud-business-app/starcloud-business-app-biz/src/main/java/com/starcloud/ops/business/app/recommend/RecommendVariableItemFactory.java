@@ -355,9 +355,9 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defMaterialTypeVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField("MATERIAL_TYPE");
-        variableItem.setLabel("资料库类型");
-        variableItem.setDescription("资料库类型");
+        variableItem.setField(CreativeConstants.MATERIAL_TYPE);
+        variableItem.setLabel("素材类型");
+        variableItem.setDescription("素材类型");
         variableItem.setDefaultValue(MaterialTypeEnum.BOOK_LIST.getCode());
         variableItem.setValue(MaterialTypeEnum.BOOK_LIST.getCode());
         variableItem.setOrder(1);
@@ -367,6 +367,27 @@ public class RecommendVariableItemFactory {
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         variableItem.setOptions(MaterialTypeEnum.allOptions());
+        return variableItem;
+    }
+
+    /**
+     * 素材列表
+     *
+     * @return 素材列表
+     */
+    public static VariableItemRespVO defMaterialListVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_LIST);
+        variableItem.setLabel("素材列表");
+        variableItem.setDescription("素材列表");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.MATERIAL.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
 

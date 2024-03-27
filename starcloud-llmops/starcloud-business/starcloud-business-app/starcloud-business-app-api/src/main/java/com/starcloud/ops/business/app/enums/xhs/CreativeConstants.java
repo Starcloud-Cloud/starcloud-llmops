@@ -73,7 +73,6 @@ public interface CreativeConstants {
      */
     String MATERIAL_TYPE = "MATERIAL_TYPE";
 
-
     /**
      * 素材节点 素材列表
      */

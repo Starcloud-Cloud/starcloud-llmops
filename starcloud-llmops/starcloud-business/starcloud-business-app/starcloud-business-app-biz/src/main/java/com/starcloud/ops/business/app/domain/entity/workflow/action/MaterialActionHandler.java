@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -26,6 +28,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,14 +87,12 @@ public class MaterialActionHandler extends BaseActionHandler {
         final Map<String, Object> posterParams = this.getAppContext().getContextVariablesValues(PosterActionHandler.class, false);
 
         // 获取到处理好的上传素材
-        String posterStyle = (String) posterParams.get(CreativeConstants.POSTER_STYLE);
-        PosterStyleDTO posterStyleDTO = JsonUtils.parseObject(posterStyle, PosterStyleDTO.class);
+        String materialListString = (String) posterParams.get(CreativeConstants.MATERIAL_LIST);
+        List<AbstractBaseCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractBaseCreativeMaterialDTO.class);
 
         JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
+        jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));
 
-        if (posterStyleDTO != null) {
-            jsonDocsDefSchema.setDocs(posterStyleDTO.getMaterialList());
-        }
         //保持跟返回结果一样的JsonSchema
         JsonSchema outJsonSchema = this.getOutVariableJsonSchema(this.getAppContext().getStepWrapper());
         response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
