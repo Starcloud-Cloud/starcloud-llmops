@@ -29,6 +29,8 @@ public class UploadMaterialImageDTO {
      */
     private List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList;
 
+    private String materialType;
+
     /**
      * 是否保存数据库
      */
@@ -38,6 +40,7 @@ public class UploadMaterialImageDTO {
         this.parseUid = parseUid;
         this.imageField = MaterialTypeEnum.of(materialType).filterField(FieldTypeEnum.image);
         this.materialDTOList = materialDTOList;
+        this.materialType = materialType;
     }
 
     /**

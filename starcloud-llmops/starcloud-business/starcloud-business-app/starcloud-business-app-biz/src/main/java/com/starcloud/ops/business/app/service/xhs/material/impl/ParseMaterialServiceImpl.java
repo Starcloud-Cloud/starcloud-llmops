@@ -91,8 +91,9 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             if (split.length != 2 || !Objects.equals("zip", split[1])) {
                 throw exception(NOT_ZIP_PACKAGE);
             }
-
             String materialType = split[0];
+            MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
+
             //     系统默认临时文件目录/material/parseUid
             String dirPath = TMP_DIR_PATH + File.separator + parseUid;
             File dir = new File(dirPath);
@@ -102,7 +103,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             ZipUtil.unzip(zipFile, dir, StandardCharsets.UTF_8);
             // 读取excel 第一行为表结构说明 第二行为表头
             FileInputStream excelFile = new FileInputStream(dirPath + File.separator + materialType + File.separator + materialType + ".xlsx");
-            List<? extends AbstractBaseCreativeMaterialDTO> result = ExcelUtils.read(excelFile, MaterialTypeEnum.of(materialType).getAClass(), 2);
+            List<? extends AbstractBaseCreativeMaterialDTO> result = ExcelUtils.read(excelFile, materialTypeEnum.getAClass(), 2);
             for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : result) {
                 abstractBaseCreativeMaterialDTO.valid();
                 abstractBaseCreativeMaterialDTO.setType(materialType);
