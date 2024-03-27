@@ -1,10 +1,6 @@
 package com.starcloud.ops.business.app.enums.xhs;
 
-//import sun.security.action.GetPropertyAction;
-
 import java.nio.file.Paths;
-
-import static java.security.AccessController.doPrivileged;
 
 /**
  * @author nacoyer
@@ -99,7 +95,7 @@ public interface CreativeConstants {
     /**
      * 素材上传临时路径
      */
-    String TMP_DIR_PATH = Paths.get(java.security.Security.getProperty("java.io.tmpdir"), "material").toString();
+    String TMP_DIR_PATH = Paths.get(System.getProperty("java.io.tmpdir"), "material").toString();
 
 
     /**
