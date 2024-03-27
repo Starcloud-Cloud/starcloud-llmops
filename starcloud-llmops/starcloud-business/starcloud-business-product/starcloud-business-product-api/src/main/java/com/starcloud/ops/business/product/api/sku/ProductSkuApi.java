@@ -53,5 +53,13 @@ public interface ProductSkuApi {
      */
     void canPlaceOrder(Long userId, Long skuId);
 
+    /**
+     * 验证商品是否支持签约单 @Link 针对 ProductSkuDO.getSubscribeConfig() 进行验证
+     *
+     * @param skuId  SKU 编号
+     */
+    void isValidSubscriptionSupported(Long skuId);
+
+
 
 }
