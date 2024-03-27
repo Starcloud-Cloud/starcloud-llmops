@@ -19,6 +19,7 @@
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
         <java-langchain.version>v1.0.7</java-langchain.version>
         <poi-version>3.17</poi-version>
+        <aspose-version>23.1</aspose-version>
     </properties>
 
     <modules>
@@ -85,6 +86,12 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.luhuiguo</groupId>
+                <artifactId>aspose-words</artifactId>
+                <version>${aspose-version}</version>
             </dependency>
 
         </dependencies>

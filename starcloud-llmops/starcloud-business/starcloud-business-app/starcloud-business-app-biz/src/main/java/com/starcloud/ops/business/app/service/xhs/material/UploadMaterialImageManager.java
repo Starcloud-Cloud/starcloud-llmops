@@ -1,11 +1,16 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.thread.BlockPolicy;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.infra.service.file.FileService;
+import com.aspose.words.Document;
+import com.aspose.words.SaveFormat;
+import com.jmatio.io.stream.FileBufferedOutputStream;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,13 +21,13 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -73,15 +78,97 @@ public class UploadMaterialImageManager implements InitializingBean {
         while (true) {
             try {
                 UploadMaterialImageDTO uploadMaterialDTO = blockingQueue.take();
-                distribute(uploadMaterialDTO);
+                if (MaterialTypeEnum.CONTRACT.getCode().equals(uploadMaterialDTO.getMaterialType())) {
+                    parseWord(uploadMaterialDTO);
+                } else {
+                    parse(uploadMaterialDTO);
+                }
             } catch (Exception e) {
                 log.warn("start upload error", e);
             }
         }
     }
 
+    // 处理 word 图片
+    private void parseWord(UploadMaterialImageDTO uploadMaterialDTO) {
+        // 判断type 类型
+        String parseUid = uploadMaterialDTO.getParseUid();
+
+        List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
+        List<Field> imageField = uploadMaterialDTO.getImageField();
+        int subCount = materialDTOList.size() * imageField.size();
+        CountDownLatch countDownLatch = new CountDownLatch(subCount);
+        log.info("start upload word material image, parseUid = {}, size={}", parseUid, subCount);
+        long start = System.currentTimeMillis();
+        try {
+            for (int i = 0; i < materialDTOList.size(); i++) {
+                AbstractBaseCreativeMaterialDTO materialDTO = materialDTOList.get(i);
+                String wordPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
+                        + materialDTO.getType() + File.separator + "word" + i + ".docx";
+
+                File word = new File(wordPath);
+                if (!word.exists()) {
+                    for (int j = 0; j < imageField.size(); j++) {
+                        countDownLatch.countDown();
+                    }
+                    continue;
+                }
+
+                Document doc = new Document(Files.newInputStream(word.toPath()));
+
+                String localPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
+                        + materialDTO.getType() + File.separator + "wordImages" + File.separator;
+
+                int pageCount = doc.getPageCount();
+                for (int j = 0; j < imageField.size(); j++) {
+                    if (j >= pageCount) {
+                        // 字段数 大于word页数
+                        countDownLatch.countDown();
+                        continue;
+                    }
+                    Document extractedPage = doc.extractPages(j, 1);
+                    Field field = imageField.get(j);
+                    String imageName = FileUtil.getPrefix(word) + "-" + j + ".png";
+                    String ossPath = "material" + File.separator + parseUid
+                            + File.separator + imageName;
+                    threadPoolExecutor.execute(() ->
+                            upload(extractedPage, materialDTO, field,
+                                    localPath, ossPath, imageName, countDownLatch));
+                }
+            }
+            if (countDownLatch.await(1, TimeUnit.MINUTES)) {
+                long end = System.currentTimeMillis();
+                redisTemplate.boundValueOps(MATERIAL_PREFIX + parseUid).set(JsonUtils.toJsonString(materialDTOList), 3, TimeUnit.DAYS);
+                log.info("upload word image success, {} ms", end - start);
+            } else {
+                redisTemplate.boundValueOps(MATERIAL_IMPORT_ERROR + parseUid).set("超时请重试", 3, TimeUnit.DAYS);
+                log.warn("upload wod image timeout");
+            }
+        } catch (Exception e) {
+            log.warn("upload word image error", e);
+            redisTemplate.boundValueOps(MATERIAL_IMPORT_ERROR + parseUid).set(e.getMessage(), 3, TimeUnit.DAYS);
+        }
+
+    }
+
+    private void upload(Document extractedPage, AbstractBaseCreativeMaterialDTO materialDTO,
+                        Field field, String localPath, String ossPath, String imageName, CountDownLatch countDownLatch) {
+        try {
+            field.setAccessible(true);
+            String filePath = localPath + File.separator + imageName;
+            extractedPage.save(filePath, SaveFormat.PNG);
+            String url = fileService.createFile(imageName, ossPath, IoUtil.readBytes(Files.newInputStream(Paths.get(filePath))));
+            field.set(materialDTO, url);
+        } catch (Exception e) {
+            log.warn("word to image error", e);
+        } finally {
+            countDownLatch.countDown();
+        }
+    }
+
+
     // 上传图片
-    private void distribute(UploadMaterialImageDTO uploadMaterialDTO) {
+    private void parse(UploadMaterialImageDTO uploadMaterialDTO) {
         String parseUid = uploadMaterialDTO.getParseUid();
 
         List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
