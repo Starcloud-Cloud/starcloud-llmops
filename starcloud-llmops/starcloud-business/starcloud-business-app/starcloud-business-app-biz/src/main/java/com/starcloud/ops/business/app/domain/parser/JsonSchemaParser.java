@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 它使用 JSON Schema 将 LLM 输出结果 转换为特定的对象类型。
@@ -17,6 +18,7 @@ import lombok.Data;
  * @version 1.0.0
  * @since 2021-06-22
  */
+@Slf4j
 @Data
 public class JsonSchemaParser implements OutputParser<JSONObject> {
 
@@ -38,11 +40,16 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
      */
     @Override
     public JSONObject parse(String text) {
+
+        log.info("JsonSchemaParser start: {}", text);
         //兼容处理，针对多返回的内容
         text = StrUtil.replaceFirst(text, "```json", "", true);
         text = StrUtil.replaceLast(text, "```", "", true);
 
         JSONObject jsonObject = JSONUtil.parseObj(text);
+
+        log.info("JsonSchemaParser parse: {}", jsonObject);
+
         return jsonObject;
     }
 

@@ -365,7 +365,6 @@ public class CustomActionHandler extends BaseActionHandler {
         if (this.hasResponseJsonSchema()) {
             //获取当前定义的返回结构
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
-            log.info("自定义内容JSON生成结果:\n{}", actionResponse.getAnswer());
 
             JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
             JSONObject jsonObject = jsonSchemaParser.parse(actionResponse.getAnswer());

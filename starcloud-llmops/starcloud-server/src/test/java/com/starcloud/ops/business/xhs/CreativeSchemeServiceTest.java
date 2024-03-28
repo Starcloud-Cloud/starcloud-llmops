@@ -3,6 +3,8 @@ package com.starcloud.ops.business.xhs;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
+import cn.iocoder.yudao.framework.errorcode.config.YudaoErrorCodeAutoConfiguration;
+import cn.iocoder.yudao.framework.jackson.config.YudaoJacksonAutoConfiguration;
 import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
@@ -47,7 +49,7 @@ import javax.annotation.Resource;
 import java.util.*;
 
 @Slf4j
-@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class, YudaoDictAutoConfiguration.class})
+@Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class, YudaoDictAutoConfiguration.class, YudaoJacksonAutoConfiguration.class, YudaoErrorCodeAutoConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 @ComponentScan(basePackages = "cn.iocoder.yudao.module.system")
 public class CreativeSchemeServiceTest extends BaseDbUnitTest {
@@ -96,7 +98,7 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     public void optionsTest() {
 
         CreativeAppStepSchemeReqVO stepSchemeReqVO = new CreativeAppStepSchemeReqVO();
-        stepSchemeReqVO.setAppUid("89d53fccfffa4cb0954618dcf1a0d93e");
+        stepSchemeReqVO.setAppUid("ce625fa2885f4d2c874b1e0895ac25d0");
         stepSchemeReqVO.setStepCode("sd");
 
         List<CreativeOptionDTO> optionDTOS = creativeSchemeService.options(stepSchemeReqVO);
@@ -111,7 +113,7 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     public void executeTest() {
 
         Map<Long, Boolean> result = creativeContentService.execute(Arrays.asList(
-                3789L
+                3942L
         ), CreativeContentTypeEnum.ALL.getCode(), Boolean.FALSE);
 
         log.info("executeTest: {}", result);

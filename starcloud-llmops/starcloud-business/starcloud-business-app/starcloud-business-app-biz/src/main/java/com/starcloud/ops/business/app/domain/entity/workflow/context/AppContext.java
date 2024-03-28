@@ -332,8 +332,6 @@ public class AppContext {
     }
 
 
-
-
     /**
      * 获取当前步骤的所有变量值 Maps
      *
@@ -403,6 +401,12 @@ public class AppContext {
                 //把当前变量的内容中的 占位符与所有上下游变量做占位符替换，替换为具体的值
 
                 if (value instanceof String) {
+
+                    //判断是否有占位符结构，需要递归替换，实现不太好先这样
+                    if (QLExpressUtils.check((String) value)) {
+                        value = QLExpressUtils.execute((String) value, allVariablesValues);
+                    }
+
                     value = StrUtil.format(String.valueOf(value), allVariablesValues);
                 }
             }

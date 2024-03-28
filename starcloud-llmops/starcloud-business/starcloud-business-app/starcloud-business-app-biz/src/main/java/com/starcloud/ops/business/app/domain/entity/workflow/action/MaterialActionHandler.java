@@ -83,11 +83,8 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 转换响应结果
         ActionResponse response = convert(materialType);
 
-        //把图片生成节点的素材信息 复制到这里，符合变量的替换逻辑
-        final Map<String, Object> posterParams = this.getAppContext().getContextVariablesValues(PosterActionHandler.class, false);
-
         // 获取到处理好的上传素材
-        String materialListString = (String) posterParams.get(CreativeConstants.MATERIAL_LIST);
+        String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
         List<AbstractBaseCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractBaseCreativeMaterialDTO.class);
 
         JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();

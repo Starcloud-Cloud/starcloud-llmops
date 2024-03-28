@@ -24,6 +24,8 @@ public class QLExpressUtils {
 //    private static String expressionSuffix = "}}";
 //
 
+    private static String MATCH_REGEX = "\\{\\{(.*?)\\}\\}";
+
     static {
         QLExpressUtils.runner = new ExpressRunner();
         QLExpressRunStrategy.setMaxArrLength(50);
@@ -33,6 +35,20 @@ public class QLExpressUtils {
         runner.addClassMethod("list", List.class, listOperator);
 
     }
+
+    /**
+     * 把字符串中的占位符进行 QLExpress 的批量替换
+     *
+     * @param content
+     * @return
+     */
+    public static Boolean check(String content) {
+
+        Pattern pattern = Pattern.compile(MATCH_REGEX);
+        Matcher matcher = pattern.matcher(content);
+        return matcher.find();
+    }
+
 
     /**
      * 把字符串中的占位符进行 QLExpress 的批量替换
@@ -63,9 +79,7 @@ public class QLExpressUtils {
         try {
 
             // 定义正则表达式
-            String regex = "\\{\\{(.*?)\\}\\}";
-
-            Pattern pattern = Pattern.compile(regex);
+            Pattern pattern = Pattern.compile(MATCH_REGEX);
             Matcher matcher = pattern.matcher(content);
 
             StringBuffer varsBuffer = new StringBuffer();
