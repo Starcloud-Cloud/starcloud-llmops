@@ -94,6 +94,7 @@ public class AppProcessParser implements ConfigResource {
     /**
      * 通过步骤下标位置开始 创建一条执行到最后的链路，返回下标步骤的执行节点，
      * 并绑定到传入的startProcessLink链路中，这样startProcessLink 就是一个带条件的并行多条执行链路
+     *
      * @param startProcessLink
      * @param startIndex
      * @param stepWrappers
@@ -106,7 +107,7 @@ public class AppProcessParser implements ConfigResource {
 
         ProcessLink startStepProcessLink = startProcessLink.nextService(
                         Exp.b(e -> e.equals("req.uid", "'" + this.app.getUid() + "'")
-                                .and(Exp.b(ex -> ex.equals("req.stepId", startStepWrapper.getStepCode()))))
+                                .and(Exp.b(ex -> ex.equals("req.stepId", "'" + startStepWrapper.getStepCode() + "'"))))
                         , startStepWrapper.getFlowStep().getHandler()
                 )
                 .name(startStepWrapper.getStepCode())
