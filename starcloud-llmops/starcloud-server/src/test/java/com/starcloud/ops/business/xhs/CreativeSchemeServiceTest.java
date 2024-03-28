@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.xhs;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
 import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
@@ -21,6 +22,7 @@ import com.networknt.schema.SpecVersion;
 import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -42,10 +44,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class, YudaoDictAutoConfiguration.class})
@@ -77,6 +76,21 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     @Resource
     private CreativeContentService creativeContentService;
 
+
+    @Test
+    public void sdsdTest() {
+
+        List<Integer> arrays = new ArrayList<>();
+
+        arrays.add(1);
+        arrays.add(2);
+        arrays.add(4);
+        arrays.add(5);
+        arrays.add(6);
+
+        log.info("xxx: {}", CollectionUtil.sub(arrays, 1, arrays.size()));
+
+    }
 
     @Test
     public void optionsTest() {

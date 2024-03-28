@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import sun.security.action.GetPropertyAction;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,7 +27,7 @@ public class MaterialTemplateUtils {
             "2. 只可从第三行开始新增素材内容\n" +
             "3. 单元格中图片为images目录下相对路径";
 
-    private static final String path = Paths.get(doPrivileged(new GetPropertyAction("java.io.tmpdir")), "template").toString();
+    private static final String path = Paths.get(java.security.Security.getProperty("java.io.tmpdir"), "template").toString();
 
     public static File readTemplate(String materialType) throws IOException {
         // 目录  系统临时目录/template/{materialType}.zip

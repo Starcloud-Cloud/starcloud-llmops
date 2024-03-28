@@ -111,9 +111,9 @@ public class AppContext {
     private String stepId;
 
     /**
-     * 当前步骤是否执行一次,还是顺序执行完
+     * 是否连续执行
      */
-    private Boolean stepOnce;
+    private Boolean continuous;
 
     /**
      * 当前执行人，权益扣除的用户。
