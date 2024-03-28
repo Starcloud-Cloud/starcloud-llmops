@@ -154,6 +154,7 @@ public class WorkflowStepWrapper {
             stepCode = this.getStepCode();
         }
 
+        //@todo 需要把这些后增加的参数，放在执行具体handler之前，每个handler可定义初始化的参数供本身去使用
         variableMap.put(VariableEntity.generateKey(prefixKey, stepCode, CreativeConstants.STEP_RESP_JSONSCHEMA), JsonSchemaUtils.jsonSchema2Str(this.getOutVariableJsonSchema()));
         return variableMap;
 

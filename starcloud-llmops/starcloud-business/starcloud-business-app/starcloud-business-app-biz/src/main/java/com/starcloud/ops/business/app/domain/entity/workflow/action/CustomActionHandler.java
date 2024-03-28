@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
@@ -365,7 +366,9 @@ public class CustomActionHandler extends BaseActionHandler {
             //获取当前定义的返回结构
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
             log.info("自定义内容JSON生成结果:\n{}", actionResponse.getAnswer());
-            JSONObject jsonObject = JSONUtil.parseObj(actionResponse.getAnswer());
+
+            JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
+            JSONObject jsonObject = jsonSchemaParser.parse(actionResponse.getAnswer());
 
             actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
         } else {
