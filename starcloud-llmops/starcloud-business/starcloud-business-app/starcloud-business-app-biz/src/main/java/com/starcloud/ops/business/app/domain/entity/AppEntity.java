@@ -390,7 +390,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
 
-        AppExecuteRespVO appExecuteRespVO = AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getAnswer(), appContext.getConversationUid());
+        AppExecuteRespVO appExecuteRespVO = AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getOutput().getData(), appContext.getConversationUid());
         appExecuteRespVO.setIsSendSseAll(result.getIsSendSseAll());
 
         //只返回内容
