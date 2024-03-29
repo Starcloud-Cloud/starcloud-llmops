@@ -233,8 +233,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(ChatRequestVO request) {
-        JsonData jsonParams = this.doExecute(request);
+    protected JsonData doAsyncExecute(ChatRequestVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -314,7 +314,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(ChatRequestVO request, Throwable throwable) {
+    protected void afterExecute(JsonData result, ChatRequestVO request, Throwable throwable) {
 
         SseEmitter sseEmitter = request.getSseEmitter();
 

@@ -200,8 +200,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(ImageReqVO request) {
-        this.doExecute(request);
+    protected ImageRespVO doAsyncExecute(ImageReqVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -220,7 +220,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(ImageReqVO request, Throwable throwable) {
+    protected void afterExecute(ImageRespVO result, ImageReqVO request, Throwable throwable) {
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {

@@ -40,6 +40,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.Data;
@@ -191,8 +192,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(AppExecuteReqVO request) {
-        this.doExecute(request);
+    protected AppExecuteRespVO doAsyncExecute(AppExecuteReqVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -214,12 +215,19 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(AppExecuteReqVO request, Throwable throwable) {
+    protected void afterExecute(AppExecuteRespVO result, AppExecuteReqVO request, Throwable throwable) {
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {
                 sseEmitter.completeWithError(throwable);
             } else {
+
+                try {
+                    sseEmitter.send(result);
+                } catch (Exception e) {
+                    log.error("AppEntity afterExecute is fail: {}", e.getMessage(), e);
+                }
+
                 sseEmitter.complete();
             }
         }

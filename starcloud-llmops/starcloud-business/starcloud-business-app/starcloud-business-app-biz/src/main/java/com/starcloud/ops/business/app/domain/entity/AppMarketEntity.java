@@ -128,8 +128,8 @@ public class AppMarketEntity extends AppEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(AppExecuteReqVO request) {
-        super.doAsyncExecute(request);
+    protected AppExecuteRespVO doAsyncExecute(AppExecuteReqVO request) {
+        return super.doAsyncExecute(request);
     }
 
     /**
