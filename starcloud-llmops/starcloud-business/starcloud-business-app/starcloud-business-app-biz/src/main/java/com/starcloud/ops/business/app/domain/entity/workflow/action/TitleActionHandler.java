@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("all")
 @Slf4j
 @TaskComponent
+@Deprecated
 public class TitleActionHandler extends BaseActionHandler {
 
     /**

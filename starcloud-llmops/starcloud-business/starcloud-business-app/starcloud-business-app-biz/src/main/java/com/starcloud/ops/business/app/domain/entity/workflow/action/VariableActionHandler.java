@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -19,6 +20,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -62,14 +64,20 @@ public class VariableActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
         log.info("VariableActionHandler doExecute");
 
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
         actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage("variable");
-        actionResponse.setAnswer("variable");
-        actionResponse.setOutput(JsonData.of("variable"));
+
+
+        actionResponse.setAnswer(JsonUtils.toJsonPrettyString(params));
+        JsonSchema jsonSchema = this.getInVariableJsonSchema(this.getAppContext().getStepWrapper());
+        actionResponse.setOutput(JsonData.of(params, jsonSchema));
+
         actionResponse.setMessageTokens(0L);
         actionResponse.setMessageUnitPrice(new BigDecimal("0"));
         actionResponse.setAnswerTokens(0L);

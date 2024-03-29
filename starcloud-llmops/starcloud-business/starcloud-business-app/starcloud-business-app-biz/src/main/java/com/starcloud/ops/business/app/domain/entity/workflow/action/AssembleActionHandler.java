@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,6 +68,7 @@ public class AssembleActionHandler extends BaseActionHandler {
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
+        // JsonSchemaUtils.generateJsonSchema(CopyWritingContentDTO.class);
         return null;
 
     }
@@ -109,13 +111,11 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse convert(CopyWritingContentDTO copyWriting) {
-        StringBuilder assemble = new StringBuilder();
-        assemble.append(copyWriting.getTitle()).append("\n").append(copyWriting.getContent());
 
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
 
-        actionResponse.setAnswer(assemble.toString());
+        actionResponse.setAnswer(JsonUtils.toJsonPrettyString(copyWriting));
         actionResponse.setOutput(JsonData.of(copyWriting, CopyWritingContentDTO.class));
 
         actionResponse.setMessage(JsonUtils.toJsonString(this.getAppContext().getContextVariablesValues()));

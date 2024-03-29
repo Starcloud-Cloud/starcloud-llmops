@@ -92,6 +92,8 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         //保持跟返回结果一样的JsonSchema
         JsonSchema outJsonSchema = this.getOutVariableJsonSchema(this.getAppContext().getStepWrapper());
+
+        response.setAnswer(JsonUtils.toJsonPrettyString(response.getAnswer()));
         response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
 
         log.info("MaterialActionHandler 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));

@@ -155,7 +155,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setIsShow(Boolean.TRUE);
         response.setStepConfig(JsonUtils.toJsonString(style));
         response.setMessage(JsonUtils.toJsonString(style));
-        response.setAnswer(JsonUtils.toJsonString(list));
+        response.setAnswer(JsonUtils.toJsonPrettyString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());
         response.setAiModel(null);
