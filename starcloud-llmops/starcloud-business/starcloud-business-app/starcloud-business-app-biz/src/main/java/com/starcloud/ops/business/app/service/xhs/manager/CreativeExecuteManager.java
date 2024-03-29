@@ -46,6 +46,7 @@ import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -109,104 +110,14 @@ public class CreativeExecuteManager {
     @Resource
     private AdminUserRightsApi adminUserRightsApi;
 
-    private static CreativeAppExecuteResponse buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
-        AppRespVO appInfo = logAppMessage.getAppInfo();
-        List<String> tags = appInfo.getTags();
-        if (tags.contains("PracticalConverter")) {
-            CreativeAppExecuteResponse response = AppResponseConverter.practicalConverter(appInfo);
-            response.setContentId(content.getId());
-            response.setContentUid(content.getUid());
-            response.setBusinessUid(content.getBusinessUid());
-            response.setSchemeUid(content.getSchemeUid());
-            response.setPlanUid(content.getPlanUid());
-            return response;
-        }
-        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
-    }
-
     /**
-     * 生成失败返回结果
+     * 批量执行小红书应用生成
      *
-     * @param content      创作内容
-     * @param errorCode    错误码
-     * @param errorMessage 错误信息
-     * @return 返回结果
+     * @param contentList 内容列表
+     * @param force       是否强制执行
+     * @return 执行结果
      */
-    private static CreativeAppExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage) {
-        CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
-        response.setSuccess(Boolean.FALSE);
-        response.setErrorCode(errorCode);
-        response.setErrorMessage(errorMessage);
-        if (Objects.nonNull(content)) {
-            response.setContentId(content.getId());
-            response.setContentUid(content.getUid());
-            response.setBusinessUid(content.getBusinessUid());
-            response.setSchemeUid(content.getSchemeUid());
-            response.setPlanUid(content.getPlanUid());
-        }
-        return response;
-    }
-
-    /**
-     * 执行失败，更新创作内容
-     *
-     * @param code    错误码
-     * @param message 错误信息
-     * @param args    参数
-     * @return {@link ServiceException}
-     */
-    private static ServiceException exception(Integer code, String message, Object... args) {
-        return ServiceExceptionUtil.exception(ofError(code, message, args));
-    }
-
-    /**
-     * 执行失败，更新创作内容
-     *
-     * @param code    错误码
-     * @param message 错误信息
-     * @param args    参数
-     * @return {@link ErrorCode}
-     */
-    private static ErrorCode ofError(Integer code, String message, Object... args) {
-        return new ErrorCode(code, formatErrorMsg(message, args));
-    }
-
-    /**
-     * 格式化错误信息
-     *
-     * @param message 错误信息
-     * @param args    参数
-     * @return 格式化后的错误信息
-     */
-    private static String formatErrorMsg(String message, Object... args) {
-        return String.format(message, args);
-    }
-
-    /**
-     * 失败响应
-     *
-     * @param content            请求
-     * @param errorCode          错误码
-     * @param errorMessage       错误信息
-     * @param imageStyleResponse 图片风格响应参数
-     * @return 失败响应
-     */
-    public static XhsImageCreativeExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage, XhsImageStyleExecuteResponse imageStyleResponse) {
-        XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
-        if (Objects.nonNull(content)) {
-            response.setPlanUid(content.getPlanUid());
-            response.setSchemeUid(content.getSchemeUid());
-            response.setBusinessUid(content.getBusinessUid());
-            response.setContentUid(content.getUid());
-        }
-        response.setSuccess(false);
-        response.setErrorMessage(errorMessage);
-        response.setErrorCode(errorCode);
-        response.setImageStyleResponse(imageStyleResponse);
-        return response;
-    }
-
-    public Map<Long, Boolean> executeAppALl(List<CreativeContentDO> contentList, Boolean force) {
+    public Map<Long, Boolean> bathExecuteApp(List<CreativeContentDO> contentList, Boolean force) {
         Map<Long, Boolean> result = new HashMap<>(contentList.size());
 
         if (CollectionUtil.isEmpty(contentList)) {
@@ -220,9 +131,7 @@ public class CreativeExecuteManager {
         for (CreativeContentDO content : contentList) {
             CompletableFuture<CreativeAppExecuteResponse> future = CompletableFuture.supplyAsync(() -> {
                 //设置租户上下文
-                return TenantUtils.execute(content.getTenantId(), () -> {
-                    return executeApp(content, force);
-                });
+                return TenantUtils.execute(content.getTenantId(), () -> executeApp(content, force));
             }, executor);
             appFutureList.add(future);
         }
@@ -246,6 +155,13 @@ public class CreativeExecuteManager {
         return result;
     }
 
+    /**
+     * 执行小红书应用生成
+     *
+     * @param content 内容
+     * @param force   强制执行
+     * @return 执行结果
+     */
     public CreativeAppExecuteResponse executeApp(CreativeContentDO content, Boolean force) {
         String lockKey = "creative-content-app-" + content.getId();
         RLock lock = redissonClient.getLock(lockKey);
@@ -279,6 +195,7 @@ public class CreativeExecuteManager {
                 appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
                 appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
                 appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
+                appExecuteRequest.setContinuous(Boolean.TRUE);
                 // 会话UID，使用此会话UID。
                 appExecuteRequest.setConversationUid(latestContent.getConversationUid());
                 AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
@@ -322,17 +239,20 @@ public class CreativeExecuteManager {
                 updateContent.setUpdateTime(end);
                 updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
                 creativeContentMapper.updateById(updateContent);
-                // 扣除权益
-                adminUserRightsApi.reduceRights(
-                        Long.valueOf(latestContent.getCreator()), null, null, // 用户ID
-                        AdminUserRightsTypeEnum.MATRIX_BEAN, // 权益类型
-                        1, // 权益点数
-                        UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType(), // 业务类型
-                        latestContent.getConversationUid() // 会话ID
-                );
+
+                // 权益扣除
+                ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+                reduceRights.setUserId(Long.valueOf(latestContent.getCreator()));
+                reduceRights.setTeamOwnerId(null);
+                reduceRights.setTeamId(null);
+                reduceRights.setRightType(AdminUserRightsTypeEnum.MATRIX_BEAN.getType());
+                reduceRights.setReduceNums(1);
+                reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType());
+                reduceRights.setBizId(latestContent.getConversationUid());
+                adminUserRightsApi.reduceRights(reduceRights);
+
                 return result;
             } catch (Exception exception) {
-                //log.error("创作中心：生成内容和图片失败： 错误信息: {}", exception.getMessage(), exception);
                 updateFailure(latestContent.getId(), start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
                 throw exception;
             }
@@ -831,5 +751,102 @@ public class CreativeExecuteManager {
         } catch (Exception exception) {
             return 3;
         }
+    }
+
+    private static CreativeAppExecuteResponse buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
+        AppRespVO appInfo = logAppMessage.getAppInfo();
+        List<String> tags = appInfo.getTags();
+        if (tags.contains("PracticalConverter")) {
+            CreativeAppExecuteResponse response = AppResponseConverter.practicalConverter(appInfo);
+            response.setContentId(content.getId());
+            response.setContentUid(content.getUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setPlanUid(content.getPlanUid());
+            return response;
+        }
+        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
+    }
+
+    /**
+     * 生成失败返回结果
+     *
+     * @param content      创作内容
+     * @param errorCode    错误码
+     * @param errorMessage 错误信息
+     * @return 返回结果
+     */
+    private static CreativeAppExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage) {
+        CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
+        response.setSuccess(Boolean.FALSE);
+        response.setErrorCode(errorCode);
+        response.setErrorMessage(errorMessage);
+        if (Objects.nonNull(content)) {
+            response.setContentId(content.getId());
+            response.setContentUid(content.getUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setPlanUid(content.getPlanUid());
+        }
+        return response;
+    }
+
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @param args    参数
+     * @return {@link ServiceException}
+     */
+    private static ServiceException exception(Integer code, String message, Object... args) {
+        return ServiceExceptionUtil.exception(ofError(code, message, args));
+    }
+
+    /**
+     * 执行失败，更新创作内容
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @param args    参数
+     * @return {@link ErrorCode}
+     */
+    private static ErrorCode ofError(Integer code, String message, Object... args) {
+        return new ErrorCode(code, formatErrorMsg(message, args));
+    }
+
+    /**
+     * 格式化错误信息
+     *
+     * @param message 错误信息
+     * @param args    参数
+     * @return 格式化后的错误信息
+     */
+    private static String formatErrorMsg(String message, Object... args) {
+        return String.format(message, args);
+    }
+
+    /**
+     * 失败响应
+     *
+     * @param content            请求
+     * @param errorCode          错误码
+     * @param errorMessage       错误信息
+     * @param imageStyleResponse 图片风格响应参数
+     * @return 失败响应
+     */
+    public static XhsImageCreativeExecuteResponse failure(CreativeContentDO content, Integer errorCode, String errorMessage, XhsImageStyleExecuteResponse imageStyleResponse) {
+        XhsImageCreativeExecuteResponse response = new XhsImageCreativeExecuteResponse();
+        if (Objects.nonNull(content)) {
+            response.setPlanUid(content.getPlanUid());
+            response.setSchemeUid(content.getSchemeUid());
+            response.setBusinessUid(content.getBusinessUid());
+            response.setContentUid(content.getUid());
+        }
+        response.setSuccess(false);
+        response.setErrorMessage(errorMessage);
+        response.setErrorCode(errorCode);
+        response.setImageStyleResponse(imageStyleResponse);
+        return response;
     }
 }

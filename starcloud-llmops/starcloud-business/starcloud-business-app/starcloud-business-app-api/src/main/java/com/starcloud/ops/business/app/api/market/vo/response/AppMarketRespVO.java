@@ -1,22 +1,15 @@
 package com.starcloud.ops.business.app.api.market.vo.response;
 
-import cn.iocoder.yudao.framework.jackson.core.databind.LocalDateTimeDeserializer;
-import cn.iocoder.yudao.framework.jackson.core.databind.LocalDateTimeSerializer;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -209,16 +202,12 @@ public class AppMarketRespVO implements Serializable {
      * 创建时间
      * 单元测试的时候没有初始化，所以这里加了jackson的注解
      */
-//    @JsonSerialize(using = LocalDateTimeSerializer.class)
-//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
     /**
      * 最后更新时间
      */
-//    @JsonSerialize(using = LocalDateTimeSerializer.class)
-//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Schema(description = "最后更新时间")
     private LocalDateTime updateTime;
 

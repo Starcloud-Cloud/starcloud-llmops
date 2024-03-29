@@ -12,7 +12,6 @@ import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,10 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -96,13 +93,6 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             Map<String, Object> params = request.getParams();
             if (CollectionUtil.isEmpty(params)) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
-            }
-
-            // 校验图片模板是否存在
-            List<PosterTemplate> templates = POSTER_SERVICE.templates();
-            Optional<PosterTemplate> templateOption = templates.stream().filter(item -> StringUtils.equals(item.getId(), request.getId())).findFirst();
-            if (!templateOption.isPresent()) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_NOT_SUPPORTED, request.getName());
             }
 
             // 调用海报生成服务
