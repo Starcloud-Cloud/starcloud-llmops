@@ -30,6 +30,7 @@ import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqB
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
+import com.starcloud.ops.business.trade.service.sign.handler.TradeSignHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,9 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     @Resource
     private TradeSignQueryService tradeSignQueryService;
 
+    @Resource
+    private List<TradeSignHandler> tradeSignHandlers;
+
 
     @Override
     public AppTradeOrderSettlementRespVO settlementSign(Long userId, AppTradeSignSettlementReqVO settlementReqVO) {
@@ -105,15 +109,19 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
         tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), 4, tradeSignDO.getSignConfigs().getPeriodType()));
 
-        // 2. 保存记录
+        // 2.0 订单创建前的验证
+        tradeSignHandlers.forEach(handler -> handler.beforeSignValidate(tradeSignDO, signItemDOS));
+
+        // 3. 保存记录
         tradeSignMapper.insert(tradeSignDO);
         signItemDOS.forEach(orderItem -> orderItem.setSignId(tradeSignDO.getId()));
         tradeSignItemMapper.insertBatch(signItemDOS);
 
-        // 3. 签约创建后的逻辑
+        // 4. 签约创建后的逻辑
         afterCreateTradeOrder(tradeSignDO, signItemDOS, createReqVO);
         return tradeSignDO;
     }
+
 
     private SubscribeConfigDTO getProductSignConfig(Long userId, AppTradeSignCreateReqVO createReqVO) {
 

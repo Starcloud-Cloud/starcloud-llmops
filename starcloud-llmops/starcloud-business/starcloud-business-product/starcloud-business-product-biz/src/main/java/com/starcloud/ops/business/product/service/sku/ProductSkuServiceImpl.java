@@ -280,6 +280,10 @@ public class ProductSkuServiceImpl implements ProductSkuService {
     public void canPlaceOrder(Long userId, Long skuId) {
         ProductSkuDO sku = getSku(skuId);
 
+        if (sku == null) {
+            throw exception(SKU_NOT_EXISTS);
+        }
+
         if (Objects.isNull(sku.getOrderLimitConfig())) {
             return;
         }
@@ -293,6 +297,24 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             if (couponApi.validateUserExitTemplateId(userId, sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
                 throw exception(SKU_FAIL_COUPON_LIMIT);
             }
+        }
+    }
+
+    /**
+     * 验证商品是否支持签约
+     *
+     * @param skuId SKU 编号
+     */
+    @Override
+    public void isValidSubscriptionSupported(Long skuId) {
+        ProductSkuDO sku = getSku(skuId);
+
+        if (sku == null) {
+            throw exception(SKU_NOT_EXISTS);
+        }
+
+        if (Objects.isNull(sku.getSubscribeConfig())||!sku.getSubscribeConfig().getIsSubscribe()) {
+            throw exception(SKU_NO_SUPPORT_SUBSCRIPTION);
         }
     }
 
