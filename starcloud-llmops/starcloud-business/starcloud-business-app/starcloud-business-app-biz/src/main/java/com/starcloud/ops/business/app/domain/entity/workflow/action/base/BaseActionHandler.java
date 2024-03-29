@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -290,13 +291,15 @@ public abstract class BaseActionHandler extends Object {
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
             if (userRightsType != null && costPoints > 0) {
                 // 扣除权益
-                ADMIN_USER_RIGHTS_API.reduceRights(
-                        context.getUserId(), null, null, // 用户ID
-                        userRightsType, // 权益类型
-                        costPoints, // 权益点数
-                        UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType(), // 业务类型
-                        context.getConversationUid() // 会话ID
-                );
+                ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+                reduceRights.setUserId(context.getUserId());
+                reduceRights.setTeamOwnerId(null);
+                reduceRights.setTeamId(null);
+                reduceRights.setRightType(userRightsType.getType());
+                reduceRights.setReduceNums(costPoints);
+                reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType());
+                reduceRights.setBizId(context.getConversationUid());
+                ADMIN_USER_RIGHTS_API.reduceRights(reduceRights);
                 log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", userRightsType.name(), costPoints, context.getUserId(), context.getConversationUid());
             }
             // 更新缓存为成功
@@ -319,9 +322,10 @@ public abstract class BaseActionHandler extends Object {
 
     /**
      * 因为@Data重写了hasCode, equals, 导致子类比较都相等，所以这里改成继承object, 重写equals即可
-     * @Data注解在派生子类上时默认@EqualsAndHashCode(callSuper = false)，即重写子类的equals和hashcode不包含父类
+     *
      * @param obj
      * @return
+     * @Data注解在派生子类上时默认@EqualsAndHashCode(callSuper = false)，即重写子类的equals和hashcode不包含父类
      */
     @Override
     public boolean equals(Object obj) {

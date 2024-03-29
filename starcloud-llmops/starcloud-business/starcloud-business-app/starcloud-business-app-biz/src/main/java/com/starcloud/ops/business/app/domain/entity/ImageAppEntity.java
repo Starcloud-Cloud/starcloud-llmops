@@ -25,6 +25,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
@@ -132,13 +133,23 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             imageResponse.setFinishTime(new Date());
             // 扣除权益
             Integer imagePoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
-            adminUserRightsApi.reduceRights(
-                    request.getUserId(), null, null,// 用户ID
-                    AdminUserRightsTypeEnum.MAGIC_IMAGE, // 权益类型
-                    imagePoints, // 权益点数
-                    UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType(), // 业务类型
-                    request.getConversationUid() // 会话ID
+            ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+            reduceRights.setUserId(request.getUserId());
+            reduceRights.setTeamOwnerId(null);
+            reduceRights.setTeamId(null);
+            reduceRights.setRightType(AdminUserRightsTypeEnum.MAGIC_IMAGE.getType());
+            reduceRights.setReduceNums(imagePoints);
+            reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType());
+            reduceRights.setBizId(request.getConversationUid());
+            adminUserRightsApi.reduceRights(reduceRights);
+
+            log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}",
+                    AdminUserRightsTypeEnum.MAGIC_IMAGE.name(),
+                    imagePoints,
+                    request.getUserId(),
+                    request.getConversationUid()
             );
+
             stopWatch.stop();
 
             // 记录消息日志

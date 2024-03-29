@@ -1,18 +1,14 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -58,9 +54,6 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
                 AppValidate.notNull(variable, "创作方案配比异常！海报模板变量不能为空！");
                 AppValidate.notNull(variable.getType(), "创作方案配置异常！海报模板变量类型不能为空！");
                 AppValidate.notNull(variable.getField(), "创作方案配置异常！海报模板变量不能为空！");
-                if (StringUtil.objectBlank(variable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "创作方案配置异常！海报模板变量值不能为空！"));
-                }
             }
         }
     }
