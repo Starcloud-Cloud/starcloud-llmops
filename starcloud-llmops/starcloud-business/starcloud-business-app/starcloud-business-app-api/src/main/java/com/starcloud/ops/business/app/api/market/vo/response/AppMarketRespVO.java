@@ -207,17 +207,18 @@ public class AppMarketRespVO implements Serializable {
 
     /**
      * 创建时间
+     * 单元测试的时候没有初始化，所以这里加了jackson的注解
      */
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//    @JsonSerialize(using = LocalDateTimeSerializer.class)
+//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
     /**
      * 最后更新时间
      */
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//    @JsonSerialize(using = LocalDateTimeSerializer.class)
+//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Schema(description = "最后更新时间")
     private LocalDateTime updateTime;
 
