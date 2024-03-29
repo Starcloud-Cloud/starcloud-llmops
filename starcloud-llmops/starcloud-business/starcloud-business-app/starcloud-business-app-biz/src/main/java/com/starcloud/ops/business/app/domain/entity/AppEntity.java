@@ -226,7 +226,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
                 try {
 
-                    SseEmitterUtil.send(sseEmitter, Integer.valueOf(result.getResultCode()), String.valueOf(result.getResult()));
+                    if (result.getIsSendSseAll()) {
+                        SseEmitterUtil.send(sseEmitter, Integer.valueOf(result.getResultCode()), String.valueOf(result.getResult()));
+                    }
 
                 } catch (Exception e) {
                     log.error("AppEntity afterExecute is fail: {}", e.getMessage(), e);
@@ -388,8 +390,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
 
+        AppExecuteRespVO appExecuteRespVO = AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getAnswer(), appContext.getConversationUid());
+        appExecuteRespVO.setIsSendSseAll(result.getIsSendSseAll());
+
         //只返回内容
-        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getAnswer(), appContext.getConversationUid());
+        return appExecuteRespVO;
 
     }
 

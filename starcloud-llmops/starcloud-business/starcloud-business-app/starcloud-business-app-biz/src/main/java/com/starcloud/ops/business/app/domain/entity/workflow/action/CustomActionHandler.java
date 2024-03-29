@@ -243,6 +243,9 @@ public class CustomActionHandler extends BaseActionHandler {
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
 
+        //本身输出已经走Sse了，不需要在发送一次完整的结果
+        actionResponse.setIsSendSseAll(false);
+
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JsonUtils.toJsonPrettyString(actionResponse)
@@ -292,6 +295,8 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
+        //本身输出已经走Sse了，不需要在发送一次完整的结果
+        actionResponse.setIsSendSseAll(false);
 
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,

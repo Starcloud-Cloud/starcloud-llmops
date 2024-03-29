@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import lombok.Data;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 
@@ -66,6 +67,11 @@ public class ActionResponse {
      * 返回数据
      */
     private JsonData output;
+
+    /**
+     * 结果是否发送一次sse
+     */
+    private Boolean isSendSseAll = true;
 
     /**
      * 请求 token 使用
