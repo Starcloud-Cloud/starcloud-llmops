@@ -117,7 +117,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             } else if (CreativeContentTypeEnum.PICTURE.getCode().equalsIgnoreCase(type)) {
                 return xlsCreativeExecuteManager.executePicture(contentList, force);
             } else if (CreativeContentTypeEnum.ALL.getCode().equalsIgnoreCase(type)) {
-                return xlsCreativeExecuteManager.executeAppALl(contentList, force);
+                return xlsCreativeExecuteManager.bathExecuteApp(contentList, force);
             } else {
                 log.error("不支持的任务类型 {}", type);
             }
@@ -154,7 +154,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (content == null) {
             throw exception(CREATIVE_CONTENT_NOT_EXIST, businessUid);
         }
-        Map<Long, Boolean> allMap = xlsCreativeExecuteManager.executeAppALl(Collections.singletonList(content), true);
+        Map<Long, Boolean> allMap = xlsCreativeExecuteManager.bathExecuteApp(Collections.singletonList(content), true);
         if (BooleanUtils.isNotTrue(allMap.get(content.getId()))) {
             throw exception(EXECTURE_ERROR, "文案和图片", content.getId());
         }

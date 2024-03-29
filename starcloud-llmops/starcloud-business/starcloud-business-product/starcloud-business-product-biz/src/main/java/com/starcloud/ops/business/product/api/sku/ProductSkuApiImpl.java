@@ -61,5 +61,15 @@ public class ProductSkuApiImpl implements ProductSkuApi {
         productSkuService.canPlaceOrder(userId, skuId);
     }
 
+    /**
+     * 验证商品是否支持签约 @Link 针对 ProductSkuDO.getSubscribeConfig() 进行验证
+     *
+     * @param skuId SKU 编号
+     */
+    @Override
+    public void isValidSubscriptionSupported(Long skuId) {
+        productSkuService.isValidSubscriptionSupported(skuId);
+    }
+
 
 }
