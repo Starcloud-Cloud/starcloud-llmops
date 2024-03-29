@@ -33,6 +33,8 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
+import com.starcloud.ops.business.app.util.SseResultUtil;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -223,7 +225,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             } else {
 
                 try {
-                    sseEmitter.send(result);
+
+                    SseEmitterUtil.send(sseEmitter, Integer.valueOf(result.getResultCode()), String.valueOf(result.getResult()));
+
                 } catch (Exception e) {
                     log.error("AppEntity afterExecute is fail: {}", e.getMessage(), e);
                 }
@@ -383,7 +387,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         result.setAnswer(answer.trim());
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
-        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result, appContext.getConversationUid());
+
+        //只返回内容
+        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getAnswer(), appContext.getConversationUid());
 
     }
 

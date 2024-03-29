@@ -12,6 +12,17 @@ import java.io.IOException;
  */
 public class SseEmitterUtil {
 
+
+    public static void send(SseEmitter sseEmitter, Integer code, String data) {
+
+        try {
+            BaseStreamResult result = BaseStreamResult.of(Boolean.TRUE, code, data);
+            sseEmitter.send(result);
+        } catch (IOException e) {
+            sseEmitter.completeWithError(e);
+        }
+    }
+
     /**
      * 获取 SseEmitter 实例
      * <p>
@@ -41,14 +52,10 @@ public class SseEmitterUtil {
     public static SseEmitter ofSseEmitterExecutor(Long timeout, Boolean isSendReadyMessage, String message) {
         SseEmitter sseEmitter = new SseEmitter(timeout);
         if (isSendReadyMessage) {
-            try {
-                message = "Subscribe successfully, about to execute " + message;
-                BaseStreamResult result = BaseStreamResult.of(Boolean.TRUE, 300900000, message);
-                sseEmitter.send(result);
-            } catch (IOException e) {
-                sseEmitter.completeWithError(e);
-            }
+            message = "Subscribe successfully, about to execute " + message;
+            send(sseEmitter, 300900000, message);
         }
+
         return sseEmitter;
     }
 
