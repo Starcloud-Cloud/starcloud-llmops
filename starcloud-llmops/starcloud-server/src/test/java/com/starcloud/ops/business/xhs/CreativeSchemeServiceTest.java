@@ -113,7 +113,7 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     public void executeTest() {
 
         Map<Long, Boolean> result = creativeContentService.execute(Arrays.asList(
-                3942L
+                3964L
         ), CreativeContentTypeEnum.ALL.getCode(), Boolean.FALSE);
 
         log.info("executeTest: {}", result);

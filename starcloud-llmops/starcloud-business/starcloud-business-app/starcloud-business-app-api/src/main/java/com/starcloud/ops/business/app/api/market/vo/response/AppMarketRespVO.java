@@ -1,11 +1,11 @@
 package com.starcloud.ops.business.app.api.market.vo.response;
 
 import cn.iocoder.yudao.framework.jackson.core.databind.LocalDateTimeDeserializer;
+import cn.iocoder.yudao.framework.jackson.core.databind.LocalDateTimeSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -208,7 +208,6 @@ public class AppMarketRespVO implements Serializable {
     /**
      * 创建时间
      */
-//    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Schema(description = "创建时间")
@@ -217,7 +216,6 @@ public class AppMarketRespVO implements Serializable {
     /**
      * 最后更新时间
      */
-//    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Schema(description = "最后更新时间")

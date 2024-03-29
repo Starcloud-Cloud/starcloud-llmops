@@ -271,7 +271,7 @@ public class CreativeExecuteManager {
             creativeContentMapper.updateById(latestContent);
 
             try {
-                CreativeContentExecuteDTO creativePlanExecute = JsonUtils.parseObject(latestContent.getExecuteParams(), CreativeContentExecuteDTO.class);
+                CreativeContentExecuteDTO creativePlanExecute = CreativeContentConvert.INSTANCE.toExecuteParams(latestContent.getExecuteParams());
                 AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
 
                 AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
