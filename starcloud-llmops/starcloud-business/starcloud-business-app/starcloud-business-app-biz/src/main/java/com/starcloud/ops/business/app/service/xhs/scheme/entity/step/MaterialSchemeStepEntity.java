@@ -49,7 +49,7 @@ public class MaterialSchemeStepEntity extends BaseSchemeStepEntity {
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         Map<String, Object> variableMap = new HashMap<>();
         variableMap.put(CreativeConstants.MATERIAL_TYPE, this.materialType);
-        variableMap.put(CreativeConstants.MATERIAL_LIST, new ArrayList<>());
+        variableMap.put(CreativeConstants.MATERIAL_LIST, "[]");
         stepWrapper.putVariable(variableMap);
     }
 

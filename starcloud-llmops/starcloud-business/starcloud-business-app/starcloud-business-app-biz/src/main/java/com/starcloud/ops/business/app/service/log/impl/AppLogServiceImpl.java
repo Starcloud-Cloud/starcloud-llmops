@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
@@ -33,7 +34,6 @@ import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
@@ -456,6 +456,9 @@ public class AppLogServiceImpl implements AppLogService {
         // 获取消息列表
         PageResult<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getList();
+        if (query.getThrowIfEmpty() != null && !query.getThrowIfEmpty()) {
+            return null;
+        }
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
