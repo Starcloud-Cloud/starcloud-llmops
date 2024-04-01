@@ -255,13 +255,30 @@ public class CreativeUtils {
     public static Map<String, Object> replaceVariable(Map<String, Object> variableMap, Map<String, Object> valueMap) {
         Map<String, Object> replaceVariableMap = new HashMap<>();
         MapUtil.emptyIfNull(variableMap).forEach((key, value) -> {
-            if (value != null) {
-                value = QLExpressUtils.execute(String.valueOf(value), valueMap);
-                if (value instanceof String) {
-                    value = StrUtil.format(String.valueOf(value), valueMap);
-                }
+
+            if (Objects.isNull(value)) {
+                replaceVariableMap.put(key, value);
             }
-            replaceVariableMap.put(key, value);
+
+            // 进行变量替换
+            Object handleValue = QLExpressUtils.execute(String.valueOf(value), valueMap);
+
+            if (handleValue instanceof String) {
+                // 二次替换、递归处理？
+                if (QLExpressUtils.check((String) handleValue)) {
+                    handleValue = QLExpressUtils.execute(String.valueOf(handleValue), valueMap);
+                }
+
+                // 如果替换之后结果为空，则使用原始值，真正执行时候需要二次替换的变量
+                if (StringUtils.isBlank((String) handleValue)) {
+                    handleValue = value;
+                }
+
+                // 替换{xxx}占位符
+                handleValue = StrUtil.format(String.valueOf(handleValue), valueMap);
+            }
+
+            replaceVariableMap.put(key, handleValue);
         });
         return replaceVariableMap;
     }
