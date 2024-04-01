@@ -70,10 +70,6 @@ public class StringUtil {
         return StrUtil.isNotBlank(source);
     }
 
-    public static void main(String[] args) {
-        System.out.println(objectBlank(null));
-    }
-
     public static Boolean objectBlank(Object object) {
         if (object instanceof String) {
             return isBlank((String) object);

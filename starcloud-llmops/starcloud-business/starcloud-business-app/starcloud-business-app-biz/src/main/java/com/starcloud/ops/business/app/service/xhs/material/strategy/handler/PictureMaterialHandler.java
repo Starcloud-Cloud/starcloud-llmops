@@ -46,7 +46,10 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      */
     @Override
     protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
-        return CollectionUtil.emptyIfNull(posterStyleList).stream().map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount())).collect(Collectors.toList());
+        return CollectionUtil.emptyIfNull(posterStyleList)
+                .stream()
+                .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -67,7 +70,8 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
         PosterStyleDTO style = SerializationUtils.clone(posterStyle);
         List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         for (PosterTemplateDTO template : templateList) {
-            if (PosterModeEnum.SEQUENCE.name().equals(template.getMode())) {
+            String mode = StringUtil.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
+            if (PosterModeEnum.SEQUENCE.name().equals(mode)) {
                 assembleSequence(template, materialList);
             } else {
                 assembleRandom(template, materialList);
@@ -89,7 +93,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
         List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
-            if (CreativeUtils.isImageVariable(variable) && StringUtil.objectNotBlank(variable.getValue())) {
+            if (CreativeUtils.isImageVariable(variable) && StringUtil.objectBlank(variable.getValue())) {
                 // 如果资料库为空，直接跳出循环
                 if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
@@ -114,7 +118,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
         List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
-            if (CreativeUtils.isImageVariable(variable) && StringUtil.objectNotBlank(variable.getValue())) {
+            if (CreativeUtils.isImageVariable(variable) && StringUtil.objectBlank(variable.getValue())) {
                 // 如果资料库为空，直接跳出循环
                 if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
