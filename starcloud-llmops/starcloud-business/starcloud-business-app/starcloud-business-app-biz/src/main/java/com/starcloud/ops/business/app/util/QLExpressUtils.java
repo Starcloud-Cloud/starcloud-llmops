@@ -1,18 +1,16 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.ql.util.express.*;
 import com.ql.util.express.config.QLExpressRunStrategy;
 import com.ql.util.express.instruction.op.OperatorBase;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.utils.StringUtils;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class QLExpressUtils {
@@ -85,41 +83,16 @@ public class QLExpressUtils {
             StringBuffer varsBuffer = new StringBuffer();
             while (matcher.find()) {
                 String variable = matcher.group(1);
+                String vars = (String) executeNative(variable, rootMap);
 
-                String map = "map.put(\"" + variable + "\", " + variable + ");";
-                varsBuffer.append(map);
-            }
-            //没有找到占位符，返回原内容
-            if (varsBuffer.length() <= 0) {
-                return content;
-            }
-
-            //把找的占位符 拼接为  QLExpress 支持的Map结构
-            String qlMap = "map = new HashMap();";
-            String varStr = qlMap + varsBuffer.toString() + "return map;";
-
-            //获取 替换占位符后的变量数组结果
-            Object vars = executeNative(varStr, rootMap);
-
-
-            if (vars instanceof HashMap) {
-                matcher.reset();
-                StringBuffer sb = new StringBuffer();
-
-                HashMap replacements = (HashMap) vars;
-
-                while (matcher.find()) {
-                    String placeholder = matcher.group(1);
-                    String replacement = (String) replacements.get(placeholder);
-
-                    if (replacement != null) {
-                        matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-                    }
+                if (vars != null) {
+                    matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
+                } else {
+                    matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
                 }
-                matcher.appendTail(sb);
-
-                return sb.toString();
             }
+            matcher.appendTail(varsBuffer);
+            return varsBuffer.toString();
 
         } catch (Exception e) {
 
@@ -168,6 +141,8 @@ public class QLExpressUtils {
 
     /**
      * 定义一个继承自com.ql.util.express.Operator的操作符
+     * <p>
+     * 多字段支持 docs.list('author','bookName')
      */
     public static class ListOperator extends OperatorBase {
 
@@ -175,7 +150,12 @@ public class QLExpressUtils {
         public OperateData executeInner(InstructionSetContext parent, ArraySwap list) throws Exception {
 
             OperateData docs = list.get(0);
-            OperateData field = list.get(1);
+
+            int length = list.length;
+            List<String> fieldList = new ArrayList<>(length - 1);
+            for (int i = 1; i < length; i++) {
+                fieldList.add((String) list.get(i).getObject(parent));
+            }
 
             log.info("list: {}", list);
 
@@ -186,10 +166,16 @@ public class QLExpressUtils {
                 List<Object> fdocs = (List<Object>) ddocs;
 
                 for (int i = 0; i < fdocs.size(); i++) {
-                    Object fieldValue = BeanUtil.getFieldValue(fdocs.get(i), (String) field.getObject(parent));
-                    result.add(fieldValue);
+                    Object doc = fdocs.get(i);
+                    StringJoiner sj = new StringJoiner("-");
+                    for (String field : fieldList) {
+                        Object fieldValue = BeanUtil.getFieldValue(doc, field);
+                        if (Objects.nonNull(fieldValue)) {
+                            sj.add(fieldValue.toString());
+                        }
+                    }
+                    result.add(sj);
                 }
-
                 return new OperateData(StrUtil.join("\r\n", result), String.class);
             }
 
