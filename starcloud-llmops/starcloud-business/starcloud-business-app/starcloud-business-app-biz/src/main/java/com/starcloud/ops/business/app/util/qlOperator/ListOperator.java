@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * 多字段支持 docs.list('author','bookName',false)
+ * 多字段支持 docs.list('author','bookName')
  */
 @Slf4j
 public class ListOperator extends OperatorBase {
@@ -29,16 +29,11 @@ public class ListOperator extends OperatorBase {
 
         int length = list.length;
         List<String> fieldList = new ArrayList<>(length - 1);
-        boolean addPrefix = false;
+        // 大于2表示有多个参数 拼接描述
+        boolean addPrefix = length > 2;
         for (int i = 1; i < length; i++) {
             Object data = list.get(i).getObject(parent);
-            if ((i == length - 1) && "true".equalsIgnoreCase(data.toString())) {
-                addPrefix = true;
-            } else if ("false".equalsIgnoreCase(data.toString())) {
-                addPrefix = false;
-            } else {
-                fieldList.add((String) data);
-            }
+            fieldList.add((String) data);
         }
 
         log.info("list: {}", list);
@@ -61,7 +56,7 @@ public class ListOperator extends OperatorBase {
                 }
                 result.add(sj);
             }
-            return new OperateData(StrUtil.join("\n", result), String.class);
+            return new OperateData("\n" +StrUtil.join("\n\n", result) + "\n", String.class);
         }
 
         return null;
