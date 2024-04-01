@@ -193,8 +193,8 @@ public class CreativeUtils {
 
             // 获取模板变量重图片类型变量的数量
             Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
-            // 获取模板模式，如果为空则默认为随机模式
-            String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.RANDOM.name() : template.getMode();
+            // 获取模板模式，如果为空则默认为顺序模式
+            String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
             // 获取模板标题生成模式，如果为空则默认为默认模式
             String titleGenerateMode = StringUtils.isBlank(template.getTitleGenerateMode()) ? PosterTitleModeEnum.DEFAULT.name() : template.getTitleGenerateMode();
 
@@ -257,16 +257,16 @@ public class CreativeUtils {
         MapUtil.emptyIfNull(variableMap).forEach((key, value) -> {
 
             if (Objects.isNull(value)) {
-                replaceVariableMap.put(key, value);
+                replaceVariableMap.put(key, null);
             }
 
             // 进行变量替换
-            Object handleValue = QLExpressUtils.execute(String.valueOf(value), valueMap);
+            Object handleValue = QLExpressUtils.execute((String) value, valueMap);
 
             if (handleValue instanceof String) {
                 // 二次替换、递归处理？
                 if (QLExpressUtils.check((String) handleValue)) {
-                    handleValue = QLExpressUtils.execute(String.valueOf(handleValue), valueMap);
+                    handleValue = QLExpressUtils.execute((String) handleValue, valueMap);
                 }
 
                 // 如果替换之后结果为空，则使用原始值，真正执行时候需要二次替换的变量
