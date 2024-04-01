@@ -181,10 +181,14 @@ public class CreativeUtils {
             PosterTemplateDTO posterTemplate = posterTemplateList.get(i);
             PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
 
-            // 获取到模板变量列表
+            // 获取到模板变量列表，并且填充uuid。
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList())
                     .stream()
-                    .peek(item -> item.setUuid(IdUtil.fastSimpleUUID()))
+                    .peek(item -> {
+                        if (StringUtils.isBlank(item.getUuid())) {
+                            item.setUuid(IdUtil.fastSimpleUUID());
+                        }
+                    })
                     .collect(Collectors.toList());
 
             // 获取模板变量重图片类型变量的数量
@@ -222,7 +226,8 @@ public class CreativeUtils {
         for (PosterTemplateEntity posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
             List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
             for (PosterVariableEntity variable : variableList) {
-                variableValueMap.put(variable.getUuid(), variable.getValue());
+                String uuid = StringUtils.isBlank(variable.getUuid()) ? IdUtil.fastSimpleUUID() : variable.getUuid();
+                variableValueMap.put(uuid, variable.getValue());
             }
         }
         return variableValueMap;
@@ -233,7 +238,8 @@ public class CreativeUtils {
         for (PosterTemplateDTO posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
             for (PosterVariableDTO variable : variableList) {
-                variableValueMap.put(variable.getUuid(), variable.getValue());
+                String uuid = StringUtils.isBlank(variable.getUuid()) ? IdUtil.fastSimpleUUID() : variable.getUuid();
+                variableValueMap.put(uuid, variable.getValue());
             }
         }
         return variableValueMap;
