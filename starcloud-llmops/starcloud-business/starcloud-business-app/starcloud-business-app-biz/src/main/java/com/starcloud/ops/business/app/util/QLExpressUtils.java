@@ -1,14 +1,14 @@
 package com.starcloud.ops.business.app.util;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
-import com.ql.util.express.*;
+import com.ql.util.express.DefaultContext;
+import com.ql.util.express.ExpressRunner;
 import com.ql.util.express.config.QLExpressRunStrategy;
-import com.ql.util.express.instruction.op.OperatorBase;
+import com.starcloud.ops.business.app.util.qlOperator.ListOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +28,7 @@ public class QLExpressUtils {
         QLExpressUtils.runner = new ExpressRunner();
         QLExpressRunStrategy.setMaxArrLength(50);
 
-        //对List增加扩展，支持  array.list('key') 方法
+        //对List增加扩展，支持  array.list('key1','key2', false) 方法
         ListOperator listOperator = new ListOperator();
         runner.addClassMethod("list", List.class, listOperator);
 
@@ -139,48 +139,5 @@ public class QLExpressUtils {
         return null;
     }
 
-    /**
-     * 定义一个继承自com.ql.util.express.Operator的操作符
-     * <p>
-     * 多字段支持 docs.list('author','bookName')
-     */
-    public static class ListOperator extends OperatorBase {
-
-        @Override
-        public OperateData executeInner(InstructionSetContext parent, ArraySwap list) throws Exception {
-
-            OperateData docs = list.get(0);
-
-            int length = list.length;
-            List<String> fieldList = new ArrayList<>(length - 1);
-            for (int i = 1; i < length; i++) {
-                fieldList.add((String) list.get(i).getObject(parent));
-            }
-
-            log.info("list: {}", list);
-
-            Object ddocs = docs.getObject(parent);
-
-            List<Object> result = new ArrayList<>();
-            if (ddocs instanceof List) {
-                List<Object> fdocs = (List<Object>) ddocs;
-
-                for (int i = 0; i < fdocs.size(); i++) {
-                    Object doc = fdocs.get(i);
-                    StringJoiner sj = new StringJoiner("-");
-                    for (String field : fieldList) {
-                        Object fieldValue = BeanUtil.getFieldValue(doc, field);
-                        if (Objects.nonNull(fieldValue)) {
-                            sj.add(fieldValue.toString());
-                        }
-                    }
-                    result.add(sj);
-                }
-                return new OperateData(StrUtil.join("\r\n", result), String.class);
-            }
-
-            return null;
-        }
-    }
 
 }
