@@ -11,6 +11,10 @@ import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -187,15 +191,32 @@ public class CreativeExecuteManager {
             creativeContentMapper.updateById(latestContent);
 
             try {
+//                String stepId;
                 CreativeContentExecuteDTO creativePlanExecute = CreativeContentConvert.INSTANCE.toExecuteParams(latestContent.getExecuteParams());
                 AppMarketRespVO appResponse = creativePlanExecute.getAppResponse();
 
+//                // 执行的时候从上次失败的步骤开始执行
+//                LogAppMessagePageReqVO lastLogQuery = new LogAppMessagePageReqVO();
+//                lastLogQuery.setAppConversationUid(latestContent.getConversationUid());
+//                lastLogQuery.setThrowIfEmpty(Boolean.FALSE);
+//                AppLogMessageRespVO lastLogMessage = appLogService.getLogAppMessageDetail(lastLogQuery);
+//                // 如果没有日志，说明是第一次执行，如果执行成功，说明重复执行或者重试
+//                if (Objects.isNull(lastLogMessage) || LogStatusEnum.SUCCESS.name().equals(lastLogMessage.getStatus())) {
+//                    stepId = null;
+//                } else {
+//                    AppRespVO appInfo = lastLogMessage.getAppInfo();
+//                    stepId = getFirstFailureStepId(appInfo);
+//                    // 参数合并
+//                    mergeApp(appResponse, appInfo);
+//                }
+
                 AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
                 appExecuteRequest.setAppUid(appResponse.getUid());
+//                appExecuteRequest.setStepId(stepId);
+                appExecuteRequest.setContinuous(Boolean.TRUE);
                 appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
                 appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
                 appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
-                appExecuteRequest.setContinuous(Boolean.TRUE);
                 // 会话UID，使用此会话UID。
                 appExecuteRequest.setConversationUid(latestContent.getConversationUid());
                 AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
@@ -268,6 +289,66 @@ public class CreativeExecuteManager {
                 log.info("创作中心：生成内容和图片解锁成功：{}", lockKey);
             }
         }
+    }
+
+    /**
+     * 获取第一个失败的步骤ID
+     *
+     * @param app 应用
+     * @return 步骤ID
+     */
+    private String getFirstFailureStepId(AppRespVO app) {
+        return Optional.ofNullable(app)
+                .map(AppRespVO::getWorkflowConfig)
+                .map(WorkflowConfigRespVO::getSteps)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(step -> !Optional.ofNullable(step)
+                        .map(WorkflowStepWrapperRespVO::getFlowStep)
+                        .map(WorkflowStepRespVO::getResponse)
+                        .map(ActionResponseRespVO::getSuccess)
+                        .orElse(false)
+                )
+                .findFirst()
+                .map(WorkflowStepWrapperRespVO::getField)
+                .orElse(null);
+    }
+
+    /**
+     * 合并应用
+     *
+     * @param appMarket 合并应用
+     * @param app       应用
+     */
+    private void mergeApp(AppMarketRespVO appMarket, AppRespVO app) {
+
+        WorkflowConfigRespVO appWorkflowConfig = app.getWorkflowConfig();
+        List<WorkflowStepWrapperRespVO> appStepWrapperList = CollectionUtil.emptyIfNull(appWorkflowConfig.getSteps());
+        Map<String, WorkflowStepWrapperRespVO> appWrapperMap = new HashMap<>();
+        for (WorkflowStepWrapperRespVO stepWrapper : appStepWrapperList) {
+            Boolean success = Optional.ofNullable(stepWrapper)
+                    .map(WorkflowStepWrapperRespVO::getFlowStep)
+                    .map(WorkflowStepRespVO::getResponse)
+                    .map(ActionResponseRespVO::getSuccess).orElse(false);
+            if (success) {
+                appWrapperMap.put(stepWrapper.getField(), stepWrapper);
+            }
+        }
+
+        List<WorkflowStepWrapperRespVO> resultWrapperList = new ArrayList<>();
+        WorkflowConfigRespVO workflowConfig = appMarket.getWorkflowConfig();
+        List<WorkflowStepWrapperRespVO> steps = workflowConfig.getSteps();
+        for (WorkflowStepWrapperRespVO step : steps) {
+            // 如果有app中的步骤，则替换
+            if (appWrapperMap.containsKey(step.getField()) && Objects.nonNull(appWrapperMap.get(step.getField()))) {
+                resultWrapperList.add(appWrapperMap.get(step.getField()));
+            }
+            // 添加其他步骤
+            resultWrapperList.add(step);
+
+        }
+        workflowConfig.setSteps(resultWrapperList);
+        appMarket.setWorkflowConfig(workflowConfig);
     }
 
     /**
