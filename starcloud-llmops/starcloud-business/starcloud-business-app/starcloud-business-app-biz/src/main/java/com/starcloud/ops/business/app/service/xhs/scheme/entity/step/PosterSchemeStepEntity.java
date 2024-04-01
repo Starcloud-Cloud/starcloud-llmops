@@ -43,7 +43,7 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-        stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE_CONFIG, this.styleList));
+        stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(this.styleList)));
     }
 
     /**
