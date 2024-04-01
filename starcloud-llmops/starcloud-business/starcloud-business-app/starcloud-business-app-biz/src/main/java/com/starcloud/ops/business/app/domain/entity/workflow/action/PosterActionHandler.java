@@ -180,8 +180,12 @@ public class PosterActionHandler extends BaseActionHandler {
             List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
             for (PosterVariableEntity variable : variableList) {
                 Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
-                // 如果值依然是占位符，把值中带有 {{上传素材.docs[1].url}} 结构的字符串替换为空字符串
                 if (value instanceof String) {
+                    // 如果是空字符串，则使用默认值
+                    if (StringUtils.isBlank((String) value)) {
+                        value = variable.getValue();
+                    }
+                    // 如果值依然是占位符，把值中带有 {{上传素材.docs[1].url}} 结构的字符串替换为空字符串
                     value = CreativeUtils.removePlaceholder(String.valueOf(value));
                 }
                 variable.setValue(value);
