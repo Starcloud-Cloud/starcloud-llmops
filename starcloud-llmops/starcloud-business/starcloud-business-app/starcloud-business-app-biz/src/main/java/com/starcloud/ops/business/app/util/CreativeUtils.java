@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
@@ -247,40 +248,18 @@ public class CreativeUtils {
 
     /**
      * 变量替换
+     * 占位符不存在，不替换为空字符串
      *
      * @param variableMap 变量集合
      * @param valueMap    值集合
      * @return 替换之后集合
      */
     public static Map<String, Object> replaceVariable(Map<String, Object> variableMap, Map<String, Object> valueMap) {
-        Map<String, Object> replaceVariableMap = new HashMap<>();
-        MapUtil.emptyIfNull(variableMap).forEach((key, value) -> {
 
-            if (Objects.isNull(value)) {
-                replaceVariableMap.put(key, null);
-            }
 
-            // 进行变量替换
-            Object handleValue = QLExpressUtils.execute((String) value, valueMap);
-
-            if (handleValue instanceof String) {
-                // 二次替换、递归处理？
-                if (QLExpressUtils.check((String) handleValue)) {
-                    handleValue = QLExpressUtils.execute((String) handleValue, valueMap);
-                }
-
-                // 如果替换之后结果为空，则使用原始值，真正执行时候需要二次替换的变量
-                if (StringUtils.isBlank((String) handleValue)) {
-                    handleValue = value;
-                }
-
-                // 替换{xxx}占位符
-                handleValue = StrUtil.format(String.valueOf(handleValue), valueMap);
-            }
-
-            replaceVariableMap.put(key, handleValue);
-        });
-        return replaceVariableMap;
+        //@todo 这里应该区分场景，如果是图片字段，占位符不存在应该返回为空。 如果是文字字段占位符不存在 可以先保留字符串。
+        // 这逻辑不对啊，应该是 把分组好的图片直接放到 上传素材节点中就行了。 生成图片节点中的 占位符只在执行节点的时候做替换，不会发生替换为空字符串的问题（就是所有变量替换约定为 都按照 不存在返回空字符串去处理是没有问题的）
+        return AppContext.parseMapFromVariablesValues(variableMap, valueMap, false);
     }
 
     /**
