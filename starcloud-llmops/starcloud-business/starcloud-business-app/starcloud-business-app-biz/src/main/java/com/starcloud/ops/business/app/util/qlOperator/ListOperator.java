@@ -51,7 +51,7 @@ public class ListOperator extends OperatorBase {
 
             for (int i = 0; i < fdocs.size(); i++) {
                 Object doc = fdocs.get(i);
-                StringJoiner sj = new StringJoiner("\r\n");
+                StringJoiner sj = new StringJoiner("\n");
                 for (String fieldName : fieldList) {
                     Object fieldValue = BeanUtil.getFieldValue(doc, fieldName);
                     String prefix = addPrefix ? prefix(doc, fieldName) : StringUtils.EMPTY;
@@ -61,7 +61,7 @@ public class ListOperator extends OperatorBase {
                 }
                 result.add(sj);
             }
-            return new OperateData(StrUtil.join("\r\n", result), String.class);
+            return new OperateData(StrUtil.join("\n", result), String.class);
         }
 
         return null;
