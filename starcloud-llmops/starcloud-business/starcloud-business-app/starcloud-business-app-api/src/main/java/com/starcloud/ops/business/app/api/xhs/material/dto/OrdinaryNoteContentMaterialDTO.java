@@ -19,7 +19,7 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     private static final long serialVersionUID = 5329304085500798664L;
 
     @JsonPropertyDescription("内容")
-    @FieldDefine(desc = "内容", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "内容", type = FieldTypeEnum.string, required = true)
     private String content;
 
     @JsonPropertyDescription("参考来源")
@@ -33,13 +33,6 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     @Override
     public String generateContent() {
         return content;
-    }
-
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(content)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID,"笔记内容不能为空");
-        }
     }
 
     @Override

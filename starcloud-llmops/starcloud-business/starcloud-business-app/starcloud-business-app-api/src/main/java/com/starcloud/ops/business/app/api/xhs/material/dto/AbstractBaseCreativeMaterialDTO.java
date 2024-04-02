@@ -4,8 +4,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.apache.commons.lang.StringUtils;
+
+import java.lang.reflect.Field;
+import java.util.Objects;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type", visible = true)
@@ -42,8 +50,33 @@ public abstract class AbstractBaseCreativeMaterialDTO implements java.io.Seriali
 
     /**
      * 校验参数
+     * 注解必填字段校验
      */
-    public abstract void valid();
+    public void valid() {
+        for (Field field : this.getClass().getDeclaredFields()) {
+            FieldDefine fieldDefine = field.getDeclaredAnnotation(FieldDefine.class);
+            if (Objects.isNull(fieldDefine)) {
+                continue;
+            }
+            if (fieldDefine.required()) {
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(this);
+                    if (value instanceof String && StringUtils.isBlank((String) value)) {
+                        throw exception(MATERIAL_FIELD_NOT_VALID, fieldDefine.desc() + "不能为空");
+                    }
+
+                    if (Objects.isNull(value)) {
+                        throw exception(MATERIAL_FIELD_NOT_VALID, fieldDefine.desc() + "不能为空");
+                    }
+                } catch (IllegalAccessException e) {
+                    throw exception(MATERIAL_FIELD_NOT_VALID, fieldDefine.desc() + "校验错误：" + e.getMessage());
+                }
+            }
+        }
+    }
+
+    ;
 
     /**
      * 去除冗余字段

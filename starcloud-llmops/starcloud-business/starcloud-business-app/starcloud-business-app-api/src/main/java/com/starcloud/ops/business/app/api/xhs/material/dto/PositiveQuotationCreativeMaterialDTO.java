@@ -53,8 +53,4 @@ public class PositiveQuotationCreativeMaterialDTO extends AbstractBaseCreativeMa
         return title;
     }
 
-    @Override
-    public void valid() {
-
-    }
 }

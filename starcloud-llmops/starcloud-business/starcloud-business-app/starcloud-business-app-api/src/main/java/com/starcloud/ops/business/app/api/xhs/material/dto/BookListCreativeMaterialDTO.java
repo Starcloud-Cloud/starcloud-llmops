@@ -1,15 +1,11 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
 @Data
 @Accessors(chain = false)
@@ -19,7 +15,7 @@ public class BookListCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
 
     @ExcelProperty("书名")
     @JsonPropertyDescription("书名")
-    @FieldDefine(desc = "书名", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "书名", type = FieldTypeEnum.string, required = true)
     private String bookName;
 
     @ExcelProperty("封面")
@@ -67,10 +63,4 @@ public class BookListCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
         return bookName;
     }
 
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(bookName)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID,"书名不能为空");
-        }
-    }
 }
