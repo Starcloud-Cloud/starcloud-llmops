@@ -8,14 +8,12 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
@@ -318,23 +316,13 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (!levelConfigDOS.isEmpty()) {
             List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
 
-            List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectList(Wrappers.lambdaQuery(AdminUserLevelDO.class)
-                    .eq(AdminUserLevelDO::getUserId, levelDO.getUserId())
-                    .in(AdminUserLevelDO::getLevelId, configIds)
-                    .eq(AdminUserLevelDO::getStatus, CommonStatusEnum.ENABLE.getStatus()));
+            // 修改为 查询未过期的数据 包括不在时间范围内的数据
+            List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeGe(levelDO.getUserId(), configIds, LocalDateTime.now(), CommonStatusEnum.ENABLE.getStatus());
 
-            if (!adminUserLevelDOS.isEmpty()) {
-                for (AdminUserLevelDO adminUserLevelDO : adminUserLevelDOS) {
-                    if (LocalDateTimeUtils.isBetween(adminUserLevelDO.getValidStartTime(), adminUserLevelDO.getValidEndTime())) {
-                        count++;
-                    }
-                }
+            if (CollUtil.isEmpty(adminUserLevelDOS)) {
+                // 移除过期等级中绑定的角色
+                getSelf().buildUserRole(levelDO.getUserId(), null, levelConfig.getRoleId());
             }
-        }
-
-        if (count == 0) {
-            // 移除过期等级中绑定的角色
-            getSelf().buildUserRole(levelDO.getUserId(), null, levelConfig.getRoleId());
         }
 
         // 更新 AdminUserLevelDO 状态为已关闭
@@ -419,8 +407,11 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
         // 1.0 根据会员配置等级 获取会员配置信息
-        return adminUserLevelMapper.findLatestExpirationByLevel(userId, levelId);
-
+        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeGe(userId, Arrays.asList(levelId), LocalDateTime.now(), CommonStatusEnum.ENABLE.getStatus());
+        if (CollUtil.isEmpty(adminUserLevelDOS)){
+            return null;
+        }
+        return adminUserLevelDOS.get(0);
     }
 
     public LocalDateTime getSpecificTime(LocalDateTime times, Integer timeNums, Integer TimeRange) {
