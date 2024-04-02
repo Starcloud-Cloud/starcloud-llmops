@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.util.StrUtil;
 import com.ql.util.express.DefaultContext;
 import com.ql.util.express.ExpressRunner;
 import com.ql.util.express.config.QLExpressRunStrategy;
@@ -57,11 +58,72 @@ public class QLExpressUtils {
      */
     public static Object execute(String content, Map<String, Object> params) {
 
+        return execute(content, params, true);
+    }
+
+    /**
+     * 把字符串中的占位符进行 QLExpress 的批量替换
+     * @param content
+     * @param params
+     * @param defEmpty 占位符不存在是否返回空字符串
+     * @return
+     */
+    public static Object execute(String content, Map<String, Object> params, Boolean defEmpty) {
+
         DefaultContext<String, Object> rootMap = new DefaultContext<>();
 
         rootMap.putAll(params);
 
-        return execute(content, rootMap);
+        Object value = execute(content, rootMap, defEmpty);
+
+        if (value instanceof String) {
+
+            //判断是否有占位符结构，需要递归替换，实现不太好先这样
+            if (QLExpressUtils.check((String) value)) {
+                value = execute((String) value, rootMap, defEmpty);
+            }
+        }
+
+        return value;
+    }
+
+    /**
+     * 把字符串中的占位符进行 QLExpress 的批量替换
+     *
+     * @param content
+     * @param rootMap
+     * @return
+     */
+    private static Object execute(String content, DefaultContext<String, Object> rootMap, Boolean defEmpty) {
+
+        try {
+
+            // 定义正则表达式
+            Pattern pattern = Pattern.compile(MATCH_REGEX);
+            Matcher matcher = pattern.matcher(content);
+
+            StringBuffer varsBuffer = new StringBuffer();
+            while (matcher.find()) {
+                String variable = matcher.group(1);
+                String vars = (String) executeNative(variable, rootMap);
+
+                if (vars != null) {
+                    matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
+                } else {
+                    if (defEmpty) {
+                        matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
+                    }
+                }
+            }
+            matcher.appendTail(varsBuffer);
+            return varsBuffer.toString();
+
+        } catch (Exception e) {
+
+            log.error("QLExpressUtils.execute is fail: {}. content: {}", e.getMessage(), content);
+        }
+
+        return content;
     }
 
 
@@ -72,7 +134,7 @@ public class QLExpressUtils {
      * @param rootMap
      * @return
      */
-    public static Object execute(String content, DefaultContext<String, Object> rootMap) {
+    private static Object execute(String content, DefaultContext<String, Object> rootMap) {
 
         try {
 
@@ -112,7 +174,7 @@ public class QLExpressUtils {
             return r;
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.execute is fail: {}, content: {}", e.getMessage(), content);
+            log.error("QLExpressUtils.executeNative is fail: {}, content: {}", e.getMessage(), content);
 
         }
 

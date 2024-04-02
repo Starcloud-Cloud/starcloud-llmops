@@ -295,7 +295,7 @@ public class AppContext {
         Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
 
         if (parse) {
-            variables = this.parseMapFromVariablesValues(variables, allVariablesValues);
+            variables = parseMapFromVariablesValues(variables, allVariablesValues);
         }
 
         return variables;
@@ -343,7 +343,7 @@ public class AppContext {
 
         Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
 
-        Map<String, Object> fieldVariables = this.parseMapFromVariablesValues(values, allVariablesValues);
+        Map<String, Object> fieldVariables = parseMapFromVariablesValues(values, allVariablesValues);
 
         return fieldVariables;
     }
@@ -385,7 +385,15 @@ public class AppContext {
     /**
      * 解析传入的value，替换其中的变量占位符
      */
-    private Map<String, Object> parseMapFromVariablesValues(Map<String, Object> values, Map<String, Object> allVariablesValues) {
+    public static Map<String, Object> parseMapFromVariablesValues(Map<String, Object> values, Map<String, Object> allVariablesValues) {
+
+        return parseMapFromVariablesValues(values, allVariablesValues, true);
+    }
+
+    /**
+     * 解析传入的value，替换其中的变量占位符
+     */
+    public static Map<String, Object> parseMapFromVariablesValues(Map<String, Object> values, Map<String, Object> allVariablesValues, Boolean defEmpty) {
 
         Map<String, Object> fieldVariables = new HashMap<>();
         //遍历当前变量
@@ -396,17 +404,10 @@ public class AppContext {
             if (value != null) {
 
                 String val = String.valueOf(value);
-
-                value = QLExpressUtils.execute(val, allVariablesValues);
-                //把当前变量的内容中的 占位符与所有上下游变量做占位符替换，替换为具体的值
+                value = QLExpressUtils.execute(val, allVariablesValues, defEmpty);
 
                 if (value instanceof String) {
-
-                    //判断是否有占位符结构，需要递归替换，实现不太好先这样
-                    if (QLExpressUtils.check((String) value)) {
-                        value = QLExpressUtils.execute((String) value, allVariablesValues);
-                    }
-
+                    //处理老的变量占位符 {}
                     value = StrUtil.format(String.valueOf(value), allVariablesValues);
                 }
             }
