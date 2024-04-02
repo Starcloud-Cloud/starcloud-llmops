@@ -312,7 +312,6 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         List<AdminUserLevelConfigDO> levelConfigDOS = levelConfigService.getListByRoleId(levelConfig.getRoleId());
 
         levelConfigDOS.removeIf(config -> Objects.equals(config.getId(), levelDO.getLevelId()));
-        int count = 0;
         if (!levelConfigDOS.isEmpty()) {
             List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
 
@@ -407,7 +406,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
         // 1.0 根据会员配置等级 获取会员配置信息
-        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeGe(userId, Arrays.asList(levelId), LocalDateTime.now(), CommonStatusEnum.ENABLE.getStatus());
+        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeGe(userId, Collections.singletonList(levelId), LocalDateTime.now(), CommonStatusEnum.ENABLE.getStatus());
         if (CollUtil.isEmpty(adminUserLevelDOS)){
             return null;
         }
