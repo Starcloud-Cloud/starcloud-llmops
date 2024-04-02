@@ -197,7 +197,7 @@ public class CreativeUtils {
             String titleGenerateMode = StringUtils.isBlank(template.getTitleGenerateMode()) ? PosterTitleModeEnum.DEFAULT.name() : template.getTitleGenerateMode();
 
             // 模板信息补充
-            template.setIndex(i + 1);
+            template.setIndex(i);
             template.setIsMain(i == 0);
             template.setTotalImageCount(totalImageCount);
             template.setMode(mode);
