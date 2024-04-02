@@ -6,7 +6,6 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeM
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -78,7 +77,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
 
     /**
      * 处理资料库列表，返回处理后的资料库列表。
-     * 提供了默认的逻辑，子类可以重写此方法来自定义处理逻辑
+     * 默认不做处理，子类可以重写此方法来自定义处理逻辑
      *
      * @param posterStyle  海报风格
      * @param materialList 资料库列表
@@ -86,7 +85,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
      * @return 处理后的海报风格
      */
     public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
-        return this.defaultHandlePosterStyle(posterStyle, materialList, metadata);
+        return posterStyle;
     }
 
     /**
@@ -222,56 +221,6 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
         }
 
         return resultMap;
-    }
-
-    /**
-     * 默认处理海报风格。
-     *
-     * @param posterStyle  海报风格
-     * @param materialList 素材列表
-     * @param metadata     素材元数据
-     * @return 海报风格
-     */
-    protected PosterStyleDTO defaultHandlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
-        // 如果资料库为空，直接返回海报风格，不做处理
-        if (CollectionUtil.isEmpty(materialList)) {
-            return posterStyle;
-        }
-        PosterStyleDTO style = SerializationUtils.clone(posterStyle);
-        // 进行变量替换
-        Map<String, Object> replaceValueMap = replaceVariable(style, materialList, metadata);
-        // 进行海报风格的处理
-        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
-        for (PosterTemplateDTO template : templateList) {
-            // 获取变量列表，进行变量的替换填充
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
-            for (PosterVariableDTO variable : variableList) {
-                Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
-                variable.setValue(value);
-            }
-            template.setVariableList(variableList);
-        }
-        style.setTemplateList(templateList);
-        return style;
-    }
-
-    /**
-     * 变量替换
-     *
-     * @param posterStyle  变量列表
-     * @param materialList 值列表
-     * @param metadata     素材元数据
-     * @return 变量替换后的值
-     */
-    protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
-        // 获取变量uuid和value的集合
-        Map<String, Object> variableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
-
-        // 处理素材。变为可以替换的结构化数据
-        JsonDocsDefSchema<M> jsonDocsDefSchema = new JsonDocsDefSchema<>();
-        jsonDocsDefSchema.setDocs(materialList);
-        Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepName(), jsonDocsDefSchema);
-        return CreativeUtils.replaceVariable(variableMap, materialMap);
     }
 
     /**

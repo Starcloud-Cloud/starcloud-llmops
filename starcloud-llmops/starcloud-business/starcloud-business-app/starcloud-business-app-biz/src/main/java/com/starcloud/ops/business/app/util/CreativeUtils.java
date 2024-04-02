@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
@@ -17,7 +15,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
@@ -232,34 +229,6 @@ public class CreativeUtils {
             }
         }
         return variableValueMap;
-    }
-
-    public static Map<String, Object> getPosterStyleVariableMap(PosterStyleDTO posterStyle) {
-        Map<String, Object> variableValueMap = new HashMap<>();
-        for (PosterTemplateDTO posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
-            for (PosterVariableDTO variable : variableList) {
-                String uuid = StringUtils.isBlank(variable.getUuid()) ? IdUtil.fastSimpleUUID() : variable.getUuid();
-                variableValueMap.put(uuid, variable.getValue());
-            }
-        }
-        return variableValueMap;
-    }
-
-    /**
-     * 变量替换
-     * 占位符不存在，不替换为空字符串
-     *
-     * @param variableMap 变量集合
-     * @param valueMap    值集合
-     * @return 替换之后集合
-     */
-    public static Map<String, Object> replaceVariable(Map<String, Object> variableMap, Map<String, Object> valueMap) {
-
-
-        //@todo 这里应该区分场景，如果是图片字段，占位符不存在应该返回为空。 如果是文字字段占位符不存在 可以先保留字符串。
-        // 这逻辑不对啊，应该是 把分组好的图片直接放到 上传素材节点中就行了。 生成图片节点中的 占位符只在执行节点的时候做替换，不会发生替换为空字符串的问题（就是所有变量替换约定为 都按照 不存在返回空字符串去处理是没有问题的）
-        return AppContext.parseMapFromVariablesValues(variableMap, valueMap, false);
     }
 
     /**

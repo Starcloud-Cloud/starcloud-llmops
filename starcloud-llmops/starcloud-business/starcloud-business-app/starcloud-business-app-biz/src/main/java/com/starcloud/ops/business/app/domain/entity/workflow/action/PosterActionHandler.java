@@ -173,21 +173,15 @@ public class PosterActionHandler extends BaseActionHandler {
 
         // 把每一个变量的uuid和value放到此map中
         Map<String, Object> templateVariableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
+        // 替换变量，未找到的占位符会被替换为空字符串
         Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(templateVariableMap, this.getAppContext().getStepId());
 
         // 循环处理，进行变量替换
         for (PosterTemplateEntity posterTemplate : posterTemplateList) {
             List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
             for (PosterVariableEntity variable : variableList) {
+                // 从作用域数据中获取变量值
                 Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
-                if (value instanceof String) {
-                    // 如果是空字符串，则使用默认值
-                    if (StringUtils.isBlank((String) value)) {
-                        value = variable.getValue();
-                    }
-                    // 如果值依然是占位符，把值中带有 {{上传素材.docs[1].url}} 结构的字符串替换为空字符串
-                    value = CreativeUtils.removePlaceholder(String.valueOf(value));
-                }
                 variable.setValue(value);
             }
             posterTemplate.setVariableList(variableList);
