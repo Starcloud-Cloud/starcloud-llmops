@@ -360,6 +360,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_NAME_EXIST);
         }
         CreativeSchemeDO scheme = CreativeSchemeConvert.INSTANCE.convertCreateRequest(request);
+        scheme.setCreateTime(LocalDateTime.now());
         creativeSchemeMapper.insert(scheme);
         // 返回创作方案UID
         return scheme.getUid();
