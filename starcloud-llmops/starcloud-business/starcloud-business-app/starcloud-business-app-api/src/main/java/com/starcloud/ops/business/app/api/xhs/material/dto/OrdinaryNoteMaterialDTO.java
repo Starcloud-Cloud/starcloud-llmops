@@ -15,11 +15,11 @@ public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
     private static final long serialVersionUID = 6000409686906819644L;
 
     @JsonPropertyDescription("标题")
-    @FieldDefine(desc = "标题", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true)
     private String title;
 
     @JsonPropertyDescription("内容")
-    @FieldDefine(desc = "内容", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "内容", type = FieldTypeEnum.string, required = true)
     private String content;
 
     @JsonPropertyDescription("参考来源")
@@ -33,16 +33,6 @@ public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
     @Override
     public String generateContent() {
         return title + "\n" + content;
-    }
-
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(content)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID, "笔记内容不能为空");
-        }
-        if (StrUtil.isBlank(title)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID, "笔记标题不能为空");
-        }
     }
 
     @Override

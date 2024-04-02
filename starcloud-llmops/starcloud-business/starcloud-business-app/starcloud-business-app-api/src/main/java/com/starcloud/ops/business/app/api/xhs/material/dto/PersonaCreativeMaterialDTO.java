@@ -34,8 +34,4 @@ public class PersonaCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
         return StrUtil.EMPTY;
     }
 
-    @Override
-    public void valid() {
-
-    }
 }

@@ -13,14 +13,24 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 
 @Data
 @Accessors(chain = false)
-public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO{
+public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
 
     private static final long serialVersionUID = -3928689367907211655L;
 
     @JsonPropertyDescription("合同名称")
-    @FieldDefine(desc = "合同名称", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "合同名称", type = FieldTypeEnum.string, required = true)
     @ExcelProperty("合同名称")
     private String name;
+
+    @JsonPropertyDescription("合同编号")
+    @FieldDefine(desc = "合同编号", type = FieldTypeEnum.string)
+    @ExcelProperty("合同编号")
+    private String numbering;
+
+    @JsonPropertyDescription("合同简介")
+    @FieldDefine(desc = "合同简介", type = FieldTypeEnum.string)
+    @ExcelProperty("合同简介")
+    private String desc;
 
     @JsonPropertyDescription("文档图片1")
     @FieldDefine(desc = "文档图片1", type = FieldTypeEnum.image)
@@ -52,20 +62,9 @@ public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
     @ExcelProperty("文档图片6")
     private String documentPicUrlSix;
 
-    @JsonPropertyDescription("合同编号")
-    @FieldDefine(desc = "合同编号", type = FieldTypeEnum.integer)
-    @ExcelProperty("合同编号")
-    private Integer number;
-
     @Override
     public String generateContent() {
         return name;
     }
 
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(name)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID,"合同名称不能为空");
-        }
-    }
 }

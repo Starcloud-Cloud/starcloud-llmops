@@ -18,7 +18,7 @@ public class SnackRecipeCreativeMaterialDTO extends AbstractBaseCreativeMaterial
     private static final long serialVersionUID = -5645484220659667132L;
 
     @JsonPropertyDescription("小吃名称")
-    @FieldDefine(desc = "小吃名称", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "小吃名称", type = FieldTypeEnum.string, required = true)
     @ExcelProperty("小吃名称")
     private String snackName;
 
@@ -42,10 +42,4 @@ public class SnackRecipeCreativeMaterialDTO extends AbstractBaseCreativeMaterial
         return snackName;
     }
 
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(snackName)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID, "小吃名称不能为空");
-        }
-    }
 }

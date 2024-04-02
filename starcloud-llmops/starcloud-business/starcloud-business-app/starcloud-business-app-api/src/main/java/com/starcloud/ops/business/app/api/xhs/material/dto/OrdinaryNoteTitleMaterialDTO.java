@@ -15,7 +15,7 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractBaseCreativeMaterialDT
     private static final long serialVersionUID = 6963607295424278366L;
 
     @JsonPropertyDescription("标题")
-    @FieldDefine(desc = "标题", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true)
     private String title;
 
     @JsonPropertyDescription("参考来源")
@@ -29,13 +29,6 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractBaseCreativeMaterialDT
     @Override
     public String generateContent() {
         return title;
-    }
-
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(title)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID, "笔记标题不能为空");
-        }
     }
 
     @Override

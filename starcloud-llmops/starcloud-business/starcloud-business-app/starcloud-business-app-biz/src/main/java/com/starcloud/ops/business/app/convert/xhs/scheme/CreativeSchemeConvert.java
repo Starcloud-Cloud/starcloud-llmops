@@ -53,7 +53,6 @@ public interface CreativeSchemeConvert {
 
         // 创作计划物料
         creativeScheme.setMateriel(request.getMateriel());
-        creativeScheme.setCreateTime(LocalDateTime.now());
         creativeScheme.setUpdateTime(LocalDateTime.now());
         creativeScheme.setDeleted(Boolean.FALSE);
         return creativeScheme;

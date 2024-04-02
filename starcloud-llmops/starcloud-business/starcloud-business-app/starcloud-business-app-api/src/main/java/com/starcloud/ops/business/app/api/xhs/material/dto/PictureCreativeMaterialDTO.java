@@ -27,10 +27,4 @@ public class PictureCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
         return StrUtil.EMPTY;
     }
 
-    @Override
-    public void valid() {
-        if (StrUtil.isBlank(pictureUrl)) {
-            throw exception(MATERIAL_FIELD_NOT_VALID, "图片不能为空");
-        }
-    }
 }
