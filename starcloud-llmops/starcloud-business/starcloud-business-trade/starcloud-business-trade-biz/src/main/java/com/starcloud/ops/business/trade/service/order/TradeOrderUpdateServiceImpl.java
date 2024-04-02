@@ -1074,9 +1074,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
 
-            //
             // couponTemplateApi.getCouponTemplate(1L);
-
 
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());

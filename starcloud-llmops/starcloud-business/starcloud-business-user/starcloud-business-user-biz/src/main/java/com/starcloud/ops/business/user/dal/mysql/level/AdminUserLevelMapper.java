@@ -63,4 +63,17 @@ public interface AdminUserLevelMapper extends BaseMapperX<AdminUserLevelDO> {
     }
 
 
+    // 获取指定时间下有效的会员等级数据
+    default List<AdminUserLevelDO> selectListByStatusAndValidTimeGe(Long userId, List<Long> levelId, LocalDateTime dateTime, Integer status) {
+        return selectList(new LambdaQueryWrapper<AdminUserLevelDO>()
+                .eq(AdminUserLevelDO::getUserId, userId)
+                .in(AdminUserLevelDO::getLevelId, levelId)
+                .ge(AdminUserLevelDO::getValidStartTime, dateTime)
+                .ge(AdminUserLevelDO::getValidEndTime, dateTime)
+                .eq(AdminUserLevelDO::getStatus, status)
+                .orderByDesc(AdminUserLevelDO::getValidEndTime)
+        );
+    }
+
+
 }
