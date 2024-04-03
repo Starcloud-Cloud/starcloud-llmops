@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.xhs.content.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
@@ -16,6 +15,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppStepStatusDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
@@ -252,68 +252,41 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
-
-        // 自定义类型
         IPage<CreativeContentDTO> page = new Page<>(query.getPageNo(), query.getPageSize());
-        Page<CreativeContentDTO> allTypePage = creativeContentMapper.allTypePage(page, query);
+        Page<CreativeContentDTO> result = creativeContentMapper.allTypePage(page, query);
+        List<CreativeContentRespVO> recordList = CollectionUtil.emptyIfNull(result.getRecords())
+                .stream()
+                .map(item -> {
+                    CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(item);
+                    AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
+                    response.setProgress(progress);
 
-        List<CreativeContentRespVO> recordResponseList = CollectionUtil.emptyIfNull(allTypePage.getRecords()).stream().map(item -> {
-            CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(item);
-            LinkedHashMap<String, AppStepStatusDTO> stepMap = appStepStatusCache.get(response.getConversationUid());
-            if (MapUtil.isNotEmpty(stepMap)) {
-                ArrayList<AppStepStatusDTO> steps = new ArrayList<>(stepMap.values());
 
-                // 总的步骤数量
-                response.setTotalStep(steps.size());
-                // 成功的步骤数量
-                int successCount = (int) steps.stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
-                response.setSuccessStepCount(successCount);
+                    LinkedHashMap<String, AppStepStatusDTO> stepMap = appStepStatusCache.get(response.getConversationUid());
+                    if (MapUtil.isNotEmpty(stepMap)) {
+                        ArrayList<AppStepStatusDTO> steps = new ArrayList<>(stepMap.values());
 
-                int currentStepIndex = 1;
-                if (successCount < steps.size()) {
-                    // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
-                    currentStepIndex = successCount + 1;
-                } else {
-                    // 所有步骤都成功，设置为总的步骤数量
-                    currentStepIndex = steps.size();
-                }
-                // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
-                response.setCurrentStepIndex(currentStepIndex);
-            }
+                        // 总的步骤数量
+                        response.setTotalStep(steps.size());
+                        // 成功的步骤数量
+                        int successCount = (int) steps.stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
+                        response.setSuccessStepCount(successCount);
 
-            return response;
-        }).collect(Collectors.toList());
+                        int currentStepIndex = 1;
+                        if (successCount < steps.size()) {
+                            // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
+                            currentStepIndex = successCount + 1;
+                        } else {
+                            // 所有步骤都成功，设置为总的步骤数量
+                            currentStepIndex = steps.size();
+                        }
+                        // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
+                        response.setCurrentStepIndex(currentStepIndex);
+                    }
 
-        return new PageResult<>(recordResponseList, allTypePage.getTotal());
-    }
-
-    @Override
-    public com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<CreativeContentRespVO> newPage(CreativeContentPageReqVO req) {
-        CreativeContentPageReqVO pageReq = new CreativeContentPageReqVO();
-        BeanUtil.copyProperties(req, pageReq);
-        PageResult<CreativeContentRespVO> page = page(pageReq);
-        com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<CreativeContentRespVO> result = new com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<>(page.getList(), page.getTotal());
-
-        List<CreativeContentDO> xhsCreativeContents = creativeContentMapper.selectByPlanUid(req.getPlanUid(), req.getBatch());
-        Map<String, List<CreativeContentDO>> contentGroup = xhsCreativeContents.stream().collect(Collectors.groupingBy(CreativeContentDO::getBusinessUid));
-        int successCount = 0, errorCount = 0;
-
-        for (String bizId : contentGroup.keySet()) {
-            List<CreativeContentDO> contentList = contentGroup.get(bizId);
-            if (CollectionUtils.isEmpty(contentList)) {
-                continue;
-            }
-            boolean error = contentList.stream().anyMatch(x -> CreativeContentStatusEnum.EXECUTE_ERROR.getCode().equals(x.getStatus()));
-            boolean success = contentList.stream().allMatch(x -> CreativeContentStatusEnum.EXECUTE_SUCCESS.getCode().equals(x.getStatus()));
-            if (error) {
-                errorCount++;
-            } else if (success) {
-                successCount++;
-            }
-        }
-        result.setSuccessCount(successCount);
-        result.setErrorCount(errorCount);
-        return result;
+                    return response;
+                }).collect(Collectors.toList());
+        return new PageResult<>(recordList, result.getTotal());
     }
 
     @Override

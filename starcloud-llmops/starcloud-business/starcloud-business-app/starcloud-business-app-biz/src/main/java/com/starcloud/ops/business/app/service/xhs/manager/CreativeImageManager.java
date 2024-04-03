@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteRequest;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageCreativeExecuteResponse;
 import com.starcloud.ops.business.app.api.xhs.execute.XhsImageExecuteRequest;
@@ -103,10 +102,9 @@ public class CreativeImageManager {
      * @return 图片模板 Map
      */
     public Map<String, PosterTemplateDTO> mapTemplate() {
-        if (CollectionUtils.isNotEmpty(templates())) {
-            return templates().stream().collect(Collectors.toMap(PosterTemplateDTO::getId, Function.identity()));
-        }
-        return Maps.newHashMap();
+        return CollectionUtil.emptyIfNull(templates())
+                .stream()
+                .collect(Collectors.toMap(PosterTemplateDTO::getId, Function.identity()));
     }
 
     /**

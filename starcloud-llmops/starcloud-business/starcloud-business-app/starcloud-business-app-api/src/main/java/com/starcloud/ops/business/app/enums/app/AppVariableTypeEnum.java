@@ -1,7 +1,12 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 变量类型
@@ -42,5 +47,19 @@ public enum AppVariableTypeEnum implements IEnumable<Integer> {
     AppVariableTypeEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
+    }
+
+    public static List<Option> options() {
+        return Arrays.stream(values())
+                .filter(item -> !item.equals(IMAGE))
+                .map(AppVariableTypeEnum::option)
+                .collect(Collectors.toList());
+    }
+
+    public static Option option(AppVariableTypeEnum typeEnum) {
+        Option option = new Option();
+        option.setLabel(typeEnum.getLabel());
+        option.setValue(typeEnum.name());
+        return option;
     }
 }

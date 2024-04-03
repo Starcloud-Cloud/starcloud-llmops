@@ -215,6 +215,22 @@ public class CreativeUtils {
     }
 
     /**
+     * 合并海报模板
+     *
+     * @param originalTemplate 原始海报模板
+     * @param template         海报模板
+     * @return 合并后的海报模板
+     */
+    public static PosterTemplateDTO mergePosterTemplate(PosterTemplateDTO originalTemplate, PosterTemplateDTO template) {
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+        originalTemplate.setIndex(null);
+        originalTemplate.setIsMain(null);
+        originalTemplate.setTotalImageCount(null);
+        originalTemplate.setVariableList(variableList);
+        return originalTemplate;
+    }
+
+    /**
      * 获取模板变量集合，变量 UUID 和 value 的Map集合
      *
      * @param posterTemplateList 模板列表
@@ -272,7 +288,6 @@ public class CreativeUtils {
     public static String removePlaceholder(String input) {
         return input.replaceAll("\\{\\{.*?}}", "");
     }
-
 }
 
 
