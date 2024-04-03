@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
@@ -26,7 +27,12 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
@@ -35,7 +41,6 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -87,11 +92,21 @@ public class AppServiceImpl implements AppService {
         // 语言列表
         metadata.put("language", LanguageEnum.languageList());
         // AI 模型
-        metadata.put("aiModel", AppUtils.aiModelList());
+        metadata.put("llmModelType", AppUtils.aiModelList());
         // 应用类型
-        metadata.put("type", AppTypeEnum.options(UserUtils.isAdmin()));
+        metadata.put("appType", AppTypeEnum.options(UserUtils.isAdmin()));
         // 素材类型
         metadata.put("materialType", MaterialTypeEnum.referOptions());
+        // 变量分组
+        metadata.put("variableGroup", AppVariableGroupEnum.options());
+        // 变量类型
+        metadata.put("variableType", AppVariableTypeEnum.options());
+        // 变量样式
+        metadata.put("variableStyle", AppVariableStyleEnum.options());
+        // 返回类型
+        metadata.put("responseType", AppStepResponseTypeEnum.options());
+        // 返回样式
+        metadata.put("responseStyle", AppStepResponseStyleEnum.options());
         return metadata;
     }
 

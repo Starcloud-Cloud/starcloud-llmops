@@ -7,6 +7,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.app.dto.AppStepStatusDTO;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -37,6 +38,40 @@ public class AppStepStatusCache {
     @JsonIgnore
     @JSONField(serialize = false)
     private static final TimedCache<String, LinkedHashMap<String, AppStepStatusDTO>> APP_STEP_STATUS_CACHE = CacheUtil.newTimedCache(1000 * 60 * 30);
+
+    /**
+     * 获取执行进度信息
+     *
+     * @param conversationUid 会话 UID
+     * @return 执行进度信息
+     */
+    public AppExecuteProgressDTO getProgress(String conversationUid) {
+        // 获取步骤状态缓存
+        LinkedHashMap<String, AppStepStatusDTO> appStepStatusMap = get(conversationUid);
+        if (CollectionUtil.isEmpty(appStepStatusMap)) {
+            return null;
+        }
+
+        AppExecuteProgressDTO progress = new AppExecuteProgressDTO();
+        // 总的步骤数量
+        progress.setTotalStepCount(appStepStatusMap.size());
+        // 成功的步骤数量
+        int successCount = (int) appStepStatusMap.values().stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
+        progress.setSuccessStepCount(successCount);
+
+        int currentStepIndex = 1;
+        if (successCount < appStepStatusMap.size()) {
+            // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
+            currentStepIndex = successCount + 1;
+        } else {
+            // 所有步骤都成功，设置为总的步骤数量
+            currentStepIndex = appStepStatusMap.size();
+        }
+        // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
+        progress.setCurrentStepIndex(currentStepIndex);
+
+        return progress;
+    }
 
     /**
      * 初始化步骤状态缓存

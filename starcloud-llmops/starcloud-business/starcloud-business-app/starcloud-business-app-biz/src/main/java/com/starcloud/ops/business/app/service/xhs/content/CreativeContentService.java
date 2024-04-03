@@ -69,8 +69,6 @@ public interface CreativeContentService {
      */
     PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO req);
 
-    com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<CreativeContentRespVO> newPage(CreativeContentPageReqVO req);
-
     /**
      * 查询详情
      */

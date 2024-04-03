@@ -1,7 +1,12 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 步骤返回样式枚举
@@ -16,37 +21,22 @@ public enum AppStepResponseStyleEnum implements IEnumable<Integer> {
     /**
      * 输入框样式
      */
-    INPUT(0, "输入框样式"),
+    INPUT(0, "输入框"),
 
     /**
      * 文本框样式
      */
-    TEXTAREA(1, "文本框样式"),
+    TEXTAREA(1, "文本"),
 
     /**
      * JSON格式
      */
-    JSON(2, "JSON格式"),
+    JSON(2, "JSON"),
 
     /**
      * 图片样式
      */
-    IMAGE(3, "图片样式"),
-
-    /**
-     * Base64图片样式
-     */
-    BASE64(4, "Base64样式"),
-
-    /**
-     * 按钮样式
-     */
-    BUTTON(5, "按钮样式"),
-
-    /**
-     * 商品样式
-     */
-    PRODUCT(6, "商品样式");
+    IMAGE(3, "图片");
 
     /**
      * 步骤返回样式Code
@@ -67,5 +57,31 @@ public enum AppStepResponseStyleEnum implements IEnumable<Integer> {
     AppStepResponseStyleEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
+    }
+
+    /**
+     * 获取步骤返回样式选项列表
+     *
+     * @return 步骤返回样式选项列表
+     */
+    public static List<Option> options() {
+        return Arrays.stream(values())
+                .filter(item -> !item.equals(INPUT))
+                .filter(item -> !item.equals(IMAGE))
+                .map(AppStepResponseStyleEnum::option)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取步骤返回样式选项
+     *
+     * @param styleEnum 获取步骤返回样式选项枚举
+     * @return 步骤返回样式选项
+     */
+    public static Option option(AppStepResponseStyleEnum styleEnum) {
+        Option option = new Option();
+        option.setLabel(styleEnum.getLabel());
+        option.setValue(styleEnum.name());
+        return option;
     }
 }

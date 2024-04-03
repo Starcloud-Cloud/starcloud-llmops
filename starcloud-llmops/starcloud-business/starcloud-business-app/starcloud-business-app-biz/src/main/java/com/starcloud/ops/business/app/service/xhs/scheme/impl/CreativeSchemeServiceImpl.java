@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialS
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
@@ -54,6 +55,7 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -66,6 +68,7 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -107,6 +110,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private MaterialHandlerHolder materialHandlerHolder;
+
+    @Resource
+    private CreativeImageManager creativeImageManager;
 
     /**
      * 获取创作方案元数据
@@ -203,12 +209,18 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         CreativeSchemeDO creativeScheme = creativeSchemeMapper.get(uid);
         AppValidate.notNull(creativeScheme, CreativeErrorCodeConstants.SCHEME_NOT_EXIST);
         CreativeSchemeRespVO schemeResponse = CreativeSchemeConvert.INSTANCE.convertResponse(creativeScheme);
-        // 如果不需要获取最新的示例，则直接返回
-        if (!isLatestExample) {
-            return schemeResponse;
-        }
+
         // 否则需要从应用中获取最新的示例
         CreativeSchemeConfigurationDTO configuration = schemeResponse.getConfiguration();
+        // 合并海报信息
+        mergePoster(configuration);
+
+        // 如果不需要获取最新的示例，则直接返回
+        if (!isLatestExample) {
+            schemeResponse.setConfiguration(configuration);
+            return schemeResponse;
+        }
+
         String appUid = configuration.getAppUid();
         AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
         configuration.setExample(appMarketResponse.getExample());
@@ -449,44 +461,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         return this.workflowStepOptions(appMarketEntity, stepSchemeReqVO.getStepCode());
     }
 
-
-    /**
-     * 直接遍历所有节点，每个节点返回入参和出参的两种结构
-     * 只返回当前stepCode 上游的节点参数
-     *
-     * @param appMarketEntity
-     */
-    protected List<CreativeOptionDTO> workflowStepOptions(AppMarketEntity appMarketEntity, String currentStepCode) {
-
-        List<CreativeOptionDTO> baseOptionList = new ArrayList<>();
-
-        baseOptionList = Optional.ofNullable(appMarketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>()).stream().map((stepWrapper) -> {
-
-            String stepCode = stepWrapper.getStepCode();
-            String desc = stepWrapper.getDescription();
-
-            CreativeOptionDTO stepOption = new CreativeOptionDTO();
-            stepOption.setName(stepCode);
-            stepOption.setDescription(desc);
-            stepOption.setCode(stepCode);
-
-            JsonSchema intJsonNode = stepWrapper.getInVariableJsonSchema();
-            stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
-
-            if (stepCode.equals(currentStepCode)) {
-                return null;
-            }
-
-            JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
-            stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
-
-            return stepOption;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-
-        return baseOptionList;
-
-    }
-
     /**
      * 创建文案示例
      *
@@ -525,6 +499,81 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             return copyName;
         }
         return getCopyName(copyName);
+    }
+
+    private void mergePoster(CreativeSchemeConfigurationDTO configuration) {
+        // 获取到步骤列表
+        List<BaseSchemeStepDTO> schemeStepList = CollectionUtil.emptyIfNull(configuration.getSteps());
+        PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(schemeStepList);
+        if (Objects.isNull(posterSchemeStep)) {
+            return;
+        }
+        // 查询最新的海报模板
+        Map<String, PosterTemplateDTO> templateMap = creativeImageManager.mapTemplate();
+        // 获取到海报样式集合
+        List<PosterStyleDTO> styleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
+        List<PosterStyleDTO> posterStyleList = Lists.newArrayList();
+
+        for (PosterStyleDTO posterStyle : styleList) {
+            PosterStyleDTO style = SerializationUtils.clone(posterStyle);
+
+            // 处理海报模板
+            List<PosterTemplateDTO> templateList = Lists.newArrayList();
+            List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+
+            for (PosterTemplateDTO posterTemplate : posterTemplateList) {
+
+                // 如果最新的海报模板不存在，则跳过，从现有的列表中删除。
+                if (!templateMap.containsKey(posterTemplate.getId()) || Objects.isNull(templateMap.get(posterTemplate.getId()))) {
+                    continue;
+                }
+                // 进行海报模板参数的合并
+                PosterTemplateDTO template = templateMap.get(posterTemplate.getId());
+                PosterTemplateDTO mergeTemplate = CreativeUtils.mergePosterTemplate(posterTemplate, template);
+                templateList.add(mergeTemplate);
+            }
+
+            // 替换海报模板
+            posterStyle.setTemplateList(templateList);
+            posterStyleList.add(posterStyle);
+        }
+
+        posterSchemeStep.setStyleList(posterStyleList);
+        schemeStepList.set(schemeStepList.indexOf(posterSchemeStep), posterSchemeStep);
+        configuration.setSteps(schemeStepList);
+    }
+
+    /**
+     * 直接遍历所有节点，每个节点返回入参和出参的两种结构
+     * 只返回当前stepCode 上游的节点参数
+     *
+     * @param appMarketEntity 应用市场应用
+     */
+    protected List<CreativeOptionDTO> workflowStepOptions(AppMarketEntity appMarketEntity, String currentStepCode) {
+
+        return Optional.ofNullable(appMarketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>()).stream().map((stepWrapper) -> {
+
+            String stepCode = stepWrapper.getStepCode();
+            String desc = stepWrapper.getDescription();
+
+            CreativeOptionDTO stepOption = new CreativeOptionDTO();
+            stepOption.setName(stepCode);
+            stepOption.setDescription(desc);
+            stepOption.setCode(stepCode);
+
+            JsonSchema intJsonNode = stepWrapper.getInVariableJsonSchema();
+            stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
+
+            if (stepCode.equals(currentStepCode)) {
+                return null;
+            }
+
+            JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
+            stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+
+            return stepOption;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
     }
 
     /**

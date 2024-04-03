@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.response;
 
+import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
@@ -134,4 +135,10 @@ public class CreativeContentRespVO {
     private Integer successStepCount;
 
     private Integer currentStepIndex;
+
+    /**
+     * 执行进度
+     */
+    @Schema(description = "执行进度")
+    private AppExecuteProgressDTO progress;
 }

@@ -3,9 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.plan;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
@@ -13,9 +11,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanStatus
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -23,10 +19,10 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,13 +30,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -55,11 +50,11 @@ public class CreativePlanController {
     @Resource
     private CreativePlanService creativePlanService;
 
-    @PostMapping(value = "/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "上传图片", description = "上传图片")
+    @PostMapping(value = "/metadata")
+    @Operation(summary = "创作计划元数据", description = "创作计划元数据")
     @ApiOperationSupport(order = 10, author = "nacoyer")
-    public CommonResult<UploadImageInfoDTO> upload(@RequestPart("image") MultipartFile image) {
-        return CommonResult.success(creativePlanService.uploadImage(image));
+    public CommonResult<Map<String, List<Option>>> metadata() {
+        return CommonResult.success(creativePlanService.metadata());
     }
 
     @GetMapping("/get/{uid}")
@@ -154,7 +149,7 @@ public class CreativePlanController {
 
         //executeReqVO.setSseEmitter(emitter);
 
-        AppMarketEntity entity = (AppMarketEntity)AppFactory.factory(executeReqVO);
+        AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(executeReqVO);
 
         AppExecuteRespVO execute = entity.execute(executeReqVO);
         return CommonResult.success(execute);
