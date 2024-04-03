@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeM
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -221,6 +222,25 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
         }
 
         return resultMap;
+    }
+
+    /**
+     * 变量替换
+     *
+     * @param posterStyle  变量列表
+     * @param materialList 值列表
+     * @param metadata     素材元数据
+     * @return 变量替换后的值
+     */
+    protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata, Boolean defEmpty) {
+        // 获取变量uuid和value的集合
+        Map<String, Object> variableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
+
+        // 处理素材。变为可以替换的结构化数据
+        JsonDocsDefSchema<M> jsonDocsDefSchema = new JsonDocsDefSchema<>();
+        jsonDocsDefSchema.setDocs(materialList);
+        Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepName(), jsonDocsDefSchema);
+        return CreativeUtils.replaceVariable(variableMap, materialMap, defEmpty);
     }
 
     /**

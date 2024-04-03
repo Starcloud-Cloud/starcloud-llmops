@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
@@ -230,6 +231,37 @@ public class CreativeUtils {
         }
         return variableValueMap;
     }
+
+    /**
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
+     */
+    public static Map<String, Object> getPosterStyleVariableMap(PosterStyleDTO posterStyle) {
+        Map<String, Object> variableValueMap = new HashMap<>();
+        for (PosterTemplateDTO posterTemplate : CollectionUtil.emptyIfNull(posterStyle.getTemplateList())) {
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+            for (PosterVariableDTO variable : variableList) {
+                String uuid = StringUtils.isBlank(variable.getUuid()) ? IdUtil.fastSimpleUUID() : variable.getUuid();
+                variableValueMap.put(uuid, variable.getValue());
+            }
+        }
+        return variableValueMap;
+    }
+
+    /**
+     * 变量替换
+     * 占位符不存在，不替换为空字符串
+     *
+     * @param variableMap 变量集合
+     * @param valueMap    值集合
+     * @return 替换之后集合
+     */
+    public static Map<String, Object> replaceVariable(Map<String, Object> variableMap, Map<String, Object> valueMap, Boolean defEmpty) {
+        return AppContext.parseMapFromVariablesValues(variableMap, valueMap, defEmpty);
+    }
+
 
     /**
      * 移除占位符
