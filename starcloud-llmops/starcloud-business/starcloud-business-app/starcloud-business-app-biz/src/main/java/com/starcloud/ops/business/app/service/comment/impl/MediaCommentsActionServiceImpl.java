@@ -13,6 +13,9 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MEDIA_COMMENTS_ACTION_NOT_EXISTS;
+
 /**
  * 媒体评论操作 Service 实现类
  *
@@ -59,7 +62,7 @@ public class MediaCommentsActionServiceImpl implements MediaCommentsActionServic
 
     private void validateMediaCommentsActionExists(Long id) {
         if (mediaCommentsActionMapper.selectById(id) == null) {
-            // throw exception(MEDIA_COMMENTS_ACTION_NOT_EXISTS);
+            throw exception(MEDIA_COMMENTS_ACTION_NOT_EXISTS);
         }
     }
 

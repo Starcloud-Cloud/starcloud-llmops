@@ -3,7 +3,8 @@ package com.starcloud.ops.business.app.service.comment.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
-import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategySaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaStrategyDO;
@@ -13,20 +14,14 @@ import com.starcloud.ops.business.app.enums.comment.KeywordMatchTypeEnum;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
 import com.starcloud.ops.business.app.service.comment.MediaStrategyService;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MEDIA_STRATEGY_NOT_EXISTS;
@@ -67,10 +62,7 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
      */
     private Boolean validateStrategyIsContradict(Long userId, MediaStrategyDO mediaStrategy) {
         MediaStrategyDO mediaStrategyDO = mediaStrategyMapper.selectOneStatusEnableParams(userId, mediaStrategy.getAssignAccount(), mediaStrategy.getAssignMedia(), null, CommonStatusEnum.ENABLE.getStatus());
-        if (Objects.isNull(mediaStrategyDO)) {
-            return false;
-        }
-        return true;
+        return !Objects.isNull(mediaStrategyDO);
     }
 
     @Override
@@ -186,14 +178,14 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
         }
     }
 
-
-    /**
-     * 获得自身的代理对象，解决 AOP 生效问题
-     *
-     * @return 自己
-     */
-    private MediaStrategyServiceImpl getSelf() {
-        return SpringUtil.getBean(getClass());
-    }
+    //
+    // /**
+    //  * 获得自身的代理对象，解决 AOP 生效问题
+    //  *
+    //  * @return 自己
+    //  */
+    // private MediaStrategyServiceImpl getSelf() {
+    //     return SpringUtil.getBean(getClass());
+    // }
 
 }

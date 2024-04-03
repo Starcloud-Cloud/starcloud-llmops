@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.service.comment.impl;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsActionDO;
@@ -9,19 +11,14 @@ import com.starcloud.ops.business.app.dal.mysql.comment.MediaCommentsMapper;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsService;
 import com.starcloud.ops.business.app.service.comment.MediaStrategyService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MEDIA_COMMENTS_NOT_EXISTS;
 
 /**
  * 媒体评论 Service 实现类
@@ -79,7 +76,7 @@ public class MediaCommentsServiceImpl implements MediaCommentsService {
 
     private void validateMediaCommentsExists(Long id) {
         if (mediaCommentsMapper.selectById(id) == null) {
-            // throw exception(MEDIA_COMMENTS_NOT_EXISTS);
+            throw exception(MEDIA_COMMENTS_NOT_EXISTS);
         }
     }
 

@@ -17,7 +17,7 @@ public interface MediaCommentsActionService {
     /**
      * 创建媒体评论操作
      *
-     * @param createReqVO 创建信息
+     * @param commentsDO 创建信息
      * @return 编号
      */
     Long createMediaCommentsAction(@Valid MediaCommentsDO commentsDO);
@@ -25,7 +25,7 @@ public interface MediaCommentsActionService {
     /**
      * 更新媒体评论操作
      *
-     * @param updateReqVO 更新信息
+     * @param actionDO 更新信息
      */
     void updateMediaCommentsAction(@Valid MediaCommentsActionDO actionDO);
 
