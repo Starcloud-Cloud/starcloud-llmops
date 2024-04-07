@@ -97,6 +97,10 @@ public interface CreativeConstants {
      */
     String TMP_DIR_PATH = Paths.get(System.getProperty("java.io.tmpdir"), "material").toString();
 
+    /**
+     * word 解析地址
+     */
+    String WORD_PARSE = "http://cn-test.playwright.hotsalestar.com/playwright/material/parse";
 
     /**
      * 图片
