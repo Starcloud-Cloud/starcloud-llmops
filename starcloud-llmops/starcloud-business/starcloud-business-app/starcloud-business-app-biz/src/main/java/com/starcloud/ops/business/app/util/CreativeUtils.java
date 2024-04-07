@@ -168,12 +168,11 @@ public class CreativeUtils {
             PosterTemplateDTO posterTemplate = posterTemplateList.get(i);
             PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
 
-            // 获取到模板变量列表，并且填充uuid。
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList()).stream().peek(item -> {
-                if (StringUtils.isBlank(item.getUuid())) {
-                    item.setUuid(IdUtil.fastSimpleUUID());
-                }
-            }).collect(Collectors.toList());
+            // 获取到模板变量列表，并且填充uuid。直接生成新的uuid，防止前端复制发生问题
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList())
+                    .stream()
+                    .peek(item -> item.setUuid(IdUtil.fastSimpleUUID()))
+                    .collect(Collectors.toList());
 
             // 获取模板变量重图片类型变量的数量
             Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
