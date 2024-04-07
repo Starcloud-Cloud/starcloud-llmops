@@ -48,10 +48,7 @@ public class CreativeUtils {
      * @return 段落方案步骤
      */
     public static VariableSchemeStepDTO getVariableSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (VariableSchemeStepDTO) schemeStepList.stream()
-                .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getCode()))
-                .findFirst()
-                .orElse(null);
+        return (VariableSchemeStepDTO) schemeStepList.stream().filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
     }
 
     /**
@@ -61,10 +58,7 @@ public class CreativeUtils {
      * @return 段落方案步骤
      */
     public static MaterialSchemeStepDTO getMaterialSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (MaterialSchemeStepDTO) schemeStepList.stream()
-                .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getCode()))
-                .findFirst()
-                .orElse(null);
+        return (MaterialSchemeStepDTO) schemeStepList.stream().filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
     }
 
     /**
@@ -74,10 +68,7 @@ public class CreativeUtils {
      * @return 海报方案步骤
      */
     public static PosterSchemeStepDTO getPosterSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (PosterSchemeStepDTO) schemeStepList.stream()
-                .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode()))
-                .findFirst()
-                .orElse(null);
+        return (PosterSchemeStepDTO) schemeStepList.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
     }
 
     /**
@@ -87,10 +78,7 @@ public class CreativeUtils {
      * @return 段落方案步骤
      */
     public static ParagraphSchemeStepDTO getParagraphSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (ParagraphSchemeStepDTO) schemeStepList.stream()
-                .filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode()))
-                .findFirst()
-                .orElse(null);
+        return (ParagraphSchemeStepDTO) schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
     }
 
 
@@ -181,14 +169,11 @@ public class CreativeUtils {
             PosterTemplateDTO template = SerializationUtils.clone(posterTemplate);
 
             // 获取到模板变量列表，并且填充uuid。
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList())
-                    .stream()
-                    .peek(item -> {
-                        if (StringUtils.isBlank(item.getUuid())) {
-                            item.setUuid(IdUtil.fastSimpleUUID());
-                        }
-                    })
-                    .collect(Collectors.toList());
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList()).stream().peek(item -> {
+                if (StringUtils.isBlank(item.getUuid())) {
+                    item.setUuid(IdUtil.fastSimpleUUID());
+                }
+            }).collect(Collectors.toList());
 
             // 获取模板变量重图片类型变量的数量
             Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
@@ -222,7 +207,16 @@ public class CreativeUtils {
      * @return 合并后的海报模板
      */
     public static PosterTemplateDTO mergePosterTemplate(PosterTemplateDTO originalTemplate, PosterTemplateDTO template) {
-        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+        Map<String, PosterVariableDTO> originalVariableMap = CollectionUtil.emptyIfNull(originalTemplate.getVariableList()).stream().collect(Collectors.toMap(PosterVariableDTO::getField, Function.identity()));
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList()).stream().map(item -> {
+            if (originalVariableMap.containsKey(item.getField())) {
+                PosterVariableDTO originalVariable = originalVariableMap.get(item.getField());
+                item.setUuid(originalVariable.getUuid());
+                item.setValue(originalVariable.getValue());
+            }
+            return item;
+        }).collect(Collectors.toList());
+
         originalTemplate.setIndex(null);
         originalTemplate.setIsMain(null);
         originalTemplate.setTotalImageCount(null);

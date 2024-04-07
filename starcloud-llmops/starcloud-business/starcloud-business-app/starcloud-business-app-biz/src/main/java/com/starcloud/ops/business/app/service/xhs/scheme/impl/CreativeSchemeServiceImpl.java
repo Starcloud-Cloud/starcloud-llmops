@@ -213,7 +213,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         // 否则需要从应用中获取最新的示例
         CreativeSchemeConfigurationDTO configuration = schemeResponse.getConfiguration();
         // 合并海报信息
-        mergePoster(configuration);
+        // mergePoster(configuration);
 
         // 如果不需要获取最新的示例，则直接返回
         if (!isLatestExample) {
