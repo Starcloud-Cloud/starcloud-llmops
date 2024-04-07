@@ -1,38 +1,28 @@
 package com.starcloud.ops.business.app.controller.admin.comment;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsManualResponseReqVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsRespVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsActionDO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
-import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsService;
-import org.springframework.web.bind.annotation.*;
-import javax.annotation.Resource;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.security.access.prepost.PreAuthorize;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import javax.validation.constraints.*;
-import javax.validation.*;
-import javax.servlet.http.*;
-import java.util.*;
-import java.io.IOException;
+import javax.annotation.Resource;
+import javax.validation.Valid;
+import java.util.List;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-
-import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-
-import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
-import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.*;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 
@@ -48,21 +38,31 @@ public class MediaCommentsController {
     @PostMapping("/create")
     @Operation(summary = "上传/创建媒体评论")
     public CommonResult<Long> createMediaComments(@Valid @RequestBody MediaCommentsSaveReqVO createReqVO) {
-        return success(mediaCommentsService.createMediaComments(getLoginUserId(),createReqVO));
+        return success(mediaCommentsService.createMediaComments(getLoginUserId(), createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新媒体评论")
     public CommonResult<Boolean> updateMediaComments(@Valid @RequestBody MediaCommentsSaveReqVO updateReqVO) {
-        mediaCommentsService.updateMediaComments(updateReqVO);
+        mediaCommentsService.updateMediaComments(getLoginUserId(), updateReqVO);
         return success(true);
     }
+
+    @PostMapping("/manual-response")
+    @Operation(summary = "手动回复媒体评论")
+    @Parameter(name = "id", description = "编号", required = true)
+    public CommonResult<Boolean> manualMediaComments(@Valid @RequestBody MediaCommentsManualResponseReqVO responseReqVO) {
+
+        mediaCommentsService.manualResponseMediaComments(getLoginUserId(), responseReqVO.getId(), responseReqVO.getResponseContent());
+        return success(true);
+    }
+
 
     @DeleteMapping("/delete")
     @Operation(summary = "删除媒体评论")
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<Boolean> deleteMediaComments(@RequestParam("id") Long id) {
-        mediaCommentsService.deleteMediaComments(id);
+        mediaCommentsService.deleteMediaComments(getLoginUserId(), id);
         return success(true);
     }
 
@@ -70,7 +70,7 @@ public class MediaCommentsController {
     @Operation(summary = "获得媒体评论")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     public CommonResult<MediaCommentsRespVO> getMediaComments(@RequestParam("id") Long id) {
-        MediaCommentsDO mediaComments = mediaCommentsService.getMediaComments(id);
+        MediaCommentsDO mediaComments = mediaCommentsService.getMediaComments(getLoginUserId(), id);
         MediaCommentsRespVO bean = BeanUtils.toBean(mediaComments, MediaCommentsRespVO.class);
         List<MediaCommentsActionDO> actionDOS = mediaCommentsService.getMediaCommentsActionListByCommentsId(bean.getId());
         bean.setActions(BeanUtils.toBean(actionDOS, MediaCommentsPageReqVO.Action.class));
@@ -80,7 +80,7 @@ public class MediaCommentsController {
     @GetMapping("/page")
     @Operation(summary = "获得媒体评论分页")
     public CommonResult<PageResult<MediaCommentsPageReqVO>> getMediaCommentsPage(@Valid MediaCommentsPageReqVO pageReqVO) {
-        PageResult<MediaCommentsDO> pageResult = mediaCommentsService.getMediaCommentsPage(pageReqVO);
+        PageResult<MediaCommentsDO> pageResult = mediaCommentsService.getMediaCommentsPage(getLoginUserId(), pageReqVO);
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }

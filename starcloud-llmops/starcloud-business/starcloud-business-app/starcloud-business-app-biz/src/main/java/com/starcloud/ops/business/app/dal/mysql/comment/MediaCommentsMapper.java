@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.app.dal.mysql.comment;
 
-import java.util.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,7 +15,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface MediaCommentsMapper extends BaseMapperX<MediaCommentsDO> {
 
-    default PageResult<MediaCommentsDO> selectPage(MediaCommentsPageReqVO reqVO) {
+    default PageResult<MediaCommentsDO> selectPage(Long userId, MediaCommentsPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<MediaCommentsDO>()
                 .eqIfPresent(MediaCommentsDO::getAccountType, reqVO.getAccountType())
                 .eqIfPresent(MediaCommentsDO::getAccountCode, reqVO.getAccountCode())
@@ -35,7 +33,13 @@ public interface MediaCommentsMapper extends BaseMapperX<MediaCommentsDO> {
                 .eqIfPresent(MediaCommentsDO::getLikeStatus, reqVO.getLikeStatus())
                 .eqIfPresent(MediaCommentsDO::getConcernStatus, reqVO.getConcernStatus())
                 .betweenIfPresent(MediaCommentsDO::getCreateTime, reqVO.getCreateTime())
+                .eq(MediaCommentsDO::getCreator, userId)
                 .orderByDesc(MediaCommentsDO::getId));
+    }
+
+
+    default MediaCommentsDO selectOneByUserId(Long userId, Long commentId) {
+        return selectOne(MediaCommentsDO::getCreator, userId, MediaCommentsDO::getId, commentId);
     }
 
 }

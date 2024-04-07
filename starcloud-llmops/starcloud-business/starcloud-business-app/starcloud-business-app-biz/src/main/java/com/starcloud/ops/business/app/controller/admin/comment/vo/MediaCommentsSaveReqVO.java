@@ -1,11 +1,9 @@
 package com.starcloud.ops.business.app.controller.admin.comment.vo;
 
-import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsActionDO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import javax.validation.constraints.*;
-import java.util.*;
+import lombok.Data;
+
+import javax.validation.constraints.NotEmpty;
 
 @Schema(description = "管理后台 - 媒体评论新增/修改 Request VO")
 @Data
@@ -63,6 +61,5 @@ public class MediaCommentsSaveReqVO {
 
     @Schema(description = "关注状态", example = "2")
     private Boolean concernStatus;
-
 
 }

@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.comment.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -108,7 +107,8 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
      * @param commentContent  评论内容
      */
     @Override
-    public void validateMediaCommentsMatch(Long userId, Long commentsId, String accountCode, String mediaCode, String commentUserCode, String commentCode, String commentContent) {
+    public void validateMediaCommentsMatch(Long userId, Long commentsId,  String accountCode, String mediaCode, String commentUserCode, String commentCode, String commentContent) {
+
         // 1.0 验证生效时间 - 获取用户下当前时间下所有启用的配置 - 验证账号 - 验证作品
         MediaStrategyDO mediaStrategyDOS = mediaStrategyMapper.selectOneStatusEnableParams(userId, accountCode, mediaCode, LocalDateTime.now().toLocalTime(), CommonStatusEnum.ENABLE.getStatus());
         if (Objects.isNull(mediaStrategyDOS)) {
@@ -133,6 +133,8 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
 
         // 生成具体操作 存入操作表
         mediaCommentsActionService.createMediaCommentsAction(userId, commentUserCode, commentsId, mediaStrategyDOS.getId(), mediaStrategyDOS.getActionType(), ExecuteTypeEnum.AUTO.getCode(), mediaStrategyDOS.getKeywordGroups().get(new Random().nextInt(mediaStrategyDOS.getKeywordGroups().size())), LocalDateTime.now().plusSeconds(mediaStrategyDOS.getInterval()));
+
+
     }
 
     /**

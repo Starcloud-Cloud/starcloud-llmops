@@ -1,15 +1,14 @@
 package com.starcloud.ops.business.app.service.comment;
 
-import java.util.*;
-import javax.validation.*;
-import javax.validation.constraints.NotNull;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsActionDO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * 媒体评论 Service 接口
@@ -31,14 +30,14 @@ public interface MediaCommentsService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateMediaComments(@Valid MediaCommentsSaveReqVO updateReqVO);
+    void updateMediaComments(@NotNull Long userId, @Valid MediaCommentsSaveReqVO updateReqVO);
 
     /**
      * 删除媒体评论
      *
      * @param id 编号
      */
-    void deleteMediaComments(Long id);
+    void deleteMediaComments(@NotNull Long userId, Long id);
 
     /**
      * 获得媒体评论
@@ -46,7 +45,7 @@ public interface MediaCommentsService {
      * @param id 编号
      * @return 媒体评论
      */
-    MediaCommentsDO getMediaComments(Long id);
+    MediaCommentsDO getMediaComments(@NotNull Long userId, Long id);
 
     /**
      * 获得媒体评论分页
@@ -54,7 +53,7 @@ public interface MediaCommentsService {
      * @param pageReqVO 分页查询
      * @return 媒体评论分页
      */
-    PageResult<MediaCommentsDO> getMediaCommentsPage(MediaCommentsPageReqVO pageReqVO);
+    PageResult<MediaCommentsDO> getMediaCommentsPage(@NotNull Long userId,MediaCommentsPageReqVO pageReqVO);
 
     // ==================== 子表（媒体评论操作） ====================
 
@@ -66,4 +65,12 @@ public interface MediaCommentsService {
      */
     List<MediaCommentsActionDO> getMediaCommentsActionListByCommentsId(Long commentsId);
 
+    /**
+     * 手动回复评论
+     *
+     * @param userId          用户编号
+     * @param id              评论编号
+     * @param responseContent 回复内容
+     */
+    void manualResponseMediaComments(Long userId, Long id, String responseContent);
 }

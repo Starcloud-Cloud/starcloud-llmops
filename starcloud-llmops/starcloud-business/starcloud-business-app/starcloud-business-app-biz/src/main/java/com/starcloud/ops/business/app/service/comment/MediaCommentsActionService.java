@@ -65,14 +65,13 @@ public interface MediaCommentsActionService {
      */
     void createMediaCommentsAction(Long userId, String commentUserCode, Long commentsId, Long strategyCode, Integer strategyType, Integer executeType, String executeContent, LocalDateTime executeTime);
 
+    /**
+     * 通过评论获取操作列表
+     *
+     * @param id 评论编号
+     * @return 操作列表
+     */
     List<MediaCommentsActionDO> getActionListByCommentId(Long id);
 
-    // /**
-    //  * 获得媒体评论操作分页
-    //  *
-    //  * @param pageReqVO 分页查询
-    //  * @return 媒体评论操作分页
-    //  */
-    // PageResult<MediaCommentsActionDO> getMediaCommentsActionPage(MediaCommentsActionPageReqVO pageReqVO);
 
 }
