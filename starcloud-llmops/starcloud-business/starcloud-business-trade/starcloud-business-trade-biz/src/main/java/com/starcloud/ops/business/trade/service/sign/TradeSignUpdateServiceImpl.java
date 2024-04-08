@@ -107,6 +107,14 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // 设置预计扣款时间
         List<TradeSignItemDO> signItemDOS = buildTradeSignItems(tradeSignDO, calculateRespBO);
 
+        // fixme 增加签校验 避免有人修改配置导致配置异常
+        if (tradeSignDO.getSignConfigs().getPeriod() != 1) {
+            tradeSignDO.getSignConfigs().setPeriod(1);
+        }
+        if (tradeSignDO.getSignConfigs().getPeriod() != 30) {
+            tradeSignDO.getSignConfigs().setPeriodType(30);
+        }
+
         tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), 4, tradeSignDO.getSignConfigs().getPeriodType()));
 
         // 2.0 订单创建前的验证
