@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.infra.service.file.FileService;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.ContractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
@@ -22,7 +23,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -71,7 +71,9 @@ public class UploadMaterialImageManager implements InitializingBean {
         }
     }
 
-    // 启动任务
+    /**
+     * 启动任务
+     */
     private void start() {
         while (true) {
             try {
@@ -100,9 +102,13 @@ public class UploadMaterialImageManager implements InitializingBean {
         try {
             Map<Integer, Future<List<String>>> parseFuture = new HashMap<>(materialDTOList.size());
             for (int i = 0; i < materialDTOList.size(); i++) {
-                AbstractBaseCreativeMaterialDTO materialDTO = materialDTOList.get(i);
+                ContractCreativeMaterialDTO materialDTO = (ContractCreativeMaterialDTO) materialDTOList.get(i);
+                if (StringUtils.isBlank(materialDTO.getDocRelativeAddr())) {
+                    continue;
+                }
+
                 String wordPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
-                        + materialDTO.getType() + File.separator + "word" + (i + 1) + ".docx";
+                        + materialDTO.getType() + File.separator + materialDTO.getDocRelativeAddr();
                 File word = new File(wordPath);
                 if (!word.exists()) {
                     continue;
@@ -122,10 +128,31 @@ public class UploadMaterialImageManager implements InitializingBean {
                 }
 
                 AbstractBaseCreativeMaterialDTO materialDTO = materialDTOList.get(i);
-                for (int j = 0; j < imageField.size() && j < rowImages.size(); j++) {
+                for (int j = 0; j < imageField.size(); j++) {
                     Field field = imageField.get(j);
                     field.setAccessible(true);
-                    field.set(materialDTO, rowImages.get(j));
+
+                    String imgAddr = (String) field.get(materialDTO);
+                    String url = StringUtils.EMPTY;
+                    if (j < rowImages.size()) {
+                        url = rowImages.get(j);
+                    }
+
+                    // excel 中没有内容 使用截图图片
+                    if (StringUtils.isBlank(imgAddr)) {
+                        field.set(materialDTO, url);
+                        continue;
+                    }
+                    // excel 中有内容 为http图片地址
+                    if (isImage(imgAddr)) {
+                        continue;
+                    }
+                    // 本地图片存在使用本地图片
+                    String localImage = localImage(imgAddr, parseUid, materialDTO.getType());
+                    if (!StringUtils.isBlank(localImage)) {
+                        url = localImage;
+                    }
+                    field.set(materialDTO, url);
                 }
             }
             long end = System.currentTimeMillis();
@@ -198,55 +225,66 @@ public class UploadMaterialImageManager implements InitializingBean {
             // 图片链接或相对路径
             String imageName = (String) field.get(materialDTO);
 
-            // 判断是不是图片链接  是图片链接跳过
-            InputStream inputStream = null;
-            try {
-                URL url = new URL(imageName);
-                URLConnection urlConnection = url.openConnection();
-                urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
-                inputStream = urlConnection.getInputStream();
-
-                BufferedImage read = ImageIO.read(inputStream);
-                if (Objects.nonNull(read)) {
-                    return;
-                }
-            } catch (MalformedURLException ignored) {
-                log.warn("ignored MalformedURLException");
-            } catch (Exception e) {
-                log.warn("image user error, parseUid={}, imageName={}", parseUid, imageName, e);
-                field.set(materialDTO, StringUtils.EMPTY);
-            } finally {
-                if (Objects.nonNull(inputStream)) {
-                    inputStream.close();
-                }
+            // 判断是图片链接跳过
+            if (isImage(imageName)) {
+                return;
             }
 
-            // 系统默认临时文件目录/material/{parseUid}/{materialType}/images/{imageName}
-            String localPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
-                    + materialDTO.getType() + File.separator + "images" + File.separator
-                    + imageName;
-
-            File file = new File(localPath);
-            if (file.exists()) {
-                // 上传&更新图片地址
-                BufferedImage read = ImageIO.read(file);
-                if (Objects.isNull(read)) {
-                    log.warn("Image type of file is not supported! parseUid={}, imageName={}", parseUid, imageName);
-                    return;
-                }
-
-                String relativePath = "material" + File.separator + parseUid + File.separator + imageName;
-                String url = fileService.createFile(imageName, relativePath, IoUtil.readBytes(Files.newInputStream(file.toPath())));
-                field.set(materialDTO, url);
-            } else {
-                log.warn("Image is not exist parseUid={}, imageName={}", parseUid, imageName);
-                field.set(materialDTO, StringUtils.EMPTY);
-            }
+            String url = localImage(imageName, parseUid, materialDTO.getType());
+            field.set(materialDTO, url);
         } catch (Exception e) {
             log.warn("upload error:", e);
         } finally {
             countDownLatch.countDown();
         }
+    }
+
+
+    private boolean isImage(String addr) throws Exception {
+        InputStream inputStream = null;
+        try {
+            URL url = new URL(addr);
+            URLConnection urlConnection = url.openConnection();
+            urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+            inputStream = urlConnection.getInputStream();
+
+            BufferedImage read = ImageIO.read(inputStream);
+            if (Objects.nonNull(read)) {
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        } finally {
+            if (Objects.nonNull(inputStream)) {
+                inputStream.close();
+            }
+        }
+        return false;
+    }
+
+
+    private String localImage(String addr, String parseUid, String materialType) throws Exception {
+        // 系统默认临时文件目录/material/{parseUid}/{materialType}/images/{imageName}
+        String localPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
+                + materialType + File.separator + "images" + File.separator
+                + addr;
+
+        File file = new File(localPath);
+        if (file.exists()) {
+            // 上传&更新图片地址
+            BufferedImage read = ImageIO.read(file);
+            if (Objects.isNull(read)) {
+                log.warn("Image type of file is not supported! parseUid={}, imageName={}", parseUid, addr);
+                return StringUtils.EMPTY;
+            }
+
+            String relativePath = "material" + File.separator + parseUid + File.separator + addr;
+            return fileService.createFile(addr, relativePath, IoUtil.readBytes(Files.newInputStream(file.toPath())));
+        } else {
+            log.warn("Image is not exist parseUid={}, imageName={}", parseUid, addr);
+            return StringUtils.EMPTY;
+        }
+
     }
 
 }
