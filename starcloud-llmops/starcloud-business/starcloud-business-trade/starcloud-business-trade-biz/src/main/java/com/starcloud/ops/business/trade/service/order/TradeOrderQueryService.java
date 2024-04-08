@@ -167,4 +167,10 @@ public interface TradeOrderQueryService {
 
     Integer getSignPaySuccessCountBySignId(Long signId);
 
+    /**
+     * 订单通知-查询指定timeNum 内的订单 发送到钉钉通知
+     * @param timeNum 指定天数内
+     * @return 订单数
+     */
+    int orderAutoNotify(Long timeNum);
 }

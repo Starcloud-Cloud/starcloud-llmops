@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
@@ -31,6 +32,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.date.DatePattern.CHINESE_DATE_TIME_PATTERN;
+
 /**
  * 交易订单【读】 Service 接口
  *
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class TradeSignQueryServiceImpl implements TradeSignQueryService{
+public class TradeSignQueryServiceImpl implements TradeSignQueryService {
 
 
     @Resource
@@ -86,17 +89,18 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
      */
     @Override
     public TradeSignDO getSign(Long userId, Long id) {
-        return tradeSignMapper.selectByIdAndUserId(id,userId);
+        return tradeSignMapper.selectByIdAndUserId(id, userId);
     }
 
     /**
+     *
      */
     @Override
     public int executeAutoTradeSignPay() {
 
         List<TradeSignDO> tradeSignDOS = tradeSignMapper.selectIsSignSuccess();
 
-        if (tradeSignDOS.isEmpty()){
+        if (tradeSignDOS.isEmpty()) {
             log.info("executeAutoTradeSignPay start, selectIsSignSuccess is empty. TenantId[{}]", TenantContextHolder.getTenantId());
             return 0;
         }
@@ -117,7 +121,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         for (TradeSignDO waitePaySign : waitePaySigns) {
             try {
                 count += autoTradeSignPay(waitePaySign) ? 1 : 0;
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("签约失败，errMsg{}", e.getMessage(), e);
             }
 
@@ -126,7 +130,62 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
 
     }
 
-    public Boolean autoTradeSignPay(TradeSignDO tradeSignDO){
+    /**
+     * 获取全量签约订单 并且发送钉钉通知
+     *
+     * @return 签约单数量
+     */
+    @Override
+    public int signAutoNotify() {
+        List<TradeSignDO> tradeSignDOS = tradeSignMapper.selectIsSignSuccess();
+        String content;
+        if (!tradeSignDOS.isEmpty()) {
+            // 发送钉钉通知
+            content = buildMsg(tradeSignDOS);
+        } else {
+            content = "无签约记录";
+        }
+        sendNotifyMsg(content);
+        return tradeSignDOS.size();
+
+    }
+
+
+    private String buildMsg(List<TradeSignDO> tradeSignDOS) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (TradeSignDO tradeSignDO : tradeSignDOS) {
+            // 获取当前下单用户
+            AdminUserRespDTO user = adminUserApi.getUser(tradeSignDO.getUserId());
+            List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getId());
+            // 拼接为 markdown 表格样式
+            stringBuilder.append("| ").append(user.getNickname());
+            stringBuilder.append(" | ").append(tradeSignDO.getStatus() == 30 ? "签约成功" : "取消签约");
+            stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeSignDO.getFinishTime(), CHINESE_DATE_TIME_PATTERN));
+            stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeSignDO.getPayTime(), CHINESE_DATE_TIME_PATTERN));
+            stringBuilder.append(" | ").append(tradeSignItemDOS.get(0).getSpuName());
+            stringBuilder.append(" | ").append(MoneyUtils.fenToYuanStr(tradeSignDO.getSignPrice()));
+            stringBuilder.append(" | ").append(tradeSignDO.getTenantId()).append(" |");
+        }
+        return stringBuilder.toString();
+    }
+
+    @TenantIgnore
+    private void sendNotifyMsg(String content) {
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("params", content);
+
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("SIGN_NOTIFY")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("订单通知信息发送失败", e);
+        }
+    }
+
+    public Boolean autoTradeSignPay(TradeSignDO tradeSignDO) {
 
         log.info("[当前签约开始构建签约自动扣款][autoTradeSignPay]: {}", tradeSignDO);
         // 构建交易订单
@@ -144,14 +203,14 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             log.error("签约支付发起成功");
             return true;
         }
-        sendNotifySignPayFailMsg(tradeSignDO,payOrderSubmitRespDTO);
+        sendNotifySignPayFailMsg(tradeSignDO, payOrderSubmitRespDTO);
         log.error("签约支付发起失败: {}", payOrderSubmitRespDTO);
         return false;
     }
 
 
     @TenantIgnore
-    private void sendNotifySignPayFailMsg(TradeSignDO tradeSignDO,PayOrderSubmitRespDTO submitRespDTO) {
+    private void sendNotifySignPayFailMsg(TradeSignDO tradeSignDO, PayOrderSubmitRespDTO submitRespDTO) {
         try {
             AdminUserRespDTO user = adminUserApi.getUser(tradeSignDO.getUserId());
 
@@ -162,7 +221,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             // couponTemplateApi.getCouponTemplate(1L);
 
             templateParams.put("environmentName", environmentName);
-            templateParams.put("userName", user.getNickname() );
+            templateParams.put("userName", user.getNickname());
             templateParams.put("tradeSignId", tradeSignDO.getId());
             templateParams.put("exception", submitRespDTO.getDisplayContent());
             templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
@@ -177,11 +236,12 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
         }
 
     }
-    public TradeOrderDO buildTradeOrder(TradeSignDO tradeSignDO){
+
+    public TradeOrderDO buildTradeOrder(TradeSignDO tradeSignDO) {
         // 判断当前用户是否存在当前扣款周期内的订单交易记录
         TradeOrderDO order = tradeOrderQueryService.getOrderBySignPayTime(tradeSignDO.getId(), tradeSignDO.getPayTime());
         // 存在 -修改交易订单过期时间
-        if (Objects.nonNull(order)){
+        if (Objects.nonNull(order)) {
 
             TradeOrderDO tradeOrderDO = (TradeOrderDO) new TradeOrderDO().setId(order.getId())
                     .setStatus(TradeOrderStatusEnum.UNPAID.getStatus())
@@ -202,7 +262,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService{
             items.add(orderItem);
         }
 
-        AppTradeOrderCreateReqVO createReqVO =new AppTradeOrderCreateReqVO();
+        AppTradeOrderCreateReqVO createReqVO = new AppTradeOrderCreateReqVO();
         createReqVO.setItems(items);
         createReqVO.setPointStatus(false);
         createReqVO.setDeliveryType(3);

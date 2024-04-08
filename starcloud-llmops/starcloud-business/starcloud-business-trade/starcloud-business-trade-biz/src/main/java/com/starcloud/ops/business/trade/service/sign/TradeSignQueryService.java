@@ -28,5 +28,17 @@ public interface TradeSignQueryService {
      */
     TradeSignDO getSign(Long userId, Long id);
 
+    /**
+     * 自动执行签约扣款
+     *
+     * @return 执行数量
+     */
+
     int executeAutoTradeSignPay();
+
+    /**
+     * 获取全量签约订单 并且发送钉钉通知
+     * @return 签约单数量
+     */
+    int signAutoNotify();
 }
