@@ -7,8 +7,14 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
+import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderPageReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderSummaryRespVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderPageReqVO;
@@ -24,13 +30,16 @@ import com.starcloud.ops.business.trade.framework.delivery.core.client.ExpressCl
 import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackQueryReqDTO;
 import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackRespDTO;
 import com.starcloud.ops.business.trade.service.delivery.DeliveryExpressService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import static cn.hutool.core.date.DatePattern.CHINESE_DATE_TIME_PATTERN;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.EXPRESS_NOT_EXISTS;
@@ -41,6 +50,7 @@ import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.ORDER_NO
  *
  * @author 芋道源码
  */
+@Slf4j
 @Service
 public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
 
@@ -48,15 +58,22 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     private ExpressClientFactory expressClientFactory;
 
     @Resource
-    private TradeOrderMapper tradeOrderMapper;
-    @Resource
-    private TradeOrderItemMapper tradeOrderItemMapper;
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     @Resource
     private DeliveryExpressService deliveryExpressService;
 
     @Resource
+    private SmsSendApi smsSendApi;
+
+    @Resource
     private AdminUserService adminUserService;
+
+    @Resource
+    private TradeOrderMapper tradeOrderMapper;
+    @Resource
+    private TradeOrderItemMapper tradeOrderItemMapper;
+
 
     // =================== Order ===================
 
@@ -259,11 +276,69 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
      */
     @Override
     public TradeOrderDO getOrderBySignPayTime(Long signId, LocalDate signPayTime) {
-        return tradeOrderMapper.selectWithinContractPeriod(signId,LocalDateTimeUtil.endOfDay(signPayTime.atStartOfDay()));
+        return tradeOrderMapper.selectWithinContractPeriod(signId, LocalDateTimeUtil.endOfDay(signPayTime.atStartOfDay()));
     }
 
     public Integer getSignPaySuccessCountBySignId(Long signId) {
         return tradeOrderMapper.selectSucceedOrderBySignId(signId).size();
+    }
+
+    /**
+     * 订单通知-查询指定timeNum 内的订单 发送到钉钉通知
+     *
+     * @param timeNum 指定天数内
+     * @return 订单数
+     */
+    @Override
+    public int orderAutoNotify(Long timeNum) {
+        // 查询指定时间内的数据
+        List<TradeOrderDO> tradeOrderDOS = tradeOrderMapper.queryTradeOrdersByTime(timeNum);
+        String content;
+        if (!tradeOrderDOS.isEmpty()) {
+            // 发送钉钉通知
+            content = buildMsg(tradeOrderDOS);
+        } else {
+            content = "无订单";
+        }
+        sendNotifyMsg(content);
+        return tradeOrderDOS.size();
+    }
+
+    private String buildMsg(List<TradeOrderDO> tradeOrderDOS) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (TradeOrderDO tradeOrderDO : tradeOrderDOS) {
+            // 获取当前下单用户
+            AdminUserDO user = adminUserService.getUser(tradeOrderDO.getUserId());
+            List<TradeOrderItemDO> tradeOrderItemDOS = tradeOrderItemMapper.selectListByOrderId(tradeOrderDO.getId());
+            // 拼接为 markdown 表格样式
+            stringBuilder.append("| ").append(user.getUsername());
+            stringBuilder.append(" |").append(tradeOrderItemDOS.get(0).getSpuName());
+            stringBuilder.append(" |").append(tradeOrderItemDOS.get(0).getProperties().get(0).getValueName());
+            stringBuilder.append(" |").append(tradeOrderDO.getPayStatus() ? "支付成功" : "未支付");
+            stringBuilder.append(" |").append(PayChannelEnum.isAlipay(tradeOrderDO.getPayChannelCode()) ? "支付宝" : "微信");
+            stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeOrderDO.getCreateTime(), CHINESE_DATE_TIME_PATTERN));
+            stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeOrderDO.getPayTime(), CHINESE_DATE_TIME_PATTERN));
+            stringBuilder.append(" |").append(LocalDateTimeUtil.between(tradeOrderDO.getCreateTime(), tradeOrderDO.getPayTime(), ChronoUnit.SECONDS)).append("s");
+            stringBuilder.append(" |").append(MoneyUtils.fenToYuanStr(tradeOrderDO.getPayPrice()));
+            stringBuilder.append(" |").append(tradeOrderDO.getTenantId()).append(" |");
+        }
+        return stringBuilder.toString();
+    }
+
+    @TenantIgnore
+    private void sendNotifyMsg(String content) {
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("params", content);
+
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("TRADE_NOTIFY")
+                            .setTemplateParams(templateParams));
+        } catch (RuntimeException e) {
+            log.error("订单通知信息发送失败", e);
+        }
     }
 
 
