@@ -26,9 +26,9 @@ public enum FieldTypeEnum {
     textBox("textBox", "字符串文本框"),
     ;
 
-    private String typeCode;
+    private final String typeCode;
 
-    private String desc;
+    private final String desc;
 
     FieldTypeEnum(String typeCode, String desc) {
         this.typeCode = typeCode;

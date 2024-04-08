@@ -25,7 +25,7 @@ public class BookListCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
 
     @ExcelProperty("简介")
     @JsonPropertyDescription("简介")
-    @FieldDefine(desc = "简介", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "简介", type = FieldTypeEnum.textBox)
     private String introduction;
 
     @ExcelProperty("作者")
@@ -40,7 +40,7 @@ public class BookListCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
 
     @ExcelProperty("读后感")
     @JsonPropertyDescription("读后感")
-    @FieldDefine(desc = "读后感", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "读后感", type = FieldTypeEnum.textBox)
     private String senseAfterReading;
 
     @ExcelProperty("评论1")
