@@ -1,15 +1,11 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
 @Data
 @Accessors(chain = false)
@@ -61,6 +57,9 @@ public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
     @FieldDefine(desc = "文档图片6", type = FieldTypeEnum.image)
     @ExcelProperty("文档图片6")
     private String documentPicUrlSix;
+
+    @ExcelProperty("文档相对地址")
+    private String docRelativeAddr;
 
     @Override
     public String generateContent() {
