@@ -7,11 +7,7 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeVar;
-import cn.kstry.framework.core.annotation.ReqTaskParam;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
+import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,7 +33,6 @@ import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandle
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.utils.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -398,9 +393,9 @@ public class CustomActionHandler extends BaseActionHandler {
             }
             return sj.toString();
         } catch (Exception e) {
-
+            log.warn("generate Refers error", e);
+            return JsonUtils.toJsonString(referList);
         }
-        return StringUtils.EMPTY;
     }
 
     /**
