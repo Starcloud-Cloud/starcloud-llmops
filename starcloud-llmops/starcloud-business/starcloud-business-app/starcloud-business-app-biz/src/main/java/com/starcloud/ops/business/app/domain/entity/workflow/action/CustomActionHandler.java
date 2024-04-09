@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -36,6 +37,7 @@ import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandle
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.utils.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -382,14 +384,23 @@ public class CustomActionHandler extends BaseActionHandler {
     }
 
     private String generateRefers(List<AbstractBaseCreativeMaterialDTO> referList) {
-        StringJoiner sj = new StringJoiner("\n");
-        for (AbstractBaseCreativeMaterialDTO materialDTO : referList) {
-            sj.add(JsonUtils.toJsonString(materialDTO));
-            JSONObject entries = JSONUtil.parseObj(materialDTO);
-            List<String> imitateType = entries.getJSONArray("imitateType").toList(String.class);
-            sj.add("模仿要求：模仿这条笔记的" + imitateType.stream().map(type -> ImitateTypeEnum.of(type).getDesc()).collect(Collectors.joining(",")));
+        try {
+            StringJoiner sj = new StringJoiner("\n");
+            for (AbstractBaseCreativeMaterialDTO materialDTO : referList) {
+                sj.add(JsonUtils.toJsonString(materialDTO));
+                JSONObject entries = JSONUtil.parseObj(materialDTO);
+                JSONArray imitateTypeJSON = entries.getJSONArray("imitateType");
+                if (Objects.isNull(imitateTypeJSON)) {
+                    continue;
+                }
+                List<String> imitateType = imitateTypeJSON.toList(String.class);
+                sj.add("模仿要求：模仿这条笔记的" + imitateType.stream().map(type -> ImitateTypeEnum.of(type).getDesc()).collect(Collectors.joining(",")));
+            }
+            return sj.toString();
+        } catch (Exception e) {
+
         }
-        return sj.toString();
+        return StringUtils.EMPTY;
     }
 
     /**
