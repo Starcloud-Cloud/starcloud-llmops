@@ -14,7 +14,6 @@ import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderPageReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderSummaryRespVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderPageReqVO;
@@ -56,9 +55,6 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
 
     @Resource
     private ExpressClientFactory expressClientFactory;
-
-    @Resource
-    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     @Resource
     private DeliveryExpressService deliveryExpressService;
@@ -320,7 +316,8 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeOrderDO.getPayTime(), CHINESE_DATE_TIME_PATTERN));
             stringBuilder.append(" |").append(LocalDateTimeUtil.between(tradeOrderDO.getCreateTime(), tradeOrderDO.getPayTime(), ChronoUnit.SECONDS)).append("s");
             stringBuilder.append(" |").append(MoneyUtils.fenToYuanStr(tradeOrderDO.getPayPrice()));
-            stringBuilder.append(" |").append(tradeOrderDO.getTenantId()).append(" |");
+            stringBuilder.append(" |").append(tradeOrderDO.getTenantId()).append(" | ");
+            stringBuilder.append("\n");
         }
         return stringBuilder.toString();
     }
