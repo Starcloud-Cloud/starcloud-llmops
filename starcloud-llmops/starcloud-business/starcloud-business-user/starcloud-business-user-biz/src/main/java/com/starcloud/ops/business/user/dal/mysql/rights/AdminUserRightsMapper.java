@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.user.dal.mysql.rights;
 
-import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
@@ -10,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
@@ -63,7 +63,7 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .eq(AdminUserRightsDO::getUserLevelId, levelId)
                 .ge(AdminUserRightsDO::getValidStartTime, LocalDateTime.now())
                 .ge(AdminUserRightsDO::getValidEndTime, LocalDateTime.now())
-                .eq(AdminUserRightsDO::getStatus, CommonStatusEnum.ENABLE.getStatus())
+                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.EXPIRE.getType())
                 .orderByDesc(AdminUserRightsDO::getValidEndTime)
                 .last("limit 1");
         return selectOne(wrapper);
