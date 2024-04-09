@@ -20,6 +20,11 @@ public interface CreativeConstants {
     String REFERS = "REFERS";
 
     /**
+     * 参考内容 带模仿要求
+     */
+    String REFERS_IMITATE = "REFERS_IMITATE";
+
+    /**
      * 参考内容
      */
     String REFERS_COUNT = "REFERS_COUNT";

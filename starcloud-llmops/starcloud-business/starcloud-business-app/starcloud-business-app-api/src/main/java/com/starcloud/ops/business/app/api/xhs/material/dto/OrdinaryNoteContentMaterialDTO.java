@@ -30,6 +30,9 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     @FieldDefine(desc = "参考链接地址", type = FieldTypeEnum.weburl)
     private String link;
 
+    @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
+    private List<String> imitateType;
+
     @Override
     public String generateContent() {
         return content;
@@ -39,6 +42,7 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     public void clean() {
         this.link = null;
         this.source = null;
+        this.imitateType = null;
         super.clean();
     }
 

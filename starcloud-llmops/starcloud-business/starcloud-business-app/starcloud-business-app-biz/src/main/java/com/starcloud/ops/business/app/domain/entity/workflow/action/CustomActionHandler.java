@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHa
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.ImitateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
@@ -37,11 +38,7 @@ import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -207,6 +204,7 @@ public class CustomActionHandler extends BaseActionHandler {
         List<AbstractBaseCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractBaseCreativeMaterialDTO reference = handlerReferList.get(0);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.REFERS_IMITATE, generateRefers(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
@@ -381,6 +379,17 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         return actionResponse;
+    }
+
+    private String generateRefers(List<AbstractBaseCreativeMaterialDTO> referList) {
+        StringJoiner sj = new StringJoiner("\n");
+        for (AbstractBaseCreativeMaterialDTO materialDTO : referList) {
+            sj.add(JsonUtils.toJsonString(materialDTO));
+            JSONObject entries = JSONUtil.parseObj(materialDTO);
+            List<String> imitateType = entries.getJSONArray("imitateType").toList(String.class);
+            sj.add("模仿要求：模仿这条笔记的" + imitateType.stream().map(type -> ImitateTypeEnum.of(type).getDesc()).collect(Collectors.joining(",")));
+        }
+        return sj.toString();
     }
 
     /**
