@@ -6,6 +6,8 @@ import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
@@ -31,6 +33,9 @@ public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
     private String content;
 
 
+
+    @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
+    private List<String> imitateType;
 
     @Override
     public String generateContent() {

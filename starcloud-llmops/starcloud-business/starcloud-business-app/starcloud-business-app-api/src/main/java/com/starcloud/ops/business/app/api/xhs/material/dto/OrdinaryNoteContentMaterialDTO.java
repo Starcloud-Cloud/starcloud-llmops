@@ -31,6 +31,9 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractBaseCreativeMaterial
     private String content;
 
 
+    @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
+    private List<String> imitateType;
+
     @Override
     public String generateContent() {
         return content;

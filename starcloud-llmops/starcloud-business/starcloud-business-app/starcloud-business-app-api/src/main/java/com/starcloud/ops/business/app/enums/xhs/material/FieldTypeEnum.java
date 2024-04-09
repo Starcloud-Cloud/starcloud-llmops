@@ -23,6 +23,8 @@ public enum FieldTypeEnum {
 
     weburl("weburl", "http地址"),
 
+    listStr("listStr","字符串集合"),
+
     textBox("textBox", "字符串文本框"),
     ;
 
