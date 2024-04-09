@@ -44,7 +44,6 @@ public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
     public void clean() {
         this.link = null;
         this.source = null;
-        this.imitateType = null;
         super.clean();
     }
 }
