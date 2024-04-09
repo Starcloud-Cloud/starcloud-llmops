@@ -51,9 +51,21 @@ public class MediaCommentsActionDO extends BaseDO {
      * 执行对象
      */
     private String executeObject;
+
+
     /**
      * 执行时间
      */
     private LocalDateTime executeTime;
+
+    /**
+     * 预计执行时间
+     */
+    private LocalDateTime estimatedExecutionTime;
+
+    /**
+     * 实际执行时间
+     */
+    private LocalDateTime actualExecutionTime;
 
 }
