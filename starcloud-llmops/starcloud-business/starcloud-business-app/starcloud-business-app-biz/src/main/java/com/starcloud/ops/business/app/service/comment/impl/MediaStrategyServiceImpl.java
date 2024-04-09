@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.enums.comment.ExecuteTypeEnum;
 import com.starcloud.ops.business.app.enums.comment.KeywordMatchTypeEnum;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
 import com.starcloud.ops.business.app.service.comment.MediaStrategyService;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -107,6 +108,7 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
      * @param commentContent  评论内容
      */
     @Override
+    @Async
     public void validateMediaCommentsMatch(Long userId, Long commentsId,  String accountCode, String mediaCode, String commentUserCode, String commentCode, String commentContent) {
 
         // 1.0 验证生效时间 - 获取用户下当前时间下所有启用的配置 - 验证账号 - 验证作品

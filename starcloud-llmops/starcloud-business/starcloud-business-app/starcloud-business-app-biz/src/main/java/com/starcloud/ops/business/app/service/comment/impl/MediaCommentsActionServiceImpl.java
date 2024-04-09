@@ -5,7 +5,6 @@ import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
 import com.starcloud.ops.business.app.dal.mysql.comment.MediaCommentsActionMapper;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -97,7 +96,7 @@ public class MediaCommentsActionServiceImpl implements MediaCommentsActionServic
      * @param executeTime     执行时间
      */
     @Override
-    @Async
+
     public void createMediaCommentsAction(Long userId, String commentUserCode, Long commentsId, Long strategyCode, Integer actionType, Integer executeType, String executeContent, LocalDateTime executeTime) {
         // 判断同一评论下是否存在相同的操作类型的数据
         if (mediaCommentsActionMapper.selectSameActionTypeAndCommentsId(userId, commentsId, actionType) > 0) {
