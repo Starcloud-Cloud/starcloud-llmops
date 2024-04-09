@@ -15,17 +15,17 @@ public class PersonaCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
     private static final long serialVersionUID = -174052880963691840L;
 
     @JsonPropertyDescription("头像图片")
-    @FieldDefine(desc = "头像图片", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "头像图片", type = FieldTypeEnum.image, required = true)
     @ExcelProperty("头像图片")
     private String avatarImageUrl;
 
     @JsonPropertyDescription("美食图片")
-    @FieldDefine(desc = "美食图片", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "美食图片", type = FieldTypeEnum.image, required = true)
     @ExcelProperty("美食图片")
     private String gourmetImageUrl;
 
     @JsonPropertyDescription("风景图片")
-    @FieldDefine(desc = "风景图片", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "风景图片", type = FieldTypeEnum.image, required = true)
     @ExcelProperty("风景图片")
     private String sceneryImageUrl;
 

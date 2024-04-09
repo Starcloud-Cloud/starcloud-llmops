@@ -19,12 +19,12 @@ public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO
     private String name;
 
     @JsonPropertyDescription("合同编号")
-    @FieldDefine(desc = "合同编号", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "合同编号", type = FieldTypeEnum.string, required = true)
     @ExcelProperty("合同编号")
     private String numbering;
 
     @JsonPropertyDescription("合同简介")
-    @FieldDefine(desc = "合同简介", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "合同简介", type = FieldTypeEnum.textBox, required = true)
     @ExcelProperty("合同简介")
     private String desc;
 
