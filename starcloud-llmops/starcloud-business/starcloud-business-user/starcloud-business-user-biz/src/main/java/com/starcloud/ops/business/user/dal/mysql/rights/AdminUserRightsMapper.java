@@ -63,7 +63,7 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .eq(AdminUserRightsDO::getUserLevelId, levelId)
                 .ge(AdminUserRightsDO::getValidStartTime, LocalDateTime.now())
                 .ge(AdminUserRightsDO::getValidEndTime, LocalDateTime.now())
-                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.EXPIRE.getType())
+                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
                 .orderByDesc(AdminUserRightsDO::getValidEndTime)
                 .last("limit 1");
         return selectOne(wrapper);
