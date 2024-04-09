@@ -18,7 +18,7 @@ public class PictureCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO 
     private static final long serialVersionUID = 2659140387627230195L;
 
     @JsonPropertyDescription("图片")
-    @FieldDefine(desc = "图片", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "图片", type = FieldTypeEnum.image, required = true)
     @ExcelProperty("图片")
     private String pictureUrl;
 
