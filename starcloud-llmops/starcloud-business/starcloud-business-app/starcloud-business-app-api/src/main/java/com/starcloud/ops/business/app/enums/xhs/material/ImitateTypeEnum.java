@@ -4,9 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum ImitateTypeEnum {
-    content("content", "内容"),
-    format("format", "格式"),
-    style("Style", "文风"),
+    content("内容"),
+    format("格式"),
+    style("文风"),
     ;
 
 
@@ -14,8 +14,7 @@ public enum ImitateTypeEnum {
 
     private String desc;
 
-    ImitateTypeEnum(String code, String desc) {
-        this.code = code;
+    ImitateTypeEnum(String desc) {
         this.desc = desc;
     }
 

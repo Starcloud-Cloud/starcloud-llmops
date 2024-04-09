@@ -389,7 +389,7 @@ public class CustomActionHandler extends BaseActionHandler {
                     continue;
                 }
                 List<String> imitateType = imitateTypeJSON.toList(String.class);
-                sj.add("模仿要求：模仿这条笔记的" + imitateType.stream().map(type -> ImitateTypeEnum.of(type).getDesc()).collect(Collectors.joining(",")));
+                sj.add("模仿要求：模仿这条笔记的" + imitateType.stream().collect(Collectors.joining(",")));
             }
             return sj.toString();
         } catch (Exception e) {
