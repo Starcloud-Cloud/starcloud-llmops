@@ -125,7 +125,7 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
 
-        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
+        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
         arraySchema.setItemsSchema(materialSchema);
 
         return docSchema;
