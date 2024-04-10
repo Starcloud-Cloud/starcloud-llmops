@@ -1,12 +1,15 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
@@ -14,6 +17,7 @@ import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
@@ -21,12 +25,10 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -551,6 +553,42 @@ public class JsonSchemaUtils {
     private static String getJsonSchemaFieldDescription(JsonNode field) {
         return field.has(DESCRIPTION) ?
                 Optional.ofNullable(field.get(DESCRIPTION)).map(JsonNode::asText).orElse(StringUtils.EMPTY) : StringUtils.EMPTY;
+    }
+
+    /**
+     * 获取 JSON Schema 增加字段拓展类型
+     *
+     * @param clazz
+     * @return
+     */
+    public static JsonSchema expendGenerateJsonSchema(Class<?> clazz) {
+        JsonSchema jsonSchema = generateJsonSchema(clazz);
+        if (!(jsonSchema instanceof ObjectSchema)) {
+            return jsonSchema;
+        }
+
+        Map<String, JsonSchema> properties = ((ObjectSchema) jsonSchema).getProperties();
+        Map<String, Field> fieldMap = Arrays.stream(clazz.getDeclaredFields()).collect(Collectors.toMap(Field::getName, Function.identity()));
+
+        for (String fieldName : properties.keySet()) {
+            JsonSchema fieldSchema = properties.get(fieldName);
+            Field field = fieldMap.get(fieldName);
+            if (Objects.isNull(field)) {
+                continue;
+            }
+            FieldDefine fieldDefine = field.getAnnotation(FieldDefine.class);
+            if (Objects.isNull(fieldDefine)) {
+                continue;
+            }
+            String description = fieldSchema.getDescription();
+            fieldSchema.setDescription(description + "-" + fieldDefine.type().getTypeCode());
+
+//            ExpandStringSchema expandStringSchema = new ExpandStringSchema();
+//            BeanUtil.copyProperties(fieldSchema, expandStringSchema);
+//            expandStringSchema.setExpandType(fieldDefine.type().getTypeCode());
+//            properties.put(fieldName, expandStringSchema);
+        }
+        return jsonSchema;
     }
 
     public static void main(String[] args) {
