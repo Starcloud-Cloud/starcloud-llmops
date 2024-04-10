@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.comment.strategy.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.strategy;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.validation.InEnum;

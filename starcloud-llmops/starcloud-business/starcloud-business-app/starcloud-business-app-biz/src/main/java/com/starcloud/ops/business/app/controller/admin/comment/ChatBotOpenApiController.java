@@ -1,13 +1,11 @@
-package com.starcloud.ops.business.app.controller.admin.comment.wechat;
+package com.starcloud.ops.business.app.controller.admin.comment;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.comment.wechat.vo.ChatBotOpenApiCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.wechat.vo.ChatBotOpenApiUpdateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.wechat.ChatBotOpenApiCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.wechat.ChatBotOpenApiUpdateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.service.comment.wechat.ChatBotOpenApiDOService;
-import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;

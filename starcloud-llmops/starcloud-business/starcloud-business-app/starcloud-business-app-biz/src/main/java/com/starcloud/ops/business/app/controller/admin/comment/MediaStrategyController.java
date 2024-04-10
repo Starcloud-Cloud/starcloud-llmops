@@ -1,39 +1,25 @@
-package com.starcloud.ops.business.app.controller.admin.comment.strategy;
+package com.starcloud.ops.business.app.controller.admin.comment;
 
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyRespVO;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategySaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyUpdateStatusReqVO;
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategyPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategyRespVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategyUpdateStatusReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaStrategyDO;
+import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
 import com.starcloud.ops.business.app.service.comment.MediaStrategyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.security.access.prepost.PreAuthorize;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Operation;
-
-import javax.validation.constraints.*;
-import javax.validation.*;
-import javax.servlet.http.*;
-import java.util.*;
-import java.io.IOException;
-
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import javax.validation.Valid;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-
-import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-
-import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
-
-import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.*;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 
@@ -45,6 +31,9 @@ public class MediaStrategyController {
 
     @Resource
     private MediaStrategyService mediaStrategyService;
+
+    @Resource
+    private MediaCommentsActionService mediaCommentsActionService;
 
     @PostMapping("/create")
     @Operation(summary = "创建媒体回复策略")
@@ -79,9 +68,16 @@ public class MediaStrategyController {
     @Operation(summary = "获得媒体回复策略分页")
     public CommonResult<PageResult<MediaStrategyRespVO>> getMediaStrategyPage(@Valid MediaStrategyPageReqVO pageReqVO) {
         PageResult<MediaStrategyDO> pageResult = mediaStrategyService.getMediaStrategyPage(getLoginUserId(), pageReqVO);
-        return success(BeanUtils.toBean(pageResult, MediaStrategyRespVO.class));
-    }
 
+        if (pageResult.getList().isEmpty()) {
+            return success(BeanUtils.toBean(pageResult, MediaStrategyRespVO.class));
+        }
+        PageResult<MediaStrategyRespVO> bean = BeanUtils.toBean(pageResult, MediaStrategyRespVO.class);
+        bean.getList().forEach(MediaStrategyRespVO -> {
+            MediaStrategyRespVO.setMatchNum(mediaCommentsActionService.getCountByStrategyId(MediaStrategyRespVO.getId()));
+        });
+        return success(bean);
+    }
 
     @PostMapping("/update-status")
     @Operation(summary = "更改策略状态")

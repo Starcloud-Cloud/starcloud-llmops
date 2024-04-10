@@ -3,8 +3,8 @@ package com.starcloud.ops.business.app.service.comment;
 import javax.validation.*;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategyPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategySaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaStrategyDO;
 
 /**

@@ -57,7 +57,7 @@ public class MediaStrategyDO extends BaseDO {
     /**
      * 时机
      */
-    private Integer interval;
+    private Long intervalTimes;
     /**
      * 频率
      */
@@ -78,35 +78,9 @@ public class MediaStrategyDO extends BaseDO {
      * 生效结束时间
      */
     private LocalTime validEndTime;
-
-
-
     /**
-     * 点赞状态
+     * 状态
      */
-    private Integer likeStatus;
-
-    /**
-     * 回复状态
-     */
-    private Integer responseStatus;
-    /**
-     * 关注状态
-     */
-    private Integer concernStatus;
-
-
-    /**
-     * 点赞状态
-     */
-    private Integer likeStrategyId;
-    /**
-     * 回复状态
-     */
-    private Integer responseStrategyId;
-    /**
-     * 关注状态
-     */
-    private Integer concernStrategyId;
+    private Integer status;
 
 }

@@ -4,14 +4,17 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategyPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategySaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaStrategyDO;
 import com.starcloud.ops.business.app.dal.mysql.comment.MediaStrategyMapper;
 import com.starcloud.ops.business.app.enums.comment.ExecuteTypeEnum;
 import com.starcloud.ops.business.app.enums.comment.KeywordMatchTypeEnum;
+import com.starcloud.ops.business.app.enums.comment.ActionStatusEnum;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
+import com.starcloud.ops.business.app.service.comment.MediaCommentsService;
 import com.starcloud.ops.business.app.service.comment.MediaStrategyService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -38,6 +41,10 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
 
     @Resource
     private MediaCommentsActionService mediaCommentsActionService;
+
+    @Resource
+    @Lazy
+    private MediaCommentsService mediaCommentsService;
 
     @Resource
     private MediaStrategyMapper mediaStrategyMapper;
@@ -109,11 +116,12 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
      */
     @Override
     @Async
-    public void validateMediaCommentsMatch(Long userId, Long commentsId,  String accountCode, String mediaCode, String commentUserCode, String commentCode, String commentContent) {
+    public void validateMediaCommentsMatch(Long userId, Long commentsId, String accountCode, String mediaCode, String commentUserCode, String commentCode, String commentContent) {
 
         // 1.0 验证生效时间 - 获取用户下当前时间下所有启用的配置 - 验证账号 - 验证作品
         MediaStrategyDO mediaStrategyDOS = mediaStrategyMapper.selectOneStatusEnableParams(userId, accountCode, mediaCode, LocalDateTime.now().toLocalTime(), CommonStatusEnum.ENABLE.getStatus());
         if (Objects.isNull(mediaStrategyDOS)) {
+            mediaCommentsService.updateCommentStrategyResult(commentsId, ActionStatusEnum.MISS, mediaStrategyDOS.getActionType(), mediaStrategyDOS.getId());
             return;
         }
 
@@ -122,6 +130,7 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
 
         // 2.0 验证回复频率
         if (mediaStrategyDOS.getFrequency() <= successesNumPerUnitTime) {
+            mediaCommentsService.updateCommentStrategyResult(commentsId, ActionStatusEnum.MISS, mediaStrategyDOS.getActionType(), mediaStrategyDOS.getId());
             return;
         }
 
@@ -129,12 +138,16 @@ public class MediaStrategyServiceImpl implements MediaStrategyService {
         Boolean KeywordMatchResult = validateKeyWordMatch(mediaStrategyDOS.getKeywordMatchType(), mediaStrategyDOS.getKeywordGroups(), commentContent);
 
         if (!KeywordMatchResult) {
+            mediaCommentsService.updateCommentStrategyResult(commentsId, ActionStatusEnum.MISS, mediaStrategyDOS.getActionType(), mediaStrategyDOS.getId());
             return;
         }
+        // 更新命中状态以及更新命中策略 ID 到评论表
+        mediaCommentsService.updateCommentStrategyResult(commentsId, ActionStatusEnum.SUCCESS_MATCH, mediaStrategyDOS.getActionType(), mediaStrategyDOS.getId());
+
         Collections.shuffle(mediaStrategyDOS.getKeywordGroups());
 
         // 生成具体操作 存入操作表
-        mediaCommentsActionService.createMediaCommentsAction(userId, commentUserCode, commentsId, mediaStrategyDOS.getId(), mediaStrategyDOS.getActionType(), ExecuteTypeEnum.AUTO.getCode(), mediaStrategyDOS.getKeywordGroups().get(new Random().nextInt(mediaStrategyDOS.getKeywordGroups().size())), LocalDateTime.now().plusSeconds(mediaStrategyDOS.getInterval()));
+        mediaCommentsActionService.createMediaCommentsAction(userId, commentUserCode, commentsId, mediaStrategyDOS.getId(), mediaStrategyDOS.getActionType(), ExecuteTypeEnum.AUTO.getCode(), mediaStrategyDOS.getKeywordGroups().get(new Random().nextInt(mediaStrategyDOS.getKeywordGroups().size())), mediaStrategyDOS.getIntervalTimes());
 
 
     }

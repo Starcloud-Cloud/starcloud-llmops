@@ -1,20 +1,21 @@
-package com.starcloud.ops.business.app.controller.admin.comment.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.comment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 媒体评论新增/修改 Request VO")
 @Data
 public class MediaCommentsSaveReqVO {
 
-    @Schema(description = "评论编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "5411")
-    private Long id;
+    // @Schema(description = "评论编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "5411")
+    // private Long id;
 
     @Schema(description = "账号类型（10-小红书，20-抖音）", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotEmpty(message = "账号类型（10-小红书，20-抖音）不能为空")
-    private String accountType;
+    @NotNull(message = "账号类型（10-小红书，20-抖音）不能为空")
+    private Integer accountType;
 
     @Schema(description = "账号 ID", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "账号 ID不能为空")
@@ -52,14 +53,5 @@ public class MediaCommentsSaveReqVO {
 
     @Schema(description = "媒体编号")
     private String mediaCode;
-
-    @Schema(description = "点赞状态", example = "1")
-    private Boolean likeStatus;
-
-    @Schema(description = "回复状态", example = "1")
-    private Boolean responseStatus;
-
-    @Schema(description = "关注状态", example = "2")
-    private Boolean concernStatus;
 
 }

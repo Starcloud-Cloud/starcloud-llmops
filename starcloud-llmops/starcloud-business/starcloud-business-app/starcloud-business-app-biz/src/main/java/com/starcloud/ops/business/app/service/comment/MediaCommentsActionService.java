@@ -63,7 +63,7 @@ public interface MediaCommentsActionService {
      * @param executeContent  执行内容
      * @param executeTime     执行时间
      */
-    void createMediaCommentsAction(Long userId, String commentUserCode, Long commentsId, Long strategyCode, Integer strategyType, Integer executeType, String executeContent, LocalDateTime executeTime);
+    void createMediaCommentsAction(Long userId, String commentUserCode, Long commentsId, Long strategyCode, Integer strategyType, Integer executeType, String executeContent, Long executeTime);
 
     /**
      * 通过评论获取操作列表
@@ -73,5 +73,48 @@ public interface MediaCommentsActionService {
      */
     List<MediaCommentsActionDO> getActionListByCommentId(Long id);
 
+    /**
+     * 根据策略 ID 获取策略命中数
+     *
+     * @param strategyId 策略编号
+     * @return 命中数量
+     */
 
+    Integer getCountByStrategyId(Long strategyId);
+
+    /**
+     * 根据评论编号获取操作列表
+     *
+     * @param commentsId 评论编号
+     * @return 操作列表
+     */
+    List<MediaCommentsActionDO> selectListByCommentsId(Long commentsId);
+
+    /**
+     * 根据评论编号获取操作列表
+     *
+     * @param commentsId                  评论编号
+     * @param actionType                  操作类型
+     * @param estimatedExecutionStartTime 预计执行开始时间
+     * @param estimatedExecutionEndTime   预计执行结束时间
+     * @return 操作列表
+     */
+    List<MediaCommentsActionDO> selectListByCommentsId(Long commentsId, Integer actionType, LocalDateTime estimatedExecutionStartTime, LocalDateTime estimatedExecutionEndTime);
+
+    /**
+     * 通过评论编号删除评论下操作
+     *
+     * @param commentsId 评论编号
+     */
+    void deleteByCommentsId(Long commentsId);
+
+    /**
+     * 更新操作状态
+     *
+     * @param commentId   评论编号
+     * @param actionId    操作编号
+     * @param actionExecuteType  操作类型
+     * @param executeTime 执行时间
+     */
+    void updateMediaCommentsActionStatus(Long commentId, Long actionId, Integer actionExecuteType, LocalDateTime executeTime);
 }

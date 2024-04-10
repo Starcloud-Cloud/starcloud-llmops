@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.comment.wechat.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.wechat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,9 +9,6 @@ import lombok.Data;
  */
 @Schema(description = "微信开放平台 Create Request VO")
 @Data
-public class ChatBotOpenApiUpdateReqVO extends ChatBotOpenApiBaseVO {
-
-    @Schema(description = "编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1024")
-    private Long id;
+public class ChatBotOpenApiCreateReqVO extends ChatBotOpenApiBaseVO {
 
 }

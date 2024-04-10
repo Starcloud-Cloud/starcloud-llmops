@@ -1,12 +1,15 @@
-package com.starcloud.ops.business.app.controller.admin.comment.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.comment;
 
-import com.alibaba.excel.annotation.ExcelProperty;
-import lombok.*;
-import java.util.*;
-import io.swagger.v3.oas.annotations.media.Schema;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import com.alibaba.excel.annotation.ExcelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
@@ -14,7 +17,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class MediaCommentsPageReqVO extends PageParam {
+public class MediaCommentsPageRespVO extends PageParam {
 
     @Schema(description = "评论编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "5411")
     @ExcelProperty("评论编号")
@@ -57,13 +60,13 @@ public class MediaCommentsPageReqVO extends PageParam {
     private String mediaCode;
 
     @Schema(description = "回复状态", example = "1")
-    private Boolean responseStatus;
+    private Integer responseStatus;
 
     @Schema(description = "点赞状态", example = "1")
-    private Boolean likeStatus;
+    private Integer likeStatus;
 
     @Schema(description = "关注状态", example = "2")
-    private Boolean concernStatus;
+    private Integer concernStatus;
 
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

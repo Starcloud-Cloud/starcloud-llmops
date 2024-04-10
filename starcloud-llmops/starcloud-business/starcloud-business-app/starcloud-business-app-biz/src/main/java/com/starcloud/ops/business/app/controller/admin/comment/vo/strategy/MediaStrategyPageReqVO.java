@@ -1,7 +1,6 @@
-package com.starcloud.ops.business.app.controller.admin.comment.strategy.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.strategy;
 
 import lombok.*;
-import java.util.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -34,16 +33,16 @@ public class MediaStrategyPageReqVO extends PageParam {
     private String actions;
 
     @Schema(description = "时机")
-    private Integer interval;
+    private Integer intervalTimes;
 
     @Schema(description = "频率")
     private Integer frequency;
 
     @Schema(description = "指定用户组")
-    private String assignAccountGroups;
+    private String assignAccount;
 
     @Schema(description = "指定作品组")
-    private String assignMediaGroups;
+    private String assignMedia;
 
     @Schema(description = "生效开始时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

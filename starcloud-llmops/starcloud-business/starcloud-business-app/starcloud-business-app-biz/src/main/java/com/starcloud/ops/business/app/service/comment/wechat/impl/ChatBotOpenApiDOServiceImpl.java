@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.comment.wechat.impl;
 
-import com.starcloud.ops.business.app.controller.admin.comment.wechat.vo.ChatBotOpenApiCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.wechat.vo.ChatBotOpenApiUpdateReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.wechat.ChatBotOpenApiCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.wechat.ChatBotOpenApiUpdateReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.wechat.ChatBotOpenApiDO;
 import com.starcloud.ops.business.app.dal.mysql.comment.wechat.ChatBotOpenApiDOMapper;
 import com.starcloud.ops.business.app.service.comment.wechat.ChatBotOpenApiDOService;

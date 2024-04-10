@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.comment.wechat.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.wechat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

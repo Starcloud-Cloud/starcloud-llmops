@@ -1,10 +1,8 @@
-package com.starcloud.ops.business.app.controller.admin.comment.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.comment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.util.*;
-import java.util.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import com.alibaba.excel.annotation.*;
 
@@ -33,6 +31,10 @@ public class MediaCommentsRespVO {
     @ExcelProperty("账号头像")
     private String accountAvatar;
 
+    @Schema(description = "媒体编号")
+    @ExcelProperty("媒体编号")
+    private String mediaCode;
+
     @Schema(description = "媒体标题")
     @ExcelProperty("媒体标题")
     private String mediaTitle;
@@ -57,25 +59,22 @@ public class MediaCommentsRespVO {
     @ExcelProperty("评论内容")
     private String commentContent;
 
-    @Schema(description = "回复状态", example = "1")
-    @ExcelProperty("回复状态")
-    private Boolean responseStatus;
 
     @Schema(description = "评论编号")
     @ExcelProperty("评论编号")
     private String commentCode;
 
-    @Schema(description = "媒体编号")
-    @ExcelProperty("媒体编号")
-    private String mediaCode;
+    @Schema(description = "回复状态", example = "1")
+    @ExcelProperty("回复状态")
+    private Integer responseStatus;
 
     @Schema(description = "回复类型", example = "1")
     @ExcelProperty("回复类型")
-    private Boolean likeStatus;
+    private Integer likeStatus;
 
     @Schema(description = "回复内容", example = "2")
     @ExcelProperty("回复内容")
-    private Boolean concernStatus;
+    private Integer concernStatus;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")

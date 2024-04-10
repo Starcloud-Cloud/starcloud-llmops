@@ -1,12 +1,10 @@
 package com.starcloud.ops.business.app.dal.databoject.comment;
 
-import lombok.*;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
-import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 
 /**
  * 媒体评论 DO
@@ -31,7 +29,7 @@ public class MediaCommentsDO extends BaseDO {
     /**
      * 账号类型（10-小红书，20-抖音）
      */
-    private String accountType;
+    private Integer accountType;
     /**
      * 账号 ID
      */
@@ -80,14 +78,28 @@ public class MediaCommentsDO extends BaseDO {
     /**
      * 回复状态
      */
-    private Boolean responseStatus;
+    private Integer responseStatus;
     /**
      * 点赞状态
      */
-    private Boolean likeStatus;
+    private Integer likeStatus;
     /**
      * 关注内容
      */
-    private Boolean concernStatus;
+    private Integer concernStatus;
+
+
+    /**
+     * 点赞命中策略编号
+     */
+    private Long likeStrategyId;
+    /**
+     * 回复命中策略编号
+     */
+    private Long responseStrategyId;
+    /**
+     * 关注命中策略编号
+     */
+    private Long concernStrategyId;
 
 }

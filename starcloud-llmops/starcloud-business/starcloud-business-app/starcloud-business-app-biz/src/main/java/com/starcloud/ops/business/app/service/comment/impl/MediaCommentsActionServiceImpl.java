@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.comment.impl;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsActionDO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
 import com.starcloud.ops.business.app.dal.mysql.comment.MediaCommentsActionMapper;
+import com.starcloud.ops.business.app.enums.comment.ActionStatusEnum;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsActionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,8 +47,7 @@ public class MediaCommentsActionServiceImpl implements MediaCommentsActionServic
     public void updateMediaCommentsAction(MediaCommentsActionDO actionDO) {
         // 校验存在
         validateMediaCommentsActionExists(actionDO.getId());
-        // // 更新
-        // MediaCommentsActionDO updateObj = BeanUtils.toBean(updateReqVO, MediaCommentsActionDO.class);
+
         mediaCommentsActionMapper.updateById(actionDO);
     }
 
@@ -59,11 +59,6 @@ public class MediaCommentsActionServiceImpl implements MediaCommentsActionServic
         mediaCommentsActionMapper.deleteById(id);
     }
 
-    private void validateMediaCommentsActionExists(Long id) {
-        if (mediaCommentsActionMapper.selectById(id) == null) {
-            throw exception(MEDIA_COMMENTS_ACTION_NOT_EXISTS);
-        }
-    }
 
     @Override
     public MediaCommentsActionDO getMediaCommentsAction(Long id) {
@@ -93,13 +88,12 @@ public class MediaCommentsActionServiceImpl implements MediaCommentsActionServic
      * @param actionType      策略类型
      * @param executeType     执行类型
      * @param executeContent  执行内容
-     * @param executeTime     执行时间
+     * @param IntervalTimes   执行时间
      */
     @Override
-
-    public void createMediaCommentsAction(Long userId, String commentUserCode, Long commentsId, Long strategyCode, Integer actionType, Integer executeType, String executeContent, LocalDateTime executeTime) {
+    public void createMediaCommentsAction(Long userId, String commentUserCode, Long commentsId, Long strategyCode, Integer actionType, Integer executeType, String executeContent, Long IntervalTimes) {
         // 判断同一评论下是否存在相同的操作类型的数据
-        if (mediaCommentsActionMapper.selectSameActionTypeAndCommentsId(userId, commentsId, actionType) > 0) {
+        if (mediaCommentsActionMapper.selectSameActionTypeAndCommentsId(commentsId, actionType) > 0) {
             log.warn("【评论操作数据添加失败，当前评论{}已经存在操作数据，该操作类型为{}", commentsId, actionType);
             return;
         }
@@ -110,15 +104,101 @@ public class MediaCommentsActionServiceImpl implements MediaCommentsActionServic
         mediaCommentsActionDO.setExecuteType(executeType);
         mediaCommentsActionDO.setExecuteContent(executeContent);
         mediaCommentsActionDO.setExecuteObject(commentUserCode);
-        mediaCommentsActionDO.setExecuteTime(executeTime);
+        mediaCommentsActionDO.setIntervalTimes(IntervalTimes);
+        mediaCommentsActionMapper.insert(mediaCommentsActionDO);
     }
 
     /**
-     * @param commentId  评论编号
+     * @param commentId 评论编号
      * @return MediaCommentsActionDO 列表
      */
     @Override
-    public List<MediaCommentsActionDO> getActionListByCommentId(Long  commentId) {
+    public List<MediaCommentsActionDO> getActionListByCommentId(Long commentId) {
         return mediaCommentsActionMapper.selectListByCommentsId(commentId);
     }
+
+    /**
+     * 根据策略 ID 获取策略命中数
+     *
+     * @param strategyId 策略编号
+     * @return 命中数量
+     */
+    @Override
+    public Integer getCountByStrategyId(Long strategyId) {
+        return mediaCommentsActionMapper.selectCountByStrategyId(strategyId);
+    }
+
+    /**
+     * 根据评论编号获取操作列表
+     *
+     * @param commentsId 评论编号
+     * @return 操作列表
+     */
+    @Override
+    public List<MediaCommentsActionDO> selectListByCommentsId(Long commentsId) {
+        return mediaCommentsActionMapper.selectListByCommentsId(commentsId, null, null, null);
+    }
+
+    /**
+     * 根据评论编号获取操作列表
+     *
+     * @param commentsId                  评论编号
+     * @param actionType                  操作类型
+     * @param estimatedExecutionStartTime 预计执行开始时间
+     * @param estimatedExecutionEndTime   预计执行结束时间
+     * @return 操作列表
+     */
+    @Override
+    public List<MediaCommentsActionDO> selectListByCommentsId(Long commentsId, Integer actionType, LocalDateTime estimatedExecutionStartTime, LocalDateTime estimatedExecutionEndTime) {
+        return mediaCommentsActionMapper.selectListByCommentsId(commentsId, actionType, estimatedExecutionStartTime, estimatedExecutionEndTime);
+    }
+
+    /**
+     * 通过评论编号删除评论下操作
+     *
+     * @param commentsId 评论编号
+     */
+    @Override
+    public void deleteByCommentsId(Long commentsId) {
+        mediaCommentsActionMapper.deleteByCommentsId(commentsId);
+    }
+
+    /**
+     * 更新操作状态
+     *
+     * @param commentId         评论编号
+     * @param actionId          操作编号
+     * @param actionExecuteCode 操作执行状态类型
+     * @param executeTime       执行时间
+     */
+    @Override
+    public void updateMediaCommentsActionStatus(Long commentId, Long actionId, Integer actionExecuteCode, LocalDateTime executeTime) {
+
+        MediaCommentsActionDO mediaCommentsActionDO = mediaCommentsActionMapper.selectById(actionId);
+        if (mediaCommentsActionDO == null) {
+            throw exception(MEDIA_COMMENTS_ACTION_NOT_EXISTS);
+        }
+        ActionStatusEnum actionExecuteType = ActionStatusEnum.getByCode(actionExecuteCode);
+
+        MediaCommentsActionDO.MediaCommentsActionDOBuilder builder = MediaCommentsActionDO.builder();
+        builder.id(actionId);
+
+        switch (actionExecuteType) {
+            case WAIT_SEND:
+                builder.estimatedExecutionTime(executeTime);
+                break;
+            case SUCCESS_SEND:
+                builder.actualExecutionTime(executeTime);
+                break;
+        }
+        mediaCommentsActionMapper.updateById(builder.build());
+    }
+
+
+    private void validateMediaCommentsActionExists(Long id) {
+        if (mediaCommentsActionMapper.selectById(id) == null) {
+            throw exception(MEDIA_COMMENTS_ACTION_NOT_EXISTS);
+        }
+    }
+
 }

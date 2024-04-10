@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.comment.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.comment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

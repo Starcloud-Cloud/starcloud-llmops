@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.dal.mysql.comment;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
-import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.comment.MediaCommentsPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -42,4 +42,7 @@ public interface MediaCommentsMapper extends BaseMapperX<MediaCommentsDO> {
         return selectOne(MediaCommentsDO::getCreator, userId, MediaCommentsDO::getId, commentId);
     }
 
+    default  MediaCommentsDO selectOneByCommentCode(Long userId, Integer accountType, String commentCode){
+        return selectOne(MediaCommentsDO::getCreator, userId, MediaCommentsDO::getAccountType, accountType,MediaCommentsDO::getCommentCode,commentCode);
+    }
 }

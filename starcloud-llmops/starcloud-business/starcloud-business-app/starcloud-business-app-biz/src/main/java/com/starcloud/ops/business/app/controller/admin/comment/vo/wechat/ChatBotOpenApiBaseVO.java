@@ -1,12 +1,10 @@
-package com.starcloud.ops.business.app.controller.admin.comment.wechat.vo;
+package com.starcloud.ops.business.app.controller.admin.comment.vo.wechat;
 
-import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 
 /**
  * 微信开放平台 Base VO，提供给添加、修改、详细的子 VO 使用

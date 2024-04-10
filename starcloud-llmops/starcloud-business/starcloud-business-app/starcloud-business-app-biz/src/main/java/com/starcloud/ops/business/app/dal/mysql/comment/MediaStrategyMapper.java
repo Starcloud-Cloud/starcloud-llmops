@@ -5,8 +5,7 @@ import java.time.LocalTime;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import com.starcloud.ops.business.app.controller.admin.comment.strategy.vo.MediaStrategyPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.strategy.MediaStrategyPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaStrategyDO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -33,14 +32,15 @@ public interface MediaStrategyMapper extends BaseMapperX<MediaStrategyDO> {
                 .eqIfPresent(MediaStrategyDO::getKeywordMatchType, reqVO.getKeywordMatchType())
                 .eqIfPresent(MediaStrategyDO::getKeywordGroups, reqVO.getKeywordGroups())
                 .eqIfPresent(MediaStrategyDO::getActions, reqVO.getActions())
-                .eqIfPresent(MediaStrategyDO::getInterval, reqVO.getInterval())
+                .eqIfPresent(MediaStrategyDO::getIntervalTimes, reqVO.getIntervalTimes())
                 .eqIfPresent(MediaStrategyDO::getFrequency, reqVO.getFrequency())
-                .eqIfPresent(MediaStrategyDO::getAssignAccount, reqVO.getAssignAccountGroups())
-                .eqIfPresent(MediaStrategyDO::getAssignMedia, reqVO.getAssignMediaGroups())
+                .eqIfPresent(MediaStrategyDO::getAssignAccount, reqVO.getAssignAccount())
+                .eqIfPresent(MediaStrategyDO::getAssignMedia, reqVO.getAssignMedia())
                 .betweenIfPresent(MediaStrategyDO::getValidStartTime, reqVO.getValidStartTime())
                 .betweenIfPresent(MediaStrategyDO::getValidEndTime, reqVO.getValidEndTime())
                 .eqIfPresent(MediaStrategyDO::getStatus, reqVO.getStatus())
                 .betweenIfPresent(MediaStrategyDO::getCreateTime, reqVO.getCreateTime())
+                .eq(MediaStrategyDO::getCreateTime, userId)
                 .orderByDesc(MediaStrategyDO::getId));
     }
 

@@ -4,10 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsManualResponseReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsRespVO;
-import com.starcloud.ops.business.app.controller.admin.comment.vo.MediaCommentsSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.comment.vo.comment.*;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsActionDO;
 import com.starcloud.ops.business.app.dal.databoject.comment.MediaCommentsDO;
 import com.starcloud.ops.business.app.service.comment.MediaCommentsService;
@@ -20,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -43,8 +41,43 @@ public class MediaCommentsController {
 
     @PutMapping("/update")
     @Operation(summary = "更新媒体评论")
-    public CommonResult<Boolean> updateMediaComments(@Valid @RequestBody MediaCommentsSaveReqVO updateReqVO) {
+    public CommonResult<Boolean> updateMediaComments(@Valid @RequestBody MediaCommentsUpdateReqVO updateReqVO) {
         mediaCommentsService.updateMediaComments(getLoginUserId(), updateReqVO);
+        return success(true);
+    }
+
+
+    @PostMapping("/get-match-success-list")
+    @Operation(summary = "获取待评论列表")
+    public CommonResult<List<MediaCommentsListRespVO>> getMatchSuccessList(@Valid @RequestBody MediaCommentsListReqVO reqVO) {
+        // 获取匹配成功列表
+        List<MediaCommentsDO> mediaCommentsDOS = mediaCommentsService.getMatchSuccessList(getLoginUserId(), reqVO);
+        if (mediaCommentsDOS.isEmpty()) {
+            return success(new ArrayList<MediaCommentsListRespVO>());
+        }
+
+        List<MediaCommentsListRespVO> bean = BeanUtils.toBean(mediaCommentsDOS, MediaCommentsListRespVO.class);
+
+        bean.stream().forEach(comment -> {
+            List<MediaCommentsActionDO> actionDOS = mediaCommentsService.getMediaCommentsActionListByCommentsId(comment.getId());
+            comment.setActions(BeanUtils.toBean(actionDOS, MediaCommentsListRespVO.Action.class));
+        });
+        return success(bean);
+    }
+
+    @PostMapping("/update-action-execute-time")
+    @Operation(summary = "更新预计执行时间")
+    public CommonResult<Boolean> updateActionExecuteTime(@Valid @RequestBody MediaCommentsActionReqVO reqVO) {
+        // 获取匹配成功列表
+        mediaCommentsService.updateActionSendStatus(getLoginUserId(), reqVO);
+        return success(true);
+    }
+
+    @PostMapping("/update-action-status")
+    @Operation(summary = "更新发送状态")
+    public CommonResult<Boolean> updateActionSendStatus(@Valid @RequestBody MediaCommentsActionReqVO reqVO) {
+        // 获取匹配成功列表
+        mediaCommentsService.updateActionSendStatus(getLoginUserId(), reqVO);
         return success(true);
     }
 
