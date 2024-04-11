@@ -61,4 +61,26 @@ public enum CreativePlanStatusEnum implements IEnumable<Integer> {
     public static Boolean contains(String name) {
         return Arrays.stream(CreativePlanStatusEnum.values()).anyMatch(e -> e.name().equalsIgnoreCase(name));
     }
+
+    /**
+     * 判断是否是待执行
+     *
+     * @param name 状态
+     * @return 是否是待执行
+     */
+    public static Boolean containsAndPending(String name) {
+        return CreativePlanStatusEnum.contains(name) && CreativePlanStatusEnum.PENDING.name().equals(name);
+    }
+
+    /**
+     * 判断是否可以修改状态
+     *
+     * @param name 状态
+     * @return 是否可以修改状态
+     */
+    public static Boolean canModifyStatus(String name) {
+        return CreativePlanStatusEnum.PENDING.name().equals(name)
+                || CreativePlanStatusEnum.COMPLETE.name().equals(name)
+                || CreativePlanStatusEnum.FAILURE.name().equals(name);
+    }
 }

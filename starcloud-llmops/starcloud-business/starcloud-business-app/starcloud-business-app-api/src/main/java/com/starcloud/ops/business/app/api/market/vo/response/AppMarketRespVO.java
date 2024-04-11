@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.market.vo.response;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
@@ -235,6 +237,8 @@ public class AppMarketRespVO implements Serializable {
      * @param stepId      步骤ID
      * @param variableMap 变量值
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putStepVariable(String stepId, Map<String, Object> variableMap) {
         if (workflowConfig != null) {
             workflowConfig.putVariable(stepId, variableMap);
@@ -248,6 +252,8 @@ public class AppMarketRespVO implements Serializable {
      * @param variableName 变量名称
      * @return 变量值
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public VariableItemRespVO getStepVariable(String stepId, String variableName) {
         if (workflowConfig != null) {
             return workflowConfig.getStepVariable(stepId, variableName);
@@ -256,29 +262,17 @@ public class AppMarketRespVO implements Serializable {
     }
 
     /**
-     * 根据节点handler获取第一个节点
+     * 获取应用变量值
      *
-     * @param handler stepHandler
+     * @param stepId       步骤ID
+     * @param variableName 变量名称
      * @return 变量值
      */
-    public WorkflowStepWrapperRespVO getFirstStepByHandler(String handler) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getStepVariableValue(String stepId, String variableName) {
         if (workflowConfig != null) {
-            return workflowConfig.getFirstStepByHandler(handler);
-        }
-        return null;
-    }
-
-    /**
-     * 根据节点handler获取第一个节点
-     *
-     * @param handler stepHandler
-     * @return 变量值
-     */
-    public VariableItemRespVO getStepByHandler(String handler, String variableName) {
-
-        WorkflowStepWrapperRespVO workflowStepWrapperRespVO = this.getFirstStepByHandler(handler);
-        if (workflowStepWrapperRespVO != null) {
-            return this.getStepVariable(workflowStepWrapperRespVO.getField(), variableName);
+            return workflowConfig.getStepVariableValue(stepId, variableName);
         }
         return null;
     }
@@ -286,15 +280,44 @@ public class AppMarketRespVO implements Serializable {
     /**
      * 设置应用变量值
      *
-     * @param handler     步骤ID
+     * @param stepId      步骤ID
      * @param variableMap 变量值
      */
-    public void putStepByHandler(String handler, Map<String, Object> variableMap) {
-
-        WorkflowStepWrapperRespVO workflowStepWrapperRespVO = this.getFirstStepByHandler(handler);
-        if (workflowStepWrapperRespVO != null) {
-            this.putStepVariable(workflowStepWrapperRespVO.getField(), variableMap);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putStepModelVariable(String stepId, Map<String, Object> variableMap) {
+        if (workflowConfig != null) {
+            workflowConfig.putStepModelVariable(stepId, variableMap);
         }
     }
+
+    /**
+     * 获取应用变量值
+     *
+     * @param stepId       步骤ID
+     * @param variableName 变量名称
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getStepModelVariableValue(String stepId, String variableName) {
+        if (workflowConfig != null) {
+            return workflowConfig.getStepModelVariableValue(stepId, variableName);
+        }
+        return null;
+    }
+
+    /**
+     * 获取步骤
+     *
+     * @param handler 步骤处理器
+     * @return 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapperRespVO getStepByHandler(String handler) {
+        return workflowConfig.getStepByHandler(handler);
+    }
+
 
 }

@@ -16,6 +16,9 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -27,11 +30,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
-import com.starcloud.ops.business.app.service.xhs.executor.PosterTemplateThreadPoolHolder;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterStyleEntity;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterTemplateEntity;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.poster.PosterVariableEntity;
-import com.starcloud.ops.business.app.util.CreativeImageUtils;
+import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
@@ -71,7 +70,7 @@ public class PosterActionHandler extends BaseActionHandler {
     /**
      * 线程池
      */
-    private static final PosterTemplateThreadPoolHolder POSTER_TEMPLATE_THREAD_POOL_HOLDER = SpringUtil.getBean(PosterTemplateThreadPoolHolder.class);
+    private static final PosterThreadPoolHolder POSTER_TEMPLATE_THREAD_POOL_HOLDER = SpringUtil.getBean(PosterThreadPoolHolder.class);
 
     /**
      * 流程执行器，action 执行入口
@@ -123,7 +122,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 海报模版参数
         String posterStyle = String.valueOf(this.getAppContext().getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
         // 转为海报模版对象
-        PosterStyleEntity style = JsonUtils.parseObject(posterStyle, PosterStyleEntity.class);
+        PosterStyleDTO style = JsonUtils.parseObject(posterStyle, PosterStyleDTO.class);
         // 校验海报模版
         style.validate();
 
@@ -168,8 +167,8 @@ public class PosterActionHandler extends BaseActionHandler {
      *
      * @param posterStyle 海报风格
      */
-    private void assemble(PosterStyleEntity posterStyle) {
-        List<PosterTemplateEntity> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+    private void assemble(PosterStyleDTO posterStyle) {
+        List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
         // 把每一个变量的uuid和value放到此map中
         Map<String, Object> templateVariableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
@@ -177,9 +176,9 @@ public class PosterActionHandler extends BaseActionHandler {
         Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(templateVariableMap, this.getAppContext().getStepId());
 
         // 循环处理，进行变量替换
-        for (PosterTemplateEntity posterTemplate : posterTemplateList) {
-            List<PosterVariableEntity> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
-            for (PosterVariableEntity variable : variableList) {
+        for (PosterTemplateDTO posterTemplate : posterTemplateList) {
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+            for (PosterVariableDTO variable : variableList) {
                 // 从作用域数据中获取变量值
                 Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
                 variable.setValue(value);
@@ -199,16 +198,16 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void handlerPosterTitle(PosterStyleEntity posterStyle, String title, String content) {
-        List<PosterTemplateEntity> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+    private void handlerPosterTitle(PosterStyleDTO posterStyle, String title, String content) {
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
         // 循环处理
-        for (PosterTemplateEntity posterTemplate : templateList) {
+        for (PosterTemplateDTO posterTemplate : templateList) {
             // 默认模式生成
             String titleGenerateMode = Optional.ofNullable(posterTemplate.getTitleGenerateMode()).orElse(PosterTitleModeEnum.DEFAULT.name());
             if (PosterTitleModeEnum.DEFAULT.name().equals(titleGenerateMode)) {
-                List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
-                for (PosterVariableEntity variable : variableList) {
+                List<PosterVariableDTO> variableList = posterTemplate.getVariableList();
+                for (PosterVariableDTO variable : variableList) {
                     // 获取变量值，不存在取默认值，默认值不存在，为空字符串
                     Object value = Objects.nonNull(variable.getValue()) ? variable.getValue() :
                             Objects.nonNull(variable.getDefaultValue()) ? variable.getDefaultValue() : "";
@@ -235,18 +234,7 @@ public class PosterActionHandler extends BaseActionHandler {
                 PosterTitleDTO posterTitle = response.getPosterTitle();
 
                 // 变量替换
-                List<PosterVariableEntity> variableList = posterTemplate.getVariableList();
-                for (PosterVariableEntity variable : variableList) {
-                    if (CreativeImageUtils.TITLE.equals(variable.getField())) {
-                        variable.setValue(posterTitle.getImgTitle());
-                    }
-                    if (CreativeImageUtils.SUB_TITLE.equals(variable.getField())) {
-                        variable.setValue(posterTitle.getImgSubTitle());
-                    }
-                    if (CreativeImageUtils.TEXT_TITLE.equals(variable.getField())) {
-                        variable.setValue(title);
-                    }
-                }
+                List<PosterVariableDTO> variableList = posterTemplate.getVariableList();
                 posterTemplate.setVariableList(variableList);
             } else {
                 log.error("不支持的图片标题生成模式: {}", titleGenerateMode);
@@ -263,7 +251,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public MultimodalPosterTitleResponse multimodalPosterTitle(PosterTemplateEntity posterTemplate) {
+    public MultimodalPosterTitleResponse multimodalPosterTitle(PosterTemplateDTO posterTemplate) {
         try {
             // 获取变量值
             Map<String, Object> variablesValues = this.getAppContext().getContextVariablesValues();
@@ -276,7 +264,7 @@ public class PosterActionHandler extends BaseActionHandler {
             messages.add(Collections.singletonMap(MultiModalMessage.MESSAGE_TEXT_KEY, prompt));
 
             // 图片变量列表
-            List<PosterVariableEntity> imageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
+            List<PosterVariableDTO> imageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
                     .filter(item -> "IMAGE".equals(item.getType())).collect(Collectors.toList());
             // 处理需要上传的图片
             List<String> urlList = new ArrayList<>();
@@ -285,7 +273,7 @@ public class PosterActionHandler extends BaseActionHandler {
                 if (i > 1) {
                     break;
                 }
-                PosterVariableEntity imageVariable = imageVariableList.get(i);
+                PosterVariableDTO imageVariable = imageVariableList.get(i);
                 Object value = imageVariable.getValue();
                 if (Objects.isNull(value)) {
                     continue;
@@ -346,18 +334,18 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private HandlerResponse<PosterGenerationHandler.Response> poster(PosterTemplateEntity posterTemplate) {
+    private HandlerResponse<PosterGenerationHandler.Response> poster(PosterTemplateDTO posterTemplate) {
         try {
             // 构建请求
             PosterGenerationHandler.Request handlerRequest = new PosterGenerationHandler.Request();
-            handlerRequest.setId(posterTemplate.getId());
+            handlerRequest.setCode(posterTemplate.getCode());
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
             Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList())
                     .stream()
                     .collect(Collectors.toMap(
-                            PosterVariableEntity::getField,
+                            PosterVariableDTO::getField,
                             // 如果变量为值为空，则设置为空字符串
                             item -> Optional.ofNullable(item.getValue()).orElse(StringUtils.EMPTY))
                     );
@@ -400,7 +388,7 @@ public class PosterActionHandler extends BaseActionHandler {
      * @return 失败返回结果
      */
     @NotNull
-    private static ActionResponse failureResponse(HandlerResponse<PosterGenerationHandler.Response> failure, PosterStyleEntity style) {
+    private static ActionResponse failureResponse(HandlerResponse<PosterGenerationHandler.Response> failure, PosterStyleDTO style) {
         log.info("海报生成 Action 执行失败......");
         ActionResponse response = new ActionResponse();
         response.setSuccess(Boolean.FALSE);

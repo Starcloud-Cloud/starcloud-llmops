@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
@@ -14,6 +15,8 @@ import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collections;
 
 /**
  * 推荐应用Variable Item 工厂类
@@ -621,6 +624,27 @@ public class RecommendVariableItemFactory {
     public static VariableItemRespVO defPosterStyleConfigVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.POSTER_STYLE_CONFIG);
+        variableItem.setLabel("风格配置");
+        variableItem.setDescription("风格配置");
+        variableItem.setDefaultValue("[]");
+        variableItem.setValue("[]");
+        variableItem.setOrder(3);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 系统风格配置
+     *
+     * @return 系统风格配置
+     */
+    public static VariableItemRespVO defSystemPosterStyleConfigVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
         variableItem.setLabel("风格配置");
         variableItem.setDescription("风格配置");
         variableItem.setDefaultValue("[]");

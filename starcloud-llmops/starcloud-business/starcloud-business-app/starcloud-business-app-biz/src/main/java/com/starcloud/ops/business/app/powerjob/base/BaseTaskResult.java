@@ -9,11 +9,25 @@ import lombok.*;
 @AllArgsConstructor
 public class BaseTaskResult {
 
+    /**
+     * key
+     */
     private String key;
-    private boolean success = false;
-    private String msg;
-    private Throwable throwable;
 
+    /**
+     * 是否成功
+     */
+    private boolean success = false;
+
+    /**
+     * 消息
+     */
+    private String msg;
+
+    /**
+     * 异常
+     */
+    private Throwable throwable;
 
     public BaseTaskResult(String key, boolean success) {
         this.key = key;
@@ -33,5 +47,9 @@ public class BaseTaskResult {
     public BaseTaskResult(boolean success, String msg) {
         this.success = success;
         this.msg = msg;
+    }
+
+    public static BaseTaskResult of(boolean success, String msg) {
+        return new BaseTaskResult(success, msg);
     }
 }

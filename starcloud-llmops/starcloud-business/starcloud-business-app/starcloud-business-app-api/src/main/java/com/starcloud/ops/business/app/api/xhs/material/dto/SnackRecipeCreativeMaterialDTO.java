@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
@@ -9,11 +8,10 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
 @Data
 @Accessors(chain = false)
-public class SnackRecipeCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
+public class SnackRecipeCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = -5645484220659667132L;
 

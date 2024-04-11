@@ -1,31 +1,48 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.request;
 
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
+ */
 @Data
 @Schema(defaultValue = "修改创作内容")
-public class CreativeContentModifyReqVO {
+public class CreativeContentModifyReqVO implements java.io.Serializable {
 
 
-    @Schema(description = "创作计划uid")
-    @NotBlank(message = "创作计划uid 不能为空")
-    private String planUid;
+    private static final long serialVersionUID = 9096954102590391143L;
 
-    @Schema(description = "业务uid")
-    @NotBlank(message = "业务uid 不能为空")
-    private String businessUid;
+    /**
+     * 创作内容UID
+     */
+    @Schema(description = "创作内容UID")
+    @NotBlank(message = "创作内容不能为空")
+    private String uid;
 
-    @Schema(description = "文案标题")
-    private String copyWritingTitle;
+    /**
+     * 标签
+     */
+    @Schema(description = "标签")
+    private List<String> tags;
 
-    @Schema(description = "文案内容")
-    private String copyWritingContent;
+    /**
+     * 执行参数
+     */
+    @Schema(description = "执行参数")
+    private CreativeContentExecuteParam executeParam;
 
-    @Schema(description = "图片结果")
-    private List<CreativeImageDTO> pictureContent;
+    /**
+     * 执行响应
+     */
+    @Schema(description = "执行响应")
+    private CreativeContentExecuteResult executeResult;
+
 }

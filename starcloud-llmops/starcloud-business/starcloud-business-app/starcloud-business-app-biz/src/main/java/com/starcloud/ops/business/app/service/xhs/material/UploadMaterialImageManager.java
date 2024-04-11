@@ -7,9 +7,8 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.infra.service.file.FileService;
 import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
-import com.jmatio.io.stream.FileBufferedOutputStream;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
@@ -94,7 +93,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         // 判断type 类型
         String parseUid = uploadMaterialDTO.getParseUid();
 
-        List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
+        List<? extends AbstractCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
         List<Field> imageField = uploadMaterialDTO.getImageField();
         int subCount = materialDTOList.size() * imageField.size();
         CountDownLatch countDownLatch = new CountDownLatch(subCount);
@@ -102,7 +101,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         long start = System.currentTimeMillis();
         try {
             for (int i = 0; i < materialDTOList.size(); i++) {
-                AbstractBaseCreativeMaterialDTO materialDTO = materialDTOList.get(i);
+                AbstractCreativeMaterialDTO materialDTO = materialDTOList.get(i);
                 String wordPath = TMP_DIR_PATH + File.separator + parseUid + File.separator
                         + materialDTO.getType() + File.separator + "word" + i + ".docx";
 
@@ -151,7 +150,7 @@ public class UploadMaterialImageManager implements InitializingBean {
 
     }
 
-    private void upload(Document extractedPage, AbstractBaseCreativeMaterialDTO materialDTO,
+    private void upload(Document extractedPage, AbstractCreativeMaterialDTO materialDTO,
                         Field field, String localPath, String ossPath, String imageName, CountDownLatch countDownLatch) {
         try {
             field.setAccessible(true);
@@ -171,7 +170,7 @@ public class UploadMaterialImageManager implements InitializingBean {
     private void parse(UploadMaterialImageDTO uploadMaterialDTO) {
         String parseUid = uploadMaterialDTO.getParseUid();
 
-        List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
+        List<? extends AbstractCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
         List<Field> imageField = uploadMaterialDTO.getImageField();
         if (!uploadMaterialDTO.containsImage()) {
             return;
@@ -182,7 +181,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         CountDownLatch countDownLatch = new CountDownLatch(subCount);
         try {
             long start = System.currentTimeMillis();
-            for (AbstractBaseCreativeMaterialDTO materialDTO : materialDTOList) {
+            for (AbstractCreativeMaterialDTO materialDTO : materialDTOList) {
                 for (Field field : imageField) {
                     threadPoolExecutor.execute(() -> upload(materialDTO, field,
                             parseUid, countDownLatch));
@@ -204,7 +203,7 @@ public class UploadMaterialImageManager implements InitializingBean {
     }
 
     // 上传 更新地址
-    private void upload(AbstractBaseCreativeMaterialDTO materialDTO,
+    private void upload(AbstractCreativeMaterialDTO materialDTO,
                         Field field,
                         String parseUid,
                         CountDownLatch countDownLatch) {

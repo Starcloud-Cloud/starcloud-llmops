@@ -33,26 +33,20 @@ public class CreativePlanPageQuery extends PageQuery {
     private String uid;
 
     /**
-     * 创作计划名称
-     */
-    @Schema(description = "创作计划名称")
-    private String name;
-
-    /**
-     * 创作计划类型
-     */
-    @Schema(description = "创作计划类型")
-    private String type;
-
-    /**
      * 创作计划状态
      */
     @Schema(description = "创作计划状态")
     private String status;
 
+    /**
+     * 创建开始时间
+     */
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime startTime;
 
+    /**
+     * 创建结束时间
+     */
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime endTime;
 }

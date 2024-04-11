@@ -1,34 +1,50 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExtendDTO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
-import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
+ */
 @Data
-@Schema(description = "创作内容")
-public class CreativeContentRespVO {
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@Schema(description = "创作内容响应")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class CreativeContentRespVO implements java.io.Serializable {
+
+    private static final long serialVersionUID = -8602264554633829827L;
 
     /**
-     * 创作方案UID
+     * 创作内容UID
      */
-    @Schema(description = "创作方案UID")
-    private String schemeUid;
+    @Schema(description = "创作内容UID")
+    private String uid;
 
-    @Schema(description = "创作计划uid")
+    /**
+     * 执行批次UID
+     */
+    @Schema(description = "执行批次UID")
+    private String batchUid;
+
+    /**
+     * 创作计划UID
+     */
+    @Schema(description = "创作计划UID")
     private String planUid;
-
-    @Schema(description = "执行批次")
-    private Long batch;
-
-    @Schema(description = "业务uid")
-    private String businessUid;
 
     /**
      * 会话UID
@@ -36,105 +52,95 @@ public class CreativeContentRespVO {
     @Schema(description = "会话UID")
     private String conversationUid;
 
-    @Schema(description = "文案模板Uid")
-    private String copyWritingUid;
-
-    @Schema(description = "使用的图片模板Uid")
-    private String pictureTempUid;
-
-    @Schema(description = "使用的图片列表")
-    private List<String> usePicture;
-
-    @Schema(description = "图片执行参数")
-    private CreativeContentExecuteDTO pictureParams;
-
-    @Schema(description = "文案执行参数")
-    private CreativeContentExecuteDTO copyWritingParams;
+    /**
+     * 创作内容类型
+     */
+    @Schema(description = "创作内容类型")
+    private String type;
 
     /**
-     * {@link CreativeContentStatusEnum}
+     * 标签
      */
-    @Schema(description = "图片状态")
-    private String pictureStatus;
+    @Schema(description = "标签")
+    private List<String> tags;
 
-    @Schema(description = "文案状态")
-    private String copyWritingStatus;
+    /**
+     * 执行请求
+     */
+    @Schema(description = "执行请求")
+    private CreativeContentExecuteParam executeParam;
 
-    @Schema(description = "图片开始时间")
-    private LocalDateTime pictureStartTime;
+    /**
+     * 执行结果
+     */
+    @Schema(description = "执行响应")
+    private CreativeContentExecuteResult executeResult;
 
-    @Schema(description = "图片结束时间")
-    private LocalDateTime pictureEndTime;
+    /**
+     * 执行开始时间
+     */
+    @Schema(description = "执行开始时间")
+    private LocalDateTime startTime;
 
-    @Schema(description = "图片执行耗时")
-    private Long pictureExecuteTime;
+    /**
+     * 执行结束时间
+     */
+    @Schema(description = "执行结束时间")
+    private LocalDateTime endTime;
 
+    /**
+     * 执行耗时
+     */
+    @Schema(description = "执行耗时")
+    private Long elapsed;
 
-    @Schema(description = "文案开始时间")
-    private LocalDateTime copyWritingStartTime;
+    /**
+     * 执行状态
+     */
+    @Schema(description = "执行状态")
+    private String status;
 
-    @Schema(description = "文案结束时间")
-    private LocalDateTime copyWritingEndTime;
+    /**
+     * 重试次数
+     */
+    @Schema(description = "重试次数")
+    private Integer retryCount;
 
-    @Schema(description = "文案执行耗时")
-    private Long copyWritingExecuteTime;
+    /**
+     * 执行失败信息
+     */
+    @Schema(description = "执行失败信息")
+    private String errorMessage;
 
-    @Schema(description = "文案标题")
-    private String copyWritingTitle;
+    /**
+     * 是否喜欢
+     */
+    @Schema(description = "是否喜欢")
+    private Boolean liked;
 
-    @Schema(description = "文案内容")
-    private String copyWritingContent;
-
-    @Schema(description = "文案文字数量")
-    private String copyWritingCount;
-
-    @Schema(description = "生成图片数量")
-    private Integer pictureNum;
-
-    @Schema(description = "生成图片结果")
-    private List<CreativeImageDTO> pictureContent;
-
-    @Schema(description = "图片失败信息")
-    private String pictureErrorMsg;
-
-    @Schema(description = "文案失败信息")
-    private String copyWritingErrorMsg;
-
-    @Schema(description = "图片重试次数")
-    private Integer pictureRetryCount;
-
-    @Schema(description = "文案重试次数")
-    private Integer copyWritingRetryCount;
-
-    @Schema(description = "图片拓展信息")
-    private CreativeContentExtendDTO pictureExtend;
-
-    @Schema(description = "文案拓展信息")
-    private CreativeContentExtendDTO copyWritingExtend;
-
+    /**
+     * 是否绑定
+     */
     @Schema(description = "是否绑定")
     private Boolean claim;
 
     /**
-     * 喜欢数量
+     * 创建者
      */
-    @Schema(description = "喜欢数量")
-    private Boolean liked;
+    @Schema(description = "创建者")
+    private String creator;
 
     /**
-     * 是否是测试数据
+     * 创建时间
      */
-    @Schema(description = "是否是测试数据")
-    private Boolean isTest;
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
 
-    @Schema(description = "标签")
-    private List<String> tags;
-
-    private Integer totalStep;
-
-    private Integer successStepCount;
-
-    private Integer currentStepIndex;
+    /**
+     * 租户ID
+     */
+    @Schema(description = "租户ID")
+    private Long tenantId;
 
     /**
      * 执行进度

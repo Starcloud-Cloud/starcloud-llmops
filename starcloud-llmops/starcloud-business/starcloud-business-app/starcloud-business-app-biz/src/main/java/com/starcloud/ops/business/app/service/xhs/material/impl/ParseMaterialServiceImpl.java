@@ -7,7 +7,7 @@ import cn.hutool.core.util.ZipUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
@@ -77,7 +77,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
         if (StringUtils.isBlank(json)) {
             return new ParseResult();
         }
-        List<AbstractBaseCreativeMaterialDTO> materialDTOList = JsonUtils.parseArray(json, AbstractBaseCreativeMaterialDTO.class);
+        List<AbstractCreativeMaterialDTO> materialDTOList = JsonUtils.parseArray(json, AbstractCreativeMaterialDTO.class);
         return new ParseResult(true, materialDTOList);
     }
 
@@ -103,8 +103,8 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             ZipUtil.unzip(zipFile, dir, StandardCharsets.UTF_8);
             // 读取excel 第一行为表结构说明 第二行为表头
             FileInputStream excelFile = new FileInputStream(dirPath + File.separator + materialType + File.separator + materialType + ".xlsx");
-            List<? extends AbstractBaseCreativeMaterialDTO> result = ExcelUtils.read(excelFile, materialTypeEnum.getAClass(), 2);
-            for (AbstractBaseCreativeMaterialDTO abstractBaseCreativeMaterialDTO : result) {
+            List<? extends AbstractCreativeMaterialDTO> result = ExcelUtils.read(excelFile, materialTypeEnum.getAClass(), 2);
+            for (AbstractCreativeMaterialDTO abstractBaseCreativeMaterialDTO : result) {
                 abstractBaseCreativeMaterialDTO.valid();
                 abstractBaseCreativeMaterialDTO.setType(materialType);
             }

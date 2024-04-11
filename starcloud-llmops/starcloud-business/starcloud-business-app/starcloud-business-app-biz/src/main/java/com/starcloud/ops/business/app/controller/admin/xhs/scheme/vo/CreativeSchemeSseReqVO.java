@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.scheme.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -74,7 +74,7 @@ public class CreativeSchemeSseReqVO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "创作方案参考内容不能为空！")
     @Schema(description = "创作方案参考内容")
-    private List<AbstractBaseCreativeMaterialDTO> refers;
+    private List<AbstractCreativeMaterialDTO> refers;
 
     /**
      * SSE

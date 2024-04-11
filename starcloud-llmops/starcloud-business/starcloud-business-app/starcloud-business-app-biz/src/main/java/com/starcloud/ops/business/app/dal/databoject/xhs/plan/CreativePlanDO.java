@@ -51,14 +51,8 @@ public class CreativePlanDO extends TenantBaseDO {
     /**
      * 应用信息
      */
-    @TableField("app_info")
-    private String appInfo;
-
-    /**
-     * 素材
-     */
-    @TableField("material")
-    private String material;
+    @TableField("configuration")
+    private String configuration;
 
     /**
      * 创作计划标签

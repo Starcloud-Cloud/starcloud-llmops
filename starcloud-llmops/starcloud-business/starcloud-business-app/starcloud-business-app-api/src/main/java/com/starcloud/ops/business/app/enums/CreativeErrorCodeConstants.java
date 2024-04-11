@@ -22,15 +22,9 @@ public interface CreativeErrorCodeConstants {
     ErrorCode PLAN_CONFIG_NOT_NULL = new ErrorCode(710100111, "创作计划配置不能为空（{}）！请稍后重试或者联系管理员！");
 
     /**
-     * 创作计划配置不能为空
+     * 计划执行失败
      */
-    ErrorCode PLAN_TYPE_REQUIRED = new ErrorCode(710100112, "创作计划类型是必须的！请稍后重试或者联系管理员！");
-
-    /**
-     * 创作计划类型不支持
-     */
-    ErrorCode PLAN_TYPE_NOT_SUPPORTED = new ErrorCode(710100113, "创作计划类型不支持（{}）！请稍后重试或者联系管理员！");
-
+    ErrorCode PLAN_EXECUTE_FAILURE = new ErrorCode(710100111, "计划执行失败，请稍候重试！");
     /**
      * 创作计划UID不能为空
      */
@@ -40,21 +34,6 @@ public interface CreativeErrorCodeConstants {
      * 只有待执行的创作计划才允许修改
      */
     ErrorCode PLAN_STATUS_NOT_SUPPORT_MODIFY = new ErrorCode(710100115, "当前计划不支持修改，只有待执行,执行完成和执行失败的创作计划才允许修改！");
-
-    /**
-     * 图片素材不能为空
-     */
-    ErrorCode PLAN_UPLOAD_IMAGE_EMPTY = new ErrorCode(710100116, "图片素材不能为空！请上传图片素材后重试！");
-
-    /**
-     * 应用不存在
-     */
-    ErrorCode PLAN_APP_NOT_EXIST = new ErrorCode(710100117, "文案执行应用不存在！请联系管理员！");
-
-    /**
-     * 不支持顺序模式
-     */
-    ErrorCode PLAN_RANDOM_TYPE_NOT_SUPPORTED = new ErrorCode(710100118, "不支持顺序模式！请选择全部随机后重试！");
 
     /**
      * 创作计划状态不能为空
@@ -172,7 +151,7 @@ public interface CreativeErrorCodeConstants {
      */
     ErrorCode SCHEME_EXAMPLE_FAILURE = new ErrorCode(720100123, "生成文案示例失败, 请稍候重试！{}");
 
-//    ======= 素材库异常 =======
+    //    ======= 素材库异常 =======
     ErrorCode MATERIAL_TYPE_NOT_EXIST = new ErrorCode(730000001, "素材类型不存在 {}");
 
     ErrorCode TYPE_UNMATCH_FIELD = new ErrorCode(730000002, "素材类型 {} 与上传的数据结构不匹配");

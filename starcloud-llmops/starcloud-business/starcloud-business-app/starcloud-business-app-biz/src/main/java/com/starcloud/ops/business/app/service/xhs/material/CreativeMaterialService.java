@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
@@ -56,6 +56,6 @@ public interface CreativeMaterialService {
      *
      * @param materialDTOList
      */
-    void batchInsert(List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList);
+    void batchInsert(List<? extends AbstractCreativeMaterialDTO> materialDTOList);
 
 }

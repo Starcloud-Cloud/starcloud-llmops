@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.NoteDetailQueryReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
@@ -28,7 +28,7 @@ public class XhsNoteDetailController {
 
     @PostMapping("/detail")
     @Operation(summary = "小红书笔记内容")
-    public CommonResult<AbstractBaseCreativeMaterialDTO> detailByUrl(@Valid @RequestBody NoteDetailQueryReqVO reqVO) {
+    public CommonResult<AbstractCreativeMaterialDTO> detailByUrl(@Valid @RequestBody NoteDetailQueryReqVO reqVO) {
         return CommonResult.success(detailService.mapMaterialDetail(reqVO.getNoteUrl(), reqVO.getMaterialType()));
     }
 

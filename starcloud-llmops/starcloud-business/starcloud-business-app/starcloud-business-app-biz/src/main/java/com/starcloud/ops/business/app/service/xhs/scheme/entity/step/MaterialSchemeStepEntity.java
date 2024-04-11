@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -38,7 +38,7 @@ public class MaterialSchemeStepEntity extends BaseSchemeStepEntity {
      * 素材列表
      */
     @Schema(description = "素材列表")
-    private List<AbstractBaseCreativeMaterialDTO> materialList;
+    private List<AbstractCreativeMaterialDTO> materialList;
 
     /**
      * 组装为应用步骤信息

@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
@@ -41,7 +41,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Override
     public void creatMaterial(BaseMaterialVO reqVO) {
-        AbstractBaseCreativeMaterialDTO materialDetail = reqVO.getMaterialDetail();
+        AbstractCreativeMaterialDTO materialDetail = reqVO.getMaterialDetail();
         materialDetail.valid();
         CreativeMaterialDO materialDO = CreativeMaterialConvert.INSTANCE.convert(reqVO, materialDetail);
         materialDO.setUid(IdUtil.fastSimpleUUID());
@@ -56,7 +56,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Override
     public void modifyMaterial(ModifyMaterialReqVO reqVO) {
-        AbstractBaseCreativeMaterialDTO materialDetail = reqVO.getMaterialDetail();
+        AbstractCreativeMaterialDTO materialDetail = reqVO.getMaterialDetail();
         materialDetail.valid();
         CreativeMaterialDO materialDO = getByUid(reqVO.getUid());
         CreativeMaterialDO updateDO = CreativeMaterialConvert.INSTANCE.convert(reqVO, materialDetail);
@@ -71,7 +71,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     }
 
     @Override
-    public void batchInsert(List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList) {
+    public void batchInsert(List<? extends AbstractCreativeMaterialDTO> materialDTOList) {
         List<CreativeMaterialDO> materialDOList = CreativeMaterialConvert.INSTANCE.convert2(materialDTOList);
         materialMapper.insertBatch(materialDOList);
     }

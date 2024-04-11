@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
@@ -43,6 +45,14 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     @Schema(description = "模版变量")
     private VariableRespVO variable;
 
+    /**
+     * 向step 中添加变量
+     *
+     * @param stepId   步骤ID
+     * @param variable 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(String stepId, Map<String, Object> variable) {
         for (WorkflowStepWrapperRespVO step : steps) {
             if (stepId.equals(step.getField())) {
@@ -52,6 +62,15 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         }
     }
 
+    /**
+     * 获取步骤中的变量
+     *
+     * @param stepId       步骤ID
+     * @param variableName 变量名称
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public VariableItemRespVO getStepVariable(String stepId, String variableName) {
         for (WorkflowStepWrapperRespVO step : steps) {
             if (stepId.equals(step.getField())) {
@@ -62,13 +81,67 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     }
 
     /**
-     * 根据节点handler获取第一个节点
+     * 获取步骤中的变量值
      *
-     * @param handler stepHandler
+     * @param stepId       步骤ID
+     * @param variableName 变量名称
      * @return 变量值
      */
-    public WorkflowStepWrapperRespVO getFirstStepByHandler(String handler) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getStepVariableValue(String stepId, String variableName) {
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (stepId.equals(step.getField())) {
+                return step.getStepVariableValue(variableName);
+            }
+        }
+        return null;
+    }
 
+    /**
+     * 向step 中添加变量
+     *
+     * @param stepId   步骤ID
+     * @param variable 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putStepModelVariable(String stepId, Map<String, Object> variable) {
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (stepId.equals(step.getField())) {
+                step.putStepModelVariable(variable);
+                break;
+            }
+        }
+    }
+
+    /**
+     * 获取步骤中的变量值
+     *
+     * @param stepId       步骤ID
+     * @param variableName 变量名称
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getStepModelVariableValue(String stepId, String variableName) {
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (stepId.equals(step.getField())) {
+                return step.getStepModelVariableValue(variableName);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据 handler 获取步骤
+     *
+     * @param handler 步骤handler
+     * @return 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapperRespVO getStepByHandler(String handler) {
         for (WorkflowStepWrapperRespVO step : steps) {
             if (handler.equals(step.getFlowStep().getHandler())) {
                 return step;
@@ -76,4 +149,5 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         }
         return null;
     }
+
 }

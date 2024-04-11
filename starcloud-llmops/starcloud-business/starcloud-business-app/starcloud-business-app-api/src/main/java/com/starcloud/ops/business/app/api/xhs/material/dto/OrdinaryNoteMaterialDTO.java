@@ -1,16 +1,14 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
-import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
 @Data
-public class OrdinaryNoteMaterialDTO extends AbstractBaseCreativeMaterialDTO {
+public class OrdinaryNoteMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = 6000409686906819644L;
 

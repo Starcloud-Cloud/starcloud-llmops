@@ -33,88 +33,40 @@ public class CreativePlanRespVO implements java.io.Serializable {
     private String uid;
 
     /**
-     * 创作计划名称
+     * 应用UID
      */
-    @Schema(description = "创作计划名称")
-    private String name;
+    @Schema(description = "应用市场UID")
+    private String appUid;
 
     /**
-     * 执行批次
+     * 应用版本号
      */
-    @Schema(description = "执行批次")
-    private Long batch;
+    @Schema(description = "应用版本号")
+    private Integer version;
 
     /**
-     * 创作计划类型
+     * 应用信息
      */
-    @Schema(description = "创作计划类型")
-    private String type;
-
-    /**
-     * 创作计划详细配置信息
-     */
-    @Schema(description = "创作计划详细配置信息")
+    @Schema(description = "应用信息")
     private CreativePlanConfigurationDTO configuration;
 
     /**
-     * 成功数量
+     * 创作计划标签
      */
-    @Schema(description = "成功数量")
-    private Integer successCount;
-
-    /**
-     * 失败数量
-     */
-    @Schema(description = "失败数量")
-    private Integer failureCount;
-
-    /**
-     * 待执行数量
-     */
-    @Schema(description = "待执行数量")
-    private Integer pendingCount;
-
-    /**
-     * 执行随机方式
-     */
-    @Schema(description = "执行随机方式")
-    private String randomType;
+    @Schema(description = "标签")
+    private List<String> tags;
 
     /**
      * 生成数量
      */
     @Schema(description = "生成数量")
-    private Integer total;
+    private Integer totalCount;
 
     /**
      * 创作计划执行状态：待执行，执行中，暂停，执行完成
      */
-    @Schema(description = "创作计划执行状态")
+    @Schema(description = "状态")
     private String status;
-
-    /**
-     * 计划开始时间
-     */
-    @Schema(description = "计划开始时间")
-    private LocalDateTime startTime;
-
-    /**
-     * 计划结束时间
-     */
-    @Schema(description = "计划结束时间")
-    private LocalDateTime endTime;
-
-    /**
-     * 执行总耗时
-     */
-    @Schema(description = "执行总耗时")
-    private Long elapsed;
-
-    /**
-     * 创作计划描述
-     */
-    @Schema(description = "创作计划描述")
-    private String description;
 
     /**
      * 创建人
@@ -140,9 +92,4 @@ public class CreativePlanRespVO implements java.io.Serializable {
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
 
-    /**
-     * 标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 }

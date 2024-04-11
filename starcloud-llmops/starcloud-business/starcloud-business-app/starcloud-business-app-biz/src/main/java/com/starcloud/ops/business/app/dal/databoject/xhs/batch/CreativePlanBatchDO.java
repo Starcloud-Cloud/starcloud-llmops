@@ -1,16 +1,12 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.batch;
 
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.enums.xhs.batch.CreativePlanBatchStatusEnum;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -66,19 +62,13 @@ public class CreativePlanBatchDO extends TenantBaseDO {
     /**
      * 应用信息
      */
-    @TableField("app_info")
-    private String appInfo;
-
-    /**
-     * 素材
-     */
-    @TableField("material")
-    private String material;
+    @TableField("configuration")
+    private String configuration;
 
     /**
      * 创作计划标签
      */
-    @TableField("tags")
+    @TableField(value = "tags", typeHandler = JacksonTypeHandler.class)
     private String tags;
 
     /**
@@ -108,11 +98,13 @@ public class CreativePlanBatchDO extends TenantBaseDO {
     /**
      * 执行结束时间
      */
+    @TableField("end_time")
     private LocalDateTime endTime;
 
     /**
      * 执行耗时
      */
+    @TableField("elapsed")
     private Long elapsed;
 
     /**
@@ -120,32 +112,5 @@ public class CreativePlanBatchDO extends TenantBaseDO {
      */
     @TableField("status")
     private String status;
-
-
-    public static class CreativePlanTypeHandler extends AbstractJsonTypeHandler<CreativePlanRespVO> {
-
-        @Override
-        protected CreativePlanRespVO parse(String json) {
-            return JsonUtils.parseObject(json, CreativePlanRespVO.class);
-        }
-
-        @Override
-        protected String toJson(CreativePlanRespVO obj) {
-            return JsonUtils.toJsonString(obj);
-        }
-    }
-
-    public static class CreativeSchemeTypeHandler extends AbstractJsonTypeHandler<CreativeSchemeRespVO> {
-        @Override
-        protected CreativeSchemeRespVO parse(String json) {
-            return JsonUtils.parseObject(json, CreativeSchemeRespVO.class);
-        }
-
-        @Override
-        protected String toJson(CreativeSchemeRespVO obj) {
-            return JsonUtils.toJsonString(obj);
-        }
-    }
-
 
 }

@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.variable;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -33,6 +35,13 @@ public class VariableRespVO implements Serializable {
     @Schema(description = "应用变量")
     private List<VariableItemRespVO> variables;
 
+    /**
+     * 放入变量值
+     *
+     * @param variable 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(Map<String, Object> variable) {
         for (VariableItemRespVO item : variables) {
             if (variable.containsKey(item.getField())) {

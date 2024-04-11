@@ -18,7 +18,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "应用 marketUid 请求实体")
+@Schema(description = "UID请求实体")
 public class UidRequest implements Serializable {
 
     private static final long serialVersionUID = -8083745861564277538L;
@@ -26,8 +26,8 @@ public class UidRequest implements Serializable {
     /**
      * 应用 uid
      */
-    @Schema(description = "uid")
-    @NotBlank(message = "UID 不能为空")
+    @Schema(description = "UID")
+    @NotBlank(message = "UID不能为空")
     private String uid;
 
 }

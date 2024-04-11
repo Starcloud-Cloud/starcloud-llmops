@@ -3,7 +3,7 @@ package com.starcloud.ops.business.mission.service.impl;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.JSONObject;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
@@ -50,14 +50,14 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
     }
 
     @Override
-    public AbstractBaseCreativeMaterialDTO mapMaterialDetail(String noteUrl, String materialType) {
+    public AbstractCreativeMaterialDTO mapMaterialDetail(String noteUrl, String materialType) {
         XhsNoteDetailRespVO respVO = selectByNoteUrl(noteUrl);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("type", materialType);
         jsonObject.put("title", respVO.getTitle());
         jsonObject.put("content", respVO.getDesc());
         jsonObject.put("link", noteUrl);
-        return JsonUtils.parseObject(jsonObject.toJSONString(), AbstractBaseCreativeMaterialDTO.class);
+        return JsonUtils.parseObject(jsonObject.toJSONString(), AbstractCreativeMaterialDTO.class);
     }
 
     @Override

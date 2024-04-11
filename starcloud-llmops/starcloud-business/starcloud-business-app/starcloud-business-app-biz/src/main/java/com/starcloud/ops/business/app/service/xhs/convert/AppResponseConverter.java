@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.convert;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -10,12 +9,12 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.xhs.execute.CreativeAppExecuteResponse;
-import com.starcloud.ops.business.app.api.xhs.execute.PosterImageDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
+import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 
@@ -29,7 +28,7 @@ import java.util.Optional;
  */
 public class AppResponseConverter {
 
-    public static CreativeAppExecuteResponse practicalConverter(AppRespVO appResponse) {
+    public static CreativeContentExecuteRespVO practicalConverter(AppRespVO appResponse) {
         WorkflowConfigRespVO workflowConfig = appResponse.getWorkflowConfig();
         if (workflowConfig == null) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_CONFIG_REQUIRED);
@@ -57,15 +56,18 @@ public class AppResponseConverter {
             throw ServiceExceptionUtil.exception(new ErrorCode(310100320, "海报结果未找到！"));
         }
 
-        List<PosterImageDTO> posterList = JSONUtil.toList(posterResponse.getAnswer(), PosterImageDTO.class);
+        List<ImageContent> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), ImageContent.class);
 
         JsonDataVO output = assembleResponse.getOutput();
-        CopyWritingContentDTO copyWritingContent =  JsonUtils.parseObject(String.valueOf(output.getData()), CopyWritingContentDTO.class);
+        CopyWritingContent copyWriting = JsonUtils.parseObject(String.valueOf(output.getData()), CopyWritingContent.class);
 
-        CreativeAppExecuteResponse response = new CreativeAppExecuteResponse();
+        CreativeContentExecuteRespVO response = new CreativeContentExecuteRespVO();
+        CreativeContentExecuteResult result = new CreativeContentExecuteResult();
+        result.setCopyWriting(copyWriting);
+        result.setImageList(posterList);
+
         response.setSuccess(Boolean.TRUE);
-        response.setCopyWritingContent(copyWritingContent);
-        response.setPosterList(posterList);
+        response.setResult(result);
         return response;
     }
 }
