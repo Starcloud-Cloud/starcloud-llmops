@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -145,11 +146,10 @@ public class CreativeExecuteManager {
 
             // 获取最新的创作内容
             CreativeContentDO latestContent = creativeContentMapper.get(request.getUid());
-            if (Objects.isNull(latestContent)) {
-                log.info("创作内容任务不存在({})，无法执行！", request.getUid());
-                return CreativeContentExecuteRespVO.failure(request.getUid(), "创作内容任务不存在，无法执行！请联系管理员!");
-            }
-            // 如果是正在执行中，则直接返回
+            AppValidate.notNull(latestContent, "创作内容任务不存在，无法执行！");
+
+            // 如果是正在执行中，则直接抛出异常
+            boolean isExecuting = CreativeContentStatusEnum.EXECUTING.name().equals(latestContent.getStatus());
             if (CreativeContentStatusEnum.EXECUTING.name().equals(latestContent.getStatus())) {
                 log.info("创作内容任务正在执行中({})！", request.getUid());
                 return CreativeContentExecuteRespVO.failure(request.getUid(), "创作内容任务正在执行中！");
