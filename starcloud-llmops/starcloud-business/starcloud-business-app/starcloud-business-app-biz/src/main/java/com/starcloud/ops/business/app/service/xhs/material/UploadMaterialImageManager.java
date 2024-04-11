@@ -6,12 +6,9 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.infra.service.file.FileService;
-import com.aspose.words.Document;
-import com.aspose.words.SaveFormat;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.ContractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.ContractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
@@ -29,12 +26,25 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.UPLOAD_QUEUE_FULL;
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.*;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_IMPORT_ERROR;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_PREFIX;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.TMP_DIR_PATH;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.WORD_PARSE;
 
 @Slf4j
 @Component
@@ -105,7 +115,6 @@ public class UploadMaterialImageManager implements InitializingBean {
         try {
             Map<Integer, Future<List<String>>> parseFuture = new HashMap<>(materialDTOList.size());
             for (int i = 0; i < materialDTOList.size(); i++) {
-                AbstractCreativeMaterialDTO materialDTO = materialDTOList.get(i);
                 ContractCreativeMaterialDTO materialDTO = (ContractCreativeMaterialDTO) materialDTOList.get(i);
                 if (StringUtils.isBlank(materialDTO.getDocRelativeAddr())) {
                     continue;
@@ -131,7 +140,7 @@ public class UploadMaterialImageManager implements InitializingBean {
                     continue;
                 }
 
-                AbstractBaseCreativeMaterialDTO materialDTO = materialDTOList.get(i);
+                AbstractCreativeMaterialDTO materialDTO = materialDTOList.get(i);
                 for (int j = 0; j < imageField.size(); j++) {
                     Field field = imageField.get(j);
                     field.setAccessible(true);
