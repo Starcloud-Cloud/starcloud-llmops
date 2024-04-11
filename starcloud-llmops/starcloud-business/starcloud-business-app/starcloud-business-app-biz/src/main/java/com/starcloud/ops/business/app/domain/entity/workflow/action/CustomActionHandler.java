@@ -5,8 +5,13 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,7 +28,6 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHa
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.ImitateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
@@ -34,7 +38,12 @@ import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -377,10 +386,10 @@ public class CustomActionHandler extends BaseActionHandler {
         return actionResponse;
     }
 
-    private String generateRefers(List<AbstractBaseCreativeMaterialDTO> referList) {
+    private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {
         try {
             StringJoiner sj = new StringJoiner("\n");
-            for (AbstractBaseCreativeMaterialDTO materialDTO : referList) {
+            for (AbstractCreativeMaterialDTO materialDTO : referList) {
                 sj.add(JsonUtils.toJsonString(materialDTO));
                 JSONObject entries = JSONUtil.parseObj(materialDTO);
                 JSONArray imitateTypeJSON = entries.getJSONArray("imitateType");
