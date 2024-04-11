@@ -28,6 +28,8 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Keywo
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
@@ -50,11 +53,10 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
     @Resource
     private SmsSendApi smsSendApi;
-
     @Resource
     private DictDataService dictDataService;
-
-
+    @Resource
+    private RedissonClient redissonClient;
     @Resource
     private SellerSpriteNoRedisDAO sellerSpriteNoRedisDAO;
 
@@ -218,26 +220,30 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         }
         // 遍历账号池
         cookies.forEach(cookie -> {
-
             long maxNums = RandomUtil.randomLong(6) + 6;
             long between = LocalDateTimeUtil.between(cookie.getUpdateTime(), LocalDateTimeUtil.now(), ChronoUnit.HOURS);
 
-            //更新时间 过期就直接刷新cookie
+            // 判断当前 cookie 是否超过限定时间 超过就直接刷新cookie
             if (between >= maxNums) {
-                updateSellStripeCookie(cookie);
-            } else {
-
-                // API判断当前 cookie 是否过期
-                if (!checkCookieIsEnable(cookie.getRemark())) {
-                    updateSellStripeCookie(cookie);
-                }
+                performLoginActions(cookie);
+                return;
             }
 
-            if (CollUtil.isNotEmpty(cookieList)) {
-                sendLoginSuccessMessage(cookie.getValue());
+            // 判断当前 cookie 是否过期
+            if (!checkCookieIsEnable(cookie.getRemark())) {
+                performLoginActions(cookie);
+                return;
             }
-
         });
+    }
+
+    private void performLoginActions(DictDataDO cookie) {
+        try {
+            updateSellStripeCookie(cookie);
+            sendLoginSuccessMessage(cookie.getValue());
+        } catch (Exception e) {
+            sendLoginFailMessage(cookie.getValue(), "登录异常: " + e.getMessage());
+        }
     }
 
     private void updateSellStripeCookie(DictDataDO cookie) {
@@ -256,7 +262,13 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
         String userName = accountJson.getStr("userName");
 
+        String key = "update-sell-stripe-cookie-" + userName;
+        RLock lock = redissonClient.getLock(key);
         try {
+            if (lock != null && !lock.tryLock(30,  TimeUnit.SECONDS)) {
+                log.warn("正在执行中，重复调用 {}", userName);
+                return;
+            }
 
             String cookieData = getCookie(userName, accountJson.getStr("pwd"));
             if (Objects.nonNull(cookieData)) {
@@ -264,20 +276,16 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                 dictDataService.updateDictData(updateReqVO);
                 log.info("卖家精灵账号更新成功，当前账号为{}", account.getValue());
             } else {
-
                 log.error("卖家精灵账号登录失败:{}", userName);
-
-                sendLoginFailMessage(userName, "登录失败");
             }
-
         } catch (Exception e) {
-
             log.error("卖家精灵账号登录异常:{} {}", userName, e.getMessage(), e);
-
-            sendLoginFailMessage(userName, "登录异常: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        } finally {
+            if (lock != null) {
+                lock.unlock();
+            }
         }
-
-
     }
 
 
@@ -318,7 +326,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             }
         }
 
-        //只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
+        // 只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
         if (StrUtil.isBlank(result) && tag >= cookies.size()) {
             this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);

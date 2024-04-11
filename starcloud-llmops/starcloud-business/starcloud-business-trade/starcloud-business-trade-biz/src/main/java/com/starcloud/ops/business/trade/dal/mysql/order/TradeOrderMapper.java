@@ -133,10 +133,14 @@ public interface TradeOrderMapper extends BaseMapperX<TradeOrderDO> {
                 .between(TradeOrderDO::getCreateTime, fiveDaysAgo, payTime));
     }
 
-    default List<TradeOrderDO>  selectSucceedOrderBySignId(Long tradeSignId) {
+    default List<TradeOrderDO> selectSucceedOrderBySignId(Long tradeSignId) {
         return selectList(new LambdaUpdateWrapper<>(TradeOrderDO.class)
                 .eq(TradeOrderDO::getTradeSignId, tradeSignId)
                 .eq(TradeOrderDO::getPayStatus, true));
     }
 
+    default List<TradeOrderDO> queryTradeOrdersByTime(Long timeNum) {
+        return selectList(new LambdaUpdateWrapper<>(TradeOrderDO.class)
+                .between(TradeOrderDO::getPayTime,  LocalDateTime.now().minusDays(timeNum),LocalDateTime.now()));
+    }
 }
