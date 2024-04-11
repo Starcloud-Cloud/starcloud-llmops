@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.controller.admin.comment;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.wechat.ChatBotOpenApiCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.comment.vo.wechat.ChatBotOpenApiUpdateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.service.comment.wechat.ChatBotOpenApiDOService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
