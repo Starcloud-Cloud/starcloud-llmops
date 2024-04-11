@@ -12,10 +12,6 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractCreativeMaterialDTO 
 
     private static final long serialVersionUID = 5329304085500798664L;
 
-    @JsonPropertyDescription("内容")
-    @FieldDefine(desc = "内容", type = FieldTypeEnum.string, required = true)
-    private String content;
-
     @JsonPropertyDescription("参考来源")
     @FieldDefine(desc = "参考来源", type = FieldTypeEnum.select)
     private String source;
@@ -23,6 +19,14 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractCreativeMaterialDTO 
     @JsonPropertyDescription("参考链接地址")
     @FieldDefine(desc = "参考链接地址", type = FieldTypeEnum.weburl)
     private String link;
+
+    @JsonPropertyDescription("内容")
+    @FieldDefine(desc = "内容", type = FieldTypeEnum.textBox, required = true)
+    private String content;
+
+
+    @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
+    private List<String> imitateType;
 
     @Override
     public String generateContent() {

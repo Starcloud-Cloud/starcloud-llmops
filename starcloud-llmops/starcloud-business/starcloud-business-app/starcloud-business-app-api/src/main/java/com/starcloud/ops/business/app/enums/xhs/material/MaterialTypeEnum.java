@@ -33,7 +33,7 @@ public enum MaterialTypeEnum implements IEnumable<String> {
 
     private final Class<? extends AbstractCreativeMaterialDTO> aClass;
 
-    private static final Map<String, MaterialTypeEnum> ENUM_MAP = Arrays.stream(MaterialTypeEnum.values())
+    public static final Map<String, MaterialTypeEnum> ENUM_MAP = Arrays.stream(MaterialTypeEnum.values())
             .collect(Collectors.toMap(MaterialTypeEnum::getTypeCode, Function.identity()));
 
     // 参考素材类型

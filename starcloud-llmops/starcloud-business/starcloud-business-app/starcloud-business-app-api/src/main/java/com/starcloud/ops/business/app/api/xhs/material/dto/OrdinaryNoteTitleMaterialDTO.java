@@ -5,16 +5,14 @@ import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 @Data
 public class OrdinaryNoteTitleMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = 6963607295424278366L;
-
-    @JsonPropertyDescription("标题")
-    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true)
-    private String title;
 
     @JsonPropertyDescription("参考来源")
     @FieldDefine(desc = "参考来源", type = FieldTypeEnum.select)
@@ -23,6 +21,14 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractCreativeMaterialDTO {
     @JsonPropertyDescription("参考链接地址")
     @FieldDefine(desc = "参考链接地址", type = FieldTypeEnum.weburl)
     private String link;
+
+    @JsonPropertyDescription("标题")
+    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true)
+    private String title;
+
+
+    @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
+    private List<String> imitateType;
 
     @Override
     public String generateContent() {

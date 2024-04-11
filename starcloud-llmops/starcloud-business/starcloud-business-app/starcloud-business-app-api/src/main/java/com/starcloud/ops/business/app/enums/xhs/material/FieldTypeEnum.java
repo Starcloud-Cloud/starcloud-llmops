@@ -13,20 +13,24 @@ public enum FieldTypeEnum {
 
     image("image", "图片"),
 
-    string("string", "字符串"),
+    string("string", "字符串输入框"),
 
-    decimal("decimal","小数"),
+    decimal("decimal", "小数"),
 
-    integer("integer","整数"),
+    integer("integer", "整数"),
 
-    select("select","下拉框"),
+    select("select", "下拉框"),
 
-    weburl("weburl","http地址"),
+    weburl("weburl", "http地址"),
+
+    listStr("listStr","字符串集合"),
+
+    textBox("textBox", "字符串文本框"),
     ;
 
-    private String typeCode;
+    private final String typeCode;
 
-    private String desc;
+    private final String desc;
 
     FieldTypeEnum(String typeCode, String desc) {
         this.typeCode = typeCode;

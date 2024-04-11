@@ -21,12 +21,12 @@ public class ContractCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
     private String name;
 
     @JsonPropertyDescription("合同编号")
-    @FieldDefine(desc = "合同编号", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "合同编号", type = FieldTypeEnum.string, required = true)
     @ExcelProperty("合同编号")
     private String numbering;
 
     @JsonPropertyDescription("合同简介")
-    @FieldDefine(desc = "合同简介", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "合同简介", type = FieldTypeEnum.textBox, required = true)
     @ExcelProperty("合同简介")
     private String desc;
 
@@ -59,6 +59,9 @@ public class ContractCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
     @FieldDefine(desc = "文档图片6", type = FieldTypeEnum.image)
     @ExcelProperty("文档图片6")
     private String documentPicUrlSix;
+
+    @ExcelProperty("文档相对地址")
+    private String docRelativeAddr;
 
     @Override
     public String generateContent() {

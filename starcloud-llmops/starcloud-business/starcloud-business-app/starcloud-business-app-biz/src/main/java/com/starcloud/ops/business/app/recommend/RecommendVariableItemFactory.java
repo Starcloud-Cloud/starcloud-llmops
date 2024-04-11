@@ -460,6 +460,22 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
+    public static VariableItemRespVO defMediaMatrixRefersImitate() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REFERS_IMITATE);
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_REFERS_DESCRIPTION"));
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(102);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.MATERIAL.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
     public static VariableItemRespVO defMediaMatrixMaterialType() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.MATERIAL_TYPE);

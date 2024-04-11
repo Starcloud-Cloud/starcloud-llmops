@@ -14,7 +14,7 @@ public class PositiveQuotationCreativeMaterialDTO extends AbstractCreativeMateri
     private static final long serialVersionUID = 8909813313202932654L;
 
     @JsonPropertyDescription("标题")
-    @FieldDefine(desc = "标题", type = FieldTypeEnum.string)
+    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true)
     @ExcelProperty("标题")
     private String title;
 
@@ -24,27 +24,27 @@ public class PositiveQuotationCreativeMaterialDTO extends AbstractCreativeMateri
     private String backGroundPicUrl;
 
     @JsonPropertyDescription("语句1")
-    @FieldDefine(desc = "语句1", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "语句1", type = FieldTypeEnum.string)
     @ExcelProperty("语句1")
     private String quotationOne;
 
     @JsonPropertyDescription("语句2")
-    @FieldDefine(desc = "语句2", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "语句2", type = FieldTypeEnum.string)
     @ExcelProperty("语句2")
     private String quotationTwo;
 
     @JsonPropertyDescription("语句3")
-    @FieldDefine(desc = "语句3", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "语句3", type = FieldTypeEnum.string)
     @ExcelProperty("语句3")
     private String quotationThree;
 
     @JsonPropertyDescription("语句4")
-    @FieldDefine(desc = "语句4", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "语句4", type = FieldTypeEnum.string)
     @ExcelProperty("语句4")
     private String quotationFour;
 
     @JsonPropertyDescription("语句5")
-    @FieldDefine(desc = "语句5", type = FieldTypeEnum.image)
+    @FieldDefine(desc = "语句5", type = FieldTypeEnum.string)
     @ExcelProperty("语句5")
     private String quotationFive;
 

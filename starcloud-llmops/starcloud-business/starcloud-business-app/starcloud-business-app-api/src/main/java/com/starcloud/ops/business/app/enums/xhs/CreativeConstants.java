@@ -20,6 +20,11 @@ public interface CreativeConstants {
     String REFERS = "REFERS";
 
     /**
+     * 参考内容 带模仿要求
+     */
+    String REFERS_IMITATE = "REFERS_IMITATE";
+
+    /**
      * 参考内容
      */
     String REFERS_COUNT = "REFERS_COUNT";
@@ -102,6 +107,10 @@ public interface CreativeConstants {
      */
     String TMP_DIR_PATH = Paths.get(System.getProperty("java.io.tmpdir"), "material").toString();
 
+    /**
+     * word 解析地址
+     */
+    String WORD_PARSE = "http://cn-test.playwright.hotsalestar.com/playwright/material/parse";
 
     /**
      * 图片
