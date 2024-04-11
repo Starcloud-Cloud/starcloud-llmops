@@ -164,7 +164,8 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
             stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeSignDO.getPayTime(), CHINESE_DATE_TIME_PATTERN));
             stringBuilder.append(" | ").append(tradeSignItemDOS.get(0).getSpuName());
             stringBuilder.append(" | ").append(MoneyUtils.fenToYuanStr(tradeSignDO.getSignPrice()));
-            stringBuilder.append(" | ").append(tradeSignDO.getTenantId()).append(" | <br>");
+            stringBuilder.append(" | ").append(tradeSignDO.getTenantId()).append(" | ");
+            stringBuilder.append("\n");
         }
         return stringBuilder.toString();
     }

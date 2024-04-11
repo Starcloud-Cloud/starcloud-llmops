@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.request;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,7 +35,7 @@ public class CreativeSchemeExampleReqVO implements Serializable {
      * 素材列表
      */
     @Schema(description = "素材列表")
-    private List<AbstractBaseCreativeMaterialDTO> creativeMaterialList;
+    private List<AbstractCreativeMaterialDTO> creativeMaterialList;
 
 
 }

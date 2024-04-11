@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,7 +33,7 @@ public class MaterialSchemeStepDTO extends BaseSchemeStepDTO {
      * 素材列表
      */
     @Schema(description = "素材列表")
-    private List<AbstractBaseCreativeMaterialDTO> materialList;
+    private List<AbstractCreativeMaterialDTO> materialList;
 
     /**
      * 校验

@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.material;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import lombok.Data;
@@ -27,7 +27,7 @@ public class UploadMaterialImageDTO {
     /**
      * excel的内容
      */
-    private List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList;
+    private List<? extends AbstractCreativeMaterialDTO> materialDTOList;
 
     private String materialType;
 
@@ -36,7 +36,7 @@ public class UploadMaterialImageDTO {
      */
     private boolean saveDb;
 
-    public UploadMaterialImageDTO(String materialType, String parseUid, List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList) {
+    public UploadMaterialImageDTO(String materialType, String parseUid, List<? extends AbstractCreativeMaterialDTO> materialDTOList) {
         this.parseUid = parseUid;
         this.imageField = MaterialTypeEnum.of(materialType).filterField(FieldTypeEnum.image);
         this.materialDTOList = materialDTOList;

@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.action;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 工作流步骤实体
@@ -70,4 +73,14 @@ public class WorkflowStepRespVO extends ActionRespVO {
     private String icon;
 
 
+    /**
+     * 添加步骤变量
+     *
+     * @param variable 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putStepModelVariable(Map<String, Object> variable) {
+        this.variable.putVariable(variable);
+    }
 }

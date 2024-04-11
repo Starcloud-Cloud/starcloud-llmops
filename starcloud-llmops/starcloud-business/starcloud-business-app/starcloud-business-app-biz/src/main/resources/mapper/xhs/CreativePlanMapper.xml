@@ -1,68 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper">
-    
-    <!-- 基础字段 -->
-    <sql id="SELECT_COLUMNS">
-        a.`id`,
-        a.`uid`,
-        a.`name`,
-        a.`type`,
-        a.`status`,
-        a.`start_time`,
-        a.`end_time`,
-        a.`elapsed`,
-        a.`deleted`,
-        a.`creator`,
-        a.`updater`,
-        a.`create_time`,
-        a.`update_time`,
-        a.`tenant_id`
-    </sql>
-    
-    <!-- 根据 UID 查询创意计划详情 -->
-    <select id="getByUid" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO">
-        SELECT
-        <include refid="SELECT_COLUMNS"/>, configuration, `description`
-        FROM llm_creative_plan a
-        LEFT JOIN llm_creative_content b ON a.`uid` = b.`plan_uid`
-        WHERE a.`uid` = #{uid}
-        AND a.`deleted` = 0
-        GROUP BY a.`id`
-        ORDER BY a.`id` DESC
-    </select>
-    
-    <!-- 分页查询创意计划列表  -->
-    <select id="page"
-            resultType="com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanPO">
-        SELECT
-        <include refid="SELECT_COLUMNS"/>
-        FROM llm_creative_plan a
-        <where>
-            <if test="query.uid != null and query.uid != '' ">
-                AND a.`uid` = #{query.uid}
-            </if>
-            <if test="query.name != null and query.name != '' ">
-                <bind name="name" value="query.name+'%'"/>
-                AND a.`name` LIKE #{name}
-            </if>
-            <if test="query.type!= null and query.type!= '' ">
-                AND a.`type` = #{query.type}
-            </if>
-            <if test="query.status!= null and query.status!= '' ">
-                AND a.`status` = #{query.status}
-            </if>
-            <if test="query.startTime != null ">
-                AND a.`create_time` &gt;= #{query.startTime}
-            </if>
-            <if test="query.endTime != null ">
-                AND a.`create_time` &lt;= #{query.endTime}
-            </if>
-            AND a.`deleted` = 0
-        </where>
-        GROUP BY a.`id`
-        ORDER BY a.`id` DESC
-    </select>
 
 
 </mapper>

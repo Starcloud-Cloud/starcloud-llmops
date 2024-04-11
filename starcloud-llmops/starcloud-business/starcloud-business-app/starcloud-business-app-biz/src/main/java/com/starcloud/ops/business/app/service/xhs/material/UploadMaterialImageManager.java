@@ -7,7 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.infra.service.file.FileService;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.ContractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +26,25 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.UPLOAD_QUEUE_FULL;
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.*;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_IMPORT_ERROR;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_PREFIX;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.TMP_DIR_PATH;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.WORD_PARSE;
 
 @Slf4j
 @Component
@@ -94,7 +107,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         // 判断type 类型
         String parseUid = uploadMaterialDTO.getParseUid();
 
-        List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
+        List<? extends AbstractCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
         List<Field> imageField = uploadMaterialDTO.getImageField();
         int subCount = materialDTOList.size();
         log.info("start upload word material image, parseUid = {}, size={}", parseUid, subCount);
@@ -127,7 +140,7 @@ public class UploadMaterialImageManager implements InitializingBean {
                     continue;
                 }
 
-                AbstractBaseCreativeMaterialDTO materialDTO = materialDTOList.get(i);
+                AbstractCreativeMaterialDTO materialDTO = materialDTOList.get(i);
                 for (int j = 0; j < imageField.size(); j++) {
                     Field field = imageField.get(j);
                     field.setAccessible(true);
@@ -183,7 +196,7 @@ public class UploadMaterialImageManager implements InitializingBean {
     private void parse(UploadMaterialImageDTO uploadMaterialDTO) {
         String parseUid = uploadMaterialDTO.getParseUid();
 
-        List<? extends AbstractBaseCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
+        List<? extends AbstractCreativeMaterialDTO> materialDTOList = uploadMaterialDTO.getMaterialDTOList();
         List<Field> imageField = uploadMaterialDTO.getImageField();
         if (!uploadMaterialDTO.containsImage()) {
             return;
@@ -194,7 +207,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         CountDownLatch countDownLatch = new CountDownLatch(subCount);
         try {
             long start = System.currentTimeMillis();
-            for (AbstractBaseCreativeMaterialDTO materialDTO : materialDTOList) {
+            for (AbstractCreativeMaterialDTO materialDTO : materialDTOList) {
                 for (Field field : imageField) {
                     threadPoolExecutor.execute(() -> upload(materialDTO, field,
                             parseUid, countDownLatch));
@@ -216,7 +229,7 @@ public class UploadMaterialImageManager implements InitializingBean {
     }
 
     // 上传 更新地址
-    private void upload(AbstractBaseCreativeMaterialDTO materialDTO,
+    private void upload(AbstractCreativeMaterialDTO materialDTO,
                         Field field,
                         String parseUid,
                         CountDownLatch countDownLatch) {

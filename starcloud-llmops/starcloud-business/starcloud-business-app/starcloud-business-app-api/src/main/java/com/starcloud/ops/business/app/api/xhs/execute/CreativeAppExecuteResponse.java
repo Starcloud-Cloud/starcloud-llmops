@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.execute;
 
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
+import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -47,14 +48,9 @@ public class CreativeAppExecuteResponse implements java.io.Serializable {
     private String contentUid;
 
     /**
-     * 创意方案id
+     * 创作批次UID
      */
-    private String businessUid;
-
-    /**
-     * 创意方案id
-     */
-    private String schemeUid;
+    private String batchUid;
 
     /**
      * 创意计划id
@@ -64,12 +60,12 @@ public class CreativeAppExecuteResponse implements java.io.Serializable {
     /**
      * 文案数据
      */
-    private CopyWritingContentDTO copyWritingContent;
+    private CopyWritingContent copyWriting;
 
     /**
      * 图片数据
      */
-    private List<PosterImageDTO> posterList;
+    private List<ImageContent> imageList;
 
     /**
      * 失败

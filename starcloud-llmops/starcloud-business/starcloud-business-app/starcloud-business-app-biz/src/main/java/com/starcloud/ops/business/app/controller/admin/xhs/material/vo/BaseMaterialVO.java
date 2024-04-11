@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material.vo;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,7 +24,7 @@ public class BaseMaterialVO {
      */
     @Schema(description = "素材内容")
     @NotNull(message = "素材内容不能为空")
-    private AbstractBaseCreativeMaterialDTO materialDetail;
+    private AbstractCreativeMaterialDTO materialDetail;
 
     /**
      * 标签用于筛选

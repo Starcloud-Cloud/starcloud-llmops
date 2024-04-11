@@ -28,6 +28,6 @@ public class MaterialMetadata implements java.io.Serializable {
     /**
      * 素材步骤名称
      */
-    private String materialStepName;
+    private String materialStepId;
 
 }

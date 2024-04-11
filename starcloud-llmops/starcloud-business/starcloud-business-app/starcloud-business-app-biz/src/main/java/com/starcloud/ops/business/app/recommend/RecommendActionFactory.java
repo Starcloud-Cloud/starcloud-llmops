@@ -2,7 +2,8 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.AssembleDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
+import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -11,7 +12,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphAct
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
-import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -223,7 +223,7 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defAssembleActionStep(String defaultPrompt) {
         // 固定的 jsonSchema，不可编辑。
-        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(AssembleDTO.class);
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(CopyWritingContent.class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
         step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));
@@ -246,7 +246,7 @@ public class RecommendActionFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepRespVO defPosterActionStep(String defaultPrompt) {
-        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(PosterGenerationHandler.Response[].class);
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(ImageContent.class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME"));
         step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
@@ -259,7 +259,7 @@ public class RecommendActionFactory {
         step.setIcon("poster");
         step.setTags(Collections.singletonList("Poster"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
+        step.setVariable(RecommendVariableFactory.defPosterStepVariable(defaultPrompt, Boolean.FALSE));
         return step;
     }
 

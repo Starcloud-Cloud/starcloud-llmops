@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -13,6 +15,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -74,6 +77,8 @@ public class WorkflowStepWrapperRespVO implements Serializable {
      *
      * @param variable 变量
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(Map<String, Object> variable) {
         this.variable.putVariable(variable);
     }
@@ -84,11 +89,68 @@ public class WorkflowStepWrapperRespVO implements Serializable {
      * @param key 变量key
      * @return VariableItemRespVO
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public VariableItemRespVO getVariable(String key) {
         List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
         Map<String, VariableItemRespVO> collect = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
         if (collect.containsKey(key)) {
             return collect.get(key);
+        }
+        return null;
+    }
+
+    /**
+     * 获取步骤变量值.
+     *
+     * @param key 变量key
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getStepVariableValue(String key) {
+        List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
+        Map<String, VariableItemRespVO> collect = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
+        if (collect.containsKey(key)) {
+            VariableItemRespVO variable = collect.get(key);
+            if (Objects.nonNull(variable) && Objects.nonNull(variable.getValue())) {
+                return String.valueOf(variable.getValue());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 添加步骤变量
+     *
+     * @param variable 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putStepModelVariable(Map<String, Object> variable) {
+        this.flowStep.putStepModelVariable(variable);
+    }
+
+    /**
+     * 获取步骤变量值.
+     *
+     * @param key 变量key
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getStepModelVariableValue(String key) {
+        List<VariableItemRespVO> variables = Optional.ofNullable(this.flowStep)
+                .map(WorkflowStepRespVO::getVariable)
+                .map(VariableRespVO::getVariables)
+                .orElse(new ArrayList<>());
+
+        Map<String, VariableItemRespVO> collect = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
+        if (collect.containsKey(key)) {
+            VariableItemRespVO variable = collect.get(key);
+            if (Objects.nonNull(variable) && Objects.nonNull(variable.getValue())) {
+                return String.valueOf(variable.getValue());
+            }
         }
         return null;
     }

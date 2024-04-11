@@ -2,10 +2,10 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * @since 2021-06-22
  */
 @Component
-public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMaterialDTO> {
+public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterialDTO> {
 
     /**
      * 提取素材索引正则
@@ -239,7 +239,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractBaseCreativeMate
         // 处理素材。变为可以替换的结构化数据
         JsonDocsDefSchema<M> jsonDocsDefSchema = new JsonDocsDefSchema<>();
         jsonDocsDefSchema.setDocs(materialList);
-        Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepName(), jsonDocsDefSchema);
+        Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepId(), jsonDocsDefSchema);
         return CreativeUtils.replaceVariable(variableMap, materialMap, defEmpty);
     }
 

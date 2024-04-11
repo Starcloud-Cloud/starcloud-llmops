@@ -55,7 +55,7 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
 
         List<Long> ids = Arrays.asList(402L, 404L);
 
-        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.PICTURE.getCode(), true);
+        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.IMAGE.name(), true);
 
     }
 
@@ -65,7 +65,7 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
 
         List<Long> ids = Arrays.asList(401L, 403L);
 
-        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.COPY_WRITING.getCode(), true);
+        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.CONTENT.name(), true);
 
     }
 

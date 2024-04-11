@@ -85,7 +85,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
         try {
 
             // 校验模版ID
-            if (StringUtils.isBlank(request.getId())) {
+            if (StringUtils.isBlank(request.getCode())) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_ID_REQUIRED);
             }
 
@@ -97,13 +97,13 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
 
             // 调用海报生成服务
             PosterRequest posterRequest = new PosterRequest();
-            posterRequest.setId(request.getId());
+            posterRequest.setId(request.getCode());
             posterRequest.setParams(params);
             String url = POSTER_SERVICE.poster(posterRequest);
             AppValidate.notBlank(url, "图片生成失败：结果为空！请重试或者联系管理员！");
 
             Response response = new Response();
-            response.setId(request.getId());
+            response.setCode(request.getCode());
             response.setName(request.getName());
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
@@ -129,7 +129,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
          * 海报图片模板ID
          */
         @Schema(description = "图片模板")
-        private String id;
+        private String code;
 
         /**
          * 海报图片模板名称
@@ -169,8 +169,8 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
          * 海报图片模板ID
          */
         @Schema(description = "图片模板")
-        @JsonPropertyDescription("图片模板ID")
-        private String id;
+        @JsonPropertyDescription("图片模板Code")
+        private String code;
 
         /**
          * 海报图片模板名称

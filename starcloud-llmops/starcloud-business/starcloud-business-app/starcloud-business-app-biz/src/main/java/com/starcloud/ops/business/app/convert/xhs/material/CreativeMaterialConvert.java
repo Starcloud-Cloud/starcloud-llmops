@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.convert.xhs.material;
 
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
@@ -37,13 +37,13 @@ public interface CreativeMaterialConvert {
 //        }
 //    }
 
-    default CreativeMaterialDO convert(BaseMaterialVO baseMaterialVO, AbstractBaseCreativeMaterialDTO materialDetail) {
+    default CreativeMaterialDO convert(BaseMaterialVO baseMaterialVO, AbstractCreativeMaterialDTO materialDetail) {
         CreativeMaterialDO materialDO = baseConvert(baseMaterialVO);
         materialDO.setContent(materialDetail.generateContent());
         return materialDO;
     }
 
-    default CreativeMaterialDO convert(AbstractBaseCreativeMaterialDTO materialDetail) {
+    default CreativeMaterialDO convert(AbstractCreativeMaterialDTO materialDetail) {
         CreativeMaterialDO materialDO = new CreativeMaterialDO();
         materialDO.setUid(IdUtil.fastSimpleUUID());
         materialDO.setType(materialDetail.getType());
@@ -52,7 +52,7 @@ public interface CreativeMaterialConvert {
         return materialDO;
     }
 
-    List<CreativeMaterialDO> convert2(List<? extends AbstractBaseCreativeMaterialDTO> materialDetailList);
+    List<CreativeMaterialDO> convert2(List<? extends AbstractCreativeMaterialDTO> materialDetailList);
 
     @Mapping(source = "materialDetail", target = "materialDetail", qualifiedByName = "toJson")
     CreativeMaterialDO baseConvert(BaseMaterialVO baseMaterialVO);
@@ -64,12 +64,12 @@ public interface CreativeMaterialConvert {
 
 
     @Named("parseMaterial")
-    default AbstractBaseCreativeMaterialDTO parseMaterial(String str) {
-        return JsonUtils.parseObject(str, AbstractBaseCreativeMaterialDTO.class);
+    default AbstractCreativeMaterialDTO parseMaterial(String str) {
+        return JsonUtils.parseObject(str, AbstractCreativeMaterialDTO.class);
     }
 
     @Named("toJson")
-    default String toJson(AbstractBaseCreativeMaterialDTO dto) {
+    default String toJson(AbstractCreativeMaterialDTO dto) {
         return JsonUtils.toJsonString(dto);
     }
 }

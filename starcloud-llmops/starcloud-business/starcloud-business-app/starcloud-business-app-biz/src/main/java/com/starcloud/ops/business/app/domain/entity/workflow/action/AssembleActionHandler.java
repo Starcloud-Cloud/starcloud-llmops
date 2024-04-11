@@ -10,7 +10,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -68,7 +68,6 @@ public class AssembleActionHandler extends BaseActionHandler {
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
-        // JsonSchemaUtils.generateJsonSchema(CopyWritingContentDTO.class);
         return null;
 
     }
@@ -91,7 +90,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         String title = (String) params.get(CreativeConstants.TITLE);
         // 获取到参考文案内容
         String content = (String) params.get(CreativeConstants.CONTENT);
-        CopyWritingContentDTO copyWriting = new CopyWritingContentDTO();
+        CopyWritingContent copyWriting = new CopyWritingContent();
         copyWriting.setTitle(title);
         copyWriting.setContent(content);
         // 转换响应结果

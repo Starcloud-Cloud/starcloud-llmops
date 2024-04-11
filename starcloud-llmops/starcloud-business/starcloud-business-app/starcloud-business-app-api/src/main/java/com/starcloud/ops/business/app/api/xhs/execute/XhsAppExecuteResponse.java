@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.execute;
 
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CopyWritingContentDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,7 +39,7 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
      * 文案数据
      */
     @Schema(description = "文案数据")
-    private CopyWritingContentDTO copyWriting;
+    private CopyWritingContent copyWriting;
 
     /**
      * 错误码
@@ -61,7 +60,7 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
      * @param copyWriting 文案对象
      * @return 结果
      */
-    public static XhsAppExecuteResponse success(String uid, CopyWritingContentDTO copyWriting) {
+    public static XhsAppExecuteResponse success(String uid, CopyWritingContent copyWriting) {
         XhsAppExecuteResponse response = new XhsAppExecuteResponse();
         response.setSuccess(Boolean.TRUE);
         response.setUid(uid);
@@ -76,7 +75,7 @@ public class XhsAppExecuteResponse implements java.io.Serializable {
      * @param copyWriting 文案对象
      * @return 结果
      */
-    public static List<XhsAppExecuteResponse> success(String uid, CopyWritingContentDTO copyWriting, Integer n) {
+    public static List<XhsAppExecuteResponse> success(String uid, CopyWritingContent copyWriting, Integer n) {
         List<XhsAppExecuteResponse> responses = new java.util.ArrayList<>();
         for (int i = 0; i < n; i++) {
             responses.add(success(uid, copyWriting));

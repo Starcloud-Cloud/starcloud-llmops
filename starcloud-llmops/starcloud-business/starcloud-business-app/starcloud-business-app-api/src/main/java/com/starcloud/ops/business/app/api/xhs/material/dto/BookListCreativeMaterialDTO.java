@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = false)
-public class BookListCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
+public class BookListCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = -7802198500802130936L;
 

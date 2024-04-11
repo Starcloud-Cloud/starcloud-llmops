@@ -316,7 +316,8 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             stringBuilder.append(" |").append(LocalDateTimeUtil.format(tradeOrderDO.getPayTime(), CHINESE_DATE_TIME_PATTERN));
             stringBuilder.append(" |").append(LocalDateTimeUtil.between(tradeOrderDO.getCreateTime(), tradeOrderDO.getPayTime(), ChronoUnit.SECONDS)).append("s");
             stringBuilder.append(" |").append(MoneyUtils.fenToYuanStr(tradeOrderDO.getPayPrice()));
-            stringBuilder.append(" |").append(tradeOrderDO.getTenantId()).append(" | <br>");
+            stringBuilder.append(" |").append(tradeOrderDO.getTenantId()).append(" | ");
+            stringBuilder.append("\n");
         }
         return stringBuilder.toString();
     }

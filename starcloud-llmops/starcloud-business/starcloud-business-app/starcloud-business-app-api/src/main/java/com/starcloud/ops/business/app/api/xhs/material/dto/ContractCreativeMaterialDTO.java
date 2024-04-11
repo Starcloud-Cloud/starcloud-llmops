@@ -7,9 +7,11 @@ import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+
 @Data
 @Accessors(chain = false)
-public class ContractCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
+public class ContractCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = -3928689367907211655L;
 

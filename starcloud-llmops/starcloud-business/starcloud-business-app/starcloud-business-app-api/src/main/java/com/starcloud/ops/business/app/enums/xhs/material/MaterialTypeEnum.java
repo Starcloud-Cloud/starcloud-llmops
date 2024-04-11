@@ -31,7 +31,7 @@ public enum MaterialTypeEnum implements IEnumable<String> {
 
     private final String desc;
 
-    private final Class<? extends AbstractBaseCreativeMaterialDTO> aClass;
+    private final Class<? extends AbstractCreativeMaterialDTO> aClass;
 
     public static final Map<String, MaterialTypeEnum> ENUM_MAP = Arrays.stream(MaterialTypeEnum.values())
             .collect(Collectors.toMap(MaterialTypeEnum::getTypeCode, Function.identity()));
@@ -39,7 +39,7 @@ public enum MaterialTypeEnum implements IEnumable<String> {
     // 参考素材类型
     private static final List<MaterialTypeEnum> REFER_MATERIALS = Arrays.asList(NOTE, NOTE_TITLE, NOTE_CONTENT);
 
-    MaterialTypeEnum(String typeCode, String desc, Class<? extends AbstractBaseCreativeMaterialDTO> aClass) {
+    MaterialTypeEnum(String typeCode, String desc, Class<? extends AbstractCreativeMaterialDTO> aClass) {
         this.typeCode = typeCode;
         this.desc = desc;
         this.aClass = aClass;

@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
@@ -75,7 +75,7 @@ public class CreativeSchemeController {
     @GetMapping("/templateGroupByType")
     @Operation(summary = "获取图片模板列表", description = "获取图片模板列表")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<CreativeImageTemplateTypeDTO>> templateGroupByType() {
+    public CommonResult<List<PosterTemplateTypeDTO>> templateGroupByType() {
         return CommonResult.success(creativeImageManager.templateGroupByType());
     }
 

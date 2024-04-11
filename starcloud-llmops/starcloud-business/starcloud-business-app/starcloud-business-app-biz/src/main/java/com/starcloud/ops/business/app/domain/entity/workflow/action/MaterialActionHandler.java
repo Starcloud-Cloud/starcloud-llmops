@@ -13,8 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -85,7 +84,7 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         // 获取到处理好的上传素材
         String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
-        List<AbstractBaseCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractBaseCreativeMaterialDTO.class);
+        List<AbstractCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractCreativeMaterialDTO.class);
 
         JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
         jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));

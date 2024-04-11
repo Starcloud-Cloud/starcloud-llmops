@@ -5,7 +5,7 @@ import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -43,7 +43,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
      * 参考内容 素材库格式
      */
     @Schema(description = "参考内容-素材库格式")
-    private List<AbstractBaseCreativeMaterialDTO> materialList;
+    private List<AbstractCreativeMaterialDTO> materialList;
 
     /**
      * 参考素材类型
@@ -94,7 +94,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
             } else if (CreativeConstants.REFERS.equals(variableItem.getField())) {
                 String refers = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse("[]"));
                 refers = StringUtils.isBlank(refers) ? "[]" : refers;
-                this.materialList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
+                this.materialList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
             } else if (CreativeConstants.REQUIREMENT.equals(variableItem.getField())) {
                 this.requirement = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
             } else if (CreativeConstants.MATERIAL_TYPE.equals(variableItem.getField())) {

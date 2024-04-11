@@ -12,7 +12,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -136,13 +136,13 @@ public class ParagraphActionHandler extends BaseActionHandler {
 
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
-        List<AbstractBaseCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractBaseCreativeMaterialDTO.class);
+        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
 
         // 需要交给 ChatGPT 的参考内容数量
         Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
 
         // 处理参考内容
-        List<AbstractBaseCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
+        List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
@@ -348,11 +348,11 @@ public class ParagraphActionHandler extends BaseActionHandler {
      * @param refersCount 参考内容数量
      * @return 处理后的参考内容
      */
-    private List<AbstractBaseCreativeMaterialDTO> handlerReferList(List<AbstractBaseCreativeMaterialDTO> refersList, Integer refersCount) {
+    private List<AbstractCreativeMaterialDTO> handlerReferList(List<AbstractCreativeMaterialDTO> refersList, Integer refersCount) {
         // 随机选取
         Collections.shuffle(refersList);
-        List<AbstractBaseCreativeMaterialDTO> result = refersList.stream()
-                .peek(AbstractBaseCreativeMaterialDTO::clean)
+        List<AbstractCreativeMaterialDTO> result = refersList.stream()
+                .peek(AbstractCreativeMaterialDTO::clean)
                 .limit(refersCount).collect(Collectors.toList());
         int i = 0;
         if ((i = refersCount - result.size()) == 0) {

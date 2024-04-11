@@ -160,8 +160,26 @@ public class RecommendVariableFactory {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
                 RecommendVariableItemFactory.defPosterStyleVariable(),
-                RecommendVariableItemFactory.defPosterStyleConfigVariable(),
-                RecommendVariableItemFactory.defPosterRequirement()
+                RecommendVariableItemFactory.defPosterRequirement(),
+                RecommendVariableItemFactory.defPosterStyleConfigVariable()
+        ));
+        return variable;
+    }
+
+    /**
+     * Open AI Chat Completion 默认变量
+     *
+     * @param defaultPrompt 默认提示
+     * @return VariableRespVO
+     */
+    public static VariableRespVO defPosterStepVariable(String defaultPrompt, Boolean isShow) {
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                RecommendVariableItemFactory.defModelVariable(),
+                RecommendVariableItemFactory.defMaxTokenVariable(),
+                RecommendVariableItemFactory.defTemperatureVariable(),
+                RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow),
+                RecommendVariableItemFactory.defSystemPosterStyleConfigVariable()
         ));
         return variable;
     }

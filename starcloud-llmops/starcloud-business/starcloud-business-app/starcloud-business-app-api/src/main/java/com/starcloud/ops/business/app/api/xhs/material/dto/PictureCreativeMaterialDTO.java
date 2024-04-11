@@ -9,11 +9,10 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_FIELD_NOT_VALID;
 
 @Data
 @Accessors(chain = false)
-public class PictureCreativeMaterialDTO extends AbstractBaseCreativeMaterialDTO {
+public class PictureCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = 2659140387627230195L;
 
