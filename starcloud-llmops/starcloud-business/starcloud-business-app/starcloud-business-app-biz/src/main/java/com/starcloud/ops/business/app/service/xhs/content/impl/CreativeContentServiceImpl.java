@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -110,6 +111,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 创作内容任务列表
      */
     @Override
+    @TenantIgnore
     public List<CreativeContentRespVO> listTask(CreativeContentTaskReqVO query) {
         List<CreativeContentDO> list = creativeContentMapper.listTask(query);
         return CreativeContentConvert.INSTANCE.convertResponseList(list);
