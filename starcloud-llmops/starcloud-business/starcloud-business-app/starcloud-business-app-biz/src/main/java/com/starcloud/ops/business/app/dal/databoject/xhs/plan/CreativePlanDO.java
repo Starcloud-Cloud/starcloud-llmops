@@ -18,8 +18,8 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName(value = "llm_creative_plan1", autoResultMap = true)
-@KeySequence("llm_creative_plan_seq1")
+@TableName(value = "llm_creative_plan", autoResultMap = true)
+@KeySequence("llm_creative_plan_seq")
 public class CreativePlanDO extends TenantBaseDO {
 
     private static final long serialVersionUID = 8253406024334826647L;

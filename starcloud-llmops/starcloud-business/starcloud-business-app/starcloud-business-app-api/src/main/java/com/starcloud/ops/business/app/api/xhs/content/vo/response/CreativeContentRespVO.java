@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Schema(description = "创作内容响应")
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreativeContentRespVO implements java.io.Serializable {
 
     private static final long serialVersionUID = -8602264554633829827L;

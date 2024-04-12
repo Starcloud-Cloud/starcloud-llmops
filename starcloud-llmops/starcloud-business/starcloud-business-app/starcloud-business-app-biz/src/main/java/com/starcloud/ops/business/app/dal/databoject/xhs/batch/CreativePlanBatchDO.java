@@ -22,8 +22,8 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName(value = "llm_creative_plan_batch1", autoResultMap = true)
-@KeySequence("llm_creative_plan_batch_seq1")
+@TableName(value = "llm_creative_plan_batch", autoResultMap = true)
+@KeySequence("llm_creative_plan_batch_seq")
 public class CreativePlanBatchDO extends TenantBaseDO {
 
     private static final long serialVersionUID = -3967506144564738057L;

@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName(value = "llm_creative_content1", autoResultMap = true)
-@KeySequence("llm_creative_content_seq1")
+@TableName(value = "llm_creative_content", autoResultMap = true)
+@KeySequence("llm_creative_content_seq")
 public class CreativeContentDO extends TenantBaseDO {
 
     private static final long serialVersionUID = 5941580301331021336L;
