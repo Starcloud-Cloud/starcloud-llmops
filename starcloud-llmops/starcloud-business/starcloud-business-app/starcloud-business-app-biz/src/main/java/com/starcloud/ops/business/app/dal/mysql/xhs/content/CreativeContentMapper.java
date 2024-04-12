@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.xhs.content;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -15,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,6 +43,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
      */
     default List<CreativeContentDO> list(CreativeContentListReqVO query) {
         LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+        wrapper.in(CollectionUtil.isNotEmpty(query.getUidList()), CreativeContentDO::getUid, query.getUidList());
         wrapper.eq(StringUtils.isNotBlank(query.getBatchUid()), CreativeContentDO::getBatchUid, query.getBatchUid());
         wrapper.eq(StringUtils.isNotBlank(query.getPlanUid()), CreativeContentDO::getPlanUid, query.getPlanUid());
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativeContentDO::getStatus, query.getStatus());
@@ -90,12 +93,18 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         delete(wrapper);
     }
 
-
-    default int claim(List<String> businessUids, Boolean claim) {
-        LambdaUpdateWrapper<CreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(CreativeContentDO.class)
-                .in(CreativeContentDO::getUid, businessUids)
-                .set(CreativeContentDO::getClaim, claim);
-        return this.update(null, updateWrapper);
+    /**
+     * 认领任务
+     *
+     * @param uidList 创作内容UID列表
+     * @param claim   是否认领
+     */
+    default void claim(List<String> uidList, Boolean claim) {
+        LambdaUpdateWrapper<CreativeContentDO> updateWrapper = Wrappers.lambdaUpdate(CreativeContentDO.class);
+        updateWrapper.in(CreativeContentDO::getUid, uidList);
+        updateWrapper.set(CreativeContentDO::getClaim, claim);
+        updateWrapper.set(CreativeContentDO::getUpdateTime, LocalDateTime.now());
+        this.update(updateWrapper);
     }
 
 }

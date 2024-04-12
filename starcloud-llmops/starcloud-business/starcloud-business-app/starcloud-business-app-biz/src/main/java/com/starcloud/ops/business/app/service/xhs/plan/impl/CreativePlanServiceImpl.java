@@ -295,7 +295,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             contentQuery.setPlanUid(planUid);
             List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.list(contentQuery));
 
-
             // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
             boolean bathComplete = batchList
                     .stream()

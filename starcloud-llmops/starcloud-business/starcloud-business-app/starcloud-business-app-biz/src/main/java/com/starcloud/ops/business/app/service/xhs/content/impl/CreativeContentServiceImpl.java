@@ -29,6 +29,7 @@ import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,8 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 /**
  * @author nacoyer
@@ -236,7 +239,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public CreativeContentRespVO regenerate(String uid) {
-        CreativeContentRespVO content = this.get(uid);
+        CreativeContentDO content = creativeContentMapper.get(uid);
         AppValidate.notNull(content, "创作内容不存在！");
         CreativeContentExecuteReqVO request = new CreativeContentExecuteReqVO();
         request.setUid(content.getUid());
@@ -275,7 +278,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         LambdaUpdateWrapper<CreativePlanDO> planUpdateWrapper = Wrappers.lambdaUpdate(CreativePlanDO.class);
         planUpdateWrapper.eq(CreativePlanDO::getUid, content.getPlanUid());
         planUpdateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
-        creativePlanMapper.update(null, planUpdateWrapper);
+        creativePlanMapper.update(planUpdateWrapper);
     }
 
     /**
@@ -286,7 +289,19 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public List<CreativeContentRespVO> batchBind(List<String> uidList) {
-        return null;
+        // 查询内容列表
+        CreativeContentListReqVO query = new CreativeContentListReqVO();
+        query.setUidList(uidList);
+        query.setClaim(Boolean.FALSE);
+        List<CreativeContentDO> contentList = creativeContentMapper.list(query);
+
+        if (contentList.size() < uidList.size()) {
+            throw exception(new ErrorCode(720100110, "存在已绑定的创作内容"));
+        }
+
+        creativeContentMapper.claim(uidList, Boolean.TRUE);
+        // 返回数据
+        return CreativeContentConvert.INSTANCE.convertResponseList(contentList);
     }
 
     /**
@@ -296,7 +311,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public void batchUnbind(List<String> uidList) {
-
+        if (CollectionUtils.isEmpty(uidList)) {
+            return;
+        }
+        creativeContentMapper.claim(uidList, Boolean.FALSE);
     }
 
     /**
@@ -308,10 +326,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public void like(String uid) {
         CreativeContentDO content = creativeContentMapper.get(uid);
         AppValidate.notNull(content, "创作内容不存在({})", uid);
-        CreativeContentDO modify = new CreativeContentDO();
-        modify.setId(content.getId());
-        modify.setLiked(Boolean.TRUE);
-        creativeContentMapper.updateById(modify);
+        CreativeContentDO updateContent = new CreativeContentDO();
+        updateContent.setId(content.getId());
+        updateContent.setLiked(Boolean.TRUE);
+        creativeContentMapper.updateById(updateContent);
     }
 
     /**
@@ -323,9 +341,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public void unlike(String uid) {
         CreativeContentDO content = creativeContentMapper.get(uid);
         AppValidate.notNull(content, "创作内容不存在({})", uid);
-        CreativeContentDO modify = new CreativeContentDO();
-        modify.setId(content.getId());
-        modify.setLiked(Boolean.FALSE);
-        creativeContentMapper.updateById(modify);
+        CreativeContentDO updateContent = new CreativeContentDO();
+        updateContent.setId(content.getId());
+        updateContent.setLiked(Boolean.FALSE);
+        creativeContentMapper.updateById(updateContent);
     }
 }

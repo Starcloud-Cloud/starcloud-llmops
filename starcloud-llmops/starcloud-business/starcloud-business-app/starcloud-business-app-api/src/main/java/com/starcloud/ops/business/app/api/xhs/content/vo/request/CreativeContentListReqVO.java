@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @ToString
 @EqualsAndHashCode
@@ -14,6 +16,12 @@ import lombok.ToString;
 public class CreativeContentListReqVO implements java.io.Serializable {
 
     private static final long serialVersionUID = -4965589480403300084L;
+
+    /**
+     * 创作计划UID集合
+     */
+    @Schema(description = "创作计划UID列表")
+    private List<String> uidList;
 
     /**
      * 执行批次UID
