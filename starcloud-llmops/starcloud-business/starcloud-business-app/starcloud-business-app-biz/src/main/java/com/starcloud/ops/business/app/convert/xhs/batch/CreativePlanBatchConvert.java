@@ -71,13 +71,10 @@ public interface CreativePlanBatchConvert {
      */
     default CreativePlanBatchRespVO convert(CreativePlanBatchDO bath) {
         CreativePlanBatchRespVO response = new CreativePlanBatchRespVO();
-        response.setUid(bath.getPlanUid());
+        response.setUid(bath.getUid());
         response.setPlanUid(bath.getPlanUid());
         response.setAppUid(bath.getAppUid());
         response.setVersion(bath.getVersion());
-        if (Objects.nonNull(bath.getCreateTime())) {
-            response.setTimestamp(bath.getCreateTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli());
-        }
         if (StringUtils.isNotBlank(bath.getConfiguration())) {
             response.setConfiguration(JsonUtils.parseObject(
                     bath.getConfiguration(), CreativePlanConfigurationDTO.class));

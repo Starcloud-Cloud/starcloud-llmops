@@ -35,12 +35,6 @@ public class CreativePlanBatchRespVO {
     private Integer version;
 
     /**
-     * 批次时间戳
-     */
-    @Schema(description = "批次时间戳")
-    private Long timestamp;
-
-    /**
      * 执行计划json
      */
     @Schema(description = "创作计划配置")
