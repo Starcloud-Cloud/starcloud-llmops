@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.powerjob.base;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
@@ -7,6 +8,7 @@ import lombok.ToString;
 @Builder
 @Data
 @ToString
+@AllArgsConstructor
 public class BaseTaskResult {
 
     /**
