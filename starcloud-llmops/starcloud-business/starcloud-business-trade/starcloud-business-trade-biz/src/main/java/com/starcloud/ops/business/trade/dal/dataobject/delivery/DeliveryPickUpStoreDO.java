@@ -14,7 +14,7 @@ import java.time.LocalTime;
  *
  * @author jason
  */
-@TableName(value ="trade_delivery_pick_up_store")
+@TableName(value = "trade_delivery_pick_up_store")
 @KeySequence("trade_delivery_pick_up_store_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 public class DeliveryPickUpStoreDO extends BaseDO {
@@ -76,7 +76,7 @@ public class DeliveryPickUpStoreDO extends BaseDO {
 
     /**
      * 门店状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author 芋道源码
  */
-@TableName(value ="trade_sign", autoResultMap = true)
+@TableName(value = "trade_sign", autoResultMap = true)
 @KeySequence("trade_sign_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -51,26 +51,26 @@ public class TradeSignDO extends TenantBaseDO {
     private Long id;
     /**
      * 订阅流水号
-     *
+     * <p>
      * 例如说，1146347329394184195
      */
     private String no;
 
     /**
      * 订单类型
-     *
+     * <p>
      * 枚举 {@link TradeOrderTypeEnum}
      */
     private Integer type;
     /**
      * 签约记录单来源
-     *
+     * <p>
      * 枚举 {@link TerminalEnum}
      */
     private Integer terminal;
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 MemberUserDO 的 id 编号
      */
     private Long userId;
@@ -80,7 +80,7 @@ public class TradeSignDO extends TenantBaseDO {
     private String userIp;
 
     /**
-     *  创建来源
+     * 创建来源
      */
     private String signFrom;
     /**
@@ -89,7 +89,7 @@ public class TradeSignDO extends TenantBaseDO {
     private String userRemark;
     /**
      * 订阅状态
-     *
+     * <p>
      * 枚举 {@link TradeSignStatusEnum}
      */
     private Integer status;
@@ -108,7 +108,7 @@ public class TradeSignDO extends TenantBaseDO {
     private LocalDateTime cancelTime;
     /**
      * 取消类型
-     *
+     * <p>
      * 枚举 {@link TradeOrderCancelTypeEnum}
      */
     private Integer cancelType;
@@ -118,7 +118,7 @@ public class TradeSignDO extends TenantBaseDO {
     private String remark;
     /**
      * 是否评价
-     *
+     * <p>
      * true - 已评价
      * false - 未评价
      */
@@ -126,20 +126,20 @@ public class TradeSignDO extends TenantBaseDO {
 
     /**
      * 推广人编号
-     *
+     * <p>
      * 关联 {@link BrokerageUserDO#getId()} 字段，即 { @link MemberUserRespDTO#getId()} 字段
      */
     private Long brokerageUserId;
 
     /**
      * 支付签约编号
-     *
+     * <p>
      * 对接 pay-module-biz 支付服务的支付签约编号，即 PayOrderDO 的 id 编号
      */
     private Long paySignId;
     /**
      * 是否已支付
-     *
+     * <p>
      * true - 已经支付过
      * false - 没有支付过
      */
@@ -147,29 +147,29 @@ public class TradeSignDO extends TenantBaseDO {
 
     /**
      * 是否已支付
-     *
+     * <p>
      * true - 已经支付过
      * false - 没有支付过
      */
     private LocalDate payTime;
     /**
      * 支付渠道
-     *
+     * <p>
      * 对应 PayChannelEnum 枚举
      */
     private String payChannelCode;
 
     /**
      * 商品原价，单位：分
-     *
+     * <p>
      * totalPrice = {@link TradeOrderItemDO#getPrice()} * {@link TradeOrderItemDO#getCount()} 求和
-     *
+     * <p>
      * 对应 taobao 的 trade.total_fee 字段
      */
     private Integer totalPrice;
     /**
      * 优惠金额，单位：分
-     *
+     * <p>
      * 对应 taobao 的 order.discount_fee 字段
      */
     private Integer discountPrice;
@@ -179,13 +179,13 @@ public class TradeSignDO extends TenantBaseDO {
     private Integer deliveryPrice;
     /**
      * 签约调价，单位：分
-     *
+     * <p>
      * 正数，加价；负数，减价
      */
     private Integer adjustPrice;
     /**
      * 应付金额（总），单位：分
-     *
+     * <p>
      * = {@link #totalPrice}
      * - {@link #couponPrice}
      * - {@link #discountPrice}
@@ -196,21 +196,21 @@ public class TradeSignDO extends TenantBaseDO {
     // ========== 收件 + 物流基本信息 ==========
     /**
      * 配送方式
-     *
+     * <p>
      * 枚举 {@link DeliveryTypeEnum}
      */
     private Integer deliveryType;
     /**
      * 发货物流公司编号
-     *
+     * <p>
      * 如果无需发货，则 logisticsId 设置为 0。原因是，不想再添加额外字段
-     *
+     * <p>
      * 关联 {@link DeliveryExpressDO#getId()}
      */
     private Long logisticsId;
     /**
      * 发货物流单号
-     *
+     * <p>
      * 如果无需发货，则 logisticsNo 设置 ""。原因是，不想再添加额外字段
      */
     private String logisticsNo;
@@ -241,7 +241,7 @@ public class TradeSignDO extends TenantBaseDO {
     private String receiverDetailAddress;
     /**
      * 自提门店编号
-     *
+     * <p>
      * 关联 {@link DeliveryPickUpStoreDO#getId()}
      */
     private Long pickUpStoreId;
@@ -253,13 +253,13 @@ public class TradeSignDO extends TenantBaseDO {
     // ========== 售后基本信息 ==========
     /**
      * 售后状态
-     *
+     * <p>
      * 枚举 {@link TradeOrderRefundStatusEnum}
      */
     private Integer refundStatus;
     /**
      * 退款金额，单位：分
-     *
+     * <p>
      * 注意，退款并不会影响 {@link #signPrice} 实际支付金额
      * 也就说，一个签约最终产生多少金额的收入 = payPrice - refundPrice
      */
@@ -272,7 +272,7 @@ public class TradeSignDO extends TenantBaseDO {
     private Long couponId;
     /**
      * 优惠劵减免金额，单位：分
-     *
+     * <p>
      * 对应 taobao 的 trade.coupon_fee 字段
      */
     private Integer couponPrice;
@@ -283,7 +283,7 @@ public class TradeSignDO extends TenantBaseDO {
     private Integer usePoint;
     /**
      * 积分抵扣的金额，单位：分
-     *
+     * <p>
      * 对应 taobao 的 trade.point_fee 字段
      */
     private Integer pointPrice;
@@ -302,39 +302,39 @@ public class TradeSignDO extends TenantBaseDO {
 
     /**
      * 秒杀活动编号
-     *
+     * <p>
      * 关联 SeckillActivityDO 的 id 字段
      */
     private Long seckillActivityId;
 
     /**
      * 砍价活动编号
-     *
+     * <p>
      * 关联 BargainActivityDO 的 id 字段
      */
     private Long bargainActivityId;
     /**
      * 砍价记录编号
-     *
+     * <p>
      * 关联 BargainRecordDO 的 id 字段
      */
     private Long bargainRecordId;
 
     /**
      * 拼团活动编号
-     *
+     * <p>
      * 关联 CombinationActivityDO 的 id 字段
      */
     private Long combinationActivityId;
     /**
      * 拼团团长编号
-     *
+     * <p>
      * 关联 CombinationRecordDO 的 headId 字段
      */
     private Long combinationHeadId;
     /**
      * 拼团记录编号
-     *
+     * <p>
      * 关联 CombinationRecordDO 的 id 字段
      */
     private Long combinationRecordId;
@@ -382,8 +382,6 @@ public class TradeSignDO extends TenantBaseDO {
         }
 
     }
-
-
 
 
 }

@@ -30,7 +30,7 @@ public class DeliveryExpressTemplateDO extends BaseDO {
 
     /**
      * 配送计费方式
-     *
+     * <p>
      * 枚举 {@link DeliveryExpressChargeModeEnum}
      */
     private Integer chargeMode;

@@ -15,8 +15,9 @@ import java.util.List;
  *
  * @author jason
  */
-@TableName(value ="trade_delivery_express_template_free", autoResultMap = true)
-@KeySequence("trade_delivery_express_template_free_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@TableName(value = "trade_delivery_express_template_free", autoResultMap = true)
+@KeySequence("trade_delivery_express_template_free_seq")
+// 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 public class DeliveryExpressTemplateFreeDO extends BaseDO {
 
@@ -28,7 +29,7 @@ public class DeliveryExpressTemplateFreeDO extends BaseDO {
 
     /**
      * 配送模板编号
-     *
+     * <p>
      * 关联 {@link DeliveryExpressTemplateDO#getId()}
      */
     private Long templateId;
@@ -42,14 +43,14 @@ public class DeliveryExpressTemplateFreeDO extends BaseDO {
 
     /**
      * 包邮金额，单位：分
-     *
+     * <p>
      * 订单总金额 > 包邮金额时，才免运费
      */
     private Integer freePrice;
 
     /**
      * 包邮件数
-     *
+     * <p>
      * 订单总件数 > 包邮件数时，才免运费
      */
     private Integer freeCount;

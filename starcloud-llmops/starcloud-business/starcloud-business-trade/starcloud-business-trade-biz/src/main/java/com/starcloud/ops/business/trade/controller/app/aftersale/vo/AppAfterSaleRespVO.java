@@ -70,7 +70,7 @@ public class AppAfterSaleRespVO {
 
     /**
      * 审批备注
-     *
+     * <p>
      * 注意，只有审批不通过才会填写
      */
     private String auditReason;

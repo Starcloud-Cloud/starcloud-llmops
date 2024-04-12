@@ -19,7 +19,7 @@ import static java.util.Collections.singletonList;
 
 /**
  * {@link TradePriceCalculator} 的工具类
- *
+ * <p>
  * 主要实现对 {@link TradePriceCalculateRespBO} 计算结果的操作
  *
  * @author 芋道源码
@@ -74,7 +74,7 @@ public class TradePriceCalculatorHelper {
     }
 
     public static TradePriceCalculateRespBO buildSignCalculateResp(TradePriceCalculateReqBO param,
-                                                               List<ProductSpuRespDTO> spuList, List<ProductSkuRespDTO> skuList) {
+                                                                   List<ProductSpuRespDTO> spuList, List<ProductSkuRespDTO> skuList) {
         // 创建 PriceCalculateRespDTO 对象
         TradePriceCalculateRespBO result = new TradePriceCalculateRespBO();
         result.setType(getOrderType(param));
@@ -190,7 +190,7 @@ public class TradePriceCalculatorHelper {
 
     /**
      * 重新计算每个订单项的支付金额
-     *
+     * <p>
      * 【目前主要是单测使用】
      *
      * @param orderItems 订单项数组
@@ -248,7 +248,7 @@ public class TradePriceCalculatorHelper {
 
     /**
      * 按照支付金额，返回每个订单项的分摊金额数组
-     *
+     * <p>
      * 实际上 price 不仅仅可以传递的是金额，也可以是积分。因为它的实现逻辑，就是根据 payPrice 做分摊而已
      *
      * @param orderItems 订单项数组
@@ -284,10 +284,10 @@ public class TradePriceCalculatorHelper {
 
     /**
      * 计算订单调价价格分摊
-     *
+     * <p>
      * 和 {@link #dividePrice(List, Integer)} 逻辑一致，只是传入的是 TradeOrderItemDO 对象
      *
-     * @param items         订单项
+     * @param items 订单项
      * @param price 订单支付金额
      * @return 分摊金额数组，和传入的 orderItems 一一对应
      */

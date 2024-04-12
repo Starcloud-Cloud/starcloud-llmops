@@ -14,7 +14,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.TIME_ZONE_DE
 
 /**
  * 快递鸟快递查询 Resp DTO
- *
+ * <p>
  * 参见 <a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/wugo6k">快递鸟接口文档</a>
  *
  * @author jason
@@ -48,7 +48,7 @@ public class KdNiaoExpressQueryRespDTO {
 
     /**
      * 普通物流状态
-     *
+     * <p>
      * 0 - 暂无轨迹信息
      * 1 - 已揽收
      * 2 - 在途中

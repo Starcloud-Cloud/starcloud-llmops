@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 // TODO @芋艿：未来要不要放数据库中？考虑 saas 多租户时，不同租户使用不同的配置？
+
 /**
  * 交易运费快递的配置项
  *
@@ -23,7 +24,7 @@ public class TradeExpressProperties {
 
     /**
      * 快递客户端
-     *
+     * <p>
      * 默认不提供，需要提醒用户配置一个快递服务商。
      */
     private ExpressClientEnum client = ExpressClientEnum.NOT_PROVIDE;

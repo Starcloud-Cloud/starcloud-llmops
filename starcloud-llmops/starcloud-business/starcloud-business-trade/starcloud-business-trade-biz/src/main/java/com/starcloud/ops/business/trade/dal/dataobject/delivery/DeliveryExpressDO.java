@@ -12,7 +12,7 @@ import lombok.Data;
  *
  * @author jason
  */
-@TableName(value ="trade_delivery_express")
+@TableName(value = "trade_delivery_express")
 @KeySequence("trade_delivery_express_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 public class DeliveryExpressDO extends BaseDO {
@@ -45,7 +45,7 @@ public class DeliveryExpressDO extends BaseDO {
 
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

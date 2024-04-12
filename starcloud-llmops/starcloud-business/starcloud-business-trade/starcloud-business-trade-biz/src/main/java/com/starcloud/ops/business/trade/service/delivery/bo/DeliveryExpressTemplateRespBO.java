@@ -13,7 +13,7 @@ public class DeliveryExpressTemplateRespBO {
 
     /**
      * 配送计费方式
-     *
+     * <p>
      * 枚举 {@link DeliveryExpressChargeModeEnum}
      */
     private Integer chargeMode;
@@ -64,14 +64,14 @@ public class DeliveryExpressTemplateRespBO {
 
         /**
          * 包邮金额，单位：分
-         *
+         * <p>
          * 订单总金额 > 包邮金额时，才免运费
          */
         private Integer freePrice;
 
         /**
          * 包邮件数
-         *
+         * <p>
          * 订单总件数 > 包邮件数时，才免运费
          */
         private Integer freeCount;

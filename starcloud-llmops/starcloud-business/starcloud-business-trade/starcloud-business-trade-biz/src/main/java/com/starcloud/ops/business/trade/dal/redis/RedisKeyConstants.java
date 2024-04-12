@@ -9,7 +9,7 @@ public interface RedisKeyConstants {
 
     /**
      * 交易序号的缓存
-     *
+     * <p>
      * KEY 格式：trade_no:{prefix}
      * VALUE 数据格式：编号自增
      */
@@ -17,7 +17,7 @@ public interface RedisKeyConstants {
 
     /**
      * 交易序号的缓存
-     *
+     * <p>
      * KEY 格式：express_track:{code-logisticsNo-receiverMobile}
      * VALUE 数据格式 String, 物流信息集合
      */

@@ -33,37 +33,37 @@ public class AfterSaleDO extends BaseDO {
     private Long id;
     /**
      * 售后单号
-     *
+     * <p>
      * 例如说，1146347329394184195
      */
     private String no;
     /**
      * 退款状态
-     *
+     * <p>
      * 枚举 {@link AfterSaleStatusEnum}
      */
     private Integer status;
     /**
      * 售后方式
-     *
+     * <p>
      * 枚举 {@link AfterSaleWayEnum}
      */
     private Integer way;
     /**
      * 售后类型
-     *
+     * <p>
      * 枚举 {@link AfterSaleTypeEnum}
      */
     private Integer type;
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 MemberUserDO 的 id 编号
      */
     private Long userId;
     /**
      * 申请原因
-     *
+     * <p>
      * type = 退款，对应 trade_after_sale_refund_reason 类型
      * type = 退货退款，对应 trade_after_sale_refund_and_return_reason 类型
      */
@@ -74,7 +74,7 @@ public class AfterSaleDO extends BaseDO {
     private String applyDescription;
     /**
      * 补充凭证图片
-     *
+     * <p>
      * 数组，以逗号分隔
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
@@ -83,52 +83,52 @@ public class AfterSaleDO extends BaseDO {
     // ========== 交易订单相关 ==========
     /**
      * 交易订单编号
-     *
+     * <p>
      * 关联 {@link TradeOrderDO#getId()}
      */
     private Long orderId;
     /**
      * 订单流水号
-     *
+     * <p>
      * 冗余 {@link TradeOrderDO#getNo()}
      */
     private String orderNo;
     /**
      * 交易订单项编号
-     *
+     * <p>
      * 关联 {@link TradeOrderItemDO#getId()}
      */
     private Long orderItemId;
     /**
      * 商品 SPU 编号
-     *
+     * <p>
      * 关联 ProductSpuDO 的 id 字段
      * 冗余 {@link TradeOrderItemDO#getSpuId()}
      */
     private Long spuId;
     /**
      * 商品 SPU 名称
-     *
+     * <p>
      * 关联 ProductSkuDO 的 name 字段
      * 冗余 {@link TradeOrderItemDO#getSpuName()}
      */
     private String spuName;
     /**
      * 商品 SKU 编号
-     *
+     * <p>
      * 关联 ProductSkuDO 的编号
      */
     private Long skuId;
     /**
      * 属性数组，JSON 格式
-     *
+     * <p>
      * 冗余 {@link TradeOrderItemDO#getProperties()}
      */
     @TableField(typeHandler = TradeOrderItemDO.PropertyTypeHandler.class)
     private List<TradeOrderItemDO.Property> properties;
     /**
      * 商品图片
-     *
+     * <p>
      * 冗余 {@link TradeOrderItemDO#getPicUrl()}
      */
     private String picUrl;
@@ -145,13 +145,13 @@ public class AfterSaleDO extends BaseDO {
     private LocalDateTime auditTime;
     /**
      * 审批人
-     *
+     * <p>
      * 关联 AdminUserDO 的 id 编号
      */
     private Long auditUserId;
     /**
      * 审批备注
-     *
+     * <p>
      * 注意，只有审批不通过才会填写
      */
     private String auditReason;
@@ -163,7 +163,7 @@ public class AfterSaleDO extends BaseDO {
     private Integer refundPrice;
     /**
      * 支付退款编号
-     *
+     * <p>
      * 对接 pay-module-biz 支付服务的退款订单编号，即 PayRefundDO 的 id 编号
      */
     private Long payRefundId;
@@ -175,7 +175,7 @@ public class AfterSaleDO extends BaseDO {
     // ========== 退货相关 ==========
     /**
      * 退货物流公司编号
-     *
+     * <p>
      * 关联 LogisticsDO 的 id 编号
      */
     private Long logisticsId;
@@ -193,7 +193,7 @@ public class AfterSaleDO extends BaseDO {
     private LocalDateTime receiveTime;
     /**
      * 收货备注
-     *
+     * <p>
      * 注意，只有拒绝收货才会填写
      */
     private String receiveReason;

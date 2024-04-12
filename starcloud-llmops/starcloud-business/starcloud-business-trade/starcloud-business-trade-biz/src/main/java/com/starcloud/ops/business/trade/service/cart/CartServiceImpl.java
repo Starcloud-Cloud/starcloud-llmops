@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.trade.service.cart;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-
 import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
@@ -21,14 +19,13 @@ import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
-
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_NOT_EXISTS;
 import static com.starcloud.ops.business.product.enums.ErrorCodeConstants.SKU_STOCK_NOT_ENOUGH;
 import static java.util.Collections.emptyList;
 
 /**
  * 购物车 Service 实现类
- *
+ * <p>
  * // TODO 芋艿：未来优化：购物车的价格计算，支持营销信息；目前不支持的原因，前端界面需要前端 pr 支持下；例如说：会员价格；
  *
  * @author 芋道源码
@@ -58,7 +55,7 @@ public class CartServiceImpl implements CartService {
             cartMapper.updateById(new CartDO().setId(cart.getId()).setSelected(true)
                     .setCount(cart.getCount() + count));
             return cart.getId();
-        // 情况二：不存在，则进行插入
+            // 情况二：不存在，则进行插入
         } else {
             cart = new CartDO().setUserId(userId).setSelected(true)
                     .setSpuId(sku.getSpuId()).setSkuId(sku.getId()).setCount(count);
@@ -113,7 +110,7 @@ public class CartServiceImpl implements CartService {
      * 购物车删除商品
      *
      * @param userId 用户编号
-     * @param ids 商品 SKU 编号的数组
+     * @param ids    商品 SKU 编号的数组
      */
     @Override
     public void deleteCart(Long userId, Collection<Long> ids) {

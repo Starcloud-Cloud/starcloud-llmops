@@ -30,21 +30,21 @@ public class AfterSaleLogDO extends BaseDO {
     private Long id;
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 1：AdminUserDO 的 id 字段
      * 关联 2：MemberUserDO 的 id 字段
      */
     private Long userId;
     /**
      * 用户类型
-     *
+     * <p>
      * 枚举 {@link UserTypeEnum}
      */
     private Integer userType;
 
     /**
      * 售后编号
-     *
+     * <p>
      * 关联 {@link AfterSaleDO#getId()}
      */
     private Long afterSaleId;
@@ -59,7 +59,7 @@ public class AfterSaleLogDO extends BaseDO {
 
     /**
      * 操作类型
-     *
+     * <p>
      * 枚举 {@link AfterSaleOperateTypeEnum}
      */
     private Integer operateType;

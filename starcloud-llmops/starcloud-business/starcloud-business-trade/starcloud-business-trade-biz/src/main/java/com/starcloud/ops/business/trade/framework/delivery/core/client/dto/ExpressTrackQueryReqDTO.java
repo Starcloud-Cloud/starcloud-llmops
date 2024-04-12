@@ -13,7 +13,7 @@ public class ExpressTrackQueryReqDTO {
 
     /**
      * 快递公司编码
-     *
+     * <p>
      * 对应 {@link DeliveryExpressDO#getCode()}
      */
     private String expressCode;

@@ -12,7 +12,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.TIME_ZONE_DE
 
 /**
  * 快递 100 实时快递查询 Resp DTO
- *
+ * <p>
  * 参见  <a href="https://api.kuaidi100.com/document/5f0ffb5ebc8da837cbd8aefc">快递 100 文档</a>
  *
  * @author jason
@@ -37,7 +37,7 @@ public class Kd100ExpressQueryRespDTO {
 
     /**
      * 查询结果
-     *
+     * <p>
      * 失败返回 "false"
      */
     private String result;

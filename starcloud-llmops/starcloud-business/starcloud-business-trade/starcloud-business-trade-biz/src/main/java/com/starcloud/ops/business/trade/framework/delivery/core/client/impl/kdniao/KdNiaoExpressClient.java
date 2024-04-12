@@ -47,13 +47,12 @@ public class KdNiaoExpressClient implements ExpressClient {
 
     /**
      * 查询快递轨迹【免费版】
-     *
+     * <p>
      * 仅支持 3 家：申通快递、圆通速递、百世快递
-     *
-     * @see <a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/wugo6k">接口文档</a>
      *
      * @param reqDTO 查询请求参数
      * @return 快递轨迹
+     * @see <a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/wugo6k">接口文档</a>
      */
     @Override
     public List<ExpressTrackRespDTO> getExpressTrackList(ExpressTrackQueryReqDTO reqDTO) {
@@ -76,12 +75,12 @@ public class KdNiaoExpressClient implements ExpressClient {
     /**
      * 快递鸟 API 请求
      *
-     * @param url 请求 url
+     * @param url         请求 url
      * @param requestType 对应的请求指令 (快递鸟的 RequestType)
-     * @param req  对应请求的请求参数
-     * @param respClass 对应请求的响应 class
-     * @param <Req> 每个请求的请求结构 Req DTO
-     * @param <Resp> 每个请求的响应结构 Resp DTO
+     * @param req         对应请求的请求参数
+     * @param respClass   对应请求的响应 class
+     * @param <Req>       每个请求的请求结构 Req DTO
+     * @param <Resp>      每个请求的响应结构 Resp DTO
      */
     private <Req, Resp> Resp httpRequest(String url, String requestType, Req req, Class<Resp> respClass) {
         // 请求头
@@ -111,7 +110,7 @@ public class KdNiaoExpressClient implements ExpressClient {
 
     /**
      * 快递鸟生成请求签名
-     *
+     * <p>
      * 参见 <a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/zes04h">签名说明</a>
      *
      * @param reqData 请求实体

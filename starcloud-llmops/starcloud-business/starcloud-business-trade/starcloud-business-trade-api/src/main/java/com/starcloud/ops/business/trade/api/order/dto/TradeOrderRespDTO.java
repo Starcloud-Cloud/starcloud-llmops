@@ -23,19 +23,19 @@ public class TradeOrderRespDTO {
     private Long id;
     /**
      * 订单流水号
-     *
+     * <p>
      * 例如说，1146347329394184195
      */
     private String no;
     /**
      * 订单类型
-     *
+     * <p>
      * 枚举 {@link TradeOrderTypeEnum}
      */
     private Integer type;
     /**
      * 订单来源
-     *
+     * <p>
      * 枚举 {@link TerminalEnum}
      */
     private Integer terminal;
@@ -53,7 +53,7 @@ public class TradeOrderRespDTO {
     private String userRemark;
     /**
      * 订单状态
-     *
+     * <p>
      * 枚举 {@link TradeOrderStatusEnum}
      */
     private Integer status;
@@ -71,7 +71,7 @@ public class TradeOrderRespDTO {
     private LocalDateTime cancelTime;
     /**
      * 取消类型
-     *
+     * <p>
      * 枚举 {@link TradeOrderCancelTypeEnum}
      */
     private Integer cancelType;

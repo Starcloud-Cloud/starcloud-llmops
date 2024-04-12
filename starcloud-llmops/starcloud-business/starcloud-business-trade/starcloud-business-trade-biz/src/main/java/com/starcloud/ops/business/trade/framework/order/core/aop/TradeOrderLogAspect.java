@@ -33,7 +33,7 @@ public class TradeOrderLogAspect {
 
     /**
      * 用户编号
-     *
+     * <p>
      * 目前的使用场景：支付回调时，需要强制设置下用户编号
      */
     private static final ThreadLocal<Long> USER_ID = new ThreadLocal<>();
@@ -92,7 +92,7 @@ public class TradeOrderLogAspect {
 
     /**
      * 获得用户类型
-     *
+     * <p>
      * 如果没有，则约定为 {@link TradeOrderLogDO#getUserType()} 系统
      *
      * @return 用户类型
@@ -103,7 +103,7 @@ public class TradeOrderLogAspect {
 
     /**
      * 获得用户编号
-     *
+     * <p>
      * 如果没有，则约定为 {@link TradeOrderLogDO#getUserId()} 系统
      *
      * @return 用户类型

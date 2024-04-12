@@ -19,14 +19,14 @@ public class TradePriceCalculateReqBO {
 
     /**
      * 用户编号
-     *
+     * <p>
      * 对应 MemberUserDO 的 id 编号
      */
     private Long userId;
 
     /**
      * 优惠劵编号
-     *
+     * <p>
      * 对应 CouponDO 的 id 编号
      */
     private Long couponId;
@@ -45,19 +45,19 @@ public class TradePriceCalculateReqBO {
 
     /**
      * 配送方式
-     *
+     * <p>
      * 枚举 {@link DeliveryTypeEnum}
      */
     private Integer deliveryType;
     /**
      * 收货地址编号
-     *
+     * <p>
      * 对应 MemberAddressDO 的 id 编号
      */
     private Long addressId;
     /**
      * 自提门店编号
-     *
+     * <p>
      * 对应 PickUpStoreDO 的 id 编号
      */
     private Long pickUpStoreId;

@@ -7,12 +7,12 @@ import java.lang.annotation.*;
 
 /**
  * 售后日志的注解
- *
+ * <p>
  * 写在方法上时，会自动记录售后日志
  *
  * @author 陈賝
- * @since 2023/6/8 17:04
  * @see AfterSaleLogAspect
+ * @since 2023/6/8 17:04
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

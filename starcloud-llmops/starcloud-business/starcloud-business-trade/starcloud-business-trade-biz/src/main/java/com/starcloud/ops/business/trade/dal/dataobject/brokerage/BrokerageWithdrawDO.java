@@ -32,7 +32,7 @@ public class BrokerageWithdrawDO extends BaseDO {
     private Long id;
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 MemberUserDO 的 id 字段
      */
     private Long userId;

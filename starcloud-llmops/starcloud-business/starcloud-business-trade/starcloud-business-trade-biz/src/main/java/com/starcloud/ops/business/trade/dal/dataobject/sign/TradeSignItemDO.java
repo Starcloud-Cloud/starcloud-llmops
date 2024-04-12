@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.trade.dal.dataobject.sign;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -35,19 +34,19 @@ public class TradeSignItemDO extends TenantBaseDO {
     private Long id;
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 MemberUserDO 的 id 编号
      */
     private Long userId;
     /**
      * 订单编号
-     *
+     * <p>
      * 关联 {@link TradeOrderDO#getId()}
      */
     private Long signId;
     /**
      * 购物车项编号
-     *
+     * <p>
      * 关联 {@link CartDO#getId()}
      */
     private Long cartId;
@@ -55,25 +54,25 @@ public class TradeSignItemDO extends TenantBaseDO {
     // ========== 商品基本信息; 冗余较多字段，减少关联查询 ==========
     /**
      * 商品 SPU 编号
-     *
+     * <p>
      * 关联 ProductSkuDO 的 spuId 编号
      */
     private Long spuId;
     /**
      * 商品 SPU 名称
-     *
+     * <p>
      * 冗余 ProductSkuDO 的 spuName 编号
      */
     private String spuName;
     /**
      * 商品 SKU 编号
-     *
+     * <p>
      * 关联 ProductSkuDO 的 id 编号
      */
     private Long skuId;
     /**
      * 属性数组，JSON 格式
-     *
+     * <p>
      * 冗余 ProductSkuDO 的 properties 字段
      */
     @TableField(typeHandler = PropertyTypeHandler.class)
@@ -88,7 +87,7 @@ public class TradeSignItemDO extends TenantBaseDO {
     private Integer count;
     /**
      * 是否评价
-     *
+     * <p>
      * true - 已评价
      * false - 未评价
      */
@@ -98,14 +97,14 @@ public class TradeSignItemDO extends TenantBaseDO {
 
     /**
      * 商品原价（单），单位：分
-     *
+     * <p>
      * 对应 ProductSkuDO 的 price 字段
      * 对应 taobao 的 order.price 字段
      */
     private Integer price;
     /**
      * 优惠金额（总），单位：分
-     *
+     * <p>
      * 对应 taobao 的 order.discount_fee 字段
      */
     private Integer discountPrice;
@@ -115,13 +114,13 @@ public class TradeSignItemDO extends TenantBaseDO {
     private Integer deliveryPrice;
     /**
      * 订单调价（总），单位：分
-     *
+     * <p>
      * 正数，加价；负数，减价
      */
     private Integer adjustPrice;
     /**
      * 应付金额（总），单位：分
-     *
+     * <p>
      * = {@link #price} * {@link #count}
      * - {@link #couponPrice}
      * - {@link #pointPrice}
@@ -136,25 +135,25 @@ public class TradeSignItemDO extends TenantBaseDO {
 
     /**
      * 优惠劵减免金额，单位：分
-     *
+     * <p>
      * 对应 taobao 的 trade.coupon_fee 字段
      */
     private Integer couponPrice;
     /**
      * 积分抵扣的金额，单位：分
-     *
+     * <p>
      * 对应 taobao 的 trade.point_fee 字段
      */
     private Integer pointPrice;
     /**
      * 使用的积分
-     *
+     * <p>
      * 目的：用于后续取消或者售后订单时，需要归还赠送
      */
     private Integer usePoint;
     /**
      * 赠送的积分
-     *
+     * <p>
      * 目的：用于后续取消或者售后订单时，需要扣减赠送
      */
     private Integer givePoint;
@@ -167,13 +166,13 @@ public class TradeSignItemDO extends TenantBaseDO {
 
     /**
      * 售后单编号
-     *
+     * <p>
      * 关联 {@link AfterSaleDO#getId()} 字段
      */
     private Long afterSaleId;
     /**
      * 售后状态
-     *
+     * <p>
      * 枚举 {@link TradeOrderItemAfterSaleStatusEnum}
      */
     private Integer afterSaleStatus;
@@ -186,26 +185,26 @@ public class TradeSignItemDO extends TenantBaseDO {
 
         /**
          * 属性编号
-         *
+         * <p>
          * 关联 ProductPropertyDO 的 id 编号
          */
         private Long propertyId;
         /**
          * 属性名字
-         *
+         * <p>
          * 关联 ProductPropertyDO 的 name 字段
          */
         private String propertyName;
 
         /**
          * 属性值编号
-         *
+         * <p>
          * 关联 ProductPropertyValueDO 的 id 编号
          */
         private Long valueId;
         /**
          * 属性值名字
-         *
+         * <p>
          * 关联 ProductPropertyValueDO 的 name 字段
          */
         private String valueName;
