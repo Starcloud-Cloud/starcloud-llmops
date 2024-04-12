@@ -37,15 +37,15 @@ public class RecommendVariableFactory {
 
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
-        modelVariable.setIsShow(Boolean.TRUE);
+        modelVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
-        maxTokenVariable.setIsShow(Boolean.TRUE);
+        maxTokenVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
         temperatureVariable.setOrder(3);
-        temperatureVariable.setIsShow(Boolean.TRUE);
+        temperatureVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
         promptVariable.setOrder(4);
@@ -234,11 +234,11 @@ public class RecommendVariableFactory {
 
         VariableItemRespVO posterStyleVariable = RecommendVariableItemFactory.defPosterStyleVariable();
         posterStyleVariable.setOrder(1);
-        posterStyleVariable.setIsShow(Boolean.TRUE);
+        posterStyleVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO requirement = RecommendVariableItemFactory.defPosterRequirement();
         requirement.setOrder(2);
-        requirement.setIsShow(Boolean.TRUE);
+        requirement.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO styleConfigVariable = RecommendVariableItemFactory.defPosterStyleConfigVariable();
         styleConfigVariable.setOrder(3);
@@ -263,22 +263,22 @@ public class RecommendVariableFactory {
 
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
-        modelVariable.setIsShow(Boolean.TRUE);
+        modelVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
-        maxTokenVariable.setIsShow(Boolean.TRUE);
+        maxTokenVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
         temperatureVariable.setOrder(3);
-        temperatureVariable.setIsShow(Boolean.TRUE);
+        temperatureVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
         promptVariable.setOrder(4);
 
         VariableItemRespVO styleConfigVariable = RecommendVariableItemFactory.defSystemPosterStyleConfigVariable();
         styleConfigVariable.setOrder(5);
-        styleConfigVariable.setIsShow(Boolean.TRUE);
+        styleConfigVariable.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 modelVariable,
