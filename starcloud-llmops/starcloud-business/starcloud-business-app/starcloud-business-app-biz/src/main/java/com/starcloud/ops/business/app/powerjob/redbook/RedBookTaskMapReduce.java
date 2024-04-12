@@ -107,7 +107,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         // 每一个子任务的子任务数量
         int subSize = Objects.isNull(params.getSubSize()) ? 5 : params.getSubSize();
-
+        log.info(JsonUtils.toJsonString(contentList));
         // 按照创作计划批次UID进行分组
         Map<String, List<CreativeContentRespVO>> batchContentMap = contentList.stream()
                 .collect(Collectors.groupingBy(CreativeContentRespVO::getBatchUid));
