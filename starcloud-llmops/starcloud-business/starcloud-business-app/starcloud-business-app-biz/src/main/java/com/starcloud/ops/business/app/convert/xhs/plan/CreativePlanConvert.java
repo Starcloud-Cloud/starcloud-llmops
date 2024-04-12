@@ -54,7 +54,6 @@ public interface CreativePlanConvert {
         creativePlan.setVersion(appInformation.getVersion());
         creativePlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         creativePlan.setTotalCount(request.getTotalCount());
-        creativePlan.setTags(JsonUtils.toJsonString(request.getTags()));
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
@@ -90,11 +89,6 @@ public interface CreativePlanConvert {
         if (StringUtils.isNotBlank(creativePlan.getConfiguration())) {
             response.setConfiguration(JsonUtils.parseObject(
                     creativePlan.getConfiguration(), CreativePlanConfigurationDTO.class));
-        }
-
-        // 标签
-        if (StringUtils.isNoneBlank(creativePlan.getTags())) {
-            response.setTags(JsonUtils.parseArray(creativePlan.getTags(), String.class));
         }
 
         response.setTotalCount(creativePlan.getTotalCount());

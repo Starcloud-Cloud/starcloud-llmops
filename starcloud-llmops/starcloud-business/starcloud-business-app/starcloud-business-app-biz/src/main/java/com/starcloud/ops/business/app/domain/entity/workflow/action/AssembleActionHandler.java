@@ -19,8 +19,10 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,12 +88,22 @@ public class AssembleActionHandler extends BaseActionHandler {
         // 获取所有上游信息
         final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
         // 获取到参考文案标题
-        String title = (String) params.get(CreativeConstants.TITLE);
+        String title = String.valueOf(params.get(CreativeConstants.TITLE));
         // 获取到参考文案内容
-        String content = (String) params.get(CreativeConstants.CONTENT);
+        String content = String.valueOf(params.get(CreativeConstants.CONTENT));
+        // 获取到标签
+        String tag = String.valueOf(params.get(CreativeConstants.TAG_LIST));
+        if (StringUtils.isBlank(tag) || "null".equals(tag)) {
+            tag = "[]";
+        }
+        List<String> tagList = JsonUtils.parseArray(tag, String.class);
+
+        // 组装文案内容
         CopyWritingContent copyWriting = new CopyWritingContent();
         copyWriting.setTitle(title);
         copyWriting.setContent(content);
+        copyWriting.setTagList(tagList);
+
         // 转换响应结果
         ActionResponse response = convert(copyWriting);
 

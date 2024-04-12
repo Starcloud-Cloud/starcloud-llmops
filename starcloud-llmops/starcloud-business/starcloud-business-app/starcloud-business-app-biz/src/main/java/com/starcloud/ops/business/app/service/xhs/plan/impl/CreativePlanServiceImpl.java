@@ -196,7 +196,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setAppUid(appMarketResponse.getUid());
         creativePlan.setVersion(appMarketResponse.getVersion());
         creativePlan.setConfiguration(JsonUtils.toJsonString(configuration));
-        creativePlan.setTags(JsonUtils.toJsonString(Collections.emptyList()));
         creativePlan.setTotalCount(3);
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
         creativePlan.setDeleted(Boolean.FALSE);
@@ -494,7 +493,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             createContentRequest.setBatchUid(batchUid);
             createContentRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
             createContentRequest.setType(CreativeContentTypeEnum.ALL.name());
-            createContentRequest.setTags(creativePlan.getTags());
             createContentRequest.setExecuteParam(contentExecuteRequest);
             contentCreateRequestList.add(createContentRequest);
         }

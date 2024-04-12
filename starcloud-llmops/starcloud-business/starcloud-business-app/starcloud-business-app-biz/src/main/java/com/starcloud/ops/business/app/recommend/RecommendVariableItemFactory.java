@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
@@ -15,8 +14,6 @@ import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collections;
 
 /**
  * 推荐应用Variable Item 工厂类
@@ -368,7 +365,7 @@ public class RecommendVariableItemFactory {
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
         variableItem.setOptions(MaterialTypeEnum.allOptions());
         return variableItem;
     }
@@ -406,9 +403,9 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription("生成模式");
         variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
         variableItem.setValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
-        variableItem.setOrder(100);
+        variableItem.setOrder(1000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setStyle(AppVariableStyleEnum.RADIO.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
@@ -435,7 +432,7 @@ public class RecommendVariableItemFactory {
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
         return variableItem;
     }
 
@@ -605,6 +602,27 @@ public class RecommendVariableItemFactory {
         variableItem.setOrder(104);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 拼接内容
+     *
+     * @return 拼接内容容变量
+     */
+    public static VariableItemRespVO defAssembleTagList() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.TAG_LIST);
+        variableItem.setLabel("标签");
+        variableItem.setDescription("标签");
+        variableItem.setDefaultValue(null);
+        variableItem.setValue(null);
+        variableItem.setOrder(105);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TAG_BOX.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);

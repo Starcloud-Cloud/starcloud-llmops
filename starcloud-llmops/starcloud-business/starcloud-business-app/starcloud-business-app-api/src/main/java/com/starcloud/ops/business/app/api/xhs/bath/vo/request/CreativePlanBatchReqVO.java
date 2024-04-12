@@ -11,7 +11,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -45,12 +44,6 @@ public class CreativePlanBatchReqVO implements java.io.Serializable {
      */
     @Schema(description = "应用版本号")
     private Integer version;
-
-    /**
-     * 标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 
     /**
      * 创作计划详细配置信息

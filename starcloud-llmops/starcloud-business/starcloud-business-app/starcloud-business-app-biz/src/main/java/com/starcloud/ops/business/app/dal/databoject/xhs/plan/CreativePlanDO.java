@@ -55,12 +55,6 @@ public class CreativePlanDO extends TenantBaseDO {
     private String configuration;
 
     /**
-     * 创作计划标签
-     */
-    @TableField("tags")
-    private String tags;
-
-    /**
      * 生成数量
      */
     @TableField("total_count")

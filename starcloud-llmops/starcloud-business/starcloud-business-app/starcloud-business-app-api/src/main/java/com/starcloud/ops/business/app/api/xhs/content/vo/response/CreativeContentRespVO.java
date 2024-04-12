@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -57,12 +56,6 @@ public class CreativeContentRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作内容类型")
     private String type;
-
-    /**
-     * 标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 
     /**
      * 执行请求

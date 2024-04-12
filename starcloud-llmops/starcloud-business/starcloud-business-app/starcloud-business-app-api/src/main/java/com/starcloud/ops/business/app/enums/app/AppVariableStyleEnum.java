@@ -49,14 +49,19 @@ public enum AppVariableStyleEnum implements IEnumable<Integer> {
     CHECKBOX(5, "复选框"),
 
     /**
+     * 标签框
+     */
+    TAG_BOX(6, "标签框"),
+
+    /**
      * 素材库
      */
-    MATERIAL(6, "素材库"),
+    MATERIAL(7, "素材库"),
 
     /**
      * 图片
      */
-    IMAGE(7, "图片");
+    IMAGE(8, "图片");
 
     /**
      * 变量样式Code

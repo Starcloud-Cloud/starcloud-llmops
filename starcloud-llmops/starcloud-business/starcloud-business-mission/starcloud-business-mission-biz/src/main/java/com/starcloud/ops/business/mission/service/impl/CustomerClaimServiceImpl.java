@@ -50,7 +50,7 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
         MissionNotificationDTO detail = missionService.missionDetail(uid);
         SingleMissionDetailVO detailVO = SingleMissionConvert.INSTANCE.convertDetail(detail);
         CreativePlanRespVO creativePlan = creativePlanService.get(detail.getCreativePlanUid());
-        detailVO.setTags(creativePlan.getTags());
+        // detailVO.setTags(creativePlan.getTags());
         return detailVO;
     }
 

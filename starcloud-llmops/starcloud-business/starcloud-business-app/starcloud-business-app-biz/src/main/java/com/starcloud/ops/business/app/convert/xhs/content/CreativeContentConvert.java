@@ -42,11 +42,6 @@ public interface CreativeContentConvert {
         response.setPlanUid(creativeContent.getPlanUid());
         response.setConversationUid(creativeContent.getConversationUid());
         response.setType(creativeContent.getType());
-        // 标签
-        if (StringUtils.isNotBlank(creativeContent.getTags())) {
-            List<String> tags = JsonUtils.parseArray(creativeContent.getTags(), String.class);
-            response.setTags(tags);
-        }
         // 执行请求
         if (StringUtils.isNoneBlank(creativeContent.getExecuteParam())) {
             CreativeContentExecuteParam executeParam = JsonUtils.parseObject(
@@ -86,7 +81,6 @@ public interface CreativeContentConvert {
         creativeContent.setPlanUid(request.getPlanUid());
         creativeContent.setConversationUid(request.getConversationUid());
         creativeContent.setType(request.getType());
-        creativeContent.setTags(JsonUtils.toJsonString(request.getTags()));
         creativeContent.setExecuteParam(JsonUtils.toJsonString(request.getExecuteParam()));
         creativeContent.setExecuteResult(StrUtil.EMPTY_JSON);
         creativeContent.setStatus(CreativeContentStatusEnum.INIT.name());
@@ -109,7 +103,6 @@ public interface CreativeContentConvert {
     default CreativeContentDO convert(CreativeContentModifyReqVO request) {
         CreativeContentDO creativeContent = new CreativeContentDO();
         creativeContent.setUid(request.getUid());
-        creativeContent.setTags(JsonUtils.toJsonString(request.getTags()));
         creativeContent.setExecuteParam(JsonUtils.toJsonString(request.getExecuteParam()));
         creativeContent.setExecuteResult(JsonUtils.toJsonString(request.getExecuteResult()));
         return creativeContent;

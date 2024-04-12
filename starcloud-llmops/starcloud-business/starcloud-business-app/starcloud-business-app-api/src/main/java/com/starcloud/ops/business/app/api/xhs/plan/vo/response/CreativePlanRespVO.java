@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -49,12 +48,6 @@ public class CreativePlanRespVO implements java.io.Serializable {
      */
     @Schema(description = "应用信息")
     private CreativePlanConfigurationDTO configuration;
-
-    /**
-     * 创作计划标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 
     /**
      * 生成数量

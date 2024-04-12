@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -26,12 +25,6 @@ public class CreativeContentModifyReqVO implements java.io.Serializable {
     @Schema(description = "创作内容UID")
     @NotBlank(message = "创作内容不能为空")
     private String uid;
-
-    /**
-     * 标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 
     /**
      * 执行参数

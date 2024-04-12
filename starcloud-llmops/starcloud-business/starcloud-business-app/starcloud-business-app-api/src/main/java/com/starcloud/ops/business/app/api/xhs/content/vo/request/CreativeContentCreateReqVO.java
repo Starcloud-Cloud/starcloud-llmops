@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 @Data
 @ToString
@@ -46,12 +45,6 @@ public class CreativeContentCreateReqVO implements java.io.Serializable {
     @Schema(description = "创作内容类型")
     @NotBlank(message = "创作内容类型不能为空")
     private String type;
-
-    /**
-     * 标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 
     /**
      * 执行参数

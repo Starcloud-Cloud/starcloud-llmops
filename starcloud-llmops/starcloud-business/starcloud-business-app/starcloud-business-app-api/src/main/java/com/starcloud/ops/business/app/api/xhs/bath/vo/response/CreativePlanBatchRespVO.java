@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 public class CreativePlanBatchRespVO {
@@ -40,12 +39,6 @@ public class CreativePlanBatchRespVO {
      */
     @Schema(description = "创作计划配置")
     private CreativePlanConfigurationDTO configuration;
-
-    /**
-     * 创作方案json
-     */
-    @Schema(description = "创作计划标签")
-    private List<String> tags;
 
     /**
      * 总数

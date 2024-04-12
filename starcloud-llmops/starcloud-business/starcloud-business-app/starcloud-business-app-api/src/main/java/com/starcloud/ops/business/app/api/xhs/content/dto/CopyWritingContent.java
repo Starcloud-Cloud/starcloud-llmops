@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -31,5 +33,11 @@ public class CopyWritingContent implements java.io.Serializable {
      */
     @Schema(description = "文案内容")
     private String content;
+
+    /**
+     * 标签列表
+     */
+    @Schema(description = "标签列表")
+    private List<String> tagList;
 
 }

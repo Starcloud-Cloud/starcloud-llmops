@@ -70,6 +70,11 @@ public interface CreativeConstants {
     String CONTENT = "CONTENT";
 
     /**
+     * 内容
+     */
+    String TAG_LIST = "TAG_LIST";
+
+    /**
      * 生成数量
      */
     String GENERATE_COUNT = "GENERATE_COUNT";

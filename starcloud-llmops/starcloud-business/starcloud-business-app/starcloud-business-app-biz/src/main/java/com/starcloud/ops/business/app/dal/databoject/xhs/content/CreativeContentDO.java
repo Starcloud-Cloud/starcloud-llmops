@@ -64,12 +64,6 @@ public class CreativeContentDO extends TenantBaseDO {
     private String type;
 
     /**
-     * 标签
-     */
-    @TableField("tags")
-    private String tags;
-
-    /**
      * 执行请求参数
      */
     @TableField("execute_param")

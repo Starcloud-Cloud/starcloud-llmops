@@ -12,7 +12,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -27,12 +26,6 @@ import java.util.List;
 public class CreativePlanReqVO implements java.io.Serializable {
 
     private static final long serialVersionUID = 6864609752505405116L;
-
-    /**
-     * 标签
-     */
-    @Schema(description = "标签")
-    private List<String> tags;
 
     /**
      * 创作计划详细配置信息

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -64,12 +63,6 @@ public class CreativePlanBatchDO extends TenantBaseDO {
      */
     @TableField("configuration")
     private String configuration;
-
-    /**
-     * 创作计划标签
-     */
-    @TableField(value = "tags", typeHandler = JacksonTypeHandler.class)
-    private String tags;
 
     /**
      * 生成数量

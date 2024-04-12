@@ -34,7 +34,6 @@ public interface CreativePlanBatchConvert {
         request.setVersion(response.getVersion());
         request.setConfiguration(response.getConfiguration());
         request.setTotalCount(response.getTotalCount());
-        request.setTags(response.getTags());
         return request;
     }
 
@@ -50,7 +49,6 @@ public interface CreativePlanBatchConvert {
         bath.setAppUid(request.getAppUid());
         bath.setVersion(request.getVersion());
         bath.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
-        bath.setTags(JsonUtils.toJsonString(request.getTags()));
         bath.setTotalCount(request.getTotalCount());
         bath.setFailureCount(0);
         bath.setSuccessCount(0);
@@ -78,9 +76,6 @@ public interface CreativePlanBatchConvert {
         if (StringUtils.isNotBlank(bath.getConfiguration())) {
             response.setConfiguration(JsonUtils.parseObject(
                     bath.getConfiguration(), CreativePlanConfigurationDTO.class));
-        }
-        if (StringUtils.isNotBlank(bath.getTags())) {
-            response.setTags(JsonUtils.parseArray(bath.getTags(), String.class));
         }
         response.setTotalCount(bath.getTotalCount());
         response.setFailureCount(bath.getFailureCount());

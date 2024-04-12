@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.recommend;
 
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 
 import java.util.Arrays;
@@ -33,12 +34,30 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defOpenAiVariable(String defaultPrompt, Boolean isShow) {
         VariableRespVO variable = new VariableRespVO();
+
+        VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
+        modelVariable.setOrder(1);
+        modelVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
+        maxTokenVariable.setOrder(2);
+        maxTokenVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
+        temperatureVariable.setOrder(3);
+        temperatureVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
+        promptVariable.setOrder(4);
+
+
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defModelVariable(),
-                RecommendVariableItemFactory.defMaxTokenVariable(),
-                RecommendVariableItemFactory.defTemperatureVariable(),
-                RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow)
+                modelVariable,
+                maxTokenVariable,
+                temperatureVariable,
+                promptVariable
         ));
+
         return variable;
     }
 
@@ -107,15 +126,55 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defCustomVariable() {
         VariableRespVO variable = new VariableRespVO();
+        // 生成模式
+        VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaMatrixGenerateVariable();
+        generateVariable.setOrder(1);
+        generateVariable.setIsShow(Boolean.TRUE);
+
+        // 素材类型
+        VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixMaterialType();
+        materialType.setOrder(2);
+        materialType.setIsShow(Boolean.FALSE);
+
+        // 素材参考数量
+        VariableItemRespVO refersCount = RecommendVariableItemFactory.defMediaMatrixRefersCount();
+        refersCount.setOrder(3);
+        refersCount.setIsShow(Boolean.FALSE);
+
+        // 参考素材
+        VariableItemRespVO refers = RecommendVariableItemFactory.defMediaMatrixRefers();
+        refers.setOrder(4);
+        refers.setIsShow(Boolean.TRUE);
+
+        // 草靠素材
+        VariableItemRespVO refersImitate = RecommendVariableItemFactory.defMediaMatrixRefersImitate();
+        refersImitate.setOrder(5);
+        refersImitate.setIsShow(Boolean.FALSE);
+
+        // 生成要求
+        VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
+        requirement.setOrder(6);
+        requirement.setIsShow(Boolean.TRUE);
+
+        // JSON Schema
+        VariableItemRespVO jsonSchema = RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema();
+        jsonSchema.setOrder(7);
+        jsonSchema.setIsShow(Boolean.FALSE);
+
+        // 响应JSON Schema
+        VariableItemRespVO respJsonSchema = RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema();
+        respJsonSchema.setOrder(8);
+        respJsonSchema.setIsShow(Boolean.FALSE);
+
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defMediaMatrixGenerateVariable(),
-                RecommendVariableItemFactory.defMediaMatrixRefersCount(),
-                RecommendVariableItemFactory.defMediaMatrixMaterialType(),
-                RecommendVariableItemFactory.defMediaMatrixRefers(),
-                RecommendVariableItemFactory.defMediaMatrixRefersImitate(),
-                RecommendVariableItemFactory.defMediaMatrixRequirement(),
-                RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema(),
-                RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema()
+                generateVariable,
+                materialType,
+                refersCount,
+                refers,
+                refersImitate,
+                requirement,
+                jsonSchema,
+                respJsonSchema
         ));
         return variable;
     }
@@ -144,9 +203,23 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defAssembleVariable() {
         VariableRespVO variable = new VariableRespVO();
+
+        VariableItemRespVO assembleTitle = RecommendVariableItemFactory.defAssembleTitle();
+        assembleTitle.setOrder(1);
+        assembleTitle.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO assembleContent = RecommendVariableItemFactory.defAssembleContent();
+        assembleContent.setOrder(2);
+        assembleContent.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO assembleTagList = RecommendVariableItemFactory.defAssembleTagList();
+        assembleTagList.setOrder(3);
+        assembleTagList.setIsShow(Boolean.TRUE);
+
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defAssembleTitle(),
-                RecommendVariableItemFactory.defAssembleContent()
+                assembleTitle,
+                assembleContent,
+                assembleTagList
         ));
         return variable;
     }
@@ -158,10 +231,23 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defPosterVariable() {
         VariableRespVO variable = new VariableRespVO();
+
+        VariableItemRespVO posterStyleVariable = RecommendVariableItemFactory.defPosterStyleVariable();
+        posterStyleVariable.setOrder(1);
+        posterStyleVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO requirement = RecommendVariableItemFactory.defPosterRequirement();
+        requirement.setOrder(2);
+        requirement.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO styleConfigVariable = RecommendVariableItemFactory.defPosterStyleConfigVariable();
+        styleConfigVariable.setOrder(3);
+        styleConfigVariable.setIsShow(Boolean.TRUE);
+
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defPosterStyleVariable(),
-                RecommendVariableItemFactory.defPosterRequirement(),
-                RecommendVariableItemFactory.defPosterStyleConfigVariable()
+                posterStyleVariable,
+                requirement,
+                styleConfigVariable
         ));
         return variable;
     }
@@ -174,12 +260,32 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defPosterStepVariable(String defaultPrompt, Boolean isShow) {
         VariableRespVO variable = new VariableRespVO();
+
+        VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
+        modelVariable.setOrder(1);
+        modelVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
+        maxTokenVariable.setOrder(2);
+        maxTokenVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
+        temperatureVariable.setOrder(3);
+        temperatureVariable.setIsShow(Boolean.TRUE);
+
+        VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
+        promptVariable.setOrder(4);
+
+        VariableItemRespVO styleConfigVariable = RecommendVariableItemFactory.defSystemPosterStyleConfigVariable();
+        styleConfigVariable.setOrder(5);
+        styleConfigVariable.setIsShow(Boolean.TRUE);
+
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defModelVariable(),
-                RecommendVariableItemFactory.defMaxTokenVariable(),
-                RecommendVariableItemFactory.defTemperatureVariable(),
-                RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow),
-                RecommendVariableItemFactory.defSystemPosterStyleConfigVariable()
+                modelVariable,
+                maxTokenVariable,
+                temperatureVariable,
+                promptVariable,
+                styleConfigVariable
         ));
         return variable;
     }
@@ -191,9 +297,18 @@ public class RecommendVariableFactory {
      */
     public static VariableRespVO defMaterialVariable() {
         VariableRespVO variable = new VariableRespVO();
+
+        VariableItemRespVO materialTypeVariable = RecommendVariableItemFactory.defMaterialTypeVariable();
+        materialTypeVariable.setOrder(1);
+        materialTypeVariable.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO materialListVariable = RecommendVariableItemFactory.defMaterialListVariable();
+        materialListVariable.setOrder(2);
+        materialListVariable.setIsShow(Boolean.TRUE);
+
         variable.setVariables(Arrays.asList(
-                RecommendVariableItemFactory.defMaterialTypeVariable(),
-                RecommendVariableItemFactory.defMaterialListVariable()
+                materialTypeVariable,
+                materialListVariable
         ));
         return variable;
     }
