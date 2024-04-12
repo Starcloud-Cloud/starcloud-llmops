@@ -238,17 +238,17 @@ public class CreativeExecuteManager {
 
         // 如果是正在执行中，则直接抛出异常
         boolean isExecuting = CreativeContentStatusEnum.EXECUTING.name().equals(latestContent.getStatus());
-        AppValidate.isTrue(isExecuting, "创作内容任务正在执行中！请稍后重试！");
+        AppValidate.isFalse(isExecuting, "创作内容任务正在执行中！请稍后重试！");
 
         // 如果是不需要强制执行的情况下，则需要判断是否是成功状态和是否是最终失败状态
         if (!request.getForce()) {
             // 是否成功执行，如果已经成功执行，则直接抛出异常
             boolean isSuccess = CreativeContentStatusEnum.SUCCESS.name().equals(latestContent.getStatus());
-            AppValidate.isTrue(isSuccess, "创作内容任务已执行成功！");
+            AppValidate.isFalse(isSuccess, "创作内容任务已执行成功！");
 
             // 是否是最终失败或者超过阈值，如果是的，则直接抛出异常
             boolean isUltimateFailure = CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()) || latestContent.getRetryCount() >= maxRetry;
-            AppValidate.isTrue(isUltimateFailure, "创作内容任务已经超过最大重试次数！执行次数：{}， 最大重试次数：{}", latestContent.getRetryCount(), maxRetry);
+            AppValidate.isFalse(isUltimateFailure, "创作内容任务已经超过最大重试次数！执行次数：{}， 最大重试次数：{}", latestContent.getRetryCount(), maxRetry);
         }
 
         // 获取并且校验执行参数
