@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchListReqVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchReqVO;
@@ -48,7 +49,9 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHand
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
+import com.starcloud.ops.business.app.util.CreativeUploadUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +61,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -105,6 +109,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     public Map<String, List<Option>> metadata() {
         return new HashMap<>();
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param image 上传图片
+     * @return 图片信息
+     */
+    @Override
+    public UploadImageInfoDTO uploadImage(MultipartFile image) {
+        log.info("Creative 开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
+        return CreativeUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
     }
 
     /**
@@ -235,9 +251,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
         // 校验创作计划状态，只能修改待执行、已完成、失败的创作计划
-        if (!CreativePlanStatusEnum.canModifyStatus(plan.getStatus())) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
-        }
+//        if (!CreativePlanStatusEnum.canModifyStatus(plan.getStatus())) {
+//            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
+//        }
 
         // 更新创作计划
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);

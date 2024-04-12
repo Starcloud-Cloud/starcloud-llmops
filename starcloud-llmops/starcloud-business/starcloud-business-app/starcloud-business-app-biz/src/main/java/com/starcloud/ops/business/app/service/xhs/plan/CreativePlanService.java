@@ -1,12 +1,14 @@
 package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,14 @@ public interface CreativePlanService {
      * @return 元数据
      */
     Map<String, List<Option>> metadata();
+
+    /**
+     * 上传图片
+     *
+     * @param image 上传图片
+     * @return 图片信息
+     */
+    UploadImageInfoDTO uploadImage(MultipartFile image);
 
     /**
      * 获取创作计划详情

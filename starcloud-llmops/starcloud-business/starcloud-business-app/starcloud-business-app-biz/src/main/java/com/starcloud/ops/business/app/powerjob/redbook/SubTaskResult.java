@@ -31,24 +31,8 @@ public class SubTaskResult extends BaseTaskResult {
     private List<String> errorTaskUidList;
 
 
-    public SubTaskResult(boolean success, String msg, String planUid, String batchUid, List<String> taskUidList, List<String> errorTaskUidList) {
-        super(success, msg);
-        this.planUid = planUid;
-        this.taskUidList = taskUidList;
-        this.errorTaskUidList = errorTaskUidList;
-        this.batchUid = batchUid;
-    }
-
-    public SubTaskResult(boolean success, String msg) {
-        super(success, msg);
-    }
-
-    public static SubTaskResult success(String msg, String planUid, String batchUid, List<String> taskUidList, List<String> errorTaskUidList) {
-        return new SubTaskResult(true, msg, planUid, batchUid, taskUidList, errorTaskUidList);
-    }
-
-    public static SubTaskResult failure(String msg) {
-        return new SubTaskResult(false, msg);
+    public SubTaskResult() {
+        super();
     }
 
 }

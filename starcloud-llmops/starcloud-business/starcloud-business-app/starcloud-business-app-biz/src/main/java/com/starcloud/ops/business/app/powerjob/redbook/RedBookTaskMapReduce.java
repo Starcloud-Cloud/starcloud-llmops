@@ -57,6 +57,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      */
     @Override
     protected BaseTaskResult execute(PowerJobTaskContext context) {
+
         if (isRootTask()) {
             return runRoot(context);
         }
@@ -65,7 +66,12 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
             SubTask subTask = (SubTask) context.getTaskContext().getSubTask();
             return runSub(context, subTask);
         }
-        return BaseTaskResult.of(false, "UNKNOWN_BUG_taskName_" + context.getTaskContext().getTaskName());
+
+        // 返回失败结果
+        BaseTaskResult taskResult = new BaseTaskResult();
+        taskResult.setSuccess(Boolean.FALSE);
+        taskResult.setMsg("执行失败：未知错误：任务名称：" + context.getTaskContext().getTaskName());
+        return taskResult;
     }
 
 
@@ -90,7 +96,10 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         // 如果没有找到带执行的任务，直接返回。
         if (CollectionUtils.isEmpty(contentList)) {
-            return BaseTaskResult.of(Boolean.TRUE, "任务成功结束：未找到待执行任务！");
+            BaseTaskResult taskResult = new BaseTaskResult();
+            taskResult.setSuccess(Boolean.FALSE);
+            taskResult.setMsg("任务成功结束：未找到待执行任务！");
+            return taskResult;
         }
 
         // 有几组分成几个子任务
@@ -132,10 +141,17 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         try {
             map(subTaskList, "创作内容子任务");
         } catch (Exception e) {
-            log.warn("ROOT_PROCESS_FILE 执行失败: {}", e.getMessage(), e);
-            return BaseTaskResult.of(false, "ROOT_PROCESS_FILE: 执行失败" + e.getMessage());
+            log.warn("创作内容任务执行失败：错误信息：{}", e.getMessage(), e);
+            BaseTaskResult taskResult = new BaseTaskResult();
+            taskResult.setSuccess(Boolean.FALSE);
+            taskResult.setMsg("创作内容根任务执行失败：错误信息：" + e.getMessage());
+            return taskResult;
         }
-        return BaseTaskResult.of(true, "ROOT_PROCESS_SUCCESS");
+
+        BaseTaskResult taskResult = new BaseTaskResult();
+        taskResult.setSuccess(Boolean.TRUE);
+        taskResult.setMsg("创作内容根任务执行成功");
+        return taskResult;
     }
 
     /**
@@ -178,10 +194,24 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                     stringJoiner.add(response.getUid());
                 }
             });
-            return SubTaskResult.success(stringJoiner.toString(), subTask.planUid, subTask.getBatchUid(), contentUidList, errorTasks);
+
+            // 成功，返回数据
+            SubTaskResult subTaskResult = new SubTaskResult();
+            subTaskResult.setSuccess(Boolean.TRUE);
+            subTaskResult.setMsg(stringJoiner.toString());
+            subTaskResult.setPlanUid(subTask.getPlanUid());
+            subTaskResult.setBatchUid(subTask.getBatchUid());
+            subTaskResult.setTaskUidList(contentUidList);
+            subTaskResult.setErrorTaskUidList(errorTasks);
+            return subTaskResult;
         } catch (Exception e) {
             //不会调用到这里，兜底错误和日志
-            return SubTaskResult.failure("task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
+            SubTaskResult subTaskResult = new SubTaskResult();
+            subTaskResult.setSuccess(Boolean.FALSE);
+            subTaskResult.setMsg("创作内容执行失败：计划UID: " + subTask.getPlanUid() + "批次UID: " + subTask.getBatchUid() + "错误信息：" + e.getMessage());
+            subTaskResult.setPlanUid(subTask.getPlanUid());
+            subTaskResult.setBatchUid(subTask.getBatchUid());
+            return subTaskResult;
         }
     }
 

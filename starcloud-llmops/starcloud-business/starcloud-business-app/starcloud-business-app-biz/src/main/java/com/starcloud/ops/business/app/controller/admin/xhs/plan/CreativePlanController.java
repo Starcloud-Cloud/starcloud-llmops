@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
@@ -12,6 +13,7 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +22,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -44,6 +48,13 @@ public class CreativePlanController {
     @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Map<String, List<Option>>> metadata() {
         return CommonResult.success(creativePlanService.metadata());
+    }
+
+    @PostMapping(value = "/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "上传图片", description = "上传图片")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<UploadImageInfoDTO> upload(@RequestPart("image") MultipartFile image) {
+        return CommonResult.success(creativePlanService.uploadImage(image));
     }
 
     @GetMapping("/getByAppUid")

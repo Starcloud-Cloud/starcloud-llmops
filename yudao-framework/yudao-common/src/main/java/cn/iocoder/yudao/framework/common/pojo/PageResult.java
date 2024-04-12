@@ -31,7 +31,7 @@ public final class PageResult<T> implements Serializable {
     }
 
     public static <T> PageResult<T> of(List<T> list, Long total) {
-        return new PageResult<>(total);
+        return new PageResult<>(list, total);
     }
 
     public static <T> PageResult<T> empty() {

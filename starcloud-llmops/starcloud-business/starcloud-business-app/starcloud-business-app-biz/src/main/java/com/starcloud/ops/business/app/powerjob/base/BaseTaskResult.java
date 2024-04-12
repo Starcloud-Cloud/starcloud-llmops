@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.app.powerjob.base;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.ToString;
 
 @Builder
 @Data
 @ToString
-@NoArgsConstructor
-@AllArgsConstructor
 public class BaseTaskResult {
 
     /**
@@ -29,6 +29,9 @@ public class BaseTaskResult {
      */
     private Throwable throwable;
 
+    public BaseTaskResult() {
+    }
+
     public BaseTaskResult(String key, boolean success) {
         this.key = key;
         this.success = success;
@@ -47,9 +50,5 @@ public class BaseTaskResult {
     public BaseTaskResult(boolean success, String msg) {
         this.success = success;
         this.msg = msg;
-    }
-
-    public static BaseTaskResult of(boolean success, String msg) {
-        return new BaseTaskResult(success, msg);
     }
 }
