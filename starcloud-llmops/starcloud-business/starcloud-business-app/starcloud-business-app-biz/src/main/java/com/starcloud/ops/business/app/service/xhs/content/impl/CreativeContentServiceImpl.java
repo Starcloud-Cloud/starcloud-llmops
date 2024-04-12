@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -56,9 +55,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Resource
     @Lazy
     private CreativePlanService creativePlanService;
-
-    @Resource
-    private DictDataService dictDataService;
 
     @Resource
     private CreativePlanMapper creativePlanMapper;
@@ -134,9 +130,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 .stream()
                 .map(item -> {
                     CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(item);
-                    // 获取执行进度
-                    AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
-                    response.setProgress(progress);
+                    if (CreativeContentStatusEnum.EXECUTING.name().equals(response.getStatus())) {
+                        // 获取执行进度
+                        AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
+                        response.setProgress(progress);
+                    }
                     return response;
                 })
                 .collect(Collectors.toList());
