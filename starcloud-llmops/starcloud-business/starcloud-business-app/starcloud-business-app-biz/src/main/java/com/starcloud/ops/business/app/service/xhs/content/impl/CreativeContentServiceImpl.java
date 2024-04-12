@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
@@ -131,7 +132,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 处理查询结果
         List<CreativeContentRespVO> collect = page.getRecords()
                 .stream()
-                .map(CreativeContentConvert.INSTANCE::convert)
+                .map(item -> {
+                    CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(item);
+                    // 获取执行进度
+                    AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
+                    response.setProgress(progress);
+                    return response;
+                })
                 .collect(Collectors.toList());
 
         return PageResult.of(collect, page.getTotal());
@@ -207,7 +214,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public CreativeContentExecuteRespVO execute(CreativeContentExecuteReqVO request) {
-        return creativeExecuteManager.execute(request);
+        CreativeContentExecuteRespVO response = creativeExecuteManager.execute(request);
+        creativePlanService.updatePlanStatus(response.getPlanUid(), response.getBatchUid());
+        return response;
     }
 
     /**
@@ -218,7 +227,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public List<CreativeContentExecuteRespVO> batchExecute(List<CreativeContentExecuteReqVO> request) {
-
         return creativeExecuteManager.bathExecute(request);
     }
 
@@ -230,7 +238,17 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public CreativeContentRespVO regenerate(String uid) {
-        return null;
+        CreativeContentRespVO content = this.get(uid);
+        AppValidate.notNull(content, "创作内容不存在！");
+        CreativeContentExecuteReqVO request = new CreativeContentExecuteReqVO();
+        request.setUid(content.getUid());
+        request.setPlanUid(content.getPlanUid());
+        request.setBatchUid(content.getBatchUid());
+        request.setType(content.getType());
+        request.setForce(Boolean.TRUE);
+        request.setTenantId(content.getTenantId());
+        this.execute(request);
+        return this.get(uid);
     }
 
     /**

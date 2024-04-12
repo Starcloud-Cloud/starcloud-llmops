@@ -300,7 +300,7 @@ public class CreativeUtils {
                 .stream()
                 .map(item -> {
                     // 如果不是系统配置，直接返回
-                    if (!item.getSystem()) {
+                    if (Objects.isNull(item.getSystem()) || !item.getSystem()) {
                         return item;
                     }
                     // 如果是系统配置，但是系统配置中未找到，直接返回null

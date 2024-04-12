@@ -9,11 +9,18 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
+import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -22,12 +29,15 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
+import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
-import com.starcloud.ops.business.app.service.xhs.convert.AppResponseConverter;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
@@ -35,6 +45,7 @@ import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.redisson.api.RLock;
@@ -50,6 +61,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
+
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * @author nacoyer
@@ -77,6 +90,9 @@ public class CreativeExecuteManager {
 
     @Resource
     private AdminUserRightsApi adminUserRightsApi;
+
+    @Resource
+    private AppStepStatusCache appStepStatusCache;
 
     /**
      * 批量执行小红书应用生成
@@ -133,115 +149,42 @@ public class CreativeExecuteManager {
         }
 
         log.info("创作内容任务上锁成功({})", lockKey);
-
         try {
-
-            // 开始时间
             LocalDateTime start = LocalDateTime.now();
             log.info("创作内容任务执行开始：{}，{}", start, request.getUid());
-
             // 获取最大重试次数
             Integer maxRetry = getMaxRetry(request.getForce());
-
             // 获取最新的创作内容
-            CreativeContentDO latestContent = creativeContentMapper.get(request.getUid());
-            if (Objects.isNull(latestContent)) {
-                log.info("创作内容任务不存在({})，无法执行！", request.getUid());
-                return CreativeContentExecuteRespVO.failure(request.getUid(), "创作内容任务不存在，无法执行！请联系管理员!");
+            CreativeContentDO latestContent = getLatestContent(request, maxRetry, start);
+            // 用户权益检测，校验用户权益是否足够
+            calculateUserRightsEnough(latestContent, start, maxRetry);
+            try {
+                // 更新创作内容状态为执行中
+                updateContentExecuting(latestContent, start);
+                // 执行应用，并且获取执行结果
+                AppExecuteRespVO response = appExecute(latestContent);
+                // 后置处理步骤缓存状态更新
+                appStepStatusCache.stepStart(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER);
+                // 查询日志信息
+                AppLogMessageRespVO logAppMessage = getAppLogMessageRespVO(response);
+                // 构造执行结果
+                CreativeContentExecuteRespVO executeResponse = buildResponse(logAppMessage, latestContent);
+                // 获取到结果内容
+                CreativeContentExecuteResult executeResult = executeResponse.getResult();
+                // 更新创作内容状态
+                updateContentSuccess(latestContent, executeResult, start);
+                // 权益扣除
+                reduceRights(latestContent);
+                // 后置处理步骤缓存状态更新
+                appStepStatusCache.stepSuccess(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER);
+                // 返回结果
+                return executeResponse;
+            } catch (Exception exception) {
+                // 后置处理步骤缓存状态更新
+                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", exception.getMessage());
+                updateContentFailure(latestContent, start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
+                throw exception;
             }
-            // 如果是正在执行中，则直接返回
-            if (CreativeContentStatusEnum.EXECUTING.name().equals(latestContent.getStatus())) {
-                log.info("创作内容任务正在执行中({})！", request.getUid());
-                return CreativeContentExecuteRespVO.failure(request.getUid(), "创作内容任务正在执行中！");
-
-            }
-            // 如果是不需要强制执行的情况下，则需要判断是否是成功状态和是否是最终失败状态
-            if (!request.getForce()) {
-                // 是否成功执行，如果已经成功执行，则直接返回
-                if (CreativeContentStatusEnum.SUCCESS.name().equals(latestContent.getStatus())) {
-                    log.info("创作内容任务已成功执行({})，不需要在执行！", latestContent.getUid());
-                    return CreativeContentExecuteRespVO.failure(request.getUid(), "创作内容任务已执行成功！");
-                }
-                // 是否是最终失败或者超过阈值，如果是的，则直接返回
-                if (CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()) || latestContent.getRetryCount() >= maxRetry) {
-                    log.info("创作内容任务已经超过最大重试次数，无法执行({})！执行次数：{}， 最大重试次数：{}", latestContent.getUid(), latestContent.getRetryCount(), maxRetry);
-                    return CreativeContentExecuteRespVO.failure(request.getUid(), formatErrorMsg("创作内容任务已经超过最大重试次数！执行次数：%s， 最大重试次数：%s", latestContent.getRetryCount(), maxRetry));
-                }
-            }
-
-            // 获取并且校验执行参数
-            CreativeContentExecuteParam executeParams = CreativeContentConvert.INSTANCE.toExecuteParam(latestContent.getExecuteParam());
-            if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getAppInformation())) {
-                // 执行参数为空，说明该任务数据存在问题。需要更新状态
-                log.info("创作内容任务执行参数不存在，请联系管理员(UID: {})！", latestContent.getUid());
-                updateContentUltimateFailure(latestContent, start, formatErrorMsg("创作内容任务执行参数不存在，请联系管理员(UID: %s)！", latestContent.getUid()), maxRetry);
-                return CreativeContentExecuteRespVO.failure(latestContent.getUid(), "创作内容任务执行参数不存在，请联系管理员！");
-            }
-
-            // 校验用户权益，判断是否有足够的权益
-            if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(latestContent.getCreator()), AdminUserRightsTypeEnum.MATRIX_BEAN, null)) {
-                log.info("用户矩阵权益不足，请及时升级或者充值！(UID: {})！", latestContent.getUid());
-                updateContentUltimateFailure(latestContent, start, "用户矩阵权益不足，请及时升级或者充值！", maxRetry);
-                return CreativeContentExecuteRespVO.failure(latestContent.getUid(), "用户矩阵权益不足，请及时升级或者充值！");
-            }
-
-            // 更新创作内容状态为执行中
-            updateContentExecuting(latestContent, start);
-
-            // 获取到带执行的应用
-            AppMarketRespVO appResponse = executeParams.getAppInformation();
-
-            // 构建应用执行参数
-            AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
-            appExecuteRequest.setAppUid(appResponse.getUid());
-            // appExecuteRequest.setStepId(stepId);
-            appExecuteRequest.setContinuous(Boolean.TRUE);
-            appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
-            appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
-            appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
-            appExecuteRequest.setConversationUid(latestContent.getConversationUid());
-
-            // 执行应用
-            AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
-            AppExecuteRespVO response = entity.execute(appExecuteRequest);
-
-            if (!response.getSuccess()) {
-                throw new ServiceException(350600110, "生成内容和图片失败，错误码：" + response.getResultCode() + ",错误信息：" + response.getResultDesc());
-            }
-
-            LogAppMessagePageReqVO logQuery = new LogAppMessagePageReqVO();
-            logQuery.setAppConversationUid(response.getConversationUid());
-            AppLogMessageRespVO logAppMessage = appLogService.getLogAppMessageDetail(logQuery);
-
-            // 执行失败
-            if (LogStatusEnum.ERROR.name().equals(logAppMessage.getStatus())) {
-                throw new ServiceException(350600110, "生成内容和图片失败，错误码：" + logAppMessage.getErrorCode() + ",错误信息：" + logAppMessage.getErrorMessage());
-            }
-
-            CreativeContentExecuteRespVO executeResponse = buildResponse(logAppMessage, latestContent);
-            CreativeContentExecuteResult executeResult = executeResponse.getResult();
-
-            // 更新执行时间
-            LocalDateTime end = LocalDateTime.now();
-            long elapsed = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-
-            // 构建执行结果
-            CreativeContentDO updateContent = new CreativeContentDO();
-            updateContent.setId(latestContent.getId());
-            updateContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
-            updateContent.setStartTime(start);
-            updateContent.setEndTime(end);
-            updateContent.setElapsed(elapsed);
-            updateContent.setStatus(CreativeContentStatusEnum.SUCCESS.name());
-            updateContent.setUpdateTime(end);
-            updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-            creativeContentMapper.updateById(updateContent);
-
-            // 权益扣除
-            reduceRights(latestContent);
-
-            return executeResponse;
-
         } catch (ServiceException exception) {
             log.error("创作中心：创作内容任务执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
             return CreativeContentExecuteRespVO.failure(request.getUid(), exception.getMessage());
@@ -257,22 +200,123 @@ public class CreativeExecuteManager {
     }
 
     /**
-     * 权益扣除
+     * 获取最大重试次数
      *
-     * @param latestContent 创作内容
+     * @param force 是否强制执行
+     * @return 最大失败次数
      */
-    private void reduceRights(CreativeContentDO latestContent) {
-        ReduceRightsDTO reduceRights = new ReduceRightsDTO();
-        reduceRights.setUserId(Long.valueOf(latestContent.getCreator()));
-        reduceRights.setTeamOwnerId(null);
-        reduceRights.setTeamId(null);
-        reduceRights.setRightType(AdminUserRightsTypeEnum.MATRIX_BEAN.getType());
-        reduceRights.setReduceNums(1);
-        reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType());
-        reduceRights.setBizId(latestContent.getConversationUid());
-        adminUserRightsApi.reduceRights(reduceRights);
+    private Integer getMaxRetry(Boolean force) {
+        if (BooleanUtils.isTrue(force)) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            DictDataDO dictDataDO = dictDataService.parseDictData("xhs", "max_retry");
+            if (dictDataDO == null || dictDataDO.getValue() == null) {
+                return 3;
+            } else {
+                return Integer.valueOf(dictDataDO.getValue());
+            }
+        } catch (Exception exception) {
+            return 3;
+        }
     }
 
+    /**
+     * 获取最新的创作内容
+     *
+     * @param request  请求
+     * @param maxRetry 最大重试次数
+     * @param start    开始时间
+     * @return 最新创作内容
+     */
+    private CreativeContentDO getLatestContent(CreativeContentExecuteReqVO request, Integer maxRetry, LocalDateTime start) {
+        // 获取最新的创作内容
+        CreativeContentDO latestContent = creativeContentMapper.get(request.getUid());
+
+        // 校验创作内容是否存在，如果不存在，则直接抛出异常
+        AppValidate.notNull(latestContent, "创作内容任务不存在，无法执行！");
+
+        // 如果是正在执行中，则直接抛出异常
+        boolean isExecuting = CreativeContentStatusEnum.EXECUTING.name().equals(latestContent.getStatus());
+        AppValidate.isTrue(isExecuting, "创作内容任务正在执行中！请稍后重试！");
+
+        // 如果是不需要强制执行的情况下，则需要判断是否是成功状态和是否是最终失败状态
+        if (!request.getForce()) {
+            // 是否成功执行，如果已经成功执行，则直接抛出异常
+            boolean isSuccess = CreativeContentStatusEnum.SUCCESS.name().equals(latestContent.getStatus());
+            AppValidate.isTrue(isSuccess, "创作内容任务已执行成功！");
+
+            // 是否是最终失败或者超过阈值，如果是的，则直接抛出异常
+            boolean isUltimateFailure = CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()) || latestContent.getRetryCount() >= maxRetry;
+            AppValidate.isTrue(isUltimateFailure, "创作内容任务已经超过最大重试次数！执行次数：{}， 最大重试次数：{}", latestContent.getRetryCount(), maxRetry);
+        }
+
+        // 获取并且校验执行参数
+        CreativeContentExecuteParam executeParams = CreativeContentConvert.INSTANCE.toExecuteParam(latestContent.getExecuteParam());
+        if (Objects.isNull(executeParams) || Objects.isNull(executeParams.getAppInformation())) {
+            // 执行参数为空，说明该任务数据存在问题。需要更新状态
+            updateContentUltimateFailure(latestContent, start, "创作内容任务执行参数不存在！", maxRetry);
+            throw exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "创作内容任务执行参数不存在！");
+        }
+
+        return latestContent;
+    }
+
+    /**
+     * 执行应用
+     *
+     * @param latestContent 创作内容
+     * @return 应用执行结果
+     */
+    private AppExecuteRespVO appExecute(CreativeContentDO latestContent) {
+        // 获取到待执行的应用
+        CreativeContentExecuteParam executeParams = CreativeContentConvert.INSTANCE.toExecuteParam(latestContent.getExecuteParam());
+        AppMarketRespVO appResponse = executeParams.getAppInformation();
+
+        // 构建应用执行参数
+        AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
+        appExecuteRequest.setAppUid(appResponse.getUid());
+        // appExecuteRequest.setStepId(stepId);
+        appExecuteRequest.setContinuous(Boolean.TRUE);
+        appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
+        appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
+        appExecuteRequest.setConversationUid(latestContent.getConversationUid());
+
+        // 执行应用
+        AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
+        AppExecuteRespVO response = entity.execute(appExecuteRequest);
+        if (!response.getSuccess()) {
+            throw exception(350600110, "创作内容执行失败，错误码：" + response.getResultCode() + ",错误信息：" + response.getResultDesc());
+        }
+
+        return response;
+    }
+
+    /**
+     * 查询应用日志信息
+     *
+     * @param response 结果
+     * @return 应用日志信息
+     */
+    private AppLogMessageRespVO getAppLogMessageRespVO(AppExecuteRespVO response) {
+        // 查询生成日志
+        LogAppMessagePageReqVO logQuery = new LogAppMessagePageReqVO();
+        logQuery.setAppConversationUid(response.getConversationUid());
+        AppLogMessageRespVO logAppMessage = appLogService.getLogAppMessageDetail(logQuery);
+        // 校验日志信息状态
+        if (LogStatusEnum.ERROR.name().equals(logAppMessage.getStatus())) {
+            throw exception(350600110, "创作内容执行失败，错误码：" + logAppMessage.getErrorCode() + ",错误信息：" + logAppMessage.getErrorMessage());
+        }
+        return logAppMessage;
+    }
+
+    /**
+     * 更新创作内容为执行中状态
+     *
+     * @param latestContent 创作内容
+     * @param start         开始时间
+     */
     private void updateContentExecuting(CreativeContentDO latestContent, LocalDateTime start) {
         CreativeContentDO executing = new CreativeContentDO();
         executing.setId(latestContent.getId());
@@ -333,38 +377,130 @@ public class CreativeExecuteManager {
     }
 
     /**
-     * 获取最大重试次数
+     * 更新创作内容结果
      *
-     * @param force 是否强制执行
-     * @return 最大失败次数
+     * @param start         开始时间
+     * @param latestContent 创作内容
+     * @param executeResult 执行结果
      */
-    private Integer getMaxRetry(Boolean force) {
-        if (BooleanUtils.isTrue(force)) {
-            return Integer.MAX_VALUE;
-        }
-        try {
-            DictDataDO dictDataDO = dictDataService.parseDictData("xhs", "max_retry");
-            if (dictDataDO == null || dictDataDO.getValue() == null) {
-                return 3;
-            } else {
-                return Integer.valueOf(dictDataDO.getValue());
-            }
-        } catch (Exception exception) {
-            return 3;
+    private void updateContentSuccess(CreativeContentDO latestContent, CreativeContentExecuteResult executeResult, LocalDateTime start) {
+        // 更新执行结果
+        LocalDateTime end = LocalDateTime.now();
+        long elapsed = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        CreativeContentDO updateContent = new CreativeContentDO();
+        updateContent.setId(latestContent.getId());
+        updateContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        updateContent.setStartTime(start);
+        updateContent.setEndTime(end);
+        updateContent.setElapsed(elapsed);
+        updateContent.setStatus(CreativeContentStatusEnum.SUCCESS.name());
+        updateContent.setUpdateTime(end);
+        updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        creativeContentMapper.updateById(updateContent);
+    }
+
+    /**
+     * 用户权益检测
+     *
+     * @param latestContent 创作内容
+     * @param start         开始时间
+     * @param maxRetry      最大重试次数
+     */
+    private void calculateUserRightsEnough(CreativeContentDO latestContent, LocalDateTime start, Integer maxRetry) {
+        // 校验用户权益，判断是否有足够的权益
+        if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(latestContent.getCreator()), AdminUserRightsTypeEnum.MATRIX_BEAN, null)) {
+            updateContentUltimateFailure(latestContent, start, "用户矩阵权益不足，请及时升级或者充值！", maxRetry);
+            throw exception(USER_RIGHTS_NOT_ENOUGH.getCode(), "用户矩阵权益不足，请及时升级或者充值！");
         }
     }
 
+    /**
+     * 权益扣除
+     *
+     * @param latestContent 创作内容
+     */
+    private void reduceRights(CreativeContentDO latestContent) {
+        ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+        reduceRights.setUserId(Long.valueOf(latestContent.getCreator()));
+        reduceRights.setTeamOwnerId(null);
+        reduceRights.setTeamId(null);
+        reduceRights.setRightType(AdminUserRightsTypeEnum.MATRIX_BEAN.getType());
+        reduceRights.setReduceNums(1);
+        reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(AppSceneEnum.XHS_WRITING.name()).getType());
+        reduceRights.setBizId(latestContent.getConversationUid());
+        adminUserRightsApi.reduceRights(reduceRights);
+    }
+
+    /**
+     * 构造结果
+     *
+     * @param logAppMessage 应用日志
+     * @param content       创作内容
+     * @return 返回结果
+     */
     private static CreativeContentExecuteRespVO buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
         AppRespVO appInfo = logAppMessage.getAppInfo();
         List<String> tags = appInfo.getTags();
         if (tags.contains("PracticalConverter")) {
-            CreativeContentExecuteRespVO response = AppResponseConverter.practicalConverter(appInfo);
+            CreativeContentExecuteRespVO response = practicalConverter(appInfo);
             response.setUid(content.getUid());
             response.setPlanUid(content.getPlanUid());
             response.setBatchUid(content.getBatchUid());
             return response;
         }
-        throw ServiceExceptionUtil.exception(new ErrorCode(350600110, "应用结果转换场景结果异常！"));
+        throw exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "应用结果转换结果异常！");
+    }
+
+    /**
+     * 构造结果
+     *
+     * @param appResponse 应用信息
+     * @return 执行结果
+     */
+    public static CreativeContentExecuteRespVO practicalConverter(AppRespVO appResponse) {
+        // 获取到组装步骤
+        WorkflowStepWrapperRespVO assembleWrapper = appResponse.getStepByHandler(AssembleActionHandler.class.getSimpleName());
+        AppValidate.notNull(assembleWrapper, "生成笔记步骤未找到！请联系管理员！");
+
+        WorkflowStepRespVO assembleStep = assembleWrapper.getFlowStep();
+        AppValidate.notNull(assembleStep, "生成笔记步骤配置异常，请联系管理员！");
+
+        ActionResponseRespVO assembleResponse = assembleStep.getResponse();
+        if (Objects.isNull(assembleResponse) || !assembleResponse.getSuccess()) {
+            throw exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "生成笔记结果异常！请联系管理员！");
+        }
+
+        JsonDataVO assembleOutput = assembleResponse.getOutput();
+        if (Objects.isNull(assembleOutput) || Objects.isNull(assembleOutput.getData())) {
+            throw exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "生成笔记结果不存在！请联系管理员！");
+        }
+
+        // 获取到图片生成步骤
+        WorkflowStepWrapperRespVO posterWrapper = appResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        AppValidate.notNull(posterWrapper, "图片生成步骤未找到！请联系管理员！");
+
+        WorkflowStepRespVO posterStep = posterWrapper.getFlowStep();
+        AppValidate.notNull(posterStep, "图片生成步骤配置异常，请联系管理员！");
+
+        ActionResponseRespVO posterResponse = posterStep.getResponse();
+        if (Objects.isNull(posterResponse) || !posterResponse.getSuccess() || StringUtil.isBlank(posterResponse.getAnswer())) {
+            throw exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成结果异常！请联系管理员！");
+        }
+
+        // 文案生成结果
+        CopyWritingContent copyWriting = JsonUtils.parseObject(String.valueOf(assembleOutput.getData()), CopyWritingContent.class);
+        // 图片生成结果
+        List<ImageContent> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), ImageContent.class);
+
+        // 组装结果
+        CreativeContentExecuteResult result = new CreativeContentExecuteResult();
+        result.setCopyWriting(copyWriting);
+        result.setImageList(posterList);
+
+        CreativeContentExecuteRespVO response = new CreativeContentExecuteRespVO();
+        response.setSuccess(Boolean.TRUE);
+        response.setResult(result);
+        return response;
     }
 
     /**

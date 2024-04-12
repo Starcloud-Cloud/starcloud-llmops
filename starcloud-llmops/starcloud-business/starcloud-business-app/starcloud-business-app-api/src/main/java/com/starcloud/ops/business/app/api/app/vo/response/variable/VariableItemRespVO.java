@@ -126,6 +126,25 @@ public class VariableItemRespVO implements Serializable {
     }
 
     /**
+     * 添加选项
+     *
+     * @param label label
+     * @param value value
+     * @return this
+     */
+    public VariableItemRespVO addOption(String label, Object value, String description) {
+        if (CollectionUtil.isEmpty(this.options)) {
+            this.options = Collections.emptyList();
+        }
+        List<Option> optionList = new ArrayList<>(this.options);
+        Option option = Option.of(label, value);
+        option.setDescription(description);
+        optionList.add(option);
+        this.options = optionList;
+        return this;
+    }
+
+    /**
      * 构建文本变量
      *
      * @param field 字段

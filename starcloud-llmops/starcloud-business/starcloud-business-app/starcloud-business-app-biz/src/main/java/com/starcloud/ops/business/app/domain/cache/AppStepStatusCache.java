@@ -33,6 +33,11 @@ import java.util.Optional;
 public class AppStepStatusCache {
 
     /**
+     * 后置处理器步骤
+     */
+    public static final String POST_PROCESSOR_HANDLER = "POST_PROCESSOR_HANDLER";
+
+    /**
      * 步骤状态缓存
      */
     @JsonIgnore
@@ -59,7 +64,7 @@ public class AppStepStatusCache {
         int successCount = (int) appStepStatusMap.values().stream().filter(stepItem -> AppStepStatusEnum.SUCCESS.name().equals(stepItem.getStatus())).count();
         progress.setSuccessStepCount(successCount);
 
-        int currentStepIndex = 1;
+        int currentStepIndex;
         if (successCount < appStepStatusMap.size()) {
             // 当前步骤索引值，直接去成功数量，因为是顺序执行的。
             currentStepIndex = successCount + 1;
@@ -99,6 +104,11 @@ public class AppStepStatusCache {
             String handleCode = flowStep.getHandler();
             stepStatusMap.put(stepWrapper.getStepCode(), AppStepStatusDTO.initOf(stepId, handleCode));
         }
+
+        // 放入一个后置处理器步骤
+        AppStepStatusDTO postProcessorStep = AppStepStatusDTO.initOf(POST_PROCESSOR_HANDLER, POST_PROCESSOR_HANDLER);
+        stepStatusMap.put(POST_PROCESSOR_HANDLER, postProcessorStep);
+
         // 将步骤信息放入缓存
         APP_STEP_STATUS_CACHE.put(conversationUid, stepStatusMap);
         log.info("[init][conversationUid({}) 初始化步骤状态缓存 完成]", conversationUid);
