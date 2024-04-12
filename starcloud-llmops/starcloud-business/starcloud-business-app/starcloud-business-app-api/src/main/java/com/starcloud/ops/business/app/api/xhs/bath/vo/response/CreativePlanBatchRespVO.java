@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class CreativePlanBatchRespVO {
 
     /**
-     * 执行批次号 时间戳
+     * 执行批次号
      */
     @Schema(description = "执行UID")
     private String uid;
@@ -33,6 +33,12 @@ public class CreativePlanBatchRespVO {
      */
     @Schema(description = "版本号")
     private Integer version;
+
+    /**
+     * 批次时间戳
+     */
+    @Schema(description = "批次时间戳")
+    private Long timestamp;
 
     /**
      * 执行计划json

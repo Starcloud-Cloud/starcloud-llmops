@@ -13,7 +13,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Mapper
@@ -73,6 +75,9 @@ public interface CreativePlanBatchConvert {
         response.setPlanUid(bath.getPlanUid());
         response.setAppUid(bath.getAppUid());
         response.setVersion(bath.getVersion());
+        if (Objects.nonNull(bath.getCreateTime())) {
+            response.setTimestamp(bath.getCreateTime().toInstant(ZoneOffset.ofHours(8)).toEpochMilli());
+        }
         if (StringUtils.isNotBlank(bath.getConfiguration())) {
             response.setConfiguration(JsonUtils.parseObject(
                     bath.getConfiguration(), CreativePlanConfigurationDTO.class));
