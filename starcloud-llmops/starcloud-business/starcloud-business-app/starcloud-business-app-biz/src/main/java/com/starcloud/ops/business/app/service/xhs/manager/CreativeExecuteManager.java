@@ -322,6 +322,7 @@ public class CreativeExecuteManager {
         executing.setId(latestContent.getId());
         executing.setStartTime(start);
         executing.setStatus(CreativeContentStatusEnum.EXECUTING.name());
+        executing.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         creativeContentMapper.updateById(executing);
     }
 
@@ -352,6 +353,7 @@ public class CreativeExecuteManager {
         Long elapsed = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         content.setElapsed(elapsed);
         content.setUpdateTime(end);
+        content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         creativeContentMapper.updateById(content);
     }
 
@@ -373,6 +375,7 @@ public class CreativeExecuteManager {
         Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         content.setElapsed(executeTime);
         content.setUpdateTime(end);
+        content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         creativeContentMapper.updateById(content);
     }
 
