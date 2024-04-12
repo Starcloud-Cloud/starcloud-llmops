@@ -5,6 +5,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
@@ -371,10 +372,10 @@ public class CustomActionHandler extends BaseActionHandler {
         return actionResponse;
     }
 
-    private String generateRefers(List<AbstractBaseCreativeMaterialDTO> referList) {
+    private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {
         try {
             StringJoiner sj = new StringJoiner("\n");
-            for (AbstractBaseCreativeMaterialDTO materialDTO : referList) {
+            for (AbstractCreativeMaterialDTO materialDTO : referList) {
                 sj.add(JsonUtils.toJsonString(materialDTO));
                 JSONObject entries = JSONUtil.parseObj(materialDTO);
                 JSONArray imitateTypeJSON = entries.getJSONArray("imitateType");

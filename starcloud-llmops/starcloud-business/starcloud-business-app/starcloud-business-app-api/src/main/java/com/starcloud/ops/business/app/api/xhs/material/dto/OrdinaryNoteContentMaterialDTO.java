@@ -5,6 +5,8 @@ import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import lombok.Data;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 @Data

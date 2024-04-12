@@ -176,8 +176,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanConfigurationDTO configuration = creativePlanResponse.getConfiguration();
 
             // 海报图片风格处理
-            List<PosterStyleDTO> imageStyleList = configuration.getImageStyleList();
-            imageStyleList = CreativeUtils.mergePosterStyle(imageStyleList, appMarketResponse);
+            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergePosterStyle(configuration.getImageStyleList(), appMarketResponse);
             configuration.setImageStyleList(imageStyleList);
 
             // 应用配置处理
