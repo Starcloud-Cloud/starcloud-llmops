@@ -581,6 +581,7 @@ public class JsonSchemaUtils {
                 continue;
             }
             String description = fieldSchema.getDescription();
+            fieldSchema.setRequired(fieldDefine.required());
             fieldSchema.setDescription(description + "-" + fieldDefine.type().getTypeCode());
 
 //            ExpandStringSchema expandStringSchema = new ExpandStringSchema();
