@@ -4,17 +4,21 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
@@ -35,6 +39,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -89,7 +94,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public CreativeContentRespVO detail(String uid) {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
         AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
-        return CreativeContentConvert.INSTANCE.convert(creativeContent);
+        return this.convertWithProgress(creativeContent);
     }
 
     /**
@@ -125,6 +130,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query) {
+        // 查询创作内容分页数据
         IPage<CreativeContentDO> page = this.creativeContentMapper.page(query);
         if (Objects.isNull(page) || CollectionUtil.isEmpty(page.getRecords())) {
             return PageResult.empty();
@@ -133,17 +139,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 处理查询结果
         List<CreativeContentRespVO> collect = page.getRecords()
                 .stream()
-                .map(item -> {
-                    CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(item);
-                    if (CreativeContentStatusEnum.EXECUTING.name().equals(response.getStatus())) {
-                        // 获取执行进度
-                        AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
-                        response.setProgress(progress);
-                    }
-                    return response;
-                })
+                .map(this::convertWithProgress)
                 .collect(Collectors.toList());
 
+        // 返回创作内容分页列表
         return PageResult.of(collect, page.getTotal());
     }
 
@@ -179,6 +178,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public String modify(CreativeContentModifyReqVO request) {
+        request.validate();
         CreativeContentDO content = creativeContentMapper.get(request.getUid());
         AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
         CreativeContentDO modify = CreativeContentConvert.INSTANCE.convert(request);
@@ -234,24 +234,41 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     /**
-     * 重试创作内容
+     * 重新生成创作内容
      *
-     * @param uid 创作内容UID
-     * @return 重试之后结果
+     * @param request 执行请求
      */
     @Override
-    public CreativeContentRespVO regenerate(String uid) {
-        CreativeContentDO content = creativeContentMapper.get(uid);
+    public void regenerate(CreativeContentRegenerateReqVO request) {
+        // 基础校验
+        request.validate();
+
+        // 查询创作内容并且校验
+        CreativeContentDO content = creativeContentMapper.get(request.getUid());
         AppValidate.notNull(content, "创作内容不存在！");
-        CreativeContentExecuteReqVO request = new CreativeContentExecuteReqVO();
-        request.setUid(content.getUid());
-        request.setPlanUid(content.getPlanUid());
-        request.setBatchUid(content.getBatchUid());
-        request.setType(content.getType());
-        request.setForce(Boolean.TRUE);
-        request.setTenantId(content.getTenantId());
-        this.execute(request);
-        return this.get(uid);
+
+        // 处理重新生成创作内容请求
+        CreativeContentExecuteParam executeParam = request.getExecuteParam();
+
+        // 更新创作内容为最新的版本
+        CreativeContentDO updateContent = new CreativeContentDO();
+        updateContent.setId(content.getId());
+        updateContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
+        updateContent.setUpdateTime(LocalDateTime.now());
+        updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        creativeContentMapper.updateById(updateContent);
+
+        // 构建执行请求
+        CreativeContentExecuteReqVO executeRequest = new CreativeContentExecuteReqVO();
+        executeRequest.setUid(content.getUid());
+        executeRequest.setPlanUid(content.getPlanUid());
+        executeRequest.setBatchUid(content.getBatchUid());
+        executeRequest.setType(content.getType());
+        executeRequest.setForce(Boolean.TRUE);
+        executeRequest.setTenantId(content.getTenantId());
+
+        // 执行创作内容生成
+        creativeExecuteManager.execute(executeRequest);
     }
 
     /**
@@ -347,5 +364,21 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         updateContent.setId(content.getId());
         updateContent.setLiked(Boolean.FALSE);
         creativeContentMapper.updateById(updateContent);
+    }
+
+    /**
+     * 讲创作内容实体转为创作内容响应对象，带有进度信息
+     *
+     * @param creativeContent 创作内容实体
+     * @return 创作内容响应对象
+     */
+    private CreativeContentRespVO convertWithProgress(CreativeContentDO creativeContent) {
+        CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(creativeContent);
+        if (CreativeContentStatusEnum.EXECUTING.name().equals(response.getStatus())) {
+            // 获取执行进度
+            AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
+            response.setProgress(progress);
+        }
+        return response;
     }
 }

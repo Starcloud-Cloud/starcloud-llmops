@@ -1,11 +1,16 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -57,15 +64,16 @@ public class CreativeContentController {
 
     @PostMapping("/regenerate")
     @Operation(summary = "重新生成")
-    public CommonResult<CreativeContentRespVO> regenerate(@Valid @RequestBody UidRequest request) {
-        return CommonResult.success(creativeContentService.regenerate(request.getUid()));
+    public CommonResult<String> regenerate(@Valid @RequestBody CreativeContentRegenerateReqVO request) {
+        creativeContentService.regenerate(request);
+        return CommonResult.success(request.getUid());
     }
 
     @PostMapping("/retry")
     @Operation(summary = "失败重试")
-    public CommonResult<Boolean> retry(@Valid @RequestBody UidRequest request) {
+    public CommonResult<String> retry(@Valid @RequestBody UidRequest request) {
         creativeContentService.retry(request.getUid());
-        return CommonResult.success(true);
+        return CommonResult.success(request.getUid());
     }
 
     @PostMapping("/like")
@@ -73,7 +81,7 @@ public class CreativeContentController {
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<String> like(@Validated @RequestBody UidRequest request) {
         creativeContentService.like(request.getUid());
-        return CommonResult.success("点赞成功");
+        return CommonResult.success(request.getUid());
     }
 
     @PostMapping("/unlike")
@@ -81,7 +89,30 @@ public class CreativeContentController {
     @ApiOperationSupport(order = 80, author = "nacoyer")
     public CommonResult<String> unlike(@Validated @RequestBody UidRequest request) {
         creativeContentService.unlike(request.getUid());
-        return CommonResult.success("取消点赞成功");
+        return CommonResult.success(request.getUid());
+    }
+
+    @PostMapping("batchExecute")
+    @Operation(summary = "批量执行", description = "批量执行")
+    @ApiOperationSupport(order = 90, author = "nacoyer")
+    public CommonResult<List<CreativeContentExecuteRespVO>> batchExecute(@Validated @RequestBody List<String> request) {
+        CreativeContentListReqVO query = new CreativeContentListReqVO();
+        query.setUidList(request);
+        List<CreativeContentRespVO> list = creativeContentService.list(query);
+        List<CreativeContentExecuteReqVO> collect = CollectionUtil.emptyIfNull(list).stream()
+                .map(item -> {
+                    CreativeContentExecuteReqVO requestItem = new CreativeContentExecuteReqVO();
+                    requestItem.setUid(item.getUid());
+                    requestItem.setForce(Boolean.TRUE);
+                    requestItem.setTenantId(item.getTenantId());
+                    requestItem.setType(item.getType());
+                    requestItem.setBatchUid(item.getBatchUid());
+                    requestItem.setPlanUid(item.getPlanUid());
+                    return requestItem;
+                })
+                .collect(Collectors.toList());
+        List<CreativeContentExecuteRespVO> response = creativeContentService.batchExecute(collect);
+        return CommonResult.success(response);
     }
 
 }

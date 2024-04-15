@@ -171,12 +171,12 @@ public class CreativeExecuteManager {
                 CreativeContentExecuteRespVO executeResponse = buildResponse(logAppMessage, latestContent);
                 // 获取到结果内容
                 CreativeContentExecuteResult executeResult = executeResponse.getResult();
-                // 更新创作内容状态
-                updateContentSuccess(latestContent, executeResult, start);
                 // 权益扣除
                 reduceRights(latestContent);
                 // 后置处理步骤缓存状态更新
                 appStepStatusCache.stepSuccess(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER);
+                // 更新创作内容状态
+                updateContentSuccess(latestContent, executeResult, start);
                 // 返回结果
                 return executeResponse;
             } catch (Exception exception) {

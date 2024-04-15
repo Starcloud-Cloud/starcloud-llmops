@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
@@ -108,12 +109,11 @@ public interface CreativeContentService {
     List<CreativeContentExecuteRespVO> batchExecute(List<CreativeContentExecuteReqVO> request);
 
     /**
-     * 重试创作内容
+     * 重新生成创作内容
      *
-     * @param uid 创作内容UID
-     * @return 重试之后结果
+     * @param request 执行请求
      */
-    CreativeContentRespVO regenerate(String uid);
+    void regenerate(CreativeContentRegenerateReqVO request);
 
     /**
      * 失败重试
