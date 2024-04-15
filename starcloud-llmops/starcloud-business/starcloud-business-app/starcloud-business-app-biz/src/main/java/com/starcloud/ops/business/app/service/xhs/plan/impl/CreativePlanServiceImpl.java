@@ -402,6 +402,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 生成任务
         this.bathCreativeContent(creativePlan, batchUid);
+
         // 更新状态
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
