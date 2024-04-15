@@ -24,10 +24,10 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeConten
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
@@ -616,6 +616,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private void handlerAndValidate(CreativePlanCreateReqVO request) {
         request.validate();
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
+        AppMarketRespVO appInformation = configuration.getAppInformation();
+
+        // 图片风格
+        WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.nonNull(posterWrapper)) {
+            AppValidate.notEmpty(configuration.getImageStyleList(), "图片生成未选择图片风格，不能为空！");
+        }
 
         // 处理海报风格数据
         List<PosterStyleDTO> imageStyleList = CollectionUtil.emptyIfNull(configuration.getImageStyleList());

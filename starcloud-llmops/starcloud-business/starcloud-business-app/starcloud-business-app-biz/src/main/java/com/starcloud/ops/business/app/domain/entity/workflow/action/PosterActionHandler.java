@@ -121,6 +121,14 @@ public class PosterActionHandler extends BaseActionHandler {
         log.info("海报生成 Action 执行开始......");
         // 海报模版参数
         String posterStyle = String.valueOf(this.getAppContext().getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
+        if (StringUtils.isBlank(posterStyle) || "null".equalsIgnoreCase(posterStyle) || "{}".equals(posterStyle)) {
+            ActionResponse response = new ActionResponse();
+            response.setSuccess(Boolean.FALSE);
+            response.setMessage("图片生成失败！风格配置为空！");
+            response.setAnswer("[]");
+            response.setOutput(JsonData.of("[]"));
+            return response;
+        }
         // 转为海报模版对象
         PosterStyleDTO style = JsonUtils.parseObject(posterStyle, PosterStyleDTO.class);
         // 校验海报模版

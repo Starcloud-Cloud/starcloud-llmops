@@ -12,6 +12,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
@@ -28,6 +30,10 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -35,6 +41,7 @@ import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -242,13 +249,29 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public void regenerate(CreativeContentRegenerateReqVO request) {
         // 基础校验
         request.validate();
+        CreativeContentExecuteParam executeParam = request.getExecuteParam();
+        AppMarketRespVO appInformation = executeParam.getAppInformation();
+        // 素材列表校验
+        WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.nonNull(materialWrapper)) {
+            String materialList = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
+            if (StringUtils.isBlank(materialList) || "[]".equals(materialList) || "null".equalsIgnoreCase(materialList)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！");
+            }
+        }
+
+        // 图片风格配置
+        WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.nonNull(posterWrapper)) {
+            String posterStyle = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE);
+            if (StringUtils.isBlank(posterStyle) || "{}".equals(posterStyle) || "null".equalsIgnoreCase(posterStyle)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成配置不能为空！请配置图片生成后重试！");
+            }
+        }
 
         // 查询创作内容并且校验
         CreativeContentDO content = creativeContentMapper.get(request.getUid());
         AppValidate.notNull(content, "创作内容不存在！");
-
-        // 处理重新生成创作内容请求
-        CreativeContentExecuteParam executeParam = request.getExecuteParam();
 
         // 更新创作内容为最新的版本
         CreativeContentDO updateContent = new CreativeContentDO();
