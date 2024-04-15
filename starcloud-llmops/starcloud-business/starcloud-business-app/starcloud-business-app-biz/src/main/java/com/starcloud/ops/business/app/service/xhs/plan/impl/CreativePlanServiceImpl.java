@@ -396,13 +396,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO creativePlan = this.get(uid);
-
-        // 批量执行随机任务  新增批次
-        CreativePlanBatchReqVO bathRequest = CreativePlanBatchConvert.INSTANCE.convert(creativePlan);
-        String batchUid = creativePlanBatchService.create(bathRequest);
-
         // 生成任务
-        this.bathCreativeContent(creativePlan, batchUid);
+        this.bathCreativeContent(creativePlan);
         // 更新状态
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
@@ -417,17 +412,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param creativePlan 创作计划
      */
     @SuppressWarnings("all")
-    public void bathCreativeContent(CreativePlanRespVO creativePlan, String batchUid) {
+    public void bathCreativeContent(CreativePlanRespVO creativePlan) {
 
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate();
+        // 获取创作计划的素材配置
+        List<AbstractCreativeMaterialDTO> materialList = configuration.getMaterialList();
+
 
         /*
          * 获取计划应用信息
          */
         // 获取计划应用信息
-        AppMarketRespVO appMarket = configuration.getAppInformation();
+        AppMarketRespVO appInformation = configuration.getAppInformation();
         // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
         AppMarketRespVO latestAppMarket = appMarketService.get(creativePlan.getAppUid());
 
@@ -435,11 +433,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
          * 获取到素材库步骤，素材库类型，素材库处理器
          */
         // 素材库步骤校验
-        WorkflowStepWrapperRespVO materialStepWrapper = appMarket.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        WorkflowStepWrapperRespVO materialStepWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
         AppValidate.notNull(materialStepWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
+        // 素材库步骤不为空的话，上传素材不能为空
+        AppValidate.notEmpty(materialList, "素材列表不能为空，请上传素材后重试！");
         // 获取素材库类型
         String materialType = materialStepWrapper.getStepVariableValue(CreativeConstants.MATERIAL_TYPE);
         AppValidate.notBlank(materialType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.MATERIAL_TYPE);
+
         // 获取到具体的素材库类型枚举
         MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
         AppValidate.notNull(materialTypeEnum, "素材库类型不支持，请联系管理员{}！", materialType);
@@ -447,19 +448,23 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType);
         AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", materialType);
 
+        // 批量执行随机任务  新增批次
+        CreativePlanBatchReqVO bathRequest = CreativePlanBatchConvert.INSTANCE.convert(creativePlan);
+        String batchUid = creativePlanBatchService.create(bathRequest);
+
         /*
          * 将配置信息平铺为，进行平铺，生成执行参数，方便后续进行随机。
          */
         List<CreativeContentExecuteParam> creativeContentExecuteList = CollectionUtil.newArrayList();
 
         // 获取海报步骤
-        WorkflowStepWrapperRespVO posterStepWrapper = appMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        WorkflowStepWrapperRespVO posterStepWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
         // 获取到海报配置
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
         // 如果没有海报步骤或者海报风格配置不存在，直接创建一个执行参数
         if (Objects.isNull(posterStepWrapper) || CollectionUtil.isEmpty(posterStyleList)) {
             CreativeContentExecuteParam planExecute = new CreativeContentExecuteParam();
-            planExecute.setAppInformation(handlerExecuteApp(appMarket));
+            planExecute.setAppInformation(handlerExecuteApp(appInformation));
             creativeContentExecuteList.add(planExecute);
         }
 
@@ -480,7 +485,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
 
             // 处理并且填充应用
-            AppMarketRespVO appMarketResponse = handlerExecuteApp(appMarket);
+            AppMarketRespVO appMarketResponse = handlerExecuteApp(appInformation);
             // 将处理后的应用填充到执行参数中
             Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
             appMarketResponse.putStepVariable(posterStepId, variableMap);
@@ -517,8 +522,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         /*
          * 二次处理批量任务
          */
-        // 获取创作计划的素材配置
-        List<AbstractCreativeMaterialDTO> materialList = CollectionUtil.emptyIfNull(configuration.getMaterialList());
         // 从创作内容任务列表中获取每个任务的海报配置，组成列表。总数为任务总数。
         List<PosterStyleDTO> contentPosterStyleList = getPosterStyleList(contentCreateRequestList, posterStepId);
         // 素材处理器进行素材处理

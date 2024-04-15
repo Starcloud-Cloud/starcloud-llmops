@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -21,6 +22,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphAct
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
@@ -436,6 +438,43 @@ public class CreativeUtils {
      */
     public static String removePlaceholder(String input) {
         return input.replaceAll("\\{\\{.*?}}", "");
+    }
+
+    /**
+     * 校验素材
+     *
+     * @param appInformation 应用信息
+     */
+    public static void validateMaterial(AppMarketRespVO appInformation) {
+        // 素材列表校验
+        WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.nonNull(materialWrapper)) {
+            String materialType = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_TYPE);
+            if (StringUtils.isBlank(materialType) || "null".equalsIgnoreCase(materialType)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材类型不能为空！请联系管理员！");
+            }
+
+            String materialList = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
+            if (StringUtils.isBlank(materialList) || "[]".equals(materialList) || "null".equalsIgnoreCase(materialList)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！");
+            }
+        }
+    }
+
+    /**
+     * 校验风格
+     *
+     * @param appInformation 应用信息
+     */
+    public static void validatePosterStyle(AppMarketRespVO appInformation) {
+        // 图片风格配置
+        WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.nonNull(posterWrapper)) {
+            String posterStyle = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE);
+            if (StringUtils.isBlank(posterStyle) || "{}".equals(posterStyle) || "null".equalsIgnoreCase(posterStyle)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成配置不能为空！请配置图片生成后重试！");
+            }
+        }
     }
 }
 
