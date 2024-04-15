@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.request;
 
-import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -27,15 +28,22 @@ public class CreativeContentModifyReqVO implements java.io.Serializable {
     private String uid;
 
     /**
-     * 执行参数
-     */
-    @Schema(description = "执行参数")
-    private CreativeContentExecuteParam executeParam;
-
-    /**
      * 执行响应
      */
     @Schema(description = "执行响应")
     private CreativeContentExecuteResult executeResult;
+
+    /**
+     * 校验
+     */
+    public void validate() {
+        AppValidate.notBlank(uid, "创作内容UID不能为空！");
+        AppValidate.notNull(executeResult, "创作内容不能为空！");
+        CopyWritingContent copyWriting = executeResult.getCopyWriting();
+        AppValidate.notNull(copyWriting, "文案内容不能为空！");
+        AppValidate.notBlank(copyWriting.getTitle(), "文案标题不能为空！");
+        AppValidate.notBlank(copyWriting.getContent(), "文案内容不能为空！");
+
+    }
 
 }

@@ -103,7 +103,6 @@ public interface CreativeContentConvert {
     default CreativeContentDO convert(CreativeContentModifyReqVO request) {
         CreativeContentDO creativeContent = new CreativeContentDO();
         creativeContent.setUid(request.getUid());
-        creativeContent.setExecuteParam(JsonUtils.toJsonString(request.getExecuteParam()));
         creativeContent.setExecuteResult(JsonUtils.toJsonString(request.getExecuteResult()));
         return creativeContent;
     }
