@@ -8,7 +8,7 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
@@ -43,7 +43,7 @@ public interface CreativePlanConvert {
      * @param request 请求信息
      * @return 数据对象
      */
-    default CreativePlanDO convertCreateRequest(CreativePlanReqVO request) {
+    default CreativePlanDO convertCreateRequest(CreativePlanCreateReqVO request) {
         AppValidate.notNull(request.getConfiguration(), "创作计划配置信息不能为空！");
         AppValidate.notNull(request.getConfiguration().getAppInformation(), "应用配置信息不能为空！");
         AppMarketRespVO appInformation = request.getConfiguration().getAppInformation();

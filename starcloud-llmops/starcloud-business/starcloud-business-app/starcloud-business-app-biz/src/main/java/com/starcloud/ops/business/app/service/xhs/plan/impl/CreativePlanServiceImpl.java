@@ -27,7 +27,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
@@ -227,7 +227,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public String create(CreativePlanReqVO request) {
+    public String create(CreativePlanCreateReqVO request) {
         handlerAndValidate(request);
         CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
         creativePlanMapper.insert(plan);
@@ -613,7 +613,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      *
      * @param request 创作计划请求
      */
-    private void handlerAndValidate(CreativePlanReqVO request) {
+    private void handlerAndValidate(CreativePlanCreateReqVO request) {
         request.validate();
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
 

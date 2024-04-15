@@ -5,7 +5,7 @@ import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,7 +73,7 @@ public interface CreativePlanService {
      * @param request 创作计划请求
      * @return 创作计划UID
      */
-    String create(CreativePlanReqVO request);
+    String create(CreativePlanCreateReqVO request);
 
     /**
      * 修改创作计划

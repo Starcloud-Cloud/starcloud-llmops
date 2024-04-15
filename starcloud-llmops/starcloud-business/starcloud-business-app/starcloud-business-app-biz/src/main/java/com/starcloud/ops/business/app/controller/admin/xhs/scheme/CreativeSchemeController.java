@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
@@ -16,7 +17,6 @@ import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeRe
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,9 +53,37 @@ public class CreativeSchemeController {
 
     @GetMapping("/metadata")
     @Operation(summary = "获取创作方案元数据", description = "获取创作方案元数据")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
+    @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Map<String, Object>> metadata() {
         return CommonResult.success(creativeSchemeService.metadata());
+    }
+
+    @GetMapping("/posterTemplate")
+    @Operation(summary = "获取应用列表", description = "获取应用列表")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<PosterTemplateDTO> getPosterTemplate(@RequestParam("templateId") String templateId) {
+        return CommonResult.success(creativeImageManager.getPosterTemplate(templateId));
+    }
+
+    @GetMapping("/listPosterTemplate")
+    @Operation(summary = "获取图片模板列表", description = "获取图片模板列表")
+    @ApiOperationSupport(order = 30, author = "nacoyer")
+    public CommonResult<List<PosterTemplateDTO>> listPosterTemplate() {
+        return CommonResult.success(creativeImageManager.listPosterTemplate());
+    }
+
+    @GetMapping("/mapPosterTemplate")
+    @Operation(summary = "获取图片模板Map", description = "获取图片模板Map")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
+    public CommonResult<Map<String, PosterTemplateDTO>> mapPosterTemplate() {
+        return CommonResult.success(creativeImageManager.mapPosterTemplate());
+    }
+
+    @GetMapping("/listPosterTemplateType")
+    @Operation(summary = "获取图片模板类型列表", description = "获取图片模板类型列表")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
+    public CommonResult<List<PosterTemplateTypeDTO>> listPosterTemplateType() {
+        return CommonResult.success(creativeImageManager.listPosterTemplateType());
     }
 
     @GetMapping("/schemeTemplateList")
@@ -63,20 +91,6 @@ public class CreativeSchemeController {
     @ApiOperationSupport(order = 20, author = "nacoyer")
     public CommonResult<List<CreativeSchemeTemplateGroupRespVO>> schemeTemplateList() {
         return CommonResult.success(creativeSchemeService.schemeTemplateList());
-    }
-
-    @GetMapping("/posterTemplate")
-    @Operation(summary = "获取应用列表", description = "获取应用列表")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<PosterTemplateJson> getPosterTemplate(@RequestParam("templateId") String templateId) {
-        return CommonResult.success(creativeImageManager.getTemplate(templateId));
-    }
-
-    @GetMapping("/templateGroupByType")
-    @Operation(summary = "获取图片模板列表", description = "获取图片模板列表")
-    @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<PosterTemplateTypeDTO>> templateGroupByType() {
-        return CommonResult.success(creativeImageManager.templateGroupByType());
     }
 
     @GetMapping("/get/{uid}")

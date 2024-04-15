@@ -15,8 +15,8 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "PosterResponse", description = "海报请求响应")
-public class PosterDTO implements java.io.Serializable {
+@Schema(description = "海报请求响应")
+public class PosterImage implements java.io.Serializable {
 
     private static final long serialVersionUID = -1181017995368474414L;
 

@@ -45,11 +45,9 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourc
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeAppManager;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
-import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
@@ -86,16 +84,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     private CreativeSchemeMapper creativeSchemeMapper;
 
     @Resource
-    private CreativeAppManager creativeAppManager;
-
-    @Resource
     private AppDictionaryService appDictionaryService;
 
     @Resource
     private AppMarketService appMarketService;
-
-    @Resource
-    private CreativePlanService creativePlanService;
 
     @Resource
     private MaterialHandlerHolder materialHandlerHolder;
@@ -483,7 +475,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             return;
         }
         // 查询最新的海报模板
-        Map<String, PosterTemplateDTO> templateMap = creativeImageManager.mapTemplate();
+        Map<String, PosterTemplateDTO> templateMap = creativeImageManager.mapPosterTemplate();
         // 获取到海报样式集合
         List<PosterStyleDTO> styleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
         List<PosterStyleDTO> posterStyleList = Lists.newArrayList();

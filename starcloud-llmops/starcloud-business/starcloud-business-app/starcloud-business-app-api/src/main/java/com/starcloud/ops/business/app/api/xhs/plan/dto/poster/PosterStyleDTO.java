@@ -26,7 +26,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "PosterStyleDTO", description = "创作中心图片风格对象")
+@Schema(description = "创作中心图片风格对象")
 public class PosterStyleDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 3693634357817132472L;
@@ -34,8 +34,8 @@ public class PosterStyleDTO implements java.io.Serializable {
     /**
      * 风格id
      */
-    @Schema(description = "风格ID")
-    @NotBlank(message = "风格ID不能为空！")
+    @Schema(description = "风格UUID")
+    @NotBlank(message = "风格UUID不能为空！")
     private String uuid;
 
     /**
@@ -88,7 +88,7 @@ public class PosterStyleDTO implements java.io.Serializable {
      * 校验风格对象
      */
     public void validate() {
-        AppValidate.notBlank(uuid, "{}, 风格ID不能为空！请联系管理员！", this.name);
+        AppValidate.notBlank(uuid, "{}, 风格UUID不能为空！请联系管理员！", this.name);
         AppValidate.notEmpty(templateList, "{}, 请选择图片模板！", this.name);
         templateList.forEach(PosterTemplateDTO::validate);
     }

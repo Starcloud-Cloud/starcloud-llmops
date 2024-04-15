@@ -19,8 +19,8 @@ import javax.validation.constraints.NotBlank;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "CreativePlanModifyReqVO", description = "创作计划修改请求")
-public class CreativePlanModifyReqVO extends CreativePlanReqVO {
+@Schema(description = "创作计划修改请求")
+public class CreativePlanModifyReqVO extends CreativePlanCreateReqVO {
 
     private static final long serialVersionUID = 7513433575049699291L;
 

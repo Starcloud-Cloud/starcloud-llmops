@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.feign.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +18,8 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "PosterTemplateListDTO", description = "海报模板列表")
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@Schema(description = "海报模板")
 public class PosterTemplate implements java.io.Serializable {
 
     private static final long serialVersionUID = -3326228285861270645L;
@@ -57,5 +59,11 @@ public class PosterTemplate implements java.io.Serializable {
      */
     @Schema(description = "参数")
     private List<PosterParam> params;
+
+    /**
+     * 海报JSON配置
+     */
+    @Schema(description = "海报JSON配置")
+    private String json;
 
 }

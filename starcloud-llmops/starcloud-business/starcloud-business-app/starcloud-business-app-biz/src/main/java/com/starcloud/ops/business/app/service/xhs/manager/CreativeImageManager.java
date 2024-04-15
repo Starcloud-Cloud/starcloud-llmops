@@ -3,14 +3,14 @@ package com.starcloud.ops.business.app.service.xhs.manager;
 import cn.hutool.core.collection.CollectionUtil;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateTypeDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplateJson;
+import com.starcloud.ops.business.app.feign.dto.PosterTemplateType;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -53,8 +53,8 @@ public class CreativeImageManager {
      * @param templateId 模板ID
      * @return 模板
      */
-    public PosterTemplateJson getTemplate(String templateId) {
-        return posterService.getTemplate(templateId);
+    public PosterTemplateDTO getPosterTemplate(String templateId) {
+        return convertTemplate(posterService.getTemplate(templateId));
     }
 
     /**
@@ -62,8 +62,8 @@ public class CreativeImageManager {
      *
      * @return 图片模板
      */
-    public List<PosterTemplateDTO> templates() {
-        List<PosterTemplate> templates = posterService.templates();
+    public List<PosterTemplateDTO> listPosterTemplate() {
+        List<PosterTemplate> templates = posterService.listTemplate();
         return CollectionUtil.emptyIfNull(templates)
                 .stream()
                 .map(CreativeImageManager::convertTemplate)
@@ -75,8 +75,8 @@ public class CreativeImageManager {
      *
      * @return 图片模板 Map
      */
-    public Map<String, PosterTemplateDTO> mapTemplate() {
-        return CollectionUtil.emptyIfNull(templates())
+    public Map<String, PosterTemplateDTO> mapPosterTemplate() {
+        return CollectionUtil.emptyIfNull(listPosterTemplate())
                 .stream()
                 .collect(Collectors.toMap(PosterTemplateDTO::getCode, Function.identity()));
     }
@@ -86,8 +86,8 @@ public class CreativeImageManager {
      *
      * @return 模板列表
      */
-    public List<PosterTemplateTypeDTO> templateGroupByType() {
-        List<com.starcloud.ops.business.app.feign.dto.PosterTemplateTypeDTO> templateTypeList = posterService.templateGroupByType();
+    public List<PosterTemplateTypeDTO> listPosterTemplateType() {
+        List<PosterTemplateType> templateTypeList = posterService.listPosterTemplateType();
         return CollectionUtil.emptyIfNull(templateTypeList).stream()
                 .map(item -> {
                     // 获取模板列表
@@ -140,6 +140,7 @@ public class CreativeImageManager {
         template.setName(templateItem.getLabel());
         template.setExample(templateItem.getTempUrl());
         template.setVariableList(variables);
+        template.setJson(template.getJson());
         template.setTotalImageCount(imageNumber);
         return template;
     }
