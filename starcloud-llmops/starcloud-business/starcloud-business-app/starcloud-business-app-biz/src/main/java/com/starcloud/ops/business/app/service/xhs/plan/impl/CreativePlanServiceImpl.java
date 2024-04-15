@@ -396,8 +396,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO creativePlan = this.get(uid);
+        // 批量执行随机任务  新增批次
+        CreativePlanBatchReqVO bathRequest = CreativePlanBatchConvert.INSTANCE.convert(creativePlan);
+        String batchUid = creativePlanBatchService.create(bathRequest);
+
         // 生成任务
-        this.bathCreativeContent(creativePlan);
+        this.bathCreativeContent(creativePlan, batchUid);
         // 更新状态
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
@@ -412,7 +416,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param creativePlan 创作计划
      */
     @SuppressWarnings("all")
-    public void bathCreativeContent(CreativePlanRespVO creativePlan) {
+    public void bathCreativeContent(CreativePlanRespVO creativePlan, String batchUid) {
 
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
@@ -447,10 +451,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取资料库的具体处理器
         AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType);
         AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", materialType);
-
-        // 批量执行随机任务  新增批次
-        CreativePlanBatchReqVO bathRequest = CreativePlanBatchConvert.INSTANCE.convert(creativePlan);
-        String batchUid = creativePlanBatchService.create(bathRequest);
 
         /*
          * 将配置信息平铺为，进行平铺，生成执行参数，方便后续进行随机。
