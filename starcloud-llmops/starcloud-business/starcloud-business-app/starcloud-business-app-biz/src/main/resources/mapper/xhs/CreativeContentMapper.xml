@@ -5,7 +5,28 @@
     <!-- 创作内容任务查询 -->
     <select id="listTask" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO">
         SELECT
-        content.*
+        content.id,
+        content.uid,
+        content.batch_uid,
+        content.plan_uid,
+        content.conversation_uid,
+        content.type,
+        content.execute_param,
+        content.execute_result,
+        content.start_time,
+        content.end_time,
+        content.elapsed,
+        content.status,
+        content.retry_count,
+        content.error_message,
+        content.liked,
+        content.claim,
+        content.deleted,
+        content.creator,
+        content.updater,
+        content.create_time,
+        content.update_time,
+        content.tenant_id
         FROM
         llm_creative_content content
         INNER JOIN llm_creative_plan plan ON content.plan_uid = plan.uid
@@ -26,7 +47,7 @@
             AND content.type = #{query.type}
         </if>
         <if test="query.retryProcess != null and query.retryProcess == true">
-            AND content.retry_count &gt;= 1 and content.status = 'execute_error'
+            AND content.retry_count &gt;= 1 and content.status = 'FAILURE'
         </if>
         ORDER BY content.update_time
         <if test="query.bathCount != null and query.bathCount gt 0">
