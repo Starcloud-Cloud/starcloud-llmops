@@ -63,7 +63,7 @@ public interface AdminUserLevelMapper extends BaseMapperX<AdminUserLevelDO> {
     }
 
 
-    // 获取指定时间下有效的会员等级数据
+    // 查询当前时间下未过期的数据
     default List<AdminUserLevelDO> selectListByStatusAndValidTimeGe(Long userId, List<Long> levelId, LocalDateTime dateTime, Integer status) {
         return selectList(new LambdaQueryWrapper<AdminUserLevelDO>()
                 .eq(AdminUserLevelDO::getUserId, userId)
