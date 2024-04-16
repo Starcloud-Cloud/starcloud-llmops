@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -60,6 +61,9 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
 
             // 执行生成图片
             Response response = this.poster(request);
+            if (Objects.isNull(response)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "海报生成结果不存在！");
+            }
             // 处理响应结果
             handlerResponse.setSuccess(Boolean.TRUE);
             handlerResponse.setAnswer(JSONUtil.toJsonStr(response));

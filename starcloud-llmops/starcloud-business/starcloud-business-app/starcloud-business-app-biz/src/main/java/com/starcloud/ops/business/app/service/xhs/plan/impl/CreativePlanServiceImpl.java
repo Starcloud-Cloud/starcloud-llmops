@@ -425,7 +425,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取创作计划的素材配置
         List<AbstractCreativeMaterialDTO> materialList = configuration.getMaterialList();
 
-
         /*
          * 获取计划应用信息
          */

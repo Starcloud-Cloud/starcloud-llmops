@@ -80,7 +80,7 @@ public class PosterActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @NoticeVar
-    @TaskService(name = "PosterActionHandler", invoke = @Invoke(timeout = 180000))
+    @TaskService(name = "PosterActionHandler", invoke = @Invoke(timeout = 1800000))
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         return super.execute(context, scopeDataOperator);
