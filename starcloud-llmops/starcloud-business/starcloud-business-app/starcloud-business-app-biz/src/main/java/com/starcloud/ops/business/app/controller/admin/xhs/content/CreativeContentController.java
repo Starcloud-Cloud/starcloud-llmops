@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.content;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -92,9 +94,28 @@ public class CreativeContentController {
         return CommonResult.success(request.getUid());
     }
 
+    @GetMapping("/listExample")
+    @Operation(summary = "获取示例列表")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 90, author = "nacoyer")
+    public CommonResult<List<CreativeContentRespVO>> listExample(@RequestParam("uidList") List<String> uidList) {
+        CreativeContentListReqVO query = new CreativeContentListReqVO();
+        query.setUidList(uidList);
+        List<CreativeContentRespVO> result = creativeContentService.list(query);
+        return CommonResult.success(result);
+    }
+
+    @GetMapping("/getExample")
+    @Operation(summary = "示例创作内容详情")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<CreativeContentRespVO> exampleDetail(@RequestParam("uid") String uid) {
+        return CommonResult.success(creativeContentService.detail(uid));
+    }
+
     @PostMapping("batchExecute")
     @Operation(summary = "批量执行", description = "批量执行")
-    @ApiOperationSupport(order = 90, author = "nacoyer")
+    @ApiOperationSupport(order = 110, author = "nacoyer")
     public CommonResult<List<CreativeContentExecuteRespVO>> batchExecute(@Validated @RequestBody List<String> request) {
         CreativeContentListReqVO query = new CreativeContentListReqVO();
         query.setUidList(request);
