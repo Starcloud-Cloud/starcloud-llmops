@@ -4,14 +4,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseR
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.*;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -187,6 +180,23 @@ public class RecommendActionFactory {
         step.setVersion(AppConstants.DEFAULT_VERSION);
         step.setIcon("content");
         step.setTags(Collections.singletonList("Custom"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
+        return step;
+    }
+
+    public static WorkflowStepRespVO defImitateActionStep(String defaultPrompt) {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName("笔记仿写");
+        step.setDescription("仿写笔记标题和内容");
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(ImitateActionHandler.class.getSimpleName());
+        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("content");
+        step.setTags(Collections.singletonList("Imitate"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
         return step;

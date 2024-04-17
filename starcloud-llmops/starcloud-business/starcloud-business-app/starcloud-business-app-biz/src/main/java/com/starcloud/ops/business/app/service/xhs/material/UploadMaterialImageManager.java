@@ -6,16 +6,25 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.infra.service.file.FileService;
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.ContractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.note.ImageInfo;
+import com.starcloud.ops.business.app.api.xhs.note.NoteDetail;
+import com.starcloud.ops.business.app.api.xhs.note.NoteImage;
+import com.starcloud.ops.business.app.api.xhs.note.NoteTag;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
+import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -26,25 +35,14 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.UPLOAD_QUEUE_FULL;
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_IMPORT_ERROR;
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_PREFIX;
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.TMP_DIR_PATH;
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.WORD_PARSE;
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.*;
 
 @Slf4j
 @Component
@@ -56,6 +54,9 @@ public class UploadMaterialImageManager implements InitializingBean {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Resource
+    private XhsNoteDetailWrapper xhsNoteDetailWrapper;
+
 
     // 图片上传线程池
     private ThreadPoolExecutor threadPoolExecutor;
@@ -65,9 +66,10 @@ public class UploadMaterialImageManager implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
+        AtomicInteger atomicInteger = new AtomicInteger(1);
         threadPoolExecutor = new ThreadPoolExecutor(4, 16,
                 1, TimeUnit.MINUTES, new SynchronousQueue<>(), r -> {
-            Thread thread = new Thread(r, "image-upload-thread");
+            Thread thread = new Thread(r, "image-upload-thread-" + atomicInteger.getAndIncrement());
             thread.setDaemon(true);
             return thread;
         }, new BlockPolicy());
@@ -300,4 +302,54 @@ public class UploadMaterialImageManager implements InitializingBean {
 
     }
 
+    public List<AbstractCreativeMaterialDTO> parseXhs(ParseXhsReqVO parseXhsReqVO) {
+        long start = System.currentTimeMillis();
+        log.info("start parse xhs note");
+        List<String> noteUrlList = parseXhsReqVO.getNoteUrlList();
+        Map<String, AbstractCreativeMaterialDTO> resultMap = new ConcurrentHashMap<>(noteUrlList.size());
+        CountDownLatch countDownLatch = new CountDownLatch(noteUrlList.size());
+
+        for (String noteUrl : noteUrlList) {
+            threadPoolExecutor.execute(() -> parseXhs(noteUrl, parseXhsReqVO.getMaterialType(), resultMap, countDownLatch));
+        }
+
+        try {
+            if (countDownLatch.await(30, TimeUnit.SECONDS)) {
+                long end = System.currentTimeMillis();
+                log.info("parse xhs note success, {} ms", end - start);
+            }
+            return noteUrlList.stream().map(resultMap::get).filter(Objects::nonNull).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("xhs note wait error", e);
+        }
+        return Collections.emptyList();
+    }
+
+    private void parseXhs(String noteUrl, String materialType, Map<String, AbstractCreativeMaterialDTO> resultMap, CountDownLatch countDownLatch) {
+        try {
+            XhsDetailConstants.validNoteUrl(noteUrl);
+            String noteId = XhsDetailConstants.parsingNoteId(noteUrl);
+            NoteDetail noteDetail = xhsNoteDetailWrapper.requestDetail(noteId).getNoteDetail();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type", materialType);
+            jsonObject.put("title", noteDetail.getTitle());
+            jsonObject.put("content", noteDetail.getDesc());
+
+            if (!CollectionUtils.isEmpty(noteDetail.getImageList())) {
+                for (NoteImage noteImage : noteDetail.getImageList()) {
+                    List<String> images = Optional.ofNullable(noteImage.getInfoList()).orElse(Collections.emptyList()).stream().map(ImageInfo::getUrl).collect(Collectors.toList());
+                    jsonObject.put("images", images);
+                }
+            }
+
+            if (!CollectionUtils.isEmpty(noteDetail.getTagList())) {
+                jsonObject.put("tags", noteDetail.getTagList().stream().map(NoteTag::getName).collect(Collectors.toList()));
+            }
+            jsonObject.put("link", noteUrl);
+            resultMap.put(noteUrl, JsonUtils.parseObject(jsonObject.toJSONString(), AbstractCreativeMaterialDTO.class));
+        } catch (Exception e) {
+            log.warn("parse xhs note error, noteUrl={}", noteUrl, e);
+        }
+        countDownLatch.countDown();
+    }
 }

@@ -146,11 +146,6 @@ public class RecommendVariableFactory {
         refers.setOrder(4);
         refers.setIsShow(Boolean.TRUE);
 
-        // 草靠素材
-        VariableItemRespVO refersImitate = RecommendVariableItemFactory.defMediaMatrixRefersImitate();
-        refersImitate.setOrder(5);
-        refersImitate.setIsShow(Boolean.FALSE);
-
         // 生成要求
         VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
         requirement.setOrder(6);
@@ -171,7 +166,78 @@ public class RecommendVariableFactory {
                 materialType,
                 refersCount,
                 refers,
+                requirement,
+                jsonSchema,
+                respJsonSchema
+        ));
+        return variable;
+    }
+
+
+    /**
+     * 笔记仿写内容变量
+     *
+     * @return 变量
+     */
+    public static VariableRespVO defImitateVariable() {
+        VariableRespVO variable = new VariableRespVO();
+        // 生成模式
+        VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaMatrixGenerateVariable();
+        generateVariable.setOrder(1);
+        generateVariable.setIsShow(Boolean.TRUE);
+
+        // 素材类型
+        VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixMaterialType();
+        materialType.setOrder(2);
+        materialType.setIsShow(Boolean.FALSE);
+
+        // 素材参考数量
+        VariableItemRespVO refersCount = RecommendVariableItemFactory.defMediaMatrixRefersCount();
+        refersCount.setOrder(3);
+        refersCount.setIsShow(Boolean.FALSE);
+
+        // 参考素材
+        VariableItemRespVO refers = RecommendVariableItemFactory.defMediaMatrixRefers();
+        refers.setOrder(4);
+        refers.setIsShow(Boolean.TRUE);
+        // 模仿元素
+        VariableItemRespVO refersImitate = RecommendVariableItemFactory.defMediaMatrixRefersImitate();
+        refersImitate.setOrder(5);
+        refersImitate.setIsShow(Boolean.FALSE);
+
+        // 参考标签
+        VariableItemRespVO refersTag = RecommendVariableItemFactory.defMediaMatrixRefersTag();
+        refersImitate.setOrder(6);
+        refersImitate.setIsShow(Boolean.FALSE);
+
+        // 参考图片
+        VariableItemRespVO refersImage = RecommendVariableItemFactory.defMediaMatrixRefersImage();
+        refersImitate.setOrder(7);
+        refersImitate.setIsShow(Boolean.FALSE);
+
+        // 生成要求
+        VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
+        requirement.setOrder(8);
+        requirement.setIsShow(Boolean.TRUE);
+
+        // JSON Schema
+        VariableItemRespVO jsonSchema = RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema();
+        jsonSchema.setOrder(9);
+        jsonSchema.setIsShow(Boolean.FALSE);
+
+        // 响应JSON Schema
+        VariableItemRespVO respJsonSchema = RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema();
+        respJsonSchema.setOrder(10);
+        respJsonSchema.setIsShow(Boolean.FALSE);
+
+        variable.setVariables(Arrays.asList(
+                generateVariable,
+                materialType,
+                refersCount,
+                refers,
                 refersImitate,
+                refersTag,
+                refersImage,
                 requirement,
                 jsonSchema,
                 respJsonSchema

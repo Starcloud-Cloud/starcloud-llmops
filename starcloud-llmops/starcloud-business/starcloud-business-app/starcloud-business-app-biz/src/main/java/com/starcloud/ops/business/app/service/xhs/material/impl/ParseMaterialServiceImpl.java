@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
@@ -126,5 +127,8 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
     }
 
-
+    @Override
+    public List<AbstractCreativeMaterialDTO> parseXhs(ParseXhsReqVO parseXhsReqVO) {
+        return uploadMaterialImageManager.parseXhs(parseXhsReqVO);
+    }
 }

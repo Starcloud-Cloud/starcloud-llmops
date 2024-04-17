@@ -415,6 +415,29 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
+
+    /**
+     * 笔记仿写生成模式
+     *
+     * @return 生成模式
+     */
+    public static VariableItemRespVO defMediaImitateGenerateVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.GENERATE_MODE);
+        variableItem.setLabel("生成模式");
+        variableItem.setDescription("生成模式");
+        variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setOrder(1000);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.RADIO.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_PARODY.getLabel(), CreativeSchemeGenerateModeEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
+        return variableItem;
+    }
+
     /**
      * AI参考内容随机获取数量
      *
@@ -467,6 +490,38 @@ public class RecommendVariableItemFactory {
         variableItem.setOrder(102);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.MATERIAL.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    public static VariableItemRespVO defMediaMatrixRefersTag() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REFERS_TAG);
+        variableItem.setLabel("参考标签");
+        variableItem.setDescription("参考标签");
+        variableItem.setDefaultValue(null);
+        variableItem.setValue(null);
+        variableItem.setOrder(102);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TAG_BOX.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    public static VariableItemRespVO defMediaMatrixRefersImage() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.REFERS_IMAGE);
+        variableItem.setLabel("参考图片");
+        variableItem.setDescription("参考图片");
+        variableItem.setDefaultValue(null);
+        variableItem.setValue(null);
+        variableItem.setOrder(102);
+        variableItem.setType(AppVariableTypeEnum.IMAGE.name());
+        variableItem.setStyle(AppVariableStyleEnum.IMAGE.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);

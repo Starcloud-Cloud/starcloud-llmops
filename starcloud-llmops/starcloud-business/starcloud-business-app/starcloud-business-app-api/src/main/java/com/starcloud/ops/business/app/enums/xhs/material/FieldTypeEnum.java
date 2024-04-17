@@ -13,6 +13,8 @@ public enum FieldTypeEnum {
 
     image("image", "图片"),
 
+    listImage("listImage", "图片"),
+
     string("string", "字符串输入框"),
 
     decimal("decimal", "小数"),

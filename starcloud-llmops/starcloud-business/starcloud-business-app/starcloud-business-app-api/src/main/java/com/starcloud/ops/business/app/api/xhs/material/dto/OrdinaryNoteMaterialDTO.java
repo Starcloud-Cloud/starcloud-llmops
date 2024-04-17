@@ -30,6 +30,12 @@ public class OrdinaryNoteMaterialDTO extends AbstractCreativeMaterialDTO {
     @FieldDefine(desc = "内容", type = FieldTypeEnum.textBox, required = true)
     private String content;
 
+    @FieldDefine(desc = "图片", type = FieldTypeEnum.listImage)
+    private List<String> images;
+
+    @FieldDefine(desc = "标签", type = FieldTypeEnum.listStr)
+    private List<String> tags;
+
     @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
     private List<String> imitateType;
 
