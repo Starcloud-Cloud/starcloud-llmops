@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +45,9 @@ public class CreativeContentController {
 
     @Resource
     private CreativeContentService creativeContentService;
+
+    @Resource
+    private CreativeThreadPoolHolder creativeThreadPoolHolder;
 
     @GetMapping("/detail/{uid}")
     @Operation(summary = "创作内容详情")
@@ -66,9 +71,11 @@ public class CreativeContentController {
 
     @PostMapping("/regenerate")
     @Operation(summary = "重新生成")
-    public CommonResult<String> regenerate(@Valid @RequestBody CreativeContentRegenerateReqVO request) {
-        creativeContentService.regenerate(request);
-        return CommonResult.success(request.getUid());
+    public CommonResult<Boolean> regenerate(@Valid @RequestBody CreativeContentRegenerateReqVO request) {
+        // 异步执行，直接返回
+        ThreadPoolExecutor executor = creativeThreadPoolHolder.executor();
+        executor.execute(() -> creativeContentService.regenerate(request));
+        return CommonResult.success(true);
     }
 
     @PostMapping("/retry")
