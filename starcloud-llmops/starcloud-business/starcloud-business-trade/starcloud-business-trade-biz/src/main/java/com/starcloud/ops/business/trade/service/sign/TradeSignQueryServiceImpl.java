@@ -31,10 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static cn.hutool.core.date.DatePattern.CHINESE_DATE_TIME_PATTERN;
 
@@ -74,9 +72,6 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
 
     @Resource
     private DingTalkNoticeProperties dingTalkNoticeProperties;
-    @Autowired
-    private JsonUtils jsonUtils;
-
 
     /**
      * 获得指定编号的交易订单
