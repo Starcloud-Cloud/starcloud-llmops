@@ -2,7 +2,6 @@ package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
@@ -27,7 +26,6 @@ import com.starcloud.ops.business.trade.enums.order.TradeOrderStatusEnum;
 import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.trade.service.order.TradeOrderUpdateService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
