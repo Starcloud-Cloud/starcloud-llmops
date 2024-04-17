@@ -521,7 +521,7 @@ public class RecommendVariableItemFactory {
         variableItem.setValue(null);
         variableItem.setOrder(102);
         variableItem.setType(AppVariableTypeEnum.IMAGE.name());
-        variableItem.setStyle(AppVariableStyleEnum.IMAGE.name());
+        variableItem.setStyle(AppVariableStyleEnum.IMAGE_LIST.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
