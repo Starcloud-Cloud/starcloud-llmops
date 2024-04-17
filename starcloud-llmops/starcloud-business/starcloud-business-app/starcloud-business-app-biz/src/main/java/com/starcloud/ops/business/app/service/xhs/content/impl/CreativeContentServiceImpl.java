@@ -398,7 +398,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     private CreativeContentRespVO convertWithProgress(CreativeContentDO creativeContent) {
         CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(creativeContent);
-        if (CreativeContentStatusEnum.EXECUTING.name().equals(response.getStatus())) {
+        if (!CreativeContentStatusEnum.SUCCESS.name().equals(response.getStatus())) {
             // 获取执行进度
             AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
             response.setProgress(progress);
