@@ -358,7 +358,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         AppValidate.notBlank(status, CreativeErrorCodeConstants.PLAN_STATUS_REQUIRED);
         // 校验状态，状态必须是枚举值，且不能将状态修改为待执行
-        if (!CreativePlanStatusEnum.containsAndPending(status)) {
+        if (CreativePlanStatusEnum.PENDING.name().equals(status)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_ALLOW_UPDATE, status);
         }
 

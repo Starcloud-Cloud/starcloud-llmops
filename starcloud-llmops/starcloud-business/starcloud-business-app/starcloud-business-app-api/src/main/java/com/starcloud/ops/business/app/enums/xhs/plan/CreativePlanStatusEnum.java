@@ -63,16 +63,6 @@ public enum CreativePlanStatusEnum implements IEnumable<Integer> {
     }
 
     /**
-     * 判断是否是待执行
-     *
-     * @param name 状态
-     * @return 是否是待执行
-     */
-    public static Boolean containsAndPending(String name) {
-        return CreativePlanStatusEnum.contains(name) && CreativePlanStatusEnum.PENDING.name().equals(name);
-    }
-
-    /**
      * 判断是否可以修改状态
      *
      * @param name 状态
