@@ -234,7 +234,7 @@ public class RecommendVariableFactory {
                 generateVariable,
                 materialType,
                 refersCount,
-                refers,
+//                refers,
                 refersImitate,
                 refersTag,
                 refersImage,
