@@ -24,11 +24,14 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
+import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.app.dal.mysql.xhs.batch.CreativePlanBatchMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -61,14 +64,17 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private CreativeContentMapper creativeContentMapper;
 
     @Resource
-    private CreativeExecuteManager creativeExecuteManager;
+    private CreativePlanBatchMapper creativePlanBatchMapper;
+
+    @Resource
+    private CreativePlanMapper creativePlanMapper;
 
     @Resource
     @Lazy
     private CreativePlanService creativePlanService;
 
     @Resource
-    private CreativePlanMapper creativePlanMapper;
+    private CreativeExecuteManager creativeExecuteManager;
 
     @Resource
     private AppStepStatusCache appStepStatusCache;
@@ -290,18 +296,28 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO content = creativeContentMapper.get(uid);
         AppValidate.notNull(content, "创作内容不存在({})", uid);
 
+        // 如果当前状态不是最终失败，则不需要进行重试
         if (!CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(content.getStatus())) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(300500001, "该任务状态不需要进行重试！"), uid);
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "该任务状态不需要进行重试！"), uid);
         }
 
-        // 更新任务状态信息
-        CreativeContentDO modify = new CreativeContentDO();
-        modify.setId(content.getId());
-        modify.setRetryCount(0);
-        modify.setStatus(CreativeContentStatusEnum.INIT.name());
-        creativeContentMapper.updateById(modify);
+        // 更新任务状态状态
+        CreativeContentDO contentUpdate = new CreativeContentDO();
+        contentUpdate.setId(content.getId());
+        contentUpdate.setStatus(CreativeContentStatusEnum.INIT.name());
+        contentUpdate.setRetryCount(0);
+        contentUpdate.setElapsed(0L);
+        contentUpdate.setStartTime(null);
+        contentUpdate.setEndTime(null);
+        creativeContentMapper.updateById(contentUpdate);
 
-        // 更新计划状态信息
+        // 更新计划批次状态
+        LambdaUpdateWrapper<CreativePlanBatchDO> batchUpdateWrapper = Wrappers.lambdaUpdate(CreativePlanBatchDO.class);
+        batchUpdateWrapper.eq(CreativePlanBatchDO::getUid, content.getPlanUid());
+        batchUpdateWrapper.set(CreativePlanBatchDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
+        creativePlanBatchMapper.update(batchUpdateWrapper);
+
+        // 更新计划状态状态
         LambdaUpdateWrapper<CreativePlanDO> planUpdateWrapper = Wrappers.lambdaUpdate(CreativePlanDO.class);
         planUpdateWrapper.eq(CreativePlanDO::getUid, content.getPlanUid());
         planUpdateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
