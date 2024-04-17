@@ -81,7 +81,7 @@ public class ImitateActionHandler extends BaseActionHandler {
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
         // 获取到参考内容
-        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
+        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS_IMITATE, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
 
         // 需要交给 ChatGPT 的参考内容数量
