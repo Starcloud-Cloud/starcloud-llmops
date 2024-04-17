@@ -521,7 +521,7 @@ public class RecommendVariableItemFactory {
         variableItem.setValue(null);
         variableItem.setOrder(102);
         variableItem.setType(AppVariableTypeEnum.IMAGE.name());
-        variableItem.setStyle(AppVariableStyleEnum.IMAGE.name());
+        variableItem.setStyle(AppVariableStyleEnum.IMAGE_LIST.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
@@ -533,7 +533,7 @@ public class RecommendVariableItemFactory {
         variableItem.setField(CreativeConstants.MATERIAL_TYPE);
         variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_DESCRIPTION"));
-        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setDefaultValue(MaterialTypeEnum.NOTE.getCode());
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(10000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
