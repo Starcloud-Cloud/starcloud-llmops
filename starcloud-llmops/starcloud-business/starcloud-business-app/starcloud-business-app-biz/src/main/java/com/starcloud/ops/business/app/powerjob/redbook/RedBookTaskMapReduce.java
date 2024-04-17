@@ -225,9 +225,11 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     @Override
     @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
+        log.info("任务执行完成！开始更新创作计划，创作计划批次状态！任务结果\n：{}", JsonUtils.toJsonPrettyString(taskResults));
 
+        // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
         if (CollectionUtils.isEmpty(taskResults)) {
-            return new ProcessResult(true, "reduce_success");
+            return new ProcessResult(true, "任务结果为空！不需要进行更新创作计划，创作计划批次状态！");
         }
 
         //查询计划表下的 所有状态，并更新计划表的状态
@@ -238,8 +240,12 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 .filter(item -> StringUtils.isNotBlank(item.getBatchUid()))
                 .collect(Collectors.toList());
 
+        // 需要更新的计划列表
+        log.info("需要更新状态的创作计划：{}", JsonUtils.toJsonString(planUidList));
         updateInstance(planUidList);
 
+        // 计划更新完成
+        log.info("任务执行完成，更新计划完成！！！");
         return new ProcessResult(true, taskResults.toString());
     }
 

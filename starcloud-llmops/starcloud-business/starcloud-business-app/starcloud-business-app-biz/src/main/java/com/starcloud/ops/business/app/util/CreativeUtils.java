@@ -359,6 +359,8 @@ public class CreativeUtils {
         variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
         appMarket.putStepVariable(wrapper.getField(), variableMap);
 
+        // 示例取最新的
+        appMarket.setExample(latestAppMarket.getExample());
         return appMarket;
     }
 

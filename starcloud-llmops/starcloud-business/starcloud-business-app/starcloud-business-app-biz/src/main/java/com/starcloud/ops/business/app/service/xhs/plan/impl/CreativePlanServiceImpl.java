@@ -15,7 +15,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchListReqVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -250,6 +249,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
+        // 校验创作计划状态，只能修改待执行、已完成、失败的创作计划
+        if (!CreativePlanStatusEnum.canModifyStatus(plan.getStatus())) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
+        }
+
         // 更新创作计划
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
@@ -306,11 +310,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.list(contentQuery));
 
             // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
-            boolean bathComplete = batchList
-                    .stream()
+            boolean bathComplete = batchList.stream()
                     .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
-            boolean contentComplete = contentList
-                    .stream()
+            boolean contentComplete = contentList.stream()
                     .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
 
             if (bathComplete && contentComplete) {
@@ -320,9 +322,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             }
 
             // 当前计划下只要有彻底失败的，则计划失败
-            boolean contentFailure = contentList
-                    .stream()
+            boolean contentFailure = contentList.stream()
                     .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
+
             if (contentFailure) {
                 log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
                 updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
@@ -396,14 +398,17 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO creativePlan = this.get(uid);
-        // 批量执行随机任务  新增批次
-        CreativePlanBatchReqVO bathRequest = CreativePlanBatchConvert.INSTANCE.convert(creativePlan);
-        String batchUid = creativePlanBatchService.create(bathRequest);
+
+        // 新增一条计划批次
+        String batchUid = creativePlanBatchService.create(CreativePlanBatchConvert.INSTANCE.convert(creativePlan));
 
         // 生成任务
         this.bathCreativeContent(creativePlan, batchUid);
 
-        // 更新状态
+        // 更新批次状态为执行中
+        creativePlanBatchService.startBatch(batchUid);
+
+        // 更新计划状态为执行中
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
         updateWrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());

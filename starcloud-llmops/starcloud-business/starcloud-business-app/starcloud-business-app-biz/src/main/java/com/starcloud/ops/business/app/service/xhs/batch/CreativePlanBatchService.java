@@ -48,6 +48,13 @@ public interface CreativePlanBatchService {
     String create(CreativePlanBatchReqVO request);
 
     /**
+     * 开始执行批次，将批次状态更改为执行中
+     *
+     * @param batchUid 批次UID
+     */
+    void startBatch(String batchUid);
+
+    /**
      * 更新批次状态
      *
      * @param batchUid 批次UID

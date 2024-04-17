@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.bath.vo.response;
 
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.enums.xhs.batch.CreativePlanBatchStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -77,7 +77,7 @@ public class CreativePlanBatchRespVO {
     private Long elapsed;
 
     /**
-     * 批次状态，执行中，执行结束 {@link CreativePlanBatchStatusEnum}
+     * 批次状态，执行中，执行结束 {@link CreativePlanStatusEnum}
      */
     @Schema(description = "批次状态")
     private String status;

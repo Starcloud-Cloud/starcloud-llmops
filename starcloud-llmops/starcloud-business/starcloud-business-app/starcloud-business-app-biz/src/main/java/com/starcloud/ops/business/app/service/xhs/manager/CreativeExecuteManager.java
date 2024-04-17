@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
@@ -53,8 +52,8 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -322,7 +321,7 @@ public class CreativeExecuteManager {
         executing.setId(latestContent.getId());
         executing.setStartTime(start);
         executing.setStatus(CreativeContentStatusEnum.EXECUTING.name());
-        executing.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        executing.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(executing);
     }
 
@@ -342,18 +341,20 @@ public class CreativeExecuteManager {
             updateContentUltimateFailure(latestContent, start, errorMsg, maxRetry);
             return;
         }
+
+        LocalDateTime end = LocalDateTime.now();
+        long elapsed = Duration.between(start, end).toMillis();
+
         CreativeContentDO content = new CreativeContentDO();
         content.setId(latestContent.getId());
         content.setErrorMessage(errorMsg);
         content.setRetryCount(retry + 1);
         content.setStatus(CreativeContentStatusEnum.FAILURE.name());
         content.setStartTime(start);
-        LocalDateTime end = LocalDateTime.now();
         content.setEndTime(end);
-        Long elapsed = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         content.setElapsed(elapsed);
         content.setUpdateTime(end);
-        content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        content.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(content);
     }
 
@@ -365,17 +366,18 @@ public class CreativeExecuteManager {
      * @param errorMsg      错误信息
      */
     private void updateContentUltimateFailure(CreativeContentDO latestContent, LocalDateTime start, String errorMsg, Integer maxRetry) {
+        LocalDateTime end = LocalDateTime.now();
+        long elapsed = Duration.between(start, end).toMillis();
+
         CreativeContentDO content = new CreativeContentDO();
         content.setId(latestContent.getId());
         content.setErrorMessage(errorMsg);
         content.setRetryCount(maxRetry);
         content.setStatus(CreativeContentStatusEnum.ULTIMATE_FAILURE.name());
-        LocalDateTime end = LocalDateTime.now();
         content.setEndTime(end);
-        Long executeTime = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-        content.setElapsed(executeTime);
+        content.setElapsed(elapsed);
         content.setUpdateTime(end);
-        content.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        content.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(content);
     }
 
@@ -387,9 +389,9 @@ public class CreativeExecuteManager {
      * @param executeResult 执行结果
      */
     private void updateContentSuccess(CreativeContentDO latestContent, CreativeContentExecuteResult executeResult, LocalDateTime start) {
-        // 更新执行结果
         LocalDateTime end = LocalDateTime.now();
-        long elapsed = end.toInstant(ZoneOffset.ofHours(8)).toEpochMilli() - start.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        long elapsed = Duration.between(start, end).toMillis();
+        // 更新执行结果
         CreativeContentDO updateContent = new CreativeContentDO();
         updateContent.setId(latestContent.getId());
         updateContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
@@ -398,7 +400,7 @@ public class CreativeExecuteManager {
         updateContent.setElapsed(elapsed);
         updateContent.setStatus(CreativeContentStatusEnum.SUCCESS.name());
         updateContent.setUpdateTime(end);
-        updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        updateContent.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(updateContent);
     }
 
