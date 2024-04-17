@@ -225,14 +225,13 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     @Override
     @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-        log.info("创作内容后置处理器开始执行：更新创作状态开始！");
 
         // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
         if (CollectionUtils.isEmpty(taskResults)) {
             return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
         }
 
-        //查询计划表下的 所有状态，并更新计划表的状态
+        // 查询计划表下的 所有状态，并更新计划表的状态
         List<SubTaskResult> subTaskResultList = taskResults.stream()
                 .filter(item -> StringUtils.isNotBlank(item.getResult()))
                 .map(item -> JsonUtils.parseObject(item.getResult(), SubTaskResult.class))
@@ -240,6 +239,13 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 .filter(item -> StringUtils.isNotBlank(item.getPlanUid()))
                 .filter(item -> StringUtils.isNotBlank(item.getBatchUid()))
                 .collect(Collectors.toList());
+
+        // 如果为空，说明不需要更新计划状态
+        if (CollectionUtils.isEmpty(subTaskResultList)) {
+            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
+        }
+
+        log.info("创作内容后置处理器开始执行：更新创作状态开始！");
 
         // 需要更新的计划列表
         log.info("需要更新创作状态的子任务：{}", JsonUtils.toJsonPrettyString(subTaskResultList));

@@ -288,13 +288,16 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePlanStatus(String planUid, String batchUid) {
-        log.info("开始更新计划状态，planUid: {}", planUid);
+        log.info("更新计划状态【开始】，planUid: {}", planUid);
         String key = "creative-plan-update-status-" + planUid;
         RLock lock = redissonClient.getLock(key);
         try {
             if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
                 return;
             }
+
+            CreativePlanDO plan = creativePlanMapper.get(planUid);
+            AppValidate.notNull(plan, "创作计划不存在！UID: {}", planUid);
 
             // 创作计划批次状态更新
             creativePlanBatchService.updateStatus(batchUid);
@@ -318,6 +321,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (bathComplete && contentComplete) {
                 log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
                 updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
+                log.info("更新计划状态【结束】，planUid: {}", planUid);
                 return;
             }
 
@@ -328,9 +332,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (contentFailure) {
                 log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
                 updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
+                log.info("更新计划状态【结束】，planUid: {}", planUid);
+                return;
             }
 
-            log.info("更新计划状态完成，planUid: {}", planUid);
+            log.info("不需要更新计划状态，planUid: {}，status：{}", planUid, plan.getStatus());
+            log.info("更新计划状态【结束】，planUid: {}", planUid);
         } catch (Exception exception) {
             log.warn("更新计划失败: {}", planUid, exception);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPDATE_STATUS_FAILED, planUid, exception.getMessage());

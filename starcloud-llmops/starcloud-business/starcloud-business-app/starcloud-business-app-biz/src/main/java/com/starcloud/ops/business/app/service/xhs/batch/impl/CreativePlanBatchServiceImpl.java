@@ -120,6 +120,8 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
     @Override
     public void updateStatus(String batchUid) {
 
+        log.info("更新计划批次状态【开始】，batchUid: {}", batchUid);
+
         // 查询批次
         CreativePlanBatchDO creativePlanBatch = creativePlanBatchMapper.get(batchUid);
         AppValidate.notNull(creativePlanBatch, "创作计划批次不存在({})!", batchUid);
@@ -159,6 +161,7 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
         // 计算之后的状态如果还是待执行或者执行中，则不进行更新
         if (CreativePlanStatusEnum.PENDING.name().equals(status) ||
                 CreativePlanStatusEnum.RUNNING.name().equals(status)) {
+            log.info("创作批次不需要进行修改！状态: {}, 成功数量: {}，失败数量: {}", status, successCount, failureCount);
             return;
         }
 
@@ -177,6 +180,8 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
         updateBath.setUpdater(creativePlanBatch.getUpdater());
         updateBath.setUpdateTime(now);
         creativePlanBatchMapper.updateById(updateBath);
+
+        log.info("更新计划批次状态【结束】，batchUid: {}", batchUid);
     }
 
     /**
