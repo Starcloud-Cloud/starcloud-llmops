@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -453,12 +454,12 @@ public class CreativeUtils {
         if (Objects.nonNull(materialWrapper)) {
             String materialType = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_TYPE);
             if (StringUtils.isBlank(materialType) || "null".equalsIgnoreCase(materialType)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材类型不能为空！请联系管理员！");
+                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材类型不能为空！请联系管理员！"));
             }
 
             String materialList = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
             if (StringUtils.isBlank(materialList) || "[]".equals(materialList) || "null".equalsIgnoreCase(materialList)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！");
+                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！"));
             }
         }
     }
@@ -474,7 +475,7 @@ public class CreativeUtils {
         if (Objects.nonNull(posterWrapper)) {
             String posterStyle = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE);
             if (StringUtils.isBlank(posterStyle) || "{}".equals(posterStyle) || "null".equalsIgnoreCase(posterStyle)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成配置不能为空！请配置图片生成后重试！");
+                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成配置不能为空！请配置图片生成后重试！"));
             }
         }
     }

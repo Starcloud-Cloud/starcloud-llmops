@@ -62,7 +62,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             // 执行生成图片
             Response response = this.poster(request);
             if (Objects.isNull(response)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "海报生成结果不存在！");
+                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "海报生成结果不存在！"));
             }
             // 处理响应结果
             handlerResponse.setSuccess(Boolean.TRUE);
@@ -71,10 +71,10 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             return handlerResponse;
         } catch (ServiceException exception) {
             log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
-            throw ServiceExceptionUtil.exception(exception.getCode(), exception.getMessage());
+            throw exception;
         } catch (Exception exception) {
             log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
-            throw ServiceExceptionUtil.exception(350400200, exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, exception.getMessage()));
         }
     }
 
