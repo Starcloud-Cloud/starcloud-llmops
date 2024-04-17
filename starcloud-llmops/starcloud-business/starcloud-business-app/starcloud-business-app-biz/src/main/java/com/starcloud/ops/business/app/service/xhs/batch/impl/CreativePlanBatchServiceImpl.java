@@ -147,11 +147,19 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
         String status = creativePlanBatch.getStatus();
         // 全部执行成功才算执行完成
         if (successCount == contentList.size()) {
+            log.info("将要更新计划批次为【完成】状态，batchUid: {}", batchUid);
             status = CreativePlanStatusEnum.COMPLETE.name();
         }
         // 有一条执行彻底失败就算批次执行失败
         else if (failureCount > 0) {
+            log.info("将要更新计划批次为【失败】状态，batchUid: {}", batchUid);
             status = CreativePlanStatusEnum.FAILURE.name();
+        }
+
+        // 计算之后的状态如果还是待执行或者执行中，则不进行更新
+        if (CreativePlanStatusEnum.PENDING.name().equals(status) ||
+                CreativePlanStatusEnum.RUNNING.name().equals(status)) {
+            return;
         }
 
         // 获取执行时间
