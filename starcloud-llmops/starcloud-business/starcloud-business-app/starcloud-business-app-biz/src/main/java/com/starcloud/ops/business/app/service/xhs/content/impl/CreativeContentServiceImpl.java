@@ -274,6 +274,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
         // 执行创作内容生成
         creativeExecuteManager.execute(executeRequest);
+
+        // 重新生成之后，重新更新创作状态
+        creativePlanService.updatePlanStatus(content.getPlanUid(), content.getBatchUid());
     }
 
     /**
