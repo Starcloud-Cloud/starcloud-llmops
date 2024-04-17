@@ -225,7 +225,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     @Override
     @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-        log.info("创作内容后置处理器开始执行：更新创作状态状态开始！");
+        log.info("创作内容后置处理器开始执行：更新创作状态开始！");
 
         // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
         if (CollectionUtils.isEmpty(taskResults)) {
@@ -263,7 +263,9 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         }
     }
 
-
+    /**
+     * 创作内容子任务
+     */
     @Builder
     @Data
     @NoArgsConstructor
