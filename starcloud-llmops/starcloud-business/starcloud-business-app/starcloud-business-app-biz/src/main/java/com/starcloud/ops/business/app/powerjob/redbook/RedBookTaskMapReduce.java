@@ -216,7 +216,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     }
 
     /**
-     * 子任务执行完执行
+     * 所有任务执行完执行
      *
      * @param taskContext 任务上下文
      * @param taskResults 任务结果
@@ -225,28 +225,29 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     @Override
     @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-        log.info("任务执行完成！开始更新创作计划，创作计划批次状态！任务结果\n：{}", JsonUtils.toJsonPrettyString(taskResults));
+        log.info("创作内容后置处理器开始执行：更新创作状态状态开始！");
 
         // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
         if (CollectionUtils.isEmpty(taskResults)) {
-            return new ProcessResult(true, "任务结果为空！不需要进行更新创作计划，创作计划批次状态！");
+            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
         }
 
         //查询计划表下的 所有状态，并更新计划表的状态
-        List<SubTaskResult> planUidList = taskResults.stream()
-                .map(sub -> JsonUtils.parseObject(sub.getResult(), SubTaskResult.class))
+        List<SubTaskResult> subTaskResultList = taskResults.stream()
+                .filter(item -> StringUtils.isNotBlank(item.getResult()))
+                .map(item -> JsonUtils.parseObject(item.getResult(), SubTaskResult.class))
                 .filter(Objects::nonNull)
                 .filter(item -> StringUtils.isNotBlank(item.getPlanUid()))
                 .filter(item -> StringUtils.isNotBlank(item.getBatchUid()))
                 .collect(Collectors.toList());
 
         // 需要更新的计划列表
-        log.info("需要更新状态的创作计划：{}", JsonUtils.toJsonString(planUidList));
-        updateInstance(planUidList);
+        log.info("需要更新创作状态的子任务：{}", JsonUtils.toJsonPrettyString(subTaskResultList));
+        updateInstance(subTaskResultList);
 
         // 计划更新完成
-        log.info("任务执行完成，更新计划完成！！！");
-        return new ProcessResult(true, taskResults.toString());
+        log.info("创作内容后置处理器执行完成，更新创作状态完成！！！");
+        return new ProcessResult(Boolean.TRUE, taskResults.toString());
     }
 
     /**
@@ -255,10 +256,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      * @param subTaskResultList 子任务结果集合
      */
     private void updateInstance(List<SubTaskResult> subTaskResultList) {
-
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
         List<SubTaskResult> distinct = CollUtil.distinct(subTaskResultList, SubTaskResult::getPlanUid, false);
-
         for (SubTaskResult subTaskResult : distinct) {
             creativePlanService.updatePlanStatus(subTaskResult.getPlanUid(), subTaskResult.getBatchUid());
         }
