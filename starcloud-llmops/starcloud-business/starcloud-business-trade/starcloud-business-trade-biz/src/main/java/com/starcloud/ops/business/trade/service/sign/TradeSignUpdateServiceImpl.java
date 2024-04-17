@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.core.KeyValue;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.pay.api.sign.PaySignApi;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
@@ -78,9 +80,6 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
 
     @Resource
-    private TradeSignQueryService tradeSignQueryService;
-
-    @Resource
     private List<TradeSignHandler> tradeSignHandlers;
 
 
@@ -107,7 +106,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // 设置预计扣款时间
         List<TradeSignItemDO> signItemDOS = buildTradeSignItems(tradeSignDO, calculateRespBO);
 
-        // fixme 增加签校验 避免有人修改配置导致配置异常
+        // fixme 增加签约校验 避免有人修改配置导致配置异常
         if (tradeSignDO.getSignConfigs().getPeriod() != 1) {
             tradeSignDO.getSignConfigs().setPeriod(1);
         }

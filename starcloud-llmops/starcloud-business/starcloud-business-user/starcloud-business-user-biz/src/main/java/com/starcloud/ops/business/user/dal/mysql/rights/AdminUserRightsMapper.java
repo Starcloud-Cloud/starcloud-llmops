@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.dal.mysql.rights;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
@@ -8,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
@@ -67,5 +69,28 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .orderByDesc(AdminUserRightsDO::getValidEndTime)
                 .last("limit 1");
         return selectOne(wrapper);
+    }
+
+    /**
+     * 获取有效【包含未生效】的权益数据列表
+     * 如果用户编号（userId）为空 则查询所有的数据
+     *
+     * @param userId 用户编号
+     * @return 数据列表
+     */
+    default List<AdminUserRightsDO> getValidAdminUserRights(Long userId, Long level, LocalDateTime now) {
+
+        return selectList(new LambdaQueryWrapperX<AdminUserRightsDO>()
+                .eqIfPresent(AdminUserRightsDO::getUserId, userId)
+                .eqIfPresent(AdminUserRightsDO::getUserLevelId, level)
+                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
+                .or(wrapper -> wrapper
+                        .gt(AdminUserRightsDO::getValidStartTime, now) // validStartTime > NOW()
+                        .gt(AdminUserRightsDO::getValidEndTime, now))
+                .or(wrapper -> wrapper
+                        .le(AdminUserRightsDO::getValidStartTime, now) // validStartTime <= NOW()
+                        .ge(AdminUserRightsDO::getValidEndTime, now) // AND validEndTime >= NOW()
+                )
+        );
     }
 }

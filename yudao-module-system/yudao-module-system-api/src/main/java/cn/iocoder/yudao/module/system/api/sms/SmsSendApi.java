@@ -31,4 +31,5 @@ public interface SmsSendApi {
      */
     Long sendSingleSmsToMember(@Valid SmsSendSingleToUserReqDTO reqDTO);
 
+
 }

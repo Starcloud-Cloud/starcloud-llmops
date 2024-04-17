@@ -62,4 +62,27 @@ public interface AdminUserRightsConvert {
         return bean;
 
     }
+
+
+    default AdminUserRightsDO convert(Long userId, String bizId, AdminUserRightsBizTypeEnum bizType,
+                                          Integer magicBean, Integer magicImage, Integer matrixBean,
+                                          LocalDateTime startTime, LocalDateTime endTime, Long levelId) {
+        return AdminUserRightsDO.builder()
+                .userId(userId)
+                .bizId(bizId)
+                .bizType(bizType.getType())
+                .title(bizType.getName())
+                .description(StrUtil.format(bizType.getDescription(), magicBean, magicImage))
+                .magicBean(magicBean)
+                .magicImage(magicImage)
+                .matrixBean(matrixBean)
+                .magicBeanInit(magicBean)
+                .magicImageInit(magicImage)
+                .matrixBeanInit(matrixBean)
+                .userLevelId(levelId)
+                .validStartTime(startTime)
+                .validEndTime(endTime)
+                .status(AdminUserRightsStatusEnum.NORMAL.getType())
+                .build();
+    }
 }

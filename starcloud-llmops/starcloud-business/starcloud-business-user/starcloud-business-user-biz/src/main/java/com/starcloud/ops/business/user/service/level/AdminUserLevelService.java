@@ -78,8 +78,28 @@ public interface AdminUserLevelService {
     void expireLevelBySystem(AdminUserLevelDO levelDO);
 
 
+    /**
+     * 用户等级中配置的权益限制
+     *
+     * @param levelRightsCode 等级中权益类型
+     * @param userId          用户编号
+     * @return VO
+     */
     AdminUserLevelLimitRespVO validateLevelRightsLimit(String levelRightsCode, Long userId);
 
+    /**
+     * 获取用户等级中配置的权益限制数
+     * @param levelRightsCode 等级中权益类型
+     * @param userId 用户编号
+     * @return VO
+     */
     AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId);
+
+
+    /**
+     * 【系统】验证用户等级和用户角色是否对应
+     * @param userId 用户编号（可以为空）
+     */
+    void validateLevelAndRole(Long userId);
 
 }
