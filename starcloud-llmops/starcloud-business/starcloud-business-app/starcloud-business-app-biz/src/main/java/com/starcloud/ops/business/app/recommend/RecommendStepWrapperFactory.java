@@ -193,6 +193,24 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
+     * 仿写步骤
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defImitateStepWrapper() {
+        String name = "笔记仿写";
+        String field = AppUtils.obtainField(name);
+        String defaultPrompt = "";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription("仿写笔记标题和内容");
+        stepWrapper.setButtonLabel("笔记仿写");
+        stepWrapper.setFlowStep(RecommendActionFactory.defImitateActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defImitateVariable());
+        return stepWrapper;
+    }
+
+    /**
      * 段落生成步骤
      *
      * @return WorkflowStepRespVO
@@ -268,6 +286,7 @@ public class RecommendStepWrapperFactory {
                 defGlobalVariableStepWrapper(),
                 defMaterialStepWrapper(),
                 defCustomStepWrapper(),
+                defImitateStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );

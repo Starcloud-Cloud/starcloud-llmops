@@ -2,6 +2,8 @@ package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -41,6 +45,13 @@ public class MaterialImportController {
     @OperateLog(enable = false)
     public CommonResult<String> importMaterial(@RequestParam("file") MultipartFile file) {
         return CommonResult.success(parseMaterialService.parseToRedis(file));
+    }
+
+    @PostMapping("/parse")
+    @Operation(summary = "批量解析小红书内容", description = "批量解析小红书内容")
+    @OperateLog(enable = false)
+    public CommonResult<List<AbstractCreativeMaterialDTO>> parseXhs(@Valid @RequestBody ParseXhsReqVO reqVO) {
+        return CommonResult.success(parseMaterialService.parseXhs(reqVO));
     }
 
     @GetMapping("/result/{parseUid}")

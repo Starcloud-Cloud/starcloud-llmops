@@ -24,6 +24,9 @@ public interface CreativeConstants {
      */
     String REFERS_IMITATE = "REFERS_IMITATE";
 
+    String REFERS_TAG = "REFERS_TAG";
+    String REFERS_IMAGE = "REFERS_IMAGE";
+
     /**
      * 参考内容
      */
