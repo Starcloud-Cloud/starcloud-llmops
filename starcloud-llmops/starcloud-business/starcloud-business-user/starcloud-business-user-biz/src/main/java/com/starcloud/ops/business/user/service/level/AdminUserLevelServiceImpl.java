@@ -469,9 +469,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             }
 
             // 取时间最大的数据
-            return adminUserLevelDOS.stream()
-                    .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .findFirst() // 直接获取第一个元素，这里假设列表非空，前面已做空检查
+            return adminUserLevelDOS.stream().max(Comparator.comparing(AdminUserLevelDO::getValidEndTime, Comparator.nullsLast(Comparator.naturalOrder()))) // 直接获取第一个元素，这里假设列表非空，前面已做空检查
                     .map(AdminUserLevelDO::getValidEndTime)
                     .orElse(startTime);
 
