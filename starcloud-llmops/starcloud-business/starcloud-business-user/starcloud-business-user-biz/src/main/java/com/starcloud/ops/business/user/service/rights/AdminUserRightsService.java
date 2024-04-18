@@ -56,13 +56,13 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean,Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId);
 
 
     /**
      * 创建用户权益记录
      *
-     * @param addRightsDTO     新增权益 DTO
+     * @param addRightsDTO 新增权益 DTO
      */
     void createRights(AddRightsDTO addRightsDTO);
 
@@ -74,7 +74,7 @@ public interface AdminUserRightsService {
      * @param bizType   业务类型
      * @param bizId     业务编号
      */
-    void createRights(AdminUserRightsCommonDTO rightsDTO,Long userId, AdminUserRightsBizTypeEnum bizType, String bizId);
+    void createRights(AdminUserRightsCommonDTO rightsDTO, Long userId, AdminUserRightsBizTypeEnum bizType, String bizId);
 
 
     /**
@@ -101,10 +101,10 @@ public interface AdminUserRightsService {
 
     /**
      * 权益扣减
+     *
      * @param reduceRightsDTO 权益扣减DTO
      */
     void reduceRights(ReduceRightsDTO reduceRightsDTO);
-
 
 
     /**

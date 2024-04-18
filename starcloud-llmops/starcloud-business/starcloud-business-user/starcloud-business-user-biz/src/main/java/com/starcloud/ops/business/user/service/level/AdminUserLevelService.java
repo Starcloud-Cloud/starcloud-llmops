@@ -34,7 +34,7 @@ public interface AdminUserLevelService {
      *
      * @param levelRecord 会员等级记录
      */
-    void createLevelRecord(AdminUserLevelCreateReqVO levelRecord);
+    AdminUserLevelDO createLevelRecord(AdminUserLevelCreateReqVO levelRecord);
 
     /**
      * 创建会员默认等级记录
@@ -73,13 +73,33 @@ public interface AdminUserLevelService {
     /**
      * 【系统】 过期用户等级操作
      *
-     * @param levelDO
+     * @param levelDO 等级 DO
      */
     void expireLevelBySystem(AdminUserLevelDO levelDO);
 
 
+    /**
+     * 用户等级中配置的权益限制
+     *
+     * @param levelRightsCode 等级中权益类型
+     * @param userId          用户编号
+     * @return VO
+     */
     AdminUserLevelLimitRespVO validateLevelRightsLimit(String levelRightsCode, Long userId);
 
+    /**
+     * 获取用户等级中配置的权益限制数
+     * @param levelRightsCode 等级中权益类型
+     * @param userId 用户编号
+     * @return VO
+     */
     AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId);
+
+
+    /**
+     * 【系统】验证用户等级和用户角色是否对应
+     * @param userId 用户编号（可以为空）
+     */
+    void validateLevelAndRole(Long userId);
 
 }
