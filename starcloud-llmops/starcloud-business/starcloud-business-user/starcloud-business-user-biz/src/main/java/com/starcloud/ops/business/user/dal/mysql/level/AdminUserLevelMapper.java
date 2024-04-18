@@ -57,13 +57,12 @@ public interface AdminUserLevelMapper extends BaseMapperX<AdminUserLevelDO> {
                 .eqIfPresent(AdminUserLevelDO::getUserId, userId)
                 .inIfPresent(AdminUserLevelDO::getLevelId, levels)
                 .eq(AdminUserLevelDO::getStatus, CommonStatusEnum.ENABLE.getStatus())
-                .or(wrapper -> wrapper
-                        .gt(AdminUserLevelDO::getValidStartTime, now) // validStartTime > NOW()
-                        .gt(AdminUserLevelDO::getValidEndTime, now))
-                .or(wrapper -> wrapper
-                        .le(AdminUserLevelDO::getValidStartTime, now) // validStartTime <= NOW()
-                        .ge(AdminUserLevelDO::getValidEndTime, now) // AND validEndTime >= NOW()
-                )
+                .and(wrapper -> wrapper
+                        .or(w->w.ge(AdminUserLevelDO::getValidStartTime, now) // validStartTime <= NOW()
+                                .le(AdminUserLevelDO::getValidEndTime, now))
+                        .or(w-> w.gt(AdminUserLevelDO::getValidStartTime, now) // validStartTime > NOW()
+                                        .gt(AdminUserLevelDO::getValidEndTime, now))
+                       )
         );
     }
 

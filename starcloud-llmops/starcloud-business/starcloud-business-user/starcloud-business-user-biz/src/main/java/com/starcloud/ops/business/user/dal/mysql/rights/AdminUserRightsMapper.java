@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
@@ -82,12 +83,11 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .eqIfPresent(AdminUserRightsDO::getUserId, userId)
                 .eqIfPresent(AdminUserRightsDO::getUserLevelId, level)
                 .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
-                .or(wrapper -> wrapper
-                        .gt(AdminUserRightsDO::getValidStartTime, now) // validStartTime > NOW()
-                        .gt(AdminUserRightsDO::getValidEndTime, now))
-                .or(wrapper -> wrapper
-                        .le(AdminUserRightsDO::getValidStartTime, now) // validStartTime <= NOW()
-                        .ge(AdminUserRightsDO::getValidEndTime, now) // AND validEndTime >= NOW()
+                .and(wrapper -> wrapper
+                        .or(w->w.ge(AdminUserRightsDO::getValidStartTime, now) // validStartTime <= NOW()
+                                .le(AdminUserRightsDO::getValidEndTime, now))
+                        .or(w-> w.gt(AdminUserRightsDO::getValidStartTime, now) // validStartTime > NOW()
+                                .gt(AdminUserRightsDO::getValidEndTime, now))
                 )
         );
     }
