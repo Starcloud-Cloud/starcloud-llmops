@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.job.level.level;
+package com.starcloud.ops.business.user.job.level;
 
 import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
 import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
@@ -16,6 +16,7 @@ public class UserLevelAndRoleAutoCheckJob implements JobHandler {
 
     @Resource
     private AdminUserLevelService adminUserLevelService;
+
     /**
      * 执行任务
      *
@@ -26,7 +27,7 @@ public class UserLevelAndRoleAutoCheckJob implements JobHandler {
     @Override
     @TenantJob
     public String execute(String param) throws Exception {
-        int count = adminUserLevelService.expireLevel();
-        return String.format("过期等级 %s 个", count);
+        adminUserLevelService.validateLevelAndRole(null);
+        return String.format("过期等级 %s 个", 0);
     }
 }

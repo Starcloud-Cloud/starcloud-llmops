@@ -34,7 +34,7 @@ public interface AdminUserLevelService {
      *
      * @param levelRecord 会员等级记录
      */
-    void createLevelRecord(AdminUserLevelCreateReqVO levelRecord);
+    AdminUserLevelDO createLevelRecord(AdminUserLevelCreateReqVO levelRecord);
 
     /**
      * 创建会员默认等级记录
@@ -73,7 +73,7 @@ public interface AdminUserLevelService {
     /**
      * 【系统】 过期用户等级操作
      *
-     * @param levelDO
+     * @param levelDO 等级 DO
      */
     void expireLevelBySystem(AdminUserLevelDO levelDO);
 
