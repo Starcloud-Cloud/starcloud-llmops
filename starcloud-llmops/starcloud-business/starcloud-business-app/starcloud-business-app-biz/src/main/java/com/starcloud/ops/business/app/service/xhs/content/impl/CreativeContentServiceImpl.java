@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -23,6 +24,8 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -31,22 +34,36 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.batch.CreativePlanBatchMappe
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -75,6 +92,15 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Resource
     private CreativeExecuteManager creativeExecuteManager;
+
+    @Resource
+    private MaterialHandlerHolder materialHandlerHolder;
+
+    @Resource
+    private RedissonClient redissonClient;
+
+    @Resource
+    private AppMarketService appMarketService;
 
     @Resource
     private AppStepStatusCache appStepStatusCache;
@@ -247,42 +273,113 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @param request 执行请求
      */
     @Override
+    @SuppressWarnings("all")
     public void regenerate(CreativeContentRegenerateReqVO request) {
-        // 基础校验
-        request.validate();
-        CreativeContentExecuteParam executeParam = request.getExecuteParam();
-        AppMarketRespVO appInformation = executeParam.getAppInformation();
-        // 校验素材信息
-        CreativeUtils.validateMaterial(appInformation);
-        // 校验风格配置
-        CreativeUtils.validatePosterStyle(appInformation);
+        String lockKey = "creative-content-regenerate-" + request.getUid();
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            if (!lock.tryLock(1, TimeUnit.MINUTES)) {
+                log.warn("创作内容正在重试中({})...", request.getUid());
+                return;
+            }
 
-        // 查询创作内容并且校验
-        CreativeContentDO content = creativeContentMapper.get(request.getUid());
-        AppValidate.notNull(content, "创作内容不存在！");
+            // 基础校验
+            request.validate();
+            CreativeContentExecuteParam executeParam = request.getExecuteParam();
+            AppMarketRespVO appInformation = executeParam.getAppInformation();
 
-        // 更新创作内容为最新的版本
-        CreativeContentDO updateContent = new CreativeContentDO();
-        updateContent.setId(content.getId());
-        updateContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
-        updateContent.setUpdateTime(LocalDateTime.now());
-        updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-        creativeContentMapper.updateById(updateContent);
+            // 素材步骤
+            WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+            AppValidate.notNull(materialWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
 
-        // 构建执行请求
-        CreativeContentExecuteReqVO executeRequest = new CreativeContentExecuteReqVO();
-        executeRequest.setUid(content.getUid());
-        executeRequest.setPlanUid(content.getPlanUid());
-        executeRequest.setBatchUid(content.getBatchUid());
-        executeRequest.setType(content.getType());
-        executeRequest.setForce(Boolean.TRUE);
-        executeRequest.setTenantId(content.getTenantId());
+            // 获取素材库类型
+            String materialType = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_TYPE);
+            AppValidate.notBlank(materialType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.MATERIAL_TYPE);
 
-        // 执行创作内容生成
-        creativeExecuteManager.execute(executeRequest);
+            // 获取到具体的素材库类型枚举
+            MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
+            AppValidate.notNull(materialTypeEnum, "素材库类型不支持，请联系管理员{}！", materialType);
+            // 获取资料库的具体处理器
+            AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType);
+            AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", materialType);
 
-        // 重新生成之后，重新更新创作状态
-        creativePlanService.updatePlanStatus(content.getPlanUid(), content.getBatchUid());
+            // 素材库列表
+            List<AbstractCreativeMaterialDTO> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
+
+            // 海报步骤
+            WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            PosterStyleDTO posterStyle = CreativeUtils.getPosterStyleByStepWrapper(posterWrapper);
+
+            // 查询创作内容并且校验
+            CreativeContentDO content = creativeContentMapper.get(request.getUid());
+            AppValidate.notNull(content, "创作内容不存在！");
+
+            // 查询一次应用市场，获取最新的应用市场配置
+            AppMarketRespVO latestAppMarket = appMarketService.get(appInformation.getUid());
+
+            // 处理应用信息
+            if (Objects.nonNull(posterWrapper) && Objects.nonNull(posterStyle)) {
+                // 从应用市场获取最新的系统配置合并
+                posterStyle = CreativeUtils.mergePosterStyle(posterStyle, latestAppMarket);
+                // 处理一下海报风格
+                posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
+
+                // 素材步骤的步骤ID
+                String materialStepId = materialWrapper.getField();
+                // 海报步骤的步骤ID
+                String posterStepId = posterWrapper.getField();
+
+                materialHandler.validatePosterStyle(posterStyle);
+                Map<Integer, List<AbstractCreativeMaterialDTO>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle));
+
+                // 获取该风格下，处理之后的素材列表
+                List<AbstractCreativeMaterialDTO> usageMaterialList = materialMap.get(0);
+
+                MaterialMetadata metadata = new MaterialMetadata();
+                metadata.setMaterialStepId(materialStepId);
+                metadata.setMaterialType(materialType);
+                PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, metadata);
+
+                // 将处理后的海报风格填充到执行参数中
+                Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
+                appInformation.putStepVariable(posterStepId, variableMap);
+
+                // 将素材库的素材列表填充上传素材步骤变量中
+                Map<String, Object> handleMaterialMap = Collections.singletonMap(CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
+                appInformation.putStepVariable(materialStepId, handleMaterialMap);
+
+                executeParam.setAppInformation(appInformation);
+            }
+
+            // 更新创作内容为最新的版本
+            CreativeContentDO updateContent = new CreativeContentDO();
+            updateContent.setId(content.getId());
+            updateContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
+            updateContent.setUpdateTime(LocalDateTime.now());
+            updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+            creativeContentMapper.updateById(updateContent);
+
+            // 构建执行请求
+            CreativeContentExecuteReqVO executeRequest = new CreativeContentExecuteReqVO();
+            executeRequest.setUid(content.getUid());
+            executeRequest.setPlanUid(content.getPlanUid());
+            executeRequest.setBatchUid(content.getBatchUid());
+            executeRequest.setType(content.getType());
+            executeRequest.setForce(Boolean.TRUE);
+            executeRequest.setTenantId(content.getTenantId());
+
+            // 执行创作内容生成
+            creativeExecuteManager.execute(executeRequest);
+
+            // 重新生成之后，重新更新创作状态
+            creativePlanService.updatePlanStatus(content.getPlanUid(), content.getBatchUid());
+
+        } catch (InterruptedException e) {
+            log.error("创作内容重试执行失败", e);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**

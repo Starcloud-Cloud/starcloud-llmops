@@ -86,6 +86,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private String titleGenerateRequirement;
 
     /**
+     * 是否执行
+     */
+    @Schema(description = "是否执行")
+    private Boolean isExecute;
+
+    /**
      * 海报模板描述
      */
     @Schema(description = "海报模板描述")

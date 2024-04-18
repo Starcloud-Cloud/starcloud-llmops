@@ -105,8 +105,9 @@ public class CreativePlanController {
     @PostMapping("/upgrade")
     @Operation(summary = "升级创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<CreativePlanRespVO> upgrade(@Validated @RequestBody CreativePlanUpgradeReqVO request) {
-        return CommonResult.success(creativePlanService.upgrade(request));
+    public CommonResult<Boolean> upgrade(@Validated @RequestBody CreativePlanUpgradeReqVO request) {
+        creativePlanService.upgrade(request);
+        return CommonResult.success(true);
     }
 
 }

@@ -76,6 +76,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
             } else {
                 assembleRandom(template, materialList);
             }
+            template.setIsExecute(Boolean.TRUE);
         }
         style.setTemplateList(templateList);
         // 调用父类，文字类型可能需要处理填充

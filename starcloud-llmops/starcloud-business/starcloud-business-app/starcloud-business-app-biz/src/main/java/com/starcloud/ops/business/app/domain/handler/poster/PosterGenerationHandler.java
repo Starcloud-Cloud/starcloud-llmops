@@ -105,7 +105,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             posterRequest.setId(request.getCode());
             posterRequest.setParams(params);
 
-            log.info("海报图片生成：执行生成图片【执行参数】：\n {}", JsonUtils.toJsonPrettyString(params));
+            log.info("海报图片生成：执行生成图片【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
 
             // 调用海报生成服务
             String url = POSTER_SERVICE.poster(posterRequest);

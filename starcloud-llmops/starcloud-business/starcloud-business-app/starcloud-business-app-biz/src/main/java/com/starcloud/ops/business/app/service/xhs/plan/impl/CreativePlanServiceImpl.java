@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -37,6 +38,7 @@ import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
@@ -192,7 +194,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanConfigurationDTO configuration = creativePlanResponse.getConfiguration();
 
             // 海报图片风格处理
-            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergePosterStyle(configuration.getImageStyleList(), appMarketResponse);
+            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergePosterStyleList(configuration.getImageStyleList(), appMarketResponse);
             configuration.setImageStyleList(imageStyleList);
 
             // 应用配置处理
@@ -373,11 +375,40 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * 升级创作计划
      *
      * @param request 执行请求
-     * @return 升级之后的创作计划
      */
     @Override
-    public CreativePlanRespVO upgrade(CreativePlanUpgradeReqVO request) {
-        return null;
+    public void upgrade(CreativePlanUpgradeReqVO request) {
+        // 查询创作计划，并且校验是否存在
+        CreativePlanDO plan = creativePlanMapper.get(request.getUid());
+        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
+
+        // 查询应用，并接校验应用是否存在
+        AppMarketRespVO latestAppMarket = appMarketService.get(request.getAppUid());
+
+        // 版本判断
+        if (plan.getVersion() >= latestAppMarket.getVersion()) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "已是最新版本！不需要更新！"));
+        }
+
+        // 计划配置
+        CreativePlanConfigurationDTO configuration = request.getConfiguration();
+        // 获取应用配置
+        AppMarketRespVO appInformation = configuration.getAppInformation();
+
+        // 进行应用合并
+        latestAppMarket.merge(appInformation);
+        configuration.setAppInformation(latestAppMarket);
+
+        // 更新升级之后的计划
+        CreativePlanDO creativePlan = new CreativePlanDO();
+        creativePlan.setId(plan.getId());
+        creativePlan.setAppUid(latestAppMarket.getUid());
+        creativePlan.setVersion(latestAppMarket.getVersion());
+        creativePlan.setConfiguration(JsonUtils.toJsonString(configuration));
+        creativePlan.setUpdateTime(LocalDateTime.now());
+        creativePlan.setTotalCount(request.getTotalCount());
+
+        creativePlanMapper.updateById(creativePlan);
     }
 
     /**
@@ -497,8 +528,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 海报步骤的步骤ID
         String posterStepId = posterStepWrapper.getField();
         // 对海报风格配置进行合并处理，保持为最新。
-        posterStyleList = CreativeUtils.mergePosterStyle(posterStyleList, latestAppMarket);
-
+        posterStyleList = CreativeUtils.mergePosterStyleList(posterStyleList, latestAppMarket);
+        posterStyleList = CreativeUtils.preHandlerPosterStyleList(posterStyleList);
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         for (PosterStyleDTO posterStyle : posterStyleList) {
             if (!posterStyle.getEnable()) {
@@ -506,7 +537,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             }
             // 校验海报样式
             materialHandler.validatePosterStyle(posterStyle);
-            posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
 
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appInformation);

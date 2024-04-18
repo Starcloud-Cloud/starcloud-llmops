@@ -139,8 +139,10 @@ public class PosterActionHandler extends BaseActionHandler {
 
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
-        // 任务列表
-        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(style.getTemplateList()).stream()
+        // 任务列表，只执行需要执行的图片，isExecute 为空或者为true，都执行，为false则不需要执行改图片
+        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(style.getTemplateList())
+                .stream()
+                .filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute())
                 .map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor))
                 .collect(Collectors.toList());
 
