@@ -87,6 +87,11 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @return 处理后的海报风格
      */
     public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+        for (PosterTemplateDTO template : templateList) {
+            template.setIsExecute(Boolean.TRUE);
+        }
+        posterStyle.setTemplateList(templateList);
         return posterStyle;
     }
 

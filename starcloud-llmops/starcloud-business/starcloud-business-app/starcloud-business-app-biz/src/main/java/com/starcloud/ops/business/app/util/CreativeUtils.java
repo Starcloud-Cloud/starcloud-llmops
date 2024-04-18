@@ -204,6 +204,7 @@ public class CreativeUtils {
             template.setMode(mode);
             template.setTitleGenerateMode(titleGenerateMode);
             template.setVariableList(variableList);
+            template.setIsExecute(Boolean.TRUE);
 
             // 添加到列表
             templateList.add(template);

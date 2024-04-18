@@ -537,7 +537,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             }
             // 校验海报样式
             materialHandler.validatePosterStyle(posterStyle);
-            posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
 
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appInformation);
