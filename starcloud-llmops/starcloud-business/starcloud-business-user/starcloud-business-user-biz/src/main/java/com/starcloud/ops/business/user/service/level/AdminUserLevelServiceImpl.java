@@ -172,19 +172,13 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             }
 
             AdminUserLevelDetailRespVO adminUserLevelDetailRespVO = new AdminUserLevelDetailRespVO();
-            adminUserLevelDetailRespVO.setUserId(userId)
-                    .setLevelId(level.getLevelId())
-                    .setLevelName(level.getLevelName())
-                    .setBizType(level.getBizType());
-            adminUserLevelDetailRespVO.setSort(levelConfig.getSort())
-                    .setLevelConfigDTO(BeanUtil.toBean(levelConfig.getLevelConfig(), LevelConfigDTO.class));
+            adminUserLevelDetailRespVO.setUserId(userId).setLevelId(level.getLevelId()).setLevelName(level.getLevelName()).setBizType(level.getBizType());
+            adminUserLevelDetailRespVO.setSort(levelConfig.getSort()).setLevelConfigDTO(BeanUtil.toBean(levelConfig.getLevelConfig(), LevelConfigDTO.class));
 
             adminUserLevelDetailRespVOS.add(adminUserLevelDetailRespVO);
         }
 
-        return adminUserLevelDetailRespVOS.stream()
-                .sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed())
-                .collect(Collectors.toList());
+        return adminUserLevelDetailRespVOS.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed()).collect(Collectors.toList());
 
     }
 
@@ -215,19 +209,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 判断是否存在生效的用户等级
 
         // 获取 3 天内即将过期的等级
-        List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream()
-                .filter(level -> level.getValidEndTime().isBefore(ThreeDaysLater) && level.getValidEndTime().isAfter(today))
-                .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
-                .collect(Collectors.toList());
+        List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream().filter(level -> level.getValidEndTime().isBefore(ThreeDaysLater) && level.getValidEndTime().isAfter(today)).sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed()).collect(Collectors.toList());
 
         // 获取大于 3 天的用户等级
-        List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream()
-                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(ThreeDaysLater))
-                .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
-                .collect(Collectors.toList());
+        List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream().filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(ThreeDaysLater)).sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed()).collect(Collectors.toList());
 
-        nextWeekExpiringLevel.removeIf(level -> noExpiringLevelDOS.stream()
-                .anyMatch(noExpiringLevel -> noExpiringLevel.getLevelId().equals(level.getLevelId())));
+        nextWeekExpiringLevel.removeIf(level -> noExpiringLevelDOS.stream().anyMatch(noExpiringLevel -> noExpiringLevel.getLevelId().equals(level.getLevelId())));
 
         if (CollUtil.isEmpty(nextWeekExpiringLevel)) {
             return notifyExpiringLevelRespVO;
@@ -268,7 +255,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
 
             createReqVO.setDescription(String.format(AdminUserLevelBizTypeEnum.REGISTER.getDescription(), adminUserDO.getId()));
-            createLevelRecord(createReqVO);
+            getSelf().createLevelRecord(createReqVO);
         }
 
 
@@ -281,8 +268,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Transactional(rollbackFor = Exception.class)
     public int expireLevel() {
         // 1. 查询过期的用户等级数据
-        List<AdminUserLevelDO> levelDOS = adminUserLevelMapper.getUserLevelsNearExpiry(
-                CommonStatusEnum.ENABLE.getStatus(), LocalDateTime.now());
+        List<AdminUserLevelDO> levelDOS = adminUserLevelMapper.getUserLevelsNearExpiry(CommonStatusEnum.ENABLE.getStatus(), LocalDateTime.now());
         if (CollUtil.isEmpty(levelDOS)) {
             return 0;
         }
@@ -313,7 +299,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         levelConfigDOS.removeIf(config -> Objects.equals(config.getId(), levelDO.getLevelId()));
         if (!levelConfigDOS.isEmpty()) {
-            List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
+            List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).distinct().collect(Collectors.toList());
 
             if (CollUtil.isEmpty(adminUserLevelMapper.getValidAdminUserLevels(levelDO.getUserId(), configIds, LocalDateTime.now()))) {
                 // 移除过期等级中绑定的角色
@@ -322,8 +308,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         }
 
         // 更新 AdminUserLevelDO 状态为已关闭
-        int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(),
-                new AdminUserLevelDO().setStatus(CommonStatusEnum.DISABLE.getStatus()));
+        int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(), new AdminUserLevelDO().setStatus(CommonStatusEnum.DISABLE.getStatus()));
         if (updateCount == 0) {
             throw exception(LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE);
         }
@@ -343,8 +328,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 获取用户当前权益最大的值
         LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
 
-        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
-                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode)).orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
 
         Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
 
@@ -387,8 +371,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 获取用户当前权益最大的值
         LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
 
-        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
-                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode)).orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
 
         Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
 
@@ -419,20 +402,19 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         ArrayList<Long> errUsers = new ArrayList<>();
         LevelGroups.forEach((user, userLevels) -> {
-                    // 获取用户角色组
-                    Set<Long> userRoleIdListByUserIdFromCache = permissionService.getUserRoleIdListByUserIdFromCache(user);
-                    // 获取用户
-                    List<Long> levelConfigIds = userLevels.stream().map(AdminUserLevelDO::getLevelId).collect(Collectors.toList());
+            // 获取用户角色组
+            Set<Long> userRoleIdListByUserIdFromCache = permissionService.getUserRoleIdListByUserIdFromCache(user);
+            // 获取用户
+            List<Long> levelConfigIds = userLevels.stream().map(AdminUserLevelDO::getLevelId).collect(Collectors.toList());
 
-                    List<AdminUserLevelConfigDO> levelConfigDOList = levelConfigService.getLevelList(levelConfigIds);
+            List<AdminUserLevelConfigDO> levelConfigDOList = levelConfigService.getLevelList(levelConfigIds);
 
-                    Set<Long> userRoles = levelConfigDOList.stream().map(AdminUserLevelConfigDO::getRoleId).collect(Collectors.toSet());
+            Set<Long> userRoles = levelConfigDOList.stream().map(AdminUserLevelConfigDO::getRoleId).collect(Collectors.toSet());
 
-                    if (!userRoleIdListByUserIdFromCache.equals(userRoles)) {
-                        errUsers.add(user);
-                    }
-                }
-        );
+            if (!userRoleIdListByUserIdFromCache.equals(userRoles)) {
+                errUsers.add(user);
+            }
+        });
         if (!errUsers.isEmpty()) {
 
             HashMap<String, Object> templateParams = MapUtil.newHashMap();
@@ -440,11 +422,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             templateParams.put("data", errUsers.toString());
 
 
-            smsSendApi.sendSingleSmsToAdmin(
-                    new SmsSendSingleToUserReqDTO()
-                            .setUserId(1L).setMobile("17835411844")
-                            .setTemplateCode("DING_TALK_PAY_NOTIFY_02")
-                            .setTemplateParams(templateParams));
+            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("DING_TALK_PAY_NOTIFY_02").setTemplateParams(templateParams));
         }
     }
 
@@ -470,8 +448,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
             // 取时间最大的数据
             return adminUserLevelDOS.stream().max(Comparator.comparing(AdminUserLevelDO::getValidEndTime, Comparator.nullsLast(Comparator.naturalOrder()))) // 直接获取第一个元素，这里假设列表非空，前面已做空检查
-                    .map(AdminUserLevelDO::getValidEndTime)
-                    .orElse(startTime);
+                    .map(AdminUserLevelDO::getValidEndTime).orElse(startTime);
 
         }
 
@@ -491,8 +468,13 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 获取当前用户角色
         Set<Long> userRoles = permissionService.getUserRoleIdListByUserId(userId);
 
-        if (decrRoleCode != null && userRoles.contains(decrRoleCode)) {
-            userRoles.remove(decrRoleCode);
+        if (userRoles == null) {
+            // 提前返回，处理空值的情况
+            return;
+        }
+
+        if (decrRoleCode != null) {
+            userRoles.removeIf(decrRoleCode::equals);
         }
         if (incrRoleId != null) {
             userRoles.add(incrRoleId);
