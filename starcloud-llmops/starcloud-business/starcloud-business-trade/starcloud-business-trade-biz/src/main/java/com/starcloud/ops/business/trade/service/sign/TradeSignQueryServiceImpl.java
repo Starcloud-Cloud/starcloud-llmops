@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
@@ -13,6 +14,7 @@ import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderCreateReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSettlementReqVO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
@@ -27,10 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static cn.hutool.core.date.DatePattern.CHINESE_DATE_TIME_PATTERN;
 
@@ -66,8 +66,10 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
     private SmsSendApi smsSendApi;
 
     @Resource
-    private DingTalkNoticeProperties dingTalkNoticeProperties;
+    private ProductSkuApi productSkuApi;
 
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
     /**
      * 获得指定编号的交易订单
@@ -97,34 +99,27 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
      */
     @Override
     public int executeAutoTradeSignPay() {
+        // 1.0 获取签约中待扣款列表
+        List<TradeSignDO> tradeSignDOS = tradeSignMapper.selectDeductibleData();
 
-        List<TradeSignDO> tradeSignDOS = tradeSignMapper.selectIsSignSuccess();
-
+        // 数据为空 直接返回
         if (tradeSignDOS.isEmpty()) {
-            log.info("executeAutoTradeSignPay start, selectIsSignSuccess is empty. TenantId[{}]", TenantContextHolder.getTenantId());
-            return 0;
-        }
-
-        List<TradeSignDO> waitePaySigns = tradeSignDOS
-                .stream()
-                .filter(tradeSignDO ->
-                        LocalDateTimeUtil
-                                .isIn(LocalDate.now().atStartOfDay(), tradeSignDO.getPayTime().minusDays(5L).atStartOfDay(),
-                                        LocalDateTimeUtil.endOfDay(tradeSignDO.getPayTime().atStartOfDay())))
-                .collect(Collectors.toList());
-        if (waitePaySigns.isEmpty()) {
+            log.info("【签约自动扣款业务】, 【未获取到待自动扣款的签约记录】. TenantId[{}]", TenantContextHolder.getTenantId());
             return 0;
         }
 
         // 2. 遍历执行扣款
         int count = 0;
-        for (TradeSignDO waitePaySign : waitePaySigns) {
+        for (TradeSignDO tradeSignDO : tradeSignDOS) {
             try {
-                count += autoTradeSignPay(waitePaySign) ? 1 : 0;
+                List<TradeSignItemDO> tradeSignItemDOS = tradeSignItemMapper.selectListBySignId(tradeSignDO.getId());
+                // 支付前的验证
+                productSkuApi.isValidSubscriptionSupported(tradeSignItemDOS.get(0).getSkuId());
+                // 执行自动扣款
+                count += autoTradeSignPay(tradeSignDO) ? 1 : 0;
             } catch (Exception e) {
-                log.error("签约失败，errMsg{}", e.getMessage(), e);
+                log.error("【签约自动扣款业务,自动扣款失败】错误原因:[errMsg={}],当前数据为[{}]", JSONUtil.toJsonStr(tradeSignDO),e.getMessage(),e);
             }
-
         }
         return count;
 
@@ -214,13 +209,9 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
     private void sendNotifySignPayFailMsg(TradeSignDO tradeSignDO, PayOrderSubmitRespDTO submitRespDTO) {
         try {
             AdminUserRespDTO user = adminUserApi.getUser(tradeSignDO.getUserId());
-
-            Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
 
-            //
-            // couponTemplateApi.getCouponTemplate(1L);
-
+            Map<String, Object> templateParams = new HashMap<>();
             templateParams.put("environmentName", environmentName);
             templateParams.put("userName", user.getNickname());
             templateParams.put("tradeSignId", tradeSignDO.getId());
