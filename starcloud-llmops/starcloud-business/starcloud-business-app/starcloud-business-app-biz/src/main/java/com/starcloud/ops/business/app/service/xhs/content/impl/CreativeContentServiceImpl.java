@@ -42,6 +42,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
@@ -96,10 +97,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private MaterialHandlerHolder materialHandlerHolder;
 
     @Resource
-    private AppStepStatusCache appStepStatusCache;
+    private RedissonClient redissonClient;
 
     @Resource
-    private RedissonClient redissonClient;
+    private AppMarketService appMarketService;
+
+    @Resource
+    private AppStepStatusCache appStepStatusCache;
 
     /**
      * 获取创作内容详情
@@ -310,10 +314,16 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             CreativeContentDO content = creativeContentMapper.get(request.getUid());
             AppValidate.notNull(content, "创作内容不存在！");
 
+            // 查询一次应用市场，获取最新的应用市场配置
+            AppMarketRespVO latestAppMarket = appMarketService.get(appInformation.getUid());
+
             // 处理应用信息
             if (Objects.nonNull(posterWrapper) && Objects.nonNull(posterStyle)) {
+                // 从应用市场获取最新的系统配置合并
+                posterStyle = CreativeUtils.mergePosterStyle(posterStyle, latestAppMarket);
                 // 处理一下海报风格
                 posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
+
                 // 素材步骤的步骤ID
                 String materialStepId = materialWrapper.getField();
                 // 海报步骤的步骤ID

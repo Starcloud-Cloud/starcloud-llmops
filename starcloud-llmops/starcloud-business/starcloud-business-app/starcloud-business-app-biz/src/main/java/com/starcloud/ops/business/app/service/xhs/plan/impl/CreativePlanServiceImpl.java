@@ -192,7 +192,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanConfigurationDTO configuration = creativePlanResponse.getConfiguration();
 
             // 海报图片风格处理
-            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergePosterStyle(configuration.getImageStyleList(), appMarketResponse);
+            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergePosterStyleList(configuration.getImageStyleList(), appMarketResponse);
             configuration.setImageStyleList(imageStyleList);
 
             // 应用配置处理
@@ -497,7 +497,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 海报步骤的步骤ID
         String posterStepId = posterStepWrapper.getField();
         // 对海报风格配置进行合并处理，保持为最新。
-        posterStyleList = CreativeUtils.mergePosterStyle(posterStyleList, latestAppMarket);
+        posterStyleList = CreativeUtils.mergePosterStyleList(posterStyleList, latestAppMarket);
         posterStyleList = CreativeUtils.preHandlerPosterStyleList(posterStyleList);
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         for (PosterStyleDTO posterStyle : posterStyleList) {

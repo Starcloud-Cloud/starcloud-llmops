@@ -264,7 +264,7 @@ public class CreativeUtils {
      * @param appMarketResponse 应用配置
      * @return 海报风格列表
      */
-    public static List<PosterStyleDTO> mergePosterStyle(List<PosterStyleDTO> posterStyleList, AppMarketRespVO appMarketResponse) {
+    public static List<PosterStyleDTO> mergePosterStyleList(List<PosterStyleDTO> posterStyleList, AppMarketRespVO appMarketResponse) {
         if (CollectionUtil.isEmpty(posterStyleList)) {
             return posterStyleList;
         }
@@ -311,6 +311,53 @@ public class CreativeUtils {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 合并海报分割列表
+     *
+     * @param posterStyleList   海报列表
+     * @param appMarketResponse 应用配置
+     * @return 海报风格列表
+     */
+    public static PosterStyleDTO mergePosterStyle(PosterStyleDTO posterStyle, AppMarketRespVO appMarketResponse) {
+        if (Objects.isNull(posterStyle) || !posterStyle.getSystem()) {
+            return posterStyle;
+        }
+        // 获取海报步骤
+        WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.isNull(posterStepWrapper)) {
+            return posterStyle;
+        }
+        // 获取应用的海报风格配置
+        String posterConfig = appMarketResponse.getStepModelVariableValue(posterStepWrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterConfig) || "null".equalsIgnoreCase(posterConfig)) {
+            posterConfig = "[]";
+        }
+        List<PosterStyleDTO> styleList = JsonUtils.parseArray(posterConfig, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(styleList)) {
+            return posterStyle;
+        }
+        return mergePosterStyle(posterStyle, styleList);
+    }
+
+    /**
+     * 合并海报风格
+     *
+     * @param posterStyleList       海报风格列表
+     * @param systemPosterStyleList 海报风格列表
+     * @return 合并之后的海报风格
+     */
+    public static PosterStyleDTO mergePosterStyle(PosterStyleDTO posterStyle, List<PosterStyleDTO> systemPosterStyleList) {
+        // 转为MAP
+        Map<String, PosterStyleDTO> styleMap = systemPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
+        if (styleMap.containsKey(posterStyle.getUuid())) {
+            if (Objects.nonNull(styleMap.get(posterStyle.getUuid()))) {
+                return styleMap.get(posterStyle.getUuid());
+            }
+        }
+
+        return posterStyle;
     }
 
     /**
