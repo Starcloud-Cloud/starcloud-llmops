@@ -171,11 +171,6 @@ public class CreativeUtils {
         // 复制一份，避免修改原数据
         PosterStyleDTO posterStyle = SerializationUtils.clone(style);
 
-        // 加上一个UUID
-        if (StringUtils.isBlank(posterStyle.getUuid())) {
-            posterStyle.setUuid(IdUtil.fastSimpleUUID());
-        }
-
         // 获取海报模板信息
         List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
