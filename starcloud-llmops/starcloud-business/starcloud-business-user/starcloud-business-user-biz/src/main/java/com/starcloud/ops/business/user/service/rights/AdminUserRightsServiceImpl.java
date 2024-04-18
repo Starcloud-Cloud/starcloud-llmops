@@ -395,7 +395,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         notifyExpiringRightsRespVO.setName(AdminUserRightsTypeEnum.MAGIC_BEAN.getName());
         notifyExpiringRightsRespVO.setRightsType(AdminUserRightsTypeEnum.MAGIC_BEAN.name());
-        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 10);
+        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 5);
         notifyExpiringRightsRespVO.setExpiredNum(sumMagicBean);
 
         return notifyExpiringRightsRespVO;
