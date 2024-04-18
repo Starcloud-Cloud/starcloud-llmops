@@ -5,9 +5,10 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -99,6 +100,13 @@ public class CreativePlanController {
     public CommonResult<Boolean> execute(@Validated @RequestBody UidRequest request) {
         creativePlanService.execute(request.getUid());
         return CommonResult.success(true);
+    }
+
+    @PostMapping("/upgrade")
+    @Operation(summary = "升级创作计划", description = "执行创作计划")
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<CreativePlanRespVO> upgrade(@Validated @RequestBody CreativePlanUpgradeReqVO request) {
+        return CommonResult.success(creativePlanService.upgrade(request));
     }
 
 }

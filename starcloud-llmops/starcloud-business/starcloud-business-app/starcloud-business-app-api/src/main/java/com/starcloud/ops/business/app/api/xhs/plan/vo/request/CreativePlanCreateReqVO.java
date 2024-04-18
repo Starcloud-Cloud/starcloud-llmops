@@ -22,7 +22,7 @@ import javax.validation.constraints.NotNull;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "CreativePlanReqVO", description = "创作计划请求")
+@Schema(description = "创作计划请求")
 public class CreativePlanCreateReqVO implements java.io.Serializable {
 
     private static final long serialVersionUID = 6864609752505405116L;

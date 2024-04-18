@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
@@ -85,7 +86,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
      * @return 响应
      */
     public Response poster(Request request) {
-        log.info("海报图片生成：执行生成图片开始: 执行参数: \n{}", JSONUtil.parse(request).toStringPretty());
+        log.info("海报图片生成：执行生成图片【开始】");
         try {
 
             // 校验模版ID
@@ -99,10 +100,14 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
             }
 
-            // 调用海报生成服务
+            // 组装参数
             PosterRequest posterRequest = new PosterRequest();
             posterRequest.setId(request.getCode());
             posterRequest.setParams(params);
+
+            log.info("海报图片生成：执行生成图片【执行参数】：\n {}", JsonUtils.toJsonPrettyString(params));
+
+            // 调用海报生成服务
             String url = POSTER_SERVICE.poster(posterRequest);
             AppValidate.notBlank(url, "图片生成失败：结果为空！请重试或者联系管理员！");
 
@@ -112,7 +117,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
             response.setUrl(url);
-            log.info("海报图片生成: 执行生成图片成功，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
+            log.info("海报图片生成: 执行生成图片【成功】，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             return response;
         } catch (ServiceException exception) {
             throw exception;

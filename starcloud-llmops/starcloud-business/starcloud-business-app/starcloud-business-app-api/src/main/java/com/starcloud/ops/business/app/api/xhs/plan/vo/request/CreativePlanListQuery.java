@@ -15,7 +15,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "CreativePlanListQuery", description = "创作计划列表请求")
+@Schema(description = "创作计划列表请求")
 public class CreativePlanListQuery implements java.io.Serializable {
 
     private static final long serialVersionUID = 8118507177135519788L;

@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreate
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
@@ -347,6 +348,39 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     }
 
     /**
+     * 执行创作计划
+     *
+     * @param uid 创作计划UID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void execute(String uid) {
+        RLock lock = redissonClient.getLock(uid);
+        try {
+            if (!lock.tryLock(1, TimeUnit.MINUTES)) {
+                return;
+            }
+            doExecute(uid);
+        } catch (InterruptedException e) {
+            log.error("计划执行失败", e);
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 升级创作计划
+     *
+     * @param request 执行请求
+     * @return 升级之后的创作计划
+     */
+    @Override
+    public CreativePlanRespVO upgrade(CreativePlanUpgradeReqVO request) {
+        return null;
+    }
+
+    /**
      * 修改创作计划状态
      *
      * @param uid    创作计划UID
@@ -372,28 +406,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         updateWrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());
         updateWrapper.eq(CreativePlanDO::getUid, uid);
         creativePlanMapper.update(updateWrapper);
-    }
-
-    /**
-     * 执行创作计划
-     *
-     * @param uid 创作计划UID
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void execute(String uid) {
-        RLock lock = redissonClient.getLock(uid);
-        try {
-            if (!lock.tryLock(1, TimeUnit.MINUTES)) {
-                return;
-            }
-            doExecute(uid);
-        } catch (InterruptedException e) {
-            log.error("计划执行失败", e);
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
-        } finally {
-            lock.unlock();
-        }
     }
 
     /**
