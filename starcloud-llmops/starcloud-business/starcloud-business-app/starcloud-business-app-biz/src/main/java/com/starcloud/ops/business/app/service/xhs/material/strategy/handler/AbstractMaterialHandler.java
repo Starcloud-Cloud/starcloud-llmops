@@ -69,6 +69,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
         if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(posterStyleList)) {
             return Collections.emptyMap();
         }
+
         List<Integer> needMaterialSizeList = needMaterialSizeList(posterStyleList);
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
