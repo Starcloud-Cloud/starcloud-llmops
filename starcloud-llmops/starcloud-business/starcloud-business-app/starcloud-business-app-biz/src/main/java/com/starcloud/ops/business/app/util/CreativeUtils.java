@@ -470,7 +470,7 @@ public class CreativeUtils {
      */
     public static PosterStyleDTO getPosterStyleByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
         // 图片风格配置
-        if (Objects.nonNull(posterWrapper)) {
+        if (Objects.isNull(posterWrapper)) {
             return null;
         }
 
