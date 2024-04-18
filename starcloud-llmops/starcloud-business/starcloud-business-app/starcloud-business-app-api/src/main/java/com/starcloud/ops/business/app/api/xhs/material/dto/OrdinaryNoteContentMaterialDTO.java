@@ -23,7 +23,7 @@ public class OrdinaryNoteContentMaterialDTO extends AbstractCreativeMaterialDTO 
     private String link;
 
     @JsonPropertyDescription("内容")
-    @FieldDefine(desc = "内容", type = FieldTypeEnum.textBox, required = true)
+    @FieldDefine(desc = "内容", type = FieldTypeEnum.textBox, required = true, width = 400)
     private String content;
 
 
