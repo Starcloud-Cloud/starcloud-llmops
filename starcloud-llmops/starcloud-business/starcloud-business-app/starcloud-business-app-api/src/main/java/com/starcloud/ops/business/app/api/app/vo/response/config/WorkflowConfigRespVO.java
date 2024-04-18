@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,8 +13,12 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * App 配置实体类
@@ -150,4 +155,39 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         return null;
     }
 
+    /**
+     * 应用配置合并
+     *
+     * @param workflowConfig 应用配置信息
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void merge(WorkflowConfigRespVO workflowConfig) {
+        if (CollectionUtil.isEmpty(this.steps) || CollectionUtil.isEmpty(workflowConfig.getSteps())) {
+            return;
+        }
+
+        Map<String, WorkflowStepWrapperRespVO> stepWrapperMap = workflowConfig.getSteps()
+                .stream()
+                .collect(Collectors.toMap(WorkflowStepWrapperRespVO::getField, Function.identity()));
+
+        List<WorkflowStepWrapperRespVO> mergeStepWrapperList = new ArrayList<>();
+
+        // 循环处理
+        for (WorkflowStepWrapperRespVO step : this.steps) {
+            // 如果map中不存在，或者为空
+            if (!stepWrapperMap.containsKey(step.getField()) ||
+                    Objects.isNull(stepWrapperMap.get(step.getField()))) {
+                mergeStepWrapperList.add(step);
+                continue;
+            }
+
+            WorkflowStepWrapperRespVO stepWrapper = stepWrapperMap.get(step.getField());
+            step.merge(stepWrapper);
+
+            mergeStepWrapperList.add(step);
+        }
+
+        this.steps = mergeStepWrapperList;
+    }
 }

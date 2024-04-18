@@ -110,8 +110,7 @@ public interface CreativePlanService {
      * 升级创作计划
      *
      * @param request 执行请求
-     * @return 升级之后的创作计划
      */
-    CreativePlanRespVO upgrade(CreativePlanUpgradeReqVO request);
+    void upgrade(CreativePlanUpgradeReqVO request);
 
 }

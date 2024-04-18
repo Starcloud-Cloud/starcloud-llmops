@@ -155,4 +155,14 @@ public class WorkflowStepWrapperRespVO implements Serializable {
         return null;
     }
 
+    /**
+     * 合并步骤
+     *
+     * @param stepWrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void merge(WorkflowStepWrapperRespVO stepWrapper) {
+        this.variable.merge(stepWrapper.getVariable());
+    }
 }
