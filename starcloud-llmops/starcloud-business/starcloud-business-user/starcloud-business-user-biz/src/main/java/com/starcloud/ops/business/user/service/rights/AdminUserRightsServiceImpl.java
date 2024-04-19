@@ -395,7 +395,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         notifyExpiringRightsRespVO.setName(AdminUserRightsTypeEnum.MAGIC_BEAN.getName());
         notifyExpiringRightsRespVO.setRightsType(AdminUserRightsTypeEnum.MAGIC_BEAN.name());
-        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 10);
+        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 5);
         notifyExpiringRightsRespVO.setExpiredNum(sumMagicBean);
 
         return notifyExpiringRightsRespVO;
@@ -595,9 +595,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
 
             // 取时间最大的数据
-            return validAdminUserRights.stream()
-                    .sorted(Comparator.comparing(AdminUserRightsDO::getValidEndTime, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .findFirst() // 直接获取第一个元素，这里假设列表非空，前面已做空检查
+            return validAdminUserRights.stream().max(Comparator.comparing(AdminUserRightsDO::getValidEndTime, Comparator.nullsLast(Comparator.naturalOrder()))) // 直接获取第一个元素，这里假设列表非空，前面已做空检查
                     .map(AdminUserRightsDO::getValidEndTime)
                     .orElse(startTime);
 
