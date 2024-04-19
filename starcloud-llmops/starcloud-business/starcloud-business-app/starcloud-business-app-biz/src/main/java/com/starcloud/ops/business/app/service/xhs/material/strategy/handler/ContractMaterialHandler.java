@@ -80,14 +80,14 @@ public class ContractMaterialHandler extends AbstractMaterialHandler<ContractCre
             for (PosterVariableDTO variable : variableList) {
 
                 if (CreativeUtils.isImageVariable(variable) &&
-                        StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid()))) {
+                        StringUtil.objectBlank(replaceValueMap.get(variable.getUuid()))) {
                     // 设置为FALSE,表示不需要生成改图片
                     template.setIsExecute(Boolean.FALSE);
                 }
-
-                templates.add(template);
             }
+            templates.add(template);
         }
+
         style.setTemplateList(templates);
         return style;
     }
