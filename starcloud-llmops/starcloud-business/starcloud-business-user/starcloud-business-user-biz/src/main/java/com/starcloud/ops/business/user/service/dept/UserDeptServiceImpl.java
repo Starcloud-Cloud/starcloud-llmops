@@ -351,7 +351,7 @@ public class UserDeptServiceImpl implements UserDeptService {
     private String generateInviteCode(Long deptId) {
         String code = RandomUtil.randomString(baseStr, 8);
         String value = deptId.toString() + "_" + WebFrameworkUtils.getLoginUserId();
-        if (redisTemplate.boundValueOps(prefix + code).setIfAbsent(value, 10, TimeUnit.MINUTES)) {
+        if (redisTemplate.boundValueOps(prefix + code).setIfAbsent(value, 24, TimeUnit.HOURS)) {
             return code;
         }
         return generateInviteCode(deptId);
