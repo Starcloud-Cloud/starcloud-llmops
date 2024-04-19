@@ -15,6 +15,8 @@ import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
+
 /**
  * 推荐应用Variable Item 工厂类
  *
@@ -542,6 +544,23 @@ public class RecommendVariableItemFactory {
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         variableItem.setOptions(MaterialTypeEnum.referOptions());
+        return variableItem;
+    }
+
+    public static VariableItemRespVO defMediaMatrixImitateType() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_TYPE);
+        variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_LABEL"));
+        variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_DESCRIPTION"));
+        variableItem.setDefaultValue(MaterialTypeEnum.NOTE.getCode());
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(10000);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setOptions(Collections.singletonList(MaterialTypeEnum.NOTE.option()));
         return variableItem;
     }
 

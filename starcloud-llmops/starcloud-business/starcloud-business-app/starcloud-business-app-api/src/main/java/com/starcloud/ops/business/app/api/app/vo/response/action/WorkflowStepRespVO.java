@@ -83,4 +83,5 @@ public class WorkflowStepRespVO extends ActionRespVO {
     public void putStepModelVariable(Map<String, Object> variable) {
         this.variable.putVariable(variable);
     }
+
 }

@@ -1,9 +1,6 @@
 package com.starcloud.ops.business.user.service.rights;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -31,10 +28,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,6 +36,7 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.getPlusTimeByRange;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 
@@ -63,6 +58,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Resource
     private AdminUserRightsRecordService adminUserRightsRecordService;
+
+    private static final int BIZ_TYPE_OFFSET = 50;
 
     @Override
     public PageResult<AdminUserRightsDO> getRightsPage(AdminUserRightsPageReqVO pageReqVO) {
@@ -146,7 +143,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long levelId) {
 
         if (magicBean == 0 || magicImage == 0) {
             return;
@@ -157,46 +154,22 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             timeRange = TimeRangeTypeEnum.MONTH.getType();
         }
 
-        LocalDateTime startTime = LocalDateTimeUtil.now();
-        LocalDateTime endTime;
-        // 判断当前是否存在相同等级配置
-        if (Objects.nonNull(LevelId)) {
-            AdminUserRightsDO latestExpirationByLevel = adminUserRightsMapper.findLatestExpirationByLevel(userId, LevelId);
-            if (latestExpirationByLevel != null) {
-                startTime = latestExpirationByLevel.getValidEndTime();
-            }
+        // 获取权益开始时间
+        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(levelId));
+        // 设置权益结束时间
+        LocalDateTime endTime = getPlusTimeByRange(timeRange, timeNums, startTime);
+
+        // 构建对象
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, magicBean, magicImage, matrixBean, startTime, endTime, levelId);
+
+        if (getLoginUserId() == null) {
+            record.setCreator(String.valueOf(userId));
+            record.setUpdater(String.valueOf(userId));
         }
-        endTime = getSpecificTime(startTime, timeNums, timeRange);
-
-        // 1. 增加权益记录
-        AdminUserRightsDO record = new AdminUserRightsDO()
-                .setUserId(userId)
-                .setBizId(bizId)
-                .setBizType(bizType.getType())
-                .setTitle(bizType.getName())
-                .setDescription(StrUtil.format(bizType.getDescription(), magicBean, magicImage))
-                .setMagicBean(magicBean)
-                .setMagicImage(magicImage)
-                .setMagicBeanInit(magicBean)
-                .setMagicImageInit(magicImage)
-                .setUserLevelId(LevelId)
-                .setValidStartTime(startTime)
-                .setValidEndTime(endTime)
-                .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
-
-
-        if (magicBean > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, null, null, magicBean, AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-        if (magicImage > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, null, null, magicImage, AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-        if (matrixBean > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, null, null, matrixBean, AdminUserRightsTypeEnum.MATRIX_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-
-
-
+        // 插入记录
+        adminUserRightsMapper.insert(record);
+        // 插入明细
+        createCommonRightsRecord(record, magicBean, magicImage, matrixBean);
     }
 
     /**
@@ -215,17 +188,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             addRightsDTO.setTimeRange(TimeRangeTypeEnum.MONTH.getType());
         }
 
-        LocalDateTime startTime = LocalDateTimeUtil.now();
-        LocalDateTime endTime;
-
-        // 判断当前是否存在相同等级配置
-        if (Objects.nonNull(addRightsDTO.getLevelId())) {
-            AdminUserRightsDO latestExpirationByLevel = adminUserRightsMapper.findLatestExpirationByLevel(addRightsDTO.getUserId(), addRightsDTO.getLevelId());
-            if (latestExpirationByLevel != null) {
-                startTime = latestExpirationByLevel.getValidEndTime();
-            }
-        }
-        endTime = getSpecificTime(startTime, addRightsDTO.getTimeNums(), addRightsDTO.getTimeRange());
+        // 获取权益开始时间
+        LocalDateTime startTime = buildValidTime(addRightsDTO.getUserId(), Optional.ofNullable(addRightsDTO.getLevelId()));
+        // 设置权益结束时间
+        LocalDateTime endTime = getPlusTimeByRange(addRightsDTO.getTimeRange(), addRightsDTO.getTimeNums(), startTime);
 
         AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert01(addRightsDTO, bizType, startTime, endTime);
 
@@ -236,18 +202,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 插入记录
         adminUserRightsMapper.insert(record);
-        // 插入魔法豆明细记录
-        if (addRightsDTO.getMagicBean() > 0) {
-            adminUserRightsRecordService.createRightsRecord(addRightsDTO.getUserId(), null, null, addRightsDTO.getMagicBean(), AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-        // 插入魔法图片明细记录
-        if (addRightsDTO.getMagicImage() > 0) {
-            adminUserRightsRecordService.createRightsRecord(addRightsDTO.getUserId(), null, null, addRightsDTO.getMagicImage(), AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-        // 插入矩阵豆明细记录
-        if (addRightsDTO.getMatrixBean() > 0) {
-            adminUserRightsRecordService.createRightsRecord(addRightsDTO.getUserId(), null, null, addRightsDTO.getMatrixBean(), AdminUserRightsTypeEnum.MATRIX_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
+
+        // 插入明细
+        createCommonRightsRecord(record, addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean());
+
     }
 
     /**
@@ -274,56 +232,28 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 根据业务类型设置权益有效期
         TimesRangeDTO timesRange = rightsBasicDTO.getTimesRange();
+
         if (bizType.isSystem()) {
             timesRange.setNums(1);
             timesRange.setRange(TimeRangeTypeEnum.MONTH.getType());
         }
+        // 获取权益开始时间
+        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(rightsDTO.getLevelBasicDTO().getLevelId()));
+        // 设置权益结束时间
+        LocalDateTime endTime = getPlusTimeByRange(rightsDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
 
-        LocalDateTime startTime = LocalDateTimeUtil.now();
-        LocalDateTime endTime;
-        // 判断当前是否存在相同等级配置
-        if (Objects.nonNull(rightsDTO.getLevelBasicDTO()) && Objects.nonNull(rightsDTO.getLevelBasicDTO().getLevelId())) {
-            AdminUserRightsDO latestExpirationByLevel = adminUserRightsMapper.findLatestExpirationByLevel(userId, rightsDTO.getLevelBasicDTO().getLevelId());
-            if (latestExpirationByLevel != null) {
-                startTime = latestExpirationByLevel.getValidEndTime();
-            }
-        }
-        endTime = getSpecificTime(startTime, rightsDTO.getLevelBasicDTO().getTimesRange().getNums(), rightsDTO.getLevelBasicDTO().getTimesRange().getRange());
-
-        // FIXME 添加数据字段
-        // 1. 增加权益记录
-        AdminUserRightsDO record = new AdminUserRightsDO()
-                .setUserId(userId)
-                .setBizId(bizId)
-                .setBizType(bizType.getType())
-                .setTitle(bizType.getName())
-                .setDescription(StrUtil.format(bizType.getDescription(), rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage()))
-                .setMagicBean(rightsBasicDTO.getMagicBean())
-                .setMagicImage(rightsBasicDTO.getMagicImage())
-                .setMagicBeanInit(rightsBasicDTO.getMagicBean())
-                .setMagicImageInit(rightsBasicDTO.getMagicImage())
-                .setUserLevelId(Objects.isNull(rightsDTO.getLevelBasicDTO().getLevelId()) ? null : rightsDTO.getLevelBasicDTO().getLevelId())
-                .setValidStartTime(startTime)
-                .setValidEndTime(endTime)
-                .setStatus(AdminUserRightsStatusEnum.NORMAL.getType());
+        // 构建对象
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime, Objects.isNull(rightsDTO.getLevelBasicDTO().getLevelId()) ? null : rightsDTO.getLevelBasicDTO().getLevelId());
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
             record.setUpdater(String.valueOf(userId));
         }
-
+        // 插入记录
         adminUserRightsMapper.insert(record);
 
-        if (rightsBasicDTO.getMagicBean() > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, null, null, rightsBasicDTO.getMagicBean(), AdminUserRightsTypeEnum.MAGIC_BEAN, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-
-        if (rightsBasicDTO.getMagicImage() > 0) {
-            adminUserRightsRecordService.createRightsRecord(userId, null, null, rightsBasicDTO.getMagicImage(), AdminUserRightsTypeEnum.MAGIC_IMAGE, bizType.getType() + 50, String.valueOf(record.getId()), String.valueOf(record.getId()));
-        }
-        // FIXME 添加矩阵点
-
-
+        // 插入明细
+        createCommonRightsRecord(record, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean());
     }
 
     /**
@@ -465,7 +395,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         notifyExpiringRightsRespVO.setName(AdminUserRightsTypeEnum.MAGIC_BEAN.getName());
         notifyExpiringRightsRespVO.setRightsType(AdminUserRightsTypeEnum.MAGIC_BEAN.name());
-        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 10);
+        notifyExpiringRightsRespVO.setIsNotify(sumMagicBean <= 5);
         notifyExpiringRightsRespVO.setExpiredNum(sumMagicBean);
 
         return notifyExpiringRightsRespVO;
@@ -609,24 +539,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     }
 
-    public LocalDateTime getSpecificTime(LocalDateTime times, Integer timeNums, Integer TimeRange) {
-        Assert.notNull(times);
-        // 1.0 根据会员配置等级 获取会员配置信息
-        TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(TimeRange);
-
-        switch (timeRangeTypeEnum) {
-            case DAY:
-                return times.plusDays(timeNums);
-            case WEEK:
-                return times.plusWeeks(timeNums);
-            case MONTH:
-                return times.plusMonths(timeNums);
-            case YEAR:
-                return times.plusYears(timeNums);
-            default:
-                return times;
-        }
-    }
 
     /**
      * 获得自身的代理对象，解决 AOP 生效问题
@@ -635,6 +547,61 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      */
     private AdminUserRightsServiceImpl getSelf() {
         return SpringUtil.getBean(getClass());
+    }
+
+
+    // 共通的创建权益记录方法
+    private void createCommonRightsRecord(AdminUserRightsDO record, Integer magicBean, Integer magicImage, Integer matrixBean) {
+        try {
+            // 插入魔法豆明细记录
+            if (magicBean > 0) {
+                adminUserRightsRecordService.createRightsRecord(record.getUserId(), null, null, magicBean,
+                        AdminUserRightsTypeEnum.MAGIC_BEAN, record.getBizType() + BIZ_TYPE_OFFSET,
+                        String.valueOf(record.getId()), String.valueOf(record.getId()));
+            }
+            // 插入魔法图片明细记录
+            if (magicImage > 0) {
+                adminUserRightsRecordService.createRightsRecord(record.getUserId(), null, null, magicImage,
+                        AdminUserRightsTypeEnum.MAGIC_IMAGE, record.getBizType() + BIZ_TYPE_OFFSET,
+                        String.valueOf(record.getId()), String.valueOf(record.getId()));
+            }
+            // 插入矩阵豆明细记录
+            if (matrixBean > 0) {
+                adminUserRightsRecordService.createRightsRecord(record.getUserId(), null, null, matrixBean,
+                        AdminUserRightsTypeEnum.MATRIX_BEAN, record.getBizType() + BIZ_TYPE_OFFSET,
+                        String.valueOf(record.getId()), String.valueOf(record.getId()));
+            }
+        } catch (Exception e) {
+            // 适当的异常处理逻辑
+            log.error("Failed to create rights record for user:{} ", record.getUserId(), e);
+        }
+    }
+
+    /**
+     * @param userId  用户编号
+     * @param levelId 用户等级编号
+     * @return 有效开始时间
+     */
+    private LocalDateTime buildValidTime(Long userId, Optional<Long> levelId) {
+        LocalDateTime startTime = LocalDateTime.now();
+
+        if (levelId.isPresent()) {
+            // 尝试在数据库中获取符合条件的用户权限信息，并进行排序选择最晚的失效时间
+            List<AdminUserRightsDO> validAdminUserRights = adminUserRightsMapper.getValidAdminUserRights(userId, levelId.get(), startTime);
+
+            // 列表为空时，直接返回当前时间
+            if (CollUtil.isEmpty(validAdminUserRights)) {
+                return startTime;
+            }
+
+            // 取时间最大的数据
+            return validAdminUserRights.stream().max(Comparator.comparing(AdminUserRightsDO::getValidEndTime, Comparator.nullsLast(Comparator.naturalOrder()))) // 直接获取第一个元素，这里假设列表非空，前面已做空检查
+                    .map(AdminUserRightsDO::getValidEndTime)
+                    .orElse(startTime);
+
+        }
+
+        return startTime;
     }
 
 }

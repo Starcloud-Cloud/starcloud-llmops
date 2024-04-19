@@ -314,6 +314,8 @@ public class ProductSkuServiceImpl implements ProductSkuService {
         }
 
         if (Objects.isNull(sku.getSubscribeConfig())||!sku.getSubscribeConfig().getIsSubscribe()) {
+            //  TODO 发送预警
+
             throw exception(SKU_NO_SUPPORT_SUBSCRIPTION);
         }
     }

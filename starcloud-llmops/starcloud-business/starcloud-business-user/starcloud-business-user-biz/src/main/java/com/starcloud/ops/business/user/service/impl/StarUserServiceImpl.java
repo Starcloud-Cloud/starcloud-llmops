@@ -604,7 +604,7 @@ public class StarUserServiceImpl implements StarUserService {
         AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
-        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(), userId));
+        userDetailVO.setIsNewUser(isNewUser(userId));
         userDetailVO.setRegisterTime(userDO.getCreateTime());
         userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
         userDetailVO.setIsInviteUser(false);
@@ -695,12 +695,6 @@ public class StarUserServiceImpl implements StarUserService {
         }
     }
 
-    private Boolean validateIsNewUser(LocalDateTime RegisterTime, Long userId) {
-        if (tradeOrderApi.getSuccessOrderCount(userId) > 0) {
-            return false;
-        }
-
-        // 注册时间3天内
-        return RegisterTime.isAfter(LocalDateTime.now().minusDays(3));
-    }
 }
+
+

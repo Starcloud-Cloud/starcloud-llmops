@@ -21,7 +21,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
-@Schema(name = "CreativePlanPageQuery", description = "创作计划分页请求")
+@Schema(description = "创作计划分页请求")
 public class CreativePlanPageQuery extends PageQuery {
 
     private static final long serialVersionUID = 2680070754414480259L;

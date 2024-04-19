@@ -139,23 +139,38 @@ public class PosterActionHandler extends BaseActionHandler {
 
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
-        // 任务列表
-        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(style.getTemplateList()).stream()
-                .map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor)).collect(Collectors.toList());
+        // 任务列表，只执行需要执行的图片，isExecute 为空或者为true，都执行，为false则不需要执行改图片
+        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(style.getTemplateList())
+                .stream()
+                .filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute())
+                .map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor))
+                .collect(Collectors.toList());
+
         // 任务合并
         CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0]))
                 .thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+
         // 获取结果
         List<HandlerResponse<PosterGenerationHandler.Response>> handlerResponseList = allFuture.join();
 
         // 如果有一个失败，则返回失败
-        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream().filter(item -> !item.getSuccess()).findFirst();
+        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> !item.getSuccess())
+                .findFirst();
+
         if (failureOption.isPresent()) {
             return failureResponse(failureOption.get(), style);
         }
 
         // 构建响应结果
-        List<PosterGenerationHandler.Response> list = handlerResponseList.stream().map(HandlerResponse::getOutput).collect(Collectors.toList());
+        List<PosterGenerationHandler.Response> list = handlerResponseList.stream()
+                .filter(Objects::nonNull)
+                .map(HandlerResponse::getOutput)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // 执行成功，构造返回结果
         ActionResponse response = new ActionResponse();
         response.setSuccess(Boolean.TRUE);
         response.setType(handlerResponseList.get(0).getType());

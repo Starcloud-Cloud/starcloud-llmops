@@ -2,15 +2,15 @@ package com.starcloud.ops.business.user.service.level;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
-import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.ROLE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.getPlusTimeByRange;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
 /**
@@ -62,6 +63,11 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Resource
     private PermissionService permissionService;
+
+    @Resource
+    private SmsSendApi smsSendApi;
+
+
     @Resource
     private RoleService roleService;
 
@@ -80,35 +86,27 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-//    @CacheEvict(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#reqVO.permission",
-//            condition = "#reqVO.permission != null")
-    public void createLevelRecord(AdminUserLevelCreateReqVO createReqVO) {
+    public AdminUserLevelDO createLevelRecord(AdminUserLevelCreateReqVO createReqVO) {
+        log.info("【开始添加用户等级，当前数据为[{}]】", createReqVO);
+        if (Objects.isNull(createReqVO)) {
+            log.info("【添加用户等级失败，当前数据为空直接跳出添加步骤");
+            return null;
+        }
         // 1.0 根据会员配置等级 获取会员配置信息
         AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(createReqVO.getLevelId());
         if (levelConfig == null) {
             throw exception(LEVEL_NOT_EXISTS);
         }
-        // 2.0 设置会员有效期
-        LocalDateTime startTime = LocalDateTimeUtil.now();
-        LocalDateTime endTime;
-        // 2.1 判断当前会员是否有当前等级信息
-        AdminUserLevelDO latestExpirationByLevel = findLatestExpirationByLevel(createReqVO.getUserId(), createReqVO.getLevelId());
-        if (latestExpirationByLevel != null) {
-            startTime = latestExpirationByLevel.getValidEndTime();
-        }
+        // 设置开始时间
+        LocalDateTime startTime = buildValidTime(createReqVO.getUserId(), Optional.ofNullable(createReqVO.getLevelId()));
+        // 设置结束时间
+        LocalDateTime endTime = getPlusTimeByRange(createReqVO.getTimeRange(), createReqVO.getTimeNums(), startTime);
 
-        if (createReqVO.getStartTime() != null && createReqVO.getEndTime() != null) {
-            startTime = createReqVO.getStartTime();
-            endTime = createReqVO.getEndTime();
-        } else {
-            endTime = getSpecificTime(startTime, createReqVO.getTimeNums(), createReqVO.getTimeRange());
-        }
         AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(createReqVO, levelConfig.getName(), startTime, endTime);
 
-        // if (getLoginUserId() == null) {
         adminUserLevelDO.setCreator(String.valueOf(createReqVO.getUserId()));
         adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
-        // }
+
         adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
         adminUserLevelDO.setDescription(StrUtil.format(AdminUserLevelBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
         // 3.0 添加会员等级记录
@@ -116,6 +114,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         // 设置等级中绑定的角色
         getSelf().buildUserRole(adminUserLevelDO.getUserId(), levelConfig.getRoleId(), null);
+
+        return adminUserLevelDO;
     }
 
     /**
@@ -159,7 +159,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      */
     @Override
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
-        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectValidList(userId);
+        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
         List<AdminUserLevelDetailRespVO> adminUserLevelDetailRespVOS = new ArrayList<>();
 
         for (AdminUserLevelDO level : adminUserLevelDOS) {
@@ -172,19 +172,13 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             }
 
             AdminUserLevelDetailRespVO adminUserLevelDetailRespVO = new AdminUserLevelDetailRespVO();
-            adminUserLevelDetailRespVO.setUserId(userId)
-                    .setLevelId(level.getLevelId())
-                    .setLevelName(level.getLevelName())
-                    .setBizType(level.getBizType());
-            adminUserLevelDetailRespVO.setSort(levelConfig.getSort())
-                    .setLevelConfigDTO(BeanUtil.toBean(levelConfig.getLevelConfig(), LevelConfigDTO.class));
+            adminUserLevelDetailRespVO.setUserId(userId).setLevelId(level.getLevelId()).setLevelName(level.getLevelName()).setBizType(level.getBizType());
+            adminUserLevelDetailRespVO.setSort(levelConfig.getSort()).setLevelConfigDTO(BeanUtil.toBean(levelConfig.getLevelConfig(), LevelConfigDTO.class));
 
             adminUserLevelDetailRespVOS.add(adminUserLevelDetailRespVO);
         }
 
-        return adminUserLevelDetailRespVOS.stream()
-                .sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed())
-                .collect(Collectors.toList());
+        return adminUserLevelDetailRespVOS.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed()).collect(Collectors.toList());
 
     }
 
@@ -205,7 +199,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         LocalDateTime ThreeDaysLater = today.plusDays(3);
 
-        List<AdminUserLevelDO> validLevelList = adminUserLevelMapper.selectValidList(userId);
+        List<AdminUserLevelDO> validLevelList = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
         if (CollUtil.isEmpty(validLevelList)) {
             return notifyExpiringLevelRespVO;
         }
@@ -215,19 +209,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 判断是否存在生效的用户等级
 
         // 获取 3 天内即将过期的等级
-        List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream()
-                .filter(level -> level.getValidEndTime().isBefore(ThreeDaysLater) && level.getValidEndTime().isAfter(today))
-                .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
-                .collect(Collectors.toList());
+        List<AdminUserLevelDO> nextWeekExpiringLevel = validLevelList.stream().filter(level -> level.getValidEndTime().isBefore(ThreeDaysLater) && level.getValidEndTime().isAfter(today)).sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed()).collect(Collectors.toList());
 
         // 获取大于 3 天的用户等级
-        List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream()
-                .filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(ThreeDaysLater))
-                .sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed())
-                .collect(Collectors.toList());
+        List<AdminUserLevelDO> noExpiringLevelDOS = validLevelList.stream().filter(level -> !level.getValidEndTime().isAfter(today) || !level.getValidEndTime().isBefore(ThreeDaysLater)).sorted(Comparator.comparing(AdminUserLevelDO::getValidEndTime).reversed()).collect(Collectors.toList());
 
-        nextWeekExpiringLevel.removeIf(level -> noExpiringLevelDOS.stream()
-                .anyMatch(noExpiringLevel -> noExpiringLevel.getLevelId().equals(level.getLevelId())));
+        nextWeekExpiringLevel.removeIf(level -> noExpiringLevelDOS.stream().anyMatch(noExpiringLevel -> noExpiringLevel.getLevelId().equals(level.getLevelId())));
 
         if (CollUtil.isEmpty(nextWeekExpiringLevel)) {
             return notifyExpiringLevelRespVO;
@@ -268,7 +255,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
 
             createReqVO.setDescription(String.format(AdminUserLevelBizTypeEnum.REGISTER.getDescription(), adminUserDO.getId()));
-            createLevelRecord(createReqVO);
+            getSelf().createLevelRecord(createReqVO);
         }
 
 
@@ -281,8 +268,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Transactional(rollbackFor = Exception.class)
     public int expireLevel() {
         // 1. 查询过期的用户等级数据
-        List<AdminUserLevelDO> levelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeLt(
-                CommonStatusEnum.ENABLE.getStatus(), LocalDateTime.now());
+        List<AdminUserLevelDO> levelDOS = adminUserLevelMapper.getUserLevelsNearExpiry(CommonStatusEnum.ENABLE.getStatus(), LocalDateTime.now());
         if (CollUtil.isEmpty(levelDOS)) {
             return 0;
         }
@@ -313,20 +299,16 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         levelConfigDOS.removeIf(config -> Objects.equals(config.getId(), levelDO.getLevelId()));
         if (!levelConfigDOS.isEmpty()) {
-            List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).collect(Collectors.toList());
+            List<Long> configIds = levelConfigDOS.stream().map(AdminUserLevelConfigDO::getId).distinct().collect(Collectors.toList());
 
-            // 修改为 查询未过期的数据 包括不在时间范围内的数据
-            List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeGe(levelDO.getUserId(), configIds, LocalDateTime.now(), CommonStatusEnum.ENABLE.getStatus());
-
-            if (CollUtil.isEmpty(adminUserLevelDOS)) {
+            if (CollUtil.isEmpty(adminUserLevelMapper.getValidAdminUserLevels(levelDO.getUserId(), configIds, LocalDateTime.now()))) {
                 // 移除过期等级中绑定的角色
                 getSelf().buildUserRole(levelDO.getUserId(), null, levelConfig.getRoleId());
             }
         }
 
         // 更新 AdminUserLevelDO 状态为已关闭
-        int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(),
-                new AdminUserLevelDO().setStatus(CommonStatusEnum.DISABLE.getStatus()));
+        int updateCount = adminUserLevelMapper.updateByIdAndStatus(levelDO.getId(), levelDO.getStatus(), new AdminUserLevelDO().setStatus(CommonStatusEnum.DISABLE.getStatus()));
         if (updateCount == 0) {
             throw exception(LEVEL_EXPIRE_FAIL_STATUS_NOT_ENABLE);
         }
@@ -346,8 +328,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 获取用户当前权益最大的值
         LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
 
-        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
-                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode)).orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
 
         Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
 
@@ -375,8 +356,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     }
 
     /**
-     * @param levelRightsCode  权益限制编码
-     * @param userId 用户ID
+     * @param levelRightsCode 权益限制编码
+     * @param userId          用户ID
      * @return AdminUserLevelLimitUsedRespVO
      */
     @Override
@@ -390,8 +371,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 获取用户当前权益最大的值
         LevelConfigDTO levelConfigDTO = levelConfigDO.getLevelConfig();
 
-        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode))
-                .orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
+        LevelRightsLimitEnums value = Optional.ofNullable(LevelRightsLimitEnums.getByRedisKey(levelRightsCode)).orElseThrow(() -> exception(USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND));
 
         Integer data = (Integer) value.getExtractor().apply(levelConfigDTO);
 
@@ -404,32 +384,104 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         return adminUserLevelLimitUsedRespVO;
     }
 
-    public AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
-        // 1.0 根据会员配置等级 获取会员配置信息
-        List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.selectListByStatusAndValidTimeGe(userId, Collections.singletonList(levelId), LocalDateTime.now(), CommonStatusEnum.ENABLE.getStatus());
-        if (CollUtil.isEmpty(adminUserLevelDOS)){
-            return null;
+    /**
+     * 【系统】验证用户等级和用户角色是否对应
+     *
+     * @param userId 用户编号（可以为空）
+     */
+    @Override
+    public void validateLevelAndRole(Long userId) {
+        List<AdminUserLevelDO> adminUserLevelDOS;
+        if (Objects.nonNull(userId)) {
+            adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
+        } else {
+            adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(null, null, LocalDateTime.now());
         }
-        return adminUserLevelDOS.get(0);
+        // 根据用户进行分组
+        Map<Long, List<AdminUserLevelDO>> LevelGroups = adminUserLevelDOS.stream().collect(Collectors.groupingBy(AdminUserLevelDO::getUserId));
+
+        ArrayList<Long> errUsers = new ArrayList<>();
+        LevelGroups.forEach((user, userLevels) -> {
+            // 获取用户角色组
+            Set<Long> userRoleIdListByUserIdFromCache = permissionService.getUserRoleIdListByUserIdFromCache(user);
+            // 获取用户
+            List<Long> levelConfigIds = userLevels.stream().map(AdminUserLevelDO::getLevelId).collect(Collectors.toList());
+
+            List<AdminUserLevelConfigDO> levelConfigDOList = levelConfigService.getLevelList(levelConfigIds);
+
+            Set<Long> userRoles = levelConfigDOList.stream().map(AdminUserLevelConfigDO::getRoleId).collect(Collectors.toSet());
+
+            if (!userRoleIdListByUserIdFromCache.equals(userRoles)) {
+                errUsers.add(user);
+            }
+        });
+        if (!errUsers.isEmpty()) {
+
+            HashMap<String, Object> templateParams = MapUtil.newHashMap();
+            templateParams.put("warn_name", "用户等级异常");
+            templateParams.put("data", errUsers.toString());
+
+
+            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("DING_TALK_PAY_NOTIFY_02").setTemplateParams(templateParams));
+        }
     }
 
-    public LocalDateTime getSpecificTime(LocalDateTime times, Integer timeNums, Integer TimeRange) {
-        Assert.notNull(times);
-        // 1.0 根据会员配置等级 获取会员配置信息
-        TimeRangeTypeEnum timeRangeTypeEnum = TimeRangeTypeEnum.getByType(TimeRange);
 
-        switch (timeRangeTypeEnum) {
-            case DAY:
-                return times.plusDays(timeNums);
-            case WEEK:
-                return times.plusWeeks(timeNums);
-            case MONTH:
-                return times.plusMonths(timeNums);
-            case YEAR:
-                return times.plusYears(timeNums);
-            default:
-                return times;
+    /**
+     * 设置有效开始时间
+     *
+     * @param userId  用户编号
+     * @param levelId 用户等级编号
+     * @return 有效开始时间
+     */
+    private LocalDateTime buildValidTime(Long userId, Optional<Long> levelId) {
+        LocalDateTime startTime = LocalDateTime.now();
+
+        if (levelId.isPresent()) {
+            // 尝试在数据库中获取符合条件的用户权限信息，并进行排序选择最晚的失效时间
+            List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, Collections.singletonList(levelId.get()), startTime);
+
+            // 列表为空时，直接返回当前时间
+            if (CollUtil.isEmpty(adminUserLevelDOS)) {
+                return startTime;
+            }
+
+            // 取时间最大的数据
+            return adminUserLevelDOS.stream().max(Comparator.comparing(AdminUserLevelDO::getValidEndTime, Comparator.nullsLast(Comparator.naturalOrder()))) // 直接获取第一个元素，这里假设列表非空，前面已做空检查
+                    .map(AdminUserLevelDO::getValidEndTime).orElse(startTime);
+
         }
+
+        return startTime;
+    }
+
+
+    /**
+     * 设置用户角色
+     *
+     * @param userId       用户编号
+     * @param incrRoleId   新增角色编号
+     * @param decrRoleCode 减少角色编号
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void buildUserRole(Long userId, Long incrRoleId, Long decrRoleCode) {
+        // 获取当前用户角色
+        Set<Long> userRoles = permissionService.getUserRoleIdListByUserId(userId);
+
+        if (userRoles == null) {
+            // 提前返回，处理空值的情况
+            return;
+        }
+
+        if (decrRoleCode != null) {
+            userRoles.removeIf(decrRoleCode::equals);
+        }
+        if (incrRoleId != null) {
+            userRoles.add(incrRoleId);
+        }
+
+        // 重新设置用户角色
+        permissionService.assignUserRole(userId, userRoles);
     }
 
 
@@ -441,23 +493,5 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     private AdminUserLevelServiceImpl getSelf() {
         return SpringUtil.getBean(getClass());
     }
-
-
-    @Transactional(rollbackFor = Exception.class)
-    public void buildUserRole(Long userId, Long incrRoleId, Long decrRoleCode) {
-        // 获取当前用户角色
-        Set<Long> userRoles = permissionService.getUserRoleIdListByUserId(userId);
-
-        if (decrRoleCode != null && userRoles.contains(decrRoleCode)) {
-            userRoles.remove(decrRoleCode);
-        }
-        if (incrRoleId != null) {
-            userRoles.add(incrRoleId);
-        }
-
-        // 重新设置用户角色
-        permissionService.assignUserRole(userId, userRoles);
-    }
-
 
 }

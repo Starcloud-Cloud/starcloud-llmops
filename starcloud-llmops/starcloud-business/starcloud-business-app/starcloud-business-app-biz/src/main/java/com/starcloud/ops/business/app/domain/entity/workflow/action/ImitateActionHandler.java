@@ -27,6 +27,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -233,6 +234,9 @@ public class ImitateActionHandler extends BaseActionHandler {
      */
     private List<AbstractCreativeMaterialDTO> handlerReferList(List<AbstractCreativeMaterialDTO> refersList, Integer refersCount) {
         // 随机选取
+        if (CollectionUtils.isEmpty(refersList)) {
+            return Collections.emptyList();
+        }
         Collections.shuffle(refersList);
         List<AbstractCreativeMaterialDTO> result = refersList.stream()
                 .peek(AbstractCreativeMaterialDTO::clean)

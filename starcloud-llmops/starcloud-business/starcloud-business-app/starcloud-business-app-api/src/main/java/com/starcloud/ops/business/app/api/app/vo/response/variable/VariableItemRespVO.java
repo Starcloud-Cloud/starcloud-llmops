@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.api.app.vo.response.variable;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
@@ -115,6 +117,8 @@ public class VariableItemRespVO implements Serializable {
      * @param value value
      * @return this
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public VariableItemRespVO addOption(String label, Object value) {
         if (CollectionUtil.isEmpty(this.options)) {
             this.options = Collections.emptyList();
@@ -132,6 +136,8 @@ public class VariableItemRespVO implements Serializable {
      * @param value value
      * @return this
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public VariableItemRespVO addOption(String label, Object value, String description) {
         if (CollectionUtil.isEmpty(this.options)) {
             this.options = Collections.emptyList();
@@ -150,6 +156,8 @@ public class VariableItemRespVO implements Serializable {
      * @param field 字段
      * @return 变量
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static VariableItemRespVO ofTextVariable(String field, String label) {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(field);
@@ -172,6 +180,8 @@ public class VariableItemRespVO implements Serializable {
      * @param field 字段
      * @return 变量
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static VariableItemRespVO ofImageVariable(String field, String label) {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(field);
@@ -186,5 +196,18 @@ public class VariableItemRespVO implements Serializable {
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
         return variableItem;
+    }
+
+    /**
+     * 合并变量
+     *
+     * @param item 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void merge(VariableItemRespVO item) {
+        if (this.isShow) {
+            this.value = item.getValue();
+        }
     }
 }

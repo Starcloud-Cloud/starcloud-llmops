@@ -23,9 +23,8 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractCreativeMaterialDTO {
     private String link;
 
     @JsonPropertyDescription("标题")
-    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true)
+    @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true, width = 400)
     private String title;
-
 
     @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
     private List<String> imitateType;

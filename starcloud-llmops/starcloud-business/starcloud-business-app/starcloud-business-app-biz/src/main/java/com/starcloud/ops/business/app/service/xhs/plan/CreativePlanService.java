@@ -2,10 +2,11 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import org.springframework.web.multipart.MultipartFile;
@@ -104,5 +105,12 @@ public interface CreativePlanService {
      * @param uid 创作计划UID
      */
     void execute(String uid);
+
+    /**
+     * 升级创作计划
+     *
+     * @param request 执行请求
+     */
+    void upgrade(CreativePlanUpgradeReqVO request);
 
 }

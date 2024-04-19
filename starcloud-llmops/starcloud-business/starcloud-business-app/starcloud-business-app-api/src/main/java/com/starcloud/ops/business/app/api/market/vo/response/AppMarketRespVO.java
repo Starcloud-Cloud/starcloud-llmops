@@ -319,5 +319,15 @@ public class AppMarketRespVO implements Serializable {
         return workflowConfig.getStepByHandler(handler);
     }
 
-
+    /**
+     * 合并应用
+     *
+     * @param appInformation 应用信息
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void merge(AppMarketRespVO appInformation) {
+        // 只进行合并应用配置，其余的字段不进行替换
+        this.workflowConfig.merge(appInformation.getWorkflowConfig());
+    }
 }
