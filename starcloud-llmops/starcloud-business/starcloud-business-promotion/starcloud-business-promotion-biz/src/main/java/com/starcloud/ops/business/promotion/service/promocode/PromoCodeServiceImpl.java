@@ -14,13 +14,9 @@ import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
 import com.starcloud.ops.business.promotion.enums.coupon.CouponTakeTypeEnum;
 import com.starcloud.ops.business.promotion.service.coupon.CouponService;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
-import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
-import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
-import com.starcloud.ops.business.user.api.rights.dto.UserRightsBasicDTO;
+import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +26,6 @@ import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.promotion.enums.ErrorCodeConstants.*;
@@ -59,6 +54,10 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     //
     @Resource
     private AdminUserRightsApi adminUserRightsApi;
+
+    @Resource
+    private AdminUsersApi adminUsersApi;
+
 
 
     /**
@@ -164,32 +163,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
             return;
         }
         // 增加权益
-        AdminUserRightsCommonDTO giveRights = template.getGiveRights();
-
-        // 增加用户等级
-        if (Objects.nonNull(giveRights.getLevelBasicDTO())) {
-            log.info("增加用户等级");
-            UserLevelBasicDTO levelBasicDTO = giveRights.getLevelBasicDTO();
-            adminUserLevelApi.addAdminUserLevel(userId, levelBasicDTO.getLevelId(), levelBasicDTO.getTimesRange().getNums(), levelBasicDTO.getTimesRange().getRange(), AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
-        }
-        // 增加用户权益
-        if (Objects.nonNull(giveRights.getRightsBasicDTO())) {
-            log.info("增加用户权益");
-            UserRightsBasicDTO rightsBasicDTO = giveRights.getRightsBasicDTO();
-
-            AddRightsDTO addRightsDTO = new AddRightsDTO();
-            addRightsDTO.setUserId(userId)
-                    .setMagicBean(rightsBasicDTO.getMagicBean())
-                    .setMagicImage(rightsBasicDTO.getMagicImage())
-                    .setMatrixBean(rightsBasicDTO.getMatrixBean())
-                    .setTimeNums(rightsBasicDTO.getTimesRange().getNums())
-                    .setTimeRange(rightsBasicDTO.getTimesRange().getRange())
-                    .setBizType(AdminUserRightsBizTypeEnum.REDEEM_CODE.getType())
-                    .setBizId(String.valueOf(convert.getId()))
-                    .setLevelId(giveRights.getLevelBasicDTO() != null ? giveRights.getLevelBasicDTO().getLevelId() == null ? null : giveRights.getLevelBasicDTO().getLevelId() : null);
-            adminUserRightsApi.addRights(addRightsDTO);
-        }
-
+        adminUsersApi.insertUserRightsAndLevel(template.getGiveRights(),userId,AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
 
     }
 

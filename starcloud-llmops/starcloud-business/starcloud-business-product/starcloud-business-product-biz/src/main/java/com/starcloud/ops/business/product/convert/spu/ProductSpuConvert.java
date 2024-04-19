@@ -14,7 +14,7 @@ import com.starcloud.ops.business.product.convert.sku.ProductSkuConvert;
 import com.starcloud.ops.business.product.dal.dataobject.sku.ProductSkuDO;
 import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
 import com.starcloud.ops.business.product.enums.DictTypeConstants;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -79,7 +79,7 @@ public interface ProductSpuConvert {
     public static SubscribeConfigVO mapToSubscribeConfigVO(ProductSpuDO.SubscribeConfig subscribeConfig) {
         return BeanUtil.toBean(subscribeConfig,SubscribeConfigVO.class);
     }
-    public static GiveRightsVO mapToGiveRightsVO(AdminUserRightsCommonDTO giveRights) {
+    public static GiveRightsVO mapToGiveRightsVO(AdminUserRightsAndLevelCommonDTO giveRights) {
         return BeanUtil.toBean(giveRights,GiveRightsVO.class);
     }
 
@@ -90,8 +90,8 @@ public interface ProductSpuConvert {
     public static SubscribeConfigDTO mapToSubscribeConfigDTO(ProductSpuDO.SubscribeConfig subscribeConfig) {
         return BeanUtil.toBean(subscribeConfig,SubscribeConfigDTO.class);
     }
-    public static AdminUserRightsCommonDTO mapToGiveRightsDTO(AdminUserRightsCommonDTO giveRights) {
-        return BeanUtil.toBean(giveRights,AdminUserRightsCommonDTO.class);
+    public static AdminUserRightsAndLevelCommonDTO mapToGiveRightsDTO(AdminUserRightsAndLevelCommonDTO giveRights) {
+        return BeanUtil.toBean(giveRights, AdminUserRightsAndLevelCommonDTO.class);
     }
     // ========== 用户 App 相关 ==========
 
@@ -100,9 +100,7 @@ public interface ProductSpuConvert {
 
     default List<AppProductSpuPageRespVO> convertListForGetSpuList(List<ProductSpuDO> list) {
         // 处理虚拟销量
-        list.forEach(spu -> {
-            spu.setSalesCount(spu.getSalesCount() + spu.getVirtualSalesCount());
-        });
+        list.forEach(spu -> spu.setSalesCount(spu.getSalesCount() + spu.getVirtualSalesCount()));
         // 处理 VO 字段
         List<AppProductSpuPageRespVO> voList = convertListForGetSpuList0(list);
         for (int i = 0; i < list.size(); i++) {

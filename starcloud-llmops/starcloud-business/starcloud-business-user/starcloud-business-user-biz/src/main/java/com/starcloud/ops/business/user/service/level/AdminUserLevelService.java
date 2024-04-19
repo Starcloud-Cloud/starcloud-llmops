@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.user.service.level;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 
 import java.util.List;
 
@@ -35,6 +37,18 @@ public interface AdminUserLevelService {
      * @param levelRecord 会员等级记录
      */
     AdminUserLevelDO createLevelRecord(AdminUserLevelCreateReqVO levelRecord);
+
+
+    /**
+     * 新增用户等级
+     *
+     * @param rightsAndLevelCommonDTO 统一权益 DTO
+     * @param userId                  用户编号
+     * @param bizType                 业务类型
+     * @param bizId                   业务 编号
+     * @return AdminUserLevelDO
+     */
+    AdminUserLevelDO createLevelRecord(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId);
 
     /**
      * 创建会员默认等级记录
@@ -89,8 +103,9 @@ public interface AdminUserLevelService {
 
     /**
      * 获取用户等级中配置的权益限制数
+     *
      * @param levelRightsCode 等级中权益类型
-     * @param userId 用户编号
+     * @param userId          用户编号
      * @return VO
      */
     AdminUserLevelLimitUsedRespVO getLevelRightsLimitCount(String levelRightsCode, Long userId);
@@ -98,8 +113,15 @@ public interface AdminUserLevelService {
 
     /**
      * 【系统】验证用户等级和用户角色是否对应
+     *
      * @param userId 用户编号（可以为空）
      */
     void validateLevelAndRole(Long userId);
 
+    /**
+     *
+     * @param adminUserLevelDO 用户等级 DO
+     * @param adminUserRightsDO 用户权益 DO
+     */
+    void checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO);
 }

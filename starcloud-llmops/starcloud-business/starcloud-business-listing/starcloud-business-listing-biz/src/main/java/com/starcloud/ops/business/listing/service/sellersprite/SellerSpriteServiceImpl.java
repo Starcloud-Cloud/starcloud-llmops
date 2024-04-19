@@ -29,7 +29,6 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Exten
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.KeywordMinerRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.SellerSpriteResult;
-import com.xingyuv.captcha.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.redisson.api.RLock;
@@ -317,29 +316,34 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                     .body(requestData)
                     .timeout(15000)
                     .execute();
+            if (!response.isOk()) {
+                // 当前请求异常 卖家精灵网络异常
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
+            }
             SellerSpriteResult sellerSpriteResult;
             try {
-                sellerSpriteResult = BeanUtil.toBeanIgnoreError(response.body(), SellerSpriteResult.class);
+                sellerSpriteResult = BeanUtil.toBean(JSONUtil.parse(response.body()), SellerSpriteResult.class);
             } catch (RuntimeException e) {
                 // 兜底异常处理
                 log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", response.body());
                 throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
 
             }
-            if (sellerSpriteResult.isSuccess()) {
-                result = JsonUtil.toJSONString(sellerSpriteResult.getData());
+            Boolean resultSuccess = sellerSpriteResult.getSuccess();
+            if (resultSuccess) {
+                result = JSONUtil.toJsonStr(sellerSpriteResult.getData());
                 break; // 找到有效 cookie，退出循环
             }
 
             // 请求失败 且账户过期
-            if (sellerSpriteResult.isError() && sellerSpriteResult.getCode().equals(SELLER_SPRITE_ERR_CODE_ACCOUNT)) {
+            if (sellerSpriteResult.getCode().equals(SELLER_SPRITE_ERR_CODE_ACCOUNT)) {
                 log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
                 tag++;
                 self.executeCookieUpdateAsync(data);
                 continue;
             }
             // ASIN 错误
-            if (sellerSpriteResult.isError() && sellerSpriteResult.getCode().equals(SELLER_SPRITE_ERR_CODE_ASIN_INFO_ERR)) {
+            if (sellerSpriteResult.getCode().equals(SELLER_SPRITE_ERR_CODE_ASIN_INFO_ERR)) {
                 throw exception(SELLER_SPRITE_ERR_ASIN_INFO_ERR, sellerSpriteResult.getMessage());
             }
             // 兜底异常处理

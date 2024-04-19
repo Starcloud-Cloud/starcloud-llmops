@@ -143,13 +143,13 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long levelId) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long levelId) {
 
         if (magicBean == 0 || magicImage == 0) {
             return;
         }
-
-        if (bizType.isSystem()) {
+        AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
+        if (bizTypeEnum.isSystem()) {
             timeNums = 1;
             timeRange = TimeRangeTypeEnum.MONTH.getType();
         }
@@ -193,7 +193,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 设置权益结束时间
         LocalDateTime endTime = getPlusTimeByRange(addRightsDTO.getTimeRange(), addRightsDTO.getTimeNums(), startTime);
 
-        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert01(addRightsDTO, bizType, startTime, endTime);
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert01(addRightsDTO, addRightsDTO.getBizType(), startTime, endTime);
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(addRightsDTO.getUserId()));
@@ -211,39 +211,41 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     /**
      * 创建用户权益记录
      *
-     * @param rightsDTO 权益配置
-     * @param bizType   业务类型
-     * @param bizId     业务编号
+     * @param rightsAndLevelCommonDTO 权益配置
+     * @param bizType                 业务类型
+     * @param bizId                   业务编号
      */
     @Override
-    public void createRights(AdminUserRightsCommonDTO rightsDTO, Long userId, AdminUserRightsBizTypeEnum bizType, String bizId) {
+    public AdminUserRightsDO createRights(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId) {
+
+        log.info("【添加用户权益，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
         // 权益判断
-        if (Objects.isNull(rightsDTO.getRightsBasicDTO())) {
-            log.warn("权益添加失败，权益配置不存在无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsDTO);
-            return;
+        if (Objects.isNull(rightsAndLevelCommonDTO.getRightsBasicDTO())) {
+            log.warn("权益添加失败，权益配置不存在无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsAndLevelCommonDTO);
+            return null;
         }
 
         // 权益数量判断
-        UserRightsBasicDTO rightsBasicDTO = rightsDTO.getRightsBasicDTO();
+        UserRightsBasicDTO rightsBasicDTO = rightsAndLevelCommonDTO.getRightsBasicDTO();
         if (rightsBasicDTO.getMagicBean() == 0 && rightsBasicDTO.getMagicImage() == 0 && rightsBasicDTO.getMatrixBean() == 0) {
-            log.warn("权益添加失败，权益数量为0无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsDTO);
-            return;
+            log.warn("权益添加失败，权益数量为0无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsAndLevelCommonDTO);
+            return null;
         }
 
         // 根据业务类型设置权益有效期
         TimesRangeDTO timesRange = rightsBasicDTO.getTimesRange();
 
-        if (bizType.isSystem()) {
+        if (AdminUserRightsBizTypeEnum.getByType(bizType).isSystem()) {
             timesRange.setNums(1);
             timesRange.setRange(TimeRangeTypeEnum.MONTH.getType());
         }
         // 获取权益开始时间
-        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(rightsDTO.getLevelBasicDTO().getLevelId()));
+        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()));
         // 设置权益结束时间
-        LocalDateTime endTime = getPlusTimeByRange(rightsDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
+        LocalDateTime endTime = getPlusTimeByRange(rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
 
         // 构建对象
-        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime, Objects.isNull(rightsDTO.getLevelBasicDTO().getLevelId()) ? null : rightsDTO.getLevelBasicDTO().getLevelId());
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime, Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()) ? null : rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId());
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -254,6 +256,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 插入明细
         createCommonRightsRecord(record, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean());
+
+        log.info("【添加用户权益成功，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
+
+        return record;
     }
 
     /**

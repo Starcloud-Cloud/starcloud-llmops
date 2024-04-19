@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.convert.level;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
@@ -41,5 +42,19 @@ public interface AdminUserLevelConvert {
 //            to.setCurrentLevel(from.getLevelConfig());
         }
         return to;
+    }
+
+    default AdminUserLevelDO convert01(Long userId, String bizId, Integer bizType, Long levelId, String levelName, String desc, LocalDateTime startTime, LocalDateTime endTime) {
+        return AdminUserLevelDO.builder()
+                .userId(userId)
+                .bizId(bizId)
+                .bizType(bizType)
+                .levelId(levelId)
+                .levelName(levelName)
+                .description(desc)
+                .validStartTime(startTime)
+                .validEndTime(endTime)
+                .status(CommonStatusEnum.ENABLE.getStatus())
+                .build();
     }
 }

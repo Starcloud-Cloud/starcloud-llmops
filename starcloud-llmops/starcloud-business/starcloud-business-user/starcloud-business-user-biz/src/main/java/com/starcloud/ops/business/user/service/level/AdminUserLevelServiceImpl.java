@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.level;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -15,10 +16,13 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
+import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.*;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.dal.redis.UserLevelConfigLimitRedisDAO;
 import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
@@ -31,6 +35,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -116,6 +121,53 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         getSelf().buildUserRole(adminUserLevelDO.getUserId(), levelConfig.getRoleId(), null);
 
         return adminUserLevelDO;
+    }
+
+    /**
+     * 新增用户等级
+     *
+     * @param rightsAndLevelCommonDTO 统一权益 DTO
+     * @param userId                  用户编号
+     * @param bizType                 业务类型
+     * @param bizId                   业务 编号
+     * @return AdminUserLevelDO
+     */
+    @Override
+    public AdminUserLevelDO createLevelRecord(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId) {
+
+        log.info("【开始添加用户等级，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
+
+        if (Objects.isNull(rightsAndLevelCommonDTO) || Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO())) {
+            log.info("【添加用户等级失败，当前数据为空直接跳出添加步骤");
+            return null;
+        }
+
+        UserLevelBasicDTO levelBasicDTO = rightsAndLevelCommonDTO.getLevelBasicDTO();
+        // 1.0 根据会员配置等级 获取会员配置信息
+        AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(levelBasicDTO.getLevelId());
+        if (levelConfig == null) {
+            throw exception(LEVEL_NOT_EXISTS);
+        }
+
+        // 设置开始时间
+        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(levelBasicDTO.getLevelId()));
+        // 设置结束时间
+        LocalDateTime endTime = getPlusTimeByRange(levelBasicDTO.getTimesRange().getRange(), levelBasicDTO.getTimesRange().getNums(), startTime);
+
+        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(userId, bizId, bizType, levelBasicDTO.getLevelId(), levelConfig.getName(), StrUtil.format(AdminUserLevelBizTypeEnum.getByType(bizType).getDescription(), levelConfig.getName()), startTime, endTime);
+
+        adminUserLevelDO.setCreator(String.valueOf(userId));
+        adminUserLevelDO.setUpdater(String.valueOf(userId));
+
+        // 3.0 添加会员等级记录
+        adminUserLevelMapper.insert(adminUserLevelDO);
+
+        // 设置等级中绑定的角色
+        getSelf().buildUserRole(adminUserLevelDO.getUserId(), levelConfig.getRoleId(), null);
+        log.info("【用户等级添加成功，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
+        return adminUserLevelDO;
+
+
     }
 
     /**
@@ -423,6 +475,27 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
 
             smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("DING_TALK_PAY_NOTIFY_02").setTemplateParams(templateParams));
+        }
+    }
+
+    /**
+     * @param adminUserLevelDO  用户等级 DO
+     * @param adminUserRightsDO 用户权益 DO
+     */
+    @Override
+    public void checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO) {
+        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return;
+
+        long initTimeBetween = 10L;
+        // 检验
+        long startTimeBetween = LocalDateTimeUtil.between(adminUserLevelDO.getValidStartTime(), adminUserRightsDO.getValidStartTime(), ChronoUnit.SECONDS);
+
+        long endTimeBetween = LocalDateTimeUtil.between(adminUserLevelDO.getValidEndTime(), adminUserRightsDO.getValidEndTime(), ChronoUnit.SECONDS);
+
+        if (startTimeBetween >= initTimeBetween || endTimeBetween >= initTimeBetween) {
+            // 发送报警
+            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(null).setTemplateCode(""));
+
         }
     }
 
