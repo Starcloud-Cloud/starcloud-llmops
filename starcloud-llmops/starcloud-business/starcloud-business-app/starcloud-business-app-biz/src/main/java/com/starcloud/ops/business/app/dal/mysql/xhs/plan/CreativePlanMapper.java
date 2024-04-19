@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.xhs.plan;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -12,7 +13,9 @@ import com.starcloud.ops.business.app.util.PageUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -71,7 +74,7 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery(CreativePlanDO.class);
         wrapper.eq(StringUtils.isNotBlank(query.getUid()), CreativePlanDO::getUid, query.getUid());
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativePlanDO::getStatus, query.getStatus());
-        wrapper.between(CreativePlanDO::getCreateTime, query.getStartTime(), query.getEndTime());
+        wrapper.between(Objects.nonNull(query.getStartTime()) && Objects.nonNull(query.getEndTime()), CreativePlanDO::getCreateTime, query.getStartTime(), query.getEndTime());
         return this.selectPage(page, wrapper);
     }
 
