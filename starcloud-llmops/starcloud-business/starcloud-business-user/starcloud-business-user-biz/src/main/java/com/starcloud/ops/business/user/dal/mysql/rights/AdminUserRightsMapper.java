@@ -5,10 +5,8 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
@@ -57,19 +55,6 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
     }
 
 
-    default AdminUserRightsDO findLatestExpirationByLevel(Long userId, Long levelId) {
-
-        LambdaQueryWrapper<AdminUserRightsDO> wrapper = Wrappers.lambdaQuery(AdminUserRightsDO.class)
-                .eq(AdminUserRightsDO::getUserId, userId)
-                .eq(AdminUserRightsDO::getUserLevelId, levelId)
-                .ge(AdminUserRightsDO::getValidStartTime, LocalDateTime.now())
-                .ge(AdminUserRightsDO::getValidEndTime, LocalDateTime.now())
-                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
-                .orderByDesc(AdminUserRightsDO::getValidEndTime)
-                .last("limit 1");
-        return selectOne(wrapper);
-    }
-
     /**
      * 获取有效【包含未生效】的权益数据列表
      * 如果用户编号（userId）为空 则查询所有的数据
@@ -84,10 +69,10 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .eqIfPresent(AdminUserRightsDO::getUserLevelId, level)
                 .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
                 .and(wrapper -> wrapper
-                        .or(w->w.ge(AdminUserRightsDO::getValidStartTime, now) // validStartTime <= NOW()
-                                .le(AdminUserRightsDO::getValidEndTime, now))
-                        .or(w-> w.gt(AdminUserRightsDO::getValidStartTime, now) // validStartTime > NOW()
-                                .gt(AdminUserRightsDO::getValidEndTime, now))
+                        .or(w->w.le(AdminUserRightsDO::getValidStartTime, now) // validStartTime <= NOW()
+                                .ge(AdminUserRightsDO::getValidEndTime, now))
+                        .or(w-> w.ge(AdminUserRightsDO::getValidStartTime, now) // validStartTime > NOW()
+                                .ge(AdminUserRightsDO::getValidEndTime, now))
                 )
         );
     }
