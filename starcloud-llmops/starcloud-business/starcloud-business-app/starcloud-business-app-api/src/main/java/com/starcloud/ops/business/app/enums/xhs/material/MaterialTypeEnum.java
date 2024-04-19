@@ -75,6 +75,7 @@ public enum MaterialTypeEnum implements IEnumable<String> {
                 definitionDTO.setType(annotation.type().getTypeCode());
                 definitionDTO.setDesc(annotation.desc());
                 definitionDTO.setRequired(annotation.required());
+                definitionDTO.setWidth(annotation.width());
                 result.add(definitionDTO);
             }
         }

@@ -27,4 +27,6 @@ public @interface FieldDefine {
      */
     boolean required() default false;
 
+    int width() default 200;
+
 }

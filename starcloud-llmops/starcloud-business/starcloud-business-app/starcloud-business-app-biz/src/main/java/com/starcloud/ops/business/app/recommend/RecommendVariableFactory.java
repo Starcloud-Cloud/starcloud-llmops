@@ -187,7 +187,7 @@ public class RecommendVariableFactory {
         generateVariable.setIsShow(Boolean.TRUE);
 
         // 素材类型
-        VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixMaterialType();
+        VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixImitateType();
         materialType.setOrder(2);
         materialType.setIsShow(Boolean.TRUE);
 
