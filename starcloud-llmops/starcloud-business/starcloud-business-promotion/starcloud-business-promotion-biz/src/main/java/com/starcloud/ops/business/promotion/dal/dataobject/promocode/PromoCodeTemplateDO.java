@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.promotion.enums.common.PromotionCodeTypeEnum;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -102,7 +102,7 @@ public class PromoCodeTemplateDO extends BaseDO {
      * 属性数组，JSON 格式
      */
     @TableField(typeHandler = GiveRightsTypeHandler.class)
-    private AdminUserRightsCommonDTO giveRights;
+    private AdminUserRightsAndLevelCommonDTO giveRights;
 
 
 
@@ -110,7 +110,7 @@ public class PromoCodeTemplateDO extends BaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseObject(json, AdminUserRightsCommonDTO.class);
+            return JsonUtils.parseObject(json, AdminUserRightsAndLevelCommonDTO.class);
         }
 
         @Override

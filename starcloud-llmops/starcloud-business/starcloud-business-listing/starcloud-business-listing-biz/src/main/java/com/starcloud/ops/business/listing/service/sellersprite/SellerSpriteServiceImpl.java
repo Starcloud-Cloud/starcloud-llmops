@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.listing.service.sellersprite;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
@@ -7,6 +8,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -26,6 +28,7 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.repose.Prepar
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.ExtendAsinRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.KeywordMinerRequestDTO;
 import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.PrepareRequestDTO;
+import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.SellerSpriteResult;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.redisson.api.RLock;
@@ -42,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ACCOUNT_INVALID;
+import static com.starcloud.ops.business.listing.enums.ErrorCodeConstant.SELLER_SPRITE_ERR_ASIN_INFO_ERR;
 
 /**
  * 卖家精灵实现类
@@ -100,6 +104,12 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     private final static String DICT_DATA_TYPE = "SELLER_SPRITE";
     private final static String SELLER_SPRITE_ACCOUNT = "SELLER_SPRITE_ACCOUNT";
 
+    /**
+     * 卖家精灵错误码- 用户过期
+     */
+    private final static String SELLER_SPRITE_ERR_CODE_ACCOUNT = "ERR_GLOBAL_SESSION_EXPIRED";
+    private final static String SELLER_SPRITE_ERR_CODE_ASIN_INFO_ERR = "ERR_ASIN_INFO_ERR";
+
 
     /**
      * 获取可查询时间
@@ -126,7 +136,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         keywordMinerRequestDTO.setFilterRootWord(0);
         keywordMinerRequestDTO.setMatchType(0);
         keywordMinerRequestDTO.setAmazonChoice(false);
-        String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO));
+        // String reposeResult = unifiedPostRequest(SELLER_SPRITE_ADDRESS + SELLER_SPRITE_KEYWORD_MINER, JSONUtil.toJsonStr(keywordMinerRequestDTO));
 
 
         return null;
@@ -232,7 +242,6 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             // 判断当前 cookie 是否过期
             if (!checkCookieIsEnable(cookie.getRemark())) {
                 performLoginActions(cookie);
-                return;
             }
         });
     }
@@ -265,7 +274,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         String key = "update-sell-stripe-cookie-" + userName;
         RLock lock = redissonClient.getLock(key);
         try {
-            if (lock != null && !lock.tryLock(30,  TimeUnit.SECONDS)) {
+            if (lock != null && !lock.tryLock(30, TimeUnit.SECONDS)) {
                 log.warn("正在执行中，重复调用 {}", userName);
                 return;
             }
@@ -292,8 +301,9 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     /**
      * 统一请求
      *
-     * @param url
-     * @return
+     * @param url         请求地址
+     * @param requestData Body 数据
+     * @return result
      */
     private String unifiedPostRequest(String url, String requestData) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
@@ -302,32 +312,47 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         int tag = 0;
 
         for (DictDataDO data : cookies) {
-            try {
-                String requestResult = HttpRequest.post(url).cookie(data.getRemark())
-                        .body(requestData)
-                        .timeout(15000)
-                        .execute().body();
-                JSONObject entries = JSONUtil.parseObj(requestResult);
-                if (!requestResult.isEmpty() && entries.getBool("success", false)) {
-                    log.info("卖家精灵接口数据请求成功，当前账号为{}", data.getValue());
-                    result = JSONUtil.toJsonStr(entries.getObj("data"));
-                    break; // 找到有效 cookie，退出循环
-                } else if (entries.getStr("code").equals("ERR_GLOBAL_SESSION_EXPIRED")) {
-                    log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
-                    tag++;
-                    self.executeCookieUpdateAsync(data);
-                } else {
-
-                    log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", requestResult);
-                }
-            } catch (Exception e) {
-
-                log.error("卖家精灵未知问题: ", e); // 记录异常信息
+            HttpResponse response = HttpRequest.post(url).cookie(data.getRemark())
+                    .body(requestData)
+                    .timeout(15000)
+                    .execute();
+            if (!response.isOk()) {
+                // 当前请求异常 卖家精灵网络异常
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
             }
-        }
+            SellerSpriteResult sellerSpriteResult;
+            try {
+                sellerSpriteResult = BeanUtil.toBean(JSONUtil.parse(response.body()), SellerSpriteResult.class);
+            } catch (RuntimeException e) {
+                // 兜底异常处理
+                log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", response.body());
+                throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
 
+            }
+            Boolean resultSuccess = sellerSpriteResult.getSuccess();
+            if (resultSuccess) {
+                result = JSONUtil.toJsonStr(sellerSpriteResult.getData());
+                break; // 找到有效 cookie，退出循环
+            }
+
+            // 请求失败 且账户过期
+            if (sellerSpriteResult.getCode().equals(SELLER_SPRITE_ERR_CODE_ACCOUNT)) {
+                log.error("卖家精灵账号cookie过期，当前账号为{}", data.getValue());
+                tag++;
+                self.executeCookieUpdateAsync(data);
+                continue;
+            }
+            // ASIN 错误
+            if (sellerSpriteResult.getCode().equals(SELLER_SPRITE_ERR_CODE_ASIN_INFO_ERR)) {
+                throw exception(SELLER_SPRITE_ERR_ASIN_INFO_ERR, sellerSpriteResult.getMessage());
+            }
+            // 兜底异常处理
+            log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", response.body());
+            throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
+
+        }
         // 只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
-        if (StrUtil.isBlank(result) && tag >= cookies.size()) {
+        if (tag == cookies.size()) {
             this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
@@ -356,10 +381,11 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
     /**
      * 统一请求
      *
-     * @param url
-     * @return
+     * @param url    请求地址
+     * @param params 请求参数
+     * @return 请求结果
      */
-    private String unifiedGetRequest(String url, String requestData) {
+    private String unifiedGetRequest(String url, String params) {
         List<DictDataDO> cookies = dictDataService.getEnabledDictDataListByType(DICT_DATA_TYPE);
         Collections.shuffle(cookies);
         String result = null;
@@ -367,7 +393,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
 
         for (DictDataDO data : cookies) {
             try {
-                String requestResult = HttpRequest.get(url).body(requestData).cookie(data.getRemark()).execute().body();
+                String requestResult = HttpRequest.get(url).body(params).cookie(data.getRemark()).execute().body();
                 JSONObject entries = JSONUtil.parseObj(requestResult);
                 if (!requestResult.isEmpty() && entries.getBool("success", false)) {
                     log.info("卖家精灵接口数据请求成功，当前账号为{}", data.getValue());
