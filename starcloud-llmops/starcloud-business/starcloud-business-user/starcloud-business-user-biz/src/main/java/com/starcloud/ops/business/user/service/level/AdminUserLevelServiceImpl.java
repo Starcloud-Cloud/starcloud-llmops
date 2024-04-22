@@ -473,8 +473,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             templateParams.put("warn_name", "用户等级异常");
             templateParams.put("data", errUsers.toString());
 
-
-            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("DING_TALK_PAY_NOTIFY_02").setTemplateParams(templateParams));
+            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("LEVEL_DATA_ROLE_ERROR"));
         }
     }
 
@@ -493,8 +492,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         long endTimeBetween = LocalDateTimeUtil.between(adminUserLevelDO.getValidEndTime(), adminUserRightsDO.getValidEndTime(), ChronoUnit.SECONDS);
 
         if (startTimeBetween >= initTimeBetween || endTimeBetween >= initTimeBetween) {
+            HashMap<String, Object> templateParams = new HashMap<>();
+            templateParams.put("userCode", adminUserLevelDO.getUserId());
+            templateParams.put("dataCode", StrUtil.format("等级编号{},权益编号{}", adminUserLevelDO.getId(), adminUserRightsDO.getId()));
+            templateParams.put("notifyTime", LocalDateTimeUtil.now());
             // 发送报警
-            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(null).setTemplateCode(""));
+            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
 
         }
     }
