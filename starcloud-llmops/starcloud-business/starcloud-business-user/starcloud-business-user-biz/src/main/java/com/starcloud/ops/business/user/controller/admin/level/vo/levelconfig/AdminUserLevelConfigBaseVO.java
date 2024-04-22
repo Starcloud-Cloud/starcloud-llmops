@@ -55,43 +55,5 @@ public class AdminUserLevelConfigBaseVO {
     private Integer status;
 
 
-    // /**
-    //  * 魔法 AI 专属
-    //  * 商品订阅配置
-    //  *
-    //  * @author Alan Cusack
-    //  */
-    // @Schema(description = "等级配置")
-    // @Data
-    // @NoArgsConstructor
-    // @AllArgsConstructor
-    // public static class LevelConfigDTO {
-    //     /**
-    //      *  可使用的应用数
-    //      */
-    //     private Integer usableApp;
-    //
-    //     /**
-    //      *  可使用的基础版机器人数
-    //      */
-    //     private Integer usableBasicBot;
-    //
-    //     /**
-    //      *  可使用的微信机器人数
-    //      */
-    //     private Integer usableWechatBot;
-    //
-    //     /**
-    //      *  可使用的机器人文档数
-    //      */
-    //     private Integer usableBotDocument;
-    //
-    //     /**
-    //      *  技能插件数
-    //      */
-    //     private Integer usableSkillPlugin;
-    //
-    // }
-
 
 }
