@@ -26,7 +26,7 @@ import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.dal.redis.UserLevelConfigLimitRedisDAO;
 import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
-import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -113,7 +113,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
 
         adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
-        adminUserLevelDO.setDescription(StrUtil.format(AdminUserLevelBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
+        adminUserLevelDO.setDescription(StrUtil.format(AdminUserRightsBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(adminUserLevelDO);
 
@@ -154,7 +154,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         // 设置结束时间
         LocalDateTime endTime = getPlusTimeByRange(levelBasicDTO.getTimesRange().getRange(), levelBasicDTO.getTimesRange().getNums(), startTime);
 
-        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(userId, bizId, bizType, levelBasicDTO.getLevelId(), levelConfig.getName(), StrUtil.format(AdminUserLevelBizTypeEnum.getByType(bizType).getDescription(), levelConfig.getName()), startTime, endTime);
+        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(userId, bizId, bizType, levelBasicDTO.getLevelId(), levelConfig.getName(), StrUtil.format(AdminUserRightsBizTypeEnum.getByType(bizType).getDescription(), levelConfig.getName()), startTime, endTime);
 
         adminUserLevelDO.setCreator(String.valueOf(userId));
         adminUserLevelDO.setUpdater(String.valueOf(userId));
@@ -194,12 +194,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         createReqVO.setLevelId(levelConfigDO.getId());
 
         createReqVO.setBizId(String.valueOf(userId));
-        createReqVO.setBizType(AdminUserLevelBizTypeEnum.REGISTER.getType());
+        createReqVO.setBizType(AdminUserRightsBizTypeEnum.REGISTER.getType());
 
         createReqVO.setStartTime(LocalDateTime.now());
         createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
 
-        createReqVO.setDescription(String.format(AdminUserLevelBizTypeEnum.REGISTER.getDescription(), userId));
+        createReqVO.setDescription(String.format(AdminUserRightsBizTypeEnum.REGISTER.getDescription(), userId));
         createLevelRecord(createReqVO);
 
     }
@@ -301,12 +301,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             createReqVO.setLevelId(levelConfigDO.getId());
 
             createReqVO.setBizId(String.valueOf(adminUserDO.getId()));
-            createReqVO.setBizType(AdminUserLevelBizTypeEnum.REGISTER.getType());
+            createReqVO.setBizType(AdminUserRightsBizTypeEnum.REGISTER.getType());
 
             createReqVO.setStartTime(adminUserDO.getCreateTime());
             createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
 
-            createReqVO.setDescription(String.format(AdminUserLevelBizTypeEnum.REGISTER.getDescription(), adminUserDO.getId()));
+            createReqVO.setDescription(String.format(AdminUserRightsBizTypeEnum.REGISTER.getDescription(), adminUserDO.getId()));
             getSelf().createLevelRecord(createReqVO);
         }
 

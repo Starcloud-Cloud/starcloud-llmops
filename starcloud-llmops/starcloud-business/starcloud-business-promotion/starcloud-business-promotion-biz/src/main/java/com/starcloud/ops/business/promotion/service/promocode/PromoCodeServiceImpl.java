@@ -16,7 +16,7 @@ import com.starcloud.ops.business.promotion.service.coupon.CouponService;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.api.user.AdminUsersApi;
-import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -163,7 +163,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
             return;
         }
         // 增加权益
-        adminUsersApi.insertUserRightsAndLevel(template.getGiveRights(),userId,AdminUserLevelBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
+        adminUsersApi.insertUserRightsAndLevel(template.getGiveRights(),userId, AdminUserRightsBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
 
     }
 

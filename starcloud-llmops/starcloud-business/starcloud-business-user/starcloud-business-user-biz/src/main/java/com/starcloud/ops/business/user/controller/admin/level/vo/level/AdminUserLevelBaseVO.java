@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.user.controller.admin.level.vo.level;
 
 import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -36,12 +36,12 @@ public class AdminUserLevelBaseVO {
     private String bizId;
     /**
      * 业务类型
-     *
-     * 枚举 {@link AdminUserLevelBizTypeEnum}
+     * <p>
+     * 枚举 {@link AdminUserRightsBizTypeEnum}
      */
     @Schema(description = "会员等级业务类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "会员等级业务类型不能为空")
-    @InEnum(value = AdminUserLevelBizTypeEnum.class, message = "业务类型[{value}]必须是: {values}")
+    @InEnum(value = AdminUserRightsBizTypeEnum.class, message = "业务类型[{value}]必须是: {values}")
     private Integer bizType;
 
 
