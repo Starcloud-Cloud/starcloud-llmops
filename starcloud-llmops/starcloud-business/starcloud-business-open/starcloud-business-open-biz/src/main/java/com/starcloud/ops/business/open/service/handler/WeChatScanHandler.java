@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_MSG;
@@ -65,7 +66,8 @@ public class WeChatScanHandler implements WxMpMessageHandler {
         mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
 
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "scan_Login");
+        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "scan_Login_" + tenantId);
+
         if (dictDataDO != null) {
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser())
                     .fromUser(wxMessage.getToUser()).content(dictDataDO.getValue()).build();
