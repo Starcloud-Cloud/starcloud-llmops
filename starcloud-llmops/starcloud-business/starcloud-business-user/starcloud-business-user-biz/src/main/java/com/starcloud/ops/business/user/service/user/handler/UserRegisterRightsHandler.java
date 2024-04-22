@@ -61,7 +61,7 @@ public class UserRegisterRightsHandler implements UserRegisterHandler {
                     .setUserId(adminUserDO.getId())
                     .setMagicBean(99999)
                     .setMagicImage(99999)
-                    .setMatrixBean(10)
+                    .setMatrixBean(5)
                     .setTimeNums(1)
                     .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
                     .setBizId(String.valueOf(adminUserDO.getId()))
