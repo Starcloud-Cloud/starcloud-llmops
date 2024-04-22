@@ -207,6 +207,7 @@ public class VariableItemRespVO implements Serializable {
     @JSONField(serialize = false)
     public void merge(VariableItemRespVO item) {
         if (this.isShow) {
+            this.defaultValue = item.getDefaultValue();
             this.value = item.getValue();
         }
     }
