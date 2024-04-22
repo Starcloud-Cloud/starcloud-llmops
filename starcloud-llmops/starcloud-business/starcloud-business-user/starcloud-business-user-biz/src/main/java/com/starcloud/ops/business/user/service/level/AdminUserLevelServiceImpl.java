@@ -12,6 +12,7 @@ import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
@@ -27,6 +28,7 @@ import com.starcloud.ops.business.user.dal.mysql.level.AdminUserLevelMapper;
 import com.starcloud.ops.business.user.dal.redis.UserLevelConfigLimitRedisDAO;
 import com.starcloud.ops.business.user.enums.LevelRightsLimitEnums;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -189,6 +191,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         if (Objects.isNull(levelConfigDO)) {
             throw exception(LEVEL_NOT_EXISTS);
         }
+        AdminUserLevelCreateReqVO createReqVO = getAdminUserLevelCreateReqVO(userId, levelConfigDO);
+        createLevelRecord(createReqVO);
+
+    }
+
+    private @NonNull AdminUserLevelCreateReqVO getAdminUserLevelCreateReqVO(Long userId, AdminUserLevelConfigDO levelConfigDO) {
         AdminUserLevelCreateReqVO createReqVO = new AdminUserLevelCreateReqVO();
         createReqVO.setUserId(userId);
         createReqVO.setLevelId(levelConfigDO.getId());
@@ -196,12 +204,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         createReqVO.setBizId(String.valueOf(userId));
         createReqVO.setBizType(AdminUserRightsBizTypeEnum.REGISTER.getType());
 
-        createReqVO.setStartTime(LocalDateTime.now());
-        createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
+        // 默认免费版 时间为 99 年
+        createReqVO.setTimeNums(99);
+        createReqVO.setTimeRange(TimeRangeTypeEnum.YEAR.getType());
 
         createReqVO.setDescription(String.format(AdminUserRightsBizTypeEnum.REGISTER.getDescription(), userId));
-        createLevelRecord(createReqVO);
-
+        return createReqVO;
     }
 
     /**
@@ -302,9 +310,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
             createReqVO.setBizId(String.valueOf(adminUserDO.getId()));
             createReqVO.setBizType(AdminUserRightsBizTypeEnum.REGISTER.getType());
-
-            createReqVO.setStartTime(adminUserDO.getCreateTime());
-            createReqVO.setEndTime(LocalDateTime.now().plusYears(99));
+            // 默认免费版 时间为 99 年
+            createReqVO.setTimeNums(99);
+            createReqVO.setTimeRange(TimeRangeTypeEnum.YEAR.getType());
 
             createReqVO.setDescription(String.format(AdminUserRightsBizTypeEnum.REGISTER.getDescription(), adminUserDO.getId()));
             getSelf().createLevelRecord(createReqVO);
