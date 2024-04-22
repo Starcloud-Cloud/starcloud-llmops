@@ -4,7 +4,7 @@ import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import com.starcloud.ops.business.user.api.user.AdminUsersApi;
-import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -31,7 +31,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
 
         for (AdminUserRightsAndLevelCommonDTO giveRight : order.getGiveRights()) {
             // 增加权益
-            adminUsersApi.insertUserRightsAndLevel(giveRight, order.getUserId(), AdminUserLevelBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()));
+            adminUsersApi.insertUserRightsAndLevel(giveRight, order.getUserId(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()));
         }
 
     }
