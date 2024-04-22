@@ -500,7 +500,7 @@ public class RecommendVariableItemFactory {
 
     public static VariableItemRespVO defMediaMatrixRefersTag() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.REFERS_TAG);
+        variableItem.setField(CreativeConstants.TAG_LIST);
         variableItem.setLabel("参考标签");
         variableItem.setDescription("参考标签");
         variableItem.setDefaultValue(null);
