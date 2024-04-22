@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnu
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -77,9 +79,21 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
         if (Objects.isNull(page) || CollectionUtil.isEmpty(page.getRecords())) {
             return PageResult.empty();
         }
+        List<CreativePlanBatchDO> records = page.getRecords();
+        // 获取批次创作人集合
+        List<Long> creatorList = records.stream()
+                .map(CreativePlanBatchDO::getCreator)
+                .map(Long::valueOf)
+                .distinct()
+                .collect(Collectors.toList());
+        // 获取批次创作人集合
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+
+        // 处理分页数据
         List<CreativePlanBatchRespVO> collect = page.getRecords()
                 .stream()
                 .map(CreativePlanBatchConvert.INSTANCE::convert)
+                .peek(item -> item.setCreator(creatorMap.getOrDefault(Long.valueOf(item.getCreator()), item.getCreator())))
                 .collect(Collectors.toList());
         return PageResult.of(collect, page.getTotal());
     }
