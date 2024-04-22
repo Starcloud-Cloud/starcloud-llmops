@@ -3,7 +3,7 @@ package com.starcloud.ops.business.user.api.level;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
-import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +46,6 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
      *
      * @param userId  会员ID
      * @param levelId 会员等级编号
-     * @return 会员等级
      */
     @Override
     public void addAdminUserLevel(Long userId, Long levelId, Integer TimeNums, Integer timeRange,
@@ -57,7 +56,7 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
             return;
         }
         // 2.0 计算会员有效期
-        AdminUserLevelBizTypeEnum bizTypeEnum = AdminUserLevelBizTypeEnum.getByType(bizType);
+        AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(LEVEL_BIZ_NOT_SUPPORT);
         }
@@ -91,7 +90,6 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
      *
      * @param userId  会员ID
      * @param levelId 会员等级编号
-     * @return 会员等级
      */
     @Override
     public void expireAdminUserLevel(Long userId, Long levelId) {

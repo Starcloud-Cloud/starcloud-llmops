@@ -8,7 +8,7 @@ import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -49,7 +49,7 @@ public class TradeRightsServiceImpl implements TradeRightsService {
         // TODO 如果需要从 sku 获取权益信息 则在此处修改
         // 2.0 设置权益相关字段
         TradeRightsCalculateRespBO calculateRespBO = new TradeRightsCalculateRespBO();
-         List<AdminUserRightsCommonDTO> giveRights = new ArrayList<>();
+         List<AdminUserRightsAndLevelCommonDTO> giveRights = new ArrayList<>();
         for (ProductSkuRespDTO productSkuRespDTO : skuList) {
             giveRights.add(productSkuRespDTO.getRightsConfig());
         }
@@ -67,9 +67,6 @@ public class TradeRightsServiceImpl implements TradeRightsService {
     public SubscribeConfigDTO calculateSignConfigs(TradePriceCalculateReqBO calculateReqBO) {
         // 1.1 获得商品 SKU 数组
         List<ProductSkuRespDTO> skuList = checkSkuList(calculateReqBO);
-        // 1.2 获得商品 SPU 数组
-        List<ProductSpuRespDTO> spuList = checkSpuList(skuList);
-
         // 2.0 设置权益相关字段
         new SubscribeConfigDTO();
         SubscribeConfigDTO subscribeConfigDTO;

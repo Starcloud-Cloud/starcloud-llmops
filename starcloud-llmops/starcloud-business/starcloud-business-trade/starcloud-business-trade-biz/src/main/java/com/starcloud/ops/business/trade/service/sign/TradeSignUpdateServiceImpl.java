@@ -78,9 +78,6 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
 
     @Resource
-    private TradeSignQueryService tradeSignQueryService;
-
-    @Resource
     private List<TradeSignHandler> tradeSignHandlers;
 
 
@@ -107,7 +104,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // 设置预计扣款时间
         List<TradeSignItemDO> signItemDOS = buildTradeSignItems(tradeSignDO, calculateRespBO);
 
-        // fixme 增加签校验 避免有人修改配置导致配置异常
+        // fixme 增加签约校验 避免有人修改配置导致配置异常
         if (tradeSignDO.getSignConfigs().getPeriod() != 1) {
             tradeSignDO.getSignConfigs().setPeriod(1);
         }
@@ -163,48 +160,14 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
             signDO.setStatus(TradeSignStatusEnum.SIGNING.getStatus())
                     .setFinishTime(LocalDateTime.now());
         }
-        int updateCount = 0;
-        updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
+
+        int updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
                 signDO);
 
 
         if (updateCount == 0) {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
-        // tradeSignQueryService.getSign()
-        //
-        //
-        // // 1. 校验并获得交易订单（可支付）
-        // KeyValue<TradeOrderDO, PayOrderRespDTO> orderResult = validateSignAble(id, payOrderId);
-
-        //
-        // // 2. 更新 TradeOrderDO 状态为已支付，等待发货
-        // int updateCount = 0;
-        //
-        //    updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
-        //            new TradeSignDO().setStatus(TradeSignStatusEnum.SIGNING.getStatus())
-        //                    .setFinishTime(LocalDateTime.now())
-        //                    .setPayChannelCode(payOrder.getChannelCode()));
-        //
-        //
-        // if (updateCount == 0) {
-        //    throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
-        // }
-        //
-        // // 3. 执行 TradeOrderHandler 的后置处理
-        // List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
-        // tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
-        //
-        // // 4. 记录订单日志
-        // Integer afterStatus = TradeOrderStatusEnum.UNDELIVERED.getStatus();
-        // if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
-        //    afterStatus = TradeOrderStatusEnum.COMPLETED.getStatus();
-        // }
-        // TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
-        // TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
-        //
-        // sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
-
     }
 
     /**

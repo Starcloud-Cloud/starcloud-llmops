@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.trade.service.rights.bo;
 
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,6 +21,6 @@ public class TradeRightsCalculateRespBO {
     // ========== 权益 相关字段 =========
     @Schema(description = "权益参数")
     @Valid
-    private List<AdminUserRightsCommonDTO> giveRights;
+    private List<AdminUserRightsAndLevelCommonDTO> giveRights;
 
 }

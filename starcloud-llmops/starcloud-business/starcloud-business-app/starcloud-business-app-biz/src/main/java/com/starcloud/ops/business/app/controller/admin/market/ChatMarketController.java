@@ -65,7 +65,7 @@ public class ChatMarketController {
     @Operation(summary = "查询会话")
     @GetMapping("/conversation")
     public CommonResult<LogAppConversationRespVO> listConversation(@RequestParam(value = "appUid") String appUid) {
-        return CommonResult.success(chatService.getConversation(appUid,AppSceneEnum.CHAT_MARKET.name()));
+        return CommonResult.success(chatService.getConversation(appUid, AppSceneEnum.CHAT_MARKET.name()));
     }
 
 }

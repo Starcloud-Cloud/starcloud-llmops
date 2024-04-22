@@ -29,6 +29,7 @@ public interface TradeOrderApi {
     TradeOrderRespDTO getOrder(Long id);
 
     // TODO 芋艿：需要优化下；
+
     /**
      * 取消支付订单
      *
@@ -36,6 +37,13 @@ public interface TradeOrderApi {
      * @param orderId 订单编号
      */
     void cancelPaidOrder(Long userId, Long orderId);
+
+    /**
+     * 获取成功下单数量
+     *
+     * @param userId 用户编号
+     * @return 成功下单数量
+     */
     Long getSuccessOrderCount(Long userId);
 
 }

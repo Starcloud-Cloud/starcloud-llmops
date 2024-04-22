@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AdminUserRightsCommonDTO {
+public class AdminUserRightsAndLevelCommonDTO {
 
     @Schema(description = "用户基础权益")
     private UserRightsBasicDTO rightsBasicDTO;
