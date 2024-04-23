@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.service.image.impl;
 
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
@@ -10,14 +12,17 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.image.ImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageHandlerHolder;
 import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
-import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.service.upload.UploadImageRequest;
+import com.starcloud.ops.business.app.service.upload.UploadService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +41,9 @@ public class ImageServiceImpl implements ImageService {
 
     @Resource
     private ImageHandlerHolder imageHandlerHolder;
+
+    @Resource
+    private UploadService uploadService;
 
     /**
      * 获取图片元数据
@@ -64,8 +72,20 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     public UploadImageInfoDTO upload(MultipartFile image) {
-        log.info("开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return ImageUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+        try {
+            UploadImageRequest request = new UploadImageRequest();
+            request.setTenantId(TenantContextHolder.getTenantId());
+            request.setName(image.getOriginalFilename());
+            request.setPath("");
+            request.setContent(IOUtils.toByteArray(image.getInputStream()));
+            request.setLimitPixel(null);
+            UploadImageInfoDTO imageInfo = uploadService.uploadImage(request);
+            AppValidate.notNull(imageInfo, "上传图片失败！图片信息为空！");
+            log.info("上传图片成功，图片信息为：{}", imageInfo);
+            return imageInfo;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -76,8 +96,21 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     public UploadImageInfoDTO uploadLimit1024(MultipartFile image) {
-        log.info("开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return ImageUploadUtils.uploadImageLimit1024(image, ImageUploadUtils.UPLOAD);
+        try {
+            UploadImageRequest request = new UploadImageRequest();
+            request.setTenantId(TenantContextHolder.getTenantId());
+            request.setName(image.getOriginalFilename());
+            request.setPath("");
+            request.setContent(IOUtils.toByteArray(image.getInputStream()));
+            request.setLimitPixel(1024 * 1024);
+            request.setLimitMessage("1024x1024");
+            UploadImageInfoDTO imageInfo = uploadService.uploadImage(request);
+            AppValidate.notNull(imageInfo, "上传图片失败！图片信息为空！");
+            log.info("上传图片成功，图片信息为：{}", imageInfo);
+            return imageInfo;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

@@ -11,14 +11,26 @@
     <modelVersion>4.0.0</modelVersion>
     
     <artifactId>starcloud-business-app-biz</artifactId>
-    <version>${starcloud.revision}</version><build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><source>8</source><target>8</target></configuration></plugin></plugins></build>
-
+    <version>${starcloud.revision}</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
     <properties>
         <powerjob.version>4.3.2</powerjob.version>
     </properties>
     
     <dependencies>
-
+        
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>QLExpress</artifactId>
@@ -41,14 +53,14 @@
             <groupId>cn.kstry.framework</groupId>
             <artifactId>kstry-core</artifactId>
             <version>1.1.12</version>
-<!--            <version>1.1.5</version>-->
+            <!--            <version>1.1.5</version>-->
         </dependency>
         
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-
+        
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-user-api</artifactId>
@@ -116,6 +128,12 @@
             <artifactId>yudao-module-system-biz</artifactId>
             <version>${revision}</version>
             <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-module-infra-biz</artifactId>
+            <version>${revision}</version>
         </dependency>
         
         <dependency>

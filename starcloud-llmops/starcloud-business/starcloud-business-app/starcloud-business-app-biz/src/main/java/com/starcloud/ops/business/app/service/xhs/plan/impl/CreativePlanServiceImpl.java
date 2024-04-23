@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -45,18 +46,20 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.upload.UploadImageRequest;
+import com.starcloud.ops.business.app.service.upload.UploadService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
-import com.starcloud.ops.business.app.util.CreativeUploadUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.redisson.api.RLock;
@@ -66,6 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,6 +107,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Resource
     private MaterialHandlerHolder materialHandlerHolder;
 
+    @Resource
+    private UploadService uploadService;
+
     /**
      * 创作计划元数据
      *
@@ -121,8 +128,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public UploadImageInfoDTO uploadImage(MultipartFile image) {
-        log.info("Creative 开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return CreativeUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+        try {
+            UploadImageRequest request = new UploadImageRequest();
+            request.setTenantId(TenantContextHolder.getTenantId());
+            request.setName(image.getOriginalFilename());
+            request.setPath(ImageUploadUtils.UPLOAD_PATH);
+            request.setContent(IOUtils.toByteArray(image.getInputStream()));
+            request.setLimitPixel(null);
+            UploadImageInfoDTO imageInfo = uploadService.uploadImage(request);
+            AppValidate.notNull(imageInfo, "上传图片失败！图片信息为空！");
+            log.info("上传图片成功，图片信息为：{}", imageInfo);
+            return imageInfo;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

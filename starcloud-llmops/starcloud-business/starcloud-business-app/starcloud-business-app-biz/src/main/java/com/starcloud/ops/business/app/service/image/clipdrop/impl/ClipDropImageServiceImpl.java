@@ -5,16 +5,20 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.ClipDropImageClient;
+import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.feign.request.clipdrop.CleanupClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
-import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
+import com.starcloud.ops.business.app.service.upload.UploadImageRequest;
+import com.starcloud.ops.business.app.service.upload.UploadService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +47,9 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
 
     @Resource
     private ClipDropImageClient clipDropImageClient;
+
+    @Resource
+    private UploadService uploadService;
 
     /**
      * 放大图片
@@ -256,16 +263,26 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             log.error("ClipDrop 生成图片失败，错误码：{}", responseEntity.getStatusCodeValue());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_FAILURE.getCode(), "ClipDrop 生成图片失败"));
         }
+
         HttpHeaders headers = responseEntity.getHeaders();
         MediaType contentType = Optional.ofNullable(headers.getContentType()).orElse(MediaType.IMAGE_PNG);
         String uuid = IdUtil.fastSimpleUUID();
         byte[] binary = responseEntity.getBody();
         String mediaType = contentType.toString();
-        String url = ImageUploadUtils.upload(uuid, mediaType, ImageUploadUtils.GENERATE, binary);
+        String fileName = ImageUploadUtils.getFileName(uuid, mediaType);
+
+        // 上传图片
+        UploadImageRequest request = new UploadImageRequest();
+        request.setTenantId(TenantContextHolder.getTenantId());
+        request.setName(fileName);
+        request.setPath(ImageUploadUtils.GENERATE_PATH);
+        request.setContent(binary);
+        UploadImageInfoDTO imageInfo = uploadService.uploadImage(request);
+
         ClipDropImage image = new ClipDropImage();
         image.setUuid(uuid);
         image.setBinary(binary);
-        image.setUrl(url);
+        image.setUrl(imageInfo.getUrl());
         image.setMediaType(mediaType);
         return image;
     }

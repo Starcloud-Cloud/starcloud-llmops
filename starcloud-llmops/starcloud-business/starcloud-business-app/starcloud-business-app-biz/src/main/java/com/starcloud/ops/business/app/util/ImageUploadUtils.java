@@ -1,18 +1,13 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.module.infra.api.file.FileApi;
-import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.service.upload.UploadService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -25,9 +20,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author nacoyer
@@ -41,17 +33,12 @@ public class ImageUploadUtils {
     /**
      * UPLOAD 上传路径
      */
-    public static final String UPLOAD = "UPLOAD";
+    public static final String UPLOAD_PATH = "upload/image/";
 
     /**
      * GENERATE 上传路径
      */
-    public static final String GENERATE = "GENERATE";
-
-    /**
-     * 上传路径Map
-     */
-    private static final Map<String, String> UPLOAD_PATH_MAP = new ConcurrentHashMap<>();
+    public static final String GENERATE_PATH = "generation/image/";
 
     /**
      * 支持上传的图片的媒体类型
@@ -66,190 +53,7 @@ public class ImageUploadUtils {
     /**
      * 文件服务
      */
-    private static final FileApi FILE_API = SpringUtil.getBean(FileApi.class);
-
-    static {
-        UPLOAD_PATH_MAP.put(UPLOAD, "mofaai/images/upload/");
-        UPLOAD_PATH_MAP.put(GENERATE, "mofaai/images/ai-generation/");
-    }
-
-    /**
-     * 获取上传路径Map
-     *
-     * @return 上传路径Map
-     */
-    public static Map<String, String> getUploadPathMap() {
-        return UPLOAD_PATH_MAP;
-    }
-
-    /**
-     * 上传图片
-     *
-     * @param content  内容
-     * @param metaType 图片类型
-     * @return url
-     */
-    public static String upload(String imageName, String pathType, byte[] content) {
-        // 图片格式校验
-        String extension = getExtension(imageName);
-        validateUploadImageSuffix(extension);
-
-        String failPath = UPLOAD_PATH_MAP.get(pathType) + imageName;
-        if (StringUtils.isBlank(failPath)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
-        }
-        // 上传图片并且返回图片URL
-        return FILE_API.createFile(imageName, failPath, content);
-    }
-
-    /**
-     * 上传图片
-     *
-     * @param uuid      图片唯一标识
-     * @param mediaType 图片媒体类型
-     * @param pathType  上传路径类型
-     * @param content   图片内容
-     * @return url
-     */
-    public static String upload(String uuid, String mediaType, String pathType, byte[] content) {
-
-        validateUploadImageMediaType(mediaType);
-
-        // 图片格式校验
-        String extension = getExtensionByMediaType(mediaType);
-        validateUploadImageSuffix(extension);
-
-        String filename = uuid + "." + extension;
-        String failPath = UPLOAD_PATH_MAP.get(pathType) + filename;
-        if (StringUtils.isBlank(failPath)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
-        }
-        // 上传图片并且返回图片URL
-        return FILE_API.createFile(filename, failPath, content);
-    }
-
-    /**
-     * 上传图片
-     *
-     * @param image    图片
-     * @param pathType 上传路径类型
-     * @return 图片信息
-     */
-    public static UploadImageInfoDTO uploadImage(MultipartFile image, String pathType) {
-        try {
-            // 获取图片字节数组
-            byte[] content = IOUtils.toByteArray(image.getInputStream());
-            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), pathType, content, null, null);
-            log.info("图片上传成功：图片信息: {}", JSONUtil.toJsonStr(imageInfo));
-            return imageInfo;
-        } catch (ServiceException exception) {
-            log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw exception;
-        } catch (IOException exception) {
-            log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
-        } catch (Exception exception) {
-            log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
-        }
-    }
-
-    /**
-     * 上传图片
-     *
-     * @param image    图片
-     * @param pathType 上传路径类型
-     * @return 图片信息
-     */
-    public static UploadImageInfoDTO uploadImageLimit1024(MultipartFile image, String pathType) {
-        try {
-            // 获取图片字节数组
-            byte[] content = IOUtils.toByteArray(image.getInputStream());
-            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), pathType, content, 1048576, "1024x1024");
-            log.info("图片上传成功：图片信息: {}", JSONUtil.toJsonStr(imageInfo));
-            return imageInfo;
-        } catch (ServiceException exception) {
-            log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw exception;
-        } catch (IOException exception) {
-            log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
-        } catch (Exception exception) {
-            log.error("图片上传失败：{}", exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
-        }
-    }
-
-    /**
-     * 上传图片
-     *
-     * @param imageName 图片名称
-     * @param pathType  上传路径类型
-     * @param content   图片内容
-     * @return 图片信息
-     */
-    public static UploadImageInfoDTO uploadImage(String imageName, String pathType, byte[] content) {
-        return uploadImage(imageName, pathType, content, null, null);
-    }
-
-    /**
-     * 上传图片
-     *
-     * @param imageName 图片名称
-     * @param pathType  上传路径类型
-     * @param content   图片内容
-     * @return 图片信息
-     */
-    public static UploadImageInfoDTO uploadImage(String imageName, String pathType, byte[] content, Integer limitPixel, String limitMessage) {
-
-        // 图片名称校验
-        if (StringUtils.isBlank(imageName)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_NAME_REQUIRED);
-        }
-
-        // 图片格式校验
-        String extension = getExtension(imageName);
-        validateUploadImageSuffix(extension);
-
-        try {
-            // 获取图片的信息
-            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(content));
-            if (Objects.isNull(bufferedImage)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
-            }
-
-            if (Objects.nonNull(limitPixel) && (bufferedImage.getWidth() * bufferedImage.getWidth()) > limitPixel) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_PIXEL_LIMIT_FAILURE, limitMessage, limitPixel);
-            }
-
-            // 生成文件名称
-            String uuid = IdUtil.fastSimpleUUID();
-            String filename = uuid + "." + extension;
-            String failPath = UPLOAD_PATH_MAP.get(pathType) + filename;
-            if (StringUtils.isBlank(failPath)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
-            }
-            // 上传图片并且返回图片URL
-            String url = FILE_API.createFile(filename, failPath, content);
-
-            // 组装返回结果
-            UploadImageInfoDTO imageInfo = new UploadImageInfoDTO();
-            imageInfo.setUuid(uuid);
-            imageInfo.setName(filename);
-            imageInfo.setOriginalFilename(filename);
-            imageInfo.setMediaType(getMediaTypeByExtension(extension));
-            imageInfo.setUrl(url);
-            imageInfo.setWidth(bufferedImage.getWidth());
-            imageInfo.setHeight(bufferedImage.getHeight());
-            return imageInfo;
-        } catch (ServiceException exception) {
-            throw exception;
-        } catch (IOException exception) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
-        } catch (Exception exception) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
-        }
-    }
+    private static final UploadService UPLOAD_SERVICE = SpringUtil.getBean(UploadService.class);
 
     /**
      * 获取图片信息
@@ -264,7 +68,7 @@ public class ImageUploadUtils {
             if (path.startsWith("/")) {
                 path = path.substring(1);
             }
-            return FILE_API.getContent(path);
+            return UPLOAD_SERVICE.getContent(TenantContextHolder.getTenantId(), path);
         } catch (Exception exception) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.GET_IMAGE_FAILURE, exception.getMessage());
         }
@@ -343,8 +147,6 @@ public class ImageUploadUtils {
         // 获取图片的字节数组
         byte[] bytes = bufferedImageToByteArray(newImage, getExtension(url));
         log.info("原图转为64倍数成功：width: {}, height: {}", newImage.getWidth(), newImage.getHeight());
-        // String uploadUrl = upload(IdUtil.fastSimpleUUID(), getMediaTypeByExtension(getExtension(url)), UPLOAD, bytes);
-        // log.info("处理后的图片上传成功：图片信息: {}", JSONUtil.toJsonStr(uploadUrl));
         return bytes;
     }
 
@@ -374,8 +176,6 @@ public class ImageUploadUtils {
     public static String handleImageToBase64(String url) {
         BufferedImage bufferedImage = getBufferedImage(url);
         BufferedImage image = scaling1024(bufferedImage);
-//        String uploadUrl = upload(IdUtil.fastSimpleUUID(), getMediaTypeByExtension(getExtension(url)), UPLOAD, bufferedImageToByteArray(image, getExtension(url)));
-//        log.info("处理后的图片上传成功：图片信息: {}", JSONUtil.toJsonStr(uploadUrl));
         BufferedImage newImage = graphicsImage64x(image);
         // 获取图片的字节数组
         byte[] bytes = bufferedImageToByteArray(newImage, getExtension(url));
@@ -438,24 +238,12 @@ public class ImageUploadUtils {
     }
 
     /**
-     * 校验图片媒体类型是否符合要求
-     *
-     * @param imageType 图片媒体类型
-     * @return
-     */
-    public static void validateUploadImageMediaType(String imageType) {
-        if (!SUPPORTED_MEDIA_TYPE_LIST.contains(imageType.toLowerCase())) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageType, SUPPORTED_MEDIA_TYPE_LIST);
-        }
-    }
-
-    /**
      * 校验图片后缀是否符合要求
      *
      * @param imageSuffix 图片后缀
      * @return 是否符合要求
      */
-    public static void validateUploadImageSuffix(String imageSuffix) {
+    public static void validateImageExtension(String imageSuffix) {
         if (!SUPPORTED_SUFFIX_LIST.contains(imageSuffix.toLowerCase())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, imageSuffix, SUPPORTED_SUFFIX_LIST);
         }
@@ -517,4 +305,31 @@ public class ImageUploadUtils {
         throw ServiceExceptionUtil.exception(ErrorCodeConstants.UNSUPPORTED_IMAGE_TYPES, extension, SUPPORTED_MEDIA_TYPE_LIST);
     }
 
+    /**
+     * 获取文件路径
+     *
+     * @param path     文件路径
+     * @param filename 文件名称
+     * @return 文件路径
+     */
+    public static String getFilePath(String path, String filename) {
+        if (StringUtils.isBlank(path)) {
+            return "";
+        }
+        if (path.endsWith("/")) {
+            return path + filename;
+        }
+        return path + "/" + filename;
+    }
+
+    /**
+     * 获取文件名称
+     *
+     * @param uuid      uuid
+     * @param mediaType 媒体类型
+     * @return 文件名称
+     */
+    public static String getFileName(String uuid, String mediaType) {
+        return uuid + "." + getExtensionByMediaType(mediaType);
+    }
 }
