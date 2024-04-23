@@ -2,7 +2,7 @@ package com.starcloud.ops.business.product.api.sku.dto;
 
 import com.starcloud.ops.business.product.api.property.dto.ProductPropertyValueDetailRespDTO;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -78,7 +78,7 @@ public class ProductSkuRespDTO {
     /**
      * 商品附属权益
      */
-    private AdminUserRightsCommonDTO rightsConfig;
+    private AdminUserRightsAndLevelCommonDTO rightsConfig;
 
     @Schema(description = "订阅参数")
     @Valid

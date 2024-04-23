@@ -34,7 +34,7 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizTypeEnum, bizId, levelId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizType, bizId, levelId);
     }
 
     /**

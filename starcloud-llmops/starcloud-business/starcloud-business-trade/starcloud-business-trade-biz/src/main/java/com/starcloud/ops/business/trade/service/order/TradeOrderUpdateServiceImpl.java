@@ -60,7 +60,7 @@ import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalcu
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -1063,7 +1063,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
      * @param payTime       支付时间
      */
     @TenantIgnore
-    private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount, String payChannelCode) {
+    private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsAndLevelCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount, String payChannelCode) {
         log.info("[sendPaySuccessMsg]====>params(userId:{},productName:{},productType:{},giveRights:{},totalPrice:{},discountPrice:{},payPrice:{},payTime:{},successCount:{},payChannelCode:{}", userId, productName, productType, giveRights, totalPrice, discountPrice, payPrice, payTime, successCount, payChannelCode);
         try {
             Long tenantId = TenantContextHolder.getTenantId();

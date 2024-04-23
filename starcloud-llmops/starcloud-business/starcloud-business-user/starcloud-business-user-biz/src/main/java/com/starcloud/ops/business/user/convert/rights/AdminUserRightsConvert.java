@@ -42,13 +42,16 @@ public interface AdminUserRightsConvert {
 
     PageResult<AppAdminUserRightsRespVO> convertPage02(PageResult<AdminUserRightsDO> pageResult);
 
-    default AdminUserRightsDO convert01(AddRightsDTO addRightsDTO, AdminUserRightsBizTypeEnum bizType, LocalDateTime startTime, LocalDateTime endTime) {
+    default AdminUserRightsDO convert01(AddRightsDTO addRightsDTO, Integer bizType, LocalDateTime startTime, LocalDateTime endTime) {
+
+        AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
+
         AdminUserRightsDO bean = new AdminUserRightsDO();
         bean.setUserId(addRightsDTO.getUserId());
         bean.setBizId(addRightsDTO.getBizId());
-        bean.setBizType(bizType.getType());
-        bean.setTitle(bizType.getName());
-        bean.setDescription(StrUtil.format(bizType.getDescription(), addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean()));
+        bean.setBizType(bizType);
+        bean.setTitle(bizTypeEnum.getName());
+        bean.setDescription(StrUtil.format(bizTypeEnum.getDescription(), addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean()));
         bean.setMagicBean(addRightsDTO.getMagicBean());
         bean.setMagicImage(addRightsDTO.getMagicImage());
         bean.setMatrixBean(addRightsDTO.getMatrixBean());
@@ -64,15 +67,17 @@ public interface AdminUserRightsConvert {
     }
 
 
-    default AdminUserRightsDO convert(Long userId, String bizId, AdminUserRightsBizTypeEnum bizType,
+    default AdminUserRightsDO convert(Long userId, String bizId, Integer bizType,
                                           Integer magicBean, Integer magicImage, Integer matrixBean,
                                           LocalDateTime startTime, LocalDateTime endTime, Long levelId) {
+
+        AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         return AdminUserRightsDO.builder()
                 .userId(userId)
                 .bizId(bizId)
-                .bizType(bizType.getType())
-                .title(bizType.getName())
-                .description(StrUtil.format(bizType.getDescription(), magicBean, magicImage))
+                .bizType(bizType)
+                .title(bizTypeEnum.getName())
+                .description(StrUtil.format(bizTypeEnum.getDescription(), magicBean, magicImage))
                 .magicBean(magicBean)
                 .magicImage(magicImage)
                 .matrixBean(matrixBean)

@@ -5,7 +5,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.starcloud.ops.business.user.enums.level.AdminUserLevelBizTypeEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -45,8 +45,8 @@ public class AdminUserLevelDO extends BaseDO {
     private String bizId;
     /**
      * 业务类型
-     *
-     * 枚举 {@link AdminUserLevelBizTypeEnum}
+     * <p>
+     * 枚举 {@link AdminUserRightsBizTypeEnum}
      */
     private Integer bizType;
 

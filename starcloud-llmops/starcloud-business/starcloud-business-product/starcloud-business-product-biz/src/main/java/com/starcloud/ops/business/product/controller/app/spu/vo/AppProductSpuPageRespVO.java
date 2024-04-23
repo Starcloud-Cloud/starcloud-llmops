@@ -2,7 +2,7 @@ package com.starcloud.ops.business.product.controller.app.spu.vo;
 
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.controller.app.property.vo.value.AppProductPropertyValueDetailRespVO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -66,7 +66,7 @@ public class AppProductSpuPageRespVO {
     private List<Sku> skus;
 
 
-    private AdminUserRightsCommonDTO giveRights;
+    private AdminUserRightsAndLevelCommonDTO giveRights;
 
     private SubscribeConfigDTO subscribeConfig;
 
@@ -107,7 +107,7 @@ public class AppProductSpuPageRespVO {
          * 商品附属权益
          */
         @Schema(description = "商品权益", example = "1024") // 单位：m^3 平米
-        private AdminUserRightsCommonDTO rightsConfig;
+        private AdminUserRightsAndLevelCommonDTO rightsConfig;
         /**
          * 商品签约配置
          */

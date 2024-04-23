@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.product.controller.admin.sku.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO;
-import com.starcloud.ops.business.product.dal.dataobject.sku.ProductSkuDO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,7 +16,7 @@ public class ProductSkuCreateOrUpdateReqVO extends ProductSkuBaseVO {
     /**
      * 商品附属权益
      */
-    private AdminUserRightsCommonDTO rightsConfig;
+    private AdminUserRightsAndLevelCommonDTO rightsConfig;
     /**
      * 商品签约配置
      */

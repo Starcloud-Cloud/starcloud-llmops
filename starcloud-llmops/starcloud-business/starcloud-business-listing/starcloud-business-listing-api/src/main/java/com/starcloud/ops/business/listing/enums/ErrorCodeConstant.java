@@ -16,4 +16,6 @@ public interface ErrorCodeConstant {
 
     ErrorCode SELLER_SPRITE_ACCOUNT_INVALID = new ErrorCode(500020004, "网络开小差了，请稍后重试");
 
+    ErrorCode SELLER_SPRITE_ERR_ASIN_INFO_ERR = new ErrorCode(500020005, "{}");
+
 }
