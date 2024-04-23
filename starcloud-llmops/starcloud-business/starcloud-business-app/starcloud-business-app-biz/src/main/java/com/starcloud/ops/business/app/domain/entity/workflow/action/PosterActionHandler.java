@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
@@ -173,7 +174,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 执行成功，构造返回结果
         ActionResponse response = new ActionResponse();
         response.setSuccess(Boolean.TRUE);
-        response.setType(handlerResponseList.get(0).getType());
+        response.setType(AppStepResponseTypeEnum.IMAGE.name());
         response.setIsShow(Boolean.TRUE);
         response.setStepConfig(JsonUtils.toJsonString(style));
         response.setMessage(JsonUtils.toJsonString(style));
