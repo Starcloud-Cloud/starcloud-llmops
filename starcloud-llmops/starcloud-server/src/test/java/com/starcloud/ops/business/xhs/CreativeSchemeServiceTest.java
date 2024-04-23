@@ -1,21 +1,34 @@
 package com.starcloud.ops.business.xhs;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
 import cn.iocoder.yudao.framework.errorcode.config.YudaoErrorCodeAutoConfiguration;
 import cn.iocoder.yudao.framework.jackson.config.YudaoJacksonAutoConfiguration;
+import cn.iocoder.yudao.framework.jackson.core.databind.LocalDateTimeDeserializer;
+import cn.iocoder.yudao.framework.jackson.core.databind.LocalDateTimeSerializer;
+import cn.iocoder.yudao.framework.jackson.core.databind.NumberSerializer;
 import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
 import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.networknt.schema.SpecVersion;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
@@ -26,16 +39,22 @@ import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RedissonClient;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Slf4j
@@ -43,6 +62,13 @@ import java.util.*;
 @ExtendWith(MockitoExtension.class)
 @ComponentScan(basePackages = "cn.iocoder.yudao.module.system")
 public class CreativeSchemeServiceTest extends BaseDbUnitTest {
+
+
+//    @Resource
+//    private JsonUtils jsonUtils;
+
+    @MockBean
+    private SmsSendApi smsSendApi;
 
 
     @MockBean
@@ -68,6 +94,14 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     @Resource
     private CreativeContentService creativeContentService;
 
+
+    @BeforeAll
+    public static void tesd() {
+
+        YudaoJacksonAutoConfiguration yudaoJacksonAutoConfiguration = new YudaoJacksonAutoConfiguration();
+        yudaoJacksonAutoConfiguration.jsonUtils(Arrays.asList(new ObjectMapper()));
+
+    }
 
     @Test
     public void sdsdTest() {
@@ -102,9 +136,13 @@ public class CreativeSchemeServiceTest extends BaseDbUnitTest {
     @Test
     public void executeTest() {
 
-        Map<Long, Boolean> result = creativeContentService.execute(Arrays.asList(
-                3964L
-        ), CreativeContentTypeEnum.ALL.name(), Boolean.FALSE);
+        CreativeContentExecuteReqVO creativeContentExecuteReqVO = new CreativeContentExecuteReqVO();
+        creativeContentExecuteReqVO.setUid("d7f6b5a653924e2d8d904c5af8926545");
+        creativeContentExecuteReqVO.setPlanUid("8da4913d201b412c82a842143c1aab9e");
+        creativeContentExecuteReqVO.setForce(true);
+
+
+        CreativeContentExecuteRespVO result = creativeContentService.execute(creativeContentExecuteReqVO);
 
         log.info("executeTest: {}", result);
 

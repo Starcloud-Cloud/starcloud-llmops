@@ -79,6 +79,8 @@ public class WorkflowStepWrapper {
     /**
      * 获取节点的入参结构
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public JsonSchema getInVariableJsonSchema() {
 
         //只是拿到实例，并没有初始化相关上下文
@@ -94,6 +96,8 @@ public class WorkflowStepWrapper {
     /**
      * 获取节点的出参结构
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public JsonSchema getOutVariableJsonSchema() {
 
         //只是拿到实例，并没有初始化相关上下文

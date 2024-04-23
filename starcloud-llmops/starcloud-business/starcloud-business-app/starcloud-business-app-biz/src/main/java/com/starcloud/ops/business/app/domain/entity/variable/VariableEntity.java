@@ -47,6 +47,8 @@ public class VariableEntity {
     /**
      * 获取 JsonSchema 格式的参数对象
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public ObjectSchema getJsonSchema() {
 
         JsonSchemaFactory jsonSchemaFactory = new JsonSchemaFactory();

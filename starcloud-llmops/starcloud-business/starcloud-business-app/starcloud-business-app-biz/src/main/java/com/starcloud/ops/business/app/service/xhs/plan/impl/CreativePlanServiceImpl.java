@@ -295,7 +295,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         String key = "creative-plan-update-status-" + planUid;
         RLock lock = redissonClient.getLock(key);
         try {
-            if (!lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+            if (lock != null && !lock.tryLock(3, 10, TimeUnit.SECONDS)) {
                 return;
             }
 
@@ -345,7 +345,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             log.warn("更新计划失败: {}", planUid, exception);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPDATE_STATUS_FAILED, planUid, exception.getMessage());
         } finally {
-            lock.unlock();
+            if (lock != null) {
+                lock.unlock();
+            }
         }
     }
 
@@ -367,7 +369,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             log.error("计划执行失败", e);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
         } finally {
-            lock.unlock();
+            if (lock != null) {
+                lock.unlock();
+            }
+
         }
     }
 
