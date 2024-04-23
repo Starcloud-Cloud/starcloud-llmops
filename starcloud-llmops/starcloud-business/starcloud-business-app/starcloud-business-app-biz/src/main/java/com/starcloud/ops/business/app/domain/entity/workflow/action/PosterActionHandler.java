@@ -174,7 +174,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 执行成功，构造返回结果
         ActionResponse response = new ActionResponse();
         response.setSuccess(Boolean.TRUE);
-        response.setType(AppStepResponseTypeEnum.IMAGE.name());
+        response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setIsShow(Boolean.TRUE);
         response.setStepConfig(JsonUtils.toJsonString(style));
         response.setMessage(JsonUtils.toJsonString(style));

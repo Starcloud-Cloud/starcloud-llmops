@@ -51,7 +51,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHand
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
-import com.starcloud.ops.business.app.util.CreativeUploadUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -121,8 +120,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public UploadImageInfoDTO uploadImage(MultipartFile image) {
-        log.info("Creative 开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return CreativeUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+        return ImageUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD_PATH);
     }
 
     /**

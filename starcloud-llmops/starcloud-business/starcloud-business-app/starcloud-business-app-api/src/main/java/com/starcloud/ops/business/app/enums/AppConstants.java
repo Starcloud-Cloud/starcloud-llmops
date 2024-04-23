@@ -17,12 +17,12 @@ public interface AppConstants {
     /**
      * 魔法AI 租户ID
      */
-    Long MO_FA_AI_TENANT_ID = 2L;
+    Long MOFAAI_TENANT_ID = 2L;
 
     /**
      * 矩阵租户ID
      */
-    Long JU_ZHEN_TENANT_ID = 3L;
+    Long JUZHEN_TENANT_ID = 3L;
 
     /**
      * 应用分类字典类型

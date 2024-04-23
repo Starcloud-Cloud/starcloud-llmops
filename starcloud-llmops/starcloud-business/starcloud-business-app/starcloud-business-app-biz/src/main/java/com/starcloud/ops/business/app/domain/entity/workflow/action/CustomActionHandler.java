@@ -150,6 +150,7 @@ public class CustomActionHandler extends BaseActionHandler {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
+
         if (CollectionUtil.isEmpty(referList)) {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
@@ -201,6 +202,10 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
+
+        if (CollectionUtil.isEmpty(referList)) {
+            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+        }
 
         // 需要交给 ChatGPT 的参考内容数量
         Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));

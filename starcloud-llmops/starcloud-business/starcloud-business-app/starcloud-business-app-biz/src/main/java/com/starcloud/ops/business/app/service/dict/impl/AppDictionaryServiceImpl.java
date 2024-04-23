@@ -48,9 +48,9 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     public List<AppCategoryVO> categoryList(Boolean isRoot) {
         String categoryType = AppConstants.APP_CATEGORY_DICT_TYPE;
         Long tenantId = TenantContextHolder.getRequiredTenantId();
-        if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId)) {
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
             categoryType = AppConstants.APP_CATEGORY_DICT_TYPE;
-        } else if (AppConstants.JU_ZHEN_TENANT_ID.equals(tenantId)) {
+        } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
             categoryType = AppConstants.APP_CATEGORY_DICT_TYPE_JU_ZHEN;
         }
 
@@ -87,9 +87,9 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     public List<String> hotSearchMarketAppNameList() {
         String hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET;
         Long tenantId = TenantContextHolder.getRequiredTenantId();
-        if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId)) {
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
             hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET;
-        } else if (AppConstants.JU_ZHEN_TENANT_ID.equals(tenantId)) {
+        } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
             hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET_JU_ZHEN;
         }
         List<DictDataDO> dictDataList = getDictionaryList(hotSearchMarket);

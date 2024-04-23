@@ -366,7 +366,7 @@ public class AppServiceImpl implements AppService {
             }
             AppCategoryVO category = categoryOptional.get();
             Long tenantId = TenantContextHolder.getRequiredTenantId();
-            if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
+            if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
             }
             if (StringUtils.isBlank(request.getIcon())) {

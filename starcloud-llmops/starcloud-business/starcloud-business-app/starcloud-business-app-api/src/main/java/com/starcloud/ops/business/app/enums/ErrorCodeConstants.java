@@ -462,6 +462,11 @@ public interface ErrorCodeConstants {
     /**
      * 上传图片失败
      */
+    ErrorCode UPLOAD_FAILURE = new ErrorCode(370000000, "{}");
+
+    /**
+     * 上传图片失败
+     */
     ErrorCode UPLOAD_IMAGE_FAILURE = new ErrorCode(370000000, "上传图片失败，请稍后重试或者联系管理员！");
 
     /**
@@ -574,9 +579,6 @@ public interface ErrorCodeConstants {
     ErrorCode MEDIA_STRATEGY_NOT_EXISTS = new ErrorCode(300700301, "回复策略不存在");
 
     ErrorCode MEDIA_STRATEGY_SAME_EXISTS = new ErrorCode(300700302, "存在相同的策略，请核对后重新提交");
-
-
-
 
 
 }

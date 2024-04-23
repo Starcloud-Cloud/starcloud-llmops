@@ -64,8 +64,7 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     public UploadImageInfoDTO upload(MultipartFile image) {
-        log.info("开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return ImageUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+        return ImageUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD_PATH);
     }
 
     /**
@@ -76,8 +75,7 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     public UploadImageInfoDTO uploadLimit1024(MultipartFile image) {
-        log.info("开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return ImageUploadUtils.uploadImageLimit1024(image, ImageUploadUtils.UPLOAD);
+        return ImageUploadUtils.uploadImageLimit1024(image, ImageUploadUtils.UPLOAD_PATH);
     }
 
     /**
