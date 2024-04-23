@@ -4,7 +4,16 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseR
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.*;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ImitateActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -169,12 +178,13 @@ public class RecommendActionFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepRespVO defCustomActionStep(String defaultPrompt) {
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(JsonDataDefSchema.class);
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
         step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(CustomActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defTextResponse());
+        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);

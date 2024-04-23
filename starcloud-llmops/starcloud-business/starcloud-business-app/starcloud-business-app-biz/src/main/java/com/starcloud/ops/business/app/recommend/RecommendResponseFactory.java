@@ -66,12 +66,21 @@ public class RecommendResponseFactory {
      * @return ActionResponseRespVO
      */
     public static ActionResponseRespVO defReadOnlyResponse(Boolean isShow, String jsonSchema) {
+        return defJsonResponse(isShow, Boolean.TRUE, jsonSchema);
+    }
+
+    /**
+     * 只读JSON响应
+     *
+     * @return ActionResponseRespVO
+     */
+    public static ActionResponseRespVO defJsonResponse(Boolean isShow, Boolean readOnly, String jsonSchema) {
         JsonDataVO jsonData = new JsonDataVO();
         jsonData.setJsonSchema(jsonSchema);
 
         ActionResponseRespVO response = new ActionResponseRespVO();
         response.setIsShow(isShow);
-        response.setReadOnly(Boolean.TRUE);
+        response.setReadOnly(readOnly);
         response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setStyle(AppStepResponseStyleEnum.JSON.name());
         response.setOutput(jsonData);
