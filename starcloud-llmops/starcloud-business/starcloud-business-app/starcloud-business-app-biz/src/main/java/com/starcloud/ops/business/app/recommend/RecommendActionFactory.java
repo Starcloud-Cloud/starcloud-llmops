@@ -184,7 +184,7 @@ public class RecommendActionFactory {
         step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(CustomActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
+        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.FALSE, jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
