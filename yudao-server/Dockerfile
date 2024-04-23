@@ -8,8 +8,6 @@ WORKDIR /yudao-server
 ## 将后端项目的 Jar 文件，复制到镜像中
 COPY ./target/yudao-server.jar app.jar
 
-ENV LANG C.UTF-8
-ENV LANG C.UTF-8
 ## 设置 TZ 时区
 ENV TZ=Asia/Shanghai
 ## 设置 JAVA_OPTS 环境变量，可通过 docker run -e "JAVA_OPTS=" 进行覆盖
