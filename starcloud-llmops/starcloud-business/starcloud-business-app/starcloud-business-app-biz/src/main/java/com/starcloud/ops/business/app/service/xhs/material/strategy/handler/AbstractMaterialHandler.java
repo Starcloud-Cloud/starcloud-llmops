@@ -151,7 +151,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
                 // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
                 Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream()
                         .filter(Objects::nonNull)
-                        .filter(CreativeUtils::isImageVariable)
+                        //.filter(CreativeUtils::isImageVariable)
                         .map(item -> {
                             Integer matcher = matcherFirstInt(String.valueOf(item.getValue()));
                             if (matcher == -1) {
