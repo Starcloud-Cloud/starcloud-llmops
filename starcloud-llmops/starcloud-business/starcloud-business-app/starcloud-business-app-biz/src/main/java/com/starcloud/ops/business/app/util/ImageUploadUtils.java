@@ -1,13 +1,21 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.service.upload.UploadRequest;
 import com.starcloud.ops.business.app.service.upload.UploadService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,6 +28,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -54,6 +63,136 @@ public class ImageUploadUtils {
      * 文件服务
      */
     private static final UploadService UPLOAD_SERVICE = SpringUtil.getBean(UploadService.class);
+
+    /**
+     * 上传图片
+     *
+     * @param image 图片
+     * @param path  上传路径类型
+     * @return 图片信息
+     */
+    public static UploadImageInfoDTO uploadImage(MultipartFile image, String path) {
+        try {
+            // 获取图片字节数组
+            byte[] content = IOUtils.toByteArray(image.getInputStream());
+            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), path, content);
+            log.info("图片上传成功：图片信息: {}", JSONUtil.toJsonStr(imageInfo));
+            return imageInfo;
+        } catch (ServiceException exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw exception;
+        } catch (IOException exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
+        } catch (Exception exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
+        }
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param image 图片
+     * @param path  上传路径类型
+     * @return 图片信息
+     */
+    public static UploadImageInfoDTO uploadImageLimit1024(MultipartFile image, String path) {
+        try {
+            // 获取图片字节数组
+            byte[] content = IOUtils.toByteArray(image.getInputStream());
+            UploadImageInfoDTO imageInfo = uploadImage(image.getOriginalFilename(), path, content, 1048576, "1024x1024");
+            log.info("图片上传成功：图片信息: {}", JSONUtil.toJsonStr(imageInfo));
+            return imageInfo;
+        } catch (ServiceException exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw exception;
+        } catch (IOException exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
+        } catch (Exception exception) {
+            log.error("图片上传失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
+        }
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param name    图片名称
+     * @param path    上传路径类型
+     * @param content 图片内容
+     * @return 图片信息
+     */
+    public static UploadImageInfoDTO uploadImage(String name, String path, byte[] content) {
+        return uploadImage(name, path, content, null, null);
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param name    图片名称
+     * @param path    上传路径类型
+     * @param content 图片内容
+     * @return 图片信息
+     */
+    public static UploadImageInfoDTO uploadImage(String name, String path, byte[] content, Integer limitPixel, String limitMessage) {
+
+        try {
+            AppValidate.notBlank(name, "图片上传名称不能为空");
+            AppValidate.notBlank(path, "图片上传路径不能为空");
+            AppValidate.notNull(content, "图片上传内容不能为空");
+
+            // 获取图片的后缀名称，并且校验
+            String extension = ImageUploadUtils.getExtension(name);
+            ImageUploadUtils.validateImageExtension(extension);
+
+            // 获取图片的信息
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(content));
+            if (Objects.isNull(bufferedImage)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_INFO_FAILURE);
+            }
+
+            // 校验图片的大小
+            if (Objects.nonNull(limitPixel) && (bufferedImage.getWidth() * bufferedImage.getWidth()) > limitPixel) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.IMAGE_PIXEL_LIMIT_FAILURE, limitMessage, limitPixel);
+            }
+
+            // 生成文件名称
+            String uuid = IdUtil.fastSimpleUUID();
+            String filename = uuid + "." + extension;
+            String failPath = ImageUploadUtils.getFilePath(filename, path);
+
+            if (StringUtils.isBlank(failPath)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_PATH_NON_EXISTENT);
+            }
+
+            // 上传图片并且返回图片URL
+            UploadRequest uploadRequest = new UploadRequest();
+            uploadRequest.setTenantId(TenantContextHolder.getTenantId());
+            uploadRequest.setName(filename);
+            uploadRequest.setPath(failPath);
+            uploadRequest.setContent(content);
+            String url = UPLOAD_SERVICE.createFile(uploadRequest);
+
+            // 组装返回结果
+            UploadImageInfoDTO imageInfo = new UploadImageInfoDTO();
+            imageInfo.setUuid(uuid);
+            imageInfo.setName(filename);
+            imageInfo.setOriginalFilename(filename);
+            imageInfo.setMediaType(ImageUploadUtils.getMediaTypeByExtension(extension));
+            imageInfo.setUrl(url);
+            imageInfo.setWidth(bufferedImage.getWidth());
+            imageInfo.setHeight(bufferedImage.getHeight());
+            return imageInfo;
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (IOException exception) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_IO_FAILURE);
+        } catch (Exception exception) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.UPLOAD_IMAGE_FAILURE, exception.getMessage());
+        }
+    }
 
     /**
      * 获取图片信息
@@ -312,7 +451,7 @@ public class ImageUploadUtils {
      * @param filename 文件名称
      * @return 文件路径
      */
-    public static String getFilePath(String path, String filename) {
+    public static String getFilePath(String filename, String path) {
         if (StringUtils.isBlank(path)) {
             return "";
         }

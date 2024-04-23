@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
@@ -17,7 +16,6 @@ import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
-import com.starcloud.ops.business.app.service.upload.UploadImageRequest;
 import com.starcloud.ops.business.app.service.upload.UploadService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
@@ -84,14 +82,9 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
         log.info("草图生成图片开始...");
         // 上传草图
         byte[] imageBytes = Base64.getDecoder().decode(ImageUtils.handlerBase64Image(request.getSketchImage()));
-        String uuid = IdUtil.fastSimpleUUID();
 
-        UploadImageRequest uploadImageRequest = new UploadImageRequest();
-        uploadImageRequest.setTenantId(TenantContextHolder.getTenantId());
-        uploadImageRequest.setName(ImageUploadUtils.getFileName(uuid, MediaType.IMAGE_PNG_VALUE));
-        uploadImageRequest.setPath(ImageUploadUtils.UPLOAD_PATH);
-        uploadImageRequest.setContent(imageBytes);
-        UploadImageInfoDTO imageInfo = uploadService.uploadImage(uploadImageRequest);
+        String originalFileName = ImageUploadUtils.getFileName(IdUtil.fastSimpleUUID(), MediaType.IMAGE_PNG_VALUE);
+        UploadImageInfoDTO imageInfo = ImageUploadUtils.uploadImage(originalFileName, ImageUploadUtils.GENERATE_PATH, imageBytes);
 
         // 调用草图生成图片接口
         SketchToImageClipDropRequest sketchToImageClipDropRequest = new SketchToImageClipDropRequest();
