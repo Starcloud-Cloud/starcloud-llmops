@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.P
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -47,9 +48,6 @@ import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.*;
 @Slf4j
 @Component
 public class UploadMaterialImageManager implements InitializingBean {
-
-    @Resource
-    private FileService fileService;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -294,7 +292,8 @@ public class UploadMaterialImageManager implements InitializingBean {
             }
 
             String relativePath = "material" + File.separator + parseUid + File.separator + addr;
-            return fileService.createFile(addr, relativePath, IoUtil.readBytes(Files.newInputStream(file.toPath())));
+
+            return ImageUploadUtils.uploadImage(addr,relativePath,IoUtil.readBytes(Files.newInputStream(file.toPath()))).getUrl();
         } else {
             log.warn("Image is not exist parseUid={}, imageName={}", parseUid, addr);
             return StringUtils.EMPTY;
@@ -335,11 +334,13 @@ public class UploadMaterialImageManager implements InitializingBean {
             jsonObject.put("title", noteDetail.getTitle());
             jsonObject.put("content", noteDetail.getDesc());
 
+            List<String> images = new ArrayList<>();
             if (!CollectionUtils.isEmpty(noteDetail.getImageList())) {
                 for (NoteImage noteImage : noteDetail.getImageList()) {
-                    List<String> images = Optional.ofNullable(noteImage.getInfoList()).orElse(Collections.emptyList()).stream().map(ImageInfo::getUrl).collect(Collectors.toList());
-                    jsonObject.put("images", images);
+                    List<String> imageList = Optional.ofNullable(noteImage.getInfoList()).orElse(Collections.emptyList()).stream().filter(info -> "WB_DFT".equalsIgnoreCase(info.getImageScene())).map(ImageInfo::getUrl).collect(Collectors.toList());
+                    images.addAll(imageList);
                 }
+                jsonObject.put("images", images);
             }
 
             if (!CollectionUtils.isEmpty(noteDetail.getTagList())) {
