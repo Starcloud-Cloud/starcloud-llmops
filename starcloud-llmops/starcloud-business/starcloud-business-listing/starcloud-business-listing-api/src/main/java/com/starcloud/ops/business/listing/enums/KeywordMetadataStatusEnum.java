@@ -16,6 +16,8 @@ public enum KeywordMetadataStatusEnum {
 
     NO_DATA(6, "未获取到关键词数据"),
 
+    NO_DB_DATA(7, "元数据不存在"),
+
     SUCCESS(10, "数据获取成功")
 
     ;
