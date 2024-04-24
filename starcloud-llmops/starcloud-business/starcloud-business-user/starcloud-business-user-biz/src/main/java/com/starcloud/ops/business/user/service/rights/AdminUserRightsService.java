@@ -38,6 +38,25 @@ public interface AdminUserRightsService {
      */
     PageResult<AdminUserRightsDO> getRightsPage(Long userId, AppAdminUserRightsPageReqVO pageVO);
 
+
+    /**
+     * 通过业务 ID 和业务类型获取权益数据
+     *
+     * @param bizType 业务类型
+     * @param bizId   业务编号
+     * @param userId  用户编号
+     * @return 权益数据
+     */
+    AdminUserRightsDO getRecordByBiz(Integer bizType, Long bizId,Long userId);
+
+    /**
+     * 获取权益数据汇总
+     *
+     * @param userId 用户编号
+     * @return 权益数据汇总
+     */
+    List<AdminUserRightsCollectRespVO> getGroupRightsCollect(Long userId);
+
     /**
      * 获取权益数据汇总
      *
