@@ -19,7 +19,7 @@ public class PayOrderRespDTO {
     private Long id;
     /**
      * 渠道编码
-     *
+     * <p>
      * 枚举 PayChannelEnum
      */
     private String channelCode;
@@ -38,7 +38,7 @@ public class PayOrderRespDTO {
     private Integer price;
     /**
      * 支付状态
-     *
+     * <p>
      * 枚举 {@link PayOrderStatusEnum}
      */
     private Integer status;

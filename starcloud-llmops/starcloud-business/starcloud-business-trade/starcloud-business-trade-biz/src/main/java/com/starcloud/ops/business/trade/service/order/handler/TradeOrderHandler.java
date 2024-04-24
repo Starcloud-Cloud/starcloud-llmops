@@ -98,7 +98,6 @@ public interface TradeOrderHandler {
      *
      * @param order      订单
      * @param orderItems 订单项列表
-     * @return 过滤后的订单项列表
      */
     default void afterPayOrderLast(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
 

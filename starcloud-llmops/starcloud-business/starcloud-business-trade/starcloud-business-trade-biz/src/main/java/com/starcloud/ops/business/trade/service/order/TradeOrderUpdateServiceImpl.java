@@ -14,7 +14,6 @@ import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
@@ -28,7 +27,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
-import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderDeliveryReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderRemarkReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderUpdateAddressReqVO;
@@ -62,10 +60,7 @@ import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalcu
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
-import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
-import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
-import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -1096,7 +1091,6 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         }
 
     }
-
 
 
 }

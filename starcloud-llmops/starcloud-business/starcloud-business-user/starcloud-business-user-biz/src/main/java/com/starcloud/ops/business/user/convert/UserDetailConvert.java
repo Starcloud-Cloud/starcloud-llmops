@@ -6,7 +6,6 @@ import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUser
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

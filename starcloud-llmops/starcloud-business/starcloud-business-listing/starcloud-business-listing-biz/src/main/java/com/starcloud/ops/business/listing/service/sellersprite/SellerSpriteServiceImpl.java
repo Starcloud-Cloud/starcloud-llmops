@@ -13,7 +13,6 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
@@ -290,7 +289,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
         }
         // 只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
         if (tag == cookies.size()) {
-            this.sendMessage();
+            // this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
         return result;
@@ -332,7 +331,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             }
         }
         if (StrUtil.isBlank(result) && tag >= cookies.size()) {
-            this.sendMessage();
+            // this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
         return result;
@@ -386,7 +385,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             Map<String, Object> templateParams = new HashMap<>();
             String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
             templateParams.put("environmentName", environmentName);
-            templateParams.put("errMsg", environmentName);
+            templateParams.put("errMsg", msg);
             templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("SELLER_SPRITE_REQUEST_ERROR").setTemplateParams(templateParams));
         } catch (RuntimeException e) {

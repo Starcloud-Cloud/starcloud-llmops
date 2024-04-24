@@ -114,9 +114,9 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     }
 
     /**
-     * @param userId
-     * @param startTime
-     * @param endTime
+     * @param userId    用户编号
+     * @param startTime 开始时间
+     * @param endTime   结束时间
      * @return
      */
     @Override
