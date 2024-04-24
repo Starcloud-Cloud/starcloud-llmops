@@ -326,7 +326,7 @@ public class StarUserServiceImpl implements StarUserService {
         if (registerUserDO == null) {
             throw exception(ACTIVATION_CODE_ERROR);
         }
-        if (registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) < 0) {
+        if (registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) < 0) {
             registerUserDO.setStatus(2);
             registerUserMapper.updateById(registerUserDO);
             throw exception(OPERATE_TIME_OUT);
