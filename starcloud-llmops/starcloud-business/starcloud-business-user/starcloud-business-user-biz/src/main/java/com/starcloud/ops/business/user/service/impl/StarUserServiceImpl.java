@@ -686,11 +686,11 @@ public class StarUserServiceImpl implements StarUserService {
 
         RegisterUserDO registerUserDO = registerUserMapper.selectByUsername(username);
         // 注册时间30分钟内
-        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) > 0) {
             throw exception(USER_USERNAME_EXISTS);
         }
         registerUserDO = registerUserMapper.selectByEmail(email);
-        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) > 0) {
             throw exception(USER_EMAIL_EXISTS);
         }
     }

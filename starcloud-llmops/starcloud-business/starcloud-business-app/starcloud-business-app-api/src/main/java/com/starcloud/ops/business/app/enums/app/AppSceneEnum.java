@@ -322,5 +322,15 @@ public enum AppSceneEnum implements IEnumable<Integer> {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 根据Name获取枚举
+     */
+    public static AppSceneEnum getByName(String name) {
+        return Arrays.stream(values())
+                .filter(item -> item.name().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
 
 }
