@@ -8,10 +8,12 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.image.vo.request.BaseImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -69,6 +71,13 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @JSONField(serialize = false)
     private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
 
+    /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
+
 
     /**
      * 基础数据校验
@@ -121,6 +130,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             throw exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
         }
         try {
+
             // 检测权益
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_IMAGE, request.getUserId());
 
@@ -232,6 +242,17 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void afterExecute(ImageRespVO result, ImageReqVO request, Throwable throwable) {
+        if (throwable != null) {
+            // 发送告警信息
+            BaseImageRequest imageRequest = request.getImageRequest();
+            appAlarmManager.executeAlarm(
+                    request.getAppUid(),
+                    "图片生成",
+                    AppModelEnum.IMAGE.name(),
+                    request.getScene(),
+                    throwable.getMessage()
+            );
+        }
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {
