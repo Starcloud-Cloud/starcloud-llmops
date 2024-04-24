@@ -187,7 +187,6 @@ public class QueryKeywordMetadataPageReqVO extends PageParam {
      */
     private Boolean desc ;
 
-
     /**
      * 倒序
      */

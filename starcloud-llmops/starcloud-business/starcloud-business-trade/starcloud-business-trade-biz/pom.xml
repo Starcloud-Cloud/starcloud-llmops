@@ -101,7 +101,7 @@
         </dependency>
         <dependency>
             <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-business-user-api</artifactId>
+            <artifactId>starcloud-business-user-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
         <dependency>

@@ -18,4 +18,9 @@ public interface ErrorCodeConstant {
 
     ErrorCode SELLER_SPRITE_ERR_ASIN_INFO_ERR = new ErrorCode(500020005, "{}");
 
+    ErrorCode SELLER_SPRITE_DATA_ERROR = new ErrorCode(500020006, "数据异常，请稍后重试");
+
+    ErrorCode SELLER_SPRITE_CODE_DATA_ERROR = new ErrorCode(500020007, "数据Code异常，请稍后重试");
+
+
 }

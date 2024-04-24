@@ -16,6 +16,7 @@ import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
@@ -84,6 +85,22 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Override
     public AdminUserLevelDO getLevel(Long id) {
         return adminUserLevelMapper.selectById(id);
+    }
+
+    /**
+     * 通过业务 ID 和业务类型获得会员等级记录明细
+     *
+     * @param bizType 业务类型
+     * @param bizId   业务编号
+     * @param userId  用户编号
+     * @return 会员等级记录
+     */
+    @Override
+    public AdminUserLevelDO getRecordByBiz(Integer bizType, Long bizId, Long userId) {
+        return adminUserLevelMapper.selectOne(Wrappers.lambdaQuery(AdminUserLevelDO.class)
+                .eq(AdminUserLevelDO::getBizType, bizType)
+                .eq(AdminUserLevelDO::getBizId, bizId)
+                .eq(AdminUserLevelDO::getUserId, userId));
     }
 
     @Override
@@ -490,8 +507,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      * @param adminUserRightsDO 用户权益 DO
      */
     @Override
-    public void checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO) {
-        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return;
+    public Boolean checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO) {
+        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return null;
 
         long initTimeBetween = 10L;
         // 检验
@@ -506,8 +523,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             templateParams.put("notifyTime", LocalDateTimeUtil.now());
             // 发送报警
             smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
-
+            return false;
         }
+        return true;
     }
 
 

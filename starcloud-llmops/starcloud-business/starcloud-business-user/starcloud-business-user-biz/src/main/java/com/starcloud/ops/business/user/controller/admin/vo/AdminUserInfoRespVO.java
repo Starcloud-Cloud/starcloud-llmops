@@ -72,6 +72,10 @@ public class AdminUserInfoRespVO {
     @Schema(description = "用户权益")
     private List<Rights> rights;
 
+
+    @Schema(description = "团队权益")
+    private List<Rights> teamRights;
+
     @Schema(description = "部门 ID")
     private Long deptId;
 
@@ -93,55 +97,6 @@ public class AdminUserInfoRespVO {
 
 
     }
-    // @Data
-    // @NoArgsConstructor
-    // @AllArgsConstructor
-    // public static class LevelConfigDTO {
-    //
-    //     /**
-    //      *  可使用的应用数
-    //      */
-    //     @Schema(description = "可使用的应用数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    //     private Integer usableApp;
-    //
-    //     /**
-    //      *  可使用的基础版机器人数
-    //      */
-    //     @Schema(description = "可使用的基础版机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    //     private Integer usableBasicBot;
-    //
-    //     /**
-    //      *  可使用的微信机器人数
-    //      */
-    //     @Schema(description = "可使用的微信机器人数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    //     private Integer usableWechatBot;
-    //
-    //     /**
-    //      *  可使用的机器人文档数
-    //      */
-    //     @Schema(description = "可使用的机器人文档数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    //     private Integer usableBotDocument;
-    //
-    //     /**
-    //      *  技能插件数
-    //      */
-    //     @Schema(description = "技能插件数", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    //     private Integer usableSkillPlugin;
-    //
-    //     /**
-    //      *  可创建的团队数
-    //      */
-    //     private Integer usableTeams;
-    //
-    //
-    //     /**
-    //      *  团队可以添加的人数
-    //      */
-    //     private Integer usableTeamUsers;
-    //
-    //
-    //
-    // }
 
     @Schema(description = "系统用户会员- 会员权益")
     @Data
@@ -166,5 +121,6 @@ public class AdminUserInfoRespVO {
         private Integer percentage;
 
     }
+
 
 }
