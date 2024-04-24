@@ -2,10 +2,11 @@ package com.starcloud.ops.business.app.service.xhs.material;
 
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.thread.BlockPolicy;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.module.infra.service.file.FileService;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
@@ -17,6 +18,8 @@ import com.starcloud.ops.business.app.api.xhs.note.NoteTag;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.service.upload.UploadRequest;
+import com.starcloud.ops.business.app.service.upload.UploadService;
 import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +32,11 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -54,6 +60,9 @@ public class UploadMaterialImageManager implements InitializingBean {
 
     @Resource
     private XhsNoteDetailWrapper xhsNoteDetailWrapper;
+
+    @Resource
+    private UploadService uploadService;
 
 
     // 图片上传线程池
@@ -91,6 +100,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         while (true) {
             try {
                 UploadMaterialImageDTO uploadMaterialDTO = blockingQueue.take();
+                TenantContextHolder.setTenantId(uploadMaterialDTO.getTenantId());
                 if (MaterialTypeEnum.CONTRACT.getCode().equals(uploadMaterialDTO.getMaterialType())) {
                     parseWord(uploadMaterialDTO);
                 } else {
@@ -126,7 +136,7 @@ public class UploadMaterialImageManager implements InitializingBean {
                 if (!word.exists()) {
                     continue;
                 }
-                Future<List<String>> future = threadPoolExecutor.submit(() -> upload(word, parseUid));
+                Future<List<String>> future = threadPoolExecutor.submit(() -> upload(word, parseUid, uploadMaterialDTO.getTenantId()));
                 parseFuture.put(i, future);
             }
 
@@ -156,8 +166,9 @@ public class UploadMaterialImageManager implements InitializingBean {
                         field.set(materialDTO, url);
                         continue;
                     }
+
                     // excel 中有内容 为http图片地址
-                    if (isImage(imgAddr)) {
+                    if (urlToOss(imgAddr, materialDTO, field, parseUid)) {
                         continue;
                     }
                     // 本地图片存在使用本地图片
@@ -178,8 +189,10 @@ public class UploadMaterialImageManager implements InitializingBean {
 
     }
 
-    private List<String> upload(File word, String parseUid) {
+    private List<String> upload(File word, String parseUid, Long tenantId) {
         try {
+            TenantContextHolder.setIgnore(false);
+            TenantContextHolder.setTenantId(tenantId);
             HashMap<String, Object> paramMap = new HashMap<>();
             paramMap.put("file", word);
             paramMap.put("parseUid", parseUid);
@@ -210,7 +223,7 @@ public class UploadMaterialImageManager implements InitializingBean {
             for (AbstractCreativeMaterialDTO materialDTO : materialDTOList) {
                 for (Field field : imageField) {
                     threadPoolExecutor.execute(() -> upload(materialDTO, field,
-                            parseUid, countDownLatch));
+                            parseUid, countDownLatch, uploadMaterialDTO.getTenantId()));
                 }
             }
             if (countDownLatch.await(120, TimeUnit.SECONDS)) {
@@ -232,14 +245,15 @@ public class UploadMaterialImageManager implements InitializingBean {
     private void upload(AbstractCreativeMaterialDTO materialDTO,
                         Field field,
                         String parseUid,
-                        CountDownLatch countDownLatch) {
+                        CountDownLatch countDownLatch, Long tenantId) {
         try {
+            TenantContextHolder.setTenantId(tenantId);
             field.setAccessible(true);
             // 图片链接或相对路径
             String imageName = (String) field.get(materialDTO);
 
             // 判断是图片链接跳过
-            if (isImage(imageName)) {
+            if (urlToOss(imageName, materialDTO, field, parseUid)) {
                 return;
             }
 
@@ -253,28 +267,27 @@ public class UploadMaterialImageManager implements InitializingBean {
     }
 
 
-    private boolean isImage(String addr) throws Exception {
+    private boolean urlToOss(String addr, AbstractCreativeMaterialDTO materialDTO,
+                             Field field, String parseUid) throws Exception {
         InputStream inputStream = null;
         try {
             URL url = new URL(addr);
             URLConnection urlConnection = url.openConnection();
             urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
             inputStream = urlConnection.getInputStream();
-
-            BufferedImage read = ImageIO.read(inputStream);
-            if (Objects.nonNull(read)) {
-                return true;
-            }
+            String relativePath = "material" + File.separator + parseUid;
+            String ossUrl = ImageUploadUtils.uploadImage(IdUtil.fastSimpleUUID() + ".jpg", relativePath, IoUtil.readBytes(inputStream)).getUrl();
+            field.set(materialDTO, ossUrl);
+            return true;
         } catch (Exception e) {
+            log.warn("url To Oss error", e);
             return false;
         } finally {
             if (Objects.nonNull(inputStream)) {
                 inputStream.close();
             }
         }
-        return false;
     }
-
 
     private String localImage(String addr, String parseUid, String materialType) throws Exception {
         // 系统默认临时文件目录/material/{parseUid}/{materialType}/images/{imageName}
@@ -293,7 +306,7 @@ public class UploadMaterialImageManager implements InitializingBean {
 
             String relativePath = "material" + File.separator + parseUid + File.separator + addr;
 
-            return ImageUploadUtils.uploadImage(addr,relativePath,IoUtil.readBytes(Files.newInputStream(file.toPath()))).getUrl();
+            return ImageUploadUtils.uploadImage(addr, relativePath, IoUtil.readBytes(Files.newInputStream(file.toPath()))).getUrl();
         } else {
             log.warn("Image is not exist parseUid={}, imageName={}", parseUid, addr);
             return StringUtils.EMPTY;
