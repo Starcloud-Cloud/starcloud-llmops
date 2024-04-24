@@ -34,6 +34,7 @@ import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
 import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.enums.DraftSortFieldEnum;
+import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
 import com.starcloud.ops.business.listing.enums.ListExecuteEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.DraftService;
@@ -54,14 +55,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -135,7 +129,24 @@ public class DraftServiceImpl implements DraftService {
             return respVO;
         }
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), false);
-        respVO.setKeywordMetaData(metaData);
+
+        Map<String, KeywordMetaDataDTO> metaDataDTOMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity()));
+
+        List<KeywordMetaDataDTO> result = new ArrayList<>(keywordBinds.size());
+        for (String keywordBind : keywordBinds) {
+            KeywordMetaDataDTO keywordMetaDataDTO = metaDataDTOMap.get(keywordBind);
+            if (Objects.isNull(keywordMetaDataDTO)) {
+                keywordMetaDataDTO = new KeywordMetaDataDTO();
+                keywordMetaDataDTO.setKeyword(keywordBind);
+                keywordMetaDataDTO.setStatus(KeywordMetadataStatusEnum.NO_DB_DATA.getCode());
+                keywordMetaDataDTO.setSearches(0L);
+            }
+            if (Objects.isNull(keywordMetaDataDTO.getSearches())) {
+                keywordMetaDataDTO.setSearches(0L);
+            }
+            result.add(keywordMetaDataDTO);
+        }
+        respVO.setKeywordMetaData(result);
         return respVO;
     }
 
