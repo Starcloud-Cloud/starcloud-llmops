@@ -78,7 +78,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativeContentDO::getStatus, query.getStatus());
         wrapper.eq(Objects.nonNull(query.getLiked()), CreativeContentDO::getLiked, query.getLiked());
         wrapper.eq(Objects.nonNull(query.getClaim()), CreativeContentDO::getClaim, query.getClaim());
-        wrapper.orderByDesc(CreativeContentDO::getId);
+        wrapper.orderByAsc(CreativeContentDO::getId);
         // 执行查询
         return selectPage(page, wrapper);
     }
