@@ -172,18 +172,6 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             return productSkuDOS;
         }
         if (filter) {
-            // List<ProductSkuDO> filteredSkus = productSkuDOS.stream()
-            //         .filter(sku -> {
-            //             ProductSkuDO.OrderLimitConfig config = sku.getOrderLimitConfig();
-            //             return config != null && (
-            //                     (config.getIsNewUser() && !adminUsersApi.isNewUser(userId)) ||
-            //                             (CollUtil.isNotEmpty(config.getLimitCouponTemplateId()) &&
-            //                                     couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(categoryId)) == 0)
-            //             );
-            //         })
-            //         .collect(Collectors.toList());
-            //
-            // return filteredSkus;
             return productSkuDOS.stream().filter(sku -> {
                 if (Objects.nonNull(sku.getOrderLimitConfig())) {
                     if (sku.getOrderLimitConfig().getIsNewUser()) {
@@ -191,7 +179,6 @@ public class ProductSkuServiceImpl implements ProductSkuService {
                             return false;
                         }
                     }
-
                     if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
                         return couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(sku.getId()), Collections.singletonList(categoryId)) != 0;
                     }
@@ -313,7 +300,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             throw exception(SKU_NOT_EXISTS);
         }
 
-        if (Objects.isNull(sku.getSubscribeConfig())||!sku.getSubscribeConfig().getIsSubscribe()) {
+        if (Objects.isNull(sku.getSubscribeConfig()) || !sku.getSubscribeConfig().getIsSubscribe()) {
             //  TODO 发送预警
 
             throw exception(SKU_NO_SUPPORT_SUBSCRIPTION);

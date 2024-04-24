@@ -18,57 +18,64 @@ public interface TradeOrderHandler {
     /**
      * 订单创建前 商品检测
      *
-     * @param order 订单
+     * @param order      订单
      * @param orderItems 订单项
      */
-    default void beforeOrderValidate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
+    default void beforeOrderValidate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
+    }
 
     /**
      * 订单创建前
      *
-     * @param order 订单
+     * @param order      订单
      * @param orderItems 订单项
      */
-    default void beforeOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
+    default void beforeOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
+    }
 
     /**
      * 订单创建后
      *
-     * @param order 订单
+     * @param order      订单
      * @param orderItems 订单项
      */
-    default void afterOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
+    default void afterOrderCreate(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
+    }
 
     /**
      * 支付订单后
      *
-     * @param order 订单
+     * @param order      订单
      * @param orderItems 订单项
      */
-    default void afterPayOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
+    default void afterPayOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
+    }
 
     /**
      * 订单取消后
      *
-     * @param order 订单
+     * @param order      订单
      * @param orderItems 订单项
      */
-    default void afterCancelOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
+    default void afterCancelOrder(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {
+    }
 
     /**
      * 订单项取消后
      *
-     * @param order 订单
+     * @param order     订单
      * @param orderItem 订单项
      */
-    default void afterCancelOrderItem(TradeOrderDO order, TradeOrderItemDO orderItem) {}
+    default void afterCancelOrderItem(TradeOrderDO order, TradeOrderItemDO orderItem) {
+    }
 
     /**
      * 订单发货前
      *
      * @param order 订单
      */
-    default void beforeDeliveryOrder(TradeOrderDO order) {}
+    default void beforeDeliveryOrder(TradeOrderDO order) {
+    }
 
     // ========== 公用方法 ==========
 
@@ -82,5 +89,16 @@ public interface TradeOrderHandler {
         return CollectionUtils.filterList(orderItems,
                 item -> TradeOrderItemAfterSaleStatusEnum.isNone(item.getAfterSaleStatus()));
     }
+
+
+    // ========== 公用方法 ==========
+
+    /**
+     * 订单最后处理
+     *
+     * @param order      订单
+     * @param orderItems 订单项列表
+     */
+    default void afterPayOrderLast(TradeOrderDO order, List<TradeOrderItemDO> orderItems) {}
 
 }
