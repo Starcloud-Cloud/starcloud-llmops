@@ -23,6 +23,7 @@ public interface UserDetailConvert {
 
     @Mapping(source = "adminUserLevelDOS", target = "levels")
     @Mapping(source = "adminUserRightsCollectRespVOS", target = "rights")
-    AdminUserInfoRespVO useToDetail02(AdminUserDO userDO, List<AdminUserLevelDetailRespVO> adminUserLevelDOS, List<AdminUserRightsCollectRespVO> adminUserRightsCollectRespVOS);
+    @Mapping(source = "adminUserTeamRightsCollectRespVOS", target = "teamRights")
+    AdminUserInfoRespVO useToDetail02(AdminUserDO userDO, List<AdminUserLevelDetailRespVO> adminUserLevelDOS, List<AdminUserRightsCollectRespVO> adminUserRightsCollectRespVOS, List<AdminUserRightsCollectRespVO> adminUserTeamRightsCollectRespVOS);
 
 }

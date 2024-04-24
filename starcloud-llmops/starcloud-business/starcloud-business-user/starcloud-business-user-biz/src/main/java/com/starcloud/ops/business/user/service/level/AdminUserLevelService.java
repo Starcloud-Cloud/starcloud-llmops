@@ -23,6 +23,18 @@ public interface AdminUserLevelService {
      */
     AdminUserLevelDO getLevel(Long id);
 
+
+    /**
+     * 通过业务 ID 和业务类型获得会员等级记录明细
+     *
+     * @param bizType 业务类型
+     * @param bizId   业务编号
+     * @param userId  用户编号
+     * @return 会员等级记录
+     */
+    AdminUserLevelDO getRecordByBiz(Integer bizType, Long bizId, Long userId);
+
+
     /**
      * 获得会员等级记录分页
      *
@@ -119,9 +131,8 @@ public interface AdminUserLevelService {
     void validateLevelAndRole(Long userId);
 
     /**
-     *
-     * @param adminUserLevelDO 用户等级 DO
+     * @param adminUserLevelDO  用户等级 DO
      * @param adminUserRightsDO 用户权益 DO
      */
-    void checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO);
+    Boolean checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO);
 }
