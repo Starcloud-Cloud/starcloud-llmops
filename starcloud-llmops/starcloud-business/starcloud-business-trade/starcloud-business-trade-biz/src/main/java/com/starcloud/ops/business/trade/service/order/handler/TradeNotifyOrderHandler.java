@@ -14,7 +14,6 @@ import cn.iocoder.yudao.module.system.api.tenant.TenantApi;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
-import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
@@ -22,7 +21,6 @@ import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderItemDO;
 import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
-import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
@@ -89,8 +87,6 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
 
     @Resource
     private AdminUserLevelConfigService adminUserLevelConfigService;
-
-
 
 
     @Override
