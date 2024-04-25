@@ -111,7 +111,6 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
                 tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
                 // 获取当前签约成功次数
                 count = tradeOrderQueryService.getSignPaySuccessCountBySignId(tradeOrderDO.getTradeSignId());
-
             }
 
             AdminUserRightsAndLevelCommonDTO commonDTO = tradeOrderDO.getGiveRights().get(0);
