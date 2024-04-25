@@ -61,7 +61,9 @@ public class StarUserController {
     @Operation(summary = "激活链接", description = "激活链接")
     @TenantIgnore
     @OperateLog(enable = false)
-    public CommonResult<Boolean> activation(@PathVariable String activationCode) {
+    public CommonResult<Boolean> activation(@PathVariable String activationCode,
+                                            @RequestParam("redirectUri") String redirectUri,
+                                            HttpServletResponse resp) {
         boolean activation = llmUserService.activation(activationCode);
         return CommonResult.success(activation);
     }
@@ -125,6 +127,7 @@ public class StarUserController {
         adminUserNotifyExpiringRespVO.setNotifyExpiringRightsRespVO(notifyExpiringRightsRespVO);
         return CommonResult.success(adminUserNotifyExpiringRespVO);
     }
+
 
 
 }

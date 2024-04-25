@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.material;
 
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
@@ -31,6 +32,8 @@ public class UploadMaterialImageDTO {
 
     private String materialType;
 
+    private Long tenantId;
+
     /**
      * 是否保存数据库
      */
@@ -41,6 +44,7 @@ public class UploadMaterialImageDTO {
         this.imageField = MaterialTypeEnum.of(materialType).filterField(FieldTypeEnum.image);
         this.materialDTOList = materialDTOList;
         this.materialType = materialType;
+        this.tenantId = TenantContextHolder.getTenantId();
     }
 
     /**
