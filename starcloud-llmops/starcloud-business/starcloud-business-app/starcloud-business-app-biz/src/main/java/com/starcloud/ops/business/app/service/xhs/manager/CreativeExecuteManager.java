@@ -445,15 +445,11 @@ public class CreativeExecuteManager {
      */
     private static CreativeContentExecuteRespVO buildResponse(AppLogMessageRespVO logAppMessage, CreativeContentDO content) {
         AppRespVO appInfo = logAppMessage.getAppInfo();
-        List<String> tags = appInfo.getTags();
-        if (tags.contains("PracticalConverter")) {
-            CreativeContentExecuteRespVO response = practicalConverter(appInfo);
-            response.setUid(content.getUid());
-            response.setPlanUid(content.getPlanUid());
-            response.setBatchUid(content.getBatchUid());
-            return response;
-        }
-        throw exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "应用结果转换结果异常！");
+        CreativeContentExecuteRespVO response = practicalConverter(appInfo);
+        response.setUid(content.getUid());
+        response.setPlanUid(content.getPlanUid());
+        response.setBatchUid(content.getBatchUid());
+        return response;
     }
 
     /**

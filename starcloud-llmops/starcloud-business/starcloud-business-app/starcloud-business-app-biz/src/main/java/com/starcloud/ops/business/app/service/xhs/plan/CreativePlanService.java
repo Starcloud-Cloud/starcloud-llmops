@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
@@ -63,10 +64,10 @@ public interface CreativePlanService {
     /**
      * 获取创作计划详情，如果不存在则创建
      *
-     * @param appUid 应用UID
+     * @param query 请求
      * @return 创作计划详情
      */
-    CreativePlanRespVO getOrCreate(String appUid);
+    CreativePlanRespVO getOrCreate(CreativePlanGetQuery query);
 
     /**
      * 创建创作计划
