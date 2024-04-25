@@ -29,6 +29,8 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelConfigService;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -47,6 +49,7 @@ import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.getC
 public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
 
 
+    private static final Logger log = LoggerFactory.getLogger(TradeAdminUserRightsOrderHandler.class);
     @Resource
     private AdminUserApi adminUserApi;
 
@@ -188,6 +191,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
             // 权益与等级时间校验
             templateParams.put("checkResult", !checkResult ? "失败" : "成功");
 
+            log.info("准备发送订单通知消息，消息参数为:{}", templateParams);
             // 发送消息通知
             smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("DING_TALK_PAY_NOTIFY_01").setTemplateParams(templateParams));
 
