@@ -200,8 +200,8 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                 smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("DING_TALK_PAY_NOTIFY_01").setTemplateParams(templateParams));
 
             });
-        }catch (Exception e){
-            log.error("订单消息发送失败，当前订单为{}", JSONUtil.toJsonStr(tradeOrderDO));
+        } catch (Exception e) {
+            log.error("订单消息发送失败,错误原因为 errMsg{},当前订单为{}", e.getMessage(), JSONUtil.toJsonStr(tradeOrderDO), e);
         }
 
 
