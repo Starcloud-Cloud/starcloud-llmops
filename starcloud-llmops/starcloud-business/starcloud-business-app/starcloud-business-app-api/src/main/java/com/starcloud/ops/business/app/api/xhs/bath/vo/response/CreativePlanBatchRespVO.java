@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 @Data
 public class CreativePlanBatchRespVO {
 
+    private Long id;
+
     /**
      * 执行批次号
      */
