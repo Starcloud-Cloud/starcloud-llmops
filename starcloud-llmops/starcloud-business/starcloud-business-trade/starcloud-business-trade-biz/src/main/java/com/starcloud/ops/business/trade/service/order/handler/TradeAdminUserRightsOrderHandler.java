@@ -108,9 +108,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                     couponName = couponApi.getCoupon(tradeOrderDO.getUserId(), tradeOrderDO.getCouponId()).getName();
                 }
 
-                // 如果是签约 则获取履约次数
-
-                // 如果是签约订单 则更新下次扣款时间
+                // 如果是签约订单 则更新下次扣款时间 并且获取履约次数
                 Integer count = 0;
                 if (Objects.nonNull(tradeOrderDO.getTradeSignId())) {
                     tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
@@ -144,7 +142,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                     userRoleName = role.getName();
                     userLevelTimeRange = StrUtil.format("{}-{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
                 }
-                Boolean checkResult = null;
+                Boolean checkResult = false;
                 if (Objects.nonNull(rights) && Objects.nonNull(level)) {
                     // 获取当前权益检查结果
                     checkResult = adminUserLevelService.checkLevelAndRights(level, rights);
@@ -193,7 +191,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
                 // 等级有效时间段
                 templateParams.put("userLevelTimeRange", userLevelTimeRange);
                 // 权益与等级时间校验
-                templateParams.put("checkResult", !checkResult ? "失败" : "成功");
+                templateParams.put("checkResult", Objects.isNull(rights) || Objects.isNull(level) ? "成功" : checkResult ? "成功" : "失败");
 
                 log.info("准备发送订单通知消息，消息参数为:{}", templateParams);
                 // 发送消息通知
