@@ -5,7 +5,11 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,14 +26,18 @@ import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
-import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -187,10 +195,13 @@ public class ImitateActionHandler extends BaseActionHandler {
         actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
 
         // 计算权益点数
-        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
 
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        // actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+
+        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? 1 : 0);
 
 
         //如果配置了 JsonSchema
