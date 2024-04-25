@@ -355,6 +355,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
             }
+            if (AdminUserRightsTypeEnum.MATRIX_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH);
+            }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
 
         }
