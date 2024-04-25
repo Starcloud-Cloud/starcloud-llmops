@@ -599,9 +599,12 @@ public class StarUserServiceImpl implements StarUserService {
         List<AdminUserLevelDetailRespVO> levelList = adminUserLevelService.getLevelList(userId);
         // 获取用户权益
         List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
+        // 获取团队权益
+        List<AdminUserRightsCollectRespVO> teamRights = adminUserRightsService.getGroupRightsCollect(userId);
 
 
-        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
+
+        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect,teamRights);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
         userDetailVO.setIsNewUser(isNewUser(userId));

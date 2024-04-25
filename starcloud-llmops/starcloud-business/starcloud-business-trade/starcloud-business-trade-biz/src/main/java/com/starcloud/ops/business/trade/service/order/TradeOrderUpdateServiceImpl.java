@@ -112,8 +112,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     @Resource
     private PayOrderApi payOrderApi;
-    //    @Resource
-//    private MemberAddressApi addressApi;
+
     @Resource
     private ProductCommentApi productCommentApi;
 
@@ -141,13 +140,6 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Resource
     private TenantApi tenantApi;
 
-
-    // @Resource
-    // @Lazy
-    // private CouponTemplateApi couponTemplateApi;
-
-
-    // =================== Order ===================
 
     @Override
     public AppTradeOrderSettlementRespVO settlementOrder(Long userId, AppTradeOrderSettlementReqVO settlementReqVO) {
@@ -1099,5 +1091,6 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         }
 
     }
+
 
 }

@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -180,7 +181,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public CreativePlanRespVO getOrCreate(String appUid) {
         AppValidate.notBlank(appUid, "应用UID为必填项！");
         // 查询计划
-        CreativePlanDO plan = creativePlanMapper.getByAppUid(appUid);
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        CreativePlanDO plan = creativePlanMapper.getByAppUid(appUid, loginUserId);
         // 查询应用
         AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
 

@@ -43,9 +43,10 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
      * @param appUid 应用uid
      * @return CreativePlanDO
      */
-    default CreativePlanDO getByAppUid(String appUid) {
+    default CreativePlanDO getByAppUid(String appUid, Long userId) {
         LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(CreativePlanDO::getAppUid, appUid);
+        wrapper.eq(CreativePlanDO::getCreator, userId);
         return this.selectOne(wrapper);
     }
 
