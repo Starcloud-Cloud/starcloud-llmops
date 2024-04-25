@@ -61,17 +61,9 @@ public class StarUserController {
     @Operation(summary = "激活链接", description = "激活链接")
     @TenantIgnore
     @OperateLog(enable = false)
-    public void activation(@PathVariable String activationCode,
-                           @RequestParam("redirectUri") String redirectUri,
-                           HttpServletResponse resp) {
+    public CommonResult<Boolean> activation(@PathVariable String activationCode) {
         boolean activation = llmUserService.activation(activationCode);
-        if (activation) {
-            try {
-                resp.sendRedirect(redirectUri);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        return CommonResult.success(activation);
     }
 
     @PostMapping("/recover/password")
@@ -133,7 +125,6 @@ public class StarUserController {
         adminUserNotifyExpiringRespVO.setNotifyExpiringRightsRespVO(notifyExpiringRightsRespVO);
         return CommonResult.success(adminUserNotifyExpiringRespVO);
     }
-
 
 
 }
