@@ -19,6 +19,7 @@ import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.business.user.service.dept.UserDeptService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Resource
     private AdminUserRightsRecordService adminUserRightsRecordService;
 
+    @Resource
+    private UserDeptService userDeptService;
+
     private static final int BIZ_TYPE_OFFSET = 50;
 
     @Override
@@ -80,6 +84,38 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Override
     public PageResult<AdminUserRightsDO> getRightsPage(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         return adminUserRightsMapper.selectPage(userId, pageVO);
+    }
+
+    /**
+     * 通过业务 ID 和业务类型获取权益数据
+     *
+     * @param bizType 业务类型
+     * @param bizId   业务编号
+     * @param userId  用户编号
+     * @return 权益数据
+     */
+    @Override
+    public AdminUserRightsDO getRecordByBiz(Integer bizType, Long bizId, Long userId) {
+        return adminUserRightsMapper.selectOne(Wrappers.lambdaQuery(AdminUserRightsDO.class)
+                .eq(AdminUserRightsDO::getBizType, bizType)
+                .eq(AdminUserRightsDO::getBizId, bizId)
+                .eq(AdminUserRightsDO::getUserId, userId));
+    }
+
+    /**
+     * 获取权益数据汇总
+     *
+     * @param userId 用户编号
+     * @return 权益数据汇总
+     */
+    @Override
+    public List<AdminUserRightsCollectRespVO> getGroupRightsCollect(Long userId) {
+
+        Long deptRightsUserId = getDeptRightsUserId(userId);
+        if (userId.equals(deptRightsUserId)) {
+            return null;
+        }
+        return getRightsCollect(deptRightsUserId);
     }
 
     /**
@@ -306,8 +342,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId) {
-
+        log.info("【开始执行权益扣除操作，当前用户编号为{}，团队所属人编号为{}，团队编号为{}，权益类型为{}，扣除数量为{}，业务类型为{}，业务编号为{}】",
+                userId, teamOwnerId, teamId, rightsType.getName(), rightAmount, bizType, bizId);
         Long reduceUserId = Objects.isNull(teamOwnerId) ? userId : teamOwnerId;
+
         // 获取可用权益列表
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(reduceUserId, rightsType);
         if (validRightsList.isEmpty()) {
@@ -316,6 +354,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
             if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MATRIX_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH);
             }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
 
@@ -333,7 +374,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .collect(Collectors.joining(",")); // 使用逗号连接
 
         adminUserRightsRecordService.createRightsRecord(userId, teamOwnerId, teamId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
-
+        log.info("【权益扣除执行结束，扣除成功，权益扣除操作，当前用户编号为{}，权益扣除人用户编号为{}，团队所属人编号为{}，团队编号为{}，权益类型为{}，扣除数量为{}，业务类型为{}，业务编号为{}】",
+                userId, reduceUserId, teamOwnerId, teamId, rightsType.getName(), rightAmount, bizType, bizId);
     }
 
     /**
@@ -389,7 +431,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         NotifyExpiringRightsRespVO notifyExpiringRightsRespVO = new NotifyExpiringRightsRespVO();
         notifyExpiringRightsRespVO.setIsNotify(false);
 
-        // LocalDateTime nextWeek = today.plusDays(7);
         // 获取有效的魔法豆
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, AdminUserRightsTypeEnum.MAGIC_BEAN);
         if (CollUtil.isEmpty(validRightsList)) {
@@ -608,6 +649,22 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
 
         return startTime;
+    }
+
+    /**
+     * 获取应该创作权益的用户   返回部门超级管理员id
+     * 1，获取当前用户的部门
+     * 2，判断是否是部门管理员
+     * 1）是部门管理员，返回
+     * 2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
+     * 3，返回有剩余点的用户ID（管理员或当前用户）
+     */
+    /**
+     * 这里关闭数据权限，主要是后面的 SQL查询会带上 kstry 线程中的其他正常用户的上下文，导致跟 powerjob 执行应用时候导致用户上下文冲突
+     * 所以这里直接 关闭数据权限，这样下面的 关于权益的扣点 已经不需要用户上下文了，单ruiyi 本地比如SQL update会继续获取，所以后续的方法最好直接指定字段创作DB。
+     */
+    protected Long getDeptRightsUserId(Long currentUserId) {
+        return userDeptService.selectSuperAdminId(currentUserId).getUserId();
     }
 
 }
