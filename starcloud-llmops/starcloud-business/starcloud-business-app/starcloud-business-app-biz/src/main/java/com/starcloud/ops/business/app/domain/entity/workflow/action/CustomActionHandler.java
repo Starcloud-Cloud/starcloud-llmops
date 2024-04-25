@@ -256,7 +256,7 @@ public class CustomActionHandler extends BaseActionHandler {
         //本身输出已经走Sse了，不需要在发送一次完整的结果
         actionResponse.setIsSendSseAll(false);
 
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
+        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 最终结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JsonUtils.toJsonPrettyString(actionResponse)
         );
@@ -308,7 +308,7 @@ public class CustomActionHandler extends BaseActionHandler {
         //本身输出已经走Sse了，不需要在发送一次完整的结果
         actionResponse.setIsSendSseAll(false);
 
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
+        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 最终结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JsonUtils.toJsonPrettyString(actionResponse)
         );
@@ -338,6 +338,9 @@ public class CustomActionHandler extends BaseActionHandler {
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
         // 执行OpenAI处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
+        log.info("自定义内容生成[{}]：执行成功, : 未转化前结果：\n{}", this.getClass().getSimpleName(),
+                JsonUtils.toJsonPrettyString(handlerResponse)
+        );
         // 转换并且返回响应结果
         return convert(handlerResponse);
     }
