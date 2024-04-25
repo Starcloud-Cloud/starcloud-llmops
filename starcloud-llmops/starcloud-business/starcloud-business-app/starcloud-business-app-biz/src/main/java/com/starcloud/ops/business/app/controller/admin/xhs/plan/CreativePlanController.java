@@ -6,6 +6,7 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,8 +61,8 @@ public class CreativePlanController {
     @GetMapping("/getByAppUid")
     @Operation(summary = "获取创作计划详情", description = "获取创作计划详情")
     @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<CreativePlanRespVO> getByAppUid(@RequestParam("appUid") String appUid) {
-        return CommonResult.success(creativePlanService.getOrCreate(appUid));
+    public CommonResult<CreativePlanRespVO> getByAppUid(@Validated CreativePlanGetQuery query) {
+        return CommonResult.success(creativePlanService.getOrCreate(query));
     }
 
     @GetMapping("/page")

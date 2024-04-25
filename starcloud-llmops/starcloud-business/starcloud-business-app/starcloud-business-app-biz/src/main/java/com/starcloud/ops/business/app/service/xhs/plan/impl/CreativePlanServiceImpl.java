@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMater
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
@@ -58,6 +59,7 @@ import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -174,17 +176,34 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     /**
      * 获取创作计划详情，如果不存在则创建
      *
-     * @param appUid 应用UID
+     * @param query 应用UID
      * @return 创作计划详情
      */
     @Override
-    public CreativePlanRespVO getOrCreate(String appUid) {
-        AppValidate.notBlank(appUid, "应用UID为必填项！");
-        // 查询计划
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        CreativePlanDO plan = creativePlanMapper.getByAppUid(appUid, loginUserId);
+    public CreativePlanRespVO getOrCreate(CreativePlanGetQuery query) {
+        AppValidate.notBlank(query.getAppUid(), "应用UID为必填项！");
+        /*
+         * 1. 创作计划UID如果不存在：直接使用应用UID查询创作计划：对应从应用市场进入创作计划场景。
+         *    1.1 每个用户只能看到自己对应应用的创作计划。
+         *    1.2 如果不存在，则创建一个创作计划：对应从应用市场进入创作计划场景。
+         *    1.3 如果存在，则处理数据后返回
+         *
+         * 2. 创作计划UID如果存在：直接使用创作计划UID查询创作计划：对应直接输入URL进行查询
+         *    只用框架的数据权限控制，不需要额外处理。
+         *    2.1：如果用户是管理员，则可以查询到该创作计划。处理数据后返回。查询不到直接抛出异常。
+         *    2.2：如果用户是普通用户，则只能查询到自己的创作计划。处理数据后返回。查询不到直接抛出异常。
+         */
+        CreativePlanDO plan;
+        if (StringUtils.isBlank(query.getUid())) {
+            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+            plan = creativePlanMapper.getByAppUid(query.getAppUid(), loginUserId);
+        } else {
+            plan = creativePlanMapper.get(query.getUid());
+            AppValidate.notNull(plan, "创作计划不存在！UID: {}", query.getUid());
+        }
+
         // 查询应用
-        AppMarketRespVO appMarketResponse = appMarketService.get(appUid);
+        AppMarketRespVO appMarketResponse = appMarketService.get(query.getAppUid());
 
         // 如果存在，则直接返回
         if (Objects.nonNull(plan)) {
