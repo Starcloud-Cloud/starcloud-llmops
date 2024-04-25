@@ -61,16 +61,16 @@ public class StarUserController {
     @Operation(summary = "激活链接", description = "激活链接")
     @TenantIgnore
     @OperateLog(enable = false)
-    public void activation(@PathVariable String activationCode,
-                           @RequestParam("redirectUri") String redirectUri,
-                           HttpServletResponse resp) {
-        boolean activation = llmUserService.activation(activationCode);
-        if (activation) {
-            try {
-                resp.sendRedirect(redirectUri);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+    public CommonResult<Boolean> activation(@PathVariable String activationCode) {
+        try {
+            boolean activation = llmUserService.activation(activationCode);
+            return CommonResult.success(activation);
+        } catch (Exception e) {
+            CommonResult<Boolean> result = new CommonResult<>();
+            result.setCode(0);
+            result.setData(false);
+            result.setMsg(e.getMessage());
+            return result;
         }
     }
 
@@ -133,7 +133,6 @@ public class StarUserController {
         adminUserNotifyExpiringRespVO.setNotifyExpiringRightsRespVO(notifyExpiringRightsRespVO);
         return CommonResult.success(adminUserNotifyExpiringRespVO);
     }
-
 
 
 }
