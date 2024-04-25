@@ -160,6 +160,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             Assert.notBlank(reposeResult, "关键词批量挖掘失败");
             return JSONUtil.toBean(reposeResult, KeywordMinerReposeDTO.class);
         } catch (ServiceException e) {
+            sendMessage(e.getMessage());
             throw exception(e.getCode());
         }
     }
@@ -185,6 +186,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             Assert.notBlank(reposeResult, "系统繁忙，获取变体数据失败");
             return JSONUtil.toBean(reposeResult, PrepareReposeDTO.class);
         } catch (ServiceException e) {
+            sendMessage(e.getMessage());
             throw exception(e.getCode());
         }
     }
@@ -202,6 +204,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             Assert.notBlank(reposeResult, "系统繁忙，获取流量词数据失败");
             return JSONUtil.toBean(reposeResult, ExtendAsinReposeDTO.class);
         } catch (ServiceException e) {
+            this.sendMessage(e.getMessage());
             throw exception(e.getCode());
         }
 
@@ -277,19 +280,12 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
                     continue;
                 }
                 log.error("卖家精灵未知问题，数据异常，原始数据为:{}", response.body());
-                // 报警
                 throw exception(SELLER_SPRITE_CODE_DATA_ERROR);
             }
-
-            //
-            // // 兜底异常处理
-            // log.error("卖家精灵未知问题，数据无法解析，原始数据为:{}", response.body());
-            // throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
 
         }
         // 只有账号过期才会增加tag, 所以这里只有所有账号都过期才会报警，其他异常情况不会（超时，代码异常等）
         if (tag == cookies.size()) {
-            // this.sendMessage();
             throw exception(SELLER_SPRITE_ACCOUNT_INVALID);
         }
         return result;
