@@ -187,7 +187,7 @@ public class StarUserServiceImpl implements StarUserService {
             }
         }
         String url = getOrigin();
-        String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getOrigin() + "/registerResult";
+        String activationUrl = url + "/registerResult?activation=" + activationCode;
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
         // 创建未激活用户
