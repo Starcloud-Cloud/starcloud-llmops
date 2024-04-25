@@ -187,7 +187,7 @@ public class StarUserServiceImpl implements StarUserService {
             }
         }
         String url = getOrigin();
-        String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getOrigin() + "/login";
+        String activationUrl = url + "/registerResult?activation=" + activationCode;
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
         // 创建未激活用户
@@ -326,7 +326,7 @@ public class StarUserServiceImpl implements StarUserService {
         if (registerUserDO == null) {
             throw exception(ACTIVATION_CODE_ERROR);
         }
-        if (registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) < 0) {
+        if (registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) < 0) {
             registerUserDO.setStatus(2);
             registerUserMapper.updateById(registerUserDO);
             throw exception(OPERATE_TIME_OUT);
@@ -689,11 +689,11 @@ public class StarUserServiceImpl implements StarUserService {
 
         RegisterUserDO registerUserDO = registerUserMapper.selectByUsername(username);
         // 注册时间30分钟内
-        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) > 0) {
             throw exception(USER_USERNAME_EXISTS);
         }
         registerUserDO = registerUserMapper.selectByEmail(email);
-        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) > 0) {
             throw exception(USER_EMAIL_EXISTS);
         }
     }
