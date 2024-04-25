@@ -385,7 +385,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         // 3. 执行 TradeOrderHandler 的后置处理
         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
-        tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
+        tradeOrderHandlers.forEach(handler -> {
+            handler.afterPayOrder(order, orderItems);
+            handler.afterPayOrderLast(order, orderItems);
+        });
 
         // 4. 记录订单日志
         Integer afterStatus = TradeOrderStatusEnum.UNDELIVERED.getStatus();
@@ -395,7 +398,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
 
-        tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(order, orderItems));
+
     }
 
     /**
