@@ -96,7 +96,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
     public void afterPayOrderLast(TradeOrderDO tradeOrderDO, List<TradeOrderItemDO> orderItems) {
         try {
             TenantUtils.execute(tradeOrderDO.getTenantId(), () -> {
-
+                log.info("【存在新订单开始准备发送通知消息，参数为:{},{}】", tradeOrderDO,orderItems);
                 PayOrderRespDTO payOrderRespDTO = payOrderApi.getOrder(tradeOrderDO.getPayOrderId());
                 // 获取当前用户基本信息
                 AdminUserRespDTO userRespDTO = adminUserApi.getUser(tradeOrderDO.getUserId());
