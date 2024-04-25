@@ -72,6 +72,13 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.page(query));
     }
 
+    @GetMapping("/list")
+    @Operation(summary = "创作计划列表", description = "创作计划列表")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
+    public CommonResult<List<CreativePlanRespVO>> list() {
+        return CommonResult.success(creativePlanService.list());
+    }
+
     @PostMapping("/create")
     @Operation(summary = "创建创作计划", description = "创建创作计划")
     @ApiOperationSupport(order = 60, author = "nacoyer")

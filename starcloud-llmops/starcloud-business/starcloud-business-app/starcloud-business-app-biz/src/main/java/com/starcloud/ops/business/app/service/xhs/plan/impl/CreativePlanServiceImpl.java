@@ -35,6 +35,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespV
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -65,6 +66,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -171,6 +173,16 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 .collect(Collectors.toList());
 
         return PageResult.of(collect, page.getTotal());
+    }
+
+    @Override
+    public List<CreativePlanRespVO> list() {
+        List<CreativePlanDTO> list = creativePlanMapper.list();
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(CreativePlanConvert.INSTANCE::convert)
+                .collect(Collectors.toList());
     }
 
     /**

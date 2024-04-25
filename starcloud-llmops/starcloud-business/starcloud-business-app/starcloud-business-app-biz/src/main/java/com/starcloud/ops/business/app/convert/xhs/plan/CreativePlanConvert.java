@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModify
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -96,6 +97,12 @@ public interface CreativePlanConvert {
         response.setCreateTime(creativePlan.getCreateTime());
         response.setUpdateTime(creativePlan.getUpdateTime());
         return response;
+    }
+
+    default CreativePlanRespVO convert(CreativePlanDTO creativePlanDTO){
+        CreativePlanRespVO creativePlanRespVO = convertResponse(creativePlanDTO);
+        creativePlanRespVO.setCreatorName(creativePlanDTO.getCreatorName());
+        return creativePlanRespVO;
     }
 
     /**

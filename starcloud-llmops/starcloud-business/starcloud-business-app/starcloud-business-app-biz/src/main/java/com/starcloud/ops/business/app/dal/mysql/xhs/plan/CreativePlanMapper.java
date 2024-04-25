@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.util.PageUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
@@ -78,5 +79,7 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         wrapper.between(Objects.nonNull(query.getStartTime()) && Objects.nonNull(query.getEndTime()), CreativePlanDO::getCreateTime, query.getStartTime(), query.getEndTime());
         return this.selectPage(page, wrapper);
     }
+
+    List<CreativePlanDTO> list();
 
 }
