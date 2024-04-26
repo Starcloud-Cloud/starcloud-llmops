@@ -86,10 +86,15 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Override
     public List<DeptUserRespVO> userList(Long deptId) {
         validBindDept(deptId);
+        long start = System.currentTimeMillis();
         List<DeptUserRespVO> deptUserList = userDeptMapper.userList(deptId);
+        long end1 = System.currentTimeMillis();
+        log.info("**** {} ms ****", end1 - start);
         List<Long> userIds = deptUserList.stream().map(DeptUserRespVO::getUserId).collect(Collectors.toList());
         Map<Long, StatisticsUserRightReqDTO> userRightMap = rightsRecordService.calculateRightUsedByUser(deptId, userIds)
                 .stream().collect(Collectors.toMap(StatisticsUserRightReqDTO::getUserId, Function.identity()));
+        long end2 = System.currentTimeMillis();
+        log.info("---- {} ms ----", end2 - end1);
         if (MapUtils.isEmpty(userRightMap)) {
             return deptUserList;
         }
