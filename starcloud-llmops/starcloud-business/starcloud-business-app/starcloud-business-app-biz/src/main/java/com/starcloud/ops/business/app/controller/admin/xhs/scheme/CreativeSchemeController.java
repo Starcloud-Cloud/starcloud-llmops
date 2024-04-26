@@ -4,16 +4,12 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateTypeDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
@@ -157,6 +153,12 @@ public class CreativeSchemeController {
     @ApiOperationSupport(order = 110, author = "nacoyer")
     public CommonResult<List<CreativeOptionDTO>> options(@Validated @RequestBody CreativeAppStepSchemeReqVO stepSchemeReqVO) {
         return CommonResult.success(creativeSchemeService.options(stepSchemeReqVO));
+    }
+
+    @PostMapping("/newOptions")
+    @Operation(summary = "应用节点出入参数列表2", description = "应用节点出入参数列表2")
+    public CommonResult<List<CreativeOptionDTO>> newOptions(@Validated @RequestBody GenerateOptionReqVO generateOptionReqVO) {
+        return CommonResult.success(creativeSchemeService.newOptions(generateOptionReqVO));
     }
 
     @PostMapping(value = "/example")

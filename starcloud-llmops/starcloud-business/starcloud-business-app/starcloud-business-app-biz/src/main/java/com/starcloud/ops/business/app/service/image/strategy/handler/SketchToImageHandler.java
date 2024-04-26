@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
@@ -16,7 +15,6 @@ import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
-import com.starcloud.ops.business.app.service.upload.UploadService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
@@ -48,9 +46,6 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
     @Resource
     private ClipDropImageService clipDropImageService;
 
-    @Resource
-    private UploadService uploadService;
-
     /**
      * 获取图片处理引擎
      *
@@ -68,7 +63,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleRequest(SketchToImageRequest request) {
-        log.info("草图生成图片：请求参数：{}", JSONUtil.toJsonStr(request));
+        log.info("草图生成图片：请求参数：{}", JsonUtils.toJsonString(request));
     }
 
     /**

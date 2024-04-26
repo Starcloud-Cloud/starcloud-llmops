@@ -19,11 +19,9 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +32,6 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_REMOTE
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "xhs.remote.agent", matchIfMissing = true, havingValue = "xhs")
 public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
 
     @Resource
