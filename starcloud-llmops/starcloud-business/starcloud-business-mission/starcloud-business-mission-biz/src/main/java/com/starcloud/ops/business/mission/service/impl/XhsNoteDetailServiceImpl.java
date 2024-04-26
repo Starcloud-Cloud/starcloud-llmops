@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMater
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
+import com.starcloud.ops.business.app.service.xhs.crawler.impl.XhsNoteDetailWrapperImpl;
 import com.starcloud.ops.business.mission.api.vo.request.PreSettlementRecordReqVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
@@ -29,8 +30,8 @@ public class XhsNoteDetailServiceImpl implements XhsNoteDetailService {
     @Resource
     private XhsNoteDetailMapper noteDetailMapper;
 
-    @Resource
-    private XhsNoteDetailWrapper xhsNoteDetailWrapper;
+    @Resource(name = "xhsNoteDetailWrapperImpl")
+    private XhsNoteDetailWrapperImpl xhsNoteDetailWrapper;
 
     @Override
     public XhsNoteDetailRespVO selectByNoteId(String noteId) {

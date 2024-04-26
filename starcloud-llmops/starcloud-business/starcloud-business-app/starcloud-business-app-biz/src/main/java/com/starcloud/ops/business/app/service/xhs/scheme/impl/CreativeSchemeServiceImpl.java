@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -22,15 +23,11 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSch
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
@@ -441,6 +438,12 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
 
         return this.workflowStepOptions(appMarketEntity, stepSchemeReqVO.getStepCode());
+    }
+
+    @Override
+    public List<CreativeOptionDTO> newOptions(GenerateOptionReqVO reqVO) {
+        AppMarketEntity marketEntity = AppMarketConvert.INSTANCE.convert(reqVO.getAppReqVO());
+        return workflowStepOptions(marketEntity,reqVO.getStepCode());
     }
 
     /**

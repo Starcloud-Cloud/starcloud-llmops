@@ -18,9 +18,7 @@ import com.starcloud.ops.business.app.api.xhs.note.NoteTag;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.service.upload.UploadRequest;
-import com.starcloud.ops.business.app.service.upload.UploadService;
-import com.starcloud.ops.business.app.service.xhs.crawler.XhsNoteDetailWrapper;
+import com.starcloud.ops.business.app.service.xhs.crawler.impl.XhsDumpServiceImpl;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
@@ -32,11 +30,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -58,14 +53,9 @@ public class UploadMaterialImageManager implements InitializingBean {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    @Resource
-    private XhsNoteDetailWrapper xhsNoteDetailWrapper;
+    @Resource(name = "xhsDumpServiceImpl")
+    private XhsDumpServiceImpl xhsNoteDetailWrapper;
 
-    @Resource
-    private UploadService uploadService;
-
-
-    // 图片上传线程池
     private ThreadPoolExecutor threadPoolExecutor;
 
     // 导入任务阻塞队列
