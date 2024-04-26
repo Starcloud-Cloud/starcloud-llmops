@@ -176,6 +176,19 @@ public class TitleActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
         log.info("标题生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
+        /*
+         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
+         * AI仿写为第一个 prompt
+         * AI自定义为第二个 prompt
+         */
+        // 获取到 prompt
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        prompt = promptList.get(0);
+        if (StrUtil.isBlank(prompt)) {
+            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
+        }
+        
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
@@ -196,16 +209,6 @@ public class TitleActionHandler extends BaseActionHandler {
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
-        /*
-         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
-         * AI仿写为第一个 prompt
-         * AI自定义为第二个 prompt
-         */
-        // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        List<String> promptList = StrUtil.split(prompt, "----------");
-        prompt = promptList.get(0);
-
         // 获取到 maxTokens
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature
@@ -241,10 +244,6 @@ public class TitleActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
         log.info("标题生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
-        // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        // 获取到生成数量 n
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -254,7 +253,14 @@ public class TitleActionHandler extends BaseActionHandler {
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         List<String> promptList = StrUtil.split(prompt, "----------");
         prompt = promptList.get(1);
+        if (StrUtil.isBlank(prompt)) {
+            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
+        }
 
+        // 获取到大模型 model
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        // 获取到生成数量 n
+        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature

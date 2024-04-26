@@ -103,8 +103,11 @@
             <if test="query.name != null and query.name != ''">
                 AND name LIKE CONCAT(#{query.name}, '%')
             </if>
-            <if test="query.type != null and query.type != ''">
-                AND type = #{query.type}
+            <if test="query.typeList != null and query.typeList.size() > 0">
+                AND type IN
+                <foreach collection='query.typeList' item='type' separator=',' open='(' close=')'>
+                    #{type}
+                </foreach>
             </if>
             <if test="query.model != null and query.model != ''">
                 AND model = #{query.model}

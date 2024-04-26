@@ -3,8 +3,9 @@ package com.starcloud.ops.business.app.domain.parser;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -40,17 +41,27 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
      */
     @Override
     public JSONObject parse(String text) {
-
-        log.info("JsonSchemaParser start: {}", text);
         //兼容处理，针对多返回的内容
-        text = StrUtil.replaceFirst(text, "```json", "", true);
-        text = StrUtil.replaceLast(text, "```", "", true);
-
-        JSONObject jsonObject = JSONUtil.parseObj(text);
-
-        log.info("JsonSchemaParser parse: {}", jsonObject);
-
-        return jsonObject;
+        try {
+            log.info("生成结果格式化处理开始({}) 原始值: {}", this.getClass().getSimpleName(), text);
+            text = StrUtil.replaceFirst(text, "```json", "", true);
+            text = StrUtil.replaceLast(text, "```", "", true);
+            // 解析 JSON
+            JSONObject jsonObject = JSONUtil.parseObj(text);
+            log.info("生成结果格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), jsonObject);
+            return jsonObject;
+        } catch (Exception e) {
+            try {
+                log.error("生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), e.getClass(), e.getMessage());
+                // 二次处理一下
+                JSONObject result = JSONUtil.parseObj(text);
+                log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
+                return result;
+            } catch (Exception exception) {
+                log.error("二次处理 生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), text, e.getMessage(), e);
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR);
+            }
+        }
     }
 
     /**

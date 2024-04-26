@@ -291,6 +291,10 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_SCENE_UNSUPPORTED = new ErrorCode(310000320, "不支持的执行场景，请检查后重试！");
 
+    /**
+     * AI结果解析异常
+     */
+    ErrorCode EXECUTE_JSON_RESULT_PARSE_ERROR = new ErrorCode(310000321, "AI结果解析异常！请稍候重试！");
 
     // ========== 应用执行错误码 310 100 xxx ==========
 
