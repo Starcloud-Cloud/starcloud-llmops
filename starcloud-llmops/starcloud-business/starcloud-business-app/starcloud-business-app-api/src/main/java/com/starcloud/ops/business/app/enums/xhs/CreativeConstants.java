@@ -107,6 +107,8 @@ public interface CreativeConstants {
      */
     String MATERIAL_PREFIX = "material_parse_";
 
+    String MATERIAL_PREFIX_COUNT = MATERIAL_PREFIX + "count_";
+
     String MATERIAL_IMPORT_ERROR = "MATERIAL_IMPORT_ERROR-";
 
     /**

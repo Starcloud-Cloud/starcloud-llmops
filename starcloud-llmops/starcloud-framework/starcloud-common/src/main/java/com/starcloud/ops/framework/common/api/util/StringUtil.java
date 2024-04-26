@@ -1,6 +1,7 @@
 package com.starcloud.ops.framework.common.api.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.io.file.PathUtil;
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -16,6 +18,29 @@ import java.util.stream.Collectors;
  * @since 2023-06-05
  */
 public class StringUtil {
+
+    // 正则表达式，用于匹配URL
+    private static final Pattern URL_PATTERN =
+            Pattern.compile("^(?:http(s)?://)?" +
+                    "(?:www\\.)?" +
+                    "[a-zA-Z0-9\\-]+\\." +
+                    "[a-zA-Z0-9\\-]+\\." +
+                    "[a-zA-Z0-9\\-]+" +
+                    "(?::\\d+)?" +
+                    "(?:/[^ #]*)?$");
+
+    // 正则表达式，用于匹配文件路径
+    private static final Pattern PATH_PATTERN =
+            Pattern.compile("^[_\\-./a-zA-Z0-9\\u4E00-\\u9FA5\\uFF01-\\uFF5E]+$");
+
+
+    public static boolean isUrl(String text) {
+        return URL_PATTERN.matcher(text).matches();
+    }
+
+    public static boolean isPath(String text) {
+        return PATH_PATTERN.matcher(text).matches();
+    }
 
     /**
      * 将字符串转换成集合, 去重、去空格
