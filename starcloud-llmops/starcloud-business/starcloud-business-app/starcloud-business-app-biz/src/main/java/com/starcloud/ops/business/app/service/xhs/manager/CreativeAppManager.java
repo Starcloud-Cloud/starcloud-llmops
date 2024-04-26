@@ -20,7 +20,7 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -3,19 +3,21 @@ package com.starcloud.ops.business.app.service.image.strategy.handler;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.SketchToImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.SketchToImageResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
+import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -76,9 +78,11 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
         log.info("草图生成图片开始...");
         // 上传草图
         byte[] imageBytes = Base64.getDecoder().decode(ImageUtils.handlerBase64Image(request.getSketchImage()));
-        String uuid = IdUtil.fastSimpleUUID();
-        String url = ImageUploadUtils.upload(uuid, MediaType.IMAGE_PNG_VALUE, ImageUploadUtils.UPLOAD, imageBytes);
 
+        String originalFileName = ImageUploadUtils.getFileName(IdUtil.fastSimpleUUID(), MediaType.IMAGE_PNG_VALUE);
+        UploadImageInfoDTO imageInfo = ImageUploadUtils.uploadImage(originalFileName, ImageUploadUtils.GENERATE_PATH, imageBytes);
+
+        // 调用草图生成图片接口
         SketchToImageClipDropRequest sketchToImageClipDropRequest = new SketchToImageClipDropRequest();
         sketchToImageClipDropRequest.setPrompt(request.getPrompt());
         sketchToImageClipDropRequest.setSketchFile(ImageUploadUtils.getImageFile(imageBytes));
@@ -89,12 +93,12 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
 
         // 构建响应
         SketchToImageResponse response = new SketchToImageResponse();
-        response.setOriginalUrl(url);
+        response.setOriginalUrl(imageInfo.getUrl());
         response.setPrompt(request.getPrompt());
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         response.setImages(Collections.singletonList(image));
 
-        log.info("草图生成图片结束：{}", JSONUtil.toJsonStr(response));
+        log.info("草图生成图片结束：{}", JsonUtils.toJsonString(response));
         return response;
     }
 
