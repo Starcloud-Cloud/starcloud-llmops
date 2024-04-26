@@ -6,6 +6,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
@@ -520,9 +521,15 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             HashMap<String, Object> templateParams = new HashMap<>();
             templateParams.put("userCode", adminUserLevelDO.getUserId());
             templateParams.put("dataCode", StrUtil.format("等级编号{},权益编号{}", adminUserLevelDO.getId(), adminUserRightsDO.getId()));
-            templateParams.put("notifyTime", LocalDateTimeUtil.now());
-            // 发送报警
-            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
+            templateParams.put("notifyTime",  LocalDateTimeUtil.formatNormal(LocalDateTimeUtil.now()));
+            try {
+                // 发送报警
+                smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
+            }catch (RuntimeException e){
+                log.error("检测消息发送失败,错误原因为 errMsg{},当前等级为{}，权益为{}", e.getMessage(), JSONUtil.toJsonStr(adminUserLevelDO),JSONUtil.toJsonStr(adminUserRightsDO), e);
+
+            }
+
             return false;
         }
         return true;

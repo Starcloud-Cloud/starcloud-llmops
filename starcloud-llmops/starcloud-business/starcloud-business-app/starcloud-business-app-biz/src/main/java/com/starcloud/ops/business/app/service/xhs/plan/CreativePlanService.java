@@ -114,4 +114,10 @@ public interface CreativePlanService {
      */
     void upgrade(CreativePlanUpgradeReqVO request);
 
+    /**
+     * 创作计划集合
+     * @return
+     */
+    List<CreativePlanRespVO> list();
+
 }

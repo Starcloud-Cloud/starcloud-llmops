@@ -85,4 +85,6 @@ public class CreativePlanRespVO implements java.io.Serializable {
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
 
+    private String creatorName;
+
 }

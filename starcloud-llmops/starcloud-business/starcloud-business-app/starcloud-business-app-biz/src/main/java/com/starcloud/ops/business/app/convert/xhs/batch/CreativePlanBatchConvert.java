@@ -71,6 +71,7 @@ public interface CreativePlanBatchConvert {
      */
     default CreativePlanBatchRespVO convert(CreativePlanBatchDO bath) {
         CreativePlanBatchRespVO response = new CreativePlanBatchRespVO();
+        response.setId(bath.getId());
         response.setUid(bath.getUid());
         response.setPlanUid(bath.getPlanUid());
         response.setAppUid(bath.getAppUid());
