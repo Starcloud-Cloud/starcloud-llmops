@@ -342,8 +342,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reduceRights(Long userId, Long teamOwnerId, Long teamId, AdminUserRightsTypeEnum rightsType, Integer rightAmount, AdminUserRightsBizTypeEnum bizType, String bizId) {
-
+        log.info("【开始执行权益扣除操作，当前用户编号为{}，团队所属人编号为{}，团队编号为{}，权益类型为{}，扣除数量为{}，业务类型为{}，业务编号为{}】",
+                userId, teamOwnerId, teamId, rightsType.getName(), rightAmount, bizType, bizId);
         Long reduceUserId = Objects.isNull(teamOwnerId) ? userId : teamOwnerId;
+
         // 获取可用权益列表
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(reduceUserId, rightsType);
         if (validRightsList.isEmpty()) {
@@ -352,6 +354,9 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             }
             if (AdminUserRightsTypeEnum.MAGIC_IMAGE.getType().equals(rightsType.getType())) {
                 throw exception(USER_RIGHTS_IMAGE_NOT_ENOUGH);
+            }
+            if (AdminUserRightsTypeEnum.MATRIX_BEAN.getType().equals(rightsType.getType())) {
+                throw exception(USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH);
             }
             throw exception(USER_RIGHTS_NOT_ENOUGH);
 
@@ -369,7 +374,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .collect(Collectors.joining(",")); // 使用逗号连接
 
         adminUserRightsRecordService.createRightsRecord(userId, teamOwnerId, teamId, rightAmount, rightsType, bizType.getType() + 50, bizId, deductIds);
-
+        log.info("【权益扣除执行结束，扣除成功，权益扣除操作，当前用户编号为{}，权益扣除人用户编号为{}，团队所属人编号为{}，团队编号为{}，权益类型为{}，扣除数量为{}，业务类型为{}，业务编号为{}】",
+                userId, reduceUserId, teamOwnerId, teamId, rightsType.getName(), rightAmount, bizType, bizId);
     }
 
     /**

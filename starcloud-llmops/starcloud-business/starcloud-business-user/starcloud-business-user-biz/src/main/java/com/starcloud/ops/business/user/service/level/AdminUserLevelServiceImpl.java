@@ -6,6 +6,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
@@ -17,6 +18,7 @@ import cn.iocoder.yudao.module.system.service.permission.PermissionService;
 import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
@@ -74,6 +76,10 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
     @Resource
     private SmsSendApi smsSendApi;
+
+
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
 
     @Resource
@@ -516,13 +522,23 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         long endTimeBetween = LocalDateTimeUtil.between(adminUserLevelDO.getValidEndTime(), adminUserRightsDO.getValidEndTime(), ChronoUnit.SECONDS);
 
+        // 获取当前运行环境
+        String environmentName = dingTalkNoticeProperties.getName().equals("Formal") ? "正式" : "测试";
         if (startTimeBetween >= initTimeBetween || endTimeBetween >= initTimeBetween) {
             HashMap<String, Object> templateParams = new HashMap<>();
+            // 当前运行环境
+            templateParams.put("environmentName", environmentName);
             templateParams.put("userCode", adminUserLevelDO.getUserId());
             templateParams.put("dataCode", StrUtil.format("等级编号{},权益编号{}", adminUserLevelDO.getId(), adminUserRightsDO.getId()));
-            templateParams.put("notifyTime", LocalDateTimeUtil.now());
-            // 发送报警
-            smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
+            templateParams.put("notifyTime",  LocalDateTimeUtil.formatNormal(LocalDateTimeUtil.now()));
+            try {
+                // 发送报警
+                smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
+            }catch (RuntimeException e){
+                log.error("检测消息发送失败,错误原因为 errMsg{},当前等级为{}，权益为{}", e.getMessage(), JSONUtil.toJsonStr(adminUserLevelDO),JSONUtil.toJsonStr(adminUserRightsDO), e);
+
+            }
+
             return false;
         }
         return true;

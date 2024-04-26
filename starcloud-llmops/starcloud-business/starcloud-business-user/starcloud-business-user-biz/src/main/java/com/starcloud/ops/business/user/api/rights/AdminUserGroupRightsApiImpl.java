@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.api.rights;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.dept.UserDeptService;
@@ -43,8 +44,22 @@ public class  AdminUserGroupRightsApiImpl extends AdminUserRightsApiImpl {
         UserDeptDO userDeptDO = this.getDeptRightsUserId(userId, rightsType, rightAmount);
         userDeptService.recordRights(userDeptDO, userId, rightsType, rightAmount);
         Long deptUserId = Optional.ofNullable(userDeptDO).map(UserDeptDO::getUserId).orElse(userId);
-        super.reduceRights(userId, deptUserId, userDeptDO.getDeptId(), rightsType, rightAmount, bizType, bizId);
+        teamId = Optional.ofNullable(userDeptDO).map(UserDeptDO::getDeptId).orElse(null);
+        super.reduceRights(userId, deptUserId, teamId, rightsType, rightAmount, bizType, bizId);
 
+    }
+
+
+    /**
+     * @param reduceRightsDTO 权益扣减DTO
+     */
+    @Override
+    @DataPermission(enable = false)
+    public void reduceRights(ReduceRightsDTO reduceRightsDTO) {
+        UserDeptDO userDeptDO = this.getDeptRightsUserId(reduceRightsDTO.getUserId(), AdminUserRightsTypeEnum.getByType(reduceRightsDTO.getRightType()), reduceRightsDTO.getReduceNums());
+        reduceRightsDTO.setTeamOwnerId(Optional.ofNullable(userDeptDO).map(UserDeptDO::getUserId).orElse(reduceRightsDTO.getUserId()));
+        reduceRightsDTO.setTeamId(Optional.ofNullable(userDeptDO).map(UserDeptDO::getDeptId).orElse(null));
+        super.reduceRights(reduceRightsDTO);
     }
 
     /**
