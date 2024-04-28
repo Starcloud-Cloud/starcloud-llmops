@@ -39,7 +39,7 @@ public class CostPointUtils {
      * @return 模型单价
      */
     private static Integer computationalPower(String model) {
-        model = StringUtils.isNoneBlank(model) ? model : ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
+        model = StringUtils.isNoneBlank(model) ? model : ModelTypeEnum.GPT_3_5_TURBO.getName();
         // GPT-4 模型消耗15个权益点
         if (GPT_4_MODEL_LIST.contains(model)) {
             return 15;

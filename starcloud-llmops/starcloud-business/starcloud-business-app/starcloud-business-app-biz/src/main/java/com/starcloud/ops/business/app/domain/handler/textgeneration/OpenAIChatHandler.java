@@ -218,7 +218,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         /**
          * AI 模型, 默认 ChatGPT 3.5 Turbo
          */
-        private String model = ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
+        private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
         /**
          * 后续新参数 都是一个个独立字段即可

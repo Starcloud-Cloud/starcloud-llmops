@@ -138,11 +138,11 @@ public class TitleActionHandler extends BaseActionHandler {
         actionResponse.setAnswer(reference.generateContent());
         actionResponse.setOutput(JsonData.of(reference.generateContent()));
         actionResponse.setMessageTokens((long) actionResponse.getMessage().length());
-        actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, true));
+        actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, true));
         actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
-        actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, false));
+        actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, false));
         actionResponse.setTotalTokens(actionResponse.getMessageTokens() + actionResponse.getAnswerTokens());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         BigDecimal messagePrice = new BigDecimal(String.valueOf(actionResponse.getMessageTokens())).multiply(actionResponse.getMessageUnitPrice());
         BigDecimal answerPrice = new BigDecimal(String.valueOf(actionResponse.getAnswerTokens())).multiply(actionResponse.getAnswerUnitPrice());
         actionResponse.setTotalPrice(messagePrice.add(answerPrice));
@@ -206,7 +206,7 @@ public class TitleActionHandler extends BaseActionHandler {
         log.info("标题生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
@@ -258,7 +258,7 @@ public class TitleActionHandler extends BaseActionHandler {
         }
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
@@ -337,7 +337,7 @@ public class TitleActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数

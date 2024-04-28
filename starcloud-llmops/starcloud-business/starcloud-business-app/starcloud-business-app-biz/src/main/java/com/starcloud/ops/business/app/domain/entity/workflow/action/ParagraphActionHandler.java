@@ -162,7 +162,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         log.info("段落内容生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
@@ -214,7 +214,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         }
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
@@ -333,7 +333,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数

@@ -85,7 +85,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
         log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JsonUtils.toJsonPrettyString(params));
 
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
@@ -134,7 +134,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
