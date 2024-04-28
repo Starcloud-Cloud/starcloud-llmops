@@ -26,7 +26,8 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
         @JsonSubTypes.Type(value = PersonaCreativeMaterialDTO.class, name = "persona"),
         @JsonSubTypes.Type(value = PictureCreativeMaterialDTO.class, name = "picture"),
         @JsonSubTypes.Type(value = PositiveQuotationCreativeMaterialDTO.class, name = "quotation"),
-        @JsonSubTypes.Type(value = SnackRecipeCreativeMaterialDTO.class, name = "snack")
+        @JsonSubTypes.Type(value = SnackRecipeCreativeMaterialDTO.class, name = "snack"),
+        @JsonSubTypes.Type(value = TravelGuideCreativeMaterialDTO.class, name = "travel"),
 })
 @Schema(description = "素材内容")
 @JsonInclude(JsonInclude.Include.NON_NULL)
