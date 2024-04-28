@@ -157,7 +157,7 @@ public interface CreativeErrorCodeConstants {
     ErrorCode SCHEME_EXAMPLE_FAILURE = new ErrorCode(720100123, "生成文案示例失败, 请稍候重试！{}");
 
     //    ======= 素材库异常 =======
-    ErrorCode MATERIAL_TYPE_NOT_EXIST = new ErrorCode(730000001, "素材类型不存在 {}");
+    ErrorCode MATERIAL_TYPE_NOT_EXIST = new ErrorCode(730000001, "素材类型不存在 [{}]");
 
     ErrorCode TYPE_UNMATCH_FIELD = new ErrorCode(730000002, "素材类型 {} 与上传的数据结构不匹配");
 

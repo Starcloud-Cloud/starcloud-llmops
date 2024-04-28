@@ -112,9 +112,9 @@ public class AppAlarmManager {
         // 通知时间
         String notifyTime = LocalDateTimeUtil.formatNormal(LocalDateTime.now());
         // 错误信息
-        String message = ExceptionUtil.stackTraceToString(throwable);
+        String message = this.getExceptionMessage(throwable);
         // 扩展信息
-        String extended = getExtended(request);
+        String extended = this.getExtended(request);
 
         // 构建发送模板信息
         Map<String, Object> templateParams = new HashMap<>();
@@ -186,6 +186,16 @@ public class AppAlarmManager {
             return "";
         }
         return String.join(",", roleNames);
+    }
+
+    /**
+     * 获取异常信息
+     *
+     * @param throwable 异常
+     * @return 异常信息
+     */
+    private String getExceptionMessage(Throwable throwable) {
+        return ExceptionUtil.stackTraceToString(throwable, 500);
     }
 
     /**
