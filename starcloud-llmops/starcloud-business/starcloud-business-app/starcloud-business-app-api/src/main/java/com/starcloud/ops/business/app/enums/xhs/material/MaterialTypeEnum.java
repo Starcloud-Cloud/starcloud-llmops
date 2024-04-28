@@ -25,7 +25,9 @@ public enum MaterialTypeEnum implements IEnumable<String> {
     PERSONA("persona", "人设", PersonaCreativeMaterialDTO.class),
     PICTURE("picture", "图片", PictureCreativeMaterialDTO.class),
     QUOTATION("quotation", "语录号", PositiveQuotationCreativeMaterialDTO.class),
-    SNACK("snack", "小吃配方", SnackRecipeCreativeMaterialDTO.class);
+    SNACK("snack", "小吃配方", SnackRecipeCreativeMaterialDTO.class),
+    TRAVEL("travel", "旅游攻略", TravelGuideCreativeMaterialDTO.class),
+    ;
 
     private final String typeCode;
 
