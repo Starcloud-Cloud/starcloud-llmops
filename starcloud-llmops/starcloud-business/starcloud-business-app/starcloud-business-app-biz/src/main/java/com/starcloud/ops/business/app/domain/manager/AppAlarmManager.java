@@ -104,7 +104,7 @@ public class AppAlarmManager {
         // 应用名称
         String appName = request.getAppName();
         // 用户ID
-        Long userId = this.getUserId(request);
+        String userId = this.getUserId(request);
         // 用户昵称
         String nickname = this.getNickname(request);
         // 用户等级
@@ -149,11 +149,11 @@ public class AppAlarmManager {
      * @param request 请求
      * @return 用户ID
      */
-    private Long getUserId(AppContextReqVO request) {
+    private String getUserId(AppContextReqVO request) {
         if (Objects.nonNull(request.getEndUserId())) {
-            return request.getEndUserId();
+            return request.getEndUser();
         }
-        return request.getUserId();
+        return String.valueOf(request.getUserId());
     }
 
     /**
