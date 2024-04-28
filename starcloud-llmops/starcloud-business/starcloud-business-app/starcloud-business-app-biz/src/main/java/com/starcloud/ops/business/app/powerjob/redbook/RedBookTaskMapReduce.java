@@ -263,7 +263,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      */
     private void updateInstance(List<SubTaskResult> subTaskResultList) {
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
-        List<SubTaskResult> distinct = CollUtil.distinct(subTaskResultList, SubTaskResult::getPlanUid, false);
+        List<SubTaskResult> distinct = CollUtil.distinct(subTaskResultList, SubTaskResult::getBatchUid, false);
         for (SubTaskResult subTaskResult : distinct) {
             creativePlanService.updatePlanStatus(subTaskResult.getPlanUid(), subTaskResult.getBatchUid());
         }
