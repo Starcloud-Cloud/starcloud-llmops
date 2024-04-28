@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -19,7 +20,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -34,6 +34,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
@@ -226,15 +227,29 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     protected void afterExecute(AppExecuteRespVO result, AppExecuteReqVO request, Throwable throwable) {
         if (throwable != null) {
-            // 发送告警信息
-            AppReqVO appRequest = request.getAppReqVO();
-            appAlarmManager.executeAlarm(
-                    request.getAppUid(),
-                    appRequest.getName(),
-                    appRequest.getModel(),
-                    request.getScene(),
-                    throwable.getMessage()
-            );
+            Map<String, Object> extended = request.getExtended();
+            boolean isSendAlarm = true;
+            if (MapUtil.isNotEmpty(extended)) {
+                Object isSendAlarmObject = extended.get("isSendAlarm");
+                if (Objects.nonNull(isSendAlarmObject)) {
+                    if (isSendAlarmObject instanceof Boolean) {
+                        isSendAlarm = (Boolean) isSendAlarmObject;
+                    }
+                    if (isSendAlarmObject instanceof String) {
+                        isSendAlarm = Boolean.parseBoolean((String) isSendAlarmObject);
+                    }
+                    if (isSendAlarmObject instanceof Number) {
+                        isSendAlarm = ((Number) isSendAlarmObject).intValue() == 1;
+                    }
+                }
+            }
+
+            if (isSendAlarm) {
+                // 发送告警信息
+                request.setAppName(this.getName());
+                request.setMode(AppModelEnum.COMPLETION.name());
+                appAlarmManager.executeAlarm(request, throwable);
+            }
         }
 
         SseEmitter sseEmitter = request.getSseEmitter();
