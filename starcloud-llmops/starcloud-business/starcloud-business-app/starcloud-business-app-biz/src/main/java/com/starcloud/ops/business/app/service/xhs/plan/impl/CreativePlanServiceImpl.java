@@ -323,10 +323,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Transactional(rollbackFor = Exception.class)
     public void updatePlanStatus(String planUid, String batchUid) {
         log.info("更新计划状态【开始】，planUid: {}", planUid);
-        String key = "creative-plan-update-status-" + planUid;
+        String key = "creative-plan-update-status-" + planUid + "-" + batchUid;
         RLock lock = redissonClient.getLock(key);
         try {
-            if (lock != null && !lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+            if (lock != null && !lock.tryLock(5, 5, TimeUnit.SECONDS)) {
+                log.info("wait creative-plan-update-status timeout,planUid={},batchUid={}", planUid, batchUid);
                 return;
             }
 
