@@ -173,6 +173,10 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode DOWNLOAD_TEMPLATE_ERROR = new ErrorCode(730000008, "导出模板异常 {}");
 
+    ErrorCode TEMP_IS_NOT_EXIST = new ErrorCode(730000009, "素材模版解析异常，请检测下载的模版文件名是否正确（不要修改目录名或留多余的空格），或重新下载模版修改后再次上传");
+
+
+
 
     /**
      * 图片模板ID不能为空

@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -120,6 +121,9 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             long end = System.currentTimeMillis();
             log.info("material parse success, parseUid={}, {} ms", parseUid, end - start);
             return parseUid;
+        } catch (FileNotFoundException e) {
+            log.info("file not found ", e);
+            throw exception(TEMP_IS_NOT_EXIST, e.getMessage());
         } catch (Exception e) {
             log.info("material parse error", e);
             throw exception(MATERIAL_PARSE_ERROR, e.getMessage());
