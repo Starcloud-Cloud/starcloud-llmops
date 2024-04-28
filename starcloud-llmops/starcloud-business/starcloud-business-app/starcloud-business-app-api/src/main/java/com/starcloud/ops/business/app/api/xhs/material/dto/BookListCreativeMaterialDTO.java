@@ -35,8 +35,8 @@ public class BookListCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     @ExcelProperty("评分")
     @JsonPropertyDescription("评分")
-    @FieldDefine(desc = "评分", type = FieldTypeEnum.decimal)
-    private Double rating;
+    @FieldDefine(desc = "评分", type = FieldTypeEnum.string)
+    private String rating;
 
     @ExcelProperty("读后感")
     @JsonPropertyDescription("读后感")
