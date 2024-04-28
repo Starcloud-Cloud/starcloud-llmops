@@ -54,6 +54,8 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
             try {
                 log.error("生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), e.getClass(), e.getMessage());
                 // 二次处理一下
+                text = quoteJson(text);
+                // 解析 JSON
                 JSONObject result = JSONUtil.parseObj(text);
                 log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
                 return result;
@@ -75,6 +77,72 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
                 "Here is the JSON Schema instance your output must adhere to:\n" +
                 "```\n %s \n```\n";
         return String.format(template, JsonSchemaUtils.jsonSchema2Str(this.getJsonSchema()));
+    }
+
+    /**
+     * 处理 json 值转义问题，简单处理。后续可能有别的问题。
+     *
+     * @param str json 字符串
+     * @return 处理后的字符串
+     */
+    private static String quoteJson(String str) {
+        // 如果字符串为空，直接返回
+        if (StrUtil.isBlank(str)) {
+            return str;
+        }
+
+        // 按照 ":" 分割字符串
+        String[] split = str.split("(?<=\")\\s*:\\s*(?=\")");
+        // 如果分割后的数组长度小于 2，直接返回
+        if (split.length < 2) {
+            return str;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < split.length; i++) {
+            // 如果是偶数数，直接拼接
+            if (i % 2 == 0) {
+                sb.append(split[i]);
+                continue;
+            }
+
+            // 拼接 :
+            sb.append(":");
+
+            // 如果是偶数，拼接前面的字符串
+            String value = StrUtil.trim(split[i]);
+            // 如果是以 " 开头 和 以 " 结尾，拼接直接拼接
+            if (value.startsWith("\"") && value.endsWith("\"")) {
+                // 剩下的进行转义处理，先去掉前后的 "
+                value = StrUtil.removePrefix(value, "\"");
+                value = StrUtil.removeSuffix(value, "\"");
+
+                // 转义处理
+                value = StrUtil.replace(value, "\n", "\\n");
+                // 加上前后的 "
+                value = StrUtil.format("\"{}\"", value);
+                // 拼接
+                sb.append(value);
+                continue;
+            }
+            if (value.startsWith("\"") && value.endsWith("}")) {
+                // 剩下的进行转义处理，先去掉前后的 "
+                value = StrUtil.removePrefix(value, "\"");
+                // 截取到 \" 之前的字符串
+                value = StrUtil.subBefore(value, "\"", true);
+                // 转义处理
+                value = StrUtil.replace(value, "\n", "\\n");
+                // 加上前后的 "
+                value = StrUtil.format("\"{} \"}", value);
+                // 拼接
+                sb.append(value);
+                continue;
+            }
+
+            sb.append(value);
+
+        }
+        return sb.toString();
     }
 
 }
