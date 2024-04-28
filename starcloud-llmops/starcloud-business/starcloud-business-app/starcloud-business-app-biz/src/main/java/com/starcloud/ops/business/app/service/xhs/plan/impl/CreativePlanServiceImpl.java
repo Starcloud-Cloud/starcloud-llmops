@@ -322,7 +322,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePlanStatus(String planUid, String batchUid) {
-        log.info("更新计划状态【开始】，planUid: {}", planUid);
+        log.info("更新计划状态【开始】，planUid: {},batchUid= {}", planUid, batchUid);
         String key = "creative-plan-update-status-" + planUid + "-" + batchUid;
         RLock lock = redissonClient.getLock(key);
         try {
