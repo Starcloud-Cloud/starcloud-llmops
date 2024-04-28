@@ -99,16 +99,10 @@
             <artifactId>spring-boot-starter-validation</artifactId>
             <scope>provided</scope>
         </dependency>
-        
-        <!--        <dependency>-->
-        <!--            <groupId>com.starcloud.ops</groupId>-->
-        <!--            <artifactId>starcloud-langchain</artifactId>-->
-        <!--        </dependency>-->
-        
+
         <dependency>
             <groupId>com.github.Starcloud-Cloud</groupId>
             <artifactId>java-langchain</artifactId>
-            <!--            <version>master-0fbe47eb49-1</version>-->
         </dependency>
         
         <dependency>
