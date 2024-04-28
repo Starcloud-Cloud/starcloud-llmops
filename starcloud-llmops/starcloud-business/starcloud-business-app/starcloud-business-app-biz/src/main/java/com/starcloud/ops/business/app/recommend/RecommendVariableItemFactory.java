@@ -40,8 +40,8 @@ public class RecommendVariableItemFactory {
         variableItem.setField("model");
         variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_MODEL_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_MODEL_DESCRIPTION"));
-        variableItem.setDefaultValue(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        variableItem.setValue(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        variableItem.setDefaultValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        variableItem.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
