@@ -4,11 +4,20 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 
 /**
  * 它使用 JSON Schema 将 LLM 输出结果 转换为特定的对象类型。
@@ -22,6 +31,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 public class JsonSchemaParser implements OutputParser<JSONObject> {
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    static {
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // 决定解析器是否允许JSON字符串包含未加引号的控制字符(值小于32的ASCII字符，包括制表符和换行字符)。如果feature设置为false，如果遇到这样的字符将抛出异常。
+        objectMapper.configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.registerModules(new JavaTimeModule());
+    }
 
     /**
      * 为目标类型生成的 JSON Schema 数据。
@@ -53,10 +73,8 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
         } catch (Exception e) {
             try {
                 log.error("生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), e.getClass(), e.getMessage());
-                // 二次处理一下
-                text = quoteJson(text);
                 // 解析 JSON
-                JSONObject result = JSONUtil.parseObj(text);
+                JSONObject result = parseObject(text);
                 log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
                 return result;
             } catch (Exception exception) {
@@ -80,69 +98,23 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
     }
 
     /**
-     * 处理 json 值转义问题，简单处理。后续可能有别的问题。
+     * 解析 JSON 字符串为 JSONObject 对象
      *
-     * @param str json 字符串
-     * @return 处理后的字符串
+     * @param text JSON 字符串
+     * @return JSONObject 对象
      */
-    private static String quoteJson(String str) {
-        // 如果字符串为空，直接返回
-        if (StrUtil.isBlank(str)) {
-            return str;
+    public static JSONObject parseObject(String text) {
+        AppValidate.notBlank(text, "AI生成结果不存在！请稍候重试");
+        try {
+            // 利用 Jackson 解析 JSON 字符串：objectMapper
+            // 需要配置 JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS，JSON字符串包含未加引号的控制字符(值小于32的ASCII字符，包括制表符和换行字符)
+            Object object = objectMapper.readValue(text, Object.class);
+            // 转换为 JSONObject 对象，先转换为 JSON 字符串，可以把转义变为正确的转义，再转换为 JSONObject 对象
+            String jsonStr = JSONUtil.toJsonStr(object);
+            return JSONUtil.parseObj(jsonStr);
+        } catch (IOException e) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR);
         }
-
-        // 按照 ":" 分割字符串
-        String[] split = str.split("(?<=\")\\s*:\\s*(?=\")");
-        // 如果分割后的数组长度小于 2，直接返回
-        if (split.length < 2) {
-            return str;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < split.length; i++) {
-            // 如果是偶数数，直接拼接
-            if (i % 2 == 0) {
-                sb.append(split[i]);
-                continue;
-            }
-
-            // 拼接 :
-            sb.append(":");
-
-            // 如果是偶数，拼接前面的字符串
-            String value = StrUtil.trim(split[i]);
-            // 如果是以 " 开头 和 以 " 结尾，拼接直接拼接
-            if (value.startsWith("\"") && value.endsWith("\"")) {
-                // 剩下的进行转义处理，先去掉前后的 "
-                value = StrUtil.removePrefix(value, "\"");
-                value = StrUtil.removeSuffix(value, "\"");
-
-                // 转义处理
-                value = StrUtil.replace(value, "\n", "\\n");
-                // 加上前后的 "
-                value = StrUtil.format("\"{}\"", value);
-                // 拼接
-                sb.append(value);
-                continue;
-            }
-            if (value.startsWith("\"") && value.endsWith("}")) {
-                // 剩下的进行转义处理，先去掉前后的 "
-                value = StrUtil.removePrefix(value, "\"");
-                // 截取到 \" 之前的字符串
-                value = StrUtil.subBefore(value, "\"", true);
-                // 转义处理
-                value = StrUtil.replace(value, "\n", "\\n");
-                // 加上前后的 "
-                value = StrUtil.format("\"{} \"}", value);
-                // 拼接
-                sb.append(value);
-                continue;
-            }
-
-            sb.append(value);
-
-        }
-        return sb.toString();
     }
 
 }

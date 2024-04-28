@@ -26,9 +26,6 @@ public class OrdinaryNoteTitleMaterialDTO extends AbstractCreativeMaterialDTO {
     @FieldDefine(desc = "标题", type = FieldTypeEnum.string, required = true, width = 400)
     private String title;
 
-    @FieldDefine(desc = "模仿元素", type = FieldTypeEnum.listStr)
-    private List<String> imitateType;
-
     @Override
     public String generateContent() {
         return title;
