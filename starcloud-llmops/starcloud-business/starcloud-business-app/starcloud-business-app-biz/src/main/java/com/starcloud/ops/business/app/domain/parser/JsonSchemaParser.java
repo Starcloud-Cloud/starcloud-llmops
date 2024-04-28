@@ -73,6 +73,8 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
         } catch (Exception e) {
             try {
                 log.error("生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), e.getClass(), e.getMessage());
+                text = StrUtil.replace(text, "\r", "");
+                text = StrUtil.replace(text, "\\\n", "\n");
                 // 解析 JSON
                 JSONObject result = parseObject(text);
                 log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);

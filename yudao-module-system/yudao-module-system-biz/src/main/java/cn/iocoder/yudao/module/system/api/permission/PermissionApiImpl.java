@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,17 @@ public class PermissionApiImpl implements PermissionApi {
     @Override
     public Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds) {
         return permissionService.mapRoleCodeListByUserIds(userIds);
+    }
+
+    /**
+     * 获得用户拥有的角色名称集合
+     *
+     * @param userIds 用户编号集合
+     * @return 角色名称集合
+     */
+    @Override
+    public Map<Long, List<String>> mapRoleNameListByUserIds(Collection<Long> userIds) {
+        return permissionService.mapRoleNameListByUserIds(userIds);
     }
 
     /**

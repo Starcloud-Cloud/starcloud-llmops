@@ -114,7 +114,22 @@ public class UserUtils {
             return "用户";
         }
 
-        AdminUserDO user = ADMIN_USER_SERVICE.getUser(Long.valueOf(userId));
+        return getUsername(Long.valueOf(userId));
+    }
+
+    /**
+     * 获取用户名称
+     *
+     * @param userId 用户id
+     * @return 用户名称
+     */
+    public static String getUsername(Long userId) {
+
+        if (Objects.isNull(userId)) {
+            return "用户";
+        }
+
+        AdminUserDO user = ADMIN_USER_SERVICE.getUser(userId);
         if (Objects.nonNull(user)) {
             return user.getNickname();
         }
@@ -160,6 +175,19 @@ public class UserUtils {
             return Collections.emptyMap();
         }
         return PERMISSION_API.mapRoleCodeListByUserIds(userIds);
+    }
+
+    /**
+     * 根据用户 ID 集合，获得用户角色集合
+     *
+     * @param userIds 用户 ID 集合
+     * @return 角色集合
+     */
+    public static Map<Long, List<String>> mapUserRoleName(List<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        return PERMISSION_API.mapRoleNameListByUserIds(userIds);
     }
 
     /**
