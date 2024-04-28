@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.image.vo.request.BaseImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
@@ -244,14 +243,9 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     protected void afterExecute(ImageRespVO result, ImageReqVO request, Throwable throwable) {
         if (throwable != null) {
             // 发送告警信息
-            BaseImageRequest imageRequest = request.getImageRequest();
-            appAlarmManager.executeAlarm(
-                    request.getAppUid(),
-                    "图片生成",
-                    AppModelEnum.IMAGE.name(),
-                    request.getScene(),
-                    throwable.getMessage()
-            );
+            request.setAppName(this.getName());
+            request.setMode(AppModelEnum.IMAGE.name());
+            appAlarmManager.executeAlarm(request, throwable);
         }
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {

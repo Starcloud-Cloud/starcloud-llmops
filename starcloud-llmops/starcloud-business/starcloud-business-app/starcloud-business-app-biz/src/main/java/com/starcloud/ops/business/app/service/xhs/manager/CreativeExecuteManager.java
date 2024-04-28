@@ -55,7 +55,9 @@ import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -161,7 +163,7 @@ public class CreativeExecuteManager {
                 // 更新创作内容状态为执行中
                 updateContentExecuting(latestContent, start);
                 // 执行应用，并且获取执行结果
-                AppExecuteRespVO response = appExecute(latestContent);
+                AppExecuteRespVO response = appExecute(latestContent, maxRetry);
                 // 后置处理步骤缓存状态更新
                 appStepStatusCache.stepStart(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER);
                 // 查询日志信息
@@ -237,17 +239,17 @@ public class CreativeExecuteManager {
 
         // 如果是正在执行中，则直接抛出异常
         boolean isExecuting = CreativeContentStatusEnum.EXECUTING.name().equals(latestContent.getStatus());
-        AppValidate.isFalse(isExecuting, "创作内容任务正在执行中！请稍后重试！");
+        AppValidate.isFalse(isExecuting, "创作内容任务正在执行中！请稍后重试！任务状态：{}", latestContent.getStatus());
 
         // 如果是不需要强制执行的情况下，则需要判断是否是成功状态和是否是最终失败状态
         if (!request.getForce()) {
             // 是否成功执行，如果已经成功执行，则直接抛出异常
             boolean isSuccess = CreativeContentStatusEnum.SUCCESS.name().equals(latestContent.getStatus());
-            AppValidate.isFalse(isSuccess, "创作内容任务已执行成功！");
+            AppValidate.isFalse(isSuccess, "创作内容任务已执行成功！任务状态：{}", latestContent.getStatus());
 
             // 是否是最终失败或者超过阈值，如果是的，则直接抛出异常
             boolean isUltimateFailure = CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()) || latestContent.getRetryCount() >= maxRetry;
-            AppValidate.isFalse(isUltimateFailure, "创作内容任务已经超过最大重试次数！执行次数：{}， 最大重试次数：{}", latestContent.getRetryCount(), maxRetry);
+            AppValidate.isFalse(isUltimateFailure, "创作内容任务: 任务状态：{}, 已执行次数：{}, 最大重试次数: {}", latestContent.getStatus(), latestContent.getRetryCount(), maxRetry);
         }
 
         // 获取并且校验执行参数
@@ -267,10 +269,21 @@ public class CreativeExecuteManager {
      * @param latestContent 创作内容
      * @return 应用执行结果
      */
-    private AppExecuteRespVO appExecute(CreativeContentDO latestContent) {
+    private AppExecuteRespVO appExecute(CreativeContentDO latestContent, Integer maxRetry) {
         // 获取到待执行的应用
         CreativeContentExecuteParam executeParams = CreativeContentConvert.INSTANCE.toExecuteParam(latestContent.getExecuteParam());
         AppMarketRespVO appResponse = executeParams.getAppInformation();
+
+        // 执行扩展信息
+        Map<String, Object> extended = new HashMap<>();
+        extended.put("planUid", latestContent.getPlanUid());
+        extended.put("batchUid", latestContent.getBatchUid());
+        extended.put("contentUid", latestContent.getUid());
+        extended.put("contentRetryCount", latestContent.getRetryCount());
+        extended.put("contentMaxRetry", maxRetry);
+        extended.put("contentStatus", latestContent.getStatus());
+        // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
+        extended.put("isSendAlarm", latestContent.getRetryCount() + 1 >= maxRetry || CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()));
 
         // 构建应用执行参数
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
@@ -281,6 +294,7 @@ public class CreativeExecuteManager {
         appExecuteRequest.setUserId(Long.valueOf(latestContent.getCreator()));
         appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appResponse));
         appExecuteRequest.setConversationUid(latestContent.getConversationUid());
+        appExecuteRequest.setExtended(extended);
 
         // 执行应用
         AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
