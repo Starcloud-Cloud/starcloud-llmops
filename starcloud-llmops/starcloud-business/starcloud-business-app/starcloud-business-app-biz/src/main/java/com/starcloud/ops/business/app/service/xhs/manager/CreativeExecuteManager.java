@@ -279,7 +279,7 @@ public class CreativeExecuteManager {
         extended.put("planUid", latestContent.getPlanUid());
         extended.put("batchUid", latestContent.getBatchUid());
         extended.put("contentUid", latestContent.getUid());
-        extended.put("contentRetryCount", latestContent.getRetryCount());
+        extended.put("contentRetryCount", latestContent.getRetryCount() + 1);
         extended.put("contentMaxRetry", maxRetry);
         extended.put("contentStatus", latestContent.getStatus());
         // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
