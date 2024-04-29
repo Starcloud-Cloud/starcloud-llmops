@@ -78,7 +78,8 @@ public class AppAlarmManager {
      * > - 应用名称：{appName}
      * > - 应用模式：{appModel}
      * > - 异常时间：{notifyTime}
-     * > - 异常原因：{message}
+     * > - 异常信息：{message}
+     * > - 异常原因：{stackTrace}
      * > - 扩展信息: {extended}
      *
      * @param request   请求
@@ -112,7 +113,9 @@ public class AppAlarmManager {
         // 通知时间
         String notifyTime = LocalDateTimeUtil.formatNormal(LocalDateTime.now());
         // 错误信息
-        String message = this.getExceptionMessage(throwable);
+        String message = throwable.getMessage();
+        // 错误堆栈
+        String stackTrace = this.getExceptionMessage(throwable);
         // 扩展信息
         String extended = this.getExtended(request);
 
@@ -128,6 +131,7 @@ public class AppAlarmManager {
         templateParams.put("appModel", appModeLabel);
         templateParams.put("notifyTime", notifyTime);
         templateParams.put("message", message);
+        templateParams.put("stackTrace", stackTrace);
         templateParams.put("extended", extended);
 
         return templateParams;
