@@ -275,15 +275,16 @@ public class CreativeExecuteManager {
         AppMarketRespVO appResponse = executeParams.getAppInformation();
 
         // 执行扩展信息
+        int retry = latestContent.getRetryCount() + 1;
         Map<String, Object> extended = new HashMap<>();
         extended.put("planUid", latestContent.getPlanUid());
         extended.put("batchUid", latestContent.getBatchUid());
         extended.put("contentUid", latestContent.getUid());
-        extended.put("contentRetryCount", latestContent.getRetryCount() + 1);
+        extended.put("contentRetryCount", retry >= maxRetry ? maxRetry : retry);
         extended.put("contentMaxRetry", maxRetry);
         extended.put("contentStatus", latestContent.getStatus());
         // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
-        extended.put("isSendAlarm", latestContent.getRetryCount() + 1 >= maxRetry || CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()));
+        extended.put("isSendAlarm", retry >= maxRetry || CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()));
 
         // 构建应用执行参数
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
