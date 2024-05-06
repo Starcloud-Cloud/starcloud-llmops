@@ -143,6 +143,14 @@ public interface PermissionService {
      */
     Map<Long, List<String>> mapRoleCodeListByUserIds(Collection<Long> userIds);
 
+    /**
+     * 获得用户拥有的角色名称集合
+     *
+     * @param userIds 用户编号集合
+     * @return 角色名称集合
+     */
+    Map<Long, List<String>> mapRoleNameListByUserIds(Collection<Long> userIds);
+
     // ========== 用户-部门的相关方法  ==========
 
     /**
