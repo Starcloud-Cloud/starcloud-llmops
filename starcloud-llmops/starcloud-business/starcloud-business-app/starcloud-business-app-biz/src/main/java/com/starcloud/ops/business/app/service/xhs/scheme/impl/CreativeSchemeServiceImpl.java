@@ -32,6 +32,7 @@ import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -443,7 +444,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public List<CreativeOptionDTO> newOptions(GenerateOptionReqVO reqVO) {
         AppMarketEntity marketEntity = AppMarketConvert.INSTANCE.convert(reqVO.getAppReqVO());
-        return workflowStepOptions(marketEntity,reqVO.getStepCode());
+        return workflowStepOptions(marketEntity, reqVO.getStepCode());
     }
 
     /**
@@ -519,9 +520,10 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      * @param appMarketEntity 应用市场应用
      */
     protected List<CreativeOptionDTO> workflowStepOptions(AppMarketEntity appMarketEntity, String currentStepCode) {
+        List<WorkflowStepWrapper> workflowStepWrappers = Optional.ofNullable(appMarketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>());
 
-        return Optional.ofNullable(appMarketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>()).stream().map((stepWrapper) -> {
-
+        List<CreativeOptionDTO> result = new ArrayList<>(workflowStepWrappers.size());
+        for (WorkflowStepWrapper stepWrapper : workflowStepWrappers) {
             String stepCode = stepWrapper.getStepCode();
             String desc = stepWrapper.getDescription();
 
@@ -534,15 +536,15 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
 
             if (stepCode.equals(currentStepCode)) {
-                return null;
+                return result;
             }
 
             JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
             stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+            result.add(stepOption);
 
-            return stepOption;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-
+        }
+        return result;
     }
 
     /**
