@@ -29,7 +29,6 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Prepa
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -63,8 +62,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     /**
      * 查询-原数据根据关键词和站点关键词
      *
-     * @param pageReqVO
-     * @return
+     * @param pageReqVO 分页参数
+     * @return 分页结果 PageResult<KeywordMetadataRespVO>
      */
     @Override
     @TenantIgnore
@@ -83,8 +82,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * 新增原数据 -根据关键词和站点关键词
      *
      * @param keywordList 关键词
-     * @param marketName
-     * @return
+     * @param marketName 站点名称
+     * @return 添加结果
      */
     @Override
     @TenantIgnore
@@ -106,7 +105,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         if (CollUtil.isNotEmpty(retryDataLists)) {
             List<List<KeywordMetadataDO>> splitNotInKeywords = CollUtil.split(retryDataLists, 20);
             for (List<KeywordMetadataDO> splitNotInKeyword : splitNotInKeywords) {
-                log.info("【关键词原数据更新】===》当前站点【{}】下关键词数据【{}】开始更新", marketName, keywordList.toString());
+                log.info("【关键词原数据更新】===》当前站点【{}】下关键词数据【{}】开始更新", marketName, keywordList);
                 getSelf().executeUpdateAsyncRequestData(splitNotInKeyword);
             }
         }
@@ -173,8 +172,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * 新增原数据 -根据关键词和站点关键词
      *
      * @param keywordList 关键词
-     * @param marketName
-     * @return
+     * @param marketName 站点名称
+     * @return 结果
      */
     @Override
     @TenantIgnore
@@ -221,7 +220,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
             List<ItemsDTO> items = keywordMinerReposeDTO.getItems();
 
             if (items.isEmpty()) {
-                keywordMetadataDOS.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
+                keywordMetadataDOS.forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
                 keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
                 log.warn("当前关键词【{}】未获取到关键词详细数据", keywords);
                 return AsyncResult.forValue(true);
@@ -259,7 +258,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
             return AsyncResult.forValue(true);
         } catch (Exception e) {
             log.error("卖家精灵关键词【{}】获取失败，失败原因是:{}", keywords, e.getMessage(), e);
-            keywordMetadataDOS.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
+            keywordMetadataDOS.forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
             keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
             return AsyncResult.forValue(false);
         }
@@ -271,7 +270,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     /**
      * 异步获取数据
      *
-     * @param keywordMetadataDOS
+     * @param keywordMetadataDOS 关键词 DO
      */
     @TenantIgnore
     @Async
@@ -282,7 +281,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
         List<Long> marketIds = keywordMetadataDOS.stream().map(KeywordMetadataDO::getMarketId).collect(Collectors.toList());
         log.info("开始更新错误状态关键词,状态关键词为【{}】", keywords);
 
-        keywordMetadataDOS.stream().forEach(keywordMetadataDO -> keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SYNCING.getCode()));
+        keywordMetadataDOS.forEach(keywordMetadataDO -> keywordMetadataDO.setStatus(KeywordMetadataStatusEnum.SYNCING.getCode()));
 
         keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
 
@@ -294,7 +293,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
             List<ItemsDTO> items = keywordMinerReposeDTO.getItems();
 
             if (items.isEmpty()) {
-                keywordMetadataDOS.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
+                keywordMetadataDOS.forEach(data -> data.setStatus(KeywordMetadataStatusEnum.NO_DATA.getCode()));
                 keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
                 log.warn("当前关键词【{}】未获取到关键词详细数据", keywords);
             }
@@ -330,7 +329,7 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
 
         } catch (Exception e) {
             log.error("卖家精灵关键词【{}】获取失败，失败原因是:{}", keywords, e.getMessage(), e);
-            keywordMetadataDOS.stream().forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
+            keywordMetadataDOS.forEach(data -> data.setStatus(KeywordMetadataStatusEnum.ERROR.getCode()));
             keywrodMetadataMapper.updateBatch(keywordMetadataDOS, keywordMetadataDOS.size());
         }
 
@@ -340,8 +339,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
      * 新增原数据 -根据关键词和站点关键词
      *
      * @param asin       关键词
-     * @param marketName
-     * @return
+     * @param marketName 站点名称
+     * @return 结果
      */
     @Override
     public SellerSpriteListingVO getListingByAsin(String asin, String marketName) {
@@ -353,8 +352,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     /**
      * 根据 ASIN获取变体
      *
-     * @param prepareRequestDTO
-     * @return
+     * @param prepareRequestDTO 获取变体 DTO
+     * @return 变体 DTO
      */
     @Override
     public PrepareReposeDTO extendPrepare(PrepareRequestDTO prepareRequestDTO) {
@@ -365,8 +364,8 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     /**
      * 根据 ASIN获取关键词拓展数据
      *
-     * @param extendAsinRequestDTO
-     * @return
+     * @param extendAsinRequestDTO 获取关键词拓展数据DTO
+     * @return 关键词拓展数据
      */
     @Override
     public ExtendAsinReposeDTO extendAsin(ExtendAsinRequestDTO extendAsinRequestDTO) {

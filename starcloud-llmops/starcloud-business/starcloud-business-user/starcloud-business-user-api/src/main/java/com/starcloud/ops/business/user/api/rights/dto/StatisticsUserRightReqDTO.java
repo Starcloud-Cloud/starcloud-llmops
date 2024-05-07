@@ -15,16 +15,4 @@ public class StatisticsUserRightReqDTO {
     private Long magicBeanCounts;
     private Long imageCounts;
     private Long matrixBeanCounts;
-
-    public void addMagicBeanCount(int count) {
-        this.magicBeanCounts += count;
-    }
-
-    public void addImageCount(int count) {
-        this.imageCounts += count;
-    }
-
-    public void addMatrixBeanCounts(int count) {
-        this.imageCounts += count;
-    }
 }

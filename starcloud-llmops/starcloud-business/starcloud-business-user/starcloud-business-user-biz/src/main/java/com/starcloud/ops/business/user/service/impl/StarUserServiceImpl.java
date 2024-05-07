@@ -62,7 +62,7 @@ import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
 import com.starcloud.ops.business.user.service.user.StarUserService;
-import com.starcloud.ops.business.user.service.user.handler.UserRegisterHandler;
+import com.starcloud.ops.business.user.service.user.handler.NewUserHandler;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -158,7 +158,7 @@ public class StarUserServiceImpl implements StarUserService {
     private CouponApi couponApi;
 
     @Resource
-    private List<UserRegisterHandler> userRegisterHandlers;
+    private List<NewUserHandler> newUserHandlers;
 
     @Resource
     private NewUserProperties newUserProperties;
@@ -315,8 +315,11 @@ public class StarUserServiceImpl implements StarUserService {
         }
         // 2.0 权益统一处理
         Long finalInviteUserid = inviteUserid;
-        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(currentUserId), finalInviteUserid == null ? null : userService.getUser(finalInviteUserid)));
-        // addBenefits(currentUserId, inviteUserid);
+        try {
+            newUserHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(currentUserId), finalInviteUserid == null ? null : userService.getUser(finalInviteUserid)));
+        } catch (RuntimeException e) {
+            log.error("新用户权益发放失败，失败原因{}", e.getMessage(), e);
+        }
     }
 
     @Override
@@ -338,7 +341,12 @@ public class StarUserServiceImpl implements StarUserService {
         if (i <= 0) {
             throw exception(ACTIVATION_USER_ERROR);
         }
-        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(registerUserDO.getUserId()), registerUserDO.getInviteUserId() == null ? null : userService.getUser(registerUserDO.getInviteUserId())));
+
+        try {
+            newUserHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(registerUserDO.getUserId()), registerUserDO.getInviteUserId() == null ? null : userService.getUser(registerUserDO.getInviteUserId())));
+        } catch (RuntimeException e) {
+            log.error("新用户权益发放失败，失败原因{}", e.getMessage(), e);
+        }
 
         // addBenefits(registerUserDO.getUserId(), registerUserDO.getInviteUserId());
         TenantContextHolder.setIgnore(true);
@@ -378,11 +386,10 @@ public class StarUserServiceImpl implements StarUserService {
         deptDO.setLeaderUserId(userDO.getId());
         deptMapper.updateById(deptDO);
 
-        // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
-        TenantUtils.execute(userDTO.getTenantId(), () -> {
-            adminUserLevelService.createInitLevelRecord(userDO.getId());
-            adminUserTagService.addNewUserTag(userDO.getId());
-        });
+        // TenantUtils.execute(userDTO.getTenantId(), () -> {
+        //     adminUserLevelService.createInitLevelRecord(userDO.getId());
+        //     adminUserTagService.addNewUserTag(userDO.getId());
+        // });
 
         return userDO.getId();
     }

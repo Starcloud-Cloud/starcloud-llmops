@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.user.api.user;
 
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
-import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.user.StarUserService;

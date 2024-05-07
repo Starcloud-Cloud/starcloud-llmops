@@ -12,7 +12,7 @@ import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.user.pojo.dto.UserDTO;
 import com.starcloud.ops.business.user.service.user.StarUserService;
-import com.starcloud.ops.business.user.service.user.handler.UserRegisterHandler;
+import com.starcloud.ops.business.user.service.user.handler.NewUserHandler;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
@@ -53,7 +53,7 @@ public class WechatUserManager {
     private SocialUserService socialUserService;
 
     @Resource
-    private List<UserRegisterHandler> userRegisterHandlers;
+    private List<NewUserHandler> newUserHandlers;
 
 
     public Boolean socialExist(String openId) {
@@ -98,9 +98,11 @@ public class WechatUserManager {
         }
 
         Long finalInviteUserid = inviteUserid;
-        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(userId), finalInviteUserid == 0L ? null : userService.getUser(finalInviteUserid)));
-
-        // starUserService.addBenefits(userId, inviteUserid);
+        try {
+            newUserHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(userId), finalInviteUserid == 0L ? null : userService.getUser(finalInviteUserid)));
+        } catch (RuntimeException e) {
+            log.error("新用户权益发放失败，失败原因{}", e.getMessage(), e);
+        }
     }
 
 

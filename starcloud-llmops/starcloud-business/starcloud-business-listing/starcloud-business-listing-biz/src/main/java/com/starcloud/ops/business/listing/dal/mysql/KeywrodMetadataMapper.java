@@ -11,9 +11,6 @@ import com.starcloud.ops.business.listing.dal.dataobject.KeywordMetadataDO;
 import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteOrderByEnum;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.Collection;
 
 @Mapper
 public interface KeywrodMetadataMapper extends BaseMapperX<KeywordMetadataDO> {
@@ -56,8 +53,4 @@ public interface KeywrodMetadataMapper extends BaseMapperX<KeywordMetadataDO> {
 
         return selectPage(reqVO, queryWrapper);
     }
-
-
-    // boolean saveOrUpdateBatch(@Param("entities") Collection<KeywordMetadataDO> keywordMetadataDOCollection);
-
 }
