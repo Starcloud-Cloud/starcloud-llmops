@@ -33,7 +33,7 @@ import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;

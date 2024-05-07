@@ -15,6 +15,16 @@ public interface AppConstants {
     Integer DEFAULT_VERSION = 1;
 
     /**
+     * 魔法AI 租户ID
+     */
+    Long MOFAAI_TENANT_ID = 2L;
+
+    /**
+     * 矩阵租户ID
+     */
+    Long JUZHEN_TENANT_ID = 3L;
+
+    /**
      * 应用分类字典类型
      */
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";

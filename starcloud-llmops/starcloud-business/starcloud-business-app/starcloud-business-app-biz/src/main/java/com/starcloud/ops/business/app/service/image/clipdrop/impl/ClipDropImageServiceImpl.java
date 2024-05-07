@@ -5,15 +5,16 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.ClipDropImageClient;
+import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.feign.request.clipdrop.CleanupClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.ReplaceBackgroundClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.SketchToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.TextToImageClipDropRequest;
 import com.starcloud.ops.business.app.feign.request.clipdrop.UpscaleClipDropRequest;
-import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import feign.FeignException;
@@ -256,16 +257,19 @@ public class ClipDropImageServiceImpl implements ClipDropImageService {
             log.error("ClipDrop 生成图片失败，错误码：{}", responseEntity.getStatusCodeValue());
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FEIGN_FAILURE.getCode(), "ClipDrop 生成图片失败"));
         }
+
+        // 上传生成的图片
         HttpHeaders headers = responseEntity.getHeaders();
         MediaType contentType = Optional.ofNullable(headers.getContentType()).orElse(MediaType.IMAGE_PNG);
-        String uuid = IdUtil.fastSimpleUUID();
         byte[] binary = responseEntity.getBody();
         String mediaType = contentType.toString();
-        String url = ImageUploadUtils.upload(uuid, mediaType, ImageUploadUtils.GENERATE, binary);
+        String fileName = ImageUploadUtils.getFileName(IdUtil.fastSimpleUUID(), mediaType);
+        UploadImageInfoDTO imageInfo = ImageUploadUtils.uploadImage(fileName, ImageUploadUtils.GENERATE_PATH, binary);
+
         ClipDropImage image = new ClipDropImage();
-        image.setUuid(uuid);
+        image.setUrl(imageInfo.getUrl());
+        image.setUuid(imageInfo.getUuid());
         image.setBinary(binary);
-        image.setUrl(url);
         image.setMediaType(mediaType);
         return image;
     }

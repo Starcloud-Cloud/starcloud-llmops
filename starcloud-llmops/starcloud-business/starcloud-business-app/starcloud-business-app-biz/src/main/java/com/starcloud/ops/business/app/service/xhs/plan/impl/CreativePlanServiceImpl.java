@@ -55,12 +55,11 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.CreativeAppUtils;
 import com.starcloud.ops.business.app.util.CreativeImageUtils;
-import com.starcloud.ops.business.app.util.CreativeUploadUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
@@ -124,8 +123,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public UploadImageInfoDTO uploadImage(MultipartFile image) {
-        log.info("Creative 开始上传图片，ContentType: {}, imageName: {}", image.getContentType(), image.getOriginalFilename());
-        return CreativeUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD);
+        return ImageUploadUtils.uploadImage(image, ImageUploadUtils.UPLOAD_PATH);
     }
 
     /**
