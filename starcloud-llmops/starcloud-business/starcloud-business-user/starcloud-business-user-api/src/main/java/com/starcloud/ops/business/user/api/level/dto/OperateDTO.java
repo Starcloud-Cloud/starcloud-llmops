@@ -13,13 +13,22 @@ public class OperateDTO {
     /**
      * 是否添加
      */
-    @Schema(description = "权益是否添加", example = " 1")
-    private boolean isAdd;
+    @Schema(description = "权益是否添加")
+    private Boolean isAdd;
 
     /**
      * 是否叠加
      */
-    @Schema(description = "权益是否叠加", example = " 1")
-    private boolean isSuperposition;
+    @Schema(description = "权益是否叠加")
+    private Boolean isSuperposition;
 
+
+    public boolean enableAdd() {
+        return Boolean.TRUE.equals(this.isAdd);
+    }
+
+
+    public boolean enableSuperposition() {
+        return Boolean.TRUE.equals(this.isSuperposition);
+    }
 }

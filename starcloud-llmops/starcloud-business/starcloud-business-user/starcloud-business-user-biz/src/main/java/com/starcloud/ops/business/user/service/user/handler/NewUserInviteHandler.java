@@ -69,11 +69,11 @@ public class NewUserInviteHandler implements NewUserHandler {
                         .setMagicImage(bizTypeEnum.getMagicImage())
                         .setMatrixBean(bizTypeEnum.getMatrixBean())
                         .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
-                        .setOperateDTO(new OperateDTO().setAdd(true).setSuperposition(false)))
+                        .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                 .setLevelBasicDTO(new UserLevelBasicDTO()
                         .setLevelId(1L)
                         .setTimesRange(new TimesRangeDTO().setNums(99).setRange(TimeRangeTypeEnum.YEAR.getType()))
-                        .setOperateDTO(new OperateDTO().setAdd(false).setSuperposition(false)));
+                        .setOperateDTO(new OperateDTO().setIsAdd(false).setIsSuperposition(false)));
 
         adminUserRightsService.createRights(commonDTO, adminUserDO.getId(), bizTypeEnum.getType(), String.valueOf(invitationId));
         log.info("【afterUserRegister】邀请人信息设置成功,基础权益发放完成");

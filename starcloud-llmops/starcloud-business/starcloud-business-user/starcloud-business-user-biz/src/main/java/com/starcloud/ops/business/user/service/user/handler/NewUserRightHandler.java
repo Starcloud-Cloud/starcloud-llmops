@@ -70,11 +70,11 @@ public class NewUserRightHandler implements NewUserHandler {
                             .setMagicImage(99999)
                             .setMatrixBean(5)
                             .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
-                            .setOperateDTO(new OperateDTO().setAdd(true).setSuperposition(false)))
+                            .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                     .setLevelBasicDTO(new UserLevelBasicDTO()
                             .setLevelId(1L)
                             .setTimesRange(new TimesRangeDTO().setNums(99).setRange(TimeRangeTypeEnum.YEAR.getType()))
-                            .setOperateDTO(new OperateDTO().setAdd(true).setSuperposition(false)));
+                            .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)));
         } else {
 
             commonDTO.setRightsBasicDTO(new UserRightsBasicDTO()
@@ -82,11 +82,11 @@ public class NewUserRightHandler implements NewUserHandler {
                             .setMagicImage(bizTypeEnum.getMagicImage())
                             .setMatrixBean(bizTypeEnum.getMatrixBean())
                             .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
-                            .setOperateDTO(new OperateDTO().setAdd(true).setSuperposition(false)))
+                            .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                     .setLevelBasicDTO(new UserLevelBasicDTO()
                             .setLevelId(1L)
                             .setTimesRange(new TimesRangeDTO().setNums(99).setRange(TimeRangeTypeEnum.YEAR.getType()))
-                            .setOperateDTO(new OperateDTO().setAdd(true).setSuperposition(false)));
+                            .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)));
         }
 
         adminUserRightsService.createRights(commonDTO, adminUserDO.getId(), bizTypeEnum.getType(), String.valueOf(adminUserDO.getId()));
