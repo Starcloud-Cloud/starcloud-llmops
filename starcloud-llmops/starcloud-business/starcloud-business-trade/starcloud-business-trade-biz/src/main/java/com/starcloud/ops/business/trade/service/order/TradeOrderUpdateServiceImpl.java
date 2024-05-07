@@ -386,6 +386,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 3. 执行 TradeOrderHandler 的后置处理
         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
         tradeOrderHandlers.forEach(handler -> {
+            order.setPayChannelCode(payOrder.getChannelCode());
             handler.afterPayOrder(order, orderItems);
             handler.afterPayOrderLast(order, orderItems);
         });
