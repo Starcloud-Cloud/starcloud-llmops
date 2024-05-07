@@ -8,12 +8,14 @@ import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import com.starcloud.ops.business.user.api.rights.dto.*;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
+import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelConfigDO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -261,10 +263,17 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             return null;
         }
 
+
         // 权益数量判断
         UserRightsBasicDTO rightsBasicDTO = rightsAndLevelCommonDTO.getRightsBasicDTO();
         if (rightsBasicDTO.getMagicBean() == 0 && rightsBasicDTO.getMagicImage() == 0 && rightsBasicDTO.getMatrixBean() == 0) {
             log.warn("权益添加失败，权益数量为0无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsAndLevelCommonDTO);
+            return null;
+        }
+
+        // 是否添加会员等级记录
+        if (!rightsBasicDTO.getOperateDTO().isAdd()) {
+            log.info("【当前配置无需添加用户权益，跳出添加步骤");
             return null;
         }
 
@@ -275,8 +284,16 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             timesRange.setNums(1);
             timesRange.setRange(TimeRangeTypeEnum.MONTH.getType());
         }
-        // 获取权益开始时间
-        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()));
+
+        LocalDateTime startTime;
+        // 判断是否需要叠加时间
+        if (rightsBasicDTO.getOperateDTO().isSuperposition()) {
+            // 设置开始时间
+            startTime = buildValidTime(userId, Optional.ofNullable(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()));
+        } else {
+            startTime = LocalDateTime.now();
+        }
+
         // 设置权益结束时间
         LocalDateTime endTime = getPlusTimeByRange(rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
 

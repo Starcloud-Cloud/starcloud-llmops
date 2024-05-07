@@ -29,6 +29,7 @@ import com.starcloud.ops.business.listing.service.sellersprite.DTO.request.Prepa
 import com.starcloud.ops.business.listing.service.sellersprite.SellerSpriteService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -152,7 +153,6 @@ public class KeywordMetadataServiceImpl implements KeywordMetadataService {
     }
 
     private List<KeywordMetadataDO> insertBatchData(List<String> notInKeywords, Long marketId) {
-
         // 初始化数据
         List<KeywordMetadataDO> initDataList = notInKeywords.stream()
                 .map(keyword -> new KeywordMetadataDO()

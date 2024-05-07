@@ -54,9 +54,8 @@ public class UserRegisterRightsHandler implements UserRegisterHandler {
             rightsBizTypeEnum = AdminUserRightsBizTypeEnum.INVITE_TO_REGISTER;
         }
 
-        Long tenantId = TenantContextHolder.getTenantId();
         AddRightsDTO newUserRightsDTO;
-        if (tenantId == 3) {
+        if (TenantContextHolder.getTenantId() == 3) {
             newUserRightsDTO = new AddRightsDTO()
                     .setUserId(adminUserDO.getId())
                     .setMagicBean(99999)
