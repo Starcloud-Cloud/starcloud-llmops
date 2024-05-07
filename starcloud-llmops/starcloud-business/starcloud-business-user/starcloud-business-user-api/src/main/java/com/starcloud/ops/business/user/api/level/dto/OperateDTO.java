@@ -23,12 +23,12 @@ public class OperateDTO {
     private Boolean isSuperposition;
 
 
-    public boolean enableAdd() {
-        return Boolean.TRUE.equals(this.isAdd);
-    }
-
-
-    public boolean enableSuperposition() {
-        return Boolean.TRUE.equals(this.isSuperposition);
-    }
+    // public boolean enableAdd() {
+    //     return Boolean.TRUE.equals(this.isAdd);
+    // }
+    //
+    //
+    // public boolean enableSuperposition() {
+    //     return Boolean.TRUE.equals(this.isSuperposition);
+    // }
 }
