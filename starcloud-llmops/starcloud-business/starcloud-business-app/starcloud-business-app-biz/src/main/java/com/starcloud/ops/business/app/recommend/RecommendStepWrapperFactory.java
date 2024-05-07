@@ -286,7 +286,6 @@ public class RecommendStepWrapperFactory {
                 defGlobalVariableStepWrapper(),
                 defMaterialStepWrapper(),
                 defCustomStepWrapper(),
-                defImitateStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );
