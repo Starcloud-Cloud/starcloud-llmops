@@ -526,7 +526,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      */
     @Override
     public Boolean checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO) {
-        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return null;
+        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return true;
 
         long initTimeBetween = 10L;
         // 检验
