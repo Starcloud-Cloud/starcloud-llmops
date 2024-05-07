@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.user.api.user;
 
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
-import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.user.StarUserService;
@@ -54,10 +52,8 @@ public class AdminUsersApiImpl implements AdminUsersApi {
     @Override
     public void insertUserRightsAndLevel(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId) {
         log.info("【用户权益和等级统一新增处理,当前数据用户编号为{},业务类型为{},业务编号为{},权益数据为{}】", userId, bizType, bizId, rightsAndLevelCommonDTO);
-        AdminUserLevelDO adminUserLevelDO = adminUserLevelService.createLevelRecord(rightsAndLevelCommonDTO, userId, bizType, bizId);
+        adminUserLevelService.createLevelRecord(rightsAndLevelCommonDTO, userId, bizType, bizId);
 
-        AdminUserRightsDO adminUserRightsDO = adminUserRightsService.createRights(rightsAndLevelCommonDTO, userId, bizType, bizId);
-
-        adminUserLevelService.checkLevelAndRights(adminUserLevelDO, adminUserRightsDO);
+        adminUserRightsService.createRights(rightsAndLevelCommonDTO, userId, bizType, bizId);
     }
 }

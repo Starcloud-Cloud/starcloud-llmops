@@ -118,7 +118,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
             AdminUserRightsDO rights = null;
             String userRangeTimeRange = "无";
             // 获取当前增加的权益
-            if (Objects.nonNull(commonDTO.getRightsBasicDTO())) {
+            if (commonDTO.getRightsBasicDTO().getOperateDTO().getIsAdd()) {
                 // 通过业务 获取权益记录
                 rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), tradeOrderDO.getId(), tradeOrderDO.getUserId());
                 userRangeTimeRange = StrUtil.format("{}-{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
@@ -129,7 +129,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
             String userRoleName = "无";
             String userLevelTimeRange = "无";
             // 获取当前增加的用户等级
-            if (Objects.nonNull(commonDTO.getRightsBasicDTO())) {
+            if (commonDTO.getLevelBasicDTO().getOperateDTO().getIsAdd()) {
                 // 通过业务 获取权益记录
                 level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), tradeOrderDO.getId(), tradeOrderDO.getUserId());
                 AdminUserLevelConfigDO levelConfig = adminUserLevelConfigService.getLevelConfig(level.getLevelId());

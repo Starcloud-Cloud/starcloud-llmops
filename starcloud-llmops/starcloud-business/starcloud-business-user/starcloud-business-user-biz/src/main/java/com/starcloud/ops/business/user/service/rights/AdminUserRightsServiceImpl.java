@@ -261,10 +261,17 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             return null;
         }
 
+
         // 权益数量判断
         UserRightsBasicDTO rightsBasicDTO = rightsAndLevelCommonDTO.getRightsBasicDTO();
         if (rightsBasicDTO.getMagicBean() == 0 && rightsBasicDTO.getMagicImage() == 0 && rightsBasicDTO.getMatrixBean() == 0) {
             log.warn("权益添加失败，权益数量为0无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsAndLevelCommonDTO);
+            return null;
+        }
+
+        // 是否添加会员等级记录
+        if (!rightsBasicDTO.getOperateDTO().getIsAdd()) {
+            log.info("【当前配置无需添加用户权益，跳出添加步骤");
             return null;
         }
 
@@ -275,8 +282,16 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             timesRange.setNums(1);
             timesRange.setRange(TimeRangeTypeEnum.MONTH.getType());
         }
-        // 获取权益开始时间
-        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()));
+
+        LocalDateTime startTime;
+        // 判断是否需要叠加时间
+        if (rightsBasicDTO.getOperateDTO().getIsSuperposition()) {
+            // 设置开始时间
+            startTime = buildValidTime(userId, Optional.ofNullable(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()));
+        } else {
+            startTime = LocalDateTime.now();
+        }
+
         // 设置权益结束时间
         LocalDateTime endTime = getPlusTimeByRange(rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
 
@@ -651,13 +666,13 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         return startTime;
     }
 
-    /**
-     * 获取应该创作权益的用户   返回部门超级管理员id
-     * 1，获取当前用户的部门
-     * 2，判断是否是部门管理员
-     * 1）是部门管理员，返回
-     * 2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
-     * 3，返回有剩余点的用户ID（管理员或当前用户）
+    /*
+      获取应该创作权益的用户   返回部门超级管理员id
+      1，获取当前用户的部门
+      2，判断是否是部门管理员
+      1）是部门管理员，返回
+      2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
+      3，返回有剩余点的用户ID（管理员或当前用户）
      */
     /**
      * 这里关闭数据权限，主要是后面的 SQL查询会带上 kstry 线程中的其他正常用户的上下文，导致跟 powerjob 执行应用时候导致用户上下文冲突

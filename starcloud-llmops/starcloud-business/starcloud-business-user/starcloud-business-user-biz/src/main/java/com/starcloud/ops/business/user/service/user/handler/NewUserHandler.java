@@ -8,18 +8,27 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
  *
  * @author HUIHUI
  */
-public interface UserRegisterHandler {
+public interface NewUserHandler {
 
 
     /**
-     * 用户注册权益
+     * 用户等级
      */
-    int USER_REGISTER_RIGHTS = 1;
+    int USER_LEVEL = 1;
+    /**
+     * 用户权益
+     */
+    int USER_RIGHTS = 2;
 
     /**
      * 邀请人处理
      */
-    int INVITE_HANDLER= 10;
+    int USER_INVITE = 10;
+
+    /**
+     * 用户优惠券
+     */
+    int USER_COUPON = 11;
 
 
     /**
@@ -28,5 +37,6 @@ public interface UserRegisterHandler {
      * @param adminUserDO  新注册用户信息
      * @param inviteUserDO 邀请人信息
      */
-    default void afterUserRegister(AdminUserDO adminUserDO, AdminUserDO inviteUserDO) {}
+    default void afterUserRegister(AdminUserDO adminUserDO, AdminUserDO inviteUserDO) {
+    }
 }

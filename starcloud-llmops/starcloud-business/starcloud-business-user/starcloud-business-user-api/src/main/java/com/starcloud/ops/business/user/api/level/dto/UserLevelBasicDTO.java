@@ -21,6 +21,13 @@ public class UserLevelBasicDTO {
     /**
      * 时间范围
      */
-    @Schema(description = "时间范围", example = " 1")
+    @Schema(description = "时间范围")
     private TimesRangeDTO timesRange;
+
+    /**
+     * 操作配置 DTO
+     */
+    @Schema(description = "操作配置")
+    private OperateDTO operateDTO;
+
 }
