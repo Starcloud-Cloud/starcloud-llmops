@@ -130,7 +130,7 @@ public class DraftServiceImpl implements DraftService {
         }
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), false);
 
-        Map<String, KeywordMetaDataDTO> metaDataDTOMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity()));
+        Map<String, KeywordMetaDataDTO> metaDataDTOMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity(), (a, b) -> a));
 
         List<KeywordMetaDataDTO> result = new ArrayList<>(keywordBinds.size());
         for (String keywordBind : keywordBinds) {
@@ -649,7 +649,7 @@ public class DraftServiceImpl implements DraftService {
         Long totalSearches = metaData.stream().mapToLong(KeywordMetaDataDTO::mouthSearches).sum();
 
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
-        Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity()));
+        Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity(), (a, b) -> a));
 
         String content = listString(respVO);
         List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
@@ -667,7 +667,7 @@ public class DraftServiceImpl implements DraftService {
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
-        draftDO.setSearchersProportion(BigDecimal.valueOf(matchSearchers).divide(BigDecimal.valueOf(totalSearches),2, RoundingMode.HALF_UP).doubleValue());
+        draftDO.setSearchersProportion(BigDecimal.valueOf(matchSearchers).divide(BigDecimal.valueOf(totalSearches), 2, RoundingMode.HALF_UP).doubleValue());
     }
 
 

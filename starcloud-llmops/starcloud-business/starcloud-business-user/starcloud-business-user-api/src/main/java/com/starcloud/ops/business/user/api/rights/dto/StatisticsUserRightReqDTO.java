@@ -14,4 +14,5 @@ public class StatisticsUserRightReqDTO {
     private Long teamId;
     private Long magicBeanCounts;
     private Long imageCounts;
+    private Long matrixBeanCounts;
 }
