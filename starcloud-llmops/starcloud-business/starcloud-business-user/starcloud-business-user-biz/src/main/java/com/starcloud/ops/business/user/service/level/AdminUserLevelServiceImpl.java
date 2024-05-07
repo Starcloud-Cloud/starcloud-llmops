@@ -168,7 +168,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         UserLevelBasicDTO levelBasicDTO = rightsAndLevelCommonDTO.getLevelBasicDTO();
         // 是否添加会员等级记录
-        if (!levelBasicDTO.getOperateDTO().isAdd()) {
+        if (!levelBasicDTO.getOperateDTO().getIsAdd()) {
             log.info("【当前配置无需添加用户等级，跳出添加步骤");
             return null;
         }
@@ -181,7 +181,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         }
         LocalDateTime startTime;
         // 判断是否需要叠加时间
-        if (levelBasicDTO.getOperateDTO().isSuperposition()) {
+        if (levelBasicDTO.getOperateDTO().getIsSuperposition()) {
             // 设置开始时间
             startTime = buildValidTime(userId, Optional.ofNullable(levelBasicDTO.getLevelId()));
         } else {

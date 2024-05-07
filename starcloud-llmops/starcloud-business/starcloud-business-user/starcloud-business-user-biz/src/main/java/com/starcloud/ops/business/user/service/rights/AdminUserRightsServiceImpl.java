@@ -270,7 +270,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
 
         // 是否添加会员等级记录
-        if (!rightsBasicDTO.getOperateDTO().isAdd()) {
+        if (!rightsBasicDTO.getOperateDTO().getIsAdd()) {
             log.info("【当前配置无需添加用户权益，跳出添加步骤");
             return null;
         }
@@ -285,7 +285,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         LocalDateTime startTime;
         // 判断是否需要叠加时间
-        if (rightsBasicDTO.getOperateDTO().isSuperposition()) {
+        if (rightsBasicDTO.getOperateDTO().getIsSuperposition()) {
             // 设置开始时间
             startTime = buildValidTime(userId, Optional.ofNullable(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()));
         } else {
