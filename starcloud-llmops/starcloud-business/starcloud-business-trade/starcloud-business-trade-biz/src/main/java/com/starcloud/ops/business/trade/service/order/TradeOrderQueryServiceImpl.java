@@ -29,6 +29,7 @@ import com.starcloud.ops.business.trade.framework.delivery.core.client.ExpressCl
 import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackQueryReqDTO;
 import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.ExpressTrackRespDTO;
 import com.starcloud.ops.business.trade.service.delivery.DeliveryExpressService;
+import com.starcloud.ops.business.trade.service.order.handler.TradeOrderHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -69,6 +70,10 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     private TradeOrderMapper tradeOrderMapper;
     @Resource
     private TradeOrderItemMapper tradeOrderItemMapper;
+
+
+    @Resource
+    private List<TradeOrderHandler> tradeOrderHandlers;
 
 
     // =================== Order ===================
@@ -275,8 +280,8 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
         return tradeOrderMapper.selectWithinContractPeriod(signId, LocalDateTimeUtil.endOfDay(signPayTime.atStartOfDay()));
     }
 
-    public Integer getSignPaySuccessCountBySignId(Long signId) {
-        return tradeOrderMapper.selectSucceedOrderBySignId(signId).size();
+    public List<TradeOrderDO> getSignPayTradeList(Long signId) {
+         return tradeOrderMapper.selectSucceedOrderBySignId(signId);
     }
 
     /**
@@ -289,14 +294,14 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     public int orderAutoNotify(Long timeNum) {
         // 查询指定时间内的数据
         List<TradeOrderDO> tradeOrderDOS = tradeOrderMapper.queryTradeOrdersByTime(timeNum);
-        String content;
-        if (!tradeOrderDOS.isEmpty()) {
-            // 发送钉钉通知
-            content = buildMsg(tradeOrderDOS);
-        } else {
-            content = "无订单";
+
+        if (tradeOrderDOS.isEmpty()) {
+           return 0;
         }
-        sendNotifyMsg(content);
+        tradeOrderDOS.forEach(tradeOrderDO -> {
+            List<TradeOrderItemDO> tradeOrderItemDOS = tradeOrderItemMapper.selectListByOrderId(tradeOrderDO.getId());
+            tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(tradeOrderDO, tradeOrderItemDOS));
+        });
         return tradeOrderDOS.size();
     }
 

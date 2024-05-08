@@ -136,7 +136,9 @@ public interface TradeOrderMapper extends BaseMapperX<TradeOrderDO> {
     default List<TradeOrderDO> selectSucceedOrderBySignId(Long tradeSignId) {
         return selectList(new LambdaUpdateWrapper<>(TradeOrderDO.class)
                 .eq(TradeOrderDO::getTradeSignId, tradeSignId)
-                .eq(TradeOrderDO::getPayStatus, true));
+                .eq(TradeOrderDO::getPayStatus, true)
+                .orderByDesc(TradeOrderDO::getCreateTime)
+        );
     }
 
     default List<TradeOrderDO> queryTradeOrdersByTime(Long timeNum) {
