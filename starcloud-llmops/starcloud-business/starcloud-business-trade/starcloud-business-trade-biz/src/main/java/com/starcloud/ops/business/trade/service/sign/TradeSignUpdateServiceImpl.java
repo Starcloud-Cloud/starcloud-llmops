@@ -176,7 +176,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
      * @param id 交易订单编号
      */
     @Override
-    public void updatePayTime(Long id) {
+    public TradeSignDO updatePayTime(Long id) {
         TradeSignDO signDO = tradeSignMapper.selectById(id);
         if (signDO == null) {
             throw exception(SIGN_NOT_FOUND);
@@ -186,6 +186,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
         LocalDateTime payTime = TimeRangeTypeEnum.getPlusTimeByRange(periodType, period, signDO.getPayTime().atStartOfDay());
         tradeSignMapper.updateById(new TradeSignDO().setId(signDO.getId()).setPayTime(payTime.toLocalDate()));
+        return signDO;
     }
 
     /**

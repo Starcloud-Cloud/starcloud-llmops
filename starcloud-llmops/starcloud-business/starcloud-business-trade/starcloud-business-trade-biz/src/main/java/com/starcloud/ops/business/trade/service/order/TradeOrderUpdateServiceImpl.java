@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
+import cn.iocoder.yudao.module.pay.api.refund.dto.PayRefundCreateReqDTO;
 import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.tenant.TenantApi;
@@ -29,7 +30,9 @@ import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderCre
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSettlementReqVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSettlementRespVO;
 import com.starcloud.ops.business.trade.controller.app.order.vo.item.AppTradeOrderItemCommentCreateReqVO;
+import com.starcloud.ops.business.trade.convert.aftersale.AfterSaleConvert;
 import com.starcloud.ops.business.trade.convert.order.TradeOrderConvert;
+import com.starcloud.ops.business.trade.dal.dataobject.aftersale.AfterSaleDO;
 import com.starcloud.ops.business.trade.dal.dataobject.cart.CartDO;
 import com.starcloud.ops.business.trade.dal.dataobject.delivery.DeliveryExpressDO;
 import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
@@ -58,7 +61,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -383,13 +389,9 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
 
-        // 3. 执行 TradeOrderHandler 的后置处理
+        // 3. 执行 TradeOrderHandler 的后置处理 权益发放
         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
-        tradeOrderHandlers.forEach(handler -> {
-            order.setPayChannelCode(payOrder.getChannelCode());
-            handler.afterPayOrder(order, orderItems);
-            handler.afterPayOrderLast(order, orderItems);
-        });
+        tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
 
         // 4. 记录订单日志
         Integer afterStatus = TradeOrderStatusEnum.UNDELIVERED.getStatus();
@@ -399,6 +401,13 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
 
+        // 当前数据状态 需要在事务提交后获取
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(order, orderItems));
+            }
+        });
 
     }
 

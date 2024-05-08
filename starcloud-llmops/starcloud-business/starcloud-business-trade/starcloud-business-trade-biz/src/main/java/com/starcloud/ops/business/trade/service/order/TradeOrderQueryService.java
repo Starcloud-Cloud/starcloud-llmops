@@ -165,7 +165,7 @@ public interface TradeOrderQueryService {
      */
     TradeOrderDO getOrderBySignPayTime(Long signId, LocalDate signPayTime);
 
-    Integer getSignPaySuccessCountBySignId(Long signId);
+    List<TradeOrderDO> getSignPayTradeList(Long signId);
 
     /**
      * 订单通知-查询指定timeNum 内的订单 发送到钉钉通知

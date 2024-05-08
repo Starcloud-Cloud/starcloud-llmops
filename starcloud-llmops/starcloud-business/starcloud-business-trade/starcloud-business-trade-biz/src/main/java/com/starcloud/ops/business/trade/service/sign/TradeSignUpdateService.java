@@ -49,7 +49,7 @@ public interface TradeSignUpdateService {
      *
      * @param id 交易订单编号
      */
-    void updatePayTime(Long id);
+    TradeSignDO updatePayTime(Long id);
 
 
 }
