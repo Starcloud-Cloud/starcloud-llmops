@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -177,7 +178,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Override
     public List<CreativePlanRespVO> list() {
-        List<CreativePlanDTO> list = creativePlanMapper.list();
+        List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString());
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }

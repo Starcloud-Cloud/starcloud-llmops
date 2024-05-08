@@ -3,7 +3,7 @@
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper">
 
 
-    <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO">
+    <select id="list" parameterType="java.lang.String" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO">
         select p.id            as id,
                p.uid           as uid,
                p.app_uid       as appUid,
@@ -19,6 +19,12 @@
                u.nickname      as creatorName
         from llm_creative_plan p
                  left join system_users u on p.creator = u.id
-        where p.deleted = false and u.deleted = false
+        where p.deleted = false
+          and u.deleted = false
+        order by CASE
+                     WHEN p.creator = #{currentUserId} THEN 0
+                     ELSE 1
+                     END,
+                 p.create_time desc
     </select>
 </mapper>

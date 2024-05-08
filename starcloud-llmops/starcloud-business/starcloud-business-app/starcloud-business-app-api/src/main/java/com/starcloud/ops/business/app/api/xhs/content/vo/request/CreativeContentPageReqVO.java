@@ -54,4 +54,7 @@ public class CreativeContentPageReqVO extends PageQuery {
     @Schema(description = "是否喜欢")
     private Boolean liked;
 
+    @Schema(description = "是否倒序")
+    private Boolean desc;
+
 }
