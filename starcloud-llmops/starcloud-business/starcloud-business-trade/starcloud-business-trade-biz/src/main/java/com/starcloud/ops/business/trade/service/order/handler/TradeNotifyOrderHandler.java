@@ -122,8 +122,8 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
 
             StringBuilder signTradeOrderDetail = new StringBuilder();
 
-            String firstSignTime = "null";
-            String nextPayData = "null";
+            String firstSignTime = "无";
+            String nextPayData = "无";
             if (Objects.nonNull(tradeOrderDO.getTradeSignId())) {
                 signTag = true;
                 TradeSignDO tradeSignDO = tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
@@ -242,7 +242,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
             if (signTag) {
                 templateParams.put("signTradeOrderDetail", signTradeOrderDetail);
             } else {
-                templateParams.put("signTradeOrderDetail", null);
+                templateParams.put("signTradeOrderDetail", "无");
             }
             // 所属系统 魔法 AI / 魔法矩阵
             templateParams.put("from", tenantApi.getTenantById(tradeOrderDO.getTenantId()).getContactName());
