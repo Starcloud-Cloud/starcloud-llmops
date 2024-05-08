@@ -319,7 +319,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     /**
      * 订单创建后，执行后置逻辑
      * <p>
-     * 例如说：优惠劵的扣减、积分的扣减、支付单的创建等等
+     * 例如说：优惠劵的扣减、积分的扣减、支付单创建等等
      *
      * @param order       订单
      * @param orderItems  订单项
@@ -386,6 +386,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         // 3. 执行 TradeOrderHandler 的后置处理
         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
         tradeOrderHandlers.forEach(handler -> {
+            order.setPayChannelCode(payOrder.getChannelCode());
             handler.afterPayOrder(order, orderItems);
             handler.afterPayOrderLast(order, orderItems);
         });

@@ -163,19 +163,31 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         log.info("【开始添加用户等级，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
 
         if (Objects.isNull(rightsAndLevelCommonDTO) || Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO())) {
-            log.info("【添加用户等级失败，当前数据为空直接跳出添加步骤");
-            return null;
+            throw exception(LEVEL_NOT_EXISTS);
         }
 
         UserLevelBasicDTO levelBasicDTO = rightsAndLevelCommonDTO.getLevelBasicDTO();
+        // 是否添加会员等级记录
+        if (!levelBasicDTO.getOperateDTO().getIsAdd()) {
+            log.info("【当前配置无需添加用户等级，跳出添加步骤");
+            return null;
+        }
+
+
         // 1.0 根据会员配置等级 获取会员配置信息
         AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(levelBasicDTO.getLevelId());
         if (levelConfig == null) {
             throw exception(LEVEL_NOT_EXISTS);
         }
+        LocalDateTime startTime;
+        // 判断是否需要叠加时间
+        if (levelBasicDTO.getOperateDTO().getIsSuperposition()) {
+            // 设置开始时间
+            startTime = buildValidTime(userId, Optional.ofNullable(levelBasicDTO.getLevelId()));
+        } else {
+            startTime = LocalDateTime.now();
+        }
 
-        // 设置开始时间
-        LocalDateTime startTime = buildValidTime(userId, Optional.ofNullable(levelBasicDTO.getLevelId()));
         // 设置结束时间
         LocalDateTime endTime = getPlusTimeByRange(levelBasicDTO.getTimesRange().getRange(), levelBasicDTO.getTimesRange().getNums(), startTime);
 
@@ -514,7 +526,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      */
     @Override
     public Boolean checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO) {
-        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return null;
+        if (Objects.isNull(adminUserLevelDO) || Objects.isNull(adminUserRightsDO)) return true;
 
         long initTimeBetween = 10L;
         // 检验
@@ -530,12 +542,12 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
             templateParams.put("environmentName", environmentName);
             templateParams.put("userCode", adminUserLevelDO.getUserId());
             templateParams.put("dataCode", StrUtil.format("等级编号{},权益编号{}", adminUserLevelDO.getId(), adminUserRightsDO.getId()));
-            templateParams.put("notifyTime",  LocalDateTimeUtil.formatNormal(LocalDateTimeUtil.now()));
+            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTimeUtil.now()));
             try {
                 // 发送报警
                 smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
-            }catch (RuntimeException e){
-                log.error("检测消息发送失败,错误原因为 errMsg{},当前等级为{}，权益为{}", e.getMessage(), JSONUtil.toJsonStr(adminUserLevelDO),JSONUtil.toJsonStr(adminUserRightsDO), e);
+            } catch (RuntimeException e) {
+                log.error("检测消息发送失败,错误原因为 errMsg{},当前等级为{}，权益为{}", e.getMessage(), JSONUtil.toJsonStr(adminUserLevelDO), JSONUtil.toJsonStr(adminUserRightsDO), e);
 
             }
 

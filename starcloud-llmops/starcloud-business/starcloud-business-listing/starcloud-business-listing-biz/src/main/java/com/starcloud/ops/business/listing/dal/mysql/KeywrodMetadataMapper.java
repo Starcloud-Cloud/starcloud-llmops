@@ -12,8 +12,6 @@ import com.starcloud.ops.business.listing.enums.SellerSpriteMarketEnum;
 import com.starcloud.ops.business.listing.enums.SellerSpriteOrderByEnum;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.Objects;
-
 @Mapper
 public interface KeywrodMetadataMapper extends BaseMapperX<KeywordMetadataDO> {
     default PageResult<KeywordMetadataDO> selectPage(QueryKeywordMetadataPageReqVO reqVO) {
