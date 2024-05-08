@@ -11,6 +11,7 @@ import lombok.ToString;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -26,6 +27,13 @@ import javax.validation.constraints.NotNull;
 public class CreativePlanCreateReqVO implements java.io.Serializable {
 
     private static final long serialVersionUID = 6864609752505405116L;
+
+    /**
+     * 创作计划来源
+     */
+    @Schema(description = "创作计划来源")
+    @NotBlank(message = "创作计划来源不能为空！")
+    private String source;
 
     /**
      * 创作计划详细配置信息

@@ -53,6 +53,7 @@ public interface CreativePlanConvert {
         creativePlan.setUid(IdUtil.fastSimpleUUID());
         creativePlan.setAppUid(appInformation.getUid());
         creativePlan.setVersion(appInformation.getVersion());
+        creativePlan.setSource(request.getSource());
         creativePlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         creativePlan.setTotalCount(request.getTotalCount());
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
@@ -85,7 +86,7 @@ public interface CreativePlanConvert {
         response.setUid(creativePlan.getUid());
         response.setAppUid(creativePlan.getAppUid());
         response.setVersion(creativePlan.getVersion());
-
+        response.setSource(creativePlan.getSource());
         // 应用
         if (StringUtils.isNotBlank(creativePlan.getConfiguration())) {
             response.setConfiguration(JsonUtils.parseObject(

@@ -37,6 +37,12 @@ public class CreativePlanBatchRespVO {
     private Integer version;
 
     /**
+     * 创作计划来源
+     */
+    @Schema(description = "创作计划来源")
+    private String source;
+
+    /**
      * 执行计划json
      */
     @Schema(description = "创作计划配置")

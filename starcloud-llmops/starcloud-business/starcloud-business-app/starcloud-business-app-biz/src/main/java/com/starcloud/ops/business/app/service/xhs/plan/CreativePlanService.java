@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
@@ -115,8 +116,18 @@ public interface CreativePlanService {
     void upgrade(CreativePlanUpgradeReqVO request);
 
     /**
+     * 获取应用信息
+     *
+     * @param appUid 应用UID
+     * @param source 来源
+     * @return 应用信息
+     */
+    AppMarketRespVO getAppInformation(String appUid, String source);
+
+    /**
      * 创作计划集合
-     * @return
+     *
+     * @return 创作计划集合
      */
     List<CreativePlanRespVO> list();
 

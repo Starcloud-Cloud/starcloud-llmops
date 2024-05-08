@@ -62,6 +62,11 @@ public interface CreativeConstants {
     String SYSTEM_POSTER_STYLE_CONFIG = "SYSTEM_POSTER_STYLE_CONFIG";
 
     /**
+     * 海报生成模式
+     */
+    String CUSTOM_POSTER_STYLE_CONFIG = "CUSTOM_POSTER_STYLE_CONFIG";
+
+    /**
      * 标题
      */
     String TITLE = "TITLE";

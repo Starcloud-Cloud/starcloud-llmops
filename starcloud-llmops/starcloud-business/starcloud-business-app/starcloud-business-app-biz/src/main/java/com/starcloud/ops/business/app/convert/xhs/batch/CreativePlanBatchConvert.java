@@ -13,11 +13,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * @author nacoyer
+ */
 @Mapper
 public interface CreativePlanBatchConvert {
 
@@ -34,6 +35,7 @@ public interface CreativePlanBatchConvert {
         request.setPlanUid(response.getUid());
         request.setAppUid(response.getAppUid());
         request.setVersion(response.getVersion());
+        request.setSource(response.getSource());
         request.setConfiguration(response.getConfiguration());
         request.setTotalCount(response.getTotalCount());
         return request;
@@ -50,6 +52,7 @@ public interface CreativePlanBatchConvert {
         bath.setPlanUid(request.getPlanUid());
         bath.setAppUid(request.getAppUid());
         bath.setVersion(request.getVersion());
+        bath.setSource(request.getSource());
         bath.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         bath.setTotalCount(request.getTotalCount());
         bath.setFailureCount(0);
@@ -76,6 +79,7 @@ public interface CreativePlanBatchConvert {
         response.setPlanUid(bath.getPlanUid());
         response.setAppUid(bath.getAppUid());
         response.setVersion(bath.getVersion());
+        response.setSource(bath.getSource());
         if (StringUtils.isNotBlank(bath.getConfiguration())) {
             response.setConfiguration(JsonUtils.parseObject(
                     bath.getConfiguration(), CreativePlanConfigurationDTO.class));

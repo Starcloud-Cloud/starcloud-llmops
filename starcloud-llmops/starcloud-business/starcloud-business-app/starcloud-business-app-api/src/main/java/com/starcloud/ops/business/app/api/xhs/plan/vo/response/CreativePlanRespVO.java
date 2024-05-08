@@ -44,6 +44,12 @@ public class CreativePlanRespVO implements java.io.Serializable {
     private Integer version;
 
     /**
+     * 创作计划来源
+     */
+    @Schema(description = "创作计划来源")
+    private String source;
+
+    /**
      * 应用信息
      */
     @Schema(description = "应用信息")

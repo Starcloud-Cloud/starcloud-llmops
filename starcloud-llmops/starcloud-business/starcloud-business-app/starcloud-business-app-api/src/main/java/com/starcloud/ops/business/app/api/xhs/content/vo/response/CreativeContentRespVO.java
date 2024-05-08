@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.api.xhs.content.vo.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
@@ -55,6 +54,12 @@ public class CreativeContentRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作内容类型")
     private String type;
+
+    /**
+     * 创作内容来源
+     */
+    @Schema(description = "创作内容来源")
+    private String source;
 
     /**
      * 执行请求

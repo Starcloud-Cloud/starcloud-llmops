@@ -47,6 +47,13 @@ public class CreativeContentCreateReqVO implements java.io.Serializable {
     private String type;
 
     /**
+     * 创作内容来源
+     */
+    @Schema(description = "创作内容来源")
+    @NotBlank(message = "创作内容来源不能为空")
+    private String source;
+
+    /**
      * 执行参数
      */
     @Schema(description = "执行参数")

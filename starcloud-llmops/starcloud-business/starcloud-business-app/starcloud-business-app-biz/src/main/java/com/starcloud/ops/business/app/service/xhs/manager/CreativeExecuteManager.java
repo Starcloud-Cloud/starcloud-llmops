@@ -29,6 +29,7 @@ import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
@@ -36,6 +37,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
@@ -297,10 +299,16 @@ public class CreativeExecuteManager {
         appExecuteRequest.setConversationUid(latestContent.getConversationUid());
         appExecuteRequest.setExtended(extended);
 
+        AppExecuteRespVO response;
         // 执行应用
-        AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
-        AppExecuteRespVO response = entity.execute(appExecuteRequest);
-        if (!response.getSuccess()) {
+        if (CreativePlanSourceEnum.isApp(latestContent.getSource())) {
+            AppEntity entity = (AppEntity) AppFactory.factory(appExecuteRequest);
+            response = entity.execute(appExecuteRequest);
+        } else {
+            AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
+            response = entity.execute(appExecuteRequest);
+        }
+        if (Objects.isNull(response) || !response.getSuccess()) {
             throw exception(350600110, "创作内容执行失败，错误码：" + response.getResultCode() + ",错误信息：" + response.getResultDesc());
         }
 

@@ -310,10 +310,15 @@ public class RecommendVariableFactory {
         styleConfigVariable.setOrder(3);
         styleConfigVariable.setIsShow(Boolean.TRUE);
 
+        VariableItemRespVO customStyleConfigVariable = RecommendVariableItemFactory.defCustomPosterStyleConfigVariable();
+        customStyleConfigVariable.setOrder(4);
+        customStyleConfigVariable.setIsShow(Boolean.TRUE);
+
         variable.setVariables(Arrays.asList(
                 posterStyleVariable,
                 requirement,
-                styleConfigVariable
+                styleConfigVariable,
+                customStyleConfigVariable
         ));
         return variable;
     }
