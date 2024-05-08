@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.util.PageUtil;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -78,7 +79,11 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativeContentDO::getStatus, query.getStatus());
         wrapper.eq(Objects.nonNull(query.getLiked()), CreativeContentDO::getLiked, query.getLiked());
         wrapper.eq(Objects.nonNull(query.getClaim()), CreativeContentDO::getClaim, query.getClaim());
-        wrapper.orderByAsc(CreativeContentDO::getId);
+        if (BooleanUtils.isTrue(query.getDesc())) {
+            wrapper.orderByDesc(CreativeContentDO::getId);
+        } else {
+            wrapper.orderByAsc(CreativeContentDO::getId);
+        }
         // 执行查询
         return selectPage(page, wrapper);
     }

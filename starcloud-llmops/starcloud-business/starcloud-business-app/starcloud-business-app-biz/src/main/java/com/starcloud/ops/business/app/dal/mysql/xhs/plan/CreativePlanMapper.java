@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.util.PageUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -80,6 +81,6 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         return this.selectPage(page, wrapper);
     }
 
-    List<CreativePlanDTO> list();
+    List<CreativePlanDTO> list(@Param("currentUserId") String currentUserId);
 
 }
