@@ -35,4 +35,11 @@ public class CreativePlanGetQuery implements java.io.Serializable {
     @NotBlank(message = "应用UID为必填项！")
     private String appUid;
 
+    /**
+     * 创作计划来源
+     */
+    @Schema(description = "创作计划来源")
+    @NotBlank(message = "创作计划来源为必填项！")
+    private String source;
+
 }

@@ -10,6 +10,7 @@ import lombok.ToString;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -44,6 +45,13 @@ public class CreativePlanBatchReqVO implements java.io.Serializable {
      */
     @Schema(description = "应用版本号")
     private Integer version;
+
+    /**
+     * 创作计划来源
+     */
+    @Schema(description = "创作计划来源")
+    @NotBlank(message = "创作计划来源不能为空！")
+    private String source;
 
     /**
      * 创作计划详细配置信息

@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
@@ -8,7 +10,15 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -57,4 +67,10 @@ public class CreativeMaterialController {
         return CommonResult.success(materialService.filterMaterial(reqVO));
     }
 
+    @PostMapping("/materialGenerate")
+    @Operation(summary = "素材生成", description = "素材生成")
+    @ApiOperationSupport(order = 60, author = "nacoyer")
+    public CommonResult<Object> materialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
+        return CommonResult.success(materialService.materialGenerate(request));
+    }
 }

@@ -1,25 +1,51 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.material.CreativeMaterialConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.material.CreativeMaterialMapper;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_NOT_EXIST;
@@ -30,6 +56,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
     private CreativeMaterialMapper materialMapper;
+
+    @Resource
+    private AppMarketService appMarketService;
 
     @Override
     public Map<String, Object> metadata() {
@@ -76,11 +105,172 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         materialMapper.insertBatch(materialDOList);
     }
 
+    /**
+     * 素材生成
+     *
+     * @param request 请求
+     */
+    @Override
+    public Object materialGenerate(CreativeMaterialGenerationDTO request) {
+        AppValidate.notEmpty(request.getMaterialList(), "素材列表不能为空");
+        AppValidate.notEmpty(request.getSelectedFieldList(), "选中的字段定义列表不能为空");
+        AppValidate.notBlank(request.getMaterialRequirement(), "素材生成要求不能为空");
+
+        List<AbstractCreativeMaterialDTO> materialList = request.getMaterialList();
+        String jsonSchema = materialFieldToJsonSchema(request.getSelectedFieldList(), Boolean.TRUE);
+        String materialRequirement = request.getMaterialRequirement();
+
+        Map<String, Object> materialMap = new HashMap<>();
+        materialMap.put("MATERIAL_LIST", materialList);
+        materialMap.put("JSON_SCHEMA", jsonSchema);
+        materialMap.put("MATERIAL_REQUIREMENT", materialRequirement);
+
+        // 根据标签查询生成素材的应用信息
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setTags(Arrays.asList("小红书", "Material"));
+        List<AppMarketRespVO> list = appMarketService.list(query);
+        AppValidate.notEmpty(list, "未找到生成素材的应用信息，请联系管理员！");
+
+        // 获取第一个应用信息
+        AppMarketRespVO appMarketResponse = list.get(0);
+        // 获取第一个步骤
+        String stepId = Optional.ofNullable(appMarketResponse.getWorkflowConfig())
+                .map(WorkflowConfigRespVO::getSteps)
+                .map(stepList -> stepList.get(0))
+                .map(WorkflowStepWrapperRespVO::getField)
+                .orElseThrow(() -> new IllegalArgumentException("生成素材的应用信息配置异常！请联系管理员"));
+        appMarketResponse.putStepVariable(stepId, materialMap);
+
+        // 构造请求
+        AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
+        appExecuteRequest.setAppUid(appMarketResponse.getUid());
+        appExecuteRequest.setStepId(stepId);
+        appExecuteRequest.setContinuous(Boolean.TRUE);
+        appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        appExecuteRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appMarketResponse));
+        // 获取应用Entity
+        AppMarketEntity appMarketEntity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
+        // 执行应用
+        AppExecuteRespVO executeResponse = appMarketEntity.execute(appExecuteRequest);
+        if (!executeResponse.getSuccess()) {
+            throw new IllegalArgumentException("生成素材失败：" + executeResponse.getResultDesc());
+        }
+
+        return executeResponse.getResult();
+    }
+
+    public static void main(String[] args) throws JsonProcessingException {
+        List<MaterialFieldConfigDTO> fieldList = new ArrayList<>();
+        MaterialFieldConfigDTO field1 = new MaterialFieldConfigDTO();
+        field1.setFieldName("bookName");
+        field1.setDesc("书名");
+        field1.setType(MaterialFieldTypeEnum.string.getTypeCode());
+        field1.setRequired(true);
+        fieldList.add(field1);
+
+        MaterialFieldConfigDTO field2 = new MaterialFieldConfigDTO();
+        field2.setFieldName("author");
+        field2.setDesc("作者");
+        field2.setType(MaterialFieldTypeEnum.string.getTypeCode());
+        field2.setRequired(true);
+        fieldList.add(field2);
+
+        MaterialFieldConfigDTO field3 = new MaterialFieldConfigDTO();
+        field3.setFieldName("coverUrl");
+        field3.setDesc("封面");
+        field3.setType(MaterialFieldTypeEnum.image.getTypeCode());
+        field3.setRequired(true);
+        fieldList.add(field3);
+
+        MaterialFieldConfigDTO field4 = new MaterialFieldConfigDTO();
+        field4.setFieldName("content");
+        field4.setDesc("内容");
+        field4.setType(MaterialFieldTypeEnum.textBox.getTypeCode());
+        field4.setRequired(true);
+        fieldList.add(field4);
+
+        MaterialFieldConfigDTO field5 = new MaterialFieldConfigDTO();
+        field5.setFieldName("documentUrl");
+        field5.setDesc("文档路径");
+        field5.setType(MaterialFieldTypeEnum.document.getTypeCode());
+        field5.setRequired(true);
+
+        String jsonSchema = materialFieldToJsonSchema(fieldList, Boolean.TRUE);
+        System.out.println(jsonSchema);
+        System.out.println(JsonSchemaUtils.generateJsonSchemaStr(Res.class));
+    }
+
     private CreativeMaterialDO getByUid(String uid) {
         CreativeMaterialDO materialDO = materialMapper.getByUid(uid);
         if (Objects.isNull(materialDO)) {
             throw exception(MATERIAL_NOT_EXIST, uid);
         }
         return materialDO;
+    }
+
+    /**
+     * 素材字段配置转换为 JSON Schema
+     *
+     * @param fieldList 素材字段配置列表
+     * @param isArray   是否为数组
+     * @return JSON Schema 字符串
+     */
+    @SuppressWarnings("all")
+    private static String materialFieldToJsonSchema(List<MaterialFieldConfigDTO> fieldList, Boolean isArray) {
+        if (CollectionUtil.isEmpty(fieldList)) {
+            throw new IllegalArgumentException("素材字段配置列表不能为空！");
+        }
+        // 创建 JSON Schema 对象
+        JsonSchema jsonSchema = JsonSchemaUtils.generateJsonSchema(Object.class);
+        jsonSchema.asObjectSchema().setDescription("素材字段配置");
+        jsonSchema.asObjectSchema().setRequired(true);
+
+        if (isArray) {
+            JsonSchema arraySchema = JsonSchemaUtils.generateJsonSchema(List.class);
+            JsonSchema itemsSchema = JsonSchemaUtils.generateJsonSchema(Object.class);
+            for (MaterialFieldConfigDTO materialField : fieldList) {
+                String type = materialField.getType();
+                // 字符串类型
+                if (MaterialFieldTypeEnum.string.getTypeCode().equals(type) ||
+                        MaterialFieldTypeEnum.image.getTypeCode().equals(type) ||
+                        MaterialFieldTypeEnum.document.getTypeCode().equals(type) ||
+                        MaterialFieldTypeEnum.textBox.getTypeCode().equals(type)) {
+                    JsonSchema propertySchema = JsonSchemaUtils.generateJsonSchema(String.class);
+                    propertySchema.setDescription(materialField.getDesc());
+                    propertySchema.setRequired(materialField.isRequired());
+                    itemsSchema.asObjectSchema().putProperty(materialField.getFieldName(), propertySchema);
+                } else {
+                    throw new IllegalArgumentException("不支持的素材字段类型：" + type);
+                }
+            }
+            arraySchema.asArraySchema().setItemsSchema(itemsSchema);
+            jsonSchema.asObjectSchema().putProperty("materialList", arraySchema);
+        } else {
+            for (MaterialFieldConfigDTO materialField : fieldList) {
+                String type = materialField.getType();
+                // 字符串类型
+                if (MaterialFieldTypeEnum.string.getTypeCode().equals(type) ||
+                        MaterialFieldTypeEnum.image.getTypeCode().equals(type) ||
+                        MaterialFieldTypeEnum.document.getTypeCode().equals(type) ||
+                        MaterialFieldTypeEnum.textBox.getTypeCode().equals(type)) {
+                    JsonSchema propertySchema = JsonSchemaUtils.generateJsonSchema(String.class);
+                    propertySchema.setDescription(materialField.getDesc());
+                    propertySchema.setRequired(materialField.isRequired());
+                    jsonSchema.asObjectSchema().putProperty(materialField.getFieldName(), propertySchema);
+                } else {
+                    throw new IllegalArgumentException("不支持的素材字段类型：" + type);
+                }
+            }
+        }
+        // 转换为 JSON 字符串
+        return JsonUtils.toJsonPrettyString(jsonSchema);
+    }
+
+    @Data
+    class Res {
+
+        private List<BookListCreativeMaterialDTO> materialList;
+
     }
 }

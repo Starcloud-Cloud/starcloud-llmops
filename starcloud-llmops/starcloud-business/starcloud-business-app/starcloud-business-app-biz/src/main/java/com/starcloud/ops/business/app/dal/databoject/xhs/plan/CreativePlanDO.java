@@ -49,6 +49,12 @@ public class CreativePlanDO extends TenantBaseDO {
     private Integer version;
 
     /**
+     * 创作计划来源
+     */
+    @TableField("source")
+    private String source;
+
+    /**
      * 应用信息
      */
     @TableField("configuration")

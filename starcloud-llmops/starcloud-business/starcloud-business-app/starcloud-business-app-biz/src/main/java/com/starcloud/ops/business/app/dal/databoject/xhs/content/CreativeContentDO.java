@@ -64,6 +64,12 @@ public class CreativeContentDO extends TenantBaseDO {
     private String type;
 
     /**
+     * 内容来源
+     */
+    @TableField("source")
+    private String source;
+
+    /**
      * 执行请求参数
      */
     @TableField("execute_param")
