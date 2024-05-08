@@ -122,8 +122,8 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
 
             StringBuilder signTradeOrderDetail = new StringBuilder();
 
-            String firstSignTime = null;
-            String nextPayData = null;
+            String firstSignTime = "null";
+            String nextPayData = "null";
             if (Objects.nonNull(tradeOrderDO.getTradeSignId())) {
                 signTag = true;
                 TradeSignDO tradeSignDO = tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
