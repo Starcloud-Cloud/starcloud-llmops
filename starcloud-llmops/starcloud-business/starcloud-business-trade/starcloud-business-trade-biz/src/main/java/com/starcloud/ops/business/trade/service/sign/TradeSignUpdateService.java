@@ -39,8 +39,9 @@ public interface TradeSignUpdateService {
     /**
      * 更新交易订单已支付
      *
-     * @param id         交易订单编号
-     * @param payOrderId 支付订单编号
+     * @param id        交易订单编号
+     * @param paySignId 支付订单编号
+     * @param closeSign 支付订单编号
      */
     void updateSignStatus(Long id, Long paySignId, Boolean closeSign);
 

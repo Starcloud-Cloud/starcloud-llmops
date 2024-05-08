@@ -294,16 +294,13 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     public int orderAutoNotify(Long timeNum) {
         // 查询指定时间内的数据
         List<TradeOrderDO> tradeOrderDOS = tradeOrderMapper.queryTradeOrdersByTime(timeNum);
-        String content;
 
         if (tradeOrderDOS.isEmpty()) {
            return 0;
         }
         tradeOrderDOS.forEach(tradeOrderDO -> {
             List<TradeOrderItemDO> tradeOrderItemDOS = tradeOrderItemMapper.selectListByOrderId(tradeOrderDO.getId());
-            tradeOrderHandlers.forEach(handler -> {
-                handler.afterPayOrderLast(tradeOrderDO, tradeOrderItemDOS);
-            });
+            tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(tradeOrderDO, tradeOrderItemDOS));
         });
         return tradeOrderDOS.size();
     }
