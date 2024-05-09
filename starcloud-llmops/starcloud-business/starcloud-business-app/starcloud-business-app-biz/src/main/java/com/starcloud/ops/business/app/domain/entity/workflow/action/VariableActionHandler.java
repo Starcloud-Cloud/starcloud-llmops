@@ -1,20 +1,26 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -50,16 +56,6 @@ public class VariableActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    protected Integer getCostPoints() {
-        return 0;
-    }
-
-    /**
      * 执行具体的步骤
      *
      * @return 执行结果
@@ -68,13 +64,20 @@ public class VariableActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
         log.info("VariableActionHandler doExecute");
 
+        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+
         ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(true);
+        actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
-        actionResponse.setIsShow(true);
+        actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
+        actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage("variable");
-        actionResponse.setAnswer("variable");
-        actionResponse.setOutput(JsonData.of("variable"));
+
+
+        actionResponse.setAnswer(JsonUtils.toJsonPrettyString(params));
+        JsonSchema jsonSchema = this.getInVariableJsonSchema(this.getAppContext().getStepWrapper());
+        actionResponse.setOutput(JsonData.of(params, jsonSchema));
+
         actionResponse.setMessageTokens(0L);
         actionResponse.setMessageUnitPrice(new BigDecimal("0"));
         actionResponse.setAnswerTokens(0L);
@@ -82,9 +85,28 @@ public class VariableActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(0L);
         actionResponse.setTotalPrice(new BigDecimal("0"));
         actionResponse.setStepConfig("{}");
-        actionResponse.setCostPoints(this.getCostPoints());
+        actionResponse.setAiModel(null);
+        actionResponse.setCostPoints(0);
 
         log.info("VariableActionHandler doExecute end");
         return actionResponse;
     }
+
+    /**
+     * 具体handler的入参定义
+     *
+     * @return
+     */
+    @Override
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        ObjectSchema objectSchema = workflowStepWrapper.getVariable().getJsonSchema();
+
+        objectSchema.setTitle(workflowStepWrapper.getStepCode());
+        objectSchema.setDescription(workflowStepWrapper.getDescription());
+        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
+
+        return objectSchema;
+    }
+
 }

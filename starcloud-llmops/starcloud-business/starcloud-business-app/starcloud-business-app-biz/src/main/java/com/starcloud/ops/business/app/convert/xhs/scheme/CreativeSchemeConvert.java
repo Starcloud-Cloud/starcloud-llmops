@@ -2,9 +2,8 @@ package com.starcloud.ops.business.app.convert.xhs.scheme;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
@@ -43,14 +42,17 @@ public interface CreativeSchemeConvert {
         creativeScheme.setCategory(request.getCategory());
         creativeScheme.setTags(StringUtil.toString(request.getTags()));
         creativeScheme.setDescription(request.getDescription());
-        creativeScheme.setMode(request.getMode());
+        // 创作计划配置信息
         if (request.getConfiguration() != null) {
-            creativeScheme.setConfiguration(JSONUtil.toJsonStr(request.getConfiguration()));
+            creativeScheme.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         }
+        // 创作计划使用图片
         if (CollectionUtil.isNotEmpty(request.getUseImages())) {
-            creativeScheme.setUseImages(JSONUtil.toJsonStr(request.getUseImages()));
+            creativeScheme.setUseImages(JsonUtils.toJsonString(request.getUseImages()));
         }
-        creativeScheme.setCreateTime(LocalDateTime.now());
+
+        // 创作计划物料
+        creativeScheme.setMateriel(request.getMateriel());
         creativeScheme.setUpdateTime(LocalDateTime.now());
         creativeScheme.setDeleted(Boolean.FALSE);
         return creativeScheme;
@@ -76,26 +78,31 @@ public interface CreativeSchemeConvert {
      */
     default CreativeSchemeRespVO convertResponse(CreativeSchemeDO creativeScheme) {
         CreativeSchemeRespVO creativeSchemeResponse = new CreativeSchemeRespVO();
+
         creativeSchemeResponse.setUid(creativeScheme.getUid());
         creativeSchemeResponse.setName(creativeScheme.getName());
         creativeSchemeResponse.setType(creativeScheme.getType());
         creativeSchemeResponse.setCategory(creativeScheme.getCategory());
         creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
-        creativeSchemeResponse.setMode(creativeScheme.getMode());
 
+        // 创作计划配置信息
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
-            creativeSchemeResponse.setConfiguration(JsonUtils.parseObject(creativeScheme.getConfiguration(), CreativeSchemeConfigDTO.class));
+            creativeSchemeResponse.setConfiguration(JsonUtils.parseObject(creativeScheme.getConfiguration(), CreativeSchemeConfigurationDTO.class));
         }
+
+        // 创作计划使用图片
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
-            creativeSchemeResponse.setUseImages(JSONUtil.toList(creativeScheme.getUseImages(), String.class));
+            creativeSchemeResponse.setUseImages(JsonUtils.parseArray(creativeScheme.getUseImages(), String.class));
         }
+
+        // 创作计划物料
+        creativeSchemeResponse.setMateriel(creativeScheme.getMateriel());
 
         creativeSchemeResponse.setCreator(creativeScheme.getCreator());
         creativeSchemeResponse.setUpdater(creativeScheme.getUpdater());
         creativeSchemeResponse.setCreateTime(creativeScheme.getCreateTime());
         creativeSchemeResponse.setUpdateTime(creativeScheme.getUpdateTime());
-        creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         return creativeSchemeResponse;
     }
 

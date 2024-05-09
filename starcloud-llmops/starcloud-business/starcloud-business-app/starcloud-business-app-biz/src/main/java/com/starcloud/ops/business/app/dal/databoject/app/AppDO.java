@@ -130,7 +130,16 @@ public class AppDO extends TenantBaseDO {
     @TableField("last_publish")
     private LocalDateTime lastPublish;
 
+    /**
+     * 示例
+     */
     @TableField("example")
     private String example;
+
+    /**
+     * 演示
+     */
+    @TableField("demo")
+    private String demo;
 
 }

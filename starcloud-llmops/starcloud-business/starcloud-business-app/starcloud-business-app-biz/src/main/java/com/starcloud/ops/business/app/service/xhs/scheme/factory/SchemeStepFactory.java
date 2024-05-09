@@ -4,17 +4,19 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.AssembleSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.CustomSchemeStepEntity;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.VariableSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.MaterialSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.ParagraphSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.PosterSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.TitleSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.VariableSchemeStepEntity;
 
 import java.util.Optional;
 
@@ -57,6 +59,11 @@ public class SchemeStepFactory {
             PosterSchemeStepEntity posterSchemeStep = new PosterSchemeStepEntity();
             posterSchemeStep.transformSchemeStep(stepWrapper);
             return posterSchemeStep;
+        }
+        if (MaterialActionHandler.class.getSimpleName().equals(handler)) {
+            MaterialSchemeStepEntity materialSchemeStep = new MaterialSchemeStepEntity();
+            materialSchemeStep.transformSchemeStep(stepWrapper);
+            return materialSchemeStep;
         }
         throw new RuntimeException("步骤流程不支持");
     }

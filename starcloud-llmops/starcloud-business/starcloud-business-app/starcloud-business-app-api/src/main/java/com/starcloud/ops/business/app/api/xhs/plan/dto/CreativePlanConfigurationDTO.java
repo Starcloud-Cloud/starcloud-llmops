@@ -1,7 +1,10 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto;
 
-import cn.hutool.core.lang.Assert;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import cn.hutool.core.collection.CollectionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +13,7 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -30,27 +34,35 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     /**
      * 创作方案
      */
-    @Schema(description = "创作方案")
-    @NotBlank(message = "创作方案不能为空！")
-    private String schemeUid;
+    @Schema(description = "应用信息")
+    @NotNull(message = "应用信息！")
+    private AppMarketRespVO appInformation;
 
     /**
-     * 上传图片地址列表
+     * 资料列表
      */
-    @Schema(description = "上传图片地址列表")
-    private List<String> imageUrlList;
+    @Schema(description = "素材列表")
+    private List<AbstractCreativeMaterialDTO> materialList;
 
     /**
-     * 变量列表
+     * 图片风格列表
      */
-    @Schema(description = "变量列表")
-    private List<VariableItemRespVO> variableList;
+    @Schema(description = "图片风格模板")
+    private List<PosterStyleDTO> imageStyleList;
 
     /**
      * 校验配置信息
      */
     public void validate() {
-        Assert.notBlank(this.schemeUid, "创作方案不能为空！");
+        AppValidate.notNull(appInformation, "应用信息不能为空！");
+        // 校验素材
+        if (CollectionUtil.isNotEmpty(materialList)) {
+            materialList.forEach(AbstractCreativeMaterialDTO::valid);
+        }
+        // 校验海报
+        if (CollectionUtil.isNotEmpty(imageStyleList)) {
+            imageStyleList.forEach(PosterStyleDTO::validate);
+        }
     }
 
 }

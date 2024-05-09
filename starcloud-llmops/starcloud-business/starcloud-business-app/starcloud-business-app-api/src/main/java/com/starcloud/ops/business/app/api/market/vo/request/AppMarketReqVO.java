@@ -44,6 +44,12 @@ public class AppMarketReqVO implements Serializable {
     private String type;
 
     /**
+     * 资料类型
+     */
+    @Schema(description = "资料类型")
+    private String materialType;
+
+    /**
      * 应用模型
      */
     @Schema(description = "应用模型", requiredMode = Schema.RequiredMode.REQUIRED)

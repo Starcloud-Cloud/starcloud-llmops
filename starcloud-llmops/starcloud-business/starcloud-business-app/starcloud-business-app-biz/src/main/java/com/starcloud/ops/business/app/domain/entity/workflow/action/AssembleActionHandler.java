@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -9,6 +9,9 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -16,7 +19,10 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,17 +60,19 @@ public class AssembleActionHandler extends BaseActionHandler {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
+
     /**
-     * 获取当前handler消耗的权益点数
+     * 暂时不返回任何结构
      *
-     * @return 权益点数
+     * @return
      */
     @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        return 0;
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        return null;
+
     }
+
 
     /**
      * 执行OpenApi生成的步骤
@@ -79,11 +87,27 @@ public class AssembleActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute() {
         // 获取所有上游信息
         final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        // 获取到参考文案
-        String assemble = (String) params.get(CreativeConstants.REQUIREMENT);
+        // 获取到参考文案标题
+        String title = String.valueOf(params.get(CreativeConstants.TITLE));
+        // 获取到参考文案内容
+        String content = String.valueOf(params.get(CreativeConstants.CONTENT));
+        // 获取到标签
+        String tag = String.valueOf(params.get(CreativeConstants.TAG_LIST));
+        if (StringUtils.isBlank(tag) || "null".equals(tag)) {
+            tag = "[]";
+        }
+        List<String> tagList = JsonUtils.parseArray(tag, String.class);
+
+        // 组装文案内容
+        CopyWritingContent copyWriting = new CopyWritingContent();
+        copyWriting.setTitle(title);
+        copyWriting.setContent(content);
+        copyWriting.setTagList(tagList);
+
         // 转换响应结果
-        ActionResponse response = convert(assemble);
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        ActionResponse response = convert(copyWriting);
+
+        log.info("AssembleActionHandler 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 
@@ -96,15 +120,26 @@ public class AssembleActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(String assemble) {
+    private ActionResponse convert(CopyWritingContent copyWriting) {
+
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
-        actionResponse.setAnswer(assemble);
-        actionResponse.setOutput(JsonData.of(assemble));
-        actionResponse.setMessage(JSONUtil.toJsonStr(this.getAppContext().getContextVariablesValues()));
+
+        actionResponse.setAnswer(JsonUtils.toJsonPrettyString(copyWriting));
+        actionResponse.setOutput(JsonData.of(copyWriting, CopyWritingContent.class));
+
+        actionResponse.setMessage(JsonUtils.toJsonString(this.getAppContext().getContextVariablesValues()));
         actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
+        actionResponse.setMessageTokens(0L);
+        actionResponse.setMessageUnitPrice(new BigDecimal("0"));
+        actionResponse.setAnswerTokens(0L);
+        actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
+        actionResponse.setTotalTokens(0L);
+        actionResponse.setTotalPrice(new BigDecimal("0"));
+        actionResponse.setAiModel(null);
+        // 组装消耗为 0
+        actionResponse.setCostPoints(0);
         return actionResponse;
     }
-
 
 }

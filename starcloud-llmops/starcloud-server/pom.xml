@@ -17,6 +17,11 @@
     <dependencies>
 
         <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-spring-boot-starter-biz-error-code</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-share</artifactId>
             <version>${starcloud.revision}</version>

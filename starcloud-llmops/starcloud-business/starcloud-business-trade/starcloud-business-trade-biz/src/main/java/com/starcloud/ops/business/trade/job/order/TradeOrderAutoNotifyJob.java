@@ -31,7 +31,7 @@ public class TradeOrderAutoNotifyJob implements JobHandler {
         TenantUtils.execute(2L, () -> count.set(queryService.orderAutoNotify(TIME_NUM))
         );
 
-        return String.format("过期订单 %s 个", count);
+        return String.format("三天内有效订单为 %s 个", count);
     }
 
 }

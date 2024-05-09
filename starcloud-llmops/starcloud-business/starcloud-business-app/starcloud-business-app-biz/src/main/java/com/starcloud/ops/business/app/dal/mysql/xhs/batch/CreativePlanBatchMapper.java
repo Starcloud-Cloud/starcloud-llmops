@@ -1,34 +1,71 @@
 package com.starcloud.ops.business.app.dal.mysql.xhs.batch;
 
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchPageReqVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchListReqVO;
+import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
+import com.starcloud.ops.business.app.util.PageUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 @Mapper
 public interface CreativePlanBatchMapper extends BaseMapperX<CreativePlanBatchDO> {
 
-    default CreativePlanBatchDO selectBatch(String planUid, Long batch) {
-        LambdaQueryWrapper<CreativePlanBatchDO> wrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class)
-                .eq(CreativePlanBatchDO::getPlanUid, planUid)
-                .eq(CreativePlanBatchDO::getBatch, batch);
+    /**
+     * 根据UID查询创作计划批量任务
+     *
+     * @param uid 批次UID
+     * @return 创作计划批量任务
+     */
+    default CreativePlanBatchDO get(String uid) {
+        LambdaQueryWrapper<CreativePlanBatchDO> wrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+        wrapper.eq(CreativePlanBatchDO::getUid, uid);
         return selectOne(wrapper);
     }
 
-    default PageResult<CreativePlanBatchDO> page(CreativePlanBatchPageReqVO pageReqVO) {
-        LambdaQueryWrapper<CreativePlanBatchDO> wrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class)
-                .eq(CreativePlanBatchDO::getPlanUid, pageReqVO.getPlanUid())
-                .orderByDesc(CreativePlanBatchDO::getBatch)
-                ;
-        return selectPage(pageReqVO,wrapper);
+    /**
+     * 根据创作计划UID查询创作计划批量任务
+     *
+     * @param query 查询条件
+     * @return 创作计划批次
+     */
+    default List<CreativePlanBatchDO> list(CreativePlanBatchListReqVO query) {
+        LambdaQueryWrapper<CreativePlanBatchDO> wrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+        wrapper.eq(StringUtils.isNotBlank(query.getPlanUid()), CreativePlanBatchDO::getPlanUid, query.getPlanUid());
+        return selectList(wrapper);
     }
 
-    List<CreativePlanBatchDO> latestBatch(@Param("planUidList") List<String> planUidList);
+    /**
+     * 分页查询创作计划批量任务
+     *
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    default IPage<CreativePlanBatchDO> page(CreativePlanBatchPageReqVO query) {
+        Page<CreativePlanBatchDO> page = PageUtil.page(query);
+        LambdaQueryWrapper<CreativePlanBatchDO> wrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+        wrapper.eq(CreativePlanBatchDO::getPlanUid, query.getPlanUid());
+        wrapper.orderByDesc(CreativePlanBatchDO::getId);
+        return this.selectPage(page, wrapper);
+    }
+
+    /**
+     * 根据创作计划UID删除创作计划批量任务
+     *
+     * @param planUid 创作计划UID
+     */
+    default void deleteByPlanUid(String planUid) {
+        LambdaUpdateWrapper<CreativePlanBatchDO> updateWrapper = Wrappers.lambdaUpdate(CreativePlanBatchDO.class);
+        updateWrapper.eq(CreativePlanBatchDO::getPlanUid, planUid);
+        this.delete(updateWrapper);
+    }
+
 }

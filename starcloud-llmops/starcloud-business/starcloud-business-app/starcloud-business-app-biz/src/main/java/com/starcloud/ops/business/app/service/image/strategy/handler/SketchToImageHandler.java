@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
@@ -64,7 +63,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
      */
     @Override
     public void handleRequest(SketchToImageRequest request) {
-        log.info("草图生成图片：请求参数：{}", JSONUtil.toJsonStr(request));
+        log.info("草图生成图片：请求参数：{}", JsonUtils.toJsonString(request));
     }
 
     /**

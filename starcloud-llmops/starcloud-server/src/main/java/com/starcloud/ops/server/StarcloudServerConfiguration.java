@@ -1,9 +1,11 @@
 package com.starcloud.ops.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starcloud.ops.business.core.config.*;
 import com.starcloud.ops.server.config.StarcloudServerProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -25,5 +27,13 @@ public class StarcloudServerConfiguration {
     @PostConstruct
     public void init() {
         log.info("init StarCloud-LLMops ...... ");
+    }
+
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        // 1.1 创建 SimpleModule 对象
+        return new ObjectMapper();
+
     }
 }

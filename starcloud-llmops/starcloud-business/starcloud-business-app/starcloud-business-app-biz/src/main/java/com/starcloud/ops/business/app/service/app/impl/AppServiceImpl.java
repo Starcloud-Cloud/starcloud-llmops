@@ -1,15 +1,19 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -23,7 +27,13 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -31,7 +41,6 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -42,6 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -82,9 +92,21 @@ public class AppServiceImpl implements AppService {
         // 语言列表
         metadata.put("language", LanguageEnum.languageList());
         // AI 模型
-        metadata.put("aiModel", AppUtils.aiModelList());
+        metadata.put("llmModelType", AppUtils.aiModelList());
         // 应用类型
-        metadata.put("type", AppTypeEnum.options(UserUtils.isAdmin()));
+        metadata.put("appType", AppTypeEnum.options(UserUtils.isAdmin()));
+        // 素材类型
+        metadata.put("materialType", MaterialTypeEnum.referOptions());
+        // 变量分组
+        metadata.put("variableGroup", AppVariableGroupEnum.options());
+        // 变量类型
+        metadata.put("variableType", AppVariableTypeEnum.options());
+        // 变量样式
+        metadata.put("variableStyle", AppVariableStyleEnum.options());
+        // 返回类型
+        metadata.put("responseType", AppStepResponseTypeEnum.options());
+        // 返回样式
+        metadata.put("responseStyle", AppStepResponseStyleEnum.options());
         return metadata;
     }
 
@@ -211,12 +233,40 @@ public class AppServiceImpl implements AppService {
      * @param request 模版应用
      */
     @Override
-    public AppRespVO copy(AppReqVO request) {
-        handlerAndValidateRequest(request);
-        request.setName(request.getName() + " - Copy");
-        AppEntity appEntity = AppConvert.INSTANCE.convert(request);
+    public AppRespVO copy(UidRequest request) {
+
+        String uid = request.getUid();
+        AppValidate.notBlank(uid, ErrorCodeConstants.APP_UID_REQUIRED);
+
+        AppDO app = appMapper.get(uid, Boolean.FALSE);
+        AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
+        // 转换应用信息
+        AppEntity appEntity = (AppEntity) AppConvert.INSTANCE.convert(app, Boolean.FALSE);
+        // 新的UID
+        appEntity.setUid(IdUtil.fastSimpleUUID());
+        // 新的名称
+        appEntity.setName(getCopyName(appEntity.getName()));
+        appEntity.setCreator(null);
+        appEntity.setUpdater(null);
+        appEntity.setCreateTime(LocalDateTime.now());
+        appEntity.setUpdateTime(LocalDateTime.now());
+        // 插入数据库
         appEntity.insert();
         return AppConvert.INSTANCE.convertResponse(appEntity);
+    }
+
+    /**
+     * 生成一个复制名称的私有方法
+     *
+     * @param name 原始名称
+     * @return 复制名称
+     */
+    private String getCopyName(String name) {
+        String copyName = name + "-Copy";
+        if (!appMapper.duplicateName(copyName)) {
+            return copyName;
+        }
+        return getCopyName(copyName);
     }
 
     /**
@@ -315,7 +365,8 @@ public class AppServiceImpl implements AppService {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
             }
             AppCategoryVO category = categoryOptional.get();
-            if (AppConstants.ROOT.equals(category.getParentCode())) {
+            Long tenantId = TenantContextHolder.getRequiredTenantId();
+            if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
             }
             if (StringUtils.isBlank(request.getIcon())) {

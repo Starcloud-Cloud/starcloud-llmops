@@ -1,19 +1,38 @@
 package com.starcloud.ops.business.app.powerjob.base;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.ToString;
 
 @Builder
 @Data
 @ToString
-@NoArgsConstructor
 @AllArgsConstructor
 public class BaseTaskResult {
 
+    /**
+     * key
+     */
     private String key;
+
+    /**
+     * 是否成功
+     */
     private boolean success = false;
+
+    /**
+     * 消息
+     */
     private String msg;
+
+    /**
+     * 异常
+     */
     private Throwable throwable;
 
+    public BaseTaskResult() {
+    }
 
     public BaseTaskResult(String key, boolean success) {
         this.key = key;

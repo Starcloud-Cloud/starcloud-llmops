@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.action;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -62,6 +63,12 @@ public class ActionResponseRespVO implements Serializable {
     private Boolean isShow;
 
     /**
+     * 是否只读
+     */
+    @Schema(description = "是否只读")
+    private Boolean readOnly = Boolean.FALSE;
+
+    /**
      * 请求数据
      */
     @Schema(description = "请求数据")
@@ -72,6 +79,12 @@ public class ActionResponseRespVO implements Serializable {
      */
     @Schema(description = "响应数据")
     private String answer;
+
+    /**
+     * 返回数据
+     */
+    @Schema(description = "返回数据")
+    private JsonDataVO output;
 
     /**
      * 请求 token 使用

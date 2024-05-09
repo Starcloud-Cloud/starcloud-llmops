@@ -39,6 +39,7 @@ public class ActionEntity extends BaseActionEntity {
         return ObjectUtil.isNotEmpty(this.getResponse()) ? ObjectUtil.isNotEmpty(this.getResponse().getOutput()) ? this.getResponse().getOutput().getData() : null : null;
     }
 
+
     /**
      * Action 校验
      */

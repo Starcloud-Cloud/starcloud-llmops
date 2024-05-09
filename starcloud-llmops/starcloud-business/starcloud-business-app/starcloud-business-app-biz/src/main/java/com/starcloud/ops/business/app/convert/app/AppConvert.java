@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.convert.app;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
@@ -90,6 +90,8 @@ public interface AppConvert {
         app.setImages(AppUtils.join(appEntity.getImages()));
         app.setIcon(appEntity.getIcon());
         app.setDescription(appEntity.getDescription());
+        app.setExample(appEntity.getExample());
+        app.setDemo(appEntity.getDemo());
         app.setPublishUid(appEntity.getPublishUid());
         app.setInstallUid(appEntity.getInstallUid());
         app.setLastPublish(appEntity.getLastPublish());
@@ -100,17 +102,17 @@ public interface AppConvert {
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             WorkflowConfigEntity config = appEntity.getWorkflowConfig();
             if (Objects.nonNull(config)) {
-                app.setConfig(JSONUtil.toJsonStr(config));
+                app.setConfig(JsonUtils.toJsonString(config));
             }
         } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
             ChatConfigEntity config = appEntity.getChatConfig();
             if (Objects.nonNull(config)) {
-                app.setConfig(JSONUtil.toJsonStr(config));
+                app.setConfig(JsonUtils.toJsonString(config));
             }
         } else if (AppModelEnum.IMAGE.name().equals(appEntity.getModel())) {
             ImageConfigEntity config = appEntity.getImageConfig();
             if (Objects.nonNull(config)) {
-                app.setConfig(JSONUtil.toJsonStr(config));
+                app.setConfig(JsonUtils.toJsonString(config));
             }
         }
         return app;
@@ -158,6 +160,8 @@ public interface AppConvert {
         appEntity.setImages(AppUtils.split(app.getImages()));
         appEntity.setIcon(app.getIcon());
         appEntity.setDescription(app.getDescription());
+        appEntity.setExample(app.getExample());
+        appEntity.setDemo(app.getDemo());
         appEntity.setPublishUid(app.getPublishUid());
         appEntity.setInstallUid(app.getInstallUid());
         appEntity.setLastPublish(app.getLastPublish());
@@ -170,14 +174,14 @@ public interface AppConvert {
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appEntity.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigEntity.class));
+                appEntity.setWorkflowConfig(JsonUtils.parseObject(app.getConfig(), WorkflowConfigEntity.class));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
 
-                appEntity.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigEntity.class));
+                appEntity.setChatConfig(JsonUtils.parseObject(app.getConfig(), ChatConfigEntity.class));
                 appEntity.getChatConfig().init();
 
             } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
-                appEntity.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigEntity.class));
+                appEntity.setImageConfig(JsonUtils.parseObject(app.getConfig(), ImageConfigEntity.class));
             }
         }
         return appEntity;
@@ -198,6 +202,8 @@ public interface AppConvert {
         appEntity.setImages(respVO.getImages());
         appEntity.setIcon(respVO.getIcon());
         appEntity.setDescription(respVO.getDescription());
+        appEntity.setExample(respVO.getExample());
+        appEntity.setDemo(respVO.getDemo());
         appEntity.setPublishUid(respVO.getPublishUid());
         appEntity.setInstallUid(respVO.getInstallUid());
         appEntity.setLastPublish(respVO.getLastPublish());
@@ -250,6 +256,8 @@ public interface AppConvert {
         appResponse.setImages(AppUtils.split(app.getImages()));
         appResponse.setIcon(app.getIcon());
         appResponse.setDescription(app.getDescription());
+        appResponse.setExample(app.getExample());
+        appResponse.setDemo(app.getDemo());
         appResponse.setPublishUid(app.getPublishUid());
         appResponse.setInstallUid(app.getInstallUid());
         appResponse.setCreator(app.getCreator());
@@ -265,12 +273,12 @@ public interface AppConvert {
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-                appResponse.setWorkflowConfig(JSONUtil.toBean(app.getConfig(), WorkflowConfigRespVO.class));
+                appResponse.setWorkflowConfig(JsonUtils.parseObject(app.getConfig(), WorkflowConfigRespVO.class));
                 appResponse.setActionIcons(buildActionIcons(appResponse.getWorkflowConfig()));
             } else if (AppModelEnum.CHAT.name().equals(app.getModel())) {
-                appResponse.setChatConfig(JSONUtil.toBean(app.getConfig(), ChatConfigRespVO.class));
+                appResponse.setChatConfig(JsonUtils.parseObject(app.getConfig(), ChatConfigRespVO.class));
             } else if (AppModelEnum.IMAGE.name().equals(app.getModel())) {
-                appResponse.setImageConfig(JSONUtil.toBean(app.getConfig(), ImageConfigRespVO.class));
+                appResponse.setImageConfig(JsonUtils.parseObject(app.getConfig(), ImageConfigRespVO.class));
             }
         }
 
@@ -335,6 +343,8 @@ public interface AppConvert {
         appRespVO.setImages(appEntity.getImages());
         appRespVO.setIcon(appEntity.getIcon());
         appRespVO.setDescription(appEntity.getDescription());
+        appRespVO.setExample(appEntity.getExample());
+        appRespVO.setDemo(appEntity.getDemo());
         appRespVO.setPublishUid(appEntity.getPublishUid());
         appRespVO.setInstallUid(appEntity.getInstallUid());
         appRespVO.setCreator(appEntity.getCreator());
@@ -350,17 +360,17 @@ public interface AppConvert {
         if (AppModelEnum.COMPLETION.name().equals(appEntity.getModel())) {
             WorkflowConfigEntity config = appEntity.getWorkflowConfig();
             if (Objects.nonNull(config)) {
-                appRespVO.setWorkflowConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getWorkflowConfig()), WorkflowConfigRespVO.class));
+                appRespVO.setWorkflowConfig(JsonUtils.parseObject(JsonUtils.toJsonString(appEntity.getWorkflowConfig()), WorkflowConfigRespVO.class));
             }
         } else if (AppModelEnum.CHAT.name().equals(appEntity.getModel())) {
             ChatConfigEntity config = appEntity.getChatConfig();
             if (Objects.nonNull(config)) {
-                appRespVO.setChatConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getChatConfig()), ChatConfigRespVO.class));
+                appRespVO.setChatConfig(JsonUtils.parseObject(JsonUtils.toJsonString(appEntity.getChatConfig()), ChatConfigRespVO.class));
             }
         } else if (AppModelEnum.IMAGE.name().equals(appEntity.getModel())) {
             ImageConfigEntity config = appEntity.getImageConfig();
             if (Objects.nonNull(config)) {
-                appRespVO.setImageConfig(JSONUtil.toBean(JSONUtil.toJsonStr(appEntity.getImageConfig()), ImageConfigRespVO.class));
+                appRespVO.setImageConfig(JsonUtils.parseObject(JsonUtils.toJsonString(appEntity.getImageConfig()), ImageConfigRespVO.class));
             }
         }
 

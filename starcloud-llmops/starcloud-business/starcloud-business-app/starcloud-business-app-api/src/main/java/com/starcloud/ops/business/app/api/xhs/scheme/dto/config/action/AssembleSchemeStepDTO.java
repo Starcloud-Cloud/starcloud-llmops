@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
-import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.api.AppValidate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,19 +21,24 @@ public class AssembleSchemeStepDTO extends BaseSchemeStepDTO {
     private static final long serialVersionUID = 4820280880902279978L;
 
     /**
+     * 创作方案步骤标题
+     */
+    @Schema(description = "标题")
+    private String title;
+
+    /**
      * 创作方案步骤要求
      */
-    @Schema(description = "创作方案步骤要求")
-    private String requirement;
+    @Schema(description = "内容")
+    private String content;
 
     /**
      * 校验
      */
     @Override
     public void validate() {
-        if (StrUtil.isBlank(requirement)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "文案拼接配置不能为空！"));
-        }
+        AppValidate.notBlank(title, "缺少必填项：内容拼接步骤标题不能为空！");
+        AppValidate.notBlank(content, "缺少必填项：内容拼接步骤内容不能为空！");
     }
 
 }

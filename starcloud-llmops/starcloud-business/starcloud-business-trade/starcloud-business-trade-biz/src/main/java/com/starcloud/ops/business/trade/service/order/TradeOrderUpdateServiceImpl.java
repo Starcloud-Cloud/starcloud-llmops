@@ -59,6 +59,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -383,13 +385,9 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
 
-        // 3. 执行 TradeOrderHandler 的后置处理
+        // 3. 执行 TradeOrderHandler 的后置处理 权益发放
         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
-        tradeOrderHandlers.forEach(handler -> {
-            order.setPayChannelCode(payOrder.getChannelCode());
-            handler.afterPayOrder(order, orderItems);
-            handler.afterPayOrderLast(order, orderItems);
-        });
+        tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
 
         // 4. 记录订单日志
         Integer afterStatus = TradeOrderStatusEnum.UNDELIVERED.getStatus();
@@ -399,6 +397,14 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
 
+        // 当前数据状态 需要在事务提交后获取
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                order.setPayChannelCode(payOrder.getChannelCode());
+                tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(order, orderItems));
+            }
+        });
 
     }
 

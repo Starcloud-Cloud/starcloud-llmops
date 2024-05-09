@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
@@ -19,12 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -323,6 +323,28 @@ public class ImageUploadUtils {
         // log.info("处理后的图片上传成功：图片信息: {}", JSONUtil.toJsonStr(uploadUrl));
         String base64 = Base64.getEncoder().encodeToString(bytes);
         return ImageUtils.handlerBase64Image(base64);
+    }
+
+    public static String dumpToOss(String xhsUrl, String imageName,String relativePath) {
+        InputStream inputStream = null;
+        try {
+            URL url = new URL(xhsUrl);
+            URLConnection urlConnection = url.openConnection();
+            urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+            inputStream = urlConnection.getInputStream();
+            return ImageUploadUtils.uploadImage(imageName, relativePath, IoUtil.readBytes(inputStream)).getUrl();
+        } catch (Exception e) {
+            log.info("dump to oss error", e);
+        } finally {
+            if (Objects.nonNull(inputStream)) {
+                try {
+                    inputStream.close();
+                } catch (Exception e) {
+                    log.info("input close error", e);
+                }
+            }
+        }
+        return org.apache.commons.lang.StringUtils.EMPTY;
     }
 
     /**

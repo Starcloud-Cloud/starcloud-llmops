@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import lombok.Data;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 
@@ -48,6 +49,11 @@ public class ActionResponse {
     private Boolean isShow;
 
     /**
+     * 是否只读
+     */
+    private Boolean readOnly;
+
+    /**
      * 请求数据
      */
     private String message;
@@ -57,8 +63,15 @@ public class ActionResponse {
      */
     private String answer;
 
-
+    /**
+     * 返回数据
+     */
     private JsonData output;
+
+    /**
+     * 结果是否发送一次sse
+     */
+    private Boolean isSendSseAll = true;
 
     /**
      * 请求 token 使用
@@ -89,6 +102,11 @@ public class ActionResponse {
      * 总价格
      */
     private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    /**
+     * 大模型
+     */
+    private String aiModel;
 
     /**
      * 花费魔法豆
