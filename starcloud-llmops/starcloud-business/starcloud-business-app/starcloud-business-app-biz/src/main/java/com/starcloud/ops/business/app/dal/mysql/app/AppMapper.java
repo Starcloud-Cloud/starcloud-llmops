@@ -168,6 +168,8 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getScenes,
                 AppDO::getIcon,
                 AppDO::getDescription,
+                AppDO::getExample,
+                AppDO::getDemo,
                 AppDO::getPublishUid,
                 AppDO::getInstallUid,
                 AppDO::getImages,

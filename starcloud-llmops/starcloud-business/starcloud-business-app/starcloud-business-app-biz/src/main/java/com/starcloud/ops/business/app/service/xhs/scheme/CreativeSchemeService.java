@@ -2,13 +2,11 @@ package com.starcloud.ops.business.app.service.xhs.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +32,7 @@ public interface CreativeSchemeService {
      *
      * @return 创作方案配置
      */
-    List<CreativeSchemeConfigDTO> configurationList(String model);
+    List<CreativeSchemeTemplateGroupRespVO> schemeTemplateList();
 
     /**
      * 获取创作方案详情
@@ -43,6 +41,14 @@ public interface CreativeSchemeService {
      * @return 创作方案详情
      */
     CreativeSchemeRespVO get(String uid);
+
+    /**
+     * 获取创作方案详情
+     *
+     * @param uid 创作方案UID
+     * @return 创作方案详情
+     */
+    CreativeSchemeRespVO get(String uid, Boolean isLatestExample);
 
     /**
      * 获取创作方案列表
@@ -81,21 +87,21 @@ public interface CreativeSchemeService {
      *
      * @param request 创作方案请求
      */
-    void create(CreativeSchemeReqVO request);
+    String create(CreativeSchemeReqVO request);
 
     /**
      * 复制创作方案
      *
      * @param request 请求
      */
-    void copy(UidRequest request);
+    String copy(UidRequest request);
 
     /**
      * 修改创作方案
      *
      * @param request 创作方案请求
      */
-    void modify(CreativeSchemeModifyReqVO request);
+    String modify(CreativeSchemeModifyReqVO request);
 
     /**
      * 删除创作方案
@@ -105,11 +111,24 @@ public interface CreativeSchemeService {
     void delete(String uid);
 
     /**
+     * 获取创作方案选项
+     *
+     * @param stepSchemeReqVO 应用UID
+     * @return 创作方案选项
+     */
+    List<CreativeOptionDTO> options(CreativeAppStepSchemeReqVO stepSchemeReqVO);
+
+    /**
      * 创建文案示例
      *
      * @param request 创作方案需求请求
-     * @return 文案示例
      */
-    void example(CreativeSchemeModifyReqVO request);
+    void example(CreativeSchemeExampleReqVO request);
 
+    /**
+     * 获取创作方案选项
+     * @param reqVO
+     * @return
+     */
+    List<CreativeOptionDTO> newOptions(GenerateOptionReqVO reqVO);
 }

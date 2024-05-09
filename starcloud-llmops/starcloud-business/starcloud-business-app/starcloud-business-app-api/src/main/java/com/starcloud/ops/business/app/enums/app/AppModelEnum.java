@@ -68,6 +68,16 @@ public enum AppModelEnum implements IEnumable<Integer> {
     }
 
     /**
+     * 根据Name获取枚举
+     */
+    public static AppModelEnum getByName(String name) {
+        return Arrays.stream(values())
+                .filter(item -> item.name().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * 根据 code 获得枚举
      *
      * @return 枚举

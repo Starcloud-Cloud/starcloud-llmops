@@ -11,37 +11,37 @@ import lombok.Getter;
  * @since 2020-11-03 10:54
  */
 @Getter
-public enum CreativeContentStatusEnum implements IEnumable<String> {
+public enum CreativeContentStatusEnum implements IEnumable<Integer> {
 
     /**
      * 初始化
      */
-    INIT("init", "初始化"),
+    INIT(0, "初始化"),
 
     /**
      * 执行中
      */
-    EXECUTING("executing", "执行中"),
+    EXECUTING(1, "执行中"),
 
     /**
      * 执行成功
      */
-    EXECUTE_SUCCESS("execute_success", "执行成功"),
+    SUCCESS(2, "执行成功"),
 
     /**
      * 执行失败
      */
-    EXECUTE_ERROR("execute_error", "执行失败"),
+    FAILURE(3, "执行失败"),
 
     /**
-     * 执行失败，且失败次数大于阈值时候
+     * 最终失败，且失败次数大于阈值时候
      */
-    EXECUTE_ERROR_FINISHED("execute_error_finished", "执行最终错误");
+    ULTIMATE_FAILURE(4, "执行最终失败");
 
     /**
      * 状态编码
      */
-    private final String code;
+    private final Integer code;
 
     /**
      * 状态名称
@@ -54,7 +54,7 @@ public enum CreativeContentStatusEnum implements IEnumable<String> {
      * @param code  类型编码
      * @param label 状态名称
      */
-    CreativeContentStatusEnum(String code, String label) {
+    CreativeContentStatusEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
     }

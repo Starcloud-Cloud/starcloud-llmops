@@ -27,7 +27,8 @@ import lombok.ToString;
         @JsonSubTypes.Type(value = ParagraphSchemeStepDTO.class, name = "ParagraphActionHandler"),
         @JsonSubTypes.Type(value = AssembleSchemeStepDTO.class, name = "AssembleActionHandler"),
         @JsonSubTypes.Type(value = PosterSchemeStepDTO.class, name = "PosterActionHandler"),
-        @JsonSubTypes.Type(value = VariableSchemeStepDTO.class, name = "VariableActionHandler")
+        @JsonSubTypes.Type(value = VariableSchemeStepDTO.class, name = "VariableActionHandler"),
+        @JsonSubTypes.Type(value = MaterialSchemeStepDTO.class, name = "MaterialActionHandler")
 })
 public abstract class BaseSchemeStepDTO implements java.io.Serializable {
 

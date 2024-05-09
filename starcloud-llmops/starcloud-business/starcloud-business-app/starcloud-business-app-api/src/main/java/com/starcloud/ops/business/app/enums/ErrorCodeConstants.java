@@ -62,6 +62,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode WORKFLOW_STEP_NOT_EXIST = new ErrorCode(300000407, "应用执行步骤不存在，请稍后重试或者联系管理员！");
 
+    /**
+     * 不支持的素材类型
+     */
+    ErrorCode APP_MATERIAL_TYPE_NONSUPPORT = new ErrorCode(300000408, "不支持的素材类型，请检查后重试（{}）！");
+
     // ========== 基本增删改查错误码 ==========
 
     // 1.========== 应用错误码 300 100 xxx ==========
@@ -286,6 +291,10 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_SCENE_UNSUPPORTED = new ErrorCode(310000320, "不支持的执行场景，请检查后重试！");
 
+    /**
+     * AI结果解析异常
+     */
+    ErrorCode EXECUTE_JSON_RESULT_PARSE_ERROR = new ErrorCode(310000321, "AI结果解析异常！请稍候重试！");
 
     // ========== 应用执行错误码 310 100 xxx ==========
 
@@ -457,6 +466,11 @@ public interface ErrorCodeConstants {
     /**
      * 上传图片失败
      */
+    ErrorCode UPLOAD_FAILURE = new ErrorCode(370000000, "{}");
+
+    /**
+     * 上传图片失败
+     */
     ErrorCode UPLOAD_IMAGE_FAILURE = new ErrorCode(370000000, "上传图片失败，请稍后重试或者联系管理员！");
 
     /**
@@ -559,6 +573,16 @@ public interface ErrorCodeConstants {
     ErrorCode XHS_REMOTE_ERROR = new ErrorCode(300500008, "{}");
 
     ErrorCode CREATIVE_CONTENT_CLAIMED = new ErrorCode(300500009, "创作任务已绑定,不允许修改 {}");
+
+
+    // ========== 媒体评论 错误码 ==========
+    ErrorCode MEDIA_COMMENTS_NOT_EXISTS = new ErrorCode(300700101, "媒体评论不存在");
+
+    ErrorCode MEDIA_COMMENTS_ACTION_NOT_EXISTS = new ErrorCode(300700201, "{}不存在");
+
+    ErrorCode MEDIA_STRATEGY_NOT_EXISTS = new ErrorCode(300700301, "回复策略不存在");
+
+    ErrorCode MEDIA_STRATEGY_SAME_EXISTS = new ErrorCode(300700302, "存在相同的策略，请核对后重新提交");
 
 
 }

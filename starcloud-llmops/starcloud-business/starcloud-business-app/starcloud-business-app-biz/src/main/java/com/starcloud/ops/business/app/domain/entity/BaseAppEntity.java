@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -10,8 +9,6 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
-import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
@@ -37,9 +34,10 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
@@ -63,13 +61,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     private static AdminUserRightsApi adminUserRightsApi = SpringUtil.getBean(AdminUserRightsApi.class);
-
-    /**
-     * 消息发送
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private static SmsSendApi smsSendApi = SpringUtil.getBean(SmsSendApi.class);
 
     /**
      * 会话记录服务
@@ -168,6 +159,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private String description;
 
     /**
+     * 应用示例
+     */
+    private String example;
+
+    /**
+     * 应用演示
+     */
+    private String demo;
+
+    /**
      * 应用发布成功后，应用市场 uid-version
      */
     private String publishUid;
@@ -233,7 +234,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void doAsyncExecute(Q request);
+    protected abstract R doAsyncExecute(Q request);
 
     /**
      * 模版方法：执行应用前置处理方法
@@ -252,7 +253,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void afterExecute(Q request, Throwable throwable);
+    protected abstract void afterExecute(R result, Q request, Throwable throwable);
 
     /**
      * 模版方法：历史记录初始化
@@ -339,7 +340,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 执行应用
             this.beforeExecute(request);
             R result = this.doExecute(request);
-            this.afterExecute(request, null);
+            this.afterExecute(result, request, null);
 
             // 更新会话记录
             this.successAppConversationLog(request.getConversationUid(), request);
@@ -348,15 +349,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         } catch (ServiceException exception) {
             log.error("应用执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
-            this.afterExecute(request, exception);
+            this.afterExecute(null, request, exception);
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exception;
 
         } catch (Exception exception) {
             log.error("应用执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
-            sendMessage(String.format("异步执行异常(Exception): 应用UID: %s, 错误消息: %s", this.getUid(), exception.getMessage()));
-            this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
+            this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage());
@@ -392,8 +392,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     log.info("应用异步执行-threadExecutor：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
 
                     this.beforeExecute(request);
-                    this.doAsyncExecute(request);
-                    this.afterExecute(request, null);
+                    R result = this.doAsyncExecute(request);
+                    this.afterExecute(result, request, null);
                     log.info("应用异步执行结束: 应用UID： {}", this.getUid());
                     // 更新会话记录
                     this.successAppConversationLog(request.getConversationUid(), request);
@@ -402,14 +402,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     log.error("应用异步任务执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
                     // 更新会话记录
                     this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-                    this.afterExecute(request, exception);
+                    this.afterExecute(null, request, exception);
 
                 } catch (Exception exception) {
                     log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
-                    sendMessage(String.format("异步执行异常(Exception): 应用UID: %s, 错误消息: %s", this.getUid(), exception.getMessage()));
                     // 更新会话记录
                     this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), exception.getMessage(), request);
-                    this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, ExceptionUtil.stackTraceToString(exception)));
+                    this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, ExceptionUtil.stackTraceToString(exception)));
                 }
             });
 
@@ -417,15 +416,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("应用异步执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            this.afterExecute(request, exception);
+            this.afterExecute(null, request, exception);
         } catch (Exception exception) {
             log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
-            sendMessage(String.format("异步执行异常(Exception): 应用UID: %s, 错误消息: %s", this.getUid(), exception.getMessage()));
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
+            this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
         }
     }
+
 
     /**
      * 基础校验
@@ -689,28 +688,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
-    }
-
-    /**
-     * 发送消息
-     *
-     * @param errorMsg
-     */
-    private void sendMessage(String errorMsg) {
-        try {
-            Map<String, Object> templateParams = new HashMap<>();
-            templateParams.put("errorMsg", errorMsg);
-            templateParams.put("environment", SpringUtil.getActiveProfile());
-            templateParams.put("date", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
-
-            smsSendApi.sendSingleSmsToAdmin(
-                    new SmsSendSingleToUserReqDTO()
-                            .setUserId(1L).setMobile("17835411844")
-                            .setTemplateCode("app_execute_error")
-                            .setTemplateParams(templateParams));
-        } catch (RuntimeException e) {
-            log.error("系统通知信息发送失败", e);
-        }
     }
 
     /**

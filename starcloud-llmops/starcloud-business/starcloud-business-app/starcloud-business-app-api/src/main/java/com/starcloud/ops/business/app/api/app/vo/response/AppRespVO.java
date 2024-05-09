@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.app.api.app.vo.response;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -135,6 +138,18 @@ public class AppRespVO implements Serializable {
     private String description;
 
     /**
+     * 应用示例
+     */
+    @Schema(description = "应用示例")
+    private String example;
+
+    /**
+     * 应用演示
+     */
+    @Schema(description = "应用演示")
+    private String demo;
+
+    /**
      * 应用发布成功后，应用市场 uid-version
      */
     @Schema(description = "应用发布成功后，应用市场 uid-version")
@@ -190,8 +205,22 @@ public class AppRespVO implements Serializable {
     @Schema(description = "租户Id")
     private Long tenantId;
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(String stepId, Map<String, Object> variable) {
         this.workflowConfig.putVariable(stepId, variable);
+    }
+
+    /**
+     * 获取步骤
+     *
+     * @param handler 步骤处理器
+     * @return 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapperRespVO getStepByHandler(String handler) {
+        return workflowConfig.getStepByHandler(handler);
     }
 
 }

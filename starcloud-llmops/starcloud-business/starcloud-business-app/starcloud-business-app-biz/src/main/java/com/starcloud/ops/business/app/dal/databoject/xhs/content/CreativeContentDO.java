@@ -1,19 +1,17 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.content;
 
-
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -24,9 +22,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @TableName(value = "llm_creative_content", autoResultMap = true)
+@KeySequence("llm_creative_content_seq")
 public class CreativeContentDO extends TenantBaseDO {
 
-    private static final long serialVersionUID = -5839072713407684423L;
+    private static final long serialVersionUID = 5941580301331021336L;
 
     /**
      * ID
@@ -41,133 +40,94 @@ public class CreativeContentDO extends TenantBaseDO {
     private String uid;
 
     /**
+     * 执行批次UID
+     */
+    @TableField("batch_uid")
+    private String batchUid;
+
+    /**
      * 计划uid
      */
+    @TableField("plan_uid")
     private String planUid;
-
-    /**
-     * 执行批次
-     */
-    private Long batch;
-
-    /**
-     * 创作方案UID
-     */
-    private String schemeUid;
-
-    /**
-     * 任务类型
-     */
-    private String type;
-
-    /**
-     * 业务uid
-     */
-    private String businessUid;
 
     /**
      * 会话UID
      */
+    @TableField("conversation_uid")
     private String conversationUid;
 
     /**
-     * 使用的图片 文案模板Uid
+     * 内容类型
      */
-    private String tempUid;
+    @TableField("type")
+    private String type;
 
     /**
-     * 使用的图片列表 List<String>
+     * 内容来源
      */
-    private String usePicture;
+    @TableField("source")
+    private String source;
 
     /**
-     * 执行参数 json
+     * 执行请求参数
      */
-    private String executeParams;
+    @TableField("execute_param")
+    private String executeParam;
 
     /**
-     * 执行状态 {@link CreativeContentStatusEnum}
+     * 执行响应结果
      */
-    private String status;
+    @TableField("execute_result")
+    private String executeResult;
 
     /**
      * 开始时间
      */
+    @TableField("start_time")
     private LocalDateTime startTime;
 
     /**
      * 结束时间
      */
+    @TableField("end_time")
     private LocalDateTime endTime;
 
     /**
      * 执行耗时
      */
-    private Long executeTime;
+    @TableField("elapsed")
+    private Long elapsed;
 
     /**
-     * 文案标题
+     * 执行状态 {@link CreativeContentStatusEnum}
      */
-    private String copyWritingTitle;
-
-    /**
-     * 文案内容
-     */
-    private String copyWritingContent;
-
-    /**
-     * 文案字数
-     */
-    private Integer copyWritingCount;
-
-    /**
-     * 文案生成结果
-     */
-    private String copyWritingResult;
-
-    /**
-     * 生成图片数量
-     */
-    private Integer pictureNum;
-
-    /**
-     * 生成图片结果  List<XhsCreativePictureContentDTO>
-     */
-    private String pictureContent;
-
-    /**
-     * 失败信息
-     */
-    private String errorMsg;
+    @TableField("status")
+    private String status;
 
     /**
      * 重试次数
      */
+    @TableField("retry_count")
     private Integer retryCount;
 
     /**
-     * 拓展信息  执行结果  json
+     * 失败信息
      */
-    private String extend;
-
-    /**
-     * 是否绑定
-     */
-    private Boolean claim;
+    @TableField("error_message")
+    private String errorMessage;
 
     /**
      * 是否喜欢
      */
+    @TableField("liked")
     private Boolean liked;
 
     /**
-     * 是否测试
+     * 是否绑定
      */
-    private Boolean isTest;
+    @TableField("claim")
+    private Boolean claim;
 
-    /**
-     * 标签
-     */
-    @TableField(typeHandler = JacksonTypeHandler.class)
-    private List<String> tags;
+
 }

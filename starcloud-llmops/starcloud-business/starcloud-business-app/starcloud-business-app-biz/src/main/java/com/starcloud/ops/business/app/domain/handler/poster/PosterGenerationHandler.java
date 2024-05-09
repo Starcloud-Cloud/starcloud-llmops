@@ -6,11 +6,14 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,10 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -61,20 +62,21 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
 
             // 执行生成图片
             Response response = this.poster(request);
+            if (Objects.isNull(response)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "海报生成结果不存在！"));
+            }
             // 处理响应结果
             handlerResponse.setSuccess(Boolean.TRUE);
             handlerResponse.setAnswer(JSONUtil.toJsonStr(response));
             handlerResponse.setOutput(response);
+            return handlerResponse;
         } catch (ServiceException exception) {
             log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
-            handlerResponse.setErrorCode(exception.getCode());
-            handlerResponse.setErrorMsg(exception.getMessage());
+            throw exception;
         } catch (Exception exception) {
             log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
-            handlerResponse.setErrorCode(350400200);
-            handlerResponse.setErrorMsg(exception.getMessage());
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, exception.getMessage()));
         }
-        return handlerResponse;
     }
 
     /**
@@ -84,11 +86,11 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
      * @return 响应
      */
     public Response poster(Request request) {
-        log.info("海报图片生成：执行生成图片开始: 执行参数: \n{}", JSONUtil.parse(request).toStringPretty());
+        log.info("海报图片生成：执行生成图片【开始】");
         try {
 
             // 校验模版ID
-            if (StringUtils.isBlank(request.getId())) {
+            if (StringUtils.isBlank(request.getCode())) {
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_ID_REQUIRED);
             }
 
@@ -98,26 +100,24 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
                 throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
             }
 
-            // 校验图片模板是否存在
-            List<PosterTemplate> templates = POSTER_SERVICE.templates();
-            Optional<PosterTemplate> templateOption = templates.stream().filter(item -> StringUtils.equals(item.getId(), request.getId())).findFirst();
-            if (!templateOption.isPresent()) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_NOT_SUPPORTED, request.getName());
-            }
+            // 组装参数
+            PosterRequest posterRequest = new PosterRequest();
+            posterRequest.setId(request.getCode());
+            posterRequest.setParams(params);
+
+            log.info("海报图片生成：执行生成图片【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
 
             // 调用海报生成服务
-            PosterRequest posterRequest = new PosterRequest();
-            posterRequest.setId(request.getId());
-            posterRequest.setParams(params);
             String url = POSTER_SERVICE.poster(posterRequest);
+            AppValidate.notBlank(url, "图片生成失败：结果为空！请重试或者联系管理员！");
 
             Response response = new Response();
-            response.setId(request.getId());
+            response.setCode(request.getCode());
             response.setName(request.getName());
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
             response.setUrl(url);
-            log.info("海报图片生成: 执行生成图片成功，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
+            log.info("海报图片生成: 执行生成图片【成功】，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             return response;
         } catch (ServiceException exception) {
             throw exception;
@@ -138,7 +138,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
          * 海报图片模板ID
          */
         @Schema(description = "图片模板")
-        private String id;
+        private String code;
 
         /**
          * 海报图片模板名称
@@ -178,30 +178,35 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
          * 海报图片模板ID
          */
         @Schema(description = "图片模板")
-        private String id;
+        @JsonPropertyDescription("图片模板Code")
+        private String code;
 
         /**
          * 海报图片模板名称
          */
         @Schema(description = "图片模板名称")
+        @JsonPropertyDescription("图片模板名称")
         private String name;
 
         /**
          * 是否是海报主图
          */
         @Schema(description = "是否是主图")
+        @JsonPropertyDescription("是否是主图")
         private Boolean isMain;
 
         /**
          * 海报图片序号
          */
         @Schema(description = "图片序号")
+        @JsonPropertyDescription("图片序号")
         private Integer index;
 
         /**
          * 海报图片地址
          */
         @Schema(description = "海报图片地址")
+        @JsonPropertyDescription("海报图片地址")
         private String url;
 
     }

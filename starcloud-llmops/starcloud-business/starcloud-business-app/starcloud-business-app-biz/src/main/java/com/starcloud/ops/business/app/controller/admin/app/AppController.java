@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -114,7 +115,7 @@ public class AppController {
     @DataPermission(enable = false)
     @Operation(summary = "复制应用", description = "复制一个应用")
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<AppRespVO> copy(@Validated @RequestBody AppReqVO request) {
+    public CommonResult<AppRespVO> copy(@Validated @RequestBody UidRequest request) {
         return CommonResult.success(appService.copy(request));
     }
 

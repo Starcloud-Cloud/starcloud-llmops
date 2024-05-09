@@ -40,11 +40,6 @@ public class AppMarketEntity extends AppEntity {
     private Integer audit;
 
     /**
-     * 示例
-     */
-    private String example;
-
-    /**
      * 应用是否是免费的
      */
     private Boolean free;
@@ -133,8 +128,8 @@ public class AppMarketEntity extends AppEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(AppExecuteReqVO request) {
-        super.doAsyncExecute(request);
+    protected AppExecuteRespVO doAsyncExecute(AppExecuteReqVO request) {
+        return super.doAsyncExecute(request);
     }
 
     /**

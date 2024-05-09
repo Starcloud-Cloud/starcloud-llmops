@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -71,22 +71,22 @@ public class CreativeSchemeRespVO implements java.io.Serializable {
     private String description;
 
     /**
-     * 创作方案模式
-     */
-    @Schema(description = "创作方案模式")
-    private String mode;
-
-    /**
      * 创作方案配置信息
      */
     @Schema(description = "创作方案配置信息")
-    private CreativeSchemeConfigDTO configuration;
+    private CreativeSchemeConfigurationDTO configuration;
 
     /**
      * 创作方案图片
      */
     @Schema(description = "创作方案图片")
     private List<String> useImages;
+
+    /**
+     * 物料
+     */
+    @Schema(description = "物料")
+    private String materiel;
 
     /**
      * 创建人

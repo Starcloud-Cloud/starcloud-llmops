@@ -12,12 +12,30 @@
     
     <artifactId>starcloud-business-app-biz</artifactId>
     <version>${starcloud.revision}</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     
     <properties>
         <powerjob.version>4.3.2</powerjob.version>
     </properties>
     
     <dependencies>
+        
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>QLExpress</artifactId>
+            <version>3.3.2</version>
+        </dependency>
         
         <dependency>
             <groupId>tech.powerjob</groupId>
@@ -35,14 +53,14 @@
             <groupId>cn.kstry.framework</groupId>
             <artifactId>kstry-core</artifactId>
             <version>1.1.12</version>
-<!--            <version>1.1.5</version>-->
+            <!--            <version>1.1.5</version>-->
         </dependency>
         
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-
+        
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-user-api</artifactId>
@@ -81,16 +99,10 @@
             <artifactId>spring-boot-starter-validation</artifactId>
             <scope>provided</scope>
         </dependency>
-        
-        <!--        <dependency>-->
-        <!--            <groupId>com.starcloud.ops</groupId>-->
-        <!--            <artifactId>starcloud-langchain</artifactId>-->
-        <!--        </dependency>-->
-        
+
         <dependency>
             <groupId>com.github.Starcloud-Cloud</groupId>
             <artifactId>java-langchain</artifactId>
-            <!--            <version>master-0fbe47eb49-1</version>-->
         </dependency>
         
         <dependency>
@@ -159,6 +171,31 @@
             <artifactId>commonmark</artifactId>
             <version>0.21.0</version>
         </dependency>
+        
+        <!-- JSON Schema  -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jsonSchema</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-module-jackson</artifactId>
+            <version>4.31.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-generator</artifactId>
+            <version>4.31.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.networknt/json-schema-validator -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+    
     </dependencies>
     
     <dependencyManagement>

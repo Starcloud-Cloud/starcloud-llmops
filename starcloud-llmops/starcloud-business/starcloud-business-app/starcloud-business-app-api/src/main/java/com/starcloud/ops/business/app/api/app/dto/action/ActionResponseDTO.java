@@ -59,6 +59,12 @@ public class ActionResponseDTO {
     private Boolean isShow;
 
     /**
+     * 是否只读
+     */
+    @Schema(description = "是否只读")
+    private Boolean readOnly;
+
+    /**
      * 请求数据
      */
     @Schema(description = "请求数据")

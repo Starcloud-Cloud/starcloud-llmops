@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.json.JSONUtil;
-import cn.kstry.framework.core.annotation.*;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -59,19 +63,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        String aiModel = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        return CostPointUtils.obtainMagicBeanCostPoint(aiModel);
-    }
-
-    /**
      * 执行OpenApi生成的步骤
      *
      * @param request 请求参数
@@ -92,9 +83,9 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         Long endUser = this.getAppContext().getEndUserId();
         String conversationId = this.getAppContext().getConversationUid();
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
+        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JsonUtils.toJsonPrettyString(params));
 
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
@@ -114,7 +105,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         // 执行步骤
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
         ActionResponse response = convert(handlerResponse);
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 
@@ -143,9 +134,16 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
+
+        // 计算权益点数
+        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+
+        // actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? 1 : 0);
         return actionResponse;
     }
 

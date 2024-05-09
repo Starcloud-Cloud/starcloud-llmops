@@ -41,10 +41,16 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
     private String name;
 
     /**
-     * 创作方案模式
+     * 资料库类型
      */
-    @Schema(description = "创作方案模式")
-    private String mode;
+    @Schema(description = "资料库类型")
+    private String materialType;
+
+    /**
+     * 资料库类型名称
+     */
+    @Schema(description = "资料库类型名称")
+    private String materialTypeName;
 
     /**
      * 创作方案描述
@@ -59,18 +65,6 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
     private List<VariableItemRespVO> variableList;
 
     /**
-     * 创作方案海报生成模式
-     */
-    @Schema(description = "创作方案步骤列表")
-    private String posterMode;
-
-    /**
-     * 创作方案海报每一组的图片数量
-     */
-    @Schema(description = "创作方案步骤列表")
-    private Integer posterImageCount;
-
-    /**
      * 创建时间
      */
     @Schema(description = "创建时间")
@@ -81,5 +75,6 @@ public class CreativeSchemeListOptionRespVO implements java.io.Serializable {
      */
     @Schema(description = "创作方案标签")
     private List<String> tags;
+
 
 }

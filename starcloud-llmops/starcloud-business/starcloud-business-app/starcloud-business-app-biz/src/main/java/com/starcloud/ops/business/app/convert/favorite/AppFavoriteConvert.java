@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.convert.favorite;
 
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.excel.util.StringUtils;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
@@ -75,11 +75,11 @@ public interface AppFavoriteConvert {
 
         if (StringUtils.isNotBlank(favorite.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(favorite.getModel())) {
-                response.setWorkflowConfig(JSON.parseObject(favorite.getConfig(), WorkflowConfigRespVO.class));
+                response.setWorkflowConfig(JsonUtils.parseObject(favorite.getConfig(), WorkflowConfigRespVO.class));
             } else if (AppModelEnum.CHAT.name().equals(favorite.getModel())) {
-                response.setChatConfig(JSON.parseObject(favorite.getConfig(), ChatConfigRespVO.class));
+                response.setChatConfig(JsonUtils.parseObject(favorite.getConfig(), ChatConfigRespVO.class));
             } else if (AppModelEnum.IMAGE.name().equals(favorite.getModel())) {
-                response.setImageConfig(JSON.parseObject(favorite.getConfig(), ImageConfigRespVO.class));
+                response.setImageConfig(JsonUtils.parseObject(favorite.getConfig(), ImageConfigRespVO.class));
             }
         }
 

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.log.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,6 +46,12 @@ public class AppLogMessageRespVO extends LogMessageDetailRespVO {
      */
     @Schema(description = "应用信息")
     private AppRespVO appInfo;
+
+    /**
+     * 执行结果
+     */
+    @Schema(description = "执行结果")
+    private CreativeContentExecuteResult executeResult;
 
 
     /**

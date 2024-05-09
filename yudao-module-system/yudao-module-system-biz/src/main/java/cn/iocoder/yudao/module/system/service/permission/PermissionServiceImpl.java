@@ -309,6 +309,44 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     /**
+     * 获得用户拥有的角色名称集合
+     *
+     * @param userIds 用户编号集合
+     * @return 角色名称集合
+     */
+    @Override
+    public Map<Long, List<String>> mapRoleNameListByUserIds(Collection<Long> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        LambdaQueryWrapper<UserRoleDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.select(UserRoleDO::getUserId, UserRoleDO::getRoleId);
+        wrapper.in(UserRoleDO::getUserId, userIds);
+
+        // 获得用户角色关联
+        List<UserRoleDO> userRoleList = userRoleMapper.selectList(wrapper);
+        Set<Long> roleIds = convertSet(userRoleList, UserRoleDO::getRoleId);
+        if (CollectionUtil.isEmpty(roleIds)) {
+            return Collections.emptyMap();
+        }
+
+        // 获得角色编号对应的角色
+        List<RoleDO> roles = roleService.getRoleListFromCache(roleIds);
+        if (CollectionUtil.isEmpty(roles)) {
+            return Collections.emptyMap();
+        }
+        Map<Long, String> roleMap = CollectionUtils.convertMap(roles, RoleDO::getId, RoleDO::getName);
+        Map<Long, List<Long>> userRoleMap = CollectionUtils.convertMultiMap(userRoleList, UserRoleDO::getUserId, UserRoleDO::getRoleId);
+
+        Map<Long, List<String>> userRoleCodeMap = Maps.newHashMap();
+        userRoleMap.forEach((userId, roleIdList) -> {
+            List<String> roleCodeList = roleIdList.stream().map(roleMap::get).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+            userRoleCodeMap.put(userId, roleCodeList);
+        });
+        return userRoleCodeMap;
+    }
+
+    /**
      * 获得用户拥有的角色，并且这些角色是开启状态的
      *
      * @param userId 用户编号

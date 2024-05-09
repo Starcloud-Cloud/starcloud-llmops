@@ -19,7 +19,7 @@ import javax.validation.constraints.NotBlank;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(name = "CreativePlanStatusReqVO", description = "创作计划状态修改请求")
+@Schema(description = "创作计划状态修改请求")
 public class CreativePlanStatusReqVO implements java.io.Serializable {
 
     private static final long serialVersionUID = 7513433575049699291L;

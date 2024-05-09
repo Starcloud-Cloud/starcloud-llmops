@@ -125,4 +125,10 @@ public class AppReqVO implements Serializable {
     @Schema(description = "应用描述")
     private String description;
 
+    /**
+     * 应用示例
+     */
+    @Schema(description = "应用示例")
+    private String example;
+
 }

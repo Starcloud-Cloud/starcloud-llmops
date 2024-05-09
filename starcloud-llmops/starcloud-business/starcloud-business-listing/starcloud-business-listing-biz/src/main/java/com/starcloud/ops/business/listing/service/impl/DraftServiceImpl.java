@@ -139,10 +139,6 @@ public class DraftServiceImpl implements DraftService {
                 keywordMetaDataDTO = new KeywordMetaDataDTO();
                 keywordMetaDataDTO.setKeyword(keywordBind);
                 keywordMetaDataDTO.setStatus(KeywordMetadataStatusEnum.NO_DB_DATA.getCode());
-                keywordMetaDataDTO.setSearches(0L);
-            }
-            if (Objects.isNull(keywordMetaDataDTO.getSearches())) {
-                keywordMetaDataDTO.setSearches(0L);
             }
             result.add(keywordMetaDataDTO);
         }

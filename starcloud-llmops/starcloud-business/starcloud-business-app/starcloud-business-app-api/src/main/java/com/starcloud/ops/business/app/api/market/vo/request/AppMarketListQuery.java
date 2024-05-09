@@ -39,7 +39,7 @@ public class AppMarketListQuery implements Serializable {
      * 应用类型
      */
     @Schema(description = "应用类型")
-    private String type;
+    private List<String> typeList;
 
     /**
      * 应用模型

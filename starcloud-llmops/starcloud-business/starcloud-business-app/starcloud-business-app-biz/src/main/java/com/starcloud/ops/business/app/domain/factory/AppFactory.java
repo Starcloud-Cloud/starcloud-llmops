@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
@@ -28,7 +29,6 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.api.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
@@ -163,6 +163,16 @@ public class AppFactory {
     }
 
     /**
+     * 获取 AppEntity
+     *
+     * @param appId appId
+     * @return AppEntity
+     */
+    public static AppEntity factoryApp(AppExecuteReqVO request) {
+        return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryApp(request.getAppUid()) : AppFactory.factoryApp(request.getAppUid(), request.getAppReqVO());
+    }
+
+    /**
      * 获取 AppEntity 通过 appId
      *
      * @param appId appId
@@ -203,6 +213,16 @@ public class AppFactory {
         appEntity.setUpdater(update);
         appEntity.setTenantId(tenantId);
         return appEntity;
+    }
+
+    /**
+     * 获取 AppEntity
+     *
+     * @param appId appId
+     * @return AppEntity
+     */
+    public static AppMarketEntity factoryMarket(AppExecuteReqVO request) {
+        return Objects.isNull(request.getAppReqVO()) ? AppFactory.factoryMarket(request.getAppUid()) : AppFactory.factoryMarket(request.getAppUid(), request.getAppReqVO());
     }
 
     /**
