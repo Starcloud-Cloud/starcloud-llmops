@@ -134,7 +134,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
                 firstSignTime = LocalDateTimeUtil.formatNormal(tradeSignDO.getFinishTime());
                 nextPayData = LocalDateTimeUtil.formatNormal(tradeSignDO.getPayTime());
 
-                signPayTradeList.stream().forEach(forEachWithIndex((item, index) -> {
+                signPayTradeList.forEach(forEachWithIndex((item, index) -> {
                     // 通过业务 获取权益记录
                     AdminUserRightsDO rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
                     String userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
@@ -262,9 +262,9 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
     /**
      * 利用BiConsumer实现foreach循环支持index
      *
-     * @param biConsumer
-     * @param <T>
-     * @return
+     * @param biConsumer  biConsumer
+     * @param <T> T
+     * @return T
      */
     private static <T> Consumer<T> forEachWithIndex(BiConsumer<T, Integer> biConsumer) {
         /*这里说明一下，我们每次传入forEach都是一个重新实例化的Consumer对象，在lambada表达式中我们无法对int进行++操作,
