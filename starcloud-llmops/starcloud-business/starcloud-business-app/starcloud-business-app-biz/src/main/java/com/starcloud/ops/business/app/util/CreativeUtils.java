@@ -426,7 +426,7 @@ public class CreativeUtils {
         }
 
         // 获取到素材库列表
-        List<AbstractCreativeMaterialDTO> materialList = getMaterialListByStepWrapper(materialStepWrapper);
+        List<AbstractCreativeMaterialDTO> materialList = getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
 
         // 海报分割配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
@@ -512,6 +512,25 @@ public class CreativeUtils {
         List<AbstractCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractCreativeMaterialDTO.class);
         if (CollectionUtil.isEmpty(materialList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！"));
+        }
+        return materialList;
+    }
+
+    /**
+     * 根据应用步骤获取素材库列表
+     *
+     * @param materialWrapper 应用步骤
+     * @return 素材库列表
+     */
+    public static List<AbstractCreativeMaterialDTO> getMaterialListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+        // 获取到素材库列表
+        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
+        if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
+            return Collections.emptyList();
+        }
+        List<AbstractCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractCreativeMaterialDTO.class);
+        if (CollectionUtil.isEmpty(materialList)) {
+            return Collections.emptyList();
         }
         return materialList;
     }
