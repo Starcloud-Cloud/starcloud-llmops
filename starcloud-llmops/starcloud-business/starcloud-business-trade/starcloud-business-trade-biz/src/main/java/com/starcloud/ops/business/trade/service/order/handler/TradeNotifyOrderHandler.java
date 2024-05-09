@@ -137,11 +137,11 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
                 signPayTradeList.stream().forEach(forEachWithIndex((item, index) -> {
                     // 通过业务 获取权益记录
                     AdminUserRightsDO rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
-                    String userRangeTimeRange = StrUtil.format("{}-{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
+                    String userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
 
                     // 通过业务 获取等级记录
                     AdminUserLevelDO level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
-                    String userLevelTimeRange = StrUtil.format("{}-{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
+                    String userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
 
                     signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
                 }));
@@ -156,7 +156,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
             if (commonDTO.getRightsBasicDTO().getOperateDTO().getIsAdd()) {
                 // 通过业务 获取权益记录
                 rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), tradeOrderDO.getId(), tradeOrderDO.getUserId());
-                userRangeTimeRange = StrUtil.format("{}-{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
+                userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
             }
 
             AdminUserLevelDO level = null;
@@ -167,7 +167,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
                 // 通过业务 获取等级记录
                 level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), tradeOrderDO.getId(), tradeOrderDO.getUserId());
                 userLevelName = level.getLevelName();
-                userLevelTimeRange = StrUtil.format("{}-{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
+                userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
             }
             // 获取当前会员所有角色
             List<String> roleNameList = roleApi.getRoleNameList(tradeOrderDO.getUserId());
@@ -227,7 +227,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
             // 等级有效时间段
             templateParams.put("userLevelTimeRange", userLevelTimeRange);
             // 权益与等级时间校验
-            templateParams.put("checkResult", Objects.isNull(rights) || Objects.isNull(level) ? "成功" : checkResult ? "成功" : "失败");
+            templateParams.put("checkResult", Objects.isNull(rights) || Objects.isNull(level) ? "成功✅" : checkResult ? "成功✅" : "失败❌");
 
 
             // 是否签约
