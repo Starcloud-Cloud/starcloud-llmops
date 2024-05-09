@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
@@ -33,6 +34,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModify
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
@@ -47,7 +49,9 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -101,6 +105,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private AppService appService;
 
     @Resource
     private AppMarketService appMarketService;
@@ -176,6 +183,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return PageResult.of(collect, page.getTotal());
     }
 
+    /**
+     * 创作计划集合
+     *
+     * @return 创作计划集合
+     */
     @Override
     public List<CreativePlanRespVO> list() {
         List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString());
@@ -216,7 +228,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 查询应用
-        AppMarketRespVO appMarketResponse = appMarketService.get(query.getAppUid());
+        AppMarketRespVO appMarketResponse = this.getAppInformation(query.getAppUid(), query.getSource());
 
         // 如果存在，则直接返回
         if (Objects.nonNull(plan)) {
@@ -421,7 +433,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
         // 查询应用，并接校验应用是否存在
-        AppMarketRespVO latestAppMarket = appMarketService.get(request.getAppUid());
+        AppMarketRespVO latestAppMarket = this.getAppInformation(request.getAppUid(), plan.getSource());
 
         // 版本判断
         if (plan.getVersion() >= latestAppMarket.getVersion()) {
@@ -447,6 +459,29 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setTotalCount(request.getTotalCount());
 
         creativePlanMapper.updateById(creativePlan);
+    }
+
+    /**
+     * 获取应用信息
+     *
+     * @param appUid 应用UID
+     * @param source 创作计划来源
+     * @return 应用信息
+     */
+    @Override
+    public AppMarketRespVO getAppInformation(String appUid, String source) {
+        AppValidate.notBlank(appUid, "应用UID为必填项！");
+        AppValidate.notBlank(source, "创作计划来源为必填项！");
+        if (CreativePlanSourceEnum.isApp(source)) {
+            AppRespVO appResponse = appService.get(appUid);
+            AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convert(appResponse);
+            if (Objects.isNull(appMarketResponse.getVersion())) {
+                appMarketResponse.setVersion(1);
+            }
+            return appMarketResponse;
+        } else {
+            return appMarketService.get(appUid);
+        }
     }
 
     /**
@@ -524,7 +559,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取计划应用信息
         AppMarketRespVO appInformation = configuration.getAppInformation();
         // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
-        AppMarketRespVO latestAppMarket = appMarketService.get(creativePlan.getAppUid());
+        AppMarketRespVO latestAppMarket = this.getAppInformation(creativePlan.getAppUid(), creativePlan.getSource());
 
         /*
          * 获取到素材库步骤，素材库类型，素材库处理器
@@ -601,6 +636,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             createContentRequest.setBatchUid(batchUid);
             createContentRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
             createContentRequest.setType(CreativeContentTypeEnum.ALL.name());
+            createContentRequest.setSource(creativePlan.getSource());
             createContentRequest.setExecuteParam(contentExecuteRequest);
             contentCreateRequestList.add(createContentRequest);
         }

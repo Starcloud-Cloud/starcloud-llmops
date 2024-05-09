@@ -767,6 +767,27 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 系统风格配置
+     *
+     * @return 系统风格配置
+     */
+    public static VariableItemRespVO defCustomPosterStyleConfigVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
+        variableItem.setLabel("自定义风格配置");
+        variableItem.setDescription("自定义风格配置");
+        variableItem.setDefaultValue("[]");
+        variableItem.setValue("[]");
+        variableItem.setOrder(4);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
      * 海报生成标题变量
      *
      * @return 海报生成标题变量

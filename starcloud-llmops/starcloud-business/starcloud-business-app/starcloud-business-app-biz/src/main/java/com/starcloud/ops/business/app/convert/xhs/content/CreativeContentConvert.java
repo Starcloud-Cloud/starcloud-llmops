@@ -42,6 +42,7 @@ public interface CreativeContentConvert {
         response.setPlanUid(creativeContent.getPlanUid());
         response.setConversationUid(creativeContent.getConversationUid());
         response.setType(creativeContent.getType());
+        response.setSource(creativeContent.getSource());
         // 执行请求
         if (StringUtils.isNoneBlank(creativeContent.getExecuteParam())) {
             CreativeContentExecuteParam executeParam = JsonUtils.parseObject(
@@ -81,6 +82,7 @@ public interface CreativeContentConvert {
         creativeContent.setPlanUid(request.getPlanUid());
         creativeContent.setConversationUid(request.getConversationUid());
         creativeContent.setType(request.getType());
+        creativeContent.setSource(request.getSource());
         creativeContent.setExecuteParam(JsonUtils.toJsonString(request.getExecuteParam()));
         creativeContent.setExecuteResult(StrUtil.EMPTY_JSON);
         creativeContent.setStatus(CreativeContentStatusEnum.INIT.name());

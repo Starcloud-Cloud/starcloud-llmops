@@ -419,6 +419,15 @@ public class CreativeUtils {
         CreativePlanConfigurationDTO configuration = new CreativePlanConfigurationDTO();
         configuration.setMaterialList(Collections.emptyList());
 
+        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.isNull(materialStepWrapper)) {
+            configuration.setAppInformation(appMarketResponse);
+            return configuration;
+        }
+
+        // 获取到素材库列表
+        List<AbstractCreativeMaterialDTO> materialList = getMaterialListByStepWrapper(materialStepWrapper);
+
         // 海报分割配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
         if (Objects.isNull(stepWrapper)) {
@@ -461,6 +470,7 @@ public class CreativeUtils {
         appMarketResponse.putStepVariable(stepWrapper.getField(), variableMap);
 
         configuration.setImageStyleList(posterStyleList);
+        configuration.setMaterialList(materialList);
         configuration.setAppInformation(appMarketResponse);
         return configuration;
     }
