@@ -257,6 +257,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setUid(IdUtil.fastSimpleUUID());
         creativePlan.setAppUid(appMarketResponse.getUid());
         creativePlan.setVersion(appMarketResponse.getVersion());
+        creativePlan.setSource(query.getSource());
         creativePlan.setConfiguration(JsonUtils.toJsonString(configuration));
         creativePlan.setTotalCount(3);
         creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
