@@ -401,6 +401,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
+                order.setPayChannelCode(payOrder.getChannelCode());
                 tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(order, orderItems));
             }
         });
