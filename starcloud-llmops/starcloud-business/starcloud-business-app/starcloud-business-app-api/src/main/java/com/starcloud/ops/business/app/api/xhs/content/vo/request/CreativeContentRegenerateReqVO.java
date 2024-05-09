@@ -11,6 +11,9 @@ import lombok.ToString;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+/**
+ * @author nacoyer
+ */
 @Data
 @ToString
 @EqualsAndHashCode
