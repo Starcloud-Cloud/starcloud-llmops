@@ -12,28 +12,34 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.log.api.LogAppApi;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
@@ -114,6 +120,9 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private AppPublishMapper appPublishMapper;
+
+    @Resource
+    private CreativeContentMapper creativeContentMapper;
 
     /**
      * 日志元数据
@@ -456,6 +465,9 @@ public class AppLogServiceImpl implements AppLogService {
         // 获取消息列表
         PageResult<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
         List<LogAppMessageDO> appMessageList = appMessagePage.getList();
+        if (query.getThrowIfEmpty() != null && !query.getThrowIfEmpty()) {
+            return null;
+        }
         // 校验日志消息是否存在
         AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
 
@@ -467,6 +479,15 @@ public class AppLogServiceImpl implements AppLogService {
         if (StringUtils.isNotBlank(logAppMessage.getMediumUid()) && !AppSceneEnum.LISTING_GENERATE.name().equals(appLogMessageResponse.getFromScene())) {
             AppPublishChannelRespVO channel = appPublishChannelService.getByMediumUid(logAppMessage.getMediumUid());
             appLogMessageResponse.setChannel(channel);
+        }
+        // 媒体类型处理
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appLogMessageResponse.getAppInfo().getType())) {
+            LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+            wrapper.eq(CreativeContentDO::getConversationUid, appLogMessageResponse.getConversationUid());
+            CreativeContentDO content = creativeContentMapper.selectOne(wrapper);
+            CreativeContentRespVO contentResponse = CreativeContentConvert.INSTANCE.convert(content);
+            CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
+            appLogMessageResponse.setExecuteResult(executeResult);
         }
         return appLogMessageResponse;
     }

@@ -162,6 +162,12 @@ public class AppMarketDO extends TenantBaseDO {
     private String example;
 
     /**
+     * 演示
+     */
+    @TableField("demo")
+    private String demo;
+
+    /**
      * 应用审核
      */
     @TableField("audit")

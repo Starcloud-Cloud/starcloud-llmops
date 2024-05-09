@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
@@ -25,6 +26,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.Data;
@@ -67,6 +69,13 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppRepository appRepository = SpringUtil.getBean(AppRepository.class);
+
+    /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
 
 
     /**
@@ -120,6 +129,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             throw exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
         }
         try {
+
             // 检测权益
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_IMAGE, request.getUserId());
 
@@ -132,20 +142,30 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             imageResponse.setFinishTime(new Date());
             // 扣除权益
             Integer imagePoints = imageHandler.getCostPoints(request.getImageRequest(), imageResponse);
-            adminUserRightsApi.reduceRights(
-                    request.getUserId(), null,null,// 用户ID
-                    AdminUserRightsTypeEnum.MAGIC_IMAGE, // 权益类型
-                    imagePoints, // 权益点数
-                    UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType(), // 业务类型
-                    request.getConversationUid() // 会话ID
+            ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+            reduceRights.setUserId(request.getUserId());
+            reduceRights.setTeamOwnerId(null);
+            reduceRights.setTeamId(null);
+            reduceRights.setRightType(AdminUserRightsTypeEnum.MAGIC_IMAGE.getType());
+            reduceRights.setReduceNums(imagePoints);
+            reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(request.getScene()).getType());
+            reduceRights.setBizId(request.getConversationUid());
+            adminUserRightsApi.reduceRights(reduceRights);
+
+            log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}",
+                    AdminUserRightsTypeEnum.MAGIC_IMAGE.name(),
+                    imagePoints,
+                    request.getUserId(),
+                    request.getConversationUid()
             );
+
             stopWatch.stop();
 
             // 记录消息日志
             LogAppMessageCreateReqVO appMessage = this.createAppMessage((messageRequest) -> {
                 buildAppMessageLog(messageRequest, request);
                 messageRequest.setStatus(LogStatusEnum.SUCCESS.name());
-                messageRequest.setAnswer(JSONUtil.toJsonStr(imageResponse));
+                messageRequest.setAnswer(JsonUtils.toJsonString(imageResponse));
                 messageRequest.setElapsed(stopWatch.getTotalTimeMillis());
                 messageRequest.setImagePoints(imagePoints);
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), imageResponse);
@@ -200,8 +220,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(ImageReqVO request) {
-        this.doExecute(request);
+    protected ImageRespVO doAsyncExecute(ImageReqVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -220,7 +240,13 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(ImageReqVO request, Throwable throwable) {
+    protected void afterExecute(ImageRespVO result, ImageReqVO request, Throwable throwable) {
+        if (throwable != null) {
+            // 发送告警信息
+            request.setAppName(this.getName());
+            request.setMode(AppModelEnum.IMAGE.name());
+            appAlarmManager.executeAlarm(request, throwable);
+        }
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {
@@ -241,7 +267,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void buildAppConversationLog(ImageReqVO request, LogAppConversationCreateReqVO createRequest) {
-        createRequest.setAppConfig(JSONUtil.toJsonStr(request.getImageRequest()));
+        createRequest.setAppConfig(JsonUtils.toJsonString(request.getImageRequest()));
     }
 
     /**
@@ -300,8 +326,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setAppStep(request.getScene());
         messageRequest.setFromScene(request.getScene());
         messageRequest.setAiModel(this.obtainLlmAiModelType(request));
-        messageRequest.setAppConfig(JSONUtil.toJsonStr(this));
-        messageRequest.setVariables(JSONUtil.toJsonStr(request.getImageRequest()));
+        messageRequest.setAppConfig(JsonUtils.toJsonString(this));
+        messageRequest.setVariables(JsonUtils.toJsonString(request.getImageRequest()));
         messageRequest.setMessage("");
         messageRequest.setMessageTokens(0);
         messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));

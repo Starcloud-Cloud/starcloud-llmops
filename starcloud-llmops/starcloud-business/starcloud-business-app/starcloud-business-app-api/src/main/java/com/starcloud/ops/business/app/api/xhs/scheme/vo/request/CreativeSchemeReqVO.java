@@ -2,10 +2,8 @@ package com.starcloud.ops.business.app.api.xhs.scheme.vo.request;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeModeEnum;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -63,23 +61,22 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
     private String description;
 
     /**
-     * 创作方案模式
-     */
-    @Schema(description = "创作方案模式")
-    @NotBlank(message = "创作方案模式不能为空")
-    private String mode;
-
-    /**
      * 创作方案配置信息
      */
     @Schema(description = "创作方案配置信息")
-    private CreativeSchemeConfigDTO configuration;
+    private CreativeSchemeConfigurationDTO configuration;
 
     /**
      * 创作方案图片
      */
     @Schema(description = "创作方案图片")
     private List<String> useImages;
+
+    /**
+     * 物料
+     */
+    @Schema(description = "创作方案物料")
+    private String materiel;
 
     /**
      * 校验创作方案
@@ -90,12 +87,6 @@ public class CreativeSchemeReqVO implements java.io.Serializable {
         }
         if (StrUtil.isBlank(category)) {
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_CATEGORY_REQUIRED, name);
-        }
-        if (StrUtil.isBlank(mode)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_MODE_REQUIRED, name);
-        }
-        if (!IEnumable.contains(mode, CreativeSchemeModeEnum.class)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.SCHEME_MODE_NOT_SUPPORTED, mode, name);
         }
         configuration.validate();
     }

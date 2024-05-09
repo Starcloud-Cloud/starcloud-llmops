@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
  * @version 1.0.0
  * @since 2023-06-06
  */
+@SuppressWarnings("unused")
 public class AppValidate {
 
     /**

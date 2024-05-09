@@ -121,7 +121,6 @@ public abstract class BaseHandler<Q, R> {
             handlerResponse.setErrorCode(e.getCode());
             handlerResponse.setErrorMsg(e.getMessage());
             context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
-
         } catch (Exception e) {
             log.error("BaseHandler（{}）execute is fail: {}", this.getClass().getSimpleName(), e.getMessage(), e);
             handlerResponse.setErrorCode(ChatErrorCodeConstants.TOOL_RUN_ERROR.getCode());

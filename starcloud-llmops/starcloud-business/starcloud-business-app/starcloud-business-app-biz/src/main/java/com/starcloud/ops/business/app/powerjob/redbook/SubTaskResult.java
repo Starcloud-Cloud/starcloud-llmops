@@ -1,7 +1,8 @@
 package com.starcloud.ops.business.app.powerjob.redbook;
 
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
-import lombok.*;
+import lombok.Data;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -9,23 +10,29 @@ import java.util.List;
 @ToString
 public class SubTaskResult extends BaseTaskResult {
 
+    /**
+     * 计划UID
+     */
     private String planUid;
 
-    private Long batch;
+    /**
+     * 批次UID
+     */
+    private String batchUid;
 
-    private List<Long> allTaskUids;
+    /**
+     * 任务UID列表
+     */
+    private List<String> taskUidList;
 
-    private List<Long> errorTaskUids;
+    /**
+     * 失败UID列表
+     */
+    private List<String> errorTaskUidList;
 
-    public SubTaskResult(boolean success, String msg, String planUid, Long batch, List<Long> allTaskUids, List<Long> errorTaskUids) {
-        super(success, msg);
-        this.planUid = planUid;
-        this.allTaskUids = allTaskUids;
-        this.errorTaskUids = errorTaskUids;
-        this.batch = batch;
+
+    public SubTaskResult() {
+        super();
     }
 
-    public SubTaskResult(boolean success, String msg) {
-        super(success, msg);
-    }
 }

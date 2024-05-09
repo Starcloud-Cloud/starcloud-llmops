@@ -229,7 +229,7 @@ public class AppUtils {
         List<Option> options = new ArrayList<>();
         Option option35 = new Option();
         option35.setLabel(Locale.CHINA.equals(locale) ? "默认模型3.5" : "Default Model 3.5");
-        option35.setValue(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        option35.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
         options.add(option35);
 
         Option option40 = new Option();

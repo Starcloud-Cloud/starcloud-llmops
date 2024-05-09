@@ -12,6 +12,7 @@ import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
@@ -31,15 +32,16 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -99,6 +101,13 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JsonIgnore
     @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
+
+    /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
 
     @JsonIgnore
     @JSONField(serialize = false)
@@ -233,8 +242,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(ChatRequestVO request) {
-        JsonData jsonParams = this.doExecute(request);
+    protected JsonData doAsyncExecute(ChatRequestVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -314,7 +323,14 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(ChatRequestVO request, Throwable throwable) {
+    protected void afterExecute(JsonData result, ChatRequestVO request, Throwable throwable) {
+
+        if (throwable != null) {
+            // 发送告警信息
+            request.setAppName(this.getName());
+            request.setMode(AppModelEnum.CHAT.name());
+            appAlarmManager.executeAlarm(request, throwable);
+        }
 
         SseEmitter sseEmitter = request.getSseEmitter();
 

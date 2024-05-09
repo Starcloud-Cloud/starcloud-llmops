@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
@@ -38,7 +39,6 @@ import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -193,7 +194,7 @@ public class AppMarketServiceImpl implements AppMarketService {
      */
     @Override
     public List<Option> listOption(AppMarketOptionListQuery query) {
-        query.setType(AppTypeEnum.SYSTEM.name());
+        query.setTypeList(Collections.singletonList(AppTypeEnum.SYSTEM.name()));
         query.setModel(AppModelEnum.COMPLETION.name());
         // 如果传入 tags 则使用 tags，未传入 tags 时候且 tagType 不为空的时候，进行处理
         if (CollectionUtil.isEmpty(query.getTags()) && StringUtils.isNotBlank(query.getTagType())) {
@@ -261,7 +262,10 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
         // 非管理员，只能查询普通应用
         if (UserUtils.isNotAdmin()) {
-            appMarketListQuery.setType(AppTypeEnum.COMMON.name());
+            List<String> typeList = Lists.newArrayList();
+            typeList.add(AppTypeEnum.COMMON.name());
+            typeList.add(AppTypeEnum.MEDIA_MATRIX.name());
+            appMarketListQuery.setTypeList(typeList);
         }
         // 只查询 COMPLETION 的应用
         appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());

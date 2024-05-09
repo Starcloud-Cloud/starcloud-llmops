@@ -125,11 +125,6 @@ public class VariableItemEntity {
             log.error("MaxTokens 变量校验规则异常，value：{}", value, exception);
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_FORMAT_ERROR, value);
         }
-
-        // 1 <= maxTokens <= 4000
-//        if (maxTokens < 1 || maxTokens > 4000) {
-//            throw ServiceExceptionUtil.exception(ErrorCodeConstants.MAX_TOKENS_OUT_OF_LIMIT, maxTokens);
-//        }
         return maxTokens;
     }
 

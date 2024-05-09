@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.mission.service.impl;
 
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
@@ -17,17 +15,12 @@ import com.starcloud.ops.business.mission.service.CustomerClaimService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.MISSION_CAN_NOT_CLAIM;
@@ -57,12 +50,7 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
         MissionNotificationDTO detail = missionService.missionDetail(uid);
         SingleMissionDetailVO detailVO = SingleMissionConvert.INSTANCE.convertDetail(detail);
         CreativePlanRespVO creativePlan = creativePlanService.get(detail.getCreativePlanUid());
-        String schemeUid = Optional.ofNullable(creativePlan.getConfiguration()).map(CreativePlanConfigurationDTO::getSchemeUid).orElse(StringUtils.EMPTY);
-        if (StringUtils.isNoneBlank(schemeUid)) {
-            CreativeSchemeRespVO schemeRespVOS = creativeSchemeService.get(schemeUid);
-            List<String> tags = CollectionUtils.emptyIfNull(schemeRespVOS.getTags()).stream().distinct().collect(Collectors.toList());
-            detailVO.setTags(tags);
-        }
+        // detailVO.setTags(creativePlan.getTags());
         return detailVO;
     }
 

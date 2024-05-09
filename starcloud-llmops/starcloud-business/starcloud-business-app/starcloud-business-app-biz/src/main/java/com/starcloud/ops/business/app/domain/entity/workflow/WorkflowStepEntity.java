@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -69,4 +70,9 @@ public class WorkflowStepEntity extends ActionEntity {
         }
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getModeVariableItem(String key) {
+        return this.variable.getVariableItem(key);
+    }
 }

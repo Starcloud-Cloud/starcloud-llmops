@@ -1,26 +1,26 @@
 package com.starcloud.ops.business.app.powerjob.redbook;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
-import com.alibaba.fastjson.JSON;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.powerjob.base.BaseMapReduceTask;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskContext;
 import com.starcloud.ops.business.app.powerjob.base.BaseTaskResult;
 import com.starcloud.ops.business.app.powerjob.base.PowerJobTaskContext;
-import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import tech.powerjob.worker.core.processor.ProcessResult;
@@ -31,6 +31,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
@@ -43,184 +44,263 @@ import java.util.stream.Collectors;
 public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
     @Resource
-    private CreativeContentService xhsCreativeContentService;
+    private CreativeContentService creativeContentService;
 
     @Resource
     private CreativePlanService creativePlanService;
 
+    /**
+     * 任务执行
+     *
+     * @param context 任务上下文
+     * @return 执行结果
+     */
     @Override
-    protected BaseTaskResult execute(PowerJobTaskContext powerJobTaskContext) {
+    protected BaseTaskResult execute(PowerJobTaskContext context) {
+
         if (isRootTask()) {
-            return runRoot(powerJobTaskContext);
+            return runRoot(context);
         }
         // 非子任务，可根据 subTask 的类型 或 TaskName 来判断分支
-        if (powerJobTaskContext.getTaskContext().getSubTask() instanceof SubTask) {
-            SubTask subTask = (SubTask) powerJobTaskContext.getTaskContext().getSubTask();
-            return runSub(powerJobTaskContext, subTask);
+        if (context.getTaskContext().getSubTask() instanceof SubTask) {
+            SubTask subTask = (SubTask) context.getTaskContext().getSubTask();
+            return runSub(context, subTask);
         }
-        return new BaseTaskResult(false, "UNKNOWN_BUG_taskName_" + powerJobTaskContext.getTaskContext().getTaskName());
+
+        // 返回失败结果
+        BaseTaskResult taskResult = new BaseTaskResult();
+        taskResult.setSuccess(Boolean.FALSE);
+        taskResult.setMsg("执行失败：未知错误：任务名称：" + context.getTaskContext().getTaskName());
+        return taskResult;
     }
 
 
     /**
      * 生成子任务
      *
-     * @param baseTaskContext
-     * @return
+     * @param context 上下文
+     * @return 执行结果
      */
     @TenantJob
     @Override
-    protected BaseTaskResult runRoot(PowerJobTaskContext baseTaskContext) {
+    protected BaseTaskResult runRoot(PowerJobTaskContext context) {
 
-        RunJobParams params = baseTaskContext.getParams(RunJobParams.class);
-        String rank = "ASC";
+        // 获取任务执行参数
+        RunJobParams params = context.getParams(RunJobParams.class);
 
-        //需要按类型去执行，文案或图片
-        if (params.getRunType() == null) {
-            return BaseTaskResult.builder().success(false).msg("The getRunType parameter is null. getRunType must have a value").build();
+        // 根据参数查询任务列表
+        CreativeContentTaskReqVO query = new CreativeContentTaskReqVO();
+        query.setBathCount(params.getBathCount());
+        query.setRetryProcess(params.getRetryProcess());
+        List<CreativeContentRespVO> contentList = creativeContentService.listTask(query);
+
+        // 如果没有找到带执行的任务，直接返回。
+        if (CollectionUtils.isEmpty(contentList)) {
+            BaseTaskResult taskResult = new BaseTaskResult();
+            taskResult.setSuccess(Boolean.FALSE);
+            taskResult.setMsg("任务成功结束：未找到待执行任务！");
+            return taskResult;
         }
 
+        // 有几组分成几个子任务
+        List<SubTask> subTaskList = new ArrayList<>();
 
-        //根据查询，查询出所有执行中的计划下的所有待执行的创作任务
-        //支持的条件可能有，文案模版，图片模版，渠道 （创作任务表上的字段） 时间生序查询，优先执行最早的
+        // 每一个子任务的子任务数量
+        int subSize = Objects.isNull(params.getSubSize()) ? 5 : params.getSubSize();
 
+        // 按照创作计划批次UID进行分组
+        Map<String, List<CreativeContentRespVO>> batchContentMap = contentList.stream()
+                .collect(Collectors.groupingBy(CreativeContentRespVO::getBatchUid));
 
-        CreativeQueryReqVO queryReq = new CreativeQueryReqVO();
-        queryReq.setType(params.getRunType());
-        queryReq.setRetryProcess(params.getRetryProcess());
-        queryReq.setBathCount(params.getBathCount());
-        queryReq.setIsTest(params.getIsTest());
+        // 遍历处理任务
+        batchContentMap.forEach((bathUid, batchContentList) -> {
+            // 按照 subSize 分段截取每一个分组的数量
+            List<List<CreativeContentRespVO>> segmentTaskList = CollUtil.split(batchContentList, subSize);
+            // 遍历每一个分段
+            for (List<CreativeContentRespVO> creativeContents : segmentTaskList) {
+                if (CollectionUtils.isEmpty(creativeContents)) {
+                    continue;
+                }
 
-        List<CreativeContentDO> creativeContentList = xhsCreativeContentService.jobQuery(queryReq);
-        if (CollectionUtils.isEmpty(creativeContentList)) {
-            return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS : 未找到待执行的任务");
-        }
+                CreativeContentRespVO content = creativeContents.get(0);
+                // 获取分组UID列表
+                List<String> contentUidList = creativeContents.stream()
+                        .map(CreativeContentRespVO::getUid).collect(Collectors.toList());
 
-        Map<String, List<CreativeContentDO>> planUidGroup = creativeContentList.stream().collect(Collectors.groupingBy(CreativeContentDO::getPlanUid));
-
-        List<SubTask> subTasks = new ArrayList<>(planUidGroup.size());
-        Integer subSize = params.getSubSize() == null ? 5 : params.getSubSize();
-        for (String planUid : planUidGroup.keySet()) {
-            List<CreativeContentDO> creativeContentDOList = planUidGroup.get(planUid);
-            List<List<CreativeContentDO>> split = CollUtil.split(creativeContentDOList, subSize);
-            for (List<CreativeContentDO> creativeContents : split) {
+                // 构建子任务
                 SubTask subTask = new SubTask();
-                subTask.setPlanUid(planUid);
-                subTask.setBatch(planUidGroup.get(planUid).get(0).getBatch());
+                subTask.setTenantId(content.getTenantId());
+                subTask.setPlanUid(content.getPlanUid());
+                subTask.setBatchUid(bathUid);
                 subTask.setRunType(params.getRunType());
-                subTask.setRedBookIdList(creativeContents.stream().map(CreativeContentDO::getId).collect(Collectors.toList()));
-                subTask.setTenantId(planUidGroup.get(planUid).get(0).getTenantId());
-                subTasks.add(subTask);
+                subTask.setContentUidList(contentUidList);
+                subTaskList.add(subTask);
             }
-        }
+        });
+
         try {
-            map(subTasks, "subTask_RedBook_initTarget");
+            map(subTaskList, "创作内容子任务");
         } catch (Exception e) {
-            log.warn("ROOT_PROCESS_FILE is fail: {}", e.getMessage(), e);
-            return new BaseTaskResult(false, "ROOT_PROCESS_FILE:" + e.getMessage());
+            log.warn("创作内容任务执行失败：错误信息：{}", e.getMessage(), e);
+            BaseTaskResult taskResult = new BaseTaskResult();
+            taskResult.setSuccess(Boolean.FALSE);
+            taskResult.setMsg("创作内容根任务执行失败：错误信息：" + e.getMessage());
+            return taskResult;
         }
-        return new BaseTaskResult(true, "ROOT_PROCESS_SUCCESS");
+
+        BaseTaskResult taskResult = new BaseTaskResult();
+        taskResult.setSuccess(Boolean.TRUE);
+        taskResult.setMsg("创作内容根任务执行成功");
+        return taskResult;
     }
 
-
-    //单操作任务执行入口
-    public BaseTaskResult runSub(BaseTaskContext powerJobTaskContext, SubTask subTask) {
+    /**
+     * 执行子任务
+     *
+     * @param context 执行上下文
+     * @param subTask 子任务
+     * @return 执行结果
+     */
+    @SuppressWarnings("unused")
+    public BaseTaskResult runSub(BaseTaskContext context, SubTask subTask) {
         try {
 
-            StringJoiner sj = new StringJoiner(",");
-            List<Long> errorTasks = new ArrayList<>();
-            List<Long> redBookTask = subTask.getRedBookIdList();
+            StringJoiner stringJoiner = new StringJoiner(",");
+            List<String> errorTasks = new ArrayList<>();
+            // 创作内容列表
+            List<String> contentUidList = subTask.getContentUidList();
+            // 构建请求列表
+            List<CreativeContentExecuteReqVO> requestList = contentUidList.stream()
+                    .map(item -> {
+                        CreativeContentExecuteReqVO request = new CreativeContentExecuteReqVO();
+                        request.setUid(item);
+                        request.setType(subTask.getRunType());
+                        request.setForce(Boolean.FALSE);
+                        request.setTenantId(subTask.getTenantId());
+                        return request;
+                    })
+                    .collect(Collectors.toList());
 
             //按租户去执行
             TenantUtils.execute(subTask.getTenantId(), () -> {
-
-                Map<Long, Boolean> resp = xhsCreativeContentService.execute(redBookTask, subTask.getRunType(), false);
-
-                for (Long id : redBookTask) {
-                    if (BooleanUtils.isTrue(resp.get(id))) {
+                // 批量执行
+                List<CreativeContentExecuteRespVO> responseList = creativeContentService.batchExecute(requestList);
+                // 处理结果
+                for (CreativeContentExecuteRespVO response : responseList) {
+                    if (response.getSuccess()) {
                         continue;
                     }
-                    errorTasks.add(id);
-                    sj.add(id.toString());
+                    errorTasks.add(response.getUid());
+                    stringJoiner.add(response.getUid());
                 }
-
             });
 
-
-            //调用批量执行的服务，服务内部不要抛异常，执行失败的在后续的轮训中继续执行
-
-            //返回所有执行状态
-
-            //判断所有执行状态，如果有失败就返回给 job 去做日志，
-            //servide.batch(1,2,3,4)
-
-
-            return new SubTaskResult(true, sj.toString(), subTask.planUid, subTask.getBatch(), redBookTask, errorTasks);
+            // 成功，返回数据
+            SubTaskResult subTaskResult = new SubTaskResult();
+            subTaskResult.setSuccess(Boolean.TRUE);
+            subTaskResult.setMsg(stringJoiner.toString());
+            subTaskResult.setPlanUid(subTask.getPlanUid());
+            subTaskResult.setBatchUid(subTask.getBatchUid());
+            subTaskResult.setTaskUidList(contentUidList);
+            subTaskResult.setErrorTaskUidList(errorTasks);
+            return subTaskResult;
         } catch (Exception e) {
             //不会调用到这里，兜底错误和日志
-            return new SubTaskResult(false, "task id is " + subTask.getPlanUid() + "  RunTask is fail: " + e.getMessage());
+            SubTaskResult subTaskResult = new SubTaskResult();
+            subTaskResult.setSuccess(Boolean.FALSE);
+            subTaskResult.setMsg("创作内容执行失败：计划UID: " + subTask.getPlanUid() + "批次UID: " + subTask.getBatchUid() + "错误信息：" + e.getMessage());
+            subTaskResult.setPlanUid(subTask.getPlanUid());
+            subTaskResult.setBatchUid(subTask.getBatchUid());
+            return subTaskResult;
         }
     }
 
     /**
-     * 子任务执行完执行
+     * 所有任务执行完执行
      *
-     * @param taskContext
-     * @param taskResults
-     * @return
+     * @param taskContext 任务上下文
+     * @param taskResults 任务结果
+     * @return 执行结果
      */
     @Override
     @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
+
+        // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
         if (CollectionUtils.isEmpty(taskResults)) {
-            return new ProcessResult(true, "reduce_success");
+            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
         }
 
-        //查询计划表下的 所有状态，并更新计划表的状态
-        List<SubTaskResult> planUids = taskResults.stream().map(sub -> {
-                    return JSON.parseObject(sub.getResult(), SubTaskResult.class);
-                })
-                .filter(subTaskResult -> subTaskResult.getPlanUid() != null && subTaskResult.getBatch() != null)
+        // 查询计划表下的 所有状态，并更新计划表的状态
+        List<SubTaskResult> subTaskResultList = taskResults.stream()
+                .filter(item -> StringUtils.isNotBlank(item.getResult()))
+                .map(item -> JsonUtils.parseObject(item.getResult(), SubTaskResult.class))
+                .filter(Objects::nonNull)
+                .filter(item -> StringUtils.isNotBlank(item.getPlanUid()))
+                .filter(item -> StringUtils.isNotBlank(item.getBatchUid()))
                 .collect(Collectors.toList());
 
-        updateInstance(planUids);
+        // 如果为空，说明不需要更新计划状态
+        if (CollectionUtils.isEmpty(subTaskResultList)) {
+            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
+        }
 
-        return new ProcessResult(true, taskResults.toString());
+        log.info("创作内容后置处理器开始执行：更新创作状态开始！");
+
+        // 需要更新的计划列表
+        log.info("需要更新创作状态的子任务：{}", JsonUtils.toJsonPrettyString(subTaskResultList));
+        updateInstance(subTaskResultList);
+
+        // 计划更新完成
+        log.info("创作内容后置处理器执行完成，更新创作状态完成！！！");
+        return new ProcessResult(Boolean.TRUE, taskResults.toString());
     }
 
+    /**
+     * 更新
+     *
+     * @param subTaskResultList 子任务结果集合
+     */
     private void updateInstance(List<SubTaskResult> subTaskResultList) {
-
-        //根据创作任务找到所有创作计划
-
         //查询所有创作计划的所有任务状态，判断是否都执行完成。完成就更新创作计划状态到执行完成。
-        List<SubTaskResult> distinct = CollUtil.distinct(subTaskResultList, SubTaskResult::getPlanUid, false);
-
+        List<SubTaskResult> distinct = CollUtil.distinct(subTaskResultList, SubTaskResult::getBatchUid, false);
         for (SubTaskResult subTaskResult : distinct) {
-            creativePlanService.updatePlanStatus(subTaskResult.getPlanUid(), subTaskResult.getBatch());
+            creativePlanService.updatePlanStatus(subTaskResult.getPlanUid(), subTaskResult.getBatchUid());
         }
     }
 
-
+    /**
+     * 创作内容子任务
+     */
     @Builder
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SubTask {
 
-        //DTO对象
-        private List<Long> redBookIdList;
-
+        /**
+         * 租户ID
+         */
         private Long tenantId;
-
 
         /**
          * 生成计划ID
          */
         private String planUid;
 
-        private Long batch;
+        /**
+         * 批次UID
+         */
+        private String batchUid;
 
-        //带入一些上游的参数做校验
+        /**
+         * 创作内容UID集合
+         */
+        private List<String> contentUidList;
+
+        /**
+         * 类型
+         */
         private String runType;
     }
 }

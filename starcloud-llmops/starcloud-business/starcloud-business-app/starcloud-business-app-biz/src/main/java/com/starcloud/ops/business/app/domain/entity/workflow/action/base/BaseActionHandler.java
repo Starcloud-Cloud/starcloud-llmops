@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action.base;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -11,14 +12,23 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
+import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +77,24 @@ public abstract class BaseActionHandler extends Object {
     private AppContext appContext;
 
     /**
+     * 生成个handler 实例
+     *
+     * @param name handler 名称
+     * @return handler
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static BaseActionHandler of(String name) {
+        try {
+            //头部小写驼峰
+            return SpringUtil.getBean(StrUtil.lowerFirst(name));
+        } catch (Exception e) {
+            log.error("BaseActionHandler of is fail: {}", name);
+        }
+        return null;
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
@@ -76,15 +104,6 @@ public abstract class BaseActionHandler extends Object {
     protected abstract AdminUserRightsTypeEnum getUserRightsType();
 
     /**
-     * 获取当前handler消耗的权益点数
-     *
-     * @return 权益点数
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected abstract Integer getCostPoints();
-
-    /**
      * 执行具体的步骤
      *
      * @return 执行结果
@@ -92,6 +111,80 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     protected abstract ActionResponse doExecute();
+
+    /**
+     * 具体handler的入参定义
+     *
+     * @return
+     */
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //默认所有节点的入参都不返回支持
+
+        return null;
+    }
+
+
+    /**
+     * 具体handler的出参定义
+     *
+     * @return
+     */
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //如果配置了返回结构定义就获取，不然就创建一个默认的
+        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
+        if (StrUtil.isNotBlank(json)) {
+            //有配置，直接返回
+
+            JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
+
+            return jsonSchema;
+
+        } else {
+
+            //定义一个默认的JsonSchema结构， xxx.data
+            return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
+        }
+
+    }
+
+
+    /**
+     * 具体当前handler的出参定义
+     *
+     * @return
+     */
+    public JsonSchema getOutVariableJsonSchema() {
+
+        WorkflowStepWrapper workflowStepWrapper = this.getAppContext().getStepWrapper(this.getAppContext().getStepId());
+        return this.getOutVariableJsonSchema(workflowStepWrapper);
+    }
+
+    /**
+     * 判断师傅配置了返回结果为JsonSchema
+     *
+     * @param workflowStepWrapper
+     * @return
+     */
+    public Boolean hasResponseJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //如果配置了返回结构定义就获取，不然就创建一个默认的
+        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
+        return StrUtil.isNotBlank(json);
+    }
+
+    /**
+     * 判断师傅配置了返回结果为JsonSchema
+     *
+     * @param workflowStepWrapper
+     * @return
+     */
+    public Boolean hasResponseJsonSchema() {
+
+        WorkflowStepWrapper workflowStepWrapper = this.getAppContext().getStepWrapper(this.getAppContext().getStepId());
+        return this.hasResponseJsonSchema(workflowStepWrapper);
+    }
 
     /**
      * 获取应用的UID
@@ -115,7 +208,33 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     protected String getAiModel() {
-        return Optional.ofNullable(this.getAppContext()).map(AppContext::getAiModel).orElse(null);
+        String aiModel = this.getAppContext().getAiModel();
+        if (aiModel != null) {
+            return aiModel;
+        }
+
+        Optional<WorkflowStepWrapper> stepWrapperOptional = Optional.ofNullable(this.getAppContext())
+                .map(AppContext::getApp)
+                .map(AppEntity::getWorkflowConfig)
+                .map(config -> config.getStepWrapperByStepId(this.getAppContext().getStepId()));
+        if (!stepWrapperOptional.isPresent()) {
+            return null;
+        }
+
+        VariableItemEntity modeVariableItem = stepWrapperOptional.get().getModeVariableItem("MODEL");
+        if (modeVariableItem == null) {
+            return null;
+        }
+
+        if (modeVariableItem.getValue() != null) {
+            return String.valueOf(modeVariableItem.getValue());
+        }
+
+        if (modeVariableItem.getDefaultValue() != null) {
+            return String.valueOf(modeVariableItem.getDefaultValue());
+        }
+
+        return null;
     }
 
     /**
@@ -128,12 +247,14 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-        log.info("Action[{}]执行开始，步骤：{}, 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getStepId(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
+        log.info("Action[{}]执行开始： 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
 
         // 从工作流上下文中获取步骤ID
         Optional<String> property = scopeDataOperator.getTaskProperty();
         AppProcessParser.ServiceTaskPropertyDTO serviceTaskProperty = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
         String stepId = serviceTaskProperty.getStepId();
+
+        log.info("当前步骤：{}", stepId);
 
         try {
             if (Objects.isNull(context)) {
@@ -170,13 +291,15 @@ public abstract class BaseActionHandler extends Object {
             // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
             if (userRightsType != null && costPoints > 0) {
                 // 扣除权益
-                ADMIN_USER_RIGHTS_API.reduceRights(
-                        context.getUserId(), null, null, // 用户ID
-                        userRightsType, // 权益类型
-                        costPoints, // 权益点数
-                        UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType(), // 业务类型
-                        context.getConversationUid() // 会话ID
-                );
+                ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+                reduceRights.setUserId(context.getUserId());
+                reduceRights.setTeamOwnerId(null);
+                reduceRights.setTeamId(null);
+                reduceRights.setRightType(userRightsType.getType());
+                reduceRights.setReduceNums(costPoints);
+                reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType());
+                reduceRights.setBizId(context.getConversationUid());
+                ADMIN_USER_RIGHTS_API.reduceRights(reduceRights);
                 log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", userRightsType.name(), costPoints, context.getUserId(), context.getConversationUid());
             }
             // 更新缓存为成功
@@ -202,6 +325,7 @@ public abstract class BaseActionHandler extends Object {
      *
      * @param obj
      * @return
+     * @Data注解在派生子类上时默认@EqualsAndHashCode(callSuper = false)，即重写子类的equals和hashcode不包含父类
      */
     @Override
     public boolean equals(Object obj) {

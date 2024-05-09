@@ -3,7 +3,10 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -12,7 +15,9 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -20,25 +25,24 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
-import com.starcloud.ops.business.app.util.ActionUtils;
-import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -75,17 +79,23 @@ public class CustomActionHandler extends BaseActionHandler {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
+
     /**
-     * 获取当前handler消耗的权益点数
+     * 具体handler的出参定义
      *
-     * @return 权益点数
+     * @return
      */
     @Override
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected Integer getCostPoints() {
-        String aiModel = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        return CostPointUtils.obtainMagicBeanCostPoint(aiModel);
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+
+        //优先返回 素材类型的结构
+//        String refers = (String) params.get(CreativeConstants.MATERIAL_TYPE);
+//        if (StrUtil.isNotBlank(refers)) {
+//            //获取参考素材的结构
+//            return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
+//        }
+
+        return super.getOutVariableJsonSchema(workflowStepWrapper);
     }
 
     /**
@@ -98,10 +108,8 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     protected ActionResponse doExecute() {
 
-
-        log.info("自定义内容生成[{}][{}]：执行开始......", this.getClass().getSimpleName(), this.getAppContext().getStepId());
         Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JSONUtil.parse(params).toStringPretty());
+        log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到生成模式
         String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
@@ -140,32 +148,41 @@ public class CustomActionHandler extends BaseActionHandler {
         if (StrUtil.isBlank(refers)) {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
-        List<ReferenceSchemeDTO> refersList = JSONUtil.toList(refers, ReferenceSchemeDTO.class);
-        if (CollectionUtil.isEmpty(refersList)) {
+        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
+
+        if (CollectionUtil.isEmpty(referList)) {
             return ActionResponse.failure("310100019", "参考内容不能为空", params);
         }
-        ReferenceSchemeDTO reference = refersList.get(RandomUtil.randomInt(refersList.size()));
+
+        AbstractCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
         actionResponse.setIsShow(Boolean.TRUE);
         actionResponse.setMessage(" ");
-        actionResponse.setAnswer(reference.getContent());
-        actionResponse.setOutput(JsonData.of(reference.getContent()));
+        actionResponse.setAnswer(reference.generateContent());
+        actionResponse.setOutput(JsonData.of(reference.generateContent()));
         actionResponse.setMessageTokens((long) actionResponse.getMessage().length());
-        actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, true));
+        actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, true));
         actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
-        actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO_16K, false));
+        actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, false));
         actionResponse.setTotalTokens(actionResponse.getMessageTokens() + actionResponse.getAnswerTokens());
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         BigDecimal messagePrice = new BigDecimal(String.valueOf(actionResponse.getMessageTokens())).multiply(actionResponse.getMessageUnitPrice());
         BigDecimal answerPrice = new BigDecimal(String.valueOf(actionResponse.getAnswerTokens())).multiply(actionResponse.getAnswerUnitPrice());
         actionResponse.setTotalPrice(messagePrice.add(answerPrice));
         actionResponse.setStepConfig(params);
-        // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(this.getCostPoints());
+
+        // 计算权益点数
+        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        // actionResponse.setCostPoints(costPoints);
+
+        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
+        actionResponse.setCostPoints(1);
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 CreativeSchemeGenerateModeEnum.RANDOM.name(),
-                JSONUtil.parse(actionResponse).toStringPretty()
+                JsonUtils.toJsonPrettyString(actionResponse)
         );
 
         return actionResponse;
@@ -183,25 +200,6 @@ public class CustomActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
-        // 获取到参考内容
-        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
-        List<ReferenceSchemeDTO> referList = JSONUtil.toList(refers, ReferenceSchemeDTO.class);
-
-        // 需要交给 ChatGPT 的参考内容数量
-        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
-
-        // 处理参考内容
-        List<ReferenceSchemeDTO> handlerReferList = handlerReferList(referList, refersCount);
-        this.getAppContext().putVariable(CreativeConstants.REFERS, JSONUtil.toJsonStr(handlerReferList));
-
-        // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
-        params = this.getAppContext().getContextVariablesValues();
-        log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JSONUtil.parse(params).toStringPretty());
-
-        // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        // 获取到生成数量 n
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -212,6 +210,35 @@ public class CustomActionHandler extends BaseActionHandler {
         List<String> promptList = StrUtil.split(prompt, "----------");
         prompt = promptList.get(0);
 
+        if (StrUtil.isBlank(prompt)) {
+            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
+        }
+
+        // 获取到参考内容
+        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
+        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
+
+        if (CollectionUtil.isEmpty(referList)) {
+            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+        }
+
+        // 需要交给 ChatGPT 的参考内容数量
+        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
+
+        // 处理参考内容
+        List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
+        AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
+        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.REFERS_IMITATE, generateRefers(handlerReferList));
+
+        // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
+        params = this.getAppContext().getContextVariablesValues();
+        log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
+
+        // 获取到大模型 model
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        // 获取到生成数量 n
+        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature
@@ -228,9 +255,13 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
+
+        //本身输出已经走Sse了，不需要在发送一次完整的结果
+        actionResponse.setIsSendSseAll(false);
+
+        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 最终结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
-                JSONUtil.parse(actionResponse).toStringPretty()
+                JsonUtils.toJsonPrettyString(actionResponse)
         );
         return actionResponse;
     }
@@ -247,10 +278,6 @@ public class CustomActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
-        // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        // 获取到生成数量 n
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -260,7 +287,14 @@ public class CustomActionHandler extends BaseActionHandler {
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         List<String> promptList = StrUtil.split(prompt, "----------");
         prompt = promptList.get(1);
+        if (StrUtil.isBlank(prompt)) {
+            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
+        }
 
+        // 获取到大模型 model
+        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        // 获取到生成数量 n
+        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
         // 获取到 maxTokens
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature
@@ -277,9 +311,12 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(handlerRequest);
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
+        //本身输出已经走Sse了，不需要在发送一次完整的结果
+        actionResponse.setIsSendSseAll(false);
+
+        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 最终结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
-                JSONUtil.parse(actionResponse).toStringPretty()
+                JsonUtils.toJsonPrettyString(actionResponse)
         );
         return actionResponse;
     }
@@ -307,6 +344,9 @@ public class CustomActionHandler extends BaseActionHandler {
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
         // 执行OpenAI处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
+        log.info("自定义内容生成[{}]：执行成功, : 未转化前结果：\n{}", this.getClass().getSimpleName(),
+                JsonUtils.toJsonPrettyString(handlerResponse)
+        );
         // 转换并且返回响应结果
         return convert(handlerResponse);
     }
@@ -328,7 +368,7 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
         actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
+        //actionResponse.setOutput(JsonData.of(handlerResponse.getAnswer()));
         actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
         actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
         actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
@@ -336,9 +376,52 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        // 权益点数, 成功正常扣除, 失败不扣除
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? this.getCostPoints() : 0);
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+
+        // 计算权益点数
+        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+
+        // actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? 1 : 0);
+
+
+        //如果配置了 JsonSchema
+        if (this.hasResponseJsonSchema()) {
+            //获取当前定义的返回结构
+            JsonSchema jsonSchema = this.getOutVariableJsonSchema();
+
+            JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
+            JSONObject jsonObject = jsonSchemaParser.parse(actionResponse.getAnswer());
+
+            actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
+        } else {
+            //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
+            actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
+        }
+
         return actionResponse;
+    }
+
+    private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {
+        try {
+            StringJoiner sj = new StringJoiner("\n");
+            for (AbstractCreativeMaterialDTO materialDTO : referList) {
+                sj.add(JsonUtils.toJsonString(materialDTO));
+                JSONObject entries = JSONUtil.parseObj(materialDTO);
+                JSONArray imitateTypeJSON = entries.getJSONArray("imitateType");
+                if (Objects.isNull(imitateTypeJSON)) {
+                    continue;
+                }
+                List<String> imitateType = imitateTypeJSON.toList(String.class);
+                sj.add("模仿要求：模仿这条笔记的" + imitateType.stream().collect(Collectors.joining(",")));
+            }
+            return sj.toString();
+        } catch (Exception e) {
+            log.warn("generate Refers error", e);
+            return JsonUtils.toJsonString(referList);
+        }
     }
 
     /**
@@ -348,34 +431,19 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param refersCount 参考内容数量
      * @return 处理后的参考内容
      */
-    private List<ReferenceSchemeDTO> handlerReferList(List<ReferenceSchemeDTO> refersList, Integer refersCount) {
-        // 为 refersList 添加 ID。ID为随机值，以防 refersList 无ID值
-        refersList = refersList.stream().peek(item -> item.setId(RandomUtil.randomLong())).collect(Collectors.toList());
-        List<ReferenceSchemeDTO> result = new ArrayList<>();
-        // 如果参考内容数量小于需要的，直接返回数量
-        if (refersList.size() <= refersCount) {
-            result = refersList.stream().map(item -> {
-                ReferenceSchemeDTO reference = SerializationUtils.clone(item);
-                reference.setId(null);
-                reference.setSource(null);
-                reference.setLink(null);
-                reference.setTagList(null);
-                reference.setImageList(null);
-                reference.setTitle(null);
-                return reference;
-            }).collect(Collectors.toList());
-        } else {
-            List<ReferenceSchemeDTO> recordList = new ArrayList<>();
-            for (int i = 0; i < refersCount; i++) {
-                ReferenceSchemeDTO reference = SerializationUtils.clone(ActionUtils.randomReference(refersList, recordList));
-                reference.setId(null);
-                reference.setSource(null);
-                reference.setLink(null);
-                reference.setTagList(null);
-                reference.setImageList(null);
-                reference.setTitle(null);
-                result.add(reference);
-            }
+    private List<AbstractCreativeMaterialDTO> handlerReferList(List<AbstractCreativeMaterialDTO> refersList, Integer refersCount) {
+        // 随机选取
+        Collections.shuffle(refersList);
+        List<AbstractCreativeMaterialDTO> result = refersList.stream()
+                .peek(AbstractCreativeMaterialDTO::clean)
+                .limit(refersCount).collect(Collectors.toList());
+        int i = 0;
+        if ((i = refersCount - result.size()) == 0) {
+            return result;
+        }
+        //  补齐元素
+        for (int j = 0; j < i; j++) {
+            result.add(refersList.get(RandomUtil.randomInt(refersList.size())));
         }
         return result;
     }

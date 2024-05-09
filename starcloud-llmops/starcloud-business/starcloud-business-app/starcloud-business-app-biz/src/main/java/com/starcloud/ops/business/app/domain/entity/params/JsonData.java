@@ -1,7 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity.params;
 
-import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -9,26 +12,77 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
+@NoArgsConstructor
 public class JsonData extends BaseDataEntity {
 
+    /**
+     * 返回的数据
+     */
     private Object data;
 
-    private Object jsonSchemas;
+    /**
+     * jsonSchema 数据
+     */
+    private String jsonSchema;
 
-    public <R> R parse(Class<R> input) {
-        return JSONUtil.toBean(this.getData().toString(), input);
-    }
-
-    public String toJson() {
-        return JSONUtil.toJsonStr(this.getData());
-    }
-
-    public static JsonData of(Object data) {
-
+    /**
+     * 创建一个 String 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static JsonData of(String data) {
         JsonData jsonData = new JsonData();
 
-        jsonData.setData(data);
+        //默认套一层 jsonSchema
+        JsonDataDefSchema jsonDataDefSchema = new JsonDataDefSchema();
+        jsonDataDefSchema.setData(data);
+
+        jsonData.setData(jsonDataDefSchema);
+        jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(JsonDataDefSchema.class));
+
         return jsonData;
     }
 
+    /**
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static JsonData of(Object data) {
+        JsonData jsonData = new JsonData();
+
+        jsonData.setData(data);
+
+        return jsonData;
+    }
+
+    /**
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static <T> JsonData of(Object data, Class<T> tClass) {
+        JsonData jsonData = new JsonData();
+        jsonData.setData(data);
+        jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(tClass));
+
+        return jsonData;
+    }
+
+    /**
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static <T> JsonData of(Object data, JsonSchema jsonSchema) {
+        JsonData jsonData = new JsonData();
+        jsonData.setData(data);
+        jsonData.setJsonSchema(JsonSchemaUtils.jsonSchema2Str(jsonSchema));
+
+        return jsonData;
+    }
 }

@@ -4,10 +4,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.api.AppValidate;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -74,6 +75,38 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
                 .filter(item -> item.getStepCode().equals(stepId))
                 .findFirst()
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, stepId));
+    }
+
+    /**
+     * 根据 StepId 获取指定步骤
+     *
+     * @param stepId 步骤ID
+     * @return 指定步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapper getStepWrapperByStepId(String stepId) {
+        return CollectionUtil.emptyIfNull(steps).stream()
+                .filter(item -> item.getStepCode().equals(stepId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 根据 actionHandler 获取指定步骤
+     *
+     * @param stepId 步骤ID
+     * @return 指定步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapper getStepWrapper(Class<? extends BaseActionHandler> classz) {
+        String handler = classz.getSimpleName();
+
+        return CollectionUtil.emptyIfNull(steps).stream()
+                .filter(item -> item.getFlowStep().getHandler().equals(handler))
+                .findFirst()
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, handler));
     }
 
     /**

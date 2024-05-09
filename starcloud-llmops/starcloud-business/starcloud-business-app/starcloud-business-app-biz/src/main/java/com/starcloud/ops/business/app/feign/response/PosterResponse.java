@@ -1,12 +1,10 @@
 package com.starcloud.ops.business.app.feign.response;
 
-import com.starcloud.ops.business.app.feign.dto.PosterDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.poi.ss.formula.functions.T;
 
 /**
  * @author nacoyer

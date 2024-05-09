@@ -1,9 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -27,10 +28,13 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
@@ -39,6 +43,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
+import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.Data;
@@ -87,6 +92,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
+
+    /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
 
     /**
      * 模版方法：基础校验
@@ -155,10 +167,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setMediumUid(request.getMediumUid());
             appContext.setAiModel(this.obtainLlmAiModelType(request));
             appContext.setN(request.getN());
+            appContext.setContinuous(request.getContinuous());
+
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
             } else {
                 request.setStepId(appContext.getStepId());
+                //不传入节点，默认从头开始执行到最后节点
+                appContext.setContinuous(true);
             }
         } catch (ServiceException exception) {
             log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
@@ -186,8 +202,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(AppExecuteReqVO request) {
-        this.doExecute(request);
+    protected AppExecuteRespVO doAsyncExecute(AppExecuteReqVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -197,7 +213,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected void beforeExecute(AppExecuteReqVO request) {
-        this.appStepStatusCache.init(request.getConversationUid(), this);
+        appStepStatusCache.init(request.getConversationUid(), this);
     }
 
     /**
@@ -209,12 +225,49 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(AppExecuteReqVO request, Throwable throwable) {
+    protected void afterExecute(AppExecuteRespVO result, AppExecuteReqVO request, Throwable throwable) {
+        if (throwable != null) {
+            Map<String, Object> extended = request.getExtended();
+            boolean isSendAlarm = true;
+            if (MapUtil.isNotEmpty(extended)) {
+                Object isSendAlarmObject = extended.get("isSendAlarm");
+                if (Objects.nonNull(isSendAlarmObject)) {
+                    if (isSendAlarmObject instanceof Boolean) {
+                        isSendAlarm = (Boolean) isSendAlarmObject;
+                    }
+                    if (isSendAlarmObject instanceof String) {
+                        isSendAlarm = Boolean.parseBoolean((String) isSendAlarmObject);
+                    }
+                    if (isSendAlarmObject instanceof Number) {
+                        isSendAlarm = ((Number) isSendAlarmObject).intValue() == 1;
+                    }
+                }
+            }
+
+            if (isSendAlarm) {
+                // 发送告警信息
+                request.setAppName(this.getName());
+                request.setMode(AppModelEnum.COMPLETION.name());
+                appAlarmManager.executeAlarm(request, throwable);
+            }
+        }
+
         SseEmitter sseEmitter = request.getSseEmitter();
         if (sseEmitter != null) {
             if (throwable != null) {
                 sseEmitter.completeWithError(throwable);
             } else {
+
+                try {
+
+                    if (result.getIsSendSseAll()) {
+                        SseEmitterUtil.send(sseEmitter, Integer.valueOf(result.getResultCode()), String.valueOf(result.getResult()));
+                    }
+
+                } catch (Exception e) {
+                    log.error("AppEntity afterExecute is fail: {}", e.getMessage(), e);
+                }
+
                 sseEmitter.complete();
             }
         }
@@ -230,7 +283,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected void buildAppConversationLog(AppExecuteReqVO request, LogAppConversationCreateReqVO createRequest) {
-        createRequest.setAppConfig(JSONUtil.toJsonStr(this.getWorkflowConfig()));
+        createRequest.setAppConfig(JsonUtils.toJsonString(this.getWorkflowConfig()));
     }
 
     /**
@@ -240,7 +293,37 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected String obtainLlmAiModelType(AppExecuteReqVO request) {
-        return Optional.ofNullable(request.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        // 如果传入了 AI 模型类型，使用传入的
+        if (StringUtils.isNotBlank(request.getAiModel())) {
+            return request.getAiModel();
+        }
+
+        // 如果没有传入步骤 ID，使用第一步参数信息
+        if (StringUtils.isBlank(request.getStepId())) {
+            return null;
+        }
+
+        WorkflowStepWrapper stepWrapper = this.getWorkflowConfig().getStepWrapper(request.getStepId());
+
+        if (stepWrapper == null) {
+            return null;
+        }
+
+        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem("MODEL");
+        if (modelVariable == null) {
+            return null;
+        }
+
+        if (Objects.nonNull(modelVariable.getValue())) {
+            return String.valueOf(modelVariable.getValue());
+        }
+
+        if (modelVariable.getDefaultValue() != null) {
+            return String.valueOf(modelVariable.getDefaultValue());
+        }
+
+        // 如果没有找到模型变量
+        return null;
     }
 
     /**
@@ -340,7 +423,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         result.setAnswer(answer.trim());
 
         log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
-        return AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result, appContext.getConversationUid());
+
+        AppExecuteRespVO appExecuteRespVO = AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getOutput().getData(), appContext.getConversationUid());
+        appExecuteRespVO.setIsSendSseAll(result.getIsSendSseAll());
+
+        //只返回内容
+        return appExecuteRespVO;
 
     }
 
@@ -400,14 +488,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
             // 获取step变量
             Map<String, Object> variables = appContext.getContextVariablesValues(nodeTracking.getNodeName());
-            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
+            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
-
                 messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
-                messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
-                messageCreateRequest.setVariables(JSONUtil.toJsonStr(actionResponse.getStepConfig()));
+                messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
+                messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
                 messageCreateRequest.setMessageTokens(actionResponse.getMessageTokens().intValue());
                 messageCreateRequest.setMessageUnitPrice(actionResponse.getMessageUnitPrice());
@@ -416,13 +503,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 messageCreateRequest.setAnswerUnitPrice(actionResponse.getAnswerUnitPrice());
                 messageCreateRequest.setTotalPrice(actionResponse.getTotalPrice());
                 messageCreateRequest.setCostPoints(actionResponse.getCostPoints());
+                messageCreateRequest.setAiModel(actionResponse.getAiModel());
                 return;
             }
 
             // 说明执行handler时异常
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(appRespVO));
-            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variables));
+            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
+            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
             messageCreateRequest.setCostPoints(0);
 
             if (storyException.isPresent()) {
@@ -461,9 +549,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             }
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
             String aiModel = this.obtainLlmAiModelType(request);
-            ModelTypeEnum modelType = TokenCalculator.fromName(aiModel);
-            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
-            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+            ModelTypeEnum modelType = Objects.isNull(aiModel) ? null : TokenCalculator.fromName(aiModel);
+            BigDecimal messageUnitPrice = Objects.isNull(aiModel) ? new BigDecimal("0.0") : TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+            BigDecimal answerUnitPrice = Objects.isNull(aiModel) ? new BigDecimal("0.0") : TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
 
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(appContext.getStepId());
@@ -472,8 +560,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setAiModel(aiModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
             messageCreateRequest.setCurrency("USD");
-            messageCreateRequest.setAppConfig(JSONUtil.toJsonStr(this));
-            messageCreateRequest.setVariables(JSONUtil.toJsonStr(variablesValues));
+            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
+            messageCreateRequest.setVariables(JsonUtils.toJsonString(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault("PROMPT", "")));
             messageCreateRequest.setMessageTokens(0);

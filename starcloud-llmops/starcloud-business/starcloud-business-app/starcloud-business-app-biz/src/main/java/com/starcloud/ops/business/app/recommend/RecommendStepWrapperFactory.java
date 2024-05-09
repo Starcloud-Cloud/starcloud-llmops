@@ -119,30 +119,49 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 变量步骤
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defVariableStepWrapper() {
+    public static WorkflowStepWrapperRespVO defGlobalVariableStepWrapper() {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("变量步骤");
-        stepWrapper.setName("变量步骤");
-        stepWrapper.setDescription("变量步骤");
-        stepWrapper.setButtonLabel("变量步骤");
-        stepWrapper.setFlowStep(RecommendActionFactory.defVariableActionStep());
-        stepWrapper.setVariable(RecommendVariableFactory.defVariableVariable());
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_NAME");
+        String field = AppUtils.obtainField(name);
+        stepWrapper.setField(name);
+        stepWrapper.setName(field);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defGlobalVariableActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
         return stepWrapper;
     }
 
     /**
-     * 默认生成内容步骤
+     * 资料库生成步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defMaterialStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_NAME");
+        String field = AppUtils.obtainField(name);
+        stepWrapper.setField(name);
+        stepWrapper.setName(field);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defMaterialActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defMaterialVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 标题生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defTitleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -155,14 +174,13 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 自定义生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -175,14 +193,31 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 仿写步骤
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defImitateStepWrapper() {
+        String name = "笔记仿写";
+        String field = AppUtils.obtainField(name);
+        String defaultPrompt = "";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription("仿写笔记标题和内容");
+        stepWrapper.setButtonLabel("笔记仿写");
+        stepWrapper.setFlowStep(RecommendActionFactory.defImitateActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defImitateVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 段落生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defParagraphStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -195,14 +230,13 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 内容拼接步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -215,14 +249,14 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 海报生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
         String field = AppUtils.obtainField(name);
-        String defaultPrompt = "";
+        String defaultPrompt = "为图片配上一个符合图片场景和意境的标题和副标题，标题在30到50个字内。\n {STEP." + field + ".REQUIREMENT}\n\n 输出格式：\n```\n标题:\n副标题:\n```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -249,10 +283,9 @@ public class RecommendStepWrapperFactory {
      */
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
-                defVariableStepWrapper(),
-                defTitleStepWrapper(),
+                defGlobalVariableStepWrapper(),
+                defMaterialStepWrapper(),
                 defCustomStepWrapper(),
-                defParagraphStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );
