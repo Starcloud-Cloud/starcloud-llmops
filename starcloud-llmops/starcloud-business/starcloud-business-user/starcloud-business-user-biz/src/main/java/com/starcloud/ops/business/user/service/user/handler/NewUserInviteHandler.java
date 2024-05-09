@@ -75,7 +75,7 @@ public class NewUserInviteHandler implements NewUserHandler {
                         .setTimesRange(new TimesRangeDTO().setNums(99).setRange(TimeRangeTypeEnum.YEAR.getType()))
                         .setOperateDTO(new OperateDTO().setIsAdd(false).setIsSuperposition(false)));
 
-        adminUserRightsService.createRights(commonDTO, adminUserDO.getId(), bizTypeEnum.getType(), String.valueOf(invitationId));
+        adminUserRightsService.createRights(commonDTO, inviteUserDO.getId(), bizTypeEnum.getType(), String.valueOf(invitationId));
         log.info("【afterUserRegister】邀请人信息设置成功,基础权益发放完成");
 
         adminUserInviteService.setInviteRights(inviteUserDO, invitationId);
