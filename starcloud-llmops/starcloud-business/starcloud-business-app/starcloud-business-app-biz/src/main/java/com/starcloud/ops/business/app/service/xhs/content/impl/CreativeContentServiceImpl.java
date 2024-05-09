@@ -315,7 +315,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             AppValidate.notNull(content, "创作内容不存在！");
 
             // 查询一次应用市场，获取最新的应用市场配置
-            AppMarketRespVO latestAppMarket = appMarketService.get(appInformation.getUid());
+            AppMarketRespVO latestAppMarket = creativePlanService.getAppInformation(appInformation.getUid(), content.getSource());
 
             // 处理应用信息
             if (Objects.nonNull(posterWrapper) && Objects.nonNull(posterStyle)) {

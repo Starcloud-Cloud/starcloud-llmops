@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -13,7 +12,6 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -34,12 +32,10 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -160,47 +156,6 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return executeResponse.getResult();
     }
 
-    public static void main(String[] args) throws JsonProcessingException {
-        List<MaterialFieldConfigDTO> fieldList = new ArrayList<>();
-        MaterialFieldConfigDTO field1 = new MaterialFieldConfigDTO();
-        field1.setFieldName("bookName");
-        field1.setDesc("书名");
-        field1.setType(MaterialFieldTypeEnum.string.getTypeCode());
-        field1.setRequired(true);
-        fieldList.add(field1);
-
-        MaterialFieldConfigDTO field2 = new MaterialFieldConfigDTO();
-        field2.setFieldName("author");
-        field2.setDesc("作者");
-        field2.setType(MaterialFieldTypeEnum.string.getTypeCode());
-        field2.setRequired(true);
-        fieldList.add(field2);
-
-        MaterialFieldConfigDTO field3 = new MaterialFieldConfigDTO();
-        field3.setFieldName("coverUrl");
-        field3.setDesc("封面");
-        field3.setType(MaterialFieldTypeEnum.image.getTypeCode());
-        field3.setRequired(true);
-        fieldList.add(field3);
-
-        MaterialFieldConfigDTO field4 = new MaterialFieldConfigDTO();
-        field4.setFieldName("content");
-        field4.setDesc("内容");
-        field4.setType(MaterialFieldTypeEnum.textBox.getTypeCode());
-        field4.setRequired(true);
-        fieldList.add(field4);
-
-        MaterialFieldConfigDTO field5 = new MaterialFieldConfigDTO();
-        field5.setFieldName("documentUrl");
-        field5.setDesc("文档路径");
-        field5.setType(MaterialFieldTypeEnum.document.getTypeCode());
-        field5.setRequired(true);
-
-        String jsonSchema = materialFieldToJsonSchema(fieldList, Boolean.TRUE);
-        System.out.println(jsonSchema);
-        System.out.println(JsonSchemaUtils.generateJsonSchemaStr(Res.class));
-    }
-
     private CreativeMaterialDO getByUid(String uid) {
         CreativeMaterialDO materialDO = materialMapper.getByUid(uid);
         if (Objects.isNull(materialDO)) {
@@ -267,10 +222,4 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return JsonUtils.toJsonPrettyString(jsonSchema);
     }
 
-    @Data
-    class Res {
-
-        private List<BookListCreativeMaterialDTO> materialList;
-
-    }
 }
