@@ -285,6 +285,7 @@ public class CreativeExecuteManager {
         extended.put("contentRetryCount", retry >= maxRetry ? maxRetry : retry);
         extended.put("contentMaxRetry", maxRetry);
         extended.put("contentStatus", latestContent.getStatus());
+        extended.put("contentSource", latestContent.getSource());
         // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
         extended.put("isSendAlarm", retry >= maxRetry || CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()));
 
@@ -302,10 +303,10 @@ public class CreativeExecuteManager {
         AppExecuteRespVO response;
         // 执行应用
         if (CreativePlanSourceEnum.isApp(latestContent.getSource())) {
-            AppEntity entity = (AppEntity) AppFactory.factory(appExecuteRequest);
+            AppEntity entity = AppFactory.factoryApp(appExecuteRequest);
             response = entity.execute(appExecuteRequest);
         } else {
-            AppMarketEntity entity = (AppMarketEntity) AppFactory.factory(appExecuteRequest);
+            AppMarketEntity entity = AppFactory.factoryMarket(appExecuteRequest);
             response = entity.execute(appExecuteRequest);
         }
         if (Objects.isNull(response) || !response.getSuccess()) {
