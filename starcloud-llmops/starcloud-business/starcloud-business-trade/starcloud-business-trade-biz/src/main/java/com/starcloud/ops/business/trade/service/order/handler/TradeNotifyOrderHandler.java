@@ -143,7 +143,7 @@ public class TradeNotifyOrderHandler implements TradeOrderHandler {
                     AdminUserLevelDO level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
                     String userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
 
-                    signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
+                    signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, signPayTradeList.size() - index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
                 }));
 
             }
