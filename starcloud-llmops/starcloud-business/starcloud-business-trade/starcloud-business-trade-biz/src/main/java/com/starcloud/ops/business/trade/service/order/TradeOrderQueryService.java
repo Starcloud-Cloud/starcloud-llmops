@@ -11,6 +11,7 @@ import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.Expre
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.singleton;
 
@@ -173,4 +174,12 @@ public interface TradeOrderQueryService {
      * @return 订单数
      */
     int orderAutoNotify(Long timeNum);
+
+    /**
+     * 构建通知参数
+     * @param tradeOrderDO 交易订单DO
+     * @param orderItems 订单项
+     * @return 通知参数
+     */
+    Map<String, Object> buildTradeNotifyMsg(TradeOrderDO tradeOrderDO, List<TradeOrderItemDO> orderItems);
 }

@@ -28,9 +28,7 @@ public class TradeOrderAutoNotifyJob implements JobHandler {
     @Override
     public String execute(String param) {
         AtomicInteger count = new AtomicInteger();
-        TenantUtils.execute(2L, () -> count.set(queryService.orderAutoNotify(TIME_NUM))
-        );
-
+        TenantUtils.execute(2L, () -> count.set(queryService.orderAutoNotify(TIME_NUM)));
         return String.format("三天内有效订单为 %s 个", count);
     }
 
