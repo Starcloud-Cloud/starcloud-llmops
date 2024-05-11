@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -394,9 +395,9 @@ public class CustomActionHandler extends BaseActionHandler {
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
 
             JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
-            JsonNode jsonNode = jsonSchemaParser.parse(actionResponse.getAnswer());
+            JSON json = jsonSchemaParser.parse(actionResponse.getAnswer());
 
-            actionResponse.setOutput(JsonData.of(jsonNode, jsonSchema));
+            actionResponse.setOutput(JsonData.of(json, jsonSchema));
         } else {
             //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
             actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
