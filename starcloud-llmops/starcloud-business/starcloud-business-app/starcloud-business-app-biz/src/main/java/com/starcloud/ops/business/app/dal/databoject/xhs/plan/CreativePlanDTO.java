@@ -6,4 +6,6 @@ import lombok.Data;
 public class CreativePlanDTO extends CreativePlanDO{
 
     private String creatorName;
+
+    private String appName;
 }

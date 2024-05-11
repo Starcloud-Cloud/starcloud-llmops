@@ -100,10 +100,25 @@ public interface CreativePlanConvert {
         return response;
     }
 
-    default CreativePlanRespVO convert(CreativePlanDTO creativePlanDTO){
-        CreativePlanRespVO creativePlanRespVO = convertResponse(creativePlanDTO);
-        creativePlanRespVO.setCreatorName(creativePlanDTO.getCreatorName());
-        return creativePlanRespVO;
+    default CreativePlanRespVO convert(CreativePlanDTO creativePlan){
+        CreativePlanRespVO response = new CreativePlanRespVO();
+        response.setUid(creativePlan.getUid());
+        response.setAppUid(creativePlan.getAppUid());
+        response.setVersion(creativePlan.getVersion());
+        response.setSource(creativePlan.getSource());
+        // 应用
+        CreativePlanConfigurationDTO copy = new CreativePlanConfigurationDTO();
+        AppMarketRespVO appMarketRespVO = new AppMarketRespVO();
+        appMarketRespVO.setName(creativePlan.getAppName());
+        copy.setAppInformation(appMarketRespVO);
+        response.setConfiguration(copy);
+
+        response.setTotalCount(creativePlan.getTotalCount());
+        response.setStatus(creativePlan.getStatus());
+        response.setCreateTime(creativePlan.getCreateTime());
+        response.setUpdateTime(creativePlan.getUpdateTime());
+        response.setCreatorName(creativePlan.getCreatorName());
+        return response;
     }
 
     /**
