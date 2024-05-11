@@ -189,8 +189,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @return 创作计划集合
      */
     @Override
-    public List<CreativePlanRespVO> list() {
-        List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString());
+    public List<CreativePlanRespVO> list(Integer limit) {
+        List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString(),limit);
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
