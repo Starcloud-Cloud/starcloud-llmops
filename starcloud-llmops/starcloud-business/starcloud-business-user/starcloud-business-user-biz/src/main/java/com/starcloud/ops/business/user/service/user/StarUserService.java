@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.user;
 
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
+import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
@@ -108,4 +109,8 @@ public interface StarUserService {
      * @return
      */
     Boolean isNewUser(Long userId);
+
+
+
+    AuthPermissionInfoRespVO getPermissionInfo(Long userId);
 }
