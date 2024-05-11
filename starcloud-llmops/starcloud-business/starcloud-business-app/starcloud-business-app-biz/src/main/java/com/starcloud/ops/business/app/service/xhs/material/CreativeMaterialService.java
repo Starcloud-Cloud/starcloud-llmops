@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.F
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -65,5 +66,12 @@ public interface CreativeMaterialService {
      * @param request 请求
      */
     Object materialGenerate(CreativeMaterialGenerationDTO request);
+
+    /**
+     * 自定义素材生成
+     *
+     * @param request 请求
+     */
+    void customMaterialGenerate(CreativeMaterialGenerationDTO request, SseEmitter sseEmitter);
 
 }

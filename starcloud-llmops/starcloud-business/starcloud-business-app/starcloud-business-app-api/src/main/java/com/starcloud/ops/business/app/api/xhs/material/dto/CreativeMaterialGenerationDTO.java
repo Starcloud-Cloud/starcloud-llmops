@@ -34,12 +34,18 @@ public class CreativeMaterialGenerationDTO implements Serializable {
      * 选中的字段定义列表
      */
     @Schema(description = "选中的字段定义列表")
-    private List<MaterialFieldConfigDTO> selectedFieldList;
+    private List<String> checkedFieldList;
 
     /**
      * 素材要求
      */
     @Schema(description = "素材要求")
-    private String materialRequirement;
+    private String requirement;
+
+    /**
+     * 生成数量
+     */
+    @Schema(description = "生成数量")
+    private Integer generateCount;
 
 }

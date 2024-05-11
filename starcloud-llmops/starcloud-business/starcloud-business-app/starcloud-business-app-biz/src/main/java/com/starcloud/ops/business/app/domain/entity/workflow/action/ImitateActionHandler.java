@@ -13,6 +13,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -210,9 +211,9 @@ public class ImitateActionHandler extends BaseActionHandler {
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
 
             JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
-            JSONObject jsonObject = jsonSchemaParser.parse(actionResponse.getAnswer());
+            JsonNode jsonNode = jsonSchemaParser.parse(actionResponse.getAnswer());
 
-            actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
+            actionResponse.setOutput(JsonData.of(jsonNode, jsonSchema));
         } else {
             actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
         }

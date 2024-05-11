@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.recommend;
 
+import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
@@ -387,6 +388,48 @@ public class RecommendVariableItemFactory {
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.MATERIAL.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 素材生成配置
+     *
+     * @return 素材生成配置
+     */
+    public static VariableItemRespVO defMaterialGenerateConfigVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_GENERATE_CONFIG);
+        variableItem.setLabel("素材生成配置");
+        variableItem.setDescription("素材生成配置");
+        variableItem.setDefaultValue(StrUtil.EMPTY_JSON);
+        variableItem.setValue(StrUtil.EMPTY_JSON);
+        variableItem.setOrder(300);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 素材生成配置
+     *
+     * @return 素材生成配置
+     */
+    public static VariableItemRespVO defCustomMaterialGenerateConfigVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.CUSTOM_MATERIAL_GENERATE_CONFIG);
+        variableItem.setLabel("素材自定义生成配置");
+        variableItem.setDescription("素材自定义生成配置");
+        variableItem.setDefaultValue(StrUtil.EMPTY_JSON);
+        variableItem.setValue(StrUtil.EMPTY_JSON);
+        variableItem.setOrder(400);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);

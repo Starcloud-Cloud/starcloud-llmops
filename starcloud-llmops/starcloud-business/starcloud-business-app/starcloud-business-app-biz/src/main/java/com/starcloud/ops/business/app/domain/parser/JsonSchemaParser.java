@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.app.domain.parser;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 @Slf4j
 @Data
-public class JsonSchemaParser implements OutputParser<JSONObject> {
+public class JsonSchemaParser implements OutputParser<JsonNode> {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -55,28 +55,30 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
 
     /**
      * 将提供的文本解析为提供的类型对象。
+     * <p>
+     * 因为 jsonSchema 可能使对象或者数组。所以统一返回 JsonNode
      *
      * @param text 要解析的文本
      * @return 解析的对象
      */
     @Override
-    public JSONObject parse(String text) {
+    public JsonNode parse(String text) {
         //兼容处理，针对多返回的内容
         try {
             log.info("生成结果格式化处理开始({}) 原始值: {}", this.getClass().getSimpleName(), text);
             text = StrUtil.replaceFirst(text, "```json", "", true);
             text = StrUtil.replaceLast(text, "```", "", true);
-            // 解析 JSON
-            JSONObject jsonObject = JSONUtil.parseObj(text);
-            log.info("生成结果格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), jsonObject);
-            return jsonObject;
+            // 先进行正常的 JSON 格式化处理
+            JsonNode jsonNode = JsonUtils.parseTree(text);
+            log.info("生成结果格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), jsonNode);
+            return jsonNode;
         } catch (Exception e) {
             try {
                 log.error("生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), e.getClass(), e.getMessage());
                 text = StrUtil.replace(text, "\r", "");
                 text = StrUtil.replace(text, "\\\n", "\n");
-                // 解析 JSON
-                JSONObject result = parseObject(text);
+                // 使用较为宽松的方式解析 JSON 字符串
+                JsonNode result = parseTree(text);
                 log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
                 return result;
             } catch (Exception exception) {
@@ -105,15 +107,15 @@ public class JsonSchemaParser implements OutputParser<JSONObject> {
      * @param text JSON 字符串
      * @return JSONObject 对象
      */
-    public static JSONObject parseObject(String text) {
+    public static JsonNode parseTree(String text) {
         AppValidate.notBlank(text, "AI生成结果不存在！请稍候重试");
         try {
             // 利用 Jackson 解析 JSON 字符串：objectMapper
             // 需要配置 JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS，JSON字符串包含未加引号的控制字符(值小于32的ASCII字符，包括制表符和换行字符)
-            Object object = objectMapper.readValue(text, Object.class);
-            // 转换为 JSONObject 对象，先转换为 JSON 字符串，可以把转义变为正确的转义，再转换为 JSONObject 对象
-            String jsonStr = JSONUtil.toJsonStr(object);
-            return JSONUtil.parseObj(jsonStr);
+            JsonNode jsonNode = objectMapper.readTree(text);
+            // 再进行一次 JSON 格式化，保证 JSON 格式正确
+            String strValue = objectMapper.writeValueAsString(jsonNode);
+            return objectMapper.readTree(strValue);
         } catch (IOException e) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR);
         }
