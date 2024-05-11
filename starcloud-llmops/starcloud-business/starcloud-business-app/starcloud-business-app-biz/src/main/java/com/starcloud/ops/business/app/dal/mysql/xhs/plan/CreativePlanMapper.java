@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.dal.mysql.xhs.plan;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -15,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,10 +43,24 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
      * @param appUid 应用uid
      * @return CreativePlanDO
      */
-    default CreativePlanDO getByAppUid(String appUid, Long userId) {
+    default CreativePlanDO getByAppUid(String appUid, String source) {
+        LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(CreativePlanDO::getAppUid, appUid);
+        wrapper.eq(CreativePlanDO::getSource, source);
+        return this.selectOne(wrapper);
+    }
+
+    /**
+     * 根据应用uid查询
+     *
+     * @param appUid 应用uid
+     * @return CreativePlanDO
+     */
+    default CreativePlanDO getByAppUid(String appUid, Long userId, String source) {
         LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(CreativePlanDO::getAppUid, appUid);
         wrapper.eq(CreativePlanDO::getCreator, userId);
+        wrapper.eq(CreativePlanDO::getSource, source);
         return this.selectOne(wrapper);
     }
 
