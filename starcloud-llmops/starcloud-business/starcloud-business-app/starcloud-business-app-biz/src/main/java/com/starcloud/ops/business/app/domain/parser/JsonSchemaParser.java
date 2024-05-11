@@ -113,11 +113,12 @@ public class JsonSchemaParser implements OutputParser<JSON> {
         try {
             // 利用 Jackson 解析 JSON 字符串：objectMapper
             // 需要配置 JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS，JSON字符串包含未加引号的控制字符(值小于32的ASCII字符，包括制表符和换行字符)
-            JSON json = objectMapper.readValue(text, JSON.class);
+            Object json = objectMapper.readValue(text, Object.class);
             // 再进行一次 JSON 格式化，保证 JSON 格式正确
             String strValue = JSONUtil.toJsonStr(json);
             return JSONUtil.parse(strValue);
         } catch (IOException e) {
+            log.error("解析 JSON 字符串({}) 失败", text, e);
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR);
         }
     }
