@@ -220,8 +220,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
          */
         CreativePlanDO plan;
         if (StringUtils.isBlank(query.getUid())) {
-            Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-            plan = creativePlanMapper.getByAppUid(query.getAppUid(), loginUserId);
+            if (CreativePlanSourceEnum.isApp(query.getSource())) {
+                // 计划-应用：一对一对应关系
+                plan = creativePlanMapper.getByAppUid(query.getAppUid(), query.getSource());
+            } else {
+                // 计划-应用市场：一对多对应关系
+                Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+                plan = creativePlanMapper.getByAppUid(query.getAppUid(), loginUserId, query.getSource());
+            }
         } else {
             plan = creativePlanMapper.get(query.getUid());
             AppValidate.notNull(plan, "创作计划不存在！UID: {}", query.getUid());
