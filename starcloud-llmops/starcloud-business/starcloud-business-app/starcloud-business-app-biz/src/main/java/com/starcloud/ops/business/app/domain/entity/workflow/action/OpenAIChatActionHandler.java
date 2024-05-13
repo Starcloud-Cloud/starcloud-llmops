@@ -140,7 +140,6 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
-
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
         return actionResponse;
     }

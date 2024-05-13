@@ -152,7 +152,6 @@ public class TitleActionHandler extends BaseActionHandler {
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
-
         actionResponse.setCostPoints(costPoints);
 
         log.info("标题生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
@@ -342,7 +341,6 @@ public class TitleActionHandler extends BaseActionHandler {
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
-
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
 
         return actionResponse;
