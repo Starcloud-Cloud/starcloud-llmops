@@ -25,6 +25,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.ActionUtils;
+import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -337,13 +338,11 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
-        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
 
-        // actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
 
-        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? 1 : 0);
         return actionResponse;
     }
 
