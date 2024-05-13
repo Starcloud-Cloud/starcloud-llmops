@@ -10,7 +10,6 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
 import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.system.api.permission.RoleApi;
@@ -54,12 +53,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static cn.hutool.core.date.DatePattern.CHINESE_DATE_TIME_PATTERN;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.getChineseName;
@@ -139,8 +136,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             "    扣款状态：{} <br/>\n";
 
 
-    private final String EveryDayNotifyTemplate = "#### 【支付通知-{environmentName}】\n" +
-            ">- 会员昵称:{userName}\n" +
+    private final String EveryDayNotifyTemplate = " >- 会员昵称:{userName}\n" +
             ">- 商品名称:{productName}\n" +
             ">- 商品属性:{productType}\n" +
             ">- 购买时长:{purchaseDuration}\n" +
@@ -168,8 +164,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             ">- 下次预计扣款时间:{nextPayData}\n" +
             ">***\n" +
             "{signTradeOrderDetail}\n" +
-            ">***\n" +
-            ">##### {from} 发布 [支付提醒](https://www.mofaai.com.cn/)";
+            ">***\n" ;
 
 
     // =================== Order ===================
@@ -402,6 +397,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             Map<String, Object> msgParams = buildTradeNotifyMsg(tradeOrderDO, tradeOrderItemDOS);
             msg.append(StrUtil.format(EveryDayNotifyTemplate, msgParams));
         });
+        // msg.append(">##### {from} 发布 [支付提醒](https://www.mofaai.com.cn/)");
         smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("TRADE_NOTIFY").setTemplateParams(MapUtil.<String,Object>builder().put("params",msg).put("environmentName",environmentName).build()));
         return tradeOrderDOS.size();
     }

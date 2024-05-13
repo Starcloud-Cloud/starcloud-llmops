@@ -440,9 +440,9 @@ public class StarUserServiceImpl implements StarUserService {
         Long permissionUser;
         // 获取当前用户的团队管理者
         Long deptRightsUserId = getDeptRightsUserId(userId);
-        if (userId.equals(deptRightsUserId)) {
+        if (!userId.equals(deptRightsUserId)) {
             permissionUser = deptRightsUserId;
-            log.info("当前用户存在团队，且不属于团队管理者，开始切换显示团队管理者菜单");
+            log.info("当前用户{}存在团队，且不属于团队管理者，开始切换显示团队管理者{}菜单", userId, deptRightsUserId);
         } else {
             permissionUser = userId;
         }

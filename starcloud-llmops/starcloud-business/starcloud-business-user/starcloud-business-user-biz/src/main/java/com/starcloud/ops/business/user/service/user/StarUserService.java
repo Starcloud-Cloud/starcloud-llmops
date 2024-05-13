@@ -110,7 +110,10 @@ public interface StarUserService {
      */
     Boolean isNewUser(Long userId);
 
-
-
+    /**
+     * 获取登录用户的权限信息-存在团队 优先获取团队所有人的信息
+     * @param userId 用户id
+     * @return
+     */
     AuthPermissionInfoRespVO getPermissionInfo(Long userId);
 }
