@@ -341,33 +341,4 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return objectSchema;
     }
 
-    public static void main(String[] args) {
-        List<MaterialFieldConfigDTO> fieldList = new ArrayList<>();
-        MaterialFieldConfigDTO field1 = new MaterialFieldConfigDTO();
-        field1.setFieldName("title");
-        field1.setDesc("标题");
-        field1.setType(MaterialFieldTypeEnum.string.getTypeCode());
-        field1.setRequired(true);
-
-        MaterialFieldConfigDTO field2 = new MaterialFieldConfigDTO();
-        field2.setFieldName("quotationOne");
-        field2.setDesc("引言1");
-        field2.setType(MaterialFieldTypeEnum.textBox.getTypeCode());
-        field2.setRequired(true);
-
-        MaterialFieldConfigDTO field3 = new MaterialFieldConfigDTO();
-        field3.setFieldName("quotationTwo");
-        field3.setDesc("引言2");
-        field3.setType(MaterialFieldTypeEnum.textBox.getTypeCode());
-        field3.setRequired(true);
-
-        fieldList.add(field1);
-        fieldList.add(field2);
-        fieldList.add(field3);
-        //System.out.println(JsonUtils.toJsonPrettyString(fieldList));
-        JsonSchema jsonSchema = materialFieldToJsonSchema(fieldList, Boolean.TRUE);
-        System.out.println(JsonUtils.toJsonPrettyString(jsonSchema));
-
-    }
-
 }
