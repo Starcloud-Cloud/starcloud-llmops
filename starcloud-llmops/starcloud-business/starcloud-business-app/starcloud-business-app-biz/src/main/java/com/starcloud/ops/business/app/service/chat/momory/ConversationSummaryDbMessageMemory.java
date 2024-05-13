@@ -655,7 +655,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     }
 
     private Long computationalPower(String modelType, Integer tokens) {
-        return Long.valueOf(CostPointUtils.obtainMagicBeanCostPoint(modelType, Long.valueOf(tokens)));
+        return Long.valueOf(CostPointUtils.obtainChatMagicBeanCostPoint(modelType, Long.valueOf(tokens)));
     }
 
     /**

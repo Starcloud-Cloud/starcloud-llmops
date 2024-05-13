@@ -30,6 +30,7 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
+import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -174,12 +175,10 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setStepConfig(params);
 
         // 计算权益点数
-        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
-        // actionResponse.setCostPoints(costPoints);
+        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        actionResponse.setCostPoints(costPoints);
 
-        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
-        actionResponse.setCostPoints(1);
         log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 CreativeSchemeGenerateModeEnum.RANDOM.name(),
                 JsonUtils.toJsonPrettyString(actionResponse)
@@ -379,13 +378,10 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
 
         // 计算权益点数
-        // Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        // Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
 
-        // actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
-        // 应用执行,一个步骤扣除一点， 按字数扣点的，这次先不上线。
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? 1 : 0);
-
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
 
         //如果配置了 JsonSchema
         if (this.hasResponseJsonSchema()) {
