@@ -33,7 +33,7 @@ public class CostPointUtils {
     }
 
     /**
-     * 获取模型单价，gpt4 模型单价为30, 其他模型单价为1
+     * 获取模型单价，gpt4 模型单价为15, 其他模型单价为1
      *
      * @param model 模型
      * @return 模型单价
@@ -42,7 +42,7 @@ public class CostPointUtils {
         model = StringUtils.isNoneBlank(model) ? model : ModelTypeEnum.GPT_3_5_TURBO.getName();
         // GPT-4 模型消耗15个权益点
         if (GPT_4_MODEL_LIST.contains(model)) {
-            return 30;
+            return 15;
         }
         return 1;
     }
