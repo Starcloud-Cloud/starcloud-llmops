@@ -286,22 +286,15 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param isArray   是否为数组
      * @return JSON Schema 字符串
      */
+    @SuppressWarnings("all")
     private static JsonSchema materialFieldToJsonSchema(List<MaterialFieldConfigDTO> fieldList, Boolean isArray) {
         if (CollectionUtil.isEmpty(fieldList)) {
             throw new IllegalArgumentException("素材字段配置列表不能为空！");
         }
-        if (!isArray) {
-            return materialFieldToJsonSchema(fieldList);
+        if (isArray) {
+            return materialFieldToArraySchema(fieldList);
         } else {
-            ObjectSchema itemsSchema = materialFieldToJsonSchema(fieldList);
-            itemsSchema.setId("urn:jsonschema:material:item:" + IdUtil.fastSimpleUUID());
-
-            ArraySchema arraySchema = JsonSchemaUtils.generateJsonSchema(List.class).asArraySchema();
-            arraySchema.setId("urn:jsonschema:material:array:" + IdUtil.fastSimpleUUID());
-            arraySchema.setDescription("素材列表字段配置信息");
-            arraySchema.setRequired(true);
-            arraySchema.setItemsSchema(itemsSchema);
-            return arraySchema;
+            return materialFieldToObjectSchema(fieldList);
         }
     }
 
@@ -311,7 +304,25 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ObjectSchema materialFieldToJsonSchema(List<MaterialFieldConfigDTO> fieldList) {
+    private static ArraySchema materialFieldToArraySchema(List<MaterialFieldConfigDTO> fieldList) {
+        ObjectSchema itemsSchema = materialFieldToObjectSchema(fieldList);
+        itemsSchema.setId("urn:jsonschema:material:item:" + IdUtil.fastSimpleUUID());
+
+        ArraySchema arraySchema = JsonSchemaUtils.generateJsonSchema(List.class).asArraySchema();
+        arraySchema.setId("urn:jsonschema:material:array:" + IdUtil.fastSimpleUUID());
+        arraySchema.setDescription("素材列表字段配置信息");
+        arraySchema.setRequired(true);
+        arraySchema.setItemsSchema(itemsSchema);
+        return arraySchema;
+    }
+
+    /**
+     * 素材字段配置转换为 JSON Schema
+     *
+     * @param fieldList 素材字段配置列表
+     * @return JSON Schema 字符串
+     */
+    private static ObjectSchema materialFieldToObjectSchema(List<MaterialFieldConfigDTO> fieldList) {
         // 创建 JSON Schema 对象
         ObjectSchema objectSchema = JsonSchemaUtils.generateJsonSchema(Object.class).asObjectSchema();
         objectSchema.setId("urn:jsonschema:material:object:" + IdUtil.fastSimpleUUID());
