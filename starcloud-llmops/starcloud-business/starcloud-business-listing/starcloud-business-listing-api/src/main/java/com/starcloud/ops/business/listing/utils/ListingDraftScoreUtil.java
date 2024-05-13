@@ -204,5 +204,9 @@ public class ListingDraftScoreUtil {
         return checkForMatch(text, emailRegex);
     }
 
+    public static boolean containsKey(String content, String key) {
+        String keyRegex = "\\b" + key + "\\b";
+        return checkForMatch(content, keyRegex);
+    }
 
 }
