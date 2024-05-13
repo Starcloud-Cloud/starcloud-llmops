@@ -209,6 +209,7 @@ public class DraftServiceImpl implements DraftService {
         } else {
             updateScore(draftDO);
             updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
+            updateById(draftDO);
         }
 
         return ListingDraftConvert.INSTANCE.convert(draftDO);
@@ -652,7 +653,7 @@ public class DraftServiceImpl implements DraftService {
         Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity(), (a, b) -> a));
 
         String content = listString(respVO);
-        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
+        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(k -> ListingDraftScoreUtil.containsKey(content, k)).distinct().collect(Collectors.toList());
         long matchSearchers = 0L;
 
         BigDecimal matchSize = BigDecimal.valueOf(0);
