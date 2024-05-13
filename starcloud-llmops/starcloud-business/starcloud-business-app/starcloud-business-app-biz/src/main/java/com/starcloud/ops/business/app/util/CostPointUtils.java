@@ -20,6 +20,19 @@ public class CostPointUtils {
      */
     private static final List<String> GPT_4_MODEL_LIST = Arrays.asList(ModelTypeEnum.GPT_4.getName(), ModelTypeEnum.GPT_4_TURBO.getName(), ModelTypeEnum.GPT_4_32K.getName());
 
+
+    /**
+     * 根据模型获取消耗的权益点数
+     *
+     * @param model 模型
+     * @return 权益点数
+     */
+    public static Integer obtainChatMagicBeanCostPoint(String model, Long tokens) {
+        Integer modelPrice = computationalPower(model);
+        Integer tokenPrice = calculationTokens(tokens);
+        return modelPrice * tokenPrice;
+    }
+
     /**
      * 根据模型获取消耗的权益点数
      *
