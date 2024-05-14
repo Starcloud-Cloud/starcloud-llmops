@@ -90,4 +90,7 @@ public class DraftRespVO {
 
     @Schema(description = "类型")
     private Integer type;
+
+    @Schema(description = "草稿名称")
+    private String draftName;
 }
