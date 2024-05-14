@@ -37,7 +37,6 @@ public class MarkdownUtils {
      */
     private static final TextContentRenderer TEXT_CONTENT_RENDERER = TextContentRenderer.builder().build();
 
-
     /**
      * markdown to html
      *

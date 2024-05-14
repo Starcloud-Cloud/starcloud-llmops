@@ -71,6 +71,14 @@ public interface AppConvert {
     AppEntity convert(AppMarketEntity entity);
 
     /**
+     * AppMarketRespVO 转 AppRespVO
+     *
+     * @param appMarket 我的应用市场响应对象
+     * @return AppRespVO
+     */
+    AppRespVO convert(AppMarketRespVO appMarket);
+
+    /**
      * AppEntity 转 AppDO
      *
      * @param appEntity 我的应用实体

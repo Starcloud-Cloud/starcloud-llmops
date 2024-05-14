@@ -71,4 +71,11 @@ public interface AppDictionaryService {
      * @return 应用分类树
      */
     List<AppCategoryVO> creativeSchemeCategoryTree();
+
+    /**
+     * 搜索应用模板名称，用于搜索应用市场应用名称
+     *
+     * @return 搜索应用模板名称
+     */
+    List<String> appTemplateAppNameList();
 }

@@ -203,6 +203,30 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
+     * 搜索应用模板名称，用于搜索应用市场应用名称
+     *
+     * @return 搜索应用模板名称
+     */
+    @Override
+    public List<String> appTemplateAppNameList() {
+
+        String hotSearchMarket = AppConstants.APP_TEMPLATE_SEARCH_MARKET;
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+            hotSearchMarket = AppConstants.APP_TEMPLATE_SEARCH_MARKET;
+        } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
+            hotSearchMarket = AppConstants.APP_TEMPLATE_SEARCH_MARKET_JU_ZHEN;
+        }
+        List<DictDataDO> dictDataList = getDictionaryList(hotSearchMarket);
+        return CollectionUtil.emptyIfNull(dictDataList)
+                .stream()
+                .sorted(Comparator.comparingInt(DictDataDO::getSort))
+                .map(DictDataDO::getLabel).filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 根据字典类型，获取正在启用的字典数据列表
      *
      * @param dictType 字典类型
