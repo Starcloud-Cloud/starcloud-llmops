@@ -4,14 +4,35 @@
 
 
     <select id="count" resultType="java.lang.Long">
-        SELECT count(*) from (SELECT MAX(id) as id from listing_draft where deleted = 0 GROUP BY uid  ) t
+        SELECT count(*)
+        from (SELECT MAX(id) as id
+        from listing_draft
+        where deleted = 0
+        <if test="draftName != null and draftName != ''">
+            and draft_name like CONCAT(#{draftName}, '%')
+        </if>
+        <if test="title != null and title != ''">
+            and title like CONCAT('%', #{title}, '%')
+        </if>
+        GROUP BY uid) t
     </select>
 
     <select id="getLatestDrafts" resultType="com.starcloud.ops.business.listing.dal.dataobject.ListingDraftUserDTO">
-        SELECT t1.*, u.username from listing_draft t1
-        INNER JOIN (SELECT MAX(id) as id from listing_draft where deleted = 0 GROUP BY uid  ) t2 on t1.id = t2.id
-        INNER JOIN  system_users u ON t1.creator = u.id
-        ORDER BY t1.${field} ${type} limit #{start},#{end}
+        SELECT t1.*, u.username
+        from listing_draft t1
+        INNER JOIN (SELECT MAX(id) as id
+        from listing_draft
+        where deleted = 0
+        <if test="draftName != null and draftName != ''">
+            and draft_name like CONCAT(#{draftName}, '%')
+        </if>
+        <if test="title != null and title != ''">
+            and title like CONCAT('%', #{title}, '%')
+        </if>
+        GROUP BY uid) t2 on t1.id = t2.id
+        INNER JOIN system_users u ON t1.creator = u.id
+        ORDER BY t1.${field} ${type}
+        limit #{start},#{end}
     </select>
 
 
