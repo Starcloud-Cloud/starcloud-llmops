@@ -118,4 +118,9 @@ public class ListingDraftDO extends TenantBaseDO {
      */
     private Integer type;
 
+    /**
+     * 草稿名称
+     */
+    private String draftName;
+
 }
