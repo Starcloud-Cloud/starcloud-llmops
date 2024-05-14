@@ -106,8 +106,8 @@ public class DraftServiceImpl implements DraftService {
         List<ListingDraftUserDTO> latestDrafts = draftMapper.getLatestDrafts(PageUtils.getStart(pageParam),
                 pageParam.getPageSize(),
                 DraftSortFieldEnum.getColumn(pageParam.getSortField()),
-                BooleanUtil.isTrue(pageParam.getAsc()) ? "ASC" : "DESC");
-        Long count = draftMapper.count();
+                BooleanUtil.isTrue(pageParam.getAsc()) ? "ASC" : "DESC", pageParam.getDraftName(), pageParam.getTitle());
+        Long count = draftMapper.count(pageParam.getDraftName(), pageParam.getTitle());
         return new PageResult<>(ListingDraftConvert.INSTANCE.convert2(latestDrafts), count);
     }
 
