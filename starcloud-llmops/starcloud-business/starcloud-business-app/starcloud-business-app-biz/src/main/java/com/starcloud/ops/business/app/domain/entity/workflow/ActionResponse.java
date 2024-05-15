@@ -71,7 +71,7 @@ public class ActionResponse {
     /**
      * 结果是否发送一次sse
      */
-    private Boolean isSendSseAll = true;
+    private Boolean isSendSseAll = false;
 
     /**
      * 请求 token 使用
