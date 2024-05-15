@@ -380,7 +380,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 获取当前优惠券
             String couponName = "无";
             if (Objects.nonNull(tradeOrderDO.getCouponId())) {
-                couponName = couponApi.getCoupon(tradeOrderDO.getUserId(), tradeOrderDO.getCouponId()).getName();
+                couponName = couponApi.getCoupon(tradeOrderDO.getCouponId(), tradeOrderDO.getUserId()).getName();
             }
 
             // 如果是签约订单 则更新下次扣款时间 并且获取履约次数
