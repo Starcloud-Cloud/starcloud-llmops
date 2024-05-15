@@ -29,14 +29,15 @@
         content.tenant_id
         FROM
         llm_creative_content content
-        INNER JOIN llm_creative_plan plan ON content.plan_uid = plan.uid
+        # INNER JOIN llm_creative_plan plan ON content.plan_uid = plan.uid
         WHERE
-        content.retry_count &lt; 3
-        AND plan.status in ('RUNNING','FAILURE')
-        AND content.status != 'EXECUTING'
+        
+        # AND plan.status in ('RUNNING','FAILURE')
+        content.status != 'EXECUTING'
         AND content.status != 'SUCCESS'
         AND content.deleted = false
-        AND plan.deleted = false
+        AND content.retry_count &lt; 3
+        # AND plan.deleted = false
         <if test="query.planUid != null and query.planUid != ''">
             and content.plan_uid = #{query.planUid}
         </if>
