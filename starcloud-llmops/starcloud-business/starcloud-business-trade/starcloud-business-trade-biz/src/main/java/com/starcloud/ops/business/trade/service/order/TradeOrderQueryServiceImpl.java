@@ -79,7 +79,6 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     private DeliveryExpressService deliveryExpressService;
 
 
-
     @Resource
     private AdminUserService adminUserService;
 
@@ -128,43 +127,10 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     private AdminUserLevelService adminUserLevelService;
 
 
-    private final String SignNotifyTemplate = ">- 第{}次订单<br/>" +
-            "创建时间：{} <br/>\n" +
-            "    扣款时间：{}<br/>\n" +
-            "    权益有效期：{} <br/>\n" +
-            "    等级有效期：{}<br/>\n" +
-            "    扣款状态：{} <br/>\n";
+    private final String SignNotifyTemplate = ">- 第{}次订单<br/>" + "创建时间：{} <br/>\n" + "    扣款时间：{}<br/>\n" + "    权益有效期：{} <br/>\n" + "    等级有效期：{}<br/>\n" + "    扣款状态：{} <br/>\n";
 
 
-    private final String EveryDayNotifyTemplate = " >- 会员昵称:{userName}\n" +
-            ">- 商品名称:{productName}\n" +
-            ">- 商品属性:{productType}\n" +
-            ">- 购买时长:{purchaseDuration}\n" +
-            ">- 商品原价:{totalPrice} 元\n" +
-            ">- 优惠金额:{discountPrice} 元\n" +
-            ">- 优惠券名称:{couponName}\n" +
-            ">- 支付金额:{payPrice} 元\n" +
-            ">- 订单创建时间:{createTime}\n" +
-            ">- 用户支付时间:{payTime}\n" +
-            ">- 支付回调时间:{payNotifyTime}\n" +
-            ">- 支付渠道:{payChannelCode}\n" +
-            ">***\n" +
-            ">- 会员等级:{userLevelName}\n" +
-            ">- 会员角色:{userRole}\n" +
-            ">- 魔法豆:{magicBeanCount}\n" +
-            ">- 图  片:{magicImage}\n" +
-            ">- 矩阵豆:{matrixBean}\n" +
-            ">- 权益有效期:<br/>{userRightTimeRange}\n" +
-            ">- 等级有效期:<br/>{userLevelTimeRange}\n" +
-            ">- 数据校验结果:{checkResult}\n" +
-            ">***\n" +
-            ">- 是否签约:{isSign}\n" +
-            ">- 履约次数:{successCount}\n" +
-            ">- 首次签约时间:{firstSignTime}\n" +
-            ">- 下次预计扣款时间:{nextPayData}\n" +
-            ">***\n" +
-            "{signTradeOrderDetail}\n" +
-            ">***\n" ;
+    private final String EveryDayNotifyTemplate = " >- 会员昵称:{userName}\n" + ">- 商品名称:{productName}\n" + ">- 商品属性:{productType}\n" + ">- 购买时长:{purchaseDuration}\n" + ">- 商品原价:{totalPrice} 元\n" + ">- 优惠金额:{discountPrice} 元\n" + ">- 优惠券名称:{couponName}\n" + ">- 支付金额:{payPrice} 元\n" + ">- 订单创建时间:{createTime}\n" + ">- 用户支付时间:{payTime}\n" + ">- 支付回调时间:{payNotifyTime}\n" + ">- 支付渠道:{payChannelCode}\n" + ">***\n" + ">- 会员等级:{userLevelName}\n" + ">- 会员角色:{userRole}\n" + ">- 魔法豆:{magicBeanCount}\n" + ">- 图  片:{magicImage}\n" + ">- 矩阵豆:{matrixBean}\n" + ">- 权益有效期:<br/>{userRightTimeRange}\n" + ">- 等级有效期:<br/>{userLevelTimeRange}\n" + ">- 数据校验结果:{checkResult}\n" + ">***\n" + ">- 是否签约:{isSign}\n" + ">- 履约次数:{successCount}\n" + ">- 首次签约时间:{firstSignTime}\n" + ">- 下次预计扣款时间:{nextPayData}\n" + ">***\n" + "{signTradeOrderDetail}\n" + ">***\n";
 
 
     // =================== Order ===================
@@ -177,8 +143,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     @Override
     public TradeOrderDO getOrder(Long userId, Long id) {
         TradeOrderDO order = tradeOrderMapper.selectById(id);
-        if (order != null
-                && ObjectUtil.notEqual(order.getUserId(), userId)) {
+        if (order != null && ObjectUtil.notEqual(order.getUserId(), userId)) {
             return null;
         }
         return order;
@@ -324,13 +289,10 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
      * @param receiverMobile 收、寄件人的电话号码
      * @return 物流轨迹
      */
-    @Cacheable(cacheNames = RedisKeyConstants.EXPRESS_TRACK, key = "#code + '-' + #logisticsNo + '-' + #receiverMobile",
-            condition = "#result != null")
+    @Cacheable(cacheNames = RedisKeyConstants.EXPRESS_TRACK, key = "#code + '-' + #logisticsNo + '-' + #receiverMobile", condition = "#result != null")
     public List<ExpressTrackRespDTO> getExpressTrackList(String code, String logisticsNo, String receiverMobile) {
         // 查询物流轨迹
-        return expressClientFactory.getDefaultExpressClient().getExpressTrackList(
-                new ExpressTrackQueryReqDTO().setExpressCode(code).setLogisticsNo(logisticsNo)
-                        .setPhone(receiverMobile));
+        return expressClientFactory.getDefaultExpressClient().getExpressTrackList(new ExpressTrackQueryReqDTO().setExpressCode(code).setLogisticsNo(logisticsNo).setPhone(receiverMobile));
     }
 
 
@@ -339,8 +301,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
     @Override
     public TradeOrderItemDO getOrderItem(Long userId, Long itemId) {
         TradeOrderItemDO orderItem = tradeOrderItemMapper.selectById(itemId);
-        if (orderItem != null
-                && ObjectUtil.notEqual(orderItem.getUserId(), userId)) {
+        if (orderItem != null && ObjectUtil.notEqual(orderItem.getUserId(), userId)) {
             return null;
         }
         return orderItem;
@@ -371,7 +332,9 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
         return tradeOrderMapper.selectWithinContractPeriod(signId, LocalDateTimeUtil.endOfDay(signPayTime.atStartOfDay()));
     }
 
-    public List<TradeOrderDO> getSignPayTradeList(Long signId) {return tradeOrderMapper.selectSucceedOrderBySignId(signId);}
+    public List<TradeOrderDO> getSignPayTradeList(Long signId) {
+        return tradeOrderMapper.selectSucceedOrderBySignId(signId);
+    }
 
     /**
      * 订单通知-查询指定timeNum 内的订单 发送到钉钉通知
@@ -398,10 +361,9 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             msg.append(StrUtil.format(EveryDayNotifyTemplate, msgParams));
         });
         // msg.append(">##### {from} 发布 [支付提醒](https://www.mofaai.com.cn/)");
-        smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("TRADE_NOTIFY").setTemplateParams(MapUtil.<String,Object>builder().put("params",msg).put("environmentName",environmentName).build()));
+        smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(1L).setMobile("17835411844").setTemplateCode("TRADE_NOTIFY").setTemplateParams(MapUtil.<String, Object>builder().put("params", msg).put("environmentName", environmentName).build()));
         return tradeOrderDOS.size();
     }
-
 
 
     @Override

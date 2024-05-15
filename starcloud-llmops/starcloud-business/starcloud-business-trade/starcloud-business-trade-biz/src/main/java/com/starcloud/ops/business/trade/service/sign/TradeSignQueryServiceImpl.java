@@ -140,6 +140,9 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
         } else {
             content = "无签约记录";
         }
+        // tradeOrderQueryService.getSignPayTradeList()
+
+
         sendNotifyMsg(content);
         return tradeSignDOS.size();
 
