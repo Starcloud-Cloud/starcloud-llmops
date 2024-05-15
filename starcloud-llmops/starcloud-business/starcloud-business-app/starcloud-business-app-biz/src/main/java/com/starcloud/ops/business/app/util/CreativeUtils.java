@@ -564,6 +564,31 @@ public class CreativeUtils {
     }
 
     /**
+     * 根据应用步骤获取风格配置
+     *
+     * @param posterWrapper 海报步骤
+     * @return 风格配置
+     */
+    public static List<PosterStyleDTO> getPosterStyleListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
+        // 图片风格配置
+        if (Objects.isNull(posterWrapper)) {
+            return Collections.emptyList();
+        }
+
+        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+            return Collections.emptyList();
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return Collections.emptyList();
+        }
+
+        return posterStyleList;
+    }
+
+    /**
      * 处理海报步骤
      *
      * @param posterStepWrapper 处理海报步骤

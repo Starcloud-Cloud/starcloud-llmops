@@ -462,6 +462,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (CollectionUtil.isNotEmpty(materialList)) {
                 configuration.setMaterialList(materialList);
             }
+            // 把最新的海报步骤填充到配置中
+            WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListOrEmptyByStepWrapper(posterStepWrapper);
+            if (CollectionUtil.isNotEmpty(posterStyleList)) {
+                configuration.setImageStyleList(posterStyleList);
+            }
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
