@@ -87,6 +87,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         // 获取任务执行参数
         RunJobParams params = context.getParams(RunJobParams.class);
+        log.info("创作内容根任务执行开始：参数：{}", JsonUtils.toJsonString(params));
 
         // 根据参数查询任务列表
         CreativeContentTaskReqVO query = new CreativeContentTaskReqVO();
