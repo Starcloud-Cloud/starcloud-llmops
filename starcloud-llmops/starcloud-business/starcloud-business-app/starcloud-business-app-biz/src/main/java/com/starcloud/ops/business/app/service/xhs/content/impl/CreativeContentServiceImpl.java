@@ -364,7 +364,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             executeRequest.setUid(content.getUid());
             executeRequest.setPlanUid(content.getPlanUid());
             executeRequest.setBatchUid(content.getBatchUid());
-            executeRequest.setType(content.getType());
             executeRequest.setForce(Boolean.TRUE);
             executeRequest.setTenantId(content.getTenantId());
 

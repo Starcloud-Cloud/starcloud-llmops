@@ -41,8 +41,8 @@ public class CreativeContentExecuteReqVO implements java.io.Serializable {
     /**
      * 创作内容类型
      */
-    @Schema(description = "创作内容类型")
-    private String type;
+    @Schema(description = "最大重试次数")
+    private Integer maxRetry;
 
     /**
      * 是否强制执行

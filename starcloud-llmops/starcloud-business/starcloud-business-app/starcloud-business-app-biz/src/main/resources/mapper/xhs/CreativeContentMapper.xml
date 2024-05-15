@@ -29,26 +29,23 @@
         content.tenant_id
         FROM
         llm_creative_content content
-        # INNER JOIN llm_creative_plan plan ON content.plan_uid = plan.uid
+        INNER JOIN llm_creative_plan plan ON content.plan_uid = plan.uid
         WHERE
-        
-        # AND plan.status in ('RUNNING','FAILURE')
-        content.status != 'EXECUTING'
-        AND content.status != 'SUCCESS'
-        AND content.deleted = false
-        AND content.retry_count &lt; 3
-        # AND plan.deleted = false
+        content.deleted = FALSE
+        AND plan.deleted = FALSE
+        AND plan.status IN ( 'RUNNING', 'FAILURE' )
+        AND plan.status IN ('INIT', 'FAILURE')
+        <if test="query.status != null and query.status != ''">
+            AND content.status = #{query.status}
+        </if>
         <if test="query.planUid != null and query.planUid != ''">
             and content.plan_uid = #{query.planUid}
         </if>
         <if test="query.batchUid != null and query.batchUid != ''">
             AND content.batch_uid = #{query.batchUid}
         </if>
-        <if test="query.type != null and query.type != ''">
-            AND content.type = #{query.type}
-        </if>
-        <if test="query.retryProcess != null and query.retryProcess == true">
-            AND content.retry_count &gt;= 1 and content.status = 'FAILURE'
+        <if test="query.status == 'FAILURE' and query.maxRetry > 0">
+            AND content.retry_count &lt; #{query.maxRetry}
         </if>
         ORDER BY content.update_time
         <if test="query.bathCount != null and query.bathCount gt 0">

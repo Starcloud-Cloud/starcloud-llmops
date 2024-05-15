@@ -90,8 +90,9 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         // 根据参数查询任务列表
         CreativeContentTaskReqVO query = new CreativeContentTaskReqVO();
+        query.setStatus(params.getStatus());
+        query.setMaxRetry(params.getMaxRetry());
         query.setBathCount(params.getBathCount());
-        query.setRetryProcess(params.getRetryProcess());
         List<CreativeContentRespVO> contentList = creativeContentService.listTask(query);
 
         // 如果没有找到带执行的任务，直接返回。
@@ -132,7 +133,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 subTask.setTenantId(content.getTenantId());
                 subTask.setPlanUid(content.getPlanUid());
                 subTask.setBatchUid(bathUid);
-                subTask.setRunType(params.getRunType());
+                subTask.setMaxRetry(params.getMaxRetry());
                 subTask.setContentUidList(contentUidList);
                 subTaskList.add(subTask);
             }
@@ -174,7 +175,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                     .map(item -> {
                         CreativeContentExecuteReqVO request = new CreativeContentExecuteReqVO();
                         request.setUid(item);
-                        request.setType(subTask.getRunType());
+                        request.setMaxRetry(subTask.getMaxRetry());
                         request.setForce(Boolean.FALSE);
                         request.setTenantId(subTask.getTenantId());
                         return request;
@@ -299,8 +300,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         private List<String> contentUidList;
 
         /**
-         * 类型
+         * 最大重试次数
          */
-        private String runType;
+        private Integer maxRetry;
     }
 }
