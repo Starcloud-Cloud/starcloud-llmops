@@ -34,7 +34,7 @@
         content.deleted = FALSE
         AND plan.deleted = FALSE
         AND plan.status IN ( 'RUNNING', 'FAILURE' )
-        AND plan.status IN ('INIT', 'FAILURE')
+        AND content.status IN ('INIT', 'FAILURE')
         <if test="query.status != null and query.status != ''">
             AND content.status = #{query.status}
         </if>
