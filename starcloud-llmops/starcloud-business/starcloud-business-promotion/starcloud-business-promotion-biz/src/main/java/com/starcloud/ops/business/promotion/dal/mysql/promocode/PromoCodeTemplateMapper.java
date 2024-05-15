@@ -75,7 +75,7 @@ public interface PromoCodeTemplateMapper extends BaseMapperX<PromoCodeTemplateDO
                     w.eq(PromoCodeTemplateDO::getStatus, CommonStatusEnum.ENABLE.getStatus()) // 1. 状态为可用的
                             .and(ww -> ww.isNull(PromoCodeTemplateDO::getValidEndTime)  // 3. 未过期
                                     .or().gt(PromoCodeTemplateDO::getValidEndTime, LocalDateTime.now()))
-                            .apply(" take_count < total_count "); // 4. 剩余数量大于 0
+                            .apply(" (take_count < total_count OR total_count = -1 )");
         }
         return canTakeConsumer;
     }
