@@ -3,8 +3,6 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * powerjob 执行配置参数对象
  *
