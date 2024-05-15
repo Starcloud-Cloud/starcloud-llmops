@@ -11,9 +11,7 @@ import java.io.Serializable;
  * @author nacoyer
  */
 @Data
-public class RunJobParams implements Serializable {
-
-    private static final long serialVersionUID = -2759431100922744192L;
+public class RunJobParams {
 
     /**
      * 任务状态
