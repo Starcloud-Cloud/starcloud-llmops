@@ -52,6 +52,8 @@ public interface CreativePlanBatchMapper extends BaseMapperX<CreativePlanBatchDO
     default IPage<CreativePlanBatchDO> page(CreativePlanBatchPageReqVO query) {
         Page<CreativePlanBatchDO> page = PageUtil.page(query);
         LambdaQueryWrapper<CreativePlanBatchDO> wrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+        // 不查询 configuration 字段
+        wrapper.select(CreativePlanBatchDO.class, item -> !"configuration".equalsIgnoreCase(item.getColumn()));
         wrapper.eq(CreativePlanBatchDO::getPlanUid, query.getPlanUid());
         wrapper.orderByDesc(CreativePlanBatchDO::getId);
         return this.selectPage(page, wrapper);
