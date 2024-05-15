@@ -57,4 +57,10 @@ public class CreativePlanUpgradeReqVO implements java.io.Serializable {
     @Min(value = 1, message = "生成数量最小值为 1")
     @Max(value = 100, message = "生成数量最大值为 100")
     private Integer totalCount;
+
+    /**
+     * 是否全量覆盖升级
+     */
+    @Schema(description = "是否全量覆盖升级")
+    private Boolean isFullCover;
 }

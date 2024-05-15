@@ -190,7 +190,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public List<CreativePlanRespVO> list(Integer limit) {
-        List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString(),limit);
+        List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString(), limit);
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
@@ -447,13 +447,26 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "已是最新版本！不需要更新！"));
         }
 
+        // 是否全量覆盖，默认全量覆盖
+        boolean isFullCover = Objects.isNull(request.getIsFullCover()) ? Boolean.TRUE : request.getIsFullCover();
         // 计划配置
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         // 获取应用配置
         AppMarketRespVO appInformation = configuration.getAppInformation();
 
-        // 进行应用合并
-        latestAppMarket.merge(appInformation);
+        // 如果全量覆盖，否则直接使用最新应用配置
+        if (isFullCover) {
+            // 把最新的素材库步骤填充到配置中
+            WorkflowStepWrapperRespVO materialStepWrapper = latestAppMarket.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+            List<AbstractCreativeMaterialDTO> materialList = CreativeUtils.getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
+            if (CollectionUtil.isNotEmpty(materialList)) {
+                configuration.setMaterialList(materialList);
+            }
+        }
+        // 如果不是全量覆盖，只更新应用配置
+        else {
+            latestAppMarket.merge(appInformation);
+        }
         configuration.setAppInformation(latestAppMarket);
 
         // 更新升级之后的计划
