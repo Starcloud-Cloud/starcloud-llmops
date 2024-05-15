@@ -1,19 +1,12 @@
 package com.starcloud.ops.business.limits.job;
 
-import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
-import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefits.UserBenefitsDO;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * 用户权益过期 - 定时处理
@@ -30,19 +23,19 @@ public class UserBenefitsTimeoutJob {
     private UserBenefitsService userBenefitsService;
 
 
-    /**
-     * 一分钟执行一次,这里选择每2分钟的秒执行，是为了避免整点任务过多的问题
-     */
-    @Scheduled(cron = "0 0/5 * * * ? ")
-    public void userBenefitsExpired() {
-        try {
-            log.info("开始执行权益过期任务，获取已经过期权益");
-            execute();
-            log.error("[权益过期结束][执行成功]");
-        } catch (Exception ex) {
-            log.error("[权益过期失败][执行异常]", ex);
-        }
-    }
+    // /**
+    //  * 一分钟执行一次,这里选择每2分钟的秒执行，是为了避免整点任务过多的问题
+    //  */
+    // @Scheduled(cron = "0 0/5 * * * ? ")
+    // public void userBenefitsExpired() {
+    //     try {
+    //         log.info("开始执行权益过期任务，获取已经过期权益");
+    //         execute();
+    //         log.error("[权益过期结束][执行成功]");
+    //     } catch (Exception ex) {
+    //         log.error("[权益过期失败][执行异常]", ex);
+    //     }
+    // }
 
 
     public String execute() throws Exception {
