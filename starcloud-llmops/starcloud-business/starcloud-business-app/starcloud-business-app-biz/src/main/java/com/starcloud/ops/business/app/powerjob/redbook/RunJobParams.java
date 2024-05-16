@@ -3,17 +3,13 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * powerjob 执行配置参数对象
  *
  * @author nacoyer
  */
 @Data
-public class RunJobParams implements Serializable {
-
-    private static final long serialVersionUID = -2759431100922744192L;
+public class RunJobParams {
 
     /**
      * 任务状态

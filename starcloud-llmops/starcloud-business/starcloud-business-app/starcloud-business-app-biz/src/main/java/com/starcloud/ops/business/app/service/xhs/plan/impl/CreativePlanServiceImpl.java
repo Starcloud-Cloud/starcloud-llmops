@@ -448,7 +448,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 是否全量覆盖，默认全量覆盖
-        boolean isFullCover = Objects.isNull(request.getIsFullCover()) ? Boolean.TRUE : request.getIsFullCover();
+        boolean isFullCover = Objects.isNull(request.getIsFullCover()) ? Boolean.FALSE : request.getIsFullCover();
         // 计划配置
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         // 获取应用配置
