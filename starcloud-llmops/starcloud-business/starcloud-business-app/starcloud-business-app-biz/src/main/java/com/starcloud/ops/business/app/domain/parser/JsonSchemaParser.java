@@ -138,8 +138,6 @@ public class JsonSchemaParser implements OutputParser<JSON> {
             });
         }
 
-        //强制把Json转换为可读的字符串：val1 + val2 + val3 ...
-
         return json;
     }
 
@@ -183,7 +181,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
 
             String str = jsonObject.entrySet().stream().map(entry -> {
                 return entry.getValue();
-            }).map(Objects::toString).collect(Collectors.joining(" "));
+            }).map(Objects::toString).collect(Collectors.joining("|"));
 
             return str;
         }
