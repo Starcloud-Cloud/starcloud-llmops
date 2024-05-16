@@ -29,11 +29,8 @@
         content.tenant_id
         FROM
         llm_creative_content content
-        INNER JOIN llm_creative_plan plan ON content.plan_uid = plan.uid
         WHERE
         content.deleted = FALSE
-        AND plan.deleted = FALSE
-        AND plan.status IN ( 'RUNNING', 'FAILURE' )
         AND content.status IN ('INIT', 'FAILURE')
         <if test="query.status != null and query.status != ''">
             AND content.status = #{query.status}

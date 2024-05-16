@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.parser;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,6 +19,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * 它使用 JSON Schema 将 LLM 输出结果 转换为特定的对象类型。
@@ -70,6 +72,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
             text = StrUtil.replaceLast(text, "```", "", true);
             // 先进行正常的 JSON 格式化处理
             JSON json = JSONUtil.parse(text);
+            json = handlerJSON(json);
             log.info("生成结果格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), json);
             return json;
         } catch (Exception e) {
@@ -79,6 +82,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
                 text = StrUtil.replace(text, "\\\n", "\n");
                 // 使用较为宽松的方式解析 JSON 字符串
                 JSON result = parseJSON(text);
+                result = handlerJSON(result);
                 log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
                 return result;
             } catch (Exception exception) {
@@ -102,13 +106,53 @@ public class JsonSchemaParser implements OutputParser<JSON> {
     }
 
     /**
+     * 处理 JSON 数据
+     *
+     * @param json JSON 数据
+     * @return 处理后的 JSON 数据
+     */
+    @SuppressWarnings("all")
+    private static JSON handlerJSON(JSON json) {
+        if (JSONUtil.isTypeJSONObject(JSONUtil.toJsonStr(json))) {
+            JSONObject jsonObject = (JSONObject) json;
+            Object data = jsonObject.get("data");
+            if (Objects.nonNull(data) &&
+                    (data instanceof String) &&
+                    StrUtil.isNotBlank((String) data) &&
+                    JSONUtil.isTypeJSONObject((String) data)) {
+
+                JSONObject dataObject = JSONUtil.parseObj(data);
+                Object title = dataObject.get("title");
+                Object content = dataObject.get("content");
+                Object description = dataObject.get("description");
+                StringBuilder stringBuilder = new StringBuilder();
+                if (Objects.nonNull(title)) {
+                    stringBuilder.append(title);
+                }
+                if (Objects.nonNull(content)) {
+                    stringBuilder.append(" ");
+                    stringBuilder.append(content);
+                }
+                if (Objects.nonNull(description)) {
+                    stringBuilder.append(" ");
+                    stringBuilder.append(description);
+                }
+                jsonObject.set("data", stringBuilder.toString());
+            }
+            return jsonObject;
+        }
+
+        return json;
+    }
+
+    /**
      * 解析 JSON 字符串为 JSONObject 对象
      *
      * @param text JSON 字符串
      * @return JSONObject 对象
      */
     @SuppressWarnings("all")
-    public static JSON parseJSON(String text) {
+    private static JSON parseJSON(String text) {
         AppValidate.notBlank(text, "AI生成结果不存在！请稍候重试");
         try {
             // 利用 Jackson 解析 JSON 字符串：objectMapper
