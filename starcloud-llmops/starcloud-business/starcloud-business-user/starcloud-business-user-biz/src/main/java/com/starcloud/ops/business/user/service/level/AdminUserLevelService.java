@@ -135,4 +135,12 @@ public interface AdminUserLevelService {
      * @param adminUserRightsDO 用户权益 DO
      */
     Boolean checkLevelAndRights(AdminUserLevelDO adminUserLevelDO, AdminUserRightsDO adminUserRightsDO);
+
+    /**
+     * 获取团队的用户等级
+     *
+     * @param userId 用户编号
+     * @return List<AdminUserLevelDetailRespVO>
+     */
+    List<AdminUserLevelDetailRespVO> getGroupLevelList(Long userId);
 }
