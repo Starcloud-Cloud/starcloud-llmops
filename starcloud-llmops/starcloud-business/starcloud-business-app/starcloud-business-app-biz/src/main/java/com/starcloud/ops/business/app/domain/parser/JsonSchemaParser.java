@@ -177,7 +177,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
                 }
             });
 
-            //转成字符串  val1 + val2 + val3 ...
+            //转成字符串  val1 | val2 | val3 ...
 
             String str = jsonObject.entrySet().stream().map(entry -> {
                 return entry.getValue();
