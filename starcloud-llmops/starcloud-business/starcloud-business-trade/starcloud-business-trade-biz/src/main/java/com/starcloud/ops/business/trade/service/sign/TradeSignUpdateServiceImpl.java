@@ -34,6 +34,8 @@ import com.starcloud.ops.business.trade.service.sign.handler.TradeSignHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -58,7 +60,11 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     private TradeSignItemMapper tradeSignItemMapper;
 
     @Resource
+    private TradeSignQueryService tradeSignQueryService;
+
+    @Resource
     private CartService cartService;
+
     @Resource
     private TradePriceService tradePriceService;
 
@@ -168,6 +174,14 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         if (updateCount == 0) {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
+        // 当前数据状态 需要在事务提交后获取
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                tradeSignQueryService.executeAutoTradeSignPay();
+            }
+        });
+
     }
 
     /**

@@ -33,7 +33,6 @@ public interface TradeSignQueryService {
      *
      * @return 执行数量
      */
-
     int executeAutoTradeSignPay();
 
     /**
