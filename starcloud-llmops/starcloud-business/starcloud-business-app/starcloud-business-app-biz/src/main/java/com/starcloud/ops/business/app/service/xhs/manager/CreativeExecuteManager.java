@@ -147,7 +147,7 @@ public class CreativeExecuteManager {
         RLock lock = redissonClient.getLock(lockKey);
         if (lock != null && !lock.tryLock()) {
             log.warn("创作内容任务正在执行中(内容UID：{})！", request.getUid());
-            return CreativeContentExecuteRespVO.failure(request.getUid(), "该创作内容正在执行中，请稍后再试");
+            return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getPlanUid(), "该创作内容正在执行中，请稍后再试");
         }
 
         log.info("创作内容任务上锁成功({})", lockKey);
@@ -189,10 +189,10 @@ public class CreativeExecuteManager {
             }
         } catch (ServiceException exception) {
             log.error("创作中心：创作内容任务执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
-            return CreativeContentExecuteRespVO.failure(request.getUid(), exception.getMessage());
+            return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
         } catch (Exception exception) {
             log.error("创作中心：创作内容任务执行失败： 错误信息: {}", exception.getMessage(), exception);
-            return CreativeContentExecuteRespVO.failure(request.getUid(), exception.getMessage());
+            return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
         } finally {
             if (lock != null) {
                 lock.unlock();
