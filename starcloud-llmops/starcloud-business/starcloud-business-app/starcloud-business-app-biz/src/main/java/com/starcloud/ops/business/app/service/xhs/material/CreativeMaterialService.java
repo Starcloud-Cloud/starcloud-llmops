@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
+import cn.hutool.json.JSON;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
@@ -65,13 +66,13 @@ public interface CreativeMaterialService {
      *
      * @param request 请求
      */
-    Object materialGenerate(CreativeMaterialGenerationDTO request);
+    JSON materialGenerate(CreativeMaterialGenerationDTO request);
 
     /**
      * 自定义素材生成
      *
      * @param request 请求
      */
-    void customMaterialGenerate(CreativeMaterialGenerationDTO request, SseEmitter sseEmitter);
+    JSON customMaterialGenerate(CreativeMaterialGenerationDTO request);
 
 }

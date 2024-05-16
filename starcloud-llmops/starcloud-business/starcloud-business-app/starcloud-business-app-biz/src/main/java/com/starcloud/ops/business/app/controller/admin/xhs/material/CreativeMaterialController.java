@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
+import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
@@ -7,9 +8,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMater
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
-import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
-import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -22,10 +21,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -75,19 +72,13 @@ public class CreativeMaterialController {
     @PostMapping("/materialGenerate")
     @Operation(summary = "素材生成", description = "素材生成")
     @ApiOperationSupport(order = 60, author = "nacoyer")
-    public CommonResult<Object> materialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
+    public CommonResult<JSON> materialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
         return CommonResult.success(materialService.materialGenerate(request));
     }
 
     @PostMapping(value = "/customMaterialGenerate", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @Operation(summary = "素材生成")
-    public SseEmitter customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request, HttpServletResponse httpServletResponse) {
-        // 设置响应头
-        httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
-        httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
-        // 设置 SSE
-        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "material");
-        materialService.customMaterialGenerate(request, emitter);
-        return emitter;
+    public CommonResult<JSON> customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
+        return CommonResult.success(materialService.customMaterialGenerate(request));
     }
 }

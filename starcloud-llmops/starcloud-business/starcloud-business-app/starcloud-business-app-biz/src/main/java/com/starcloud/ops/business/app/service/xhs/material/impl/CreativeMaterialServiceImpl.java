@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -36,7 +37,6 @@ import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialServi
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -117,7 +117,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      */
     @SuppressWarnings("all")
     @Override
-    public Object materialGenerate(CreativeMaterialGenerationDTO request) {
+    public JSON materialGenerate(CreativeMaterialGenerationDTO request) {
         AppValidate.notEmpty(request.getMaterialList(), "素材列表不能为空");
         AppValidate.notEmpty(request.getFieldList(), "所有字段定义列表不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
@@ -187,10 +187,11 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * 自定义素材生成
      *
      * @param request 请求
+     * @return 素材
      */
     @SuppressWarnings("all")
     @Override
-    public void customMaterialGenerate(CreativeMaterialGenerationDTO request, SseEmitter sseEmitter) {
+    public JSON customMaterialGenerate(CreativeMaterialGenerationDTO request) {
         AppValidate.notEmpty(request.getFieldList(), "所有字段定义列表不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
@@ -239,13 +240,21 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
         appExecuteRequest.setAppUid(appMarketResponse.getUid());
         appExecuteRequest.setStepId(stepId);
-        appExecuteRequest.setSseEmitter(sseEmitter);
         appExecuteRequest.setContinuous(Boolean.FALSE);
         appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         appExecuteRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
         appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(appMarketResponse));
         // 执行应用
-        appService.asyncExecute(appExecuteRequest);
+        AppExecuteRespVO executeResponse = appService.execute(appExecuteRequest);
+        if (!executeResponse.getSuccess() || executeResponse.getResult() == null) {
+            throw new IllegalArgumentException("生成素材失败：" + executeResponse.getResultDesc());
+        }
+
+        // 获取执行结果
+        Object result = executeResponse.getResult();
+        log.info("生成素材结果：{}", result);
+        JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
+        return jsonSchemaParser.parse(String.valueOf(result));
     }
 
     /**
