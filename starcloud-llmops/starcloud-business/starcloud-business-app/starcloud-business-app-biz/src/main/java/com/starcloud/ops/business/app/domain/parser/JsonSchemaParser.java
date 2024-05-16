@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.parser;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -19,7 +20,11 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 它使用 JSON Schema 将 LLM 输出结果 转换为特定的对象类型。
@@ -72,7 +77,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
             text = StrUtil.replaceLast(text, "```", "", true);
             // 先进行正常的 JSON 格式化处理
             JSON json = JSONUtil.parse(text);
-            json = handlerJSON(json);
+            json = handlerJSONValue2Str(json);
             log.info("生成结果格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), json);
             return json;
         } catch (Exception e) {
@@ -82,7 +87,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
                 text = StrUtil.replace(text, "\\\n", "\n");
                 // 使用较为宽松的方式解析 JSON 字符串
                 JSON result = parseJSON(text);
-                result = handlerJSON(result);
+                result = handlerJSONValue2Str(result);
                 log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
                 return result;
             } catch (Exception exception) {
@@ -105,6 +110,39 @@ public class JsonSchemaParser implements OutputParser<JSON> {
         return String.format(template, JsonSchemaUtils.jsonSchema2Str(this.getJsonSchema()));
     }
 
+    public static JSON handlerJSONValue2Str(JSON json) {
+        if (JSONUtil.isTypeJSONObject(JSONUtil.toJsonStr(json))) {
+            JSONObject jsonObject = (JSONObject) json;
+
+            jsonObject.entrySet().forEach(entry -> {
+                Object value = entry.getValue();
+                if (Objects.nonNull(value)) {
+                    if (value instanceof String) {
+                        String str = (String) value;
+                        //返回字符串也是JSON格式，这里再次转换为JSON对象
+                        if (StrUtil.isNotBlank(str)) {
+                            if (JSONUtil.isTypeJSONObject(str)) {
+                                entry.setValue(handlerJSON(JSONUtil.parseObj(str)));
+                            } else if (JSONUtil.isTypeJSONArray(str)) {
+                                entry.setValue(handlerJSON(JSONUtil.parseArray(str)));
+                            }
+                        }
+                    } else if (value instanceof JSONObject) {
+                        entry.setValue(handlerJSON((JSONObject) value));
+
+                    } else if (value instanceof JSONArray) {
+
+                        entry.setValue(handlerJSON((JSONArray) value));
+                    }
+                }
+            });
+        }
+
+        //强制把Json转换为可读的字符串：val1 + val2 + val3 ...
+
+        return json;
+    }
+
     /**
      * 处理 JSON 数据
      *
@@ -112,38 +150,75 @@ public class JsonSchemaParser implements OutputParser<JSON> {
      * @return 处理后的 JSON 数据
      */
     @SuppressWarnings("all")
-    private static JSON handlerJSON(JSON json) {
+    private static Object handlerJSON(JSON json) {
+
         if (JSONUtil.isTypeJSONObject(JSONUtil.toJsonStr(json))) {
             JSONObject jsonObject = (JSONObject) json;
-            Object data = jsonObject.get("data");
-            if (Objects.nonNull(data) &&
-                    (data instanceof String) &&
-                    StrUtil.isNotBlank((String) data) &&
-                    JSONUtil.isTypeJSONObject((String) data)) {
 
-                JSONObject dataObject = JSONUtil.parseObj(data);
-                Object title = dataObject.get("title");
-                Object content = dataObject.get("content");
-                Object description = dataObject.get("description");
-                StringBuilder stringBuilder = new StringBuilder();
-                if (Objects.nonNull(title)) {
-                    stringBuilder.append(title);
+            jsonObject.entrySet().forEach(entry -> {
+
+                Object value = entry.getValue();
+                if (Objects.nonNull(value)) {
+                    if (value instanceof String) {
+                        String str = (String) value;
+                        if (StrUtil.isNotBlank(str)) {
+                            if (JSONUtil.isTypeJSONObject(str)) {
+                                entry.setValue(handlerJSON(JSONUtil.parseObj(str)));
+                            } else if (JSONUtil.isTypeJSONArray(str)) {
+                                entry.setValue(handlerJSON(JSONUtil.parseArray(str)));
+                            }
+                        }
+                    } else if (value instanceof JSONObject) {
+                        entry.setValue(handlerJSON((JSONObject) value));
+
+                    } else if (value instanceof JSONArray) {
+
+                        entry.setValue(handlerJSON((JSONArray) value));
+
+                    }
                 }
-                if (Objects.nonNull(content)) {
-                    stringBuilder.append(" ");
-                    stringBuilder.append(content);
-                }
-                if (Objects.nonNull(description)) {
-                    stringBuilder.append(" ");
-                    stringBuilder.append(description);
-                }
-                jsonObject.set("data", stringBuilder.toString());
-            }
-            return jsonObject;
+            });
+
+            //转成字符串  val1 + val2 + val3 ...
+
+            String str = jsonObject.entrySet().stream().map(entry -> {
+                return entry.getValue();
+            }).map(Objects::toString).collect(Collectors.joining(" "));
+
+            return str;
         }
 
-        return json;
+        //数据结构，用逗号分割为字符串
+        if (JSONUtil.isTypeJSONArray(JSONUtil.toJsonStr(json))) {
+
+            List<Object> vals = new ArrayList<>();
+            ((JSONArray) json).forEach((v) -> {
+
+                if (v instanceof String) {
+                    String str = (String) v;
+                    //返回字符串也是JSON格式，这里再次转换为JSON对象
+                    if (StrUtil.isNotBlank(str)) {
+                        if (JSONUtil.isTypeJSONObject(str)) {
+                            vals.add(handlerJSON(JSONUtil.parseObj(str)));
+                        } else if (JSONUtil.isTypeJSONArray(str)) {
+                            vals.add(handlerJSON(JSONUtil.parseArray(str)));
+                        } else {
+                            vals.add(str);
+                        }
+                    }
+                } else {
+
+                    vals.add(handlerJSON((JSONObject) v));
+                }
+            });
+
+            return StrUtil.join(",", vals);
+        }
+
+        return null;
+
     }
+
 
     /**
      * 解析 JSON 字符串为 JSONObject 对象
