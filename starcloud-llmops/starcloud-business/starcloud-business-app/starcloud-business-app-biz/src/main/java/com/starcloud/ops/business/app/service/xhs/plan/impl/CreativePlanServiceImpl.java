@@ -364,12 +364,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 // 查询当前计划下所有的创作批次
                 CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
                 bathQuery.setPlanUid(planUid);
-                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.list(bathQuery));
+                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.listStatus(bathQuery));
 
                 // 查询当前计划下所有的创作内容
                 CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
                 contentQuery.setPlanUid(planUid);
-                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.list(contentQuery));
+                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listStatus(contentQuery));
 
                 // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
                 boolean bathComplete = batchList.stream()

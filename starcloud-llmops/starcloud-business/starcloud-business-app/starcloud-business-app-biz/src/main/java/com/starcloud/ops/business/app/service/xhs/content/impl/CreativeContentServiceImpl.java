@@ -42,7 +42,6 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
-import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
@@ -100,9 +99,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private RedissonClient redissonClient;
 
     @Resource
-    private AppMarketService appMarketService;
-
-    @Resource
     private AppStepStatusCache appStepStatusCache;
 
     /**
@@ -140,6 +136,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Override
     public List<CreativeContentRespVO> list(CreativeContentListReqVO query) {
         List<CreativeContentDO> list = creativeContentMapper.list(query);
+        return CreativeContentConvert.INSTANCE.convertResponseList(list);
+    }
+
+    /**
+     * 查询创作内容列表
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    @Override
+    public List<CreativeContentRespVO> listStatus(CreativeContentListReqVO query) {
+        List<CreativeContentDO> list = creativeContentMapper.listStatus(query);
         return CreativeContentConvert.INSTANCE.convertResponseList(list);
     }
 
