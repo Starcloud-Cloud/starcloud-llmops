@@ -76,7 +76,7 @@ public class CreativeMaterialController {
         return CommonResult.success(materialService.materialGenerate(request));
     }
 
-    @PostMapping(value = "/customMaterialGenerate", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PostMapping(value = "/customMaterialGenerate")
     @Operation(summary = "素材生成")
     public CommonResult<JSON> customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
         return CommonResult.success(materialService.customMaterialGenerate(request));
