@@ -68,6 +68,18 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
     }
 
     /**
+     * 获取批次列表
+     *
+     * @param query 查询条件
+     * @return 批次列表
+     */
+    @Override
+    public List<CreativePlanBatchRespVO> listStatus(CreativePlanBatchListReqVO query) {
+        List<CreativePlanBatchDO> creativePlanBatch = creativePlanBatchMapper.listStatus(query);
+        return CreativePlanBatchConvert.INSTANCE.convert(creativePlanBatch);
+    }
+
+    /**
      * 分页查询批次
      *
      * @param query 查询条件
@@ -143,7 +155,7 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
         // 查询该批次下的所有创作内容任务
         CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
         contentQuery.setBatchUid(batchUid);
-        List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.list(contentQuery));
+        List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listStatus(contentQuery));
 
         // 计算执行成功数量，失败数量
         int successCount = 0, failureCount = 0;
