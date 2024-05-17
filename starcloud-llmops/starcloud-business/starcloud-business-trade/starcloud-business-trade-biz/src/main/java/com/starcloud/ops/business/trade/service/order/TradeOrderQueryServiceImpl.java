@@ -368,7 +368,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
 
     @Override
     public Map<String, Object> buildTradeNotifyMsg(TradeOrderDO tradeOrderDO, List<TradeOrderItemDO> orderItems) {
-        log.info("【开始构建订单通知信息，订单参数为:{},{}】", tradeOrderDO, orderItems);
+        log.info("【开始构建订单通知参数，订单为:{},{}】", tradeOrderDO, orderItems);
         // 设置通知信息参数
         HashMap<String, Object> templateParams = MapUtil.newHashMap();
         try {
@@ -380,7 +380,11 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 获取当前优惠券
             String couponName = "无";
             if (Objects.nonNull(tradeOrderDO.getCouponId())) {
-                couponName = couponApi.getCoupon(tradeOrderDO.getCouponId(), tradeOrderDO.getUserId()).getName();
+                try {
+                    couponName = couponApi.getCoupon(tradeOrderDO.getCouponId(), tradeOrderDO.getUserId()).getName();
+                }catch (RuntimeException e){
+                    couponName = "优惠券获取异常";
+                }
             }
 
             // 如果是签约订单 则更新下次扣款时间 并且获取履约次数
@@ -393,27 +397,30 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             String firstSignTime = "无";
             String nextPayData = "无";
             if (Objects.nonNull(tradeOrderDO.getTradeSignId())) {
-                signTag = true;
-                TradeSignDO tradeSignDO = tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
-                // 获取当前签约成功次数
-                List<TradeOrderDO> signPayTradeList = getSelf().getSignPayTradeList(tradeOrderDO.getTradeSignId());
-                count = signPayTradeList.size();
+                try {
+                    signTag = true;
+                    TradeSignDO tradeSignDO = tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
+                    // 获取当前签约成功次数
+                    List<TradeOrderDO> signPayTradeList = getSelf().getSignPayTradeList(tradeOrderDO.getTradeSignId());
+                    count = signPayTradeList.size();
 
-                firstSignTime = LocalDateTimeUtil.formatNormal(tradeSignDO.getFinishTime());
-                nextPayData = LocalDateTimeUtil.formatNormal(tradeSignDO.getPayTime());
+                    firstSignTime = LocalDateTimeUtil.formatNormal(tradeSignDO.getFinishTime());
+                    nextPayData = LocalDateTimeUtil.formatNormal(tradeSignDO.getPayTime());
 
-                signPayTradeList.forEach(forEachWithIndex((item, index) -> {
-                    // 通过业务 获取权益记录
-                    AdminUserRightsDO rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
-                    String userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
+                    signPayTradeList.forEach(forEachWithIndex((item, index) -> {
+                        // 通过业务 获取权益记录
+                        AdminUserRightsDO rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
+                        String userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
 
-                    // 通过业务 获取等级记录
-                    AdminUserLevelDO level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
-                    String userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
+                        // 通过业务 获取等级记录
+                        AdminUserLevelDO level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
+                        String userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
 
-                    signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, signPayTradeList.size() - index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
-                }));
-
+                        signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, signPayTradeList.size() - index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
+                    }));
+                }catch (RuntimeException e){
+                    log.error("签约明细获取失败");
+                }
             }
 
             AdminUserRightsAndLevelCommonDTO commonDTO = tradeOrderDO.getGiveRights().get(0);

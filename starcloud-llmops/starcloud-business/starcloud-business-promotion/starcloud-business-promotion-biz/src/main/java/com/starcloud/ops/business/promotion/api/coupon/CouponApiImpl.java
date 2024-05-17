@@ -100,7 +100,7 @@ public class CouponApiImpl implements CouponApi {
      */
     @Override
     public CouponRespDTO getCoupon(Long couponId, Long userId) {
-        CouponDO coupon = couponService.validCoupon(couponId, userId);
+        CouponDO coupon = couponService.getCoupon(couponId, userId);
         return CouponConvert.INSTANCE.convert(coupon);
     }
 
