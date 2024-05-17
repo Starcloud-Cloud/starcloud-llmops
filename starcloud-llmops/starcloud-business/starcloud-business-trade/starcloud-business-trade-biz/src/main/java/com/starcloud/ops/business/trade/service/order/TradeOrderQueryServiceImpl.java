@@ -9,7 +9,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
-import cn.iocoder.yudao.framework.pay.core.enums.channel.PayChannelEnum;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.system.api.permission.RoleApi;
@@ -125,6 +124,9 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
 
     @Resource
     private AdminUserLevelService adminUserLevelService;
+
+    // 假设以下两个为定义的常量
+    private static final String COUPON_NAME_ERROR = "优惠券获取失败";
 
 
     private final String SignNotifyTemplate = ">- 第{}次订单<br/>" + "创建时间：{} <br/>\n" + "    扣款时间：{}<br/>\n" + "    权益有效期：{} <br/>\n" + "    等级有效期：{}<br/>\n" + "    扣款状态：{} <br/>\n";
@@ -368,7 +370,12 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
 
     @Override
     public Map<String, Object> buildTradeNotifyMsg(TradeOrderDO tradeOrderDO, List<TradeOrderItemDO> orderItems) {
-        log.info("【开始构建订单通知信息，订单参数为:{},{}】", tradeOrderDO, orderItems);
+        log.info("【开始构建订单通知参数，订单为:{},{}】", tradeOrderDO, orderItems);
+
+        // 优化
+        // 1.避免 templateParams的 key 为空
+        // 2.每个参数都设置默认值 如果获取失败 使用默认值代替
+
         // 设置通知信息参数
         HashMap<String, Object> templateParams = MapUtil.newHashMap();
         try {
@@ -376,11 +383,11 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 获取当前用户基本信息
             AdminUserRespDTO userRespDTO = adminUserApi.getUser(tradeOrderDO.getUserId());
             // 获取当前运行环境
-            String environmentName = dingTalkNoticeProperties.getName().equals("Formal") ? "正式" : "测试";
+            String environmentName = getEnvironmentName();
             // 获取当前优惠券
             String couponName = "无";
             if (Objects.nonNull(tradeOrderDO.getCouponId())) {
-                couponName = couponApi.getCoupon(tradeOrderDO.getCouponId(), tradeOrderDO.getUserId()).getName();
+                couponName = getCouponName(tradeOrderDO);
             }
 
             // 如果是签约订单 则更新下次扣款时间 并且获取履约次数
@@ -392,28 +399,33 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
 
             String firstSignTime = "无";
             String nextPayData = "无";
+            // =======用户签约订单获取=======
             if (Objects.nonNull(tradeOrderDO.getTradeSignId())) {
-                signTag = true;
-                TradeSignDO tradeSignDO = tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
-                // 获取当前签约成功次数
-                List<TradeOrderDO> signPayTradeList = getSelf().getSignPayTradeList(tradeOrderDO.getTradeSignId());
-                count = signPayTradeList.size();
+                try {
+                    signTag = true;
+                    TradeSignDO tradeSignDO = tradeSignUpdateService.updatePayTime(tradeOrderDO.getTradeSignId());
+                    // 获取当前签约成功次数
+                    List<TradeOrderDO> signPayTradeList = getSelf().getSignPayTradeList(tradeOrderDO.getTradeSignId());
+                    count = signPayTradeList.size();
 
-                firstSignTime = LocalDateTimeUtil.formatNormal(tradeSignDO.getFinishTime());
-                nextPayData = LocalDateTimeUtil.formatNormal(tradeSignDO.getPayTime());
+                    firstSignTime = LocalDateTimeUtil.formatNormal(tradeSignDO.getFinishTime());
+                    nextPayData = LocalDateTimeUtil.formatNormal(tradeSignDO.getPayTime());
 
-                signPayTradeList.forEach(forEachWithIndex((item, index) -> {
-                    // 通过业务 获取权益记录
-                    AdminUserRightsDO rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
-                    String userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
+                    signPayTradeList.forEach(forEachWithIndex((item, index) -> {
+                        // 通过业务 获取权益记录
+                        AdminUserRightsDO rights = adminUserRightsService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
+                        String userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
 
-                    // 通过业务 获取等级记录
-                    AdminUserLevelDO level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
-                    String userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
+                        // 通过业务 获取等级记录
+                        AdminUserLevelDO level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), item.getId(), item.getUserId());
+                        String userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
 
-                    signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, signPayTradeList.size() - index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
-                }));
-
+                        signTradeOrderDetail.append(StrUtil.format(SignNotifyTemplate, signPayTradeList.size() - index + 1, item.getCreateTime(), item.getPayTime(), userRangeTimeRange, userLevelTimeRange, item.getPayStatus() ? "完成✅" : "错误❌"));
+                    }));
+                } catch (RuntimeException e) {
+                    log.error("签约明细获取失败");
+                    signTradeOrderDetail.append("签约明细获取失败");
+                }
             }
 
             AdminUserRightsAndLevelCommonDTO commonDTO = tradeOrderDO.getGiveRights().get(0);
@@ -427,19 +439,36 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
                 userRangeTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(rights.getValidStartTime()), LocalDateTimeUtil.formatNormal(rights.getValidEndTime()));
             }
 
+            // =======用户当前订单的等级获取=======
             AdminUserLevelDO level = null;
             String userLevelName = "无";
             String userLevelTimeRange = "无";
             // 获取当前增加的用户等级
-            if (commonDTO.getLevelBasicDTO().getOperateDTO().getIsAdd()) {
-                // 通过业务 获取等级记录
-                level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), tradeOrderDO.getId(), tradeOrderDO.getUserId());
-                userLevelName = level.getLevelName();
-                userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
+            try {
+                if (commonDTO.getLevelBasicDTO().getOperateDTO().getIsAdd()) {
+                    // 通过业务 获取等级记录
+                    level = adminUserLevelService.getRecordByBiz(AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), tradeOrderDO.getId(), tradeOrderDO.getUserId());
+                    userLevelName = level.getLevelName();
+                    userLevelTimeRange = StrUtil.format("{}至{}", LocalDateTimeUtil.formatNormal(level.getValidStartTime()), LocalDateTimeUtil.formatNormal(level.getValidEndTime()));
+                }
+            } catch (Exception e) {
+                level = null;
+                userLevelName = "获取异常";
+                userLevelTimeRange = "获取异常";
             }
-            // 获取当前会员所有角色
-            List<String> roleNameList = roleApi.getRoleNameList(tradeOrderDO.getUserId());
-            String userRoleName = CollUtil.join(roleNameList, ",");
+
+            // =======获取当前会员所有角色 =======
+            String userRoleName = "";
+            try {
+                List<String> roleNameList = roleApi.getRoleNameList(tradeOrderDO.getUserId());
+
+                if (!roleNameList.isEmpty()) {
+                    userRoleName = CollUtil.join(roleNameList, ",");
+                }
+            } catch (RuntimeException e) {
+                userRoleName = "用户角色异常";
+            }
+
 
             // 开始权益和等级有效期检测
             Boolean checkResult = false;
@@ -452,7 +481,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 当前运行环境
             templateParams.put("environmentName", environmentName);
             // 用户昵称
-            templateParams.put("userName", userRespDTO.getNickname());
+            templateParams.put("userName", Optional.ofNullable(userRespDTO.getNickname()));
             // 产品名称
             templateParams.put("productName", orderItems.get(0).getSpuName());
             // 商品属性
@@ -462,7 +491,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 原价
             templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(tradeOrderDO.getTotalPrice()));
             // 优惠金额
-            templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(tradeOrderDO.getDiscountPrice()));
+            templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(tradeOrderDO.getCouponPrice() + tradeOrderDO.getDiscountPrice()));
             // 优惠券名称
             templateParams.put("couponName", couponName);
             // 实际支付金额
@@ -470,11 +499,11 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 订单创建时间
             templateParams.put("createTime", LocalDateTimeUtil.formatNormal(tradeOrderDO.getCreateTime()));
             // 支付时间
-            templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payOrderRespDTO.getSuccessTime()));
+            templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payOrderRespDTO == null ? LocalDateTime.now() : payOrderRespDTO.getSuccessTime()));
             // 支付回调时间
             templateParams.put("payNotifyTime", LocalDateTimeUtil.formatNormal(tradeOrderDO.getPayTime() == null ? LocalDateTime.now() : tradeOrderDO.getPayTime()));
             // 支付来源
-            templateParams.put("payChannelCode", PayChannelEnum.isAlipay(tradeOrderDO.getPayChannelCode()) ? "支付宝" : "微信");
+            templateParams.put("payChannelCode", tradeOrderDO.getPayChannelCode() == null ? "未知渠道" : tradeOrderDO.getPayChannelCode().startsWith("alipay") ? "支付宝" : "微信");
 
             // 会员等级
             templateParams.put("userLevelName", userLevelName);
@@ -495,7 +524,6 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             templateParams.put("userLevelTimeRange", userLevelTimeRange);
             // 权益与等级时间校验
             templateParams.put("checkResult", Objects.isNull(rights) || Objects.isNull(level) ? "成功✅" : checkResult ? "成功✅" : "失败❌");
-
 
             // 是否签约
             templateParams.put("isSign", Objects.nonNull(tradeOrderDO.getTradeSignId()) ? "是✅" : "否⭕");
@@ -520,6 +548,31 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             return templateParams;
         }
 
+    }
+
+
+    private String getEnvironmentName() {
+        try {
+            // 获取当前运行环境
+            return dingTalkNoticeProperties.getName().equals("Formal") ? "正式" : "测试";
+        } catch (RuntimeException e) {
+            log.error("当前运行环境获取失败", e);
+            return "获取环境失败";
+        }
+
+    }
+
+
+    private String getCouponName(TradeOrderDO tradeOrderDO) {
+        if (Objects.nonNull(tradeOrderDO.getCouponId())) {
+            try {
+                return couponApi.getCoupon(tradeOrderDO.getCouponId(), tradeOrderDO.getUserId()).getName();
+            } catch (RuntimeException e) {
+                log.error("优惠券获取失败", e);
+                return COUPON_NAME_ERROR;
+            }
+        }
+        return "无";
     }
 
     /**
