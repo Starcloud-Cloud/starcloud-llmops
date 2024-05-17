@@ -379,8 +379,15 @@ public class AppServiceImpl implements AppService {
     private void handlerAndValidateRequest(AppReqVO request) {
         // 应用类目校验
         if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
+            Long tenantId = TenantContextHolder.getRequiredTenantId();
             if (StringUtils.isBlank(request.getCategory())) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED, request.getCategory());
+                if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+                    request.setCategory("SEO_WRITING_OTHER");
+                } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
+                    request.setCategory("COMMON");
+                } else {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED);
+                }
             }
             List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
             Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
@@ -388,7 +395,6 @@ public class AppServiceImpl implements AppService {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
             }
             AppCategoryVO category = categoryOptional.get();
-            Long tenantId = TenantContextHolder.getRequiredTenantId();
             if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
             }
