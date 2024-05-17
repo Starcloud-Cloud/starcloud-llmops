@@ -53,6 +53,16 @@ public class CouponServiceImpl implements CouponService {
     @Resource
     private MemberUserApi memberUserApi;
 
+
+    @Override
+    public CouponDO getCoupon(Long id, Long userId) {
+        CouponDO coupon = couponMapper.selectByIdAndUserId(id, userId);
+        if (coupon == null) {
+            throw exception(COUPON_NOT_EXISTS);
+        }
+        return coupon;
+    }
+
     @Override
     public CouponDO validCoupon(Long id, Long userId) {
         CouponDO coupon = couponMapper.selectByIdAndUserId(id, userId);
