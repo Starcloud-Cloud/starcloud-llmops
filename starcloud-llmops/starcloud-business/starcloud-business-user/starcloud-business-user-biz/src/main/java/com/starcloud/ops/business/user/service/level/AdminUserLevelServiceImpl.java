@@ -6,7 +6,6 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
@@ -539,26 +538,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         long endTimeBetween = LocalDateTimeUtil.between(adminUserLevelDO.getValidEndTime(), adminUserRightsDO.getValidEndTime(), ChronoUnit.SECONDS);
 
-        // 获取当前运行环境
-        String environmentName = dingTalkNoticeProperties.getName().equals("Formal") ? "正式" : "测试";
-        if (startTimeBetween >= initTimeBetween || endTimeBetween >= initTimeBetween) {
-            HashMap<String, Object> templateParams = new HashMap<>();
-            // 当前运行环境
-            templateParams.put("environmentName", environmentName);
-            templateParams.put("userCode", adminUserLevelDO.getUserId());
-            templateParams.put("dataCode", StrUtil.format("等级编号{},权益编号{}", adminUserLevelDO.getId(), adminUserRightsDO.getId()));
-            templateParams.put("notifyTime", LocalDateTimeUtil.formatNormal(LocalDateTimeUtil.now()));
-            try {
-                // 发送报警
-                smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO().setUserId(2L).setMobile("17835411844").setTemplateParams(templateParams).setTemplateCode("RIGHTS_TIME_SET_ERROR"));
-            } catch (RuntimeException e) {
-                log.error("检测消息发送失败,错误原因为 errMsg{},当前等级为{}，权益为{}", e.getMessage(), JSONUtil.toJsonStr(adminUserLevelDO), JSONUtil.toJsonStr(adminUserRightsDO), e);
-
-            }
-
-            return false;
-        }
-        return true;
+        return Math.abs(startTimeBetween) < initTimeBetween && Math.abs(endTimeBetween) < initTimeBetween;
     }
 
     /**
@@ -654,6 +634,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
       2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
       3，返回有剩余点的用户ID（管理员或当前用户）
      */
+
     /**
      * 这里关闭数据权限，主要是后面的 SQL查询会带上 kstry 线程中的其他正常用户的上下文，导致跟 powerjob 执行应用时候导致用户上下文冲突
      * 所以这里直接 关闭数据权限，这样下面的 关于权益的扣点 已经不需要用户上下文了，单ruiyi 本地比如SQL update会继续获取，所以后续的方法最好直接指定字段创作DB。

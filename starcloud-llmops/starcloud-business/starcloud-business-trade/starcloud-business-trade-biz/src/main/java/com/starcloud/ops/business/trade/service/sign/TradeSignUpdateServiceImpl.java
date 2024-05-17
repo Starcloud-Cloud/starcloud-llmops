@@ -2,12 +2,16 @@ package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.pay.api.sign.PaySignApi;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignRespDTO;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignCreateReqVO;
@@ -16,6 +20,7 @@ import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSet
 import com.starcloud.ops.business.trade.convert.order.TradeOrderConvert;
 import com.starcloud.ops.business.trade.convert.sign.TradeSignConvert;
 import com.starcloud.ops.business.trade.dal.dataobject.cart.CartDO;
+import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignItemDO;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignItemMapper;
@@ -25,6 +30,7 @@ import com.starcloud.ops.business.trade.enums.order.TradeOrderRefundStatusEnum;
 import com.starcloud.ops.business.trade.enums.sign.TradeSignStatusEnum;
 import com.starcloud.ops.business.trade.framework.order.config.TradeOrderProperties;
 import com.starcloud.ops.business.trade.service.cart.CartService;
+import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
@@ -85,6 +91,12 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
     @Resource
     private List<TradeSignHandler> tradeSignHandlers;
+
+    @Resource
+    private TradeOrderQueryService tradeOrderQueryService;
+
+    @Resource
+    private SmsSendApi smsSendApi;
 
 
     @Override
@@ -150,15 +162,15 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
     @Override
     public void updateSignStatus(Long id, Long paySignId, Boolean closeSign) {
+        log.info("收到签约回调信息，当前数据为签约编号{},签约支付号{},是否取消签约{},", id, paySignId, closeSign);
+        KeyValue<TradeSignDO, PaySignRespDTO> signResult = validateSignAble(id, paySignId, closeSign);
 
-        KeyValue<TradeSignDO, PaySignRespDTO> orderResult = validateSignAble(id, paySignId, closeSign);
-
-        TradeSignDO order = orderResult.getKey();
-        PaySignRespDTO payOrder = orderResult.getValue();
+        TradeSignDO signResultKey = signResult.getKey();
+        PaySignRespDTO signResultValue = signResult.getValue();
 
         // // 2. 更新 TradeOrderDO 状态为已支付，等待发货
         TradeSignDO signDO = new TradeSignDO()
-                .setPayChannelCode(payOrder.getChannelCode());
+                .setPayChannelCode(signResultValue.getChannelCode());
         if (closeSign) {
             signDO.setStatus(TradeSignStatusEnum.CANCELED.getStatus())
                     .setCancelTime(LocalDateTime.now());
@@ -167,13 +179,18 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
                     .setFinishTime(LocalDateTime.now());
         }
 
-        int updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
+        int updateCount = tradeSignMapper.updateByIdAndStatus(id, signResultKey.getStatus(),
                 signDO);
 
 
         if (updateCount == 0) {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
+        // 如果是关闭签约 检测用户是否在当前签约下没有支付订单
+        if (closeSign) {
+            closeSignPayOrderCheck(id);
+        }
+
         // 当前数据状态 需要在事务提交后获取
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -402,4 +419,21 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // }
         return new KeyValue<>(signDO, paySignRespDTO);
     }
+
+    private void closeSignPayOrderCheck(Long id) {
+        try {
+            List<TradeOrderDO> signPayTradeList = tradeOrderQueryService.getSignPayTradeList(id);
+            if (signPayTradeList.isEmpty()) {
+                smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO()
+                        .setUserId(1L)
+                        .setMobile("17835411844")
+                        .setTemplateCode("SIGN_CLOSE_NO_PAY_NOTIFY").
+                        setTemplateParams(MapUtil.<String, Object>builder().put("params", StrUtil.format("签约订单编号为{}的数据 关闭签约,且当前签约不存在有效的支付记录",id)).build()));
+            }
+        } catch (RuntimeException e) {
+            log.error("closeSignPayOrderCheck 发送通知失败");
+        }
+
+    }
+
 }
