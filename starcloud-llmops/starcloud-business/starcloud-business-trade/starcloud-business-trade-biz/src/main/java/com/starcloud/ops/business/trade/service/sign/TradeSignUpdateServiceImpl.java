@@ -39,6 +39,7 @@ import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRe
 import com.starcloud.ops.business.trade.service.sign.handler.TradeSignHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -93,6 +94,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     private List<TradeSignHandler> tradeSignHandlers;
 
     @Resource
+    @Lazy
     private TradeOrderQueryService tradeOrderQueryService;
 
     @Resource
