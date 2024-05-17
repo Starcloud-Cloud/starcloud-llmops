@@ -71,6 +71,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -114,6 +115,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private MaterialHandlerHolder materialHandlerHolder;
+
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     /**
      * 创作计划元数据
@@ -340,7 +344,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param planUid 计划UID
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void updatePlanStatus(String planUid, String batchUid) {
         log.info("更新计划状态【开始】，planUid: {},batchUid= {}", planUid, batchUid);
         String key = "creative-plan-update-status-" + planUid + "-" + batchUid;
@@ -351,48 +354,51 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 return;
             }
 
-            CreativePlanDO plan = creativePlanMapper.get(planUid);
-            AppValidate.notNull(plan, "创作计划不存在！UID: {}", planUid);
+            transactionTemplate.executeWithoutResult(status -> {
+                CreativePlanDO plan = creativePlanMapper.get(planUid);
+                AppValidate.notNull(plan, "创作计划不存在！UID: {}", planUid);
 
-            // 创作计划批次状态更新
-            creativePlanBatchService.updateStatus(batchUid);
+                // 创作计划批次状态更新
+                creativePlanBatchService.updateStatus(batchUid);
 
-            // 查询当前计划下所有的创作批次
-            CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
-            bathQuery.setPlanUid(planUid);
-            List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.list(bathQuery));
+                // 查询当前计划下所有的创作批次
+                CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
+                bathQuery.setPlanUid(planUid);
+                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.list(bathQuery));
 
-            // 查询当前计划下所有的创作内容
-            CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
-            contentQuery.setPlanUid(planUid);
-            List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.list(contentQuery));
+                // 查询当前计划下所有的创作内容
+                CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
+                contentQuery.setPlanUid(planUid);
+                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.list(contentQuery));
 
-            // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
-            boolean bathComplete = batchList.stream()
-                    .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
-            boolean contentComplete = contentList.stream()
-                    .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
+                // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
+                boolean bathComplete = batchList.stream()
+                        .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
+                boolean contentComplete = contentList.stream()
+                        .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
 
-            if (bathComplete && contentComplete) {
-                log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
-                updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
+                if (bathComplete && contentComplete) {
+                    log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
+                    updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
+                    log.info("更新计划状态【结束】，planUid: {}", planUid);
+                    return;
+                }
+
+                // 当前计划下只要有彻底失败的，则计划失败
+                boolean contentFailure = contentList.stream()
+                        .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
+
+                if (contentFailure) {
+                    log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
+                    updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
+                    log.info("更新计划状态【结束】，planUid: {}", planUid);
+                    return;
+                }
+
+                log.info("不需要更新计划状态，planUid: {}，status：{}", planUid, plan.getStatus());
                 log.info("更新计划状态【结束】，planUid: {}", planUid);
-                return;
-            }
+            });
 
-            // 当前计划下只要有彻底失败的，则计划失败
-            boolean contentFailure = contentList.stream()
-                    .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
-
-            if (contentFailure) {
-                log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
-                updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
-                log.info("更新计划状态【结束】，planUid: {}", planUid);
-                return;
-            }
-
-            log.info("不需要更新计划状态，planUid: {}，status：{}", planUid, plan.getStatus());
-            log.info("更新计划状态【结束】，planUid: {}", planUid);
         } catch (Exception exception) {
             log.warn("更新计划失败: {}", planUid, exception);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPDATE_STATUS_FAILED, planUid, exception.getMessage());

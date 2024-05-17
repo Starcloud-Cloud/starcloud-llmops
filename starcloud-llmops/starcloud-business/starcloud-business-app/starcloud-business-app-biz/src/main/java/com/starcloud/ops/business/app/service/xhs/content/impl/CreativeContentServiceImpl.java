@@ -274,6 +274,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 更新计划状态
         log.info("批量执行创作内容，数量为{}，执行完成", request.size());
         Map<String, List<CreativeContentExecuteRespVO>> resultMap = result.stream().collect(Collectors.groupingBy(CreativeContentExecuteRespVO::getBatchUid));
+        log.info("批量执行创作内容，开始更新计划和批次状态，批次列表：{}", resultMap.keySet());
         for (Map.Entry<String, List<CreativeContentExecuteRespVO>> entry : resultMap.entrySet()) {
             String batchUid = entry.getKey();
             List<CreativeContentExecuteRespVO> executeResponseList = entry.getValue();
