@@ -325,18 +325,16 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             AppValidate.notNull(materialWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
 
             // 获取素材库类型
-            String materialType = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_TYPE);
-            AppValidate.notBlank(materialType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.MATERIAL_TYPE);
+            String businessType = materialWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
+            AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
 
-            // 获取到具体的素材库类型枚举
-            MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
-            AppValidate.notNull(materialTypeEnum, "素材库类型不支持，请联系管理员{}！", materialType);
+
             // 获取资料库的具体处理器
-            AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType);
-            AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", materialType);
+            AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
+            AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", businessType);
 
             // 素材库列表
-            List<AbstractCreativeMaterialDTO> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
+            List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
 
             // 海报步骤
             WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
@@ -362,14 +360,14 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 String posterStepId = posterWrapper.getField();
 
                 materialHandler.validatePosterStyle(posterStyle);
-                Map<Integer, List<AbstractCreativeMaterialDTO>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle));
+                Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle));
 
                 // 获取该风格下，处理之后的素材列表
-                List<AbstractCreativeMaterialDTO> usageMaterialList = materialMap.get(0);
+                List<Map<String, Object>> usageMaterialList = materialMap.get(0);
 
                 MaterialMetadata metadata = new MaterialMetadata();
                 metadata.setMaterialStepId(materialStepId);
-                metadata.setMaterialType(materialType);
+                metadata.setMaterialType(businessType);
                 PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, metadata);
 
                 // 将处理后的海报风格填充到执行参数中

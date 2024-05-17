@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +11,8 @@ import org.springframework.stereotype.Component;
  * @since 2021-06-22
  */
 @Component
-@MaterialType(MaterialTypeEnum.BOOK_LIST)
-class BookListMaterialHandler extends AbstractMaterialHandler<BookListCreativeMaterialDTO> {
+@MaterialType("bookList")
+class BookListMaterialHandler extends AbstractMaterialHandler {
 
 
 }

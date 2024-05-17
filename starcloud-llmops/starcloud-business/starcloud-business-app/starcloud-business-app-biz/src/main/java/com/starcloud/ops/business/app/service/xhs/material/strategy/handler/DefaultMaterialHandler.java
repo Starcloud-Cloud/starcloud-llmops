@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
+import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
  * @since 2021-06-22
  */
 @Component
-public class DefaultMaterialHandler extends AbstractMaterialHandler<BookListCreativeMaterialDTO> {
+@MaterialType("default")
+public class DefaultMaterialHandler extends AbstractMaterialHandler {
 
 }

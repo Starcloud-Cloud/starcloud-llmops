@@ -33,11 +33,12 @@ public class MaterialImportController {
     }
 
     @Operation(summary = "下载素材模板")
-    @GetMapping("/export/{materialType}")
+    @GetMapping("/download/template")
     @OperateLog(enable = false)
-    public void downloadTemplate(@PathVariable("materialType") String materialType,
-                                HttpServletResponse response){
-        parseMaterialService.downloadTemplate(materialType, response);
+    public void downloadTemplate(@RequestParam("uid") String uid,
+                                 @RequestParam("planSource") String planSource,
+                                 HttpServletResponse response) {
+        parseMaterialService.downloadTemplate(uid, planSource, response);
     }
 
     @PostMapping("/import")

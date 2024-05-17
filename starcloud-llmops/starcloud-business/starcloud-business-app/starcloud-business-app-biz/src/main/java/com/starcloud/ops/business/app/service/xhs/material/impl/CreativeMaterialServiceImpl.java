@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefinitionDTO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -139,16 +140,16 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
                 .orElseThrow(() -> new IllegalArgumentException("生成素材的应用信息配置异常！请联系管理员"));
 
         // 素材数据
-        List<AbstractCreativeMaterialDTO> materialList = request.getMaterialList();
+        List<Map<String, Object>> materialList = request.getMaterialList();
         // 所有字段定义列表
-        List<FieldDefinitionDTO> fieldList = request.getFieldList();
+        List<MaterialFieldConfigDTO> fieldList = request.getFieldList();
         // 选中的字段定义列表
         List<String> checkedFieldList = request.getCheckedFieldList();
         // 素材要求
         String requirement = request.getRequirement();
 
         // 合并字段列表，使选中的字段配置完整
-        List<FieldDefinitionDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
+        List<MaterialFieldConfigDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
@@ -213,7 +214,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
                 .orElseThrow(() -> new IllegalArgumentException("生成素材的应用信息配置异常！请联系管理员"));
 
         // 所有字段定义列表
-        List<FieldDefinitionDTO> fieldList = request.getFieldList();
+        List<MaterialFieldConfigDTO> fieldList = request.getFieldList();
         // 选中的字段定义列表
         List<String> checkedFieldList = request.getCheckedFieldList();
         // 素材生成要求
@@ -222,7 +223,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         Integer generateCount = request.getGenerateCount();
 
         // 合并字段列表，使选中的字段配置完整
-        List<FieldDefinitionDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
+        List<MaterialFieldConfigDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
@@ -278,13 +279,13 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList        所有字段配置列表
      * @return 合并后的选中的字段配置列表
      */
-    private List<FieldDefinitionDTO> mergeCheckedFieldList(List<String> checkedFieldList, List<FieldDefinitionDTO> fieldList) {
-        Map<String, FieldDefinitionDTO> fieldMap = CollectionUtil.emptyIfNull(fieldList).stream()
-                .collect(Collectors.toMap(FieldDefinitionDTO::getFieldName, Function.identity()));
+    private List<MaterialFieldConfigDTO> mergeCheckedFieldList(List<String> checkedFieldList, List<MaterialFieldConfigDTO> fieldList) {
+        Map<String, MaterialFieldConfigDTO> fieldMap = CollectionUtil.emptyIfNull(fieldList).stream()
+                .collect(Collectors.toMap(MaterialFieldConfigDTO::getFieldName, Function.identity()));
 
-        List<FieldDefinitionDTO> mergeCheckedFieldList = new ArrayList<>();
+        List<MaterialFieldConfigDTO> mergeCheckedFieldList = new ArrayList<>();
         for (String fieldName : checkedFieldList) {
-            FieldDefinitionDTO field = fieldMap.get(fieldName);
+            MaterialFieldConfigDTO field = fieldMap.get(fieldName);
             if (Objects.isNull(field)) {
                 continue;
             }
@@ -301,7 +302,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @return JSON Schema 字符串
      */
     @SuppressWarnings("all")
-    private static JsonSchema materialFieldToJsonSchema(List<FieldDefinitionDTO> fieldList, Boolean isArray) {
+    private static JsonSchema materialFieldToJsonSchema(List<MaterialFieldConfigDTO> fieldList, Boolean isArray) {
         if (CollectionUtil.isEmpty(fieldList)) {
             throw new IllegalArgumentException("素材字段配置列表不能为空！");
         }
@@ -318,7 +319,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ArraySchema materialFieldToArraySchema(List<FieldDefinitionDTO> fieldList) {
+    private static ArraySchema materialFieldToArraySchema(List<MaterialFieldConfigDTO> fieldList) {
         ObjectSchema itemsSchema = materialFieldToObjectSchema(fieldList);
         itemsSchema.setId("urn:jsonschema:material:item:" + IdUtil.fastSimpleUUID());
 
@@ -336,7 +337,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ObjectSchema materialFieldToObjectSchema(List<FieldDefinitionDTO> fieldList) {
+    private static ObjectSchema materialFieldToObjectSchema(List<MaterialFieldConfigDTO> fieldList) {
         // 创建 JSON Schema 对象
         ObjectSchema objectSchema = JsonSchemaUtils.generateJsonSchema(Object.class).asObjectSchema();
         objectSchema.setId("urn:jsonschema:material:object:" + IdUtil.fastSimpleUUID());
@@ -344,7 +345,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         objectSchema.setRequired(true);
 
         // 遍历字段配置，向 JSON Schema 对象中添加字段
-        for (FieldDefinitionDTO materialField : CollectionUtil.emptyIfNull(fieldList)) {
+        for (MaterialFieldConfigDTO materialField : CollectionUtil.emptyIfNull(fieldList)) {
             String type = materialField.getType();
             if (FieldTypeEnum.string.getTypeCode().equals(type) ||
                     FieldTypeEnum.image.getTypeCode().equals(type) ||

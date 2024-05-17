@@ -2,11 +2,9 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.xhs.material.dto.ContractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
@@ -25,8 +23,8 @@ import java.util.Map;
  * @since 2021-06-22
  */
 @Component
-@MaterialType(MaterialTypeEnum.CONTRACT)
-public class ContractMaterialHandler extends AbstractMaterialHandler<ContractCreativeMaterialDTO> {
+@MaterialType("contract")
+public class ContractMaterialHandler extends AbstractMaterialHandler {
 
     @Override
     public void validatePosterStyle(PosterStyleDTO posterStyle) {
@@ -53,7 +51,7 @@ public class ContractMaterialHandler extends AbstractMaterialHandler<ContractCre
      * @return 处理后的海报风格
      */
     @Override
-    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<ContractCreativeMaterialDTO> materialList, MaterialMetadata metadata) {
+    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata) {
         // 如果资料库为空，直接返回海报风格，不做处理
         if (CollectionUtil.isEmpty(materialList)) {
             return posterStyle;

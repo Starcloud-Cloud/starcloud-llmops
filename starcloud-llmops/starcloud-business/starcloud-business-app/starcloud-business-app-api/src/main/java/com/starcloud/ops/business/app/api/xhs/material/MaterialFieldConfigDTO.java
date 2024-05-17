@@ -23,6 +23,9 @@ public class MaterialFieldConfigDTO {
     @Schema(description = "字段是否必填")
     private boolean required = false;
 
+    @Schema(description = "字段顺序")
+    private int order;
+
     /**
      * {@link MaterialFieldTypeEnum#getTypeCode()}
      */
@@ -31,8 +34,4 @@ public class MaterialFieldConfigDTO {
     @InEnum(value = MaterialFieldTypeEnum.class, field = InEnum.EnumField.CODE, message = "素材字段类型({value}) 必须属于: {values}")
     private String type;
 
-
-    public static List<MaterialFieldConfigDTO> parse(String MaterialFieldJSON) {
-        return JSONUtil.parseArray(MaterialFieldJSON).toList(MaterialFieldConfigDTO.class);
-    }
 }

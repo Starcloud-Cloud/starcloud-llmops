@@ -19,6 +19,7 @@ import java.util.Objects;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Deprecated
 public class ParagraphSchemeStepDTO extends StandardSchemeStepDTO {
 
     private static final long serialVersionUID = 6843541753056072604L;

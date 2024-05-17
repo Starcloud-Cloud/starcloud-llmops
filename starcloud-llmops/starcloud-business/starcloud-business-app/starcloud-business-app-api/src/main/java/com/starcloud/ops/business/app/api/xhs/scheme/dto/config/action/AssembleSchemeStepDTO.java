@@ -16,6 +16,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Deprecated
 public class AssembleSchemeStepDTO extends BaseSchemeStepDTO {
 
     private static final long serialVersionUID = 4820280880902279978L;

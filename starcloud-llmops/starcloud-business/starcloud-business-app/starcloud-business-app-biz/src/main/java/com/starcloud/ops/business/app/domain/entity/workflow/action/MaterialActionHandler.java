@@ -2,11 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeVar;
-import cn.kstry.framework.core.annotation.ReqTaskParam;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
+import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,7 +17,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -78,9 +73,9 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 获取所有上游信息
         final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
         // 获取到资料库类型
-        String materialType = (String) params.get(CreativeConstants.MATERIAL_TYPE);
+        String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
         // 转换响应结果
-        ActionResponse response = convert(materialType);
+        ActionResponse response = convert(businessType);
 
         // 获取到处理好的上传素材
         String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
@@ -114,9 +109,6 @@ public class MaterialActionHandler extends BaseActionHandler {
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
 
-        // 获取到资料库类型
-        String materialType = workflowStepWrapper.getVariablesValue(CreativeConstants.MATERIAL_TYPE);
-
         //构造一层 array schema
         ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
         docSchema.setTitle(workflowStepWrapper.getStepCode());
@@ -124,7 +116,9 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
 
-        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(MaterialTypeEnum.of(materialType).getAClass());
+        // 素材自定义配置
+        String materialDefine = workflowStepWrapper.getVariablesValue(CreativeConstants.MATERIAL_DEFINE);
+        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(materialDefine);
         arraySchema.setItemsSchema(materialSchema);
 
         return docSchema;

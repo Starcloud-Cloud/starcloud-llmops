@@ -14,6 +14,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Deprecated
 public class CustomSchemeStepDTO extends StandardSchemeStepDTO {
 
     private static final long serialVersionUID = -1503267053868950469L;

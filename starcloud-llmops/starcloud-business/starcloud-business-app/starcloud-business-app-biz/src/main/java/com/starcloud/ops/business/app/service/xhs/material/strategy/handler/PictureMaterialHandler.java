@@ -4,11 +4,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.xhs.material.dto.PictureCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -29,8 +28,10 @@ import java.util.stream.Collectors;
  * @since 2021-06-22
  */
 @Component
-@MaterialType(MaterialTypeEnum.PICTURE)
-class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMaterialDTO> {
+@MaterialType("picture")
+class PictureMaterialHandler extends AbstractMaterialHandler {
+
+    private static final String MATERIAL_KEY = "pictureUrl";
 
     @Override
     public void validatePosterStyle(PosterStyleDTO posterStyle) {
@@ -61,7 +62,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      * @return 处理后的海报风格
      */
     @Override
-    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<PictureCreativeMaterialDTO> materialList, MaterialMetadata metadata) {
+    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata) {
         // 如果资料库为空，直接返回海报风格，不做处理
         if (CollectionUtil.isEmpty(materialList)) {
             return posterStyle;
@@ -89,9 +90,9 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      * @param posterTemplate 海报模板
      * @param materialList   资料库列表
      */
-    private void assembleSequence(PosterTemplateDTO posterTemplate, List<PictureCreativeMaterialDTO> materialList) {
+    private void assembleSequence(PosterTemplateDTO posterTemplate, List<Map<String, Object>> materialList) {
         // 复制一份的资料库列表，防止对原列表造成影响
-        List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
+        List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
             if (CreativeUtils.isImageVariable(variable) && StringUtil.objectBlank(variable.getValue())) {
@@ -99,8 +100,8 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
                 if (CollectionUtil.isEmpty(copyMaterialList)) {
                     break;
                 }
-                PictureCreativeMaterialDTO pictureMaterial = copyMaterialList.get(0);
-                variable.setValue(pictureMaterial.getPictureUrl());
+                Map<String, Object> pictureMaterial = copyMaterialList.get(0);
+                variable.setValue(pictureMaterial.get(MATERIAL_KEY));
                 // 移除已使用的资料库
                 copyMaterialList.remove(0);
             }
@@ -114,9 +115,9 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
      * @param posterTemplate 海报模板
      * @param materialList   资料库列表
      */
-    private void assembleRandom(PosterTemplateDTO posterTemplate, List<PictureCreativeMaterialDTO> materialList) {
+    private void assembleRandom(PosterTemplateDTO posterTemplate, List<Map<String, Object>> materialList) {
         // 复制一份的资料库列表，防止对原列表造成影响
-        List<PictureCreativeMaterialDTO> copyMaterialList = SerializationUtils.clone((ArrayList<PictureCreativeMaterialDTO>) materialList);
+        List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
         List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
         for (PosterVariableDTO variable : variableList) {
             if (CreativeUtils.isImageVariable(variable) && StringUtil.objectBlank(variable.getValue())) {
@@ -125,8 +126,8 @@ class PictureMaterialHandler extends AbstractMaterialHandler<PictureCreativeMate
                     break;
                 }
                 int randomIndex = RandomUtil.randomInt(copyMaterialList.size());
-                PictureCreativeMaterialDTO pictureMaterial = copyMaterialList.get(randomIndex);
-                variable.setValue(pictureMaterial.getPictureUrl());
+                Map<String, Object> pictureMaterial = copyMaterialList.get(randomIndex);
+                variable.setValue(pictureMaterial.get(MATERIAL_KEY));
                 // 移除已使用的资料库
                 copyMaterialList.remove(randomIndex);
             }

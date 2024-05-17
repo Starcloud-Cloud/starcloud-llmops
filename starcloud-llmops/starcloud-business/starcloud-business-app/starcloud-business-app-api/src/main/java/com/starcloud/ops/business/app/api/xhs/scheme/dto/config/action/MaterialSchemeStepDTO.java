@@ -19,6 +19,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Deprecated
 public class MaterialSchemeStepDTO extends BaseSchemeStepDTO {
 
     private static final long serialVersionUID = -965407067000703813L;

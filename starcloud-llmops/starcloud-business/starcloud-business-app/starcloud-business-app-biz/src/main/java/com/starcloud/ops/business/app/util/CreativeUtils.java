@@ -10,16 +10,11 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.*;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
@@ -31,16 +26,11 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -430,7 +420,7 @@ public class CreativeUtils {
         }
 
         // 获取到素材库列表
-        List<AbstractCreativeMaterialDTO> materialList = getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
+        List<Map<String, Object>> materialList = getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
 
         // 海报分割配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
@@ -507,13 +497,13 @@ public class CreativeUtils {
      * @param materialWrapper 应用步骤
      * @return 素材库列表
      */
-    public static List<AbstractCreativeMaterialDTO> getMaterialListByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+    public static List<Map<String, Object>> getMaterialListByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
         // 获取到素材库列表
         String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
         if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！"));
         }
-        List<AbstractCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractCreativeMaterialDTO.class);
+        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
         if (CollectionUtil.isEmpty(materialList)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！"));
         }
@@ -526,13 +516,13 @@ public class CreativeUtils {
      * @param materialWrapper 应用步骤
      * @return 素材库列表
      */
-    public static List<AbstractCreativeMaterialDTO> getMaterialListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+    public static List<Map<String, Object>> getMaterialListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
         // 获取到素材库列表
         String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
         if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
             return Collections.emptyList();
         }
-        List<AbstractCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractCreativeMaterialDTO.class);
+        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
         if (CollectionUtil.isEmpty(materialList)) {
             return Collections.emptyList();
         }

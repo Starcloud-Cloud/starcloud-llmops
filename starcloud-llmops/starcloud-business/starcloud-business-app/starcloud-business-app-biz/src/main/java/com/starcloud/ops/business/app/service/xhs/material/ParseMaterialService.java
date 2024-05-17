@@ -20,11 +20,13 @@ public interface ParseMaterialService {
 
     /**
      * 下载zip模板
+     * 应用市场 应用配置区分版本  使用planUid
+     * 我的应用 使用appUid
      *
-     * @param materialType
+     * @param uid
      * @param response
      */
-    void downloadTemplate(String materialType, HttpServletResponse response);
+    void downloadTemplate(String uid, String planSource, HttpServletResponse response);
 
     /**
      * 解析结构缓存到redis
@@ -36,7 +38,6 @@ public interface ParseMaterialService {
 
     /**
      * 解析小红书内容
-     *
      */
     List<AbstractCreativeMaterialDTO> parseXhs(ParseXhsReqVO parseXhsReqVO);
 
