@@ -442,7 +442,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // =======用户当前订单的等级获取=======
             AdminUserLevelDO level = null;
             String userLevelName = "无";
-            String userLevelTimeRange ="无";
+            String userLevelTimeRange = "无";
             // 获取当前增加的用户等级
             try {
                 if (commonDTO.getLevelBasicDTO().getOperateDTO().getIsAdd()) {
@@ -491,7 +491,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 原价
             templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(tradeOrderDO.getTotalPrice()));
             // 优惠金额
-            templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(tradeOrderDO.getDiscountPrice()));
+            templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(tradeOrderDO.getCouponPrice() + tradeOrderDO.getDiscountPrice()));
             // 优惠券名称
             templateParams.put("couponName", couponName);
             // 实际支付金额
