@@ -48,6 +48,24 @@ public class AppLogMessageRespVO extends LogMessageDetailRespVO {
     private AppRespVO appInfo;
 
     /**
+     * 计划 uid
+     */
+    @Schema(description = "计划 uid")
+    private String planUid;
+
+    /**
+     * 计划批次 uid
+     */
+    @Schema(description = "计划批次 uid")
+    private String planBatchUid;
+
+    /**
+     * 内容 uid
+     */
+    @Schema(description = "内容 uid")
+    private String contentUid;
+
+    /**
      * 执行结果
      */
     @Schema(description = "执行结果")
