@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.material.CreativeMaterialMap
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -71,6 +72,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         Map<String, Object> result = new HashMap<>();
         result.put(MaterialTypeEnum.class.getSimpleName(), MaterialTypeEnum.allOptions());
         result.put(FieldTypeEnum.class.getSimpleName(), FieldTypeEnum.options());
+        result.put(MaterialFieldTypeEnum.class.getSimpleName(), MaterialFieldTypeEnum.options());
         return result;
     }
 
