@@ -96,6 +96,7 @@ public class TradeSignQueryServiceImpl implements TradeSignQueryService {
      */
     @Override
     public int executeAutoTradeSignPay() {
+        log.info("【签约自动扣款业务】, 【开始执行签约自动扣款业务】. TenantId[{}]", TenantContextHolder.getTenantId());
         // 1.0 获取签约中待扣款列表
         List<TradeSignDO> tradeSignDOS = tradeSignMapper.selectDeductibleData();
 

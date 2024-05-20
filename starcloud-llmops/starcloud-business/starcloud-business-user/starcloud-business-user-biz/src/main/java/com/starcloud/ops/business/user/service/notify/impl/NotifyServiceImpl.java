@@ -3,7 +3,6 @@ package com.starcloud.ops.business.user.service.notify.impl;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.notify.vo.template.NotifyTemplateUpdateReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyMessageDO;
@@ -18,8 +17,8 @@ import com.starcloud.ops.business.user.controller.admin.notify.vo.FilterUserReqV
 import com.starcloud.ops.business.user.controller.admin.notify.vo.NotifyContentRespVO;
 import com.starcloud.ops.business.user.enums.notify.NotifyMediaEnum;
 import com.starcloud.ops.business.user.enums.notify.NotifyTemplateEnum;
-import com.starcloud.ops.business.user.service.notify.NotifyService;
 import com.starcloud.ops.business.user.service.notify.NotifyFactory;
+import com.starcloud.ops.business.user.service.notify.NotifyService;
 import com.starcloud.ops.business.user.service.notify.adapter.NotifyMediaAdapter;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.PARAMS_ERROR;
 
 @Slf4j
 @Service

@@ -18,6 +18,17 @@ import java.util.*;
  */
 public interface CouponService {
 
+
+    /**
+     * 获取优惠劵，不校验 状态、有限期
+     * <p>
+     *
+     * @param id     优惠劵编号
+     * @param userId 用户编号
+     * @return 优惠劵信息
+     */
+    CouponDO getCoupon(Long id, Long userId);
+
     /**
      * 校验优惠劵，包括状态、有限期
      * <p>

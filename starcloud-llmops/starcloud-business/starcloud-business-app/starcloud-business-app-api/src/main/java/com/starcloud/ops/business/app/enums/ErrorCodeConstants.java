@@ -585,4 +585,12 @@ public interface ErrorCodeConstants {
     ErrorCode MEDIA_STRATEGY_SAME_EXISTS = new ErrorCode(300700302, "存在相同的策略，请核对后重新提交");
 
 
+
+    // ========== 媒体评论 错误码 ==========
+    ErrorCode PIXABAY_API_KEYS_LIMIT = new ErrorCode(300701201, "请求频率太快了，请等一分钟后再试");
+
+    ErrorCode PIXABAY_API_KEYS_REQUEST_ERROR = new ErrorCode(300701202, "请求异常，请稍候再试");
+
+    ErrorCode PIXABAY_API_KEYS_NETWORK_ERROR = new ErrorCode(300701203, "网络出小差了，请稍候再试");
+
 }
