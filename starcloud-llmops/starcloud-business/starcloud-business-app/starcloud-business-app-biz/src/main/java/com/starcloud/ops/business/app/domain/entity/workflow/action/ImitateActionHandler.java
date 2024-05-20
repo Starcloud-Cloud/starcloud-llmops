@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -206,9 +207,9 @@ public class ImitateActionHandler extends BaseActionHandler {
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
 
             JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
-            JSONObject jsonObject = jsonSchemaParser.parse(actionResponse.getAnswer());
+            JSON json = jsonSchemaParser.parse(actionResponse.getAnswer());
 
-            actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
+            actionResponse.setOutput(JsonData.of(json, jsonSchema));
         } else {
             actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
         }

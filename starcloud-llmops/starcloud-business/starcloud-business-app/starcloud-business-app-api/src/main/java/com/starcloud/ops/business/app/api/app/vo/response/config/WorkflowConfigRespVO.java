@@ -190,4 +190,24 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
 
         this.steps = mergeStepWrapperList;
     }
+
+    /**
+     * 应用配置设置
+     *
+     * @param simpleName         类名
+     * @param handlerStepWrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setStepByHandler(String simpleName, WorkflowStepWrapperRespVO handlerStepWrapper) {
+        List<WorkflowStepWrapperRespVO> stepList = new ArrayList<>();
+        for (WorkflowStepWrapperRespVO step : steps) {
+            if (handlerStepWrapper.getField().equals(step.getField()) && simpleName.equals(step.getFlowStep().getHandler())) {
+                stepList.add(handlerStepWrapper);
+            } else {
+                stepList.add(step);
+            }
+        }
+        this.steps = stepList;
+    }
 }

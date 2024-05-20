@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -29,6 +30,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -49,6 +51,8 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("all")
 public class CreativeUtils {
+
+    private static final CreativeImageManager CREATIVE_IMAGE_MANAGER = SpringUtil.getBean(CreativeImageManager.class);
 
     /**
      * 获取段落方案步骤, 如果没有则返回null
@@ -557,6 +561,103 @@ public class CreativeUtils {
         }
 
         return posterStyle;
+    }
+
+    /**
+     * 根据应用步骤获取风格配置
+     *
+     * @param posterWrapper 海报步骤
+     * @return 风格配置
+     */
+    public static List<PosterStyleDTO> getPosterStyleListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
+        // 图片风格配置
+        if (Objects.isNull(posterWrapper)) {
+            return Collections.emptyList();
+        }
+
+        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+            return Collections.emptyList();
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return Collections.emptyList();
+        }
+
+        return posterStyleList;
+    }
+
+    /**
+     * 处理海报步骤
+     *
+     * @param posterStepWrapper 处理海报步骤
+     * @return 海报步骤
+     */
+    public static WorkflowStepWrapperRespVO handlerPosterStepWrapper(WorkflowStepWrapperRespVO posterStepWrapper) {
+        Map<String, PosterTemplateDTO> latestPosterTemplateMap = CREATIVE_IMAGE_MANAGER.mapPosterTemplate();
+        // 处理海报系统风格配置
+        String systemPosterConfigValue = posterStepWrapper.getStepModelVariableValue(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(systemPosterConfigValue) || "null".equalsIgnoreCase(systemPosterConfigValue)) {
+            systemPosterConfigValue = "[]";
+        }
+        List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterConfigValue, PosterStyleDTO.class);
+        // 合并海报风格列表
+        systemPosterStyleList = mergePosterStyleList(systemPosterStyleList, latestPosterTemplateMap);
+
+        // 处理自定义海报风格配置
+        String customPosterConfigValue = posterStepWrapper.getStepVariableValue(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(customPosterConfigValue) || "null".equalsIgnoreCase(customPosterConfigValue)) {
+            customPosterConfigValue = "[]";
+        }
+        List<PosterStyleDTO> customPosterStyleList = JsonUtils.parseArray(customPosterConfigValue, PosterStyleDTO.class);
+        // 合并海报风格列表
+        customPosterStyleList = mergePosterStyleList(customPosterStyleList, latestPosterTemplateMap);
+
+        // 海报配置
+        String posterConfig = posterStepWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterConfig) || "null".equalsIgnoreCase(posterConfig)) {
+            posterConfig = "[]";
+        }
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterConfig, PosterStyleDTO.class);
+        // 合并海报风格列表
+        posterStyleList = mergePosterStyleList(posterStyleList, latestPosterTemplateMap);
+
+        // 重新放入海报步骤
+        posterStepWrapper.putStepModelVariable(Collections.singletonMap(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList)));
+
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
+        variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
+        posterStepWrapper.putVariable(variableMap);
+        return posterStepWrapper;
+    }
+
+    /**
+     * 合并海报风格列表
+     *
+     * @param posterStyleList         海报风格列表
+     * @param latestPosterTemplateMap 最新的海报模板
+     * @return 合并之后的海报风格列表
+     */
+    private static List<PosterStyleDTO> mergePosterStyleList(List<PosterStyleDTO> posterStyleList, Map<String, PosterTemplateDTO> latestPosterTemplateMap) {
+
+        for (PosterStyleDTO posterStyle : posterStyleList) {
+            List<PosterTemplateDTO> templateList = posterStyle.getTemplateList();
+            for (PosterTemplateDTO posterTemplate : templateList) {
+                // 获取最新的海报模板
+                PosterTemplateDTO latestPosterTemplate = latestPosterTemplateMap.get(posterTemplate.getCode());
+                if (Objects.isNull(latestPosterTemplate)) {
+                    continue;
+                }
+
+                // 获取最新的海报模板
+                posterTemplate.setExample(latestPosterTemplate.getExample());
+            }
+            posterStyle.setTemplateList(templateList);
+        }
+
+        return posterStyleList;
     }
 }
 

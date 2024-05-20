@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
@@ -15,16 +16,22 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
+import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
+import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
@@ -40,6 +47,7 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -56,7 +64,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 应用管理服务实现类
@@ -80,6 +90,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppDeleteProducer appDeleteProducer;
+
+    @Resource
+    private AppMarketMapper appMarketMapper;
 
     /**
      * 查询应用语言列表
@@ -139,7 +152,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public List<AppRespVO> listRecommendedApps(String model) {
-        return RecommendAppCache.get(model);
+        return getAppTemplateList(model);
     }
 
     /**
@@ -150,7 +163,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO getRecommendApp(String uid) {
-        return RecommendAppCache.getRecommendApp(uid);
+        return getAppTemplate(uid);
     }
 
     /**
@@ -198,7 +211,17 @@ public class AppServiceImpl implements AppService {
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
-        return AppConvert.INSTANCE.convertResponse(app);
+        AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
+            WorkflowStepWrapperRespVO posterStepWrapper = appResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            if (Objects.nonNull(posterStepWrapper)) {
+                // 获取到海报系统配置的变量
+                WorkflowStepWrapperRespVO handlerStepWrapper = CreativeUtils.handlerPosterStepWrapper(posterStepWrapper);
+                // 替换原有的海报系统配置的变量
+                appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
+            }
+        }
+        return appResponse;
     }
 
     /**
@@ -356,8 +379,15 @@ public class AppServiceImpl implements AppService {
     private void handlerAndValidateRequest(AppReqVO request) {
         // 应用类目校验
         if (AppModelEnum.COMPLETION.name().equals(request.getModel())) {
+            Long tenantId = TenantContextHolder.getRequiredTenantId();
             if (StringUtils.isBlank(request.getCategory())) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED, request.getCategory());
+                if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+                    request.setCategory("SEO_WRITING_OTHER");
+                } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
+                    request.setCategory("COMMON");
+                } else {
+                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED);
+                }
             }
             List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
             Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
@@ -365,7 +395,6 @@ public class AppServiceImpl implements AppService {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
             }
             AppCategoryVO category = categoryOptional.get();
-            Long tenantId = TenantContextHolder.getRequiredTenantId();
             if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
             }
@@ -385,5 +414,59 @@ public class AppServiceImpl implements AppService {
         if (!AppTypeEnum.COMMON.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
         }
+    }
+
+    /**
+     * 获取应用模板列表
+     *
+     * @return 应用模板列表
+     */
+    private List<AppRespVO> getAppTemplateList(String model) {
+        model = StringUtils.isBlank(model) ? AppModelEnum.COMPLETION.name() : model;
+        List<String> nameList = appDictionaryService.appTemplateAppNameList();
+        if (CollectionUtil.isEmpty(nameList)) {
+            return RecommendAppCache.get(model);
+        }
+
+        LambdaQueryWrapper<AppMarketDO> wrapper = appMarketMapper.queryMapper(Boolean.TRUE);
+        wrapper.eq(AppMarketDO::getModel, model);
+        wrapper.in(AppMarketDO::getName, nameList);
+        List<AppMarketDO> appTemplateList = appMarketMapper.selectList(wrapper);
+        if (CollectionUtil.isEmpty(appTemplateList)) {
+            return RecommendAppCache.get(model);
+        }
+
+        // 按照 nameList 的顺序排序
+        Map<String, AppMarketDO> appTemplateMap = appTemplateList.stream().collect(Collectors.toMap(AppMarketDO::getName, item -> item));
+        return nameList.stream()
+                .map(appTemplateMap::get)
+                .filter(Objects::nonNull)
+                .map(item -> {
+                    AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convertResponse(item);
+                    AppRespVO appResponse = AppConvert.INSTANCE.convert(appMarketResponse);
+                    appResponse.setSource(AppSourceEnum.WEB.name());
+                    return appResponse;
+                }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取应用模板
+     *
+     * @param uid 应用唯一标识
+     * @return 应用模板
+     */
+    private AppRespVO getAppTemplate(String uid) {
+        if (RecommendAppEnum.isAppOrChat(uid)) {
+            return RecommendAppCache.getRecommendApp(uid);
+        }
+
+        LambdaQueryWrapper<AppMarketDO> wrapper = appMarketMapper.queryMapper(Boolean.FALSE);
+        wrapper.eq(AppMarketDO::getUid, uid);
+        AppMarketDO appTemplate = appMarketMapper.selectOne(wrapper);
+        AppValidate.notNull(appTemplate, "应用模板不存在！");
+        AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convertResponse(appTemplate);
+        AppRespVO appResponse = AppConvert.INSTANCE.convert(appMarketResponse);
+        appResponse.setSource(AppSourceEnum.WEB.name());
+        return appResponse;
     }
 }

@@ -133,7 +133,6 @@ public class CreativeContentController {
                     requestItem.setUid(item.getUid());
                     requestItem.setForce(Boolean.TRUE);
                     requestItem.setTenantId(item.getTenantId());
-                    requestItem.setType(item.getType());
                     requestItem.setBatchUid(item.getBatchUid());
                     requestItem.setPlanUid(item.getPlanUid());
                     return requestItem;

@@ -54,6 +54,24 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
     }
 
     /**
+     * 根据条件查询创作内容列表，只查询id, uid, status 字段
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    default List<CreativeContentDO> listStatus(CreativeContentListReqVO query) {
+        LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+        wrapper.select(CreativeContentDO::getId, CreativeContentDO::getUid, CreativeContentDO::getStatus);
+        wrapper.in(CollectionUtil.isNotEmpty(query.getUidList()), CreativeContentDO::getUid, query.getUidList());
+        wrapper.eq(StringUtils.isNotBlank(query.getBatchUid()), CreativeContentDO::getBatchUid, query.getBatchUid());
+        wrapper.eq(StringUtils.isNotBlank(query.getPlanUid()), CreativeContentDO::getPlanUid, query.getPlanUid());
+        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativeContentDO::getStatus, query.getStatus());
+        wrapper.eq(Objects.nonNull(query.getLiked()), CreativeContentDO::getLiked, query.getLiked());
+        wrapper.eq(Objects.nonNull(query.getClaim()), CreativeContentDO::getClaim, query.getClaim());
+        return selectList(wrapper);
+    }
+
+    /**
      * 查询创作内容任务列表
      *
      * @param query 查询条件

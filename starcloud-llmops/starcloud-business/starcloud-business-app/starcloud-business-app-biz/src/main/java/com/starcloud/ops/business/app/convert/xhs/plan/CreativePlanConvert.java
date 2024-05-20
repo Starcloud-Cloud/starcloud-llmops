@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
@@ -70,7 +70,9 @@ public interface CreativePlanConvert {
      */
     default CreativePlanDO convertModifyRequest(CreativePlanModifyReqVO request) {
         CreativePlanDO creativePlan = convertCreateRequest(request);
+        // 修改时，不修改创建时间和状态
         creativePlan.setCreateTime(null);
+        creativePlan.setStatus(null);
         creativePlan.setUid(request.getUid());
         return creativePlan;
     }
@@ -100,10 +102,25 @@ public interface CreativePlanConvert {
         return response;
     }
 
-    default CreativePlanRespVO convert(CreativePlanDTO creativePlanDTO){
-        CreativePlanRespVO creativePlanRespVO = convertResponse(creativePlanDTO);
-        creativePlanRespVO.setCreatorName(creativePlanDTO.getCreatorName());
-        return creativePlanRespVO;
+    default CreativePlanRespVO convert(CreativePlanDTO creativePlan) {
+        CreativePlanRespVO response = new CreativePlanRespVO();
+        response.setUid(creativePlan.getUid());
+        response.setAppUid(creativePlan.getAppUid());
+        response.setVersion(creativePlan.getVersion());
+        response.setSource(creativePlan.getSource());
+        // 应用
+        CreativePlanConfigurationDTO copy = new CreativePlanConfigurationDTO();
+        AppMarketRespVO appMarketRespVO = new AppMarketRespVO();
+        appMarketRespVO.setName(creativePlan.getAppName());
+        copy.setAppInformation(appMarketRespVO);
+        response.setConfiguration(copy);
+
+        response.setTotalCount(creativePlan.getTotalCount());
+        response.setStatus(creativePlan.getStatus());
+        response.setCreateTime(creativePlan.getCreateTime());
+        response.setUpdateTime(creativePlan.getUpdateTime());
+        response.setCreatorName(creativePlan.getCreatorName());
+        return response;
     }
 
     /**

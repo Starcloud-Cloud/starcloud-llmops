@@ -33,21 +33,21 @@ public class CreativeContentTaskReqVO implements java.io.Serializable {
     private String batchUid;
 
     /**
-     * 内容类型
+     * 任务状态
      */
-    @Schema(description = "内容类型")
-    private String type;
+    @Schema(description = "任务状态")
+    private String status;
 
     /**
-     * 一次查询的数据量
+     * 重试次数
      */
-    @Schema(description = "一次查询的数量")
+    @Schema(description = "重试次数")
+    private Integer maxRetry;
+
+    /**
+     * 批量执行一次的数据量
+     */
+    @Schema(description = "批量执行一次的数据量")
     private Integer bathCount;
-
-    /**
-     * 是否只执行重试任务
-     */
-    @Schema(description = "是否只执行重试任务")
-    private Boolean retryProcess;
 
 }

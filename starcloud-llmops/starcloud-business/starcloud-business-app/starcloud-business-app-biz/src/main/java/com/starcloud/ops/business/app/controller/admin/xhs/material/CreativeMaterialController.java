@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
+import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
@@ -10,6 +11,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,7 +72,13 @@ public class CreativeMaterialController {
     @PostMapping("/materialGenerate")
     @Operation(summary = "素材生成", description = "素材生成")
     @ApiOperationSupport(order = 60, author = "nacoyer")
-    public CommonResult<Object> materialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
+    public CommonResult<JSON> materialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
         return CommonResult.success(materialService.materialGenerate(request));
+    }
+
+    @PostMapping(value = "/customMaterialGenerate")
+    @Operation(summary = "素材生成")
+    public CommonResult<JSON> customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
+        return CommonResult.success(materialService.customMaterialGenerate(request));
     }
 }

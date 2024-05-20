@@ -44,8 +44,12 @@ public interface ListingDraftMapper extends BaseMapperX<ListingDraftDO> {
     }
 
 
-    Long count();
+    Long count(@Param("draftName") String draftName,
+               @Param("title") String title);
 
-    List<ListingDraftUserDTO> getLatestDrafts(@Param("start") Integer start, @Param("end") Integer end, @Param("field") String field, @Param("type") String type);
+    List<ListingDraftUserDTO> getLatestDrafts(@Param("start") Integer start, @Param("end") Integer end,
+                                              @Param("field") String field, @Param("type") String type,
+                                              @Param("draftName") String draftName,
+                                              @Param("title") String title);
 
 }

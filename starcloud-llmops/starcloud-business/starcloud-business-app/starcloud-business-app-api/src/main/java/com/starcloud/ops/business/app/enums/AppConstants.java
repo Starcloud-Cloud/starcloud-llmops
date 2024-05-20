@@ -45,6 +45,16 @@ public interface AppConstants {
     String APP_HOT_SEARCH_MARKET_JU_ZHEN = "STAR_CLOUD_LLM_APP_HOT_SEARCH_MARKET_JU_ZHEN";
 
     /**
+     * 热门应用分类字典类型
+     */
+    String APP_TEMPLATE_SEARCH_MARKET = "STAR_CLOUD_LLM_APP_TEMPLATE_SEARCH_MARKET";
+
+    /**
+     * 热门应用分类字典类型
+     */
+    String APP_TEMPLATE_SEARCH_MARKET_JU_ZHEN = "STAR_CLOUD_LLM_APP_TEMPLATE_SEARCH_MARKET_JU_ZHEN";
+
+    /**
      * 图片生成 Prompt 案例
      */
     String IMAGE_EXAMPLE_PROMPT = "STAR_CLOUD_LLM_IMAGE_EXAMPLE_PROMPT";

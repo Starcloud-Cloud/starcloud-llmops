@@ -96,6 +96,15 @@ public interface CreativeConstants {
      */
     String MATERIAL_LIST = "MATERIAL_LIST";
 
+    /**
+     * 素材节点 素材生成配置
+     */
+    String MATERIAL_GENERATE_CONFIG = "MATERIAL_GENERATE_CONFIG";
+
+    /**
+     * 素材节点 素材生成配置
+     */
+    String CUSTOM_MATERIAL_GENERATE_CONFIG = "CUSTOM_MATERIAL_GENERATE_CONFIG";
 
     /**
      * 参考素材JsonSchema

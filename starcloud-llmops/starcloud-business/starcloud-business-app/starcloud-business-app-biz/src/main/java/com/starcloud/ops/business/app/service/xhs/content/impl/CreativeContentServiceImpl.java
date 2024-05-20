@@ -42,7 +42,6 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
-import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
@@ -100,9 +99,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private RedissonClient redissonClient;
 
     @Resource
-    private AppMarketService appMarketService;
-
-    @Resource
     private AppStepStatusCache appStepStatusCache;
 
     /**
@@ -140,6 +136,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Override
     public List<CreativeContentRespVO> list(CreativeContentListReqVO query) {
         List<CreativeContentDO> list = creativeContentMapper.list(query);
+        return CreativeContentConvert.INSTANCE.convertResponseList(list);
+    }
+
+    /**
+     * 查询创作内容列表
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    @Override
+    public List<CreativeContentRespVO> listStatus(CreativeContentListReqVO query) {
+        List<CreativeContentDO> list = creativeContentMapper.listStatus(query);
         return CreativeContentConvert.INSTANCE.convertResponseList(list);
     }
 
@@ -264,7 +272,31 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public List<CreativeContentExecuteRespVO> batchExecute(List<CreativeContentExecuteReqVO> request) {
-        return creativeExecuteManager.bathExecute(request);
+        // 进行批量执行
+        log.info("批量执行创作内容，数量为{}: ", request.size());
+        List<CreativeContentExecuteRespVO> result = creativeExecuteManager.bathExecute(request);
+        if (CollectionUtils.isEmpty(result)) {
+            return Collections.emptyList();
+        }
+
+        // 更新计划状态
+        log.info("批量执行创作内容，数量为{}，执行完成", request.size());
+        Map<String, List<CreativeContentExecuteRespVO>> resultMap = result.stream().collect(Collectors.groupingBy(CreativeContentExecuteRespVO::getBatchUid));
+        log.info("批量执行创作内容，开始更新计划和批次状态，批次列表：{}", resultMap.keySet());
+        for (Map.Entry<String, List<CreativeContentExecuteRespVO>> entry : resultMap.entrySet()) {
+            String batchUid = entry.getKey();
+            List<CreativeContentExecuteRespVO> executeResponseList = entry.getValue();
+            if (CollectionUtils.isEmpty(executeResponseList)) {
+                continue;
+            }
+            CreativeContentExecuteRespVO executeResponse = executeResponseList.get(0);
+            creativePlanService.updatePlanStatus(executeResponse.getPlanUid(), batchUid);
+        }
+        log.info("批量执行创作内容，数量为{}，执行完成", request.size());
+        if (log.isDebugEnabled()) {
+            log.debug("批量执行创作内容，执行结果为：{}", JsonUtils.toJsonPrettyString(result));
+        }
+        return result;
     }
 
     /**
@@ -364,7 +396,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             executeRequest.setUid(content.getUid());
             executeRequest.setPlanUid(content.getPlanUid());
             executeRequest.setBatchUid(content.getBatchUid());
-            executeRequest.setType(content.getType());
             executeRequest.setForce(Boolean.TRUE);
             executeRequest.setTenantId(content.getTenantId());
 
