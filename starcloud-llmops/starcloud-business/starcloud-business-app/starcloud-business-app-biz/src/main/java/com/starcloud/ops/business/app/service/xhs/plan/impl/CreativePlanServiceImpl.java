@@ -307,11 +307,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
-        // 校验创作计划状态，只能修改待执行、已完成、失败的创作计划
-        if (!CreativePlanStatusEnum.canModifyStatus(plan.getStatus())) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
-        }
-
         // 更新创作计划
         CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
@@ -551,6 +546,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 基本校验
         AppValidate.notBlank(uid, CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
         CreativePlanRespVO creativePlan = this.get(uid);
+
+        // 校验创作计划状态，只能修改待执行、已完成、失败的创作计划
+        if (!CreativePlanStatusEnum.canModifyStatus(creativePlan.getStatus())) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
+        }
 
         // 新增一条计划批次
         String batchUid = creativePlanBatchService.create(CreativePlanBatchConvert.INSTANCE.convert(creativePlan));
