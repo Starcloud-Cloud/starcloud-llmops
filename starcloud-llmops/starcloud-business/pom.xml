@@ -31,6 +31,7 @@
         <module>starcloud-business-product</module>
         <module>starcloud-business-promotion</module>
         <module>starcloud-business-trade</module>
+        <module>starcloud-business-poster</module>
     </modules>
 
 
