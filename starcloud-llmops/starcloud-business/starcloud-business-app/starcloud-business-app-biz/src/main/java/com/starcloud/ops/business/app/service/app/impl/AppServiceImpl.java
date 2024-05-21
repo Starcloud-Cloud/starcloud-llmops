@@ -410,10 +410,11 @@ public class AppServiceImpl implements AppService {
             request.setType(AppTypeEnum.COMMON.name());
         }
 
-        // 非普通应用，只有管理员可以创建
-        if (!AppTypeEnum.COMMON.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
+        // 系统应用，只有管理员可以创建
+        if (AppTypeEnum.SYSTEM.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
         }
+
     }
 
     /**
