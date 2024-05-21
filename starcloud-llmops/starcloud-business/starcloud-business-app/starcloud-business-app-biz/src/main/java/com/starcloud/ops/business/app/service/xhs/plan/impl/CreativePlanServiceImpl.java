@@ -590,7 +590,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appInformation = configuration.getAppInformation();
         // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
         AppMarketRespVO latestAppMarket = this.getAppInformation(creativePlan.getAppUid(), creativePlan.getSource());
-
         /*
          * 获取到素材库步骤，素材库类型，素材库处理器
          */

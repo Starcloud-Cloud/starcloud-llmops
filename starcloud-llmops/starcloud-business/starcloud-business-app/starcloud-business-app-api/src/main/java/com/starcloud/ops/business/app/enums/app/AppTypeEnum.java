@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
@@ -71,20 +73,42 @@ public enum AppTypeEnum implements IEnumable<Integer> {
      */
     public static List<Option> options(Boolean admin) {
         boolean isChina = Locale.CHINA.equals(LocaleContextHolder.getLocale());
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+
         if (admin) {
-            return Arrays.stream(values()).sorted(Comparator.comparingInt(AppTypeEnum::getCode)).map(item -> {
-                Option option = new Option();
-                option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
-                option.setValue(item.name());
-                return option;
-            }).collect(Collectors.toList());
+            return Arrays.stream(values())
+                    .sorted(Comparator.comparingInt(AppTypeEnum::getCode))
+                    .map(item -> {
+                        Option option = new Option();
+                        option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
+                        option.setValue(item.name());
+                        return option;
+                    }).collect(Collectors.toList());
         } else {
-            return Arrays.stream(values()).filter(item -> !MEDIA_MATRIX.equals(item)).sorted(Comparator.comparingInt(AppTypeEnum::getCode)).map(item -> {
-                Option option = new Option();
-                option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
-                option.setValue(item.name());
-                return option;
-            }).collect(Collectors.toList());
+            // 魔法AI 租户，不展示媒体矩阵
+            if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+                return Arrays.stream(values())
+                        .filter(item -> !MEDIA_MATRIX.equals(item))
+                        .filter(item -> !SYSTEM.equals(item))
+                        .sorted(Comparator.comparingInt(AppTypeEnum::getCode))
+                        .map(item -> {
+                            Option option = new Option();
+                            option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
+                            option.setValue(item.name());
+                            return option;
+                        }).collect(Collectors.toList());
+            } else {
+                // 其他租户，不展示系统应用
+                return Arrays.stream(values())
+                        .filter(item -> !SYSTEM.equals(item))
+                        .sorted(Comparator.comparingInt(AppTypeEnum::getCode))
+                        .map(item -> {
+                            Option option = new Option();
+                            option.setLabel(isChina ? item.getLabel() : item.getLabelEn());
+                            option.setValue(item.name());
+                            return option;
+                        }).collect(Collectors.toList());
+            }
         }
     }
 
