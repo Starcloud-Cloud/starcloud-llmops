@@ -59,6 +59,9 @@ public class MaterialDefineUtil {
     }
 
     public static List<MaterialFieldConfigDTO> parseConfig(String materialFieldJson) {
+        if (StringUtils.isBlank(materialFieldJson)) {
+            throw exception(NO_MATERIAL_DEFINE);
+        }
         List<MaterialFieldConfigDTO> list = JSONUtil.parseArray(materialFieldJson).toList(MaterialFieldConfigDTO.class);
         list.stream().sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder)).collect(Collectors.toList());
         return list;
