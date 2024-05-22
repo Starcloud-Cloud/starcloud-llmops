@@ -156,7 +156,7 @@ public class MaterialDefineUtil {
      */
     public static void verifyMaterialField(List<MaterialFieldConfigDTO> materialConfigList) {
 
-        List<MaterialFieldConfigDTO> fieldName = materialConfigList.stream().filter(config -> PATTERN.matcher(config.getFieldName()).matches()).collect(Collectors.toList());
+        List<MaterialFieldConfigDTO> fieldName = materialConfigList.stream().filter(config -> !PATTERN.matcher(config.getFieldName()).matches()).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(fieldName)) {
             throw exception(FILED_NAME_ERROR, fieldName);
         }
