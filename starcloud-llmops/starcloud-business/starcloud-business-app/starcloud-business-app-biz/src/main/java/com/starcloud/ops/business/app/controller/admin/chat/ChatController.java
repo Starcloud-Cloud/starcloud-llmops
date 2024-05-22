@@ -49,7 +49,7 @@ public class ChatController {
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
 
-        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() >= 800) {
+        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() > 800) {
             emitter.completeWithError(exception(new ErrorCode(500,"问题字符数大于0且小于800")));
             return emitter;
         }
