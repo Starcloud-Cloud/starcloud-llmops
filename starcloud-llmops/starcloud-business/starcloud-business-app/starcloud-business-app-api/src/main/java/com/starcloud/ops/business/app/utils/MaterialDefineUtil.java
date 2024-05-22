@@ -29,7 +29,7 @@ public class MaterialDefineUtil {
 
     private static final String MATERIAL_ACTION_HANDLER = "MaterialActionHandler";
 
-    private static final Pattern PATTERN = Pattern.compile("^[^a-zA-Z]*$");
+    private static final Pattern PATTERN = Pattern.compile("[a-zA-Z]+");
 
     /**
      * 获取素材定义配置
