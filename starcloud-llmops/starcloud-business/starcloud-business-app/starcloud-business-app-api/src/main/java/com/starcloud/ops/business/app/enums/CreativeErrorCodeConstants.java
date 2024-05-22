@@ -191,6 +191,8 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode NO_REQUIRED_FILED = new ErrorCode(730000017, "上传素材中缺少必填字段:{}");
 
+    ErrorCode FILED_NAME_ERROR = new ErrorCode(730000018, "素材定义字段code必须是英文字母组成:{}");
+
 
     /**
      * 图片模板ID不能为空

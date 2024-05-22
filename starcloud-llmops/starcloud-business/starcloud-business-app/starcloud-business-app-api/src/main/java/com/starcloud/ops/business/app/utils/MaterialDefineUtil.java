@@ -16,8 +16,10 @@ import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -26,6 +28,8 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 public class MaterialDefineUtil {
 
     private static final String MATERIAL_ACTION_HANDLER = "MaterialActionHandler";
+
+    private static final Pattern PATTERN = Pattern.compile("^[^a-zA-Z]*$");
 
     /**
      * 获取素材定义配置
@@ -145,11 +149,16 @@ public class MaterialDefineUtil {
     }
 
     /**
-     * 验证是否有重复字段code 和 重复字段名
+     * 验证是否有重复字段code  重复字段名 code必须为英文字母
      *
      * @param materialConfigList
      */
     public static void verifyMaterialField(List<MaterialFieldConfigDTO> materialConfigList) {
+
+        List<MaterialFieldConfigDTO> fieldName = materialConfigList.stream().filter(config -> PATTERN.matcher(config.getFieldName()).matches()).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(fieldName)) {
+            throw exception(FILED_NAME_ERROR, fieldName);
+        }
 
         List<String> duplicateFieldDesc = materialConfigList.stream().collect(Collectors.groupingBy(MaterialFieldConfigDTO::getDesc, Collectors.counting()))
                 .entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).collect(Collectors.toList());
@@ -208,12 +217,12 @@ public class MaterialDefineUtil {
                         .filter(iterm -> CreativeConstants.MATERIAL_DEFINE.equalsIgnoreCase(iterm.getField()) && iterm.getValue() != null)
                         .findFirst();
                 if (!materialDefineVariable.isPresent()) {
-                    throw exception(NO_MATERIAL_DEFINE);
+                    return;
                 }
                 Object materialDefine = materialDefineVariable.get().getValue();
                 List<MaterialFieldConfigDTO> materialFieldConfigList = parseConfig(JSONUtil.toJsonStr(materialDefine));
                 if (CollUtil.isEmpty(materialFieldConfigList)) {
-                    throw exception(NO_MATERIAL_DEFINE);
+                    return;
                 }
                 verifyMaterialField(materialFieldConfigList);
                 verifyMaterialFieldType(materialFieldConfigList);
