@@ -96,6 +96,9 @@ public class CreativeExecuteManager {
     @Resource
     private AppStepStatusCache appStepStatusCache;
 
+    @Resource
+    private CreativeAlarmManager creativeAlarmManager;
+
     /**
      * 批量执行小红书应用生成
      *
@@ -189,9 +192,13 @@ public class CreativeExecuteManager {
             }
         } catch (ServiceException exception) {
             log.error("创作中心：创作内容任务执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
+            // 报警
+            creativeAlarmManager.executeAlarm(request.getUid(), request.getForce(), getMaxRetry(request), exception);
             return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
         } catch (Exception exception) {
             log.error("创作中心：创作内容任务执行失败： 错误信息: {}", exception.getMessage(), exception);
+            // 报警
+            creativeAlarmManager.executeAlarm(request.getUid(), request.getForce(), getMaxRetry(request), exception);
             return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
         } finally {
             if (lock != null) {
@@ -277,7 +284,7 @@ public class CreativeExecuteManager {
         extended.put("contentStatus", latestContent.getStatus());
         extended.put("contentSource", latestContent.getSource());
         // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
-        extended.put("isSendAlarm", retry >= maxRetry || CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(latestContent.getStatus()));
+        extended.put("isSendAlarm", false);
 
         // 构建应用执行参数
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
