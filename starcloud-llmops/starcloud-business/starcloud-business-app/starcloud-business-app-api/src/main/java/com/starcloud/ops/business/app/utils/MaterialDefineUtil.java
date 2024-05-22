@@ -126,7 +126,8 @@ public class MaterialDefineUtil {
                 .collect(Collectors.toList());
         for (Map<String, Object> materialObj : materialObjList) {
             for (MaterialFieldConfigDTO requiredField : requiredFieldList) {
-                if (Objects.isNull(materialObj.get(requiredField.getFieldName()))) {
+                Object value = materialObj.get(requiredField.getFieldName());
+                if (Objects.isNull(value) || StringUtils.isBlank(String.valueOf(value))) {
                     throw exception(NO_REQUIRED_FILED, requiredField.getDesc());
                 }
             }
