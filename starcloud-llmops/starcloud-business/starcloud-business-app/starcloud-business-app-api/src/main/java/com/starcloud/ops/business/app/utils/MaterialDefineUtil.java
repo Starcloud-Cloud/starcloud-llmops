@@ -122,7 +122,7 @@ public class MaterialDefineUtil {
      */
     public static void verifyMaterialData(List<MaterialFieldConfigDTO> fieldConfigList, List<Map<String, Object>> materialObjList) {
         List<MaterialFieldConfigDTO> requiredFieldList = fieldConfigList.stream()
-                .filter(fieldConfig -> fieldConfig.isRequired() && MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(fieldConfig.getType()))
+                .filter(fieldConfig -> fieldConfig.isRequired() && !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(fieldConfig.getType()))
                 .collect(Collectors.toList());
         for (Map<String, Object> materialObj : materialObjList) {
             for (MaterialFieldConfigDTO requiredField : requiredFieldList) {
