@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,7 +80,7 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         // 获取到处理好的上传素材
         String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
-        List<AbstractCreativeMaterialDTO> materialList = JsonUtils.parseArray(materialListString, AbstractCreativeMaterialDTO.class);
+        List<Map<String,Object>> materialList = MaterialDefineUtil.parseData(materialListString);
 
         JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
         jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));
