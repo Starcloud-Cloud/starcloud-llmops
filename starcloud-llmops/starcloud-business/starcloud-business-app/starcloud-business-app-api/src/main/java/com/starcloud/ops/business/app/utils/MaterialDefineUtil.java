@@ -158,7 +158,7 @@ public class MaterialDefineUtil {
 
         List<MaterialFieldConfigDTO> fieldName = materialConfigList.stream().filter(config -> !PATTERN.matcher(config.getFieldName()).matches()).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(fieldName)) {
-            throw exception(FILED_NAME_ERROR, fieldName);
+            throw exception(FILED_NAME_ERROR, fieldName.stream().map(MaterialFieldConfigDTO::getFieldName).collect(Collectors.toList()));
         }
 
         List<String> duplicateFieldDesc = materialConfigList.stream().collect(Collectors.groupingBy(MaterialFieldConfigDTO::getDesc, Collectors.counting()))
