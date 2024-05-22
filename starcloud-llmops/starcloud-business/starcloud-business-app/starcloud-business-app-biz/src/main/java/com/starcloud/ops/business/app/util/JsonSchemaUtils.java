@@ -31,6 +31,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_MATERIAL_DEFINE;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -595,12 +598,15 @@ public class JsonSchemaUtils {
 
     /**
      * 素材自定义配置生成 jsonschema
+     *
      * @param materialDefineJson
      * @return
      */
     public static JsonSchema expendGenerateJsonSchema(String materialDefineJson) {
         ObjectSchema obj = new ObjectSchema();
-
+        if (StringUtils.isBlank(materialDefineJson)) {
+            return obj;
+        }
         List<MaterialFieldConfigDTO> configList = MaterialDefineUtil.parseConfig(materialDefineJson);
         Map<String, JsonSchema> properties = new HashMap<>(configList.size());
         for (MaterialFieldConfigDTO materialFieldConfigDTO : configList) {

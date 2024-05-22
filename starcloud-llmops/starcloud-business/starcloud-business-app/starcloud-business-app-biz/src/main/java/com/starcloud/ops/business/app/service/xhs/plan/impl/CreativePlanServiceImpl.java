@@ -89,6 +89,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_MATERIAL_DEFINE;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -787,14 +790,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 校验素材配置
         WorkflowStepWrapperRespVO materialHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
         if (Objects.nonNull(materialHandler)) {
-            List<VariableItemRespVO> variableItemReqs = Optional.ofNullable(materialHandler.getFlowStep()).map(WorkflowStepRespVO::getVariable).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
+            List<VariableItemRespVO> variableItemReqs = Optional.ofNullable(materialHandler.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
             Optional<VariableItemRespVO> materialDefineVariable = variableItemReqs.stream()
                     .filter(iterm -> CreativeConstants.MATERIAL_DEFINE.equalsIgnoreCase(iterm.getField()) && iterm.getValue() != null)
                     .findFirst();
             if (!materialDefineVariable.isPresent()) {
                 return;
             }
+
             Object materialDefine = materialDefineVariable.get().getValue();
+            if (materialDefine == null || StringUtils.isBlank(String.valueOf(materialDefine))) {
+                return;
+            }
             List<MaterialFieldConfigDTO> materialFieldConfigList = MaterialDefineUtil.parseConfig(JSONUtil.toJsonStr(materialDefine));
             if (CollUtil.isEmpty(materialFieldConfigList)) {
                 return;
