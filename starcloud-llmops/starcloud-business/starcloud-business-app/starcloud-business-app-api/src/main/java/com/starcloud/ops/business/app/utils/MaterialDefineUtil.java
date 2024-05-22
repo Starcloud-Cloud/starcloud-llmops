@@ -38,19 +38,17 @@ public class MaterialDefineUtil {
      * @return
      */
     public static List<MaterialFieldConfigDTO> getMaterialConfig(AppMarketRespVO appMarketResponse) {
-        String materialDefine = null;
+//        String materialDefine = null;
         WorkflowStepWrapperRespVO stepWrapperRespVO = appMarketResponse.getStepByHandler(MATERIAL_ACTION_HANDLER);
         if (Objects.isNull(stepWrapperRespVO)) {
             throw exception(MATERIAL_STEP_NOT_EXIST);
         }
         VariableItemRespVO variable = stepWrapperRespVO.getVariable(CreativeConstants.MATERIAL_DEFINE);
-        if (Objects.nonNull(variable)) {
-            materialDefine = String.valueOf(variable.getValue());
-        }
+        String materialDefine = Optional.ofNullable(variable)
+                .map(VariableItemRespVO::getValue)
+                .map(Object::toString)
+                .orElseThrow(() -> exception(NO_MATERIAL_DEFINE));
 
-        if (StringUtils.isBlank(materialDefine)) {
-            throw exception(NO_MATERIAL_DEFINE);
-        }
         List<MaterialFieldConfigDTO> fieldConfigList = parseConfig(materialDefine);
         if (CollUtil.isEmpty(fieldConfigList)) {
             throw exception(NO_MATERIAL_DEFINE);
