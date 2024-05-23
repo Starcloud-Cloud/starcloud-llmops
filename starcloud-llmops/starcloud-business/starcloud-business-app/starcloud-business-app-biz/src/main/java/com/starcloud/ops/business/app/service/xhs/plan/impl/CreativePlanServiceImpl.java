@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -15,13 +13,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableItemReqVO;
-import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchListReqVO;
@@ -30,8 +24,6 @@ import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecute
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
@@ -55,7 +47,6 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -90,7 +81,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_MATERIAL_DEFINE;
 
 /**
  * @author nacoyer
@@ -318,6 +308,30 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
         return modifyPlan.getUid();
+    }
+
+    @Override
+    public String modifyConfiguration(CreativePlanModifyReqVO request) {
+        AppValidate.notBlank(request.getUid(), CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
+        CreativePlanDO plan = creativePlanMapper.get(request.getUid());
+        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
+        if (!CreativePlanStatusEnum.canModifyStatus(plan.getStatus())) {
+            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
+        }
+
+        CreativePlanConfigurationDTO configuration = request.getConfiguration();
+        AppMarketRespVO appInformation = configuration.getAppInformation();
+
+        // 校验配置
+        validImage(appInformation, configuration);
+        validPoster(configuration, request);
+        MaterialDefineUtil.verifyStep(appInformation);
+
+        CreativePlanDO modifyPlan = new CreativePlanDO();
+        modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
+        modifyPlan.setId(plan.getId());
+        creativePlanMapper.updateById(modifyPlan);
+        return plan.getUid();
     }
 
     /**
@@ -782,36 +796,35 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appInformation = configuration.getAppInformation();
 
         // 图片风格
+        validImage(appInformation, configuration);
+
+        // 校验素材配置
+        MaterialDefineUtil.verifyStep(appInformation);
+
+        // 处理海报风格数据
+        validPoster(configuration, request);
+    }
+
+    /**
+     * 图片风格校验
+     *
+     * @param appInformation
+     * @param configuration
+     */
+    private void validImage(AppMarketRespVO appInformation, CreativePlanConfigurationDTO configuration) {
         WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
         if (Objects.nonNull(posterWrapper)) {
             AppValidate.notEmpty(configuration.getImageStyleList(), "图片生成未选择图片风格，不能为空！");
         }
+    }
 
-        // 校验素材配置
-        WorkflowStepWrapperRespVO materialHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-        if (Objects.nonNull(materialHandler)) {
-            List<VariableItemRespVO> variableItemReqs = Optional.ofNullable(materialHandler.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
-            Optional<VariableItemRespVO> materialDefineVariable = variableItemReqs.stream()
-                    .filter(iterm -> CreativeConstants.MATERIAL_DEFINE.equalsIgnoreCase(iterm.getField()) && iterm.getValue() != null)
-                    .findFirst();
-            if (!materialDefineVariable.isPresent()) {
-                return;
-            }
-
-            Object materialDefine = materialDefineVariable.get().getValue();
-            if (materialDefine == null || StringUtils.isBlank(String.valueOf(materialDefine))) {
-                return;
-            }
-            List<MaterialFieldConfigDTO> materialFieldConfigList = MaterialDefineUtil.parseConfig(JSONUtil.toJsonStr(materialDefine));
-            if (CollUtil.isEmpty(materialFieldConfigList)) {
-                return;
-            }
-            MaterialDefineUtil.verifyMaterialField(materialFieldConfigList);
-            MaterialDefineUtil.verifyMaterialFieldType(materialFieldConfigList);
-        }
-
-
-        // 处理海报风格数据
+    /**
+     * 处理海报风格数据
+     *
+     * @param configuration
+     * @param request
+     */
+    private void validPoster(CreativePlanConfigurationDTO configuration, CreativePlanCreateReqVO request) {
         List<PosterStyleDTO> imageStyleList = CollectionUtil.emptyIfNull(configuration.getImageStyleList());
         List<PosterStyleDTO> styleList = CreativeUtils.preHandlerPosterStyleList(imageStyleList);
 

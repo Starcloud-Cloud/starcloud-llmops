@@ -17,7 +17,7 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 
 @Getter
 public enum MaterialTypeEnum implements IEnumable<String> {
-//    BOOK_LIST("bookList", "书单", BookListCreativeMaterialDTO.class),
+    //    BOOK_LIST("bookList", "书单", BookListCreativeMaterialDTO.class),
 //    CONTRACT("contract", "合同模板", ContractCreativeMaterialDTO.class),
     NOTE("note", "普通笔记", OrdinaryNoteMaterialDTO.class),
     NOTE_TITLE("noteTitle", "普通笔记标题", OrdinaryNoteTitleMaterialDTO.class),
@@ -39,7 +39,7 @@ public enum MaterialTypeEnum implements IEnumable<String> {
             .collect(Collectors.toMap(MaterialTypeEnum::getTypeCode, Function.identity()));
 
     // 参考素材类型
-    private static final List<MaterialTypeEnum> REFER_MATERIALS = Arrays.asList(NOTE, NOTE_TITLE, NOTE_CONTENT);
+    private static final List<MaterialTypeEnum> REFER_MATERIALS = Arrays.asList(NOTE_TITLE, NOTE_CONTENT);
 
     MaterialTypeEnum(String typeCode, String desc, Class<? extends AbstractCreativeMaterialDTO> aClass) {
         this.typeCode = typeCode;
@@ -86,10 +86,11 @@ public enum MaterialTypeEnum implements IEnumable<String> {
 
     /**
      * 筛选指定类型的字段
+     *
      * @param fieldTypeEnum
      * @return
      */
-    public List<Field> filterField(FieldTypeEnum fieldTypeEnum){
+    public List<Field> filterField(FieldTypeEnum fieldTypeEnum) {
         Field[] fields = this.getAClass().getDeclaredFields();
         List<Field> result = new ArrayList<>();
         for (Field field : fields) {

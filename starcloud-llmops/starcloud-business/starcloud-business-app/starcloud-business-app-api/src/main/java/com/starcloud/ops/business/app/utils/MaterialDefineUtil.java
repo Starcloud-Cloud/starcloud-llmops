@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableItemRe
 import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -29,7 +30,7 @@ public class MaterialDefineUtil {
 
     private static final String MATERIAL_ACTION_HANDLER = "MaterialActionHandler";
 
-    private static final Pattern PATTERN = Pattern.compile("[a-zA-Z]+");
+    private static final Pattern PATTERN = Pattern.compile("[a-zA-Z0-9]+");
 
     /**
      * 获取素材定义配置
@@ -38,7 +39,6 @@ public class MaterialDefineUtil {
      * @return
      */
     public static List<MaterialFieldConfigDTO> getMaterialConfig(AppMarketRespVO appMarketResponse) {
-//        String materialDefine = null;
         WorkflowStepWrapperRespVO stepWrapperRespVO = appMarketResponse.getStepByHandler(MATERIAL_ACTION_HANDLER);
         if (Objects.isNull(stepWrapperRespVO)) {
             throw exception(MATERIAL_STEP_NOT_EXIST);
@@ -165,12 +165,25 @@ public class MaterialDefineUtil {
         List<String> duplicateFieldName = materialConfigList.stream().collect(Collectors.groupingBy(MaterialFieldConfigDTO::getFieldName, Collectors.counting()))
                 .entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).collect(Collectors.toList());
 
+        boolean blank = materialConfigList.stream().anyMatch(config -> StringUtils.isBlank(config.getDesc()) || StringUtils.isBlank(config.getFieldName()));
+        if (blank) {
+            throw exception(FILED_DESC_IS_BLANK, duplicateFieldDesc);
+        }
+
         if (CollUtil.isNotEmpty(duplicateFieldDesc)) {
             throw exception(DUPLICATE_FILED_DESC, duplicateFieldDesc);
         }
 
         if (CollUtil.isNotEmpty(duplicateFieldName)) {
             throw exception(DUPLICATE_FILED_NAME, duplicateFieldName);
+        }
+    }
+
+    public static void verifyMaterialFieldDesc(List<MaterialFieldConfigDTO> materialConfigList) {
+        List<String> duplicateFieldDesc = materialConfigList.stream().collect(Collectors.groupingBy(MaterialFieldConfigDTO::getDesc, Collectors.counting()))
+                .entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(duplicateFieldDesc)) {
+            throw exception(DUPLICATE_FILED_DESC, duplicateFieldDesc);
         }
     }
 
@@ -250,5 +263,28 @@ public class MaterialDefineUtil {
         });
     }
 
+    public static void verifyStep(AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO materialHandler = appInformation.getStepByHandler(MATERIAL_ACTION_HANDLER);
+        if (Objects.nonNull(materialHandler)) {
+            List<VariableItemRespVO> variableItemReqs = Optional.ofNullable(materialHandler.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
+            Optional<VariableItemRespVO> materialDefineVariable = variableItemReqs.stream()
+                    .filter(iterm -> CreativeConstants.MATERIAL_DEFINE.equalsIgnoreCase(iterm.getField()) && iterm.getValue() != null)
+                    .findFirst();
+            if (!materialDefineVariable.isPresent()) {
+                return;
+            }
+
+            Object materialDefine = materialDefineVariable.get().getValue();
+            if (materialDefine == null || org.apache.commons.lang3.StringUtils.isBlank(String.valueOf(materialDefine))) {
+                return;
+            }
+            List<MaterialFieldConfigDTO> materialFieldConfigList = parseConfig(JSONUtil.toJsonStr(materialDefine));
+            if (CollUtil.isEmpty(materialFieldConfigList)) {
+                return;
+            }
+            verifyMaterialField(materialFieldConfigList);
+            verifyMaterialFieldType(materialFieldConfigList);
+        }
+    }
 
 }

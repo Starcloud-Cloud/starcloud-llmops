@@ -82,6 +82,12 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.modify(request));
     }
 
+    @PostMapping("/modifyConfig")
+    @Operation(summary = "更新创作计划配置", description = "更新创作计划配置")
+    public CommonResult<String> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
+        return CommonResult.success(creativePlanService.modifyConfiguration(request));
+    }
+
     @DeleteMapping("/delete/{uid}")
     @Operation(summary = "删除创作计划", description = "删除创作计划")
     @ApiOperationSupport(order = 80, author = "nacoyer")

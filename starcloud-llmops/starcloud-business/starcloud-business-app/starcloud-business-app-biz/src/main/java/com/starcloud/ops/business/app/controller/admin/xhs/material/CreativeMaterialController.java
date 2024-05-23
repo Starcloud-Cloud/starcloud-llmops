@@ -2,10 +2,13 @@ package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
@@ -61,6 +64,13 @@ public class CreativeMaterialController {
     public CommonResult<Boolean> modifyMaterial(@RequestBody @Valid ModifyMaterialReqVO reqVO) {
         materialService.modifyMaterial(reqVO);
         return CommonResult.success(true);
+    }
+
+    @PostMapping("/fieldCode")
+    @Operation(summary = "生成字段code", description = "生成字段code")
+    @OperateLog(enable = false)
+    public CommonResult<List<MaterialFieldConfigDTO>> generalFieldCode(@RequestBody @Valid GeneralFieldCodeReqVO reqVO) {
+        return CommonResult.success(materialService.generalFieldCode(reqVO));
     }
 
     @PutMapping("/filter")

@@ -191,7 +191,11 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode NO_REQUIRED_FILED = new ErrorCode(730000017, "上传素材中缺少必填字段:{}");
 
-    ErrorCode FILED_NAME_ERROR = new ErrorCode(730000018, "素材定义字段code必须是英文字母组成:{}");
+    ErrorCode FILED_NAME_ERROR = new ErrorCode(730000018, "素材定义字段code必须是英文字母和数字组成:{}");
+
+    ErrorCode FILED_DESC_IS_BLANK = new ErrorCode(730000019, "素材定义字段中文名不能为空");
+
+    ErrorCode FILED_DESC_LENGTH = new ErrorCode(730000020, "素材定义字段中文名10个字符以内 {}");
 
 
     /**
