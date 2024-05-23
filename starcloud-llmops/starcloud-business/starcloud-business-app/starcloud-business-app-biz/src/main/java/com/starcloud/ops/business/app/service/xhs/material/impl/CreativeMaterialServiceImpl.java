@@ -48,13 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -291,7 +285,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
             if (StringUtils.isBlank(desc)) {
                 throw exception(FILED_DESC_IS_BLANK);
             }
-            if (desc.length() > 10) {
+            if (desc.length() > 20) {
                 throw exception(FILED_DESC_LENGTH, desc);
             }
             // 已有fieldName的字段跳过
@@ -309,7 +303,8 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
             fieldCodeExist.add(code);
             materialFieldConfigDTO.setFieldName(code);
         }
-        return fieldConfigList;
+        return fieldConfigList.stream()
+                .sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder)).collect(Collectors.toList());
     }
 
     @Override
