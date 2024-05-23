@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -22,6 +23,7 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -37,7 +39,10 @@ import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.util.PinyinUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -51,8 +56,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
 @Service
@@ -258,6 +264,61 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         log.info("生成素材结果：{}", result);
         JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
         return jsonSchemaParser.parse(String.valueOf(result));
+    }
+
+    @Override
+    public List<MaterialFieldConfigDTO> generalFieldCode(GeneralFieldCodeReqVO reqVO) {
+        List<MaterialFieldConfigDTO> fieldConfigList = reqVO.getFieldConfigDTOList();
+        MaterialDefineUtil.verifyMaterialFieldDesc(fieldConfigList);
+
+        // 已有fieldName的字段排在前面，不重复生成，防止新字段fieldName重复
+        fieldConfigList = fieldConfigList.stream().sorted((a, b) -> {
+            if (StringUtils.isBlank(b.getFieldName())) {
+                return -1;
+            }
+            return 1;
+        }).collect(Collectors.toList());
+
+        // 已有的fieldName 验证新生成的是否重复
+        List<String> fieldCodeExist = new ArrayList<>(fieldConfigList.size());
+        for (MaterialFieldConfigDTO materialFieldConfigDTO : fieldConfigList) {
+            String desc = materialFieldConfigDTO.getDesc();
+            if (StringUtils.isBlank(desc)) {
+                throw exception(FILED_DESC_IS_BLANK);
+            }
+            if (desc.length() > 10) {
+                throw exception(FILED_DESC_LENGTH, desc);
+            }
+            // 已有fieldName的字段跳过
+            if (StringUtils.isNoneBlank(materialFieldConfigDTO.getFieldName())) {
+                fieldCodeExist.add(materialFieldConfigDTO.getFieldName());
+                continue;
+            }
+
+            char[] nameChar = desc.trim().toCharArray();
+            StringBuilder sb = new StringBuilder();
+            for (char c : nameChar) {
+                sb.append(PinyinUtils.pinyinFirstChar(c));
+            }
+            String code = pinyinFirstCharUnique(sb.toString(), fieldCodeExist);
+            fieldCodeExist.add(code);
+            materialFieldConfigDTO.setFieldName(code);
+        }
+        return fieldConfigList;
+    }
+
+    /**
+     * code重复拼接随机字符串
+     *
+     * @param fieldName
+     * @param fieldCodeExist
+     * @return
+     */
+    private String pinyinFirstCharUnique(String fieldName, List<String> fieldCodeExist) {
+        if (fieldCodeExist.contains(fieldName)) {
+            return pinyinFirstCharUnique(fieldName + RandomUtil.randomString(BASE_CHAR_NUMBER_LOWER, 1), fieldCodeExist);
+        }
+        return fieldName;
     }
 
     /**

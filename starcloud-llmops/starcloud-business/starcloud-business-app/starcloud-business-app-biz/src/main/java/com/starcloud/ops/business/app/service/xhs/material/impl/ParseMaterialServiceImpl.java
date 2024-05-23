@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.MaterialUploadReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -81,7 +82,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
         try {
             List<String> excelHeader = materialConfig.stream().map(MaterialFieldConfigDTO::getDesc).collect(Collectors.toList());
-            String fileNamePrefix = uid + MaterialTemplateUtils.DIVIDER + planSource;
+            String fileNamePrefix = appMarketResponse.getName() + MaterialTemplateUtils.DIVIDER + planSource;
             File file = MaterialTemplateUtils.readTemplate(fileNamePrefix, excelHeader);
             IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
@@ -109,19 +110,20 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     }
 
     @Override
-    public String parseToRedis(MultipartFile file) {
+    public String parseToRedis(MaterialUploadReqVO uploadReqVO) {
+
         String parseUid = IdUtil.fastSimpleUUID();
         long start = System.currentTimeMillis();
+        MultipartFile file = uploadReqVO.getFile();
 
         //文件名 uid-source.zip
         String[] fileNameSplit = file.getOriginalFilename().split("\\.");
         if (fileNameSplit.length != 2 || !Objects.equals("zip", fileNameSplit[1])) {
             throw exception(NOT_ZIP_PACKAGE);
         }
-        // uid-source
+
         String zipPrefix = fileNameSplit[0];
-        String[] appUidVersion = zipPrefix.split(MaterialTemplateUtils.DIVIDER);
-        AppMarketRespVO appMarketResponse = getAppRespVO(appUidVersion[0], appUidVersion[1]);
+        AppMarketRespVO appMarketResponse = getAppRespVO(uploadReqVO.getUid(), uploadReqVO.getPlanSource());
 
         List<MaterialFieldConfigDTO> materialConfigList = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
 

@@ -126,6 +126,32 @@ public class PinyinUtils {
     }
 
     /**
+     * 返回中文拼音首字母
+     * <p>
+     * 非中文字符不做处理
+     *
+     * @param character
+     * @return
+     */
+    public static String pinyinFirstChar(char character) {
+        HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+        format.setCaseType(HanyuPinyinCaseType.LOWERCASE);
+        format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+        format.setVCharType(HanyuPinyinVCharType.WITH_V);
+        if (isChinese(character)) {
+            try {
+                return PinyinHelper.toHanyuPinyinStringArray(character, format)[0].substring(0, 1);
+            } catch (BadHanyuPinyinOutputFormatCombination exception) {
+                // 转换失败则不做任何处理, 继续循环
+                log.error("转为拼音失败：失败的字符：{}，失败原因: {}", character, exception.getMessage());
+                return StringUtils.EMPTY;
+            }
+        } else {
+            return String.valueOf(character);
+        }
+    }
+
+    /**
      * 将汉字转换为全拼 小写 不识别多音字
      *
      * @param chinese 汉字

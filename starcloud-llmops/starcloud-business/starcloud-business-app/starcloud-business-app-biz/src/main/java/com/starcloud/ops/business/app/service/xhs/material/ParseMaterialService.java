@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.MaterialUploadReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,10 +32,10 @@ public interface ParseMaterialService {
     /**
      * 解析结构缓存到redis
      *
-     * @param file
+     * @param uploadReqVO
      * @return 解析任务uid
      */
-    String parseToRedis(MultipartFile file);
+    String parseToRedis(MaterialUploadReqVO uploadReqVO);
 
     /**
      * 解析小红书内容

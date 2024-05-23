@@ -134,7 +134,7 @@ public class RecommendVariableFactory {
         // 素材类型
         VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixMaterialType();
         materialType.setOrder(2);
-        materialType.setIsShow(Boolean.FALSE);
+        materialType.setIsShow(Boolean.TRUE);
 
         // 素材参考数量
         VariableItemRespVO refersCount = RecommendVariableItemFactory.defMediaMatrixRefersCount();

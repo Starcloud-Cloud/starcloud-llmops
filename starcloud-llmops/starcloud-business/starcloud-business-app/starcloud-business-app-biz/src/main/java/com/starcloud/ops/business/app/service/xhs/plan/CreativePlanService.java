@@ -87,6 +87,14 @@ public interface CreativePlanService {
     String modify(CreativePlanModifyReqVO request);
 
     /**
+     * 修改计划配置项
+     *
+     * @param request
+     * @return
+     */
+    String modifyConfiguration(CreativePlanModifyReqVO request);
+
+    /**
      * 删除创作计划
      *
      * @param uid 创作计划UID
