@@ -326,7 +326,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 获取素材库类型
             String businessType = materialWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
-            AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
+//            AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
 
 
             // 获取资料库的具体处理器
