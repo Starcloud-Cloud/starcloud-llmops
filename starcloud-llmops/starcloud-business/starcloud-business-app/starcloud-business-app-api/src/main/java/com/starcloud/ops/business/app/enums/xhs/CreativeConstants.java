@@ -96,6 +96,8 @@ public interface CreativeConstants {
      */
     String BUSINESS_TYPE = "BUSINESS_TYPE";
 
+    String PICTURE = "picture";
+
     /**
      * 素材字段定义
      */
