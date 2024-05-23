@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.image.impl.dto.request;
 
 import cn.hutool.core.net.URLEncodeUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.starcloud.ops.business.app.enums.image.pixabay.PixabayColorEnum;
 import com.starcloud.ops.business.app.enums.image.pixabay.PixabayImageTypeEnum;
 import com.starcloud.ops.business.app.enums.image.pixabay.PixabayOrientationEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
@@ -31,7 +30,7 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
      */
     @Schema(description = "图像类型")
     @JsonProperty(value = "image_type")
-    @InEnum(value = PixabayImageTypeEnum.class)
+    @InEnum(value = PixabayImageTypeEnum.class,field = InEnum.EnumField.CODE)
     private String imageType;
 
     /**
@@ -50,7 +49,6 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
      * 可接受的值:“灰度”、“透明”、“红色”、“橙色”、“黄色”、“绿色”、“绿松石色”、“蓝色”、“丁香色”、“粉红色”、“白色”、“灰色”、“黑色”、“棕色”
      */
     @Schema(description = "过滤图像的颜色属性")
-    @InEnum(value = PixabayColorEnum.class)
     private String colors;
 
     public PixabayImageRequestDTO(PixabayImageRequestDTO requestDTO) {
