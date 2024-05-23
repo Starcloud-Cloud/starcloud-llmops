@@ -11,9 +11,9 @@ import lombok.Getter;
 @Getter
 public enum PixabayOrientationEnum implements IEnumable<Integer> {
 
-    HORIZONTAL("水平","horizontal"),
-    VERTICAL("垂直","vertical"),
-    ALL("全部","all"),
+    horizontal("水平","horizontal"),
+    vertical("垂直","vertical"),
+    all("全部","all"),
 
     ;
 

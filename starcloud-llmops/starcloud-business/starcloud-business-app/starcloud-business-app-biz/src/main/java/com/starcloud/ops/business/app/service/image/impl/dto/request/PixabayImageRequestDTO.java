@@ -30,7 +30,7 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
      */
     @Schema(description = "图像类型")
     @JsonProperty(value = "image_type")
-    @InEnum(value = PixabayImageTypeEnum.class,field = InEnum.EnumField.CODE)
+    @InEnum(value = PixabayImageTypeEnum.class)
     private String imageType;
 
     /**
