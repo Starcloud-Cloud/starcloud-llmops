@@ -67,11 +67,11 @@ public class CreativeMaterialController {
     }
 
     @PostMapping("/judge")
-    @Operation(summary = "判断素材显示类型 true显示图片 false显示列表", description = "判断素材显示类型")
+    @Operation(summary = "判断素材显示类型", description = "判断素材显示类型 true显示图片 false显示列表")
     @OperateLog(enable = false)
     public CommonResult<Boolean> judgePicture(@RequestParam("uid") String uid,
-                                                                   @RequestParam("planSource") String planSource) {
-        return CommonResult.success(materialService.judgePicture(uid,planSource));
+                                              @RequestParam("planSource") String planSource) {
+        return CommonResult.success(materialService.judgePicture(uid, planSource));
     }
 
     @PutMapping("/filter")

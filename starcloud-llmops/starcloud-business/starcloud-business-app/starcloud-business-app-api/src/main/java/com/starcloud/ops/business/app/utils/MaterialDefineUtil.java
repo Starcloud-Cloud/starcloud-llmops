@@ -287,4 +287,19 @@ public class MaterialDefineUtil {
         }
     }
 
+    /**
+     * 判断上传素材内容显示类型 true显示图片 false显示列表
+     * @return
+     */
+    public static Boolean judgePicture(AppMarketRespVO appRespVO) {
+        List<MaterialFieldConfigDTO> materialConfig = MaterialDefineUtil.getMaterialConfig(appRespVO);
+        // 只有一个字段且字段类型为图片时 返回true
+        if (CollectionUtils.isEmpty(materialConfig)
+                || materialConfig.size() != 1
+                || !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialConfig.get(0).getType())) {
+            return false;
+        }
+        return true;
+    }
+
 }

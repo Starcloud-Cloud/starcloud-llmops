@@ -316,14 +316,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     public Boolean judgePicture(String uid, String planSource) {
         AppMarketRespVO appRespVO = creativePlanService.getAppRespVO(uid, planSource);
         try {
-            List<MaterialFieldConfigDTO> materialConfig = MaterialDefineUtil.getMaterialConfig(appRespVO);
-            // 只有一个字段且字段类型为图片时 返回true
-            if (CollectionUtils.isEmpty(materialConfig)
-                    || materialConfig.size() != 1
-                    || !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialConfig.get(0).getType())) {
-                return false;
-            }
-            return true;
+            return MaterialDefineUtil.judgePicture(appRespVO);
         } catch (Exception e) {
             // 默认返回 false 显示列表
             return false;

@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecute
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
@@ -637,6 +638,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notEmpty(materialList, "素材列表不能为空，请上传素材后重试！");
         // 获取素材库类型
         String businessType = materialStepWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
+
+        // 判断修改业务类型
+        Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
+        businessType = isPicture ? "picture" : businessType;
+        materialStepWrapper.updateStepVariableValue(CreativeConstants.BUSINESS_TYPE, businessType);
+
         AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
 
         // 获取资料库的具体处理器
