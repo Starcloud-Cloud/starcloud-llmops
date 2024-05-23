@@ -11,10 +11,10 @@ import lombok.Getter;
 @Getter
 public enum PixabayImageTypeEnum implements IEnumable<Integer> {
 
-    PHOTO("照片","photo"),
-    ILLUSTRATION("插画","illustration"),
-    VECTOR("矢量图","vector"),
-    ALL("全部","all"),
+    photo("照片","photo"),
+    illustration("插画","illustration"),
+    vector("矢量图","vector"),
+    all("全部","all"),
 
     ;
 

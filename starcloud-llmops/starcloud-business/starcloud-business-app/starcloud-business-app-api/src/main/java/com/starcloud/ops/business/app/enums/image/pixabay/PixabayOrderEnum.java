@@ -12,8 +12,8 @@ import lombok.Getter;
 public enum PixabayOrderEnum implements IEnumable<Integer> {
 
 
-    POPULAR("流行","popular"),
-    LATEST("最新","latest"),
+    popular("流行","popular"),
+    latest("最新","latest"),
 
     ;
 
