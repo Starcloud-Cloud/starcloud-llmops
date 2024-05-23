@@ -163,6 +163,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @JsonIgnore
     @JSONField(serialize = false)
     public void merge(WorkflowStepWrapperRespVO stepWrapper) {
+        // 只进行变量合并，不进行其他属性合并
         this.variable.merge(stepWrapper.getVariable());
     }
 }

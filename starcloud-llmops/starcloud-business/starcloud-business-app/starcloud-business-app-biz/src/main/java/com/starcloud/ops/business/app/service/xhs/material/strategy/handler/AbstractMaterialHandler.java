@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
@@ -8,11 +9,18 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -80,12 +88,42 @@ public abstract class AbstractMaterialHandler {
      * @return 处理后的海报风格
      */
     public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata) {
-        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-        for (PosterTemplateDTO template : templateList) {
-            template.setIsExecute(Boolean.TRUE);
+        // 如果资料库为空，直接返回海报风格，不做处理
+        if (CollectionUtil.isEmpty(materialList)) {
+            return posterStyle;
         }
-        posterStyle.setTemplateList(templateList);
-        return posterStyle;
+
+        PosterStyleDTO style = SerializationUtils.clone(posterStyle);
+        // 进行变量替换
+        Map<String, Object> replaceValueMap = this.replaceVariable(style, materialList, metadata, Boolean.TRUE);
+
+        List<PosterTemplateDTO> templates = Lists.newArrayList();
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        // // 进行海报风格的处理
+        for (PosterTemplateDTO template : templateList) {
+            // 默认设置为 TRUE
+            template.setIsExecute(Boolean.TRUE);
+            // 如果图片数量不为 1，直接跳过，不进行处理
+            if (template.getTotalImageCount() != 1) {
+                templates.add(template);
+                continue;
+            }
+
+            // 如果图片数量为 1，则需要判断，当前图片变量替换之后是否有值，没有值，这个图片不需要进行生成。
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+            for (PosterVariableDTO variable : variableList) {
+
+                if (CreativeUtils.isImageVariable(variable) &&
+                        StringUtil.objectBlank(replaceValueMap.get(variable.getUuid()))) {
+                    // 设置为FALSE,表示不需要生成改图片
+                    template.setIsExecute(Boolean.FALSE);
+                }
+            }
+            templates.add(template);
+        }
+
+        style.setTemplateList(templates);
+        return style;
     }
 
     /**

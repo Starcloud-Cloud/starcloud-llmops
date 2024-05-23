@@ -64,6 +64,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
@@ -436,7 +437,7 @@ public class CreativeExecuteManager {
         // 校验用户权益，判断是否有足够的权益
         if (!adminUserRightsApi.calculateUserRightsEnough(Long.valueOf(latestContent.getCreator()), AdminUserRightsTypeEnum.MATRIX_BEAN, null)) {
             updateContentUltimateFailure(latestContent, start, "用户矩阵权益不足，请及时升级或者充值！", maxRetry);
-            throw exception(USER_RIGHTS_NOT_ENOUGH.getCode(), "用户矩阵权益不足，请及时升级或者充值！");
+            throw exception(USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH.getCode(), "用户矩阵权益不足，请及时升级或者充值！");
         }
     }
 
