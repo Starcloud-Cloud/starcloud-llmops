@@ -361,8 +361,9 @@ public class RecommendVariableItemFactory {
         variableItem.setField(CreativeConstants.BUSINESS_TYPE);
         variableItem.setLabel("业务类型");
         variableItem.setDescription("业务类型");
-        variableItem.setDefaultValue("default");
-        variableItem.setValue("default");
+        // 取消默认值 业务逻辑判断
+        // variableItem.setDefaultValue("default");
+        // variableItem.setValue("default");
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());

@@ -133,6 +133,14 @@ public interface CreativePlanService {
     AppMarketRespVO getAppInformation(String appUid, String source);
 
     /**
+     * 重我的应用或执行计划中获取应用信息
+     * @param uid
+     * @param planSource
+     * @return
+     */
+    AppMarketRespVO getAppRespVO(String uid, String planSource);
+
+    /**
      * 创作计划集合
      *
      * @return 创作计划集合

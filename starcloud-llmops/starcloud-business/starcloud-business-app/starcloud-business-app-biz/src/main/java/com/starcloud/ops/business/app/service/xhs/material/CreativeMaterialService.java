@@ -84,4 +84,12 @@ public interface CreativeMaterialService {
      * @return
      */
     List<MaterialFieldConfigDTO> generalFieldCode(GeneralFieldCodeReqVO reqVO);
+
+    /**
+     * 判断上传素材内容显示类型 true显示图片 false显示列表
+     * @param uid
+     * @param planSource
+     * @return
+     */
+    Boolean judgePicture(String uid, String planSource);
 }

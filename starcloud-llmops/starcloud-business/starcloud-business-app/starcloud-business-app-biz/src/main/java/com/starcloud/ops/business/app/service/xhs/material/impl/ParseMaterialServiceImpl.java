@@ -8,19 +8,14 @@ import cn.hutool.json.JSONException;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.MaterialUploadReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
-import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
-import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import com.starcloud.ops.business.app.service.xhs.material.UploadMaterialImageManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -65,9 +60,6 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     @Resource
     private CreativePlanService creativePlanService;
 
-    @Resource
-    private AppService appService;
-
     @Override
     public Map<String, Object> template(String type) {
         Map<String, Object> result = new HashMap<>();
@@ -77,12 +69,12 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
     @Override
     public void downloadTemplate(String uid, String planSource, HttpServletResponse response) {
-        AppMarketRespVO appMarketResponse = getAppRespVO(uid, planSource);
+        AppMarketRespVO appMarketResponse = creativePlanService.getAppRespVO(uid, planSource);
         List<MaterialFieldConfigDTO> materialConfig = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
 
         try {
             List<String> excelHeader = materialConfig.stream().map(MaterialFieldConfigDTO::getDesc).collect(Collectors.toList());
-            String fileNamePrefix = appMarketResponse.getName() + MaterialTemplateUtils.DIVIDER + planSource;
+            String fileNamePrefix = uid + MaterialTemplateUtils.DIVIDER + planSource;
             File file = MaterialTemplateUtils.readTemplate(fileNamePrefix, excelHeader);
             IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
@@ -122,8 +114,8 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             throw exception(NOT_ZIP_PACKAGE);
         }
 
-        String zipPrefix = fileNameSplit[0];
-        AppMarketRespVO appMarketResponse = getAppRespVO(uploadReqVO.getUid(), uploadReqVO.getPlanSource());
+        String zipPrefix = uploadReqVO.getUid() + MaterialTemplateUtils.DIVIDER + uploadReqVO.getPlanSource();
+        AppMarketRespVO appMarketResponse = creativePlanService.getAppRespVO(uploadReqVO.getUid(), uploadReqVO.getPlanSource());
 
         List<MaterialFieldConfigDTO> materialConfigList = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
 
@@ -170,22 +162,6 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     @Override
     public List<AbstractCreativeMaterialDTO> parseXhs(ParseXhsReqVO parseXhsReqVO) {
         return uploadMaterialImageManager.parseXhs(parseXhsReqVO);
-    }
-
-    public AppMarketRespVO getAppRespVO(String uid, String planSource) {
-        if (CreativePlanSourceEnum.isApp(planSource)) {
-            // 预览模式 从我的应用拿最新配置
-            AppRespVO appResponse = appService.get(uid);
-            AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convert(appResponse);
-            if (Objects.isNull(appMarketResponse.getVersion())) {
-                appMarketResponse.setVersion(1);
-            }
-            return appMarketResponse;
-        } else {
-            // 应用市场 区分版本 从执行计划拿当前配置
-            CreativePlanRespVO planRespVO = creativePlanService.get(uid);
-            return planRespVO.getConfiguration().getAppInformation();
-        }
     }
 
 }

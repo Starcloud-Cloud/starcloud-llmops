@@ -16,14 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -71,6 +64,14 @@ public class CreativeMaterialController {
     @OperateLog(enable = false)
     public CommonResult<List<MaterialFieldConfigDTO>> generalFieldCode(@RequestBody @Valid GeneralFieldCodeReqVO reqVO) {
         return CommonResult.success(materialService.generalFieldCode(reqVO));
+    }
+
+    @PostMapping("/judge")
+    @Operation(summary = "判断素材显示类型 true显示图片 false显示列表", description = "判断素材显示类型")
+    @OperateLog(enable = false)
+    public CommonResult<Boolean> judgePicture(@RequestParam("uid") String uid,
+                                                                   @RequestParam("planSource") String planSource) {
+        return CommonResult.success(materialService.judgePicture(uid,planSource));
     }
 
     @PutMapping("/filter")

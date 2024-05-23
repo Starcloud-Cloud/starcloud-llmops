@@ -38,12 +38,14 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -72,6 +74,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
     private AppService appService;
+
+    @Resource
+    private CreativePlanService creativePlanService;
 
     @Override
     public Map<String, Object> metadata() {
@@ -305,6 +310,24 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
             materialFieldConfigDTO.setFieldName(code);
         }
         return fieldConfigList;
+    }
+
+    @Override
+    public Boolean judgePicture(String uid, String planSource) {
+        AppMarketRespVO appRespVO = creativePlanService.getAppRespVO(uid, planSource);
+        try {
+            List<MaterialFieldConfigDTO> materialConfig = MaterialDefineUtil.getMaterialConfig(appRespVO);
+            // 只有一个字段且字段类型为图片时 返回true
+            if (CollectionUtils.isEmpty(materialConfig)
+                    || materialConfig.size() != 1
+                    || !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialConfig.get(0).getType())) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            // 默认返回 false 显示列表
+            return false;
+        }
     }
 
     /**

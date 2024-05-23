@@ -529,6 +529,23 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
     }
 
+    @Override
+    public AppMarketRespVO getAppRespVO(String uid, String planSource) {
+        if (CreativePlanSourceEnum.isApp(planSource)) {
+            // 预览模式 从我的应用拿最新配置
+            AppRespVO appResponse = appService.get(uid);
+            AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convert(appResponse);
+            if (Objects.isNull(appMarketResponse.getVersion())) {
+                appMarketResponse.setVersion(1);
+            }
+            return appMarketResponse;
+        } else {
+            // 应用市场 区分版本 从执行计划拿当前配置
+            CreativePlanRespVO planRespVO = get(uid);
+            return planRespVO.getConfiguration().getAppInformation();
+        }
+    }
+
     /**
      * 修改创作计划状态
      *
