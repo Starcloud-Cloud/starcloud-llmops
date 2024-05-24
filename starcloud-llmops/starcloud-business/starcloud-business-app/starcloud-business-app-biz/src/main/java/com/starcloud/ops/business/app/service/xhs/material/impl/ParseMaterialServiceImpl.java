@@ -178,16 +178,24 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             // 提交上传任务
             UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(parseUid, allExcel, materialConfigList, "");
             if (uploadMaterialDTO.containsImage()) {
-                File[] imagesDirs = dir.listFiles((File pathname) -> {
-                    if (pathname.isDirectory() && "images".equals(pathname.getName())) {
-                        return true;
+                File imageDir = null;
+                for (File childrenDir : childrenDirs) {
+                    File[] imagesDirs = childrenDir.listFiles((File pathname) -> {
+                        if (pathname.isDirectory() && "images".equals(pathname.getName())) {
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    if (imagesDirs != null && imagesDirs.length > 0) {
+                        imageDir = imagesDirs[0];
+                        break;
                     }
-                    return false;
-                });
-                if (imagesDirs == null || imagesDirs.length == 0) {
+                }
+                if (imageDir == null) {
                     throw exception(IMAGES_NOT_EXIST);
                 }
-                uploadMaterialDTO.setUnzipDir(imagesDirs[0].getAbsolutePath());
+                uploadMaterialDTO.setUnzipDir(imageDir.getAbsolutePath());
                 // 包含图片上传
                 uploadMaterialImageManager.submit(uploadMaterialDTO);
             } else {
