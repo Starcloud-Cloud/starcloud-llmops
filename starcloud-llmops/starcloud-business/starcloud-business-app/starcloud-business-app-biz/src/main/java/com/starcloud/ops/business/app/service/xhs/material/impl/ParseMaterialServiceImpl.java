@@ -75,7 +75,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
         try {
             List<String> excelHeader = materialConfig.stream().map(MaterialFieldConfigDTO::getDesc).collect(Collectors.toList());
-            String zipNamePrefix = appMarketResponse.getName() + MaterialTemplateUtils.DIVIDER + planSource;
+            String zipNamePrefix = appMarketResponse.getName() + MaterialTemplateUtils.DIVIDER + "模板";
             String excelNamePrefix = "导入模板";
             File file = MaterialTemplateUtils.readTemplate(zipNamePrefix, excelNamePrefix, uid, excelHeader);
             IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
