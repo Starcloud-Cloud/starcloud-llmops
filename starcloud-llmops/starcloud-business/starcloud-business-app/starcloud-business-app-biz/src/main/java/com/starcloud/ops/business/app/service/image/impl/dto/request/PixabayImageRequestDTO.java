@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.image.impl.dto.request;
 
-import cn.hutool.core.net.URLEncodeUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.starcloud.ops.business.app.enums.image.pixabay.PixabayImageTypeEnum;
 import com.starcloud.ops.business.app.enums.image.pixabay.PixabayOrientationEnum;
@@ -31,7 +30,7 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
     @Schema(description = "图像类型")
     @JsonProperty(value = "image_type")
     @InEnum(value = PixabayImageTypeEnum.class)
-    private String imageType;
+    private String image_type;
 
     /**
      * 图像是宽于高，还是高于宽。
@@ -53,7 +52,7 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
 
     public PixabayImageRequestDTO(PixabayImageRequestDTO requestDTO) {
         this.key = requestDTO.getKey();
-        this.q = URLEncodeUtil.encode(requestDTO.getQ());
+        this.q = requestDTO.getQ();
         this.lang = requestDTO.getLang();
         this.id = requestDTO.getId();
         this.category = requestDTO.getCategory();
@@ -66,7 +65,7 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
         this.perPage = requestDTO.getPerPage();
         this.callback = requestDTO.getCallback();
         this.pretty = requestDTO.getPretty();
-        this.imageType = requestDTO.getImageType();
+        this.image_type = requestDTO.getImage_type();
         this.orientation = requestDTO.getOrientation();
         this.colors = requestDTO.getColors();
 
