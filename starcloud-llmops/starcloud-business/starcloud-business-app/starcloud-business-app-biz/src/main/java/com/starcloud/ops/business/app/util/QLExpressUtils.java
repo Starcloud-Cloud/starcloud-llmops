@@ -1,14 +1,15 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.ql.util.express.DefaultContext;
 import com.ql.util.express.ExpressRunner;
 import com.ql.util.express.config.QLExpressRunStrategy;
+import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.util.qlOperator.ListOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -114,8 +115,6 @@ public class QLExpressUtils {
                 } else {
                     if (defEmpty) {
                         matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
-                    } else {
-                        log.error("contreplace,{} , {}", variable, JSONUtil.toJsonPrettyStr(rootMap));
                     }
                 }
             }
@@ -124,7 +123,7 @@ public class QLExpressUtils {
 
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.execute is fail: {}. content: {}", e.getMessage(), content);
+            log.error("QLExpressUtils.execute is fail ", e);
         }
 
         return content;
