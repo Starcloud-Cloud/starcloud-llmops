@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
@@ -148,7 +147,7 @@ public class CreativeExecuteManager {
         RLock lock = redissonClient.getLock(lockKey);
         if (lock != null && !lock.tryLock()) {
             log.warn("创作内容任务正在执行中(内容UID：{})！", request.getUid());
-            return CreativeContentExecuteRespVO.failure(request.getUid(), "该创作内容正在执行中，请稍后再试");
+            return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getPlanUid(), "该创作内容正在执行中，请稍后再试");
         }
 
         log.info("创作内容任务上锁成功({})", lockKey);
@@ -156,7 +155,7 @@ public class CreativeExecuteManager {
             LocalDateTime start = LocalDateTime.now();
             log.info("创作内容任务执行开始：{}，{}", start, request.getUid());
             // 获取最大重试次数
-            Integer maxRetry = getMaxRetry(request.getForce());
+            Integer maxRetry = getMaxRetry(request);
             // 获取最新的创作内容
             CreativeContentDO latestContent = getLatestContent(request, maxRetry, start);
             // 用户权益检测，校验用户权益是否足够
@@ -190,10 +189,10 @@ public class CreativeExecuteManager {
             }
         } catch (ServiceException exception) {
             log.error("创作中心：创作内容任务执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
-            return CreativeContentExecuteRespVO.failure(request.getUid(), exception.getMessage());
+            return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
         } catch (Exception exception) {
             log.error("创作中心：创作内容任务执行失败： 错误信息: {}", exception.getMessage(), exception);
-            return CreativeContentExecuteRespVO.failure(request.getUid(), exception.getMessage());
+            return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
         } finally {
             if (lock != null) {
                 lock.unlock();
@@ -205,23 +204,14 @@ public class CreativeExecuteManager {
     /**
      * 获取最大重试次数
      *
-     * @param force 是否强制执行
+     * @param request 请求
      * @return 最大失败次数
      */
-    private Integer getMaxRetry(Boolean force) {
-        if (BooleanUtils.isTrue(force)) {
+    private Integer getMaxRetry(CreativeContentExecuteReqVO request) {
+        if (BooleanUtils.isTrue(request.getForce())) {
             return Integer.MAX_VALUE;
         }
-        try {
-            DictDataDO dictDataDO = dictDataService.parseDictData("xhs", "max_retry");
-            if (dictDataDO == null || dictDataDO.getValue() == null) {
-                return 3;
-            } else {
-                return Integer.valueOf(dictDataDO.getValue());
-            }
-        } catch (Exception exception) {
-            return 3;
-        }
+        return Objects.isNull(request.getMaxRetry()) ? 3 : request.getMaxRetry();
     }
 
     /**

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -15,6 +16,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -389,9 +391,9 @@ public class CustomActionHandler extends BaseActionHandler {
             JsonSchema jsonSchema = this.getOutVariableJsonSchema();
 
             JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
-            JSONObject jsonObject = jsonSchemaParser.parse(actionResponse.getAnswer());
+            JSON json = jsonSchemaParser.parse(actionResponse.getAnswer());
 
-            actionResponse.setOutput(JsonData.of(jsonObject, jsonSchema));
+            actionResponse.setOutput(JsonData.of(json, jsonSchema));
         } else {
             //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
             actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));

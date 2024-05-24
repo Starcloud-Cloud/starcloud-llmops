@@ -118,4 +118,8 @@ public enum RecommendAppEnum implements IEnumable<Integer> {
         }
         return null;
     }
+
+    public static boolean isAppOrChat(String name) {
+        return GENERATE_TEXT.name().equals(name) || GENERATE_ARTICLE.name().equals(name) || CHAT_ROBOT.name().equals(name);
+    }
 }

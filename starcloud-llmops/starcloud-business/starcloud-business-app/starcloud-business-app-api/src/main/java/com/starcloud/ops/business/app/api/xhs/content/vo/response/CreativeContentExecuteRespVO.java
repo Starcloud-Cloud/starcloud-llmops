@@ -64,10 +64,12 @@ public class CreativeContentExecuteRespVO implements java.io.Serializable {
      * @param errorMessage 错误信息
      * @return 返回结果
      */
-    public static CreativeContentExecuteRespVO failure(String uid, String errorMessage) {
+    public static CreativeContentExecuteRespVO failure(String uid, String planUid, String batchUid, String errorMessage) {
         CreativeContentExecuteRespVO response = new CreativeContentExecuteRespVO();
         response.setSuccess(Boolean.FALSE);
         response.setUid(uid);
+        response.setPlanUid(planUid);
+        response.setBatchUid(batchUid);
         response.setErrorMessage(errorMessage);
         return response;
     }

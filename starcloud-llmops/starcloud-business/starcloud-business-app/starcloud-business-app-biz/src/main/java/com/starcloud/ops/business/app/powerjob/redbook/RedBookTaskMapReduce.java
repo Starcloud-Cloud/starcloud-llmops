@@ -87,11 +87,13 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
 
         // 获取任务执行参数
         RunJobParams params = context.getParams(RunJobParams.class);
+        log.info("创作内容根任务执行开始：参数：{}", JsonUtils.toJsonString(params));
 
         // 根据参数查询任务列表
         CreativeContentTaskReqVO query = new CreativeContentTaskReqVO();
+        query.setStatus(params.getStatus());
+        query.setMaxRetry(params.getMaxRetry());
         query.setBathCount(params.getBathCount());
-        query.setRetryProcess(params.getRetryProcess());
         List<CreativeContentRespVO> contentList = creativeContentService.listTask(query);
 
         // 如果没有找到带执行的任务，直接返回。
@@ -132,7 +134,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                 subTask.setTenantId(content.getTenantId());
                 subTask.setPlanUid(content.getPlanUid());
                 subTask.setBatchUid(bathUid);
-                subTask.setRunType(params.getRunType());
+                subTask.setMaxRetry(params.getMaxRetry());
                 subTask.setContentUidList(contentUidList);
                 subTaskList.add(subTask);
             }
@@ -174,7 +176,9 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
                     .map(item -> {
                         CreativeContentExecuteReqVO request = new CreativeContentExecuteReqVO();
                         request.setUid(item);
-                        request.setType(subTask.getRunType());
+                        request.setPlanUid(subTask.getPlanUid());
+                        request.setBatchUid(subTask.getBatchUid());
+                        request.setMaxRetry(subTask.getMaxRetry());
                         request.setForce(Boolean.FALSE);
                         request.setTenantId(subTask.getTenantId());
                         return request;
@@ -225,34 +229,35 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
     @Override
     @TenantIgnore
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
-
-        // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
-        if (CollectionUtils.isEmpty(taskResults)) {
-            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
-        }
-
-        // 查询计划表下的 所有状态，并更新计划表的状态
-        List<SubTaskResult> subTaskResultList = taskResults.stream()
-                .filter(item -> StringUtils.isNotBlank(item.getResult()))
-                .map(item -> JsonUtils.parseObject(item.getResult(), SubTaskResult.class))
-                .filter(Objects::nonNull)
-                .filter(item -> StringUtils.isNotBlank(item.getPlanUid()))
-                .filter(item -> StringUtils.isNotBlank(item.getBatchUid()))
-                .collect(Collectors.toList());
-
-        // 如果为空，说明不需要更新计划状态
-        if (CollectionUtils.isEmpty(subTaskResultList)) {
-            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
-        }
-
-        log.info("创作内容后置处理器开始执行：更新创作状态开始！");
-
-        // 需要更新的计划列表
-        log.info("需要更新创作状态的子任务：{}", JsonUtils.toJsonPrettyString(subTaskResultList));
-        updateInstance(subTaskResultList);
-
-        // 计划更新完成
-        log.info("创作内容后置处理器执行完成，更新创作状态完成！！！");
+        // 更新创作状态交给 creativeContentService.batchExecute 去处理。
+//
+//        // 任务结果为空！不需要进行更新创作计划，创作计划批次状态！
+//        if (CollectionUtils.isEmpty(taskResults)) {
+//            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
+//        }
+//
+//        // 查询计划表下的 所有状态，并更新计划表的状态
+//        List<SubTaskResult> subTaskResultList = taskResults.stream()
+//                .filter(item -> StringUtils.isNotBlank(item.getResult()))
+//                .map(item -> JsonUtils.parseObject(item.getResult(), SubTaskResult.class))
+//                .filter(Objects::nonNull)
+//                .filter(item -> StringUtils.isNotBlank(item.getPlanUid()))
+//                .filter(item -> StringUtils.isNotBlank(item.getBatchUid()))
+//                .collect(Collectors.toList());
+//
+//        // 如果为空，说明不需要更新计划状态
+//        if (CollectionUtils.isEmpty(subTaskResultList)) {
+//            return new ProcessResult(Boolean.TRUE, "任务结果为空！不需要进行更新创作状态！");
+//        }
+//
+//        log.info("创作内容后置处理器开始执行：更新创作状态开始！");
+//
+//        // 需要更新的计划列表
+//        log.info("需要更新创作状态的子任务：{}", JsonUtils.toJsonPrettyString(subTaskResultList));
+//        updateInstance(subTaskResultList);
+//
+//        // 计划更新完成
+//        log.info("创作内容后置处理器执行完成，更新创作状态完成！！！");
         return new ProcessResult(Boolean.TRUE, taskResults.toString());
     }
 
@@ -299,8 +304,8 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
         private List<String> contentUidList;
 
         /**
-         * 类型
+         * 最大重试次数
          */
-        private String runType;
+        private Integer maxRetry;
     }
 }

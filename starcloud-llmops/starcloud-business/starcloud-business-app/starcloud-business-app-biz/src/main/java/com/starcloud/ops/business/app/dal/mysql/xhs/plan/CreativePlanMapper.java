@@ -93,6 +93,6 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         return this.selectPage(page, wrapper);
     }
 
-    List<CreativePlanDTO> list(@Param("currentUserId") String currentUserId);
+    List<CreativePlanDTO> list(@Param("currentUserId") String currentUserId, @Param("limit") Integer limit);
 
 }

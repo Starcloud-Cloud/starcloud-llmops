@@ -40,6 +40,14 @@ public interface CreativeContentService {
     List<CreativeContentRespVO> list(CreativeContentListReqVO query);
 
     /**
+     * 查询创作内容列表
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    List<CreativeContentRespVO> listStatus(CreativeContentListReqVO query);
+
+    /**
      * 查询创作内容任务列表
      *
      * @param query 查询条件

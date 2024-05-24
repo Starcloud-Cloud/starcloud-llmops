@@ -60,5 +60,6 @@ public class DraftReqVO {
     @Schema(description = "搜索词")
     private String searchTerm;
 
-
+    @Schema(description = "草稿名称")
+    private String draftName;
 }

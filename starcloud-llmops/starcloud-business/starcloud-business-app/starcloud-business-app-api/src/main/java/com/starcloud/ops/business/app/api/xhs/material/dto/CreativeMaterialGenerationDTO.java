@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.material.dto;
 
+import com.starcloud.ops.business.app.api.xhs.material.FieldDefinitionDTO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -28,18 +29,24 @@ public class CreativeMaterialGenerationDTO implements Serializable {
      * 所有字段定义列表
      */
     @Schema(description = "所有字段定义列表")
-    private List<MaterialFieldConfigDTO> fieldList;
+    private List<FieldDefinitionDTO> fieldList;
 
     /**
      * 选中的字段定义列表
      */
     @Schema(description = "选中的字段定义列表")
-    private List<MaterialFieldConfigDTO> selectedFieldList;
+    private List<String> checkedFieldList;
 
     /**
      * 素材要求
      */
     @Schema(description = "素材要求")
-    private String materialRequirement;
+    private String requirement;
+
+    /**
+     * 生成数量
+     */
+    @Schema(description = "生成数量")
+    private Integer generateCount;
 
 }

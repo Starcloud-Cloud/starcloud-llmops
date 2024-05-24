@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
+import cn.hutool.json.JSON;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
@@ -7,6 +8,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.F
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -64,6 +66,13 @@ public interface CreativeMaterialService {
      *
      * @param request 请求
      */
-    Object materialGenerate(CreativeMaterialGenerationDTO request);
+    JSON materialGenerate(CreativeMaterialGenerationDTO request);
+
+    /**
+     * 自定义素材生成
+     *
+     * @param request 请求
+     */
+    JSON customMaterialGenerate(CreativeMaterialGenerationDTO request);
 
 }

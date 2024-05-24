@@ -223,4 +223,15 @@ public class AppRespVO implements Serializable {
         return workflowConfig.getStepByHandler(handler);
     }
 
+    /**
+     * 设置步骤
+     *
+     * @param simpleName         步骤处理器
+     * @param handlerStepWrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setStepByHandler(String simpleName, WorkflowStepWrapperRespVO handlerStepWrapper) {
+        workflowConfig.setStepByHandler(simpleName, handlerStepWrapper);
+    }
 }

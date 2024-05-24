@@ -129,6 +129,6 @@ public interface CreativePlanService {
      *
      * @return 创作计划集合
      */
-    List<CreativePlanRespVO> list();
+    List<CreativePlanRespVO> list(Integer limit);
 
 }
