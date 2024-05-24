@@ -177,7 +177,7 @@ public class QLExpressUtils {
             return r;
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.executeNative is fail: {}, content: {}", e.getMessage(), content);
+            log.error("QLExpressUtils.executeNative is fail content: {}", content, e);
 
         }
 
