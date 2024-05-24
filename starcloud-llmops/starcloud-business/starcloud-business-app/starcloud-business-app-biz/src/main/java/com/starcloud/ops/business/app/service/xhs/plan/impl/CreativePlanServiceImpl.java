@@ -325,7 +325,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         AppMarketRespVO appInformation = configuration.getAppInformation();
 
-        if (Objects.nonNull(request.getValidate()) && request.getValidate()) {
+        // 为空或者为true时校验，为false时不校验
+        if (Objects.isNull(request.getValidate()) || request.getValidate()) {
             // 校验配置
             validImage(appInformation, configuration);
             MaterialDefineUtil.verifyStep(appInformation);
