@@ -328,9 +328,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         if (Objects.nonNull(request.getValidate()) && request.getValidate()) {
             // 校验配置
             validImage(appInformation, configuration);
-            validPoster(configuration, request);
             MaterialDefineUtil.verifyStep(appInformation);
         }
+        validPoster(configuration, request);
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
