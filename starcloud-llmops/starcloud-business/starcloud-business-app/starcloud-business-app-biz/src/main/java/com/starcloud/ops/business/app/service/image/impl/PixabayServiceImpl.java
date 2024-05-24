@@ -75,7 +75,7 @@ public class PixabayServiceImpl {
 
     private  String buildRequestUrl(PixabayImageRequestDTO requestDTO) {
         Map<String, Object> paramMap = BeanUtil.beanToMap(requestDTO, false, true);
-        return HttpUtil.urlWithForm(PIXABAY_IMAGE_REQUEST_URL, paramMap, Charset.defaultCharset(), true);
+        return HttpUtil.urlWithForm(PIXABAY_IMAGE_REQUEST_URL, paramMap, Charset.defaultCharset(), false);
     }
 
     private  String handleRateLimit(PixabayImageRequestDTO requestDTO) {

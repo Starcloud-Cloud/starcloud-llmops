@@ -27,9 +27,9 @@ public class KeyUsageLimit {
     private static final TimeUnit LOCK_TIME_UNIT = TimeUnit.SECONDS;
 
     private final List<String> keyList = Arrays.asList(
-            "43908057-6d3be95c754e179c69a583867",
-            "43908057-6d3be95c754e179c69a583861",
-            "43908057-6d3be95c754e179c69a583862"
+            "43908057-6d3be95c754e179c69a583867"
+            // "43908057-6d3be95c754e179c69a583861",
+            // "43908057-6d3be95c754e179c69a583862"
     );
 
     private final Map<String, RRateLimiter> rateLimiterCache = new ConcurrentHashMap<>();
