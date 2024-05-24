@@ -142,6 +142,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             }
 
             File excel = null;
+            File unzipDir = null;
             // 从子目录中找后缀为xlsx的文件 且开头不为.
             for (File childrenDir : childrenDirs) {
                 File[] excelFiles = childrenDir.listFiles((File pathname) -> {
@@ -157,6 +158,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
                 });
                 if (excelFiles != null && excelFiles.length > 0) {
                     excel = excelFiles[0];
+                    unzipDir = childrenDir;
                     break;
                 }
             }
@@ -178,24 +180,8 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             // 提交上传任务
             UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(parseUid, allExcel, materialConfigList, "");
             if (uploadMaterialDTO.containsImage()) {
-                File imageDir = null;
-                for (File childrenDir : childrenDirs) {
-                    File[] imagesDirs = childrenDir.listFiles((File pathname) -> {
-                        if (pathname.isDirectory() && "images".equals(pathname.getName())) {
-                            return true;
-                        }
-                        return false;
-                    });
 
-                    if (imagesDirs != null && imagesDirs.length > 0) {
-                        imageDir = imagesDirs[0];
-                        break;
-                    }
-                }
-                if (imageDir == null) {
-                    throw exception(IMAGES_NOT_EXIST);
-                }
-                uploadMaterialDTO.setUnzipDir(imageDir.getAbsolutePath());
+                uploadMaterialDTO.setUnzipDir(unzipDir.getAbsolutePath());
                 // 包含图片上传
                 uploadMaterialImageManager.submit(uploadMaterialDTO);
             } else {

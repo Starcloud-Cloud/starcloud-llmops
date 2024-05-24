@@ -198,7 +198,7 @@ public class UploadMaterialImageManager implements InitializingBean {
 
 
     private String localImageUpload(String unzipDir, String imagePath, String parseUid) {
-        File file = Paths.get(unzipDir, imagePath).toFile();
+        File file = Paths.get(unzipDir,"images", imagePath).toFile();
         String ossUrl = StringUtils.EMPTY;
         if (!file.exists()) {
             return ossUrl;
