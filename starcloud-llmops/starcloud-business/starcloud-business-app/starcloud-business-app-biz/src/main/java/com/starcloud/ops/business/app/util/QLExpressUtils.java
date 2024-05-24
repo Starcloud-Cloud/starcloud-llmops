@@ -108,7 +108,7 @@ public class QLExpressUtils {
             StringBuffer varsBuffer = new StringBuffer();
             while (matcher.find()) {
                 String variable = matcher.group(1);
-                String vars = (String) executeNative(variable, rootMap);
+                String vars = String.valueOf(executeNative(variable, rootMap));
 
                 if (vars != null) {
                     matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
