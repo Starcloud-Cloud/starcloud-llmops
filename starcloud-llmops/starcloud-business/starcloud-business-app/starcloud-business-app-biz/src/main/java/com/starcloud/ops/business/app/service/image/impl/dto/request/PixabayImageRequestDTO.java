@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.image.impl.dto.request;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.starcloud.ops.business.app.enums.image.pixabay.PixabayImageTypeEnum;
+import com.starcloud.ops.business.app.enums.image.pixabay.PixabayOrientationEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +29,8 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
      */
     @Schema(description = "图像类型")
     @JsonProperty(value = "image_type")
-    private String imageType;
+    @InEnum(value = PixabayImageTypeEnum.class)
+    private String image_type;
 
     /**
      * 图像是宽于高，还是高于宽。
@@ -35,6 +38,7 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
      * 默认值:“all”
      */
     @Schema(description = "图像是宽于高，还是高于宽", defaultValue = "all")
+    @InEnum(value = PixabayOrientationEnum.class)
     private String orientation;
 
     /**
@@ -47,7 +51,23 @@ public class PixabayImageRequestDTO extends PixabayCommonRequestDTO {
     private String colors;
 
     public PixabayImageRequestDTO(PixabayImageRequestDTO requestDTO) {
-        BeanUtil.toBean(requestDTO, PixabayImageRequestDTO.class);
-    }
+        this.key = requestDTO.getKey();
+        this.q = requestDTO.getQ();
+        this.lang = requestDTO.getLang();
+        this.id = requestDTO.getId();
+        this.category = requestDTO.getCategory();
+        this.min_width = requestDTO.getMin_width();
+        this.min_height = requestDTO.getMin_height();
+        this.editorsChoice = requestDTO.getEditorsChoice();
+        this.safeSearch = requestDTO.getSafeSearch();
+        this.order = requestDTO.getOrder();
+        this.page = requestDTO.getPage();
+        this.perPage = requestDTO.getPerPage();
+        this.callback = requestDTO.getCallback();
+        this.pretty = requestDTO.getPretty();
+        this.image_type = requestDTO.getImage_type();
+        this.orientation = requestDTO.getOrientation();
+        this.colors = requestDTO.getColors();
 
+    }
 }
