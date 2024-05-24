@@ -24,7 +24,6 @@ import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecute
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
@@ -77,11 +76,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 /**
  * @author nacoyer
@@ -323,10 +325,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         AppMarketRespVO appInformation = configuration.getAppInformation();
 
-        // 校验配置
-        validImage(appInformation, configuration);
-        validPoster(configuration, request);
-        MaterialDefineUtil.verifyStep(appInformation);
+        if (Objects.nonNull(request.getValidate()) && request.getValidate()) {
+            // 校验配置
+            validImage(appInformation, configuration);
+            validPoster(configuration, request);
+            MaterialDefineUtil.verifyStep(appInformation);
+        }
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
