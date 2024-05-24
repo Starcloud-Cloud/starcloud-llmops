@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.ql.util.express.DefaultContext;
 import com.ql.util.express.ExpressRunner;
 import com.ql.util.express.config.QLExpressRunStrategy;
@@ -112,6 +113,8 @@ public class QLExpressUtils {
                 } else {
                     if (defEmpty) {
                         matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
+                    } else {
+                        log.error("contreplace, {}", JSONUtil.toJsonPrettyStr(rootMap));
                     }
                 }
             }
