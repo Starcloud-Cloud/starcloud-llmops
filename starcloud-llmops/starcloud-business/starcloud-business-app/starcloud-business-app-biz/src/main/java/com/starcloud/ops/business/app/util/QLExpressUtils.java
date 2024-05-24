@@ -64,6 +64,7 @@ public class QLExpressUtils {
 
     /**
      * 把字符串中的占位符进行 QLExpress 的批量替换
+     *
      * @param content
      * @param params
      * @param defEmpty 占位符不存在是否返回空字符串
@@ -114,7 +115,7 @@ public class QLExpressUtils {
                     if (defEmpty) {
                         matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
                     } else {
-                        log.error("contreplace, {}", JSONUtil.toJsonPrettyStr(rootMap));
+                        log.error("contreplace,{} , {}", variable, JSONUtil.toJsonPrettyStr(rootMap));
                     }
                 }
             }
