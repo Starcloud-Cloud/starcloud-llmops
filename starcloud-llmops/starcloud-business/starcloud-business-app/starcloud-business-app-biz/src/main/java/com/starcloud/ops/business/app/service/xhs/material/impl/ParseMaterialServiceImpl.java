@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -74,8 +75,9 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
         try {
             List<String> excelHeader = materialConfig.stream().map(MaterialFieldConfigDTO::getDesc).collect(Collectors.toList());
-            String fileNamePrefix = uid + MaterialTemplateUtils.DIVIDER + planSource;
-            File file = MaterialTemplateUtils.readTemplate(fileNamePrefix, excelHeader);
+            String zipNamePrefix = appMarketResponse.getName() + MaterialTemplateUtils.DIVIDER + planSource;
+            String excelNamePrefix = "导入模板";
+            File file = MaterialTemplateUtils.readTemplate(zipNamePrefix, excelNamePrefix, uid, excelHeader);
             IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
@@ -103,7 +105,6 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
     @Override
     public String parseToRedis(MaterialUploadReqVO uploadReqVO) {
-
         String parseUid = IdUtil.fastSimpleUUID();
         long start = System.currentTimeMillis();
         MultipartFile file = uploadReqVO.getFile();
@@ -114,7 +115,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             throw exception(NOT_ZIP_PACKAGE);
         }
 
-        String zipPrefix = uploadReqVO.getUid() + MaterialTemplateUtils.DIVIDER + uploadReqVO.getPlanSource();
+//        String zipPrefix = uploadReqVO.getUid() + MaterialTemplateUtils.DIVIDER + uploadReqVO.getPlanSource();
         AppMarketRespVO appMarketResponse = creativePlanService.getAppRespVO(uploadReqVO.getUid(), uploadReqVO.getPlanSource());
 
         List<MaterialFieldConfigDTO> materialConfigList = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
@@ -128,8 +129,43 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             File zipFile = Paths.get(dirPath, file.getOriginalFilename()).toFile();
             file.transferTo(zipFile);
             ZipUtil.unzip(zipFile, dir, StandardCharsets.UTF_8);
+            // 解析excel文件   解压文件下/目录/excel.xlsx
+            // 压缩包解压后下面的目录
+            File[] childrenDirs = dir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+                    return pathname.isDirectory();
+                }
+            });
+            if (childrenDirs == null) {
+                throw exception(EXCEL_NOT_EXIST);
+            }
+
+            File excel = null;
+            // 从子目录中找xlsx
+            for (File childrenDir : childrenDirs) {
+                File[] excelFiles = childrenDir.listFiles((File pathname) -> {
+                    String[] split = pathname.getName().split("\\.");
+                    if (split.length < 2) {
+                        return false;
+                    }
+                    String suffix = split[split.length - 1];
+                    if ("xlsx".equals(suffix)) {
+                        return true;
+                    }
+                    return false;
+                });
+                if (excelFiles != null && excelFiles.length > 0) {
+                    excel = excelFiles[0];
+                    break;
+                }
+            }
+
+            if (Objects.isNull(excel)) {
+                throw exception(EXCEL_NOT_EXIST);
+            }
             // 读取excel 第一行为表结构说明 第二行为表头
-            ExcelReader reader = ExcelUtil.getReader(Paths.get(dirPath, zipPrefix, zipPrefix + ".xlsx").toString());
+            ExcelReader reader = ExcelUtil.getReader(excel);
             MaterialDefineUtil.addHeaderAlias(reader, materialConfigList);
             List<Map<String, Object>> allExcel = reader.read(1, 2, Integer.MAX_VALUE);
             List<Object> header = reader.readRow(1);
@@ -140,8 +176,18 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             MaterialDefineUtil.verifyMaterialData(materialConfigList, allExcel);
 
             // 提交上传任务
-            UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(parseUid, allExcel, materialConfigList, Paths.get(dirPath, zipPrefix).toString());
+            UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(parseUid, allExcel, materialConfigList, "");
             if (uploadMaterialDTO.containsImage()) {
+                File[] imagesDirs = dir.listFiles((File pathname) -> {
+                    if (pathname.isDirectory() && "images".equals(pathname.getName())) {
+                        return true;
+                    }
+                    return false;
+                });
+                if (imagesDirs == null || imagesDirs.length == 0) {
+                    throw exception(IMAGES_NOT_EXIST);
+                }
+                uploadMaterialDTO.setUnzipDir(imagesDirs[0].getAbsolutePath());
                 // 包含图片上传
                 uploadMaterialImageManager.submit(uploadMaterialDTO);
             } else {

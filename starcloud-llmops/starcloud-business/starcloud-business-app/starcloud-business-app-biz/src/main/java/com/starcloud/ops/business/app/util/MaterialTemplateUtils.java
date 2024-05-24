@@ -66,17 +66,17 @@ public class MaterialTemplateUtils {
      * @return
      * @throws IOException
      */
-    public static File readTemplate(String fileNamePrefix, List<String> excelHead) throws IOException {
+    public static File readTemplate(String fileNamePrefix, String excelNamePrefix, String uid, List<String> excelHead) throws IOException {
         String filePath = PATH + File.separator + fileNamePrefix + ".zip";
         File file = new File(filePath);
-        if (!file.exists() || differentHead(fileNamePrefix, excelHead)) {
-            return createTemplate(fileNamePrefix, excelHead);
+        if (!file.exists() || differentHead(uid, excelHead)) {
+            return createTemplate(fileNamePrefix, excelNamePrefix, uid, excelHead);
         }
         return file;
     }
 
-    private static boolean differentHead(String fileNamePrefix, List<String> excelHead) {
-        List<String> olderHead = EXCEL_HEADER_MAP.get(fileNamePrefix);
+    private static boolean differentHead(String uid, List<String> excelHead) {
+        List<String> olderHead = EXCEL_HEADER_MAP.get(uid);
         return !CollUtil.isEqualList(olderHead, excelHead);
     }
 
@@ -89,12 +89,12 @@ public class MaterialTemplateUtils {
         return file;
     }
 
-    private static synchronized File createTemplate(String fileNamePrefix, List<String> excelHead) throws IOException {
+    private static synchronized File createTemplate(String fileNamePrefix, String excelNamePrefix, String uid, List<String> excelHead) throws IOException {
         String filePath = PATH + File.separator + fileNamePrefix + ".zip";
         File file = new File(filePath);
         if (!file.exists() || differentHead(fileNamePrefix, excelHead)) {
-            EXCEL_HEADER_MAP.put(fileNamePrefix, excelHead);
-            return createZipFile(fileNamePrefix, excelHead);
+            EXCEL_HEADER_MAP.put(uid, excelHead);
+            return createZipFile(fileNamePrefix, excelNamePrefix, excelHead);
         }
         return file;
     }
@@ -124,15 +124,17 @@ public class MaterialTemplateUtils {
      * @return
      * @throws IOException
      */
-    private static File createZipFile(String fileNamePrefix, List<String> excelHead) throws IOException {
+    public static File createZipFile(String fileNamePrefix, String excelNamePrefix, List<String> excelHead) throws IOException {
         log.info("create zip template, fileNamePrefix={}", fileNamePrefix);
         long start = System.currentTimeMillis();
-        // 目录  系统临时目录/template/{materialType}/
+        // 目录  系统临时目录/template/{fileNamePrefix}/
         String dirPath = PATH + File.separator + fileNamePrefix;
         File dir = new File(dirPath);
-        File imageDir = new File(dirPath + File.separator + "images");
+        // 此处多加一级目录 dirPath 下只有一个文件夹  兼容mac下 压缩包有多个文件自动解压到文件夹下
+        File imageDir = new File(dirPath + File.separator + fileNamePrefix + File.separator + "images");
         imageDir.mkdirs();
-        createExcel(fileNamePrefix, dirPath, excelHead);
+        // 此处多加一级目录 dirPath 下只有一个文件夹 兼容mac下 压缩包有多个文件自动解压到文件夹下
+        createExcel(excelNamePrefix, dirPath + File.separator + fileNamePrefix, excelHead);
         // 打包到当前目录 系统临时目录/template/
         File zip = ZipUtil.zip(dir, StandardCharsets.UTF_8);
         long end = System.currentTimeMillis();
