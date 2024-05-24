@@ -142,7 +142,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             }
 
             File excel = null;
-            // 从子目录中找xlsx
+            // 从子目录中找后缀为xlsx的文件 且开头不为.
             for (File childrenDir : childrenDirs) {
                 File[] excelFiles = childrenDir.listFiles((File pathname) -> {
                     String[] split = pathname.getName().split("\\.");
@@ -150,7 +150,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
                         return false;
                     }
                     String suffix = split[split.length - 1];
-                    if ("xlsx".equals(suffix)) {
+                    if (pathname.isFile() && "xlsx".equals(suffix) && !pathname.getName().startsWith(".")) {
                         return true;
                     }
                     return false;
