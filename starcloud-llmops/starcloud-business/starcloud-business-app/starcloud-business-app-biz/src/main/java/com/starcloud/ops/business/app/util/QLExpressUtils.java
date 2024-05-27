@@ -110,7 +110,7 @@ public class QLExpressUtils {
                 String variable = matcher.group(1);
                 String vars = String.valueOf(executeNative(variable, rootMap));
 
-                if (vars != null) {
+                if (!StringUtils.isBlank(vars) && "null".equalsIgnoreCase(vars)) {
                     matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
                 } else {
                     if (defEmpty) {
@@ -150,7 +150,7 @@ public class QLExpressUtils {
                 String variable = matcher.group(1);
                 String vars = String.valueOf(executeNative(variable, rootMap));
 
-                if (vars != null) {
+                if (!StringUtils.isBlank(vars) && "null".equalsIgnoreCase(vars)) {
                     matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
                 } else {
                     matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
