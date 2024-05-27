@@ -152,16 +152,16 @@ public class MaterialDefineUtil {
     }
 
     /**
-     * 验证是否有重复字段code  重复字段名 code必须为英文字母
+     * 验证是否有重复字段code  重复字段名
      *
      * @param materialConfigList
      */
     public static void verifyMaterialField(List<MaterialFieldConfigDTO> materialConfigList) {
 
-        List<MaterialFieldConfigDTO> fieldName = materialConfigList.stream().filter(config -> !PATTERN.matcher(config.getFieldName()).matches()).collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(fieldName)) {
-            throw exception(FILED_NAME_ERROR, fieldName.stream().map(MaterialFieldConfigDTO::getFieldName).collect(Collectors.toList()));
-        }
+//        List<MaterialFieldConfigDTO> fieldName = materialConfigList.stream().filter(config -> !PATTERN.matcher(config.getFieldName()).matches()).collect(Collectors.toList());
+//        if (!CollectionUtils.isEmpty(fieldName)) {
+//            throw exception(FILED_NAME_ERROR, fieldName.stream().map(MaterialFieldConfigDTO::getFieldName).collect(Collectors.toList()));
+//        }
 
         List<String> duplicateFieldDesc = materialConfigList.stream().collect(Collectors.groupingBy(MaterialFieldConfigDTO::getDesc, Collectors.counting()))
                 .entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).collect(Collectors.toList());
