@@ -469,13 +469,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 查询应用，并接校验应用是否存在
         AppMarketRespVO latestAppMarket = this.getAppInformation(request.getAppUid(), plan.getSource());
 
+        // 是否全量覆盖，默认非全量覆盖
+        boolean isFullCover = Objects.isNull(request.getIsFullCover()) ? Boolean.FALSE : request.getIsFullCover();
+
         // 版本判断
-        if (plan.getVersion() >= latestAppMarket.getVersion()) {
+        if (!isFullCover && plan.getVersion() >= latestAppMarket.getVersion()) {
             throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "已是最新版本！不需要更新！"));
         }
 
-        // 是否全量覆盖，默认全量覆盖
-        boolean isFullCover = Objects.isNull(request.getIsFullCover()) ? Boolean.FALSE : request.getIsFullCover();
         // 计划配置
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         // 获取应用配置
