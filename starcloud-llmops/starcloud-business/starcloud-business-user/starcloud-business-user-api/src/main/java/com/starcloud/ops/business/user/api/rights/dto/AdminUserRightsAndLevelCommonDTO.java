@@ -18,4 +18,5 @@ public class AdminUserRightsAndLevelCommonDTO {
     @Schema(description = "用户等级权益")
     private UserLevelBasicDTO levelBasicDTO;
 
+
 }

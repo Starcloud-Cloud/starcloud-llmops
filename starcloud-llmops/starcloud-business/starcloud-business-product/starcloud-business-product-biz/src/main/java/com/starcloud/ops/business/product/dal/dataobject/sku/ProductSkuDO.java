@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import com.starcloud.ops.business.product.api.sku.dto.OrderLimitConfig;
 import com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyValueDO;
@@ -88,29 +89,6 @@ public class ProductSkuDO extends BaseDO {
 
 
     /**
-     * 赠送的优惠劵编号的数组
-     * <p>
-     * 对应 CouponTemplateDO 的 id 属性
-     */
-    @TableField(typeHandler = LongListTypeHandler.class)
-    private List<Long> giveCouponTemplateIds;
-
-    /**
-     * 商品附属权益
-     */
-    @TableField(typeHandler = RightsTypeHandler.class)
-    private AdminUserRightsAndLevelCommonDTO rightsConfig;
-    /**
-     * 商品签约配置
-     */
-    @TableField(typeHandler = SubscribeConfigTypeHandler.class)
-    private SubscribeConfigDTO subscribeConfig;
-
-    @TableField(typeHandler = OrderLimitConfigTypeHandler.class)
-    private OrderLimitConfig orderLimitConfig;
-
-
-    /**
      * 活动详情
      */
     private String activeData;
@@ -174,31 +152,6 @@ public class ProductSkuDO extends BaseDO {
 
     }
 
-    /**
-     * 下单限制配置
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OrderLimitConfig {
-
-        /**
-         * 是否限制仅新用户下单
-         * 关联 {@link ProductPropertyDO#getId()}
-         */
-        private Boolean isNewUser;
-        /**
-         * 限制的优惠券模板编号
-         */
-        private List<Long> limitCouponTemplateId;
-
-    }
-
-
-
-
-
-    // TODO @芋艿：可以找一些新的思路
     public static class OrderLimitConfigTypeHandler extends AbstractJsonTypeHandler<Object> {
 
         @Override
@@ -213,7 +166,6 @@ public class ProductSkuDO extends BaseDO {
 
     }
 
-    // TODO @芋艿：可以找一些新的思路
     public static class PropertyTypeHandler extends AbstractJsonTypeHandler<Object> {
 
         @Override
@@ -227,7 +179,6 @@ public class ProductSkuDO extends BaseDO {
         }
 
     }
-
 
     public static class RightsTypeHandler extends AbstractJsonTypeHandler<Object> {
 
@@ -256,6 +207,33 @@ public class ProductSkuDO extends BaseDO {
         }
 
     }
+
+
+
+    /**
+     * 赠送的优惠劵编号的数组
+     * <p>
+     * 对应 CouponTemplateDO 的 id 属性
+     */
+    @TableField(typeHandler = LongListTypeHandler.class)
+    private List<Long> giveCouponTemplateIds;
+
+    /**
+     * 商品附属权益
+     */
+    @TableField(typeHandler = RightsTypeHandler.class)
+    private AdminUserRightsAndLevelCommonDTO rightsConfig;
+    /**
+     * 商品签约配置
+     */
+    @TableField(typeHandler = SubscribeConfigTypeHandler.class)
+    private SubscribeConfigDTO subscribeConfig;
+
+    /**
+     * 下单限制条件
+     */
+    @TableField(typeHandler = OrderLimitConfigTypeHandler.class)
+    private OrderLimitConfig orderLimitConfig;
 
 
     // TODO @芋艿：可以找一些新的思路

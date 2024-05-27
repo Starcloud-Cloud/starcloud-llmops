@@ -39,12 +39,12 @@ public interface ProductSpuConvert {
 
 //    @Mapping(target = "giveRights", expression = "java(spu.getPrice() / 100)")
 //    @Mapping(target = "subscribeConfig", expression = "java(spu.getPrice() / 100)")
-    @Mapping(source = "bean.giveRights", target = "giveRights")
-    @Mapping(source = "bean.subscribeConfig", target = "subscribeConfig")
+//     @Mapping(source = "bean.giveRights", target = "giveRights")
+//     @Mapping(source = "bean.subscribeConfig", target = "subscribeConfig")
     ProductSpuDO convert(ProductSpuCreateReqVO bean);
 
-    @Mapping(source = "bean.giveRights", target = "giveRights")
-    @Mapping(source = "bean.subscribeConfig", target = "subscribeConfig")
+    // @Mapping(source = "bean.giveRights", target = "giveRights")
+    // @Mapping(source = "bean.subscribeConfig", target = "subscribeConfig")
     ProductSpuDO convert(ProductSpuUpdateReqVO bean);
 
     List<ProductSpuDO> convertList(List<ProductSpuDO> list);
