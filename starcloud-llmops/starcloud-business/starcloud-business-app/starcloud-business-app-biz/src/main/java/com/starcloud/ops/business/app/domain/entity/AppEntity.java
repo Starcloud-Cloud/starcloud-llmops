@@ -130,17 +130,24 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         }
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
-            // 第一个步骤必须是：上传素材步骤
-            if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler())) {
+            // 第一个步骤必须是：上传素材步骤，有且只有一个
+            boolean materialCount = stepWrappers.stream()
+                    .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
                 throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！"));
             }
-            // 最后一个步骤必须是图片生成步骤
-            if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler())) {
+            // 最后一个步骤必须是图片生成步骤, 有且只有一个
+            boolean posterMatch = stepWrappers.stream()
+                    .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
                 throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！"));
             }
-            // 必须包含笔记生成步骤
+            // 必须包含笔记生成步骤, 有且只有一个
             boolean assembleMatch = stepWrappers.stream()
-                    .anyMatch(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()));
+                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
             if (!assembleMatch) {
                 throw exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！"));
             }
