@@ -488,12 +488,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             WorkflowStepWrapperRespVO materialStepWrapper = latestAppMarket.getStepByHandler(MaterialActionHandler.class.getSimpleName());
             List<Map<String, Object>> materialList = CreativeUtils.getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
             // 如果最新应用配置的素材库不为空，且计划配置的素材库为空，则填充最新应用配置的素材库
-            if (CollectionUtil.isNotEmpty(materialList) && CollectionUtil.isEmpty(configuration.getMaterialList())) {
-                configuration.setMaterialList(materialList);
-            }
+            configuration.setMaterialList(CollectionUtil.emptyIfNull(materialList));
+
             // 把最新的海报步骤填充到配置中
-            List<PosterStyleDTO> posterStyles = CreativeUtils.mergePosterStyleList(configuration.getImageStyleList(), latestAppMarket);
-            configuration.setImageStyleList(posterStyles);
+            WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListOrEmptyByStepWrapper(posterStepWrapper);
+            configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
