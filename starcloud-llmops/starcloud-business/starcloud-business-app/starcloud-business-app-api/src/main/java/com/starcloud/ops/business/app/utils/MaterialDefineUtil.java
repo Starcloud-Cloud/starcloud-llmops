@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.utils;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.poi.excel.ExcelReader;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
@@ -16,6 +18,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -26,6 +29,7 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
+@Slf4j
 public class MaterialDefineUtil {
 
     private static final String MATERIAL_ACTION_HANDLER = "MaterialActionHandler";
@@ -289,6 +293,7 @@ public class MaterialDefineUtil {
 
     /**
      * 判断上传素材内容显示类型 true显示图片 false显示列表
+     *
      * @return
      */
     public static Boolean judgePicture(AppMarketRespVO appRespVO) {
@@ -302,4 +307,28 @@ public class MaterialDefineUtil {
         return true;
     }
 
+    public static void removeNull(List<Map<String, Object>> materialList) {
+        if (CollectionUtils.isEmpty(materialList)) {
+            return;
+        }
+        try {
+            Iterator<Map<String, Object>> iterator = materialList.iterator();
+
+            while (iterator.hasNext()){
+                Map<String, Object> materialData = iterator.next();
+                Iterator<Map.Entry<String, Object>> keyEntryIter = materialData.entrySet().iterator();
+                while (keyEntryIter.hasNext()) {
+                    Object value = keyEntryIter.next().getValue();
+                    if (Objects.isNull(value) || StringUtils.isBlank(String.valueOf(value))) {
+                        keyEntryIter.remove();
+                    }
+                }
+                if (materialData.values().isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("remove null error", e);
+        }
+    }
 }
