@@ -148,6 +148,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         // 素材数据
         List<Map<String, Object>> materialList = request.getMaterialList();
+        // 去除空值
+        MaterialDefineUtil.removeNull(materialList);
+
         // 所有字段定义列表
         List<MaterialFieldConfigDTO> fieldList = request.getFieldList();
         // 选中的字段定义列表
