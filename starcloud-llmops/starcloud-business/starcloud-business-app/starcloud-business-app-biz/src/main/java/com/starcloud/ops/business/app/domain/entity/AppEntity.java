@@ -135,21 +135,21 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！"));
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！且有且只能有一个！"));
             }
             // 最后一个步骤必须是图片生成步骤, 有且只有一个
             boolean posterMatch = stepWrappers.stream()
                     .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！"));
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
             }
             // 必须包含笔记生成步骤, 有且只有一个
             boolean assembleMatch = stepWrappers.stream()
                     .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!assembleMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！"));
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！且有且只能有一个！"));
             }
         }
         config.setSteps(stepWrappers);
