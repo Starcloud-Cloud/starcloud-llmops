@@ -295,7 +295,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * 创建同款应用
      *
      * @param request 创作计划请求
-     * @return 创作计划UID
      */
     @Override
     public void createSameApp(CreateSameAppReqVO request) {
