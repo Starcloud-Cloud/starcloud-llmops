@@ -87,6 +87,13 @@ public interface AppMarketService {
     void create(AppMarketReqVO request);
 
     /**
+     * 创建应用市场的应用
+     *
+     * @param appMarketUid 应用信息
+     */
+    void createSameApp(String appMarketUid);
+
+    /**
      * 更新应用市场的应用
      *
      * @param request 应用信息

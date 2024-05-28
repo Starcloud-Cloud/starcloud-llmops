@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
@@ -79,6 +80,13 @@ public interface CreativePlanService {
     String create(CreativePlanCreateReqVO request);
 
     /**
+     * 创建同款应用
+     *
+     * @param request 创作计划请求
+     */
+    void createSameApp(CreateSameAppReqVO request);
+
+    /**
      * 修改创作计划
      *
      * @param request 创作计划请求
@@ -134,6 +142,7 @@ public interface CreativePlanService {
 
     /**
      * 重我的应用或执行计划中获取应用信息
+     *
      * @param uid
      * @param planSource
      * @return

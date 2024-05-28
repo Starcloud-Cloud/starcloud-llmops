@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
+import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.operate.AppOperateConvert;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
@@ -30,9 +31,11 @@ import com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
@@ -42,6 +45,7 @@ import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -347,6 +351,28 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     /**
+     * 创建应用市场的应用为我的应用
+     *
+     * @param appMarketUid 应用信息
+     */
+    @Override
+    public void createSameApp(String appMarketUid) {
+        AppMarketDO appMarketDO = appMarketMapper.get(appMarketUid, Boolean.FALSE);
+
+        AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appMarketDO);
+        AppEntity appEntity = AppConvert.INSTANCE.convert(appMarketEntity);
+
+        appEntity.setUid(null);
+        // 原来应用市场的名称 + 6位随机数(字母+数字)。
+        String appName = appEntity.getName() + RandomStringUtils.randomAlphanumeric(6);
+        appEntity.setName(randomName(appName, appEntity.getName()));
+        appEntity.setSource(AppSourceEnum.MARKET.name());
+        appEntity.setCreateTime(LocalDateTime.now());
+        appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.insert();
+    }
+
+    /**
      * 更新应用市场的应用
      *
      * @param request 应用信息
@@ -422,4 +448,17 @@ public class AppMarketServiceImpl implements AppMarketService {
         appMarketMapper.update(appMarketDO, updateWrapper);
     }
 
+    /**
+     * 递归生成随机名称
+     *
+     * @param name 名称
+     */
+    public String randomName(String name, String baseName) {
+        if (appMapper.duplicateName(name)) {
+            String newName = baseName + RandomStringUtils.randomAlphanumeric(6);
+            return randomName(newName, baseName);
+        } else {
+            return name;
+        }
+    }
 }
