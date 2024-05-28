@@ -408,7 +408,7 @@ public class RecommendVariableItemFactory {
         variableItem.setStyle(AppVariableStyleEnum.MATERIAL.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
         return variableItem;
     }
 

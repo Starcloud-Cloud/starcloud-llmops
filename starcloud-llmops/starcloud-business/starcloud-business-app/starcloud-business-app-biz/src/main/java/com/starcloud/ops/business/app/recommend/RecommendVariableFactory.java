@@ -379,7 +379,7 @@ public class RecommendVariableFactory {
 
         VariableItemRespVO materialListVariable = RecommendVariableItemFactory.defMaterialListVariable();
         materialListVariable.setOrder(3);
-        materialListVariable.setIsShow(Boolean.TRUE);
+        materialListVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO materialGenerateConfigVariable = RecommendVariableItemFactory.defMaterialGenerateConfigVariable();
         materialGenerateConfigVariable.setOrder(4);

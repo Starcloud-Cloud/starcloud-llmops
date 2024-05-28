@@ -63,12 +63,13 @@ public class VariableEntity {
             //现在只支持string
             if (Arrays.asList(AppVariableStyleEnum.INPUT.name(),
                             AppVariableStyleEnum.TEXTAREA.name(),
+                            AppVariableStyleEnum.IMAGE.name(),
                             AppVariableStyleEnum.SELECT.name())
                     .contains(variableItem.getStyle())) {
 
                 ValueTypeSchema valueTypeSchema = new StringSchema();
                 valueTypeSchema.setTitle(variableItem.getLabel());
-                valueTypeSchema.setDescription(variableItem.getDescription());
+                valueTypeSchema.setDescription(variableItem.getDescription() + "-" + AppVariableStyleEnum.IMAGE.name().toLowerCase());
                 valueTypeSchema.setDefault((String.valueOf(Optional.ofNullable(variableItem.getValue()).orElseGet(variableItem::getDefaultValue))));
 
                 if (Arrays.asList(AppVariableStyleEnum.SELECT.name()).contains(variableItem.getType())) {
