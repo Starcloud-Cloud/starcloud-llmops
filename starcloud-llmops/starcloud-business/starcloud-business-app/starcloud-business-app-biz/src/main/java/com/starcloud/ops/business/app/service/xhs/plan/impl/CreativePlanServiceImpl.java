@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
@@ -288,6 +289,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
         creativePlanMapper.insert(plan);
         return plan.getUid();
+    }
+
+    /**
+     * 创建同款应用
+     *
+     * @param request 创作计划请求
+     * @return 创作计划UID
+     */
+    @Override
+    public void createSameApp(CreateSameAppReqVO request) {
+        // 如果useAppMarket为空或者为true时使用应用最新市场配置
+        if (Objects.isNull(request.getUseAppMarket()) || request.getUseAppMarket()) {
+            appMarketService.createSameApp(request.getAppMarketUid());
+        }
+
     }
 
     /**
