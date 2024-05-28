@@ -69,7 +69,7 @@ public class VariableEntity {
 
                 ValueTypeSchema valueTypeSchema = new StringSchema();
                 valueTypeSchema.setTitle(variableItem.getLabel());
-                valueTypeSchema.setDescription(variableItem.getDescription() + "-" + AppVariableStyleEnum.IMAGE.name().toLowerCase());
+                valueTypeSchema.setDescription(variableItem.getDescription() + "-" + variableItem.getStyle().toLowerCase());
                 valueTypeSchema.setDefault((String.valueOf(Optional.ofNullable(variableItem.getValue()).orElseGet(variableItem::getDefaultValue))));
 
                 if (Arrays.asList(AppVariableStyleEnum.SELECT.name()).contains(variableItem.getType())) {
