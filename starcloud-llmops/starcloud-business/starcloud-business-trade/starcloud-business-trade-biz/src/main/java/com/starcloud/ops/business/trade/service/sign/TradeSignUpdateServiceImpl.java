@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignRespDTO;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignCreateReqVO;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignSettlementReqVO;
@@ -97,6 +98,10 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
     @Resource
     private SmsSendApi smsSendApi;
+
+
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
 
     @Override
@@ -423,12 +428,15 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     private void closeSignPayOrderCheck(Long id) {
         try {
             List<TradeOrderDO> signPayTradeList = tradeOrderQueryService.getSignPayTradeList(id);
+
+            // 获取当前运行环境
+            String environmentName = dingTalkNoticeProperties.getName().equals("Formal") ? "正式" : "测试";
             if (signPayTradeList.isEmpty()) {
                 smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO()
                         .setUserId(1L)
                         .setMobile("17835411844")
                         .setTemplateCode("SIGN_CLOSE_NO_PAY_NOTIFY").
-                        setTemplateParams(MapUtil.<String, Object>builder().put("params", StrUtil.format("签约订单编号为{}的数据 关闭签约,且当前签约不存在有效的支付记录",id)).build()));
+                        setTemplateParams(MapUtil.<String, Object>builder().put("params", StrUtil.format("签约订单编号为{}的数据 关闭签约,且当前签约不存在有效的支付记录",id)).put("environmentName",environmentName).build()));
             }
         } catch (RuntimeException e) {
             log.error("closeSignPayOrderCheck 发送通知失败");
