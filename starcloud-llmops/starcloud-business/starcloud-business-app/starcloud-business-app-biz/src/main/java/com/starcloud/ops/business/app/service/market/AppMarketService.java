@@ -91,7 +91,7 @@ public interface AppMarketService {
      *
      * @param appMarketUid 应用信息
      */
-    void createSameApp(String appMarketUid);
+    String createSameApp(String appMarketUid);
 
     /**
      * 更新应用市场的应用

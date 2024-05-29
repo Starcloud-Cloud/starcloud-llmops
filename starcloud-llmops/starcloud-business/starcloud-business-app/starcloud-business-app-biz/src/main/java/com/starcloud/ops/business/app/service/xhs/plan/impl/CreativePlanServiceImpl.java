@@ -300,12 +300,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public void createSameApp(CreateSameAppReqVO request) {
+    public String createSameApp(CreateSameAppReqVO request) {
         // 如果useAppMarket为空或者为true时使用应用最新市场配置
         if (Objects.isNull(request.getUseAppMarket()) || request.getUseAppMarket()) {
-            appMarketService.createSameApp(request.getAppMarketUid());
+            return appMarketService.createSameApp(request.getAppMarketUid());
         }
-
+        return "";
     }
 
     /**

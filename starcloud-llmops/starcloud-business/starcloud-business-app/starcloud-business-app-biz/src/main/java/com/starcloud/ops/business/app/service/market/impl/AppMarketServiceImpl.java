@@ -356,7 +356,7 @@ public class AppMarketServiceImpl implements AppMarketService {
      * @param appMarketUid 应用信息
      */
     @Override
-    public void createSameApp(String appMarketUid) {
+    public String createSameApp(String appMarketUid) {
         AppMarketDO appMarketDO = appMarketMapper.get(appMarketUid, Boolean.FALSE);
 
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appMarketDO);
@@ -370,6 +370,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.insert();
+        return appEntity.getUid();
     }
 
     /**

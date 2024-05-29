@@ -92,33 +92,32 @@ public abstract class AbstractMaterialHandler {
         if (CollectionUtil.isEmpty(materialList)) {
             return posterStyle;
         }
-
         PosterStyleDTO style = SerializationUtils.clone(posterStyle);
         // 进行变量替换
         Map<String, Object> replaceValueMap = this.replaceVariable(style, materialList, metadata, Boolean.TRUE);
 
         List<PosterTemplateDTO> templates = Lists.newArrayList();
+
         List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
         // // 进行海报风格的处理
         for (PosterTemplateDTO template : templateList) {
             // 默认设置为 TRUE
             template.setIsExecute(Boolean.TRUE);
-            // 如果图片数量不为 1，直接跳过，不进行处理
-            if (template.getTotalImageCount() != 1) {
+            // 模板变量列表
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+
+            // 只要存在是图片变量，且值不为空的，就需要生成图片
+            boolean anyMatchNotBlankImageValue = variableList.stream()
+                    .filter(CreativeUtils::isImageVariable)
+                    .anyMatch(variable -> StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid())));
+
+            if (anyMatchNotBlankImageValue) {
                 templates.add(template);
                 continue;
             }
 
-            // 如果图片数量为 1，则需要判断，当前图片变量替换之后是否有值，没有值，这个图片不需要进行生成。
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
-            for (PosterVariableDTO variable : variableList) {
-
-                if (CreativeUtils.isImageVariable(variable) &&
-                        StringUtil.objectBlank(replaceValueMap.get(variable.getUuid()))) {
-                    // 设置为FALSE,表示不需要生成改图片
-                    template.setIsExecute(Boolean.FALSE);
-                }
-            }
+            // 设置为FALSE,表示不需要生成改图片
+            template.setIsExecute(Boolean.FALSE);
             templates.add(template);
         }
 

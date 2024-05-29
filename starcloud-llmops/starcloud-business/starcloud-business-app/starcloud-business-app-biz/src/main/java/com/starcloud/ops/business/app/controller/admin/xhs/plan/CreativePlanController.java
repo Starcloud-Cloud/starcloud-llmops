@@ -92,8 +92,7 @@ public class CreativePlanController {
     @Operation(summary = "创建同款应用", description = "创建同款应用")
     @ApiOperationSupport(order = 60, author = "nacoyer")
     public CommonResult<String> create(@Validated @RequestBody CreateSameAppReqVO request) {
-        creativePlanService.createSameApp(request);
-        return CommonResult.success("创建成功");
+        return CommonResult.success(creativePlanService.createSameApp(request));
     }
 
     @PostMapping("/modify")

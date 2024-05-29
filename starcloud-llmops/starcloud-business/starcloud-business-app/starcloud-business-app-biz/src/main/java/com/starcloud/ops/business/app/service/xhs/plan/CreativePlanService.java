@@ -84,7 +84,7 @@ public interface CreativePlanService {
      *
      * @param request 创作计划请求
      */
-    void createSameApp(CreateSameAppReqVO request);
+    String createSameApp(CreateSameAppReqVO request);
 
     /**
      * 修改创作计划
