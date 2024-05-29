@@ -41,8 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -194,12 +192,12 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         }
 
         // 当前数据状态 需要在事务提交后获取
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
+        // TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        //     @Override
+        //     public void afterCommit() {
                 tradeSignQueryService.executeAutoTradeSignPay();
-            }
-        });
+        //     }
+        // });
 
     }
 
