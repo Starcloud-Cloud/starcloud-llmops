@@ -2,13 +2,11 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
@@ -137,6 +135,7 @@ public class JsonSchemaUtils {
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
@@ -207,6 +206,8 @@ public class JsonSchemaUtils {
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
@@ -231,6 +232,7 @@ public class JsonSchemaUtils {
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
@@ -608,7 +610,7 @@ public class JsonSchemaUtils {
             return obj;
         }
         List<MaterialFieldConfigDTO> configList = MaterialDefineUtil.parseConfig(materialDefineJson);
-        Map<String, JsonSchema> properties = new HashMap<>(configList.size());
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(configList.size());
         for (MaterialFieldConfigDTO materialFieldConfigDTO : configList) {
             StringSchema schema = new StringSchema();
             schema.setDescription(materialFieldConfigDTO.getDesc() + "-" + materialFieldConfigDTO.getType());
