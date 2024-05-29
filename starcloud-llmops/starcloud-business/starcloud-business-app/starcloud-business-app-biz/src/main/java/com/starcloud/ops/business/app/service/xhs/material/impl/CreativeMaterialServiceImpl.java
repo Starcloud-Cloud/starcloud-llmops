@@ -258,7 +258,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(checkedFieldList));
         materialMap.put("REQUIREMENT", requirement);
         materialMap.put("GENERATE_COUNT", generateCount);
-        materialMap.put("JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
+        materialMap.put("JSON_SCHEMA", JsonSchemaUtils.jsonSchema2Str(jsonSchema));
 
         // 将处理后的数据放入到应用变量中
         appMarketResponse.putStepVariable(stepId, materialMap);
@@ -384,7 +384,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
             }
             mergeCheckedFieldList.add(field);
         }
-        return mergeCheckedFieldList;
+        return mergeCheckedFieldList.stream().sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder)).collect(Collectors.toList());
     }
 
     /**
