@@ -111,6 +111,34 @@ public class ProductSkuDO extends BaseDO {
      */
     private Integer salesCount;
 
+
+
+    /**
+     * 赠送的优惠劵编号的数组
+     * <p>
+     * 对应 CouponTemplateDO 的 id 属性
+     */
+    @TableField(typeHandler = LongListTypeHandler.class)
+    private List<Long> giveCouponTemplateIds;
+
+    /**
+     * 商品附属权益
+     */
+    @TableField(typeHandler = RightsTypeHandler.class)
+    private AdminUserRightsAndLevelCommonDTO rightsConfig;
+    /**
+     * 商品签约配置
+     */
+    @TableField(typeHandler = SubscribeConfigTypeHandler.class)
+    private SubscribeConfigDTO subscribeConfig;
+
+    /**
+     * 下单限制条件
+     */
+    @TableField(typeHandler = OrderLimitConfigTypeHandler.class)
+    private OrderLimitConfig orderLimitConfig;
+
+
     /**
      * 商品属性
      */
@@ -209,31 +237,6 @@ public class ProductSkuDO extends BaseDO {
     }
 
 
-
-    /**
-     * 赠送的优惠劵编号的数组
-     * <p>
-     * 对应 CouponTemplateDO 的 id 属性
-     */
-    @TableField(typeHandler = LongListTypeHandler.class)
-    private List<Long> giveCouponTemplateIds;
-
-    /**
-     * 商品附属权益
-     */
-    @TableField(typeHandler = RightsTypeHandler.class)
-    private AdminUserRightsAndLevelCommonDTO rightsConfig;
-    /**
-     * 商品签约配置
-     */
-    @TableField(typeHandler = SubscribeConfigTypeHandler.class)
-    private SubscribeConfigDTO subscribeConfig;
-
-    /**
-     * 下单限制条件
-     */
-    @TableField(typeHandler = OrderLimitConfigTypeHandler.class)
-    private OrderLimitConfig orderLimitConfig;
 
 
     // TODO @芋艿：可以找一些新的思路

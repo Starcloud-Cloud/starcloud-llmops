@@ -16,6 +16,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ProductSkuCreateOrUpdateReqVO extends ProductSkuBaseVO {
+
     @Schema(description = "商品设置用户基础权益")
     private AdminUserRightsAndLevelCommonDTO rightsConfig;
 
