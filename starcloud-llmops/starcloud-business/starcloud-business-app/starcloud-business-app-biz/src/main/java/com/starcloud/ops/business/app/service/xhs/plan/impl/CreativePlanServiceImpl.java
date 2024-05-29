@@ -250,13 +250,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 处理配置信息
             CreativePlanConfigurationDTO configuration = creativePlanResponse.getConfiguration();
 
-            // 海报图片风格处理
-            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergePosterStyleList(configuration.getImageStyleList(), appMarketResponse);
-            configuration.setImageStyleList(imageStyleList);
-
-            // 应用配置处理
-            AppMarketRespVO appInformation = CreativeUtils.mergeAppPosterStyleConfig(configuration.getAppInformation(), appMarketResponse);
+            // 合并应用市场配置，某一些配置项需要保持最新
+            AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
             configuration.setAppInformation(appInformation);
+
+            // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
+            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
+            configuration.setImageStyleList(imageStyleList);
 
             creativePlanResponse.setConfiguration(configuration);
             return creativePlanResponse;
@@ -504,19 +504,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         if (isFullCover) {
             // 把最新的素材库步骤填充到配置中
             WorkflowStepWrapperRespVO materialStepWrapper = latestAppMarket.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-            List<Map<String, Object>> materialList = CreativeUtils.getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
+            List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialStepWrapper);
             // 如果最新应用配置的素材库不为空，且计划配置的素材库为空，则填充最新应用配置的素材库
             configuration.setMaterialList(CollectionUtil.emptyIfNull(materialList));
 
             // 把最新的海报步骤填充到配置中
             WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
-            List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListOrEmptyByStepWrapper(posterStepWrapper);
+            List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListByStepWrapper(posterStepWrapper);
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
             latestAppMarket.merge(appInformation);
         }
+
         configuration.setAppInformation(latestAppMarket);
 
         // 更新升级之后的计划
@@ -652,6 +653,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appInformation = configuration.getAppInformation();
         // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
         AppMarketRespVO latestAppMarket = this.getAppInformation(creativePlan.getAppUid(), creativePlan.getSource());
+        // 合并应用市场配置，某一些配置项需要保持最新
+        appInformation = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
         /*
          * 获取到素材库步骤，素材库类型，素材库处理器
          */
@@ -695,7 +698,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 海报步骤的步骤ID
         String posterStepId = posterStepWrapper.getField();
         // 对海报风格配置进行合并处理，保持为最新。
-        posterStyleList = CreativeUtils.mergePosterStyleList(posterStyleList, latestAppMarket);
+        posterStyleList = CreativeUtils.mergeImagePosterStyleList(posterStyleList, appInformation);
         posterStyleList = CreativeUtils.preHandlerPosterStyleList(posterStyleList);
         // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
         for (PosterStyleDTO posterStyle : posterStyleList) {
@@ -907,8 +910,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     /**
      * 图片风格校验
      *
-     * @param appInformation
-     * @param configuration
+     * @param appInformation 应用信息
+     * @param configuration  配置信息
      */
     private void validImage(AppMarketRespVO appInformation, CreativePlanConfigurationDTO configuration) {
         WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());

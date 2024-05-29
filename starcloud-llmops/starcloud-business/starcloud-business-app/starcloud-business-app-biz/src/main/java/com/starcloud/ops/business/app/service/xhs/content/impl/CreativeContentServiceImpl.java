@@ -24,7 +24,6 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
@@ -40,7 +39,6 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
@@ -335,10 +333,14 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 素材库列表
             List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
+            AppValidate.notEmpty(materialList, "素材库列表不能为空，请联系管理员！");
 
             // 海报步骤
             WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            AppValidate.notNull(posterWrapper, "创作计划应用配置异常，海报步骤是必须的！请联系管理员！");
+
             PosterStyleDTO posterStyle = CreativeUtils.getPosterStyleByStepWrapper(posterWrapper);
+            AppValidate.notNull(posterStyle, "图片生成配置不能为空！请配置图片生成后重试！");
 
             // 查询创作内容并且校验
             CreativeContentDO content = creativeContentMapper.get(request.getUid());
@@ -346,40 +348,38 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 查询一次应用市场，获取最新的应用市场配置
             AppMarketRespVO latestAppMarket = creativePlanService.getAppInformation(appInformation.getUid(), content.getSource());
+            appInformation = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
 
-            // 处理应用信息
-            if (Objects.nonNull(posterWrapper) && Objects.nonNull(posterStyle)) {
-                // 从应用市场获取最新的系统配置合并
-                posterStyle = CreativeUtils.mergePosterStyle(posterStyle, latestAppMarket);
-                // 处理一下海报风格
-                posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
+            // 从应用市场获取最新的系统配置合并
+            posterStyle = CreativeUtils.mergeImagePosterStyle(posterStyle, appInformation);
+            // 处理一下海报风格
+            posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
 
-                // 素材步骤的步骤ID
-                String materialStepId = materialWrapper.getField();
-                // 海报步骤的步骤ID
-                String posterStepId = posterWrapper.getField();
+            // 素材步骤的步骤ID
+            String materialStepId = materialWrapper.getField();
+            // 海报步骤的步骤ID
+            String posterStepId = posterWrapper.getField();
 
-                materialHandler.validatePosterStyle(posterStyle);
-                Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle));
+            materialHandler.validatePosterStyle(posterStyle);
+            Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle));
 
-                // 获取该风格下，处理之后的素材列表
-                List<Map<String, Object>> usageMaterialList = materialMap.get(0);
+            // 获取该风格下，处理之后的素材列表
+            List<Map<String, Object>> usageMaterialList = materialMap.get(0);
 
-                MaterialMetadata metadata = new MaterialMetadata();
-                metadata.setMaterialStepId(materialStepId);
-                metadata.setMaterialType(businessType);
-                PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, metadata);
+            MaterialMetadata metadata = new MaterialMetadata();
+            metadata.setMaterialStepId(materialStepId);
+            metadata.setMaterialType(businessType);
+            PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, metadata);
 
-                // 将处理后的海报风格填充到执行参数中
-                Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
-                appInformation.putStepVariable(posterStepId, variableMap);
+            // 将处理后的海报风格填充到执行参数中
+            Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
+            appInformation.putStepVariable(posterStepId, variableMap);
 
-                // 将素材库的素材列表填充上传素材步骤变量中
-                Map<String, Object> handleMaterialMap = Collections.singletonMap(CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
-                appInformation.putStepVariable(materialStepId, handleMaterialMap);
+            // 将素材库的素材列表填充上传素材步骤变量中
+            Map<String, Object> handleMaterialMap = Collections.singletonMap(CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
+            appInformation.putStepVariable(materialStepId, handleMaterialMap);
 
-                executeParam.setAppInformation(appInformation);
-            }
+            executeParam.setAppInformation(appInformation);
 
             // 更新创作内容为最新的版本
             CreativeContentDO updateContent = new CreativeContentDO();

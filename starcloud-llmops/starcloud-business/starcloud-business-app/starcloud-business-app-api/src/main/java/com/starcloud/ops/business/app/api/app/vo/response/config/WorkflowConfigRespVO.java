@@ -163,10 +163,12 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     @JsonIgnore
     @JSONField(serialize = false)
     public void merge(WorkflowConfigRespVO workflowConfig) {
+        // 如果为空，则不进行合并处理
         if (CollectionUtil.isEmpty(this.steps) || CollectionUtil.isEmpty(workflowConfig.getSteps())) {
             return;
         }
 
+        // 将配置信息转换为map
         Map<String, WorkflowStepWrapperRespVO> stepWrapperMap = workflowConfig.getSteps()
                 .stream()
                 .collect(Collectors.toMap(WorkflowStepWrapperRespVO::getField, Function.identity()));

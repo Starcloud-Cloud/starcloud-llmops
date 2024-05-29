@@ -4,8 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -14,13 +12,16 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfiguration
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.*;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
@@ -30,7 +31,13 @@ import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -253,154 +260,129 @@ public class CreativeUtils {
     }
 
     /**
-     * 合并海报分割列表
-     *
-     * @param posterStyleList   海报列表
-     * @param appMarketResponse 应用配置
-     * @return 海报风格列表
-     */
-    public static List<PosterStyleDTO> mergePosterStyleList(List<PosterStyleDTO> posterStyleList, AppMarketRespVO appMarketResponse) {
-        if (CollectionUtil.isEmpty(posterStyleList)) {
-            return posterStyleList;
-        }
-        // 获取海报步骤
-        WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.isNull(posterStepWrapper)) {
-            return posterStyleList;
-        }
-        // 获取应用的海报风格配置
-        String posterConfig = appMarketResponse.getStepModelVariableValue(posterStepWrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(posterConfig) || "null".equalsIgnoreCase(posterConfig)) {
-            posterConfig = "[]";
-        }
-        List<PosterStyleDTO> styleList = JsonUtils.parseArray(posterConfig, PosterStyleDTO.class);
-        if (CollectionUtil.isEmpty(styleList)) {
-            return posterStyleList;
-        }
-        return mergePosterStyleList(posterStyleList, styleList);
-    }
-
-    /**
-     * 合并海报风格
-     *
-     * @param posterStyleList       海报风格列表
-     * @param systemPosterStyleList 海报风格列表
-     * @return 合并之后的海报风格
-     */
-    public static List<PosterStyleDTO> mergePosterStyleList(List<PosterStyleDTO> posterStyleList, List<PosterStyleDTO> systemPosterStyleList) {
-        // 转为MAP
-        Map<String, PosterStyleDTO> styleMap = systemPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
-        return posterStyleList
-                .stream()
-                .map(item -> {
-                    // 如果不是系统配置，直接返回
-                    if (Objects.isNull(item.getSystem()) || !item.getSystem()) {
-                        return item;
-                    }
-                    // 如果是系统配置，但是系统配置中未找到，直接返回null
-                    if (!styleMap.containsKey(item.getUuid()) || Objects.isNull(styleMap.get(item.getUuid()))) {
-                        return null;
-                    }
-                    // 返回最新的系统配置
-                    return styleMap.get(item.getUuid());
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 合并海报分割列表
-     *
-     * @param posterStyleList   海报列表
-     * @param appMarketResponse 应用配置
-     * @return 海报风格列表
-     */
-    public static PosterStyleDTO mergePosterStyle(PosterStyleDTO posterStyle, AppMarketRespVO appMarketResponse) {
-        if (Objects.isNull(posterStyle) || !posterStyle.getSystem()) {
-            return posterStyle;
-        }
-        // 获取海报步骤
-        WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.isNull(posterStepWrapper)) {
-            return posterStyle;
-        }
-        // 获取应用的海报风格配置
-        String posterConfig = appMarketResponse.getStepModelVariableValue(posterStepWrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(posterConfig) || "null".equalsIgnoreCase(posterConfig)) {
-            posterConfig = "[]";
-        }
-        List<PosterStyleDTO> styleList = JsonUtils.parseArray(posterConfig, PosterStyleDTO.class);
-        if (CollectionUtil.isEmpty(styleList)) {
-            return posterStyle;
-        }
-        return mergePosterStyle(posterStyle, styleList);
-    }
-
-    /**
-     * 合并海报风格
-     *
-     * @param posterStyleList       海报风格列表
-     * @param systemPosterStyleList 海报风格列表
-     * @return 合并之后的海报风格
-     */
-    public static PosterStyleDTO mergePosterStyle(PosterStyleDTO posterStyle, List<PosterStyleDTO> systemPosterStyleList) {
-        // 转为MAP
-        Map<String, PosterStyleDTO> styleMap = systemPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
-        if (styleMap.containsKey(posterStyle.getUuid())) {
-            if (Objects.nonNull(styleMap.get(posterStyle.getUuid()))) {
-                return styleMap.get(posterStyle.getUuid());
-            }
-        }
-
-        return posterStyle;
-    }
-
-    /**
      * 合并应用的海报缝合配置
      *
      * @param appMarket       应用
      * @param latestAppMarket 最新应用
      * @return 应用
      */
-    public static AppMarketRespVO mergeAppPosterStyleConfig(AppMarketRespVO appMarket, AppMarketRespVO latestAppMarket) {
+    public static AppMarketRespVO mergeAppInformation(AppMarketRespVO appMarket, AppMarketRespVO latestAppMarket) {
         // 获取最新应用海报步骤
         WorkflowStepWrapperRespVO latestWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.isNull(latestWrapper)) {
-            return appMarket;
-        }
-        // 获取应用海报步骤
-        WorkflowStepWrapperRespVO wrapper = appMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.isNull(wrapper)) {
-            return appMarket;
-        }
+        // 如果最新海报步骤不为空，则将系统海报配置设置到计划应用中, 保证最新的系统海报配置。
+        if (Objects.nonNull(latestWrapper)) {
+            // 获取到最新的海报风格配置列表
+            List<PosterStyleDTO> latestSystemPosterList = getSystemPosterStyleListByStepWrapper(latestWrapper);
+            // 获取应用海报步骤
+            WorkflowStepWrapperRespVO wrapper = appMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            if (Objects.nonNull(wrapper)) {
+                // 放入到应用中
+                Map<String, Object> modelVariableMap = Collections.singletonMap(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestSystemPosterList));
+                appMarket.putStepModelVariable(wrapper.getField(), modelVariableMap);
 
-        // 获取最新的海报风格配置
-        String latestPosterConfig = latestWrapper.getStepModelVariableValue(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(latestPosterConfig) || "null".equalsIgnoreCase(latestPosterConfig)) {
-            latestPosterConfig = "[]";
+                // 应用参数变为空
+                Map<String, Object> variableMap = new HashMap<>();
+                variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+                variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
+                appMarket.putStepVariable(wrapper.getField(), variableMap);
+            }
         }
-        // 获取到最新的海报风格配置列表
-        List<PosterStyleDTO> latestPosterList = JsonUtils.parseArray(latestPosterConfig, PosterStyleDTO.class);
-        // 过滤掉非系统的配置
-        latestPosterList = CollectionUtil.emptyIfNull(latestPosterList).stream()
-                .filter(item -> item.getSystem())
-                .collect(Collectors.toList());
-
-        // 放入到应用中
-        appMarket.putStepModelVariable(
-                wrapper.getField(),
-                Collections.singletonMap(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestPosterList))
-        );
-
-        // 应用参数变为空
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-        variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
-        appMarket.putStepVariable(wrapper.getField(), variableMap);
 
         // 示例取最新的
         appMarket.setExample(latestAppMarket.getExample());
         return appMarket;
+    }
+
+    /**
+     * 合并海报分割列表
+     *
+     * @param posterStyleList   海报列表
+     * @param appMarketResponse 应用配置
+     * @return 海报风格列表
+     */
+    public static PosterStyleDTO mergeImagePosterStyle(PosterStyleDTO posterStyle, AppMarketRespVO appMarketResponse) {
+
+        // 获取海报步骤
+        WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.isNull(posterStepWrapper)) {
+            return posterStyle;
+        }
+        // 获取系统海报风格配置
+        List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+        // 获取自定义海报风格配置
+        List<PosterStyleDTO> customPosterStyleList = getCustomPosterStyleListByStepWrapper(posterStepWrapper);
+
+        // 系统海报风格配置转为MAP
+        Map<String, PosterStyleDTO> systemPosterStyleMap = systemPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
+        // 找到且不为空，替换并且返回
+        if (systemPosterStyleMap.containsKey(posterStyle.getUuid())) {
+            if (Objects.nonNull(systemPosterStyleMap.get(posterStyle.getUuid()))) {
+                return systemPosterStyleMap.get(posterStyle.getUuid());
+            }
+        }
+
+        // 自定义海报风格配置转为MAP
+        Map<String, PosterStyleDTO> customPosterStyleMap = customPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
+        // 找到且不为空，替换并且返回
+        if (customPosterStyleMap.containsKey(posterStyle.getUuid())) {
+            if (Objects.nonNull(customPosterStyleMap.get(posterStyle.getUuid()))) {
+                return customPosterStyleMap.get(posterStyle.getUuid());
+            }
+        }
+
+        return posterStyle;
+    }
+    
+    /**
+     * 合并海报分割列表
+     *
+     * @param posterStyleList   海报列表
+     * @param appMarketResponse 应用配置
+     * @return 海报风格列表
+     */
+    public static List<PosterStyleDTO> mergeImagePosterStyleList(List<PosterStyleDTO> posterStyleList, AppMarketRespVO appMarketResponse) {
+        // 如果海报风格列表为空，则直接返回
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return posterStyleList;
+        }
+        // 获取海报步骤，如果没有则直接返回
+        WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.isNull(posterStepWrapper)) {
+            return posterStyleList;
+        }
+
+        // 获取海报系统风格配置
+        List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+        // 获取自定义海报风格配置
+        List<PosterStyleDTO> customPosterStyleList = getCustomPosterStyleListByStepWrapper(posterStepWrapper);
+
+        // 海报系统风格配置转为MAP
+        Map<String, PosterStyleDTO> systemPostStyleMap = systemPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
+        // 自定义海报风格配置转为MAP
+        Map<String, PosterStyleDTO> customPostStyleMap = customPosterStyleList.stream().collect(Collectors.toMap(PosterStyleDTO::getUuid, Function.identity()));
+        return posterStyleList
+                .stream()
+                .map(item -> {
+                    // 如果不是系统配置，说明为自定义配置，进行处理
+                    if (Objects.isNull(item.getSystem()) || !item.getSystem()) {
+                        // 如果是自定义配置，但是自定义配置中未找到，或者为空，直接返回 null
+                        if (!customPostStyleMap.containsKey(item.getUuid()) || Objects.isNull(customPostStyleMap.get(item.getUuid()))) {
+                            return null;
+                        }
+                        // 返回最新的自定义配置
+                        return customPostStyleMap.get(item.getUuid());
+                    }
+
+                    // 如果是系统配置，但是系统配置中未找到，直接返回null
+                    if (!systemPostStyleMap.containsKey(item.getUuid()) || Objects.isNull(systemPostStyleMap.get(item.getUuid()))) {
+                        return null;
+                    }
+                    // 返回最新的系统配置
+                    return systemPostStyleMap.get(item.getUuid());
+                })
+                // 过滤掉空值，这里直接结果就是，如果自定义或者系统配置中未找到，则直接过滤掉。只有找到的才会返回最新配置
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -411,61 +393,45 @@ public class CreativeUtils {
      */
     public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse) {
         CreativePlanConfigurationDTO configuration = new CreativePlanConfigurationDTO();
+        // 默认素材列表为空
         configuration.setMaterialList(Collections.emptyList());
-
-        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-        if (Objects.isNull(materialStepWrapper)) {
-            configuration.setAppInformation(appMarketResponse);
-            return configuration;
-        }
-
-        // 获取到素材库列表
-        List<Map<String, Object>> materialList = getMaterialListOrEmptyByStepWrapper(materialStepWrapper);
-
-        // 海报分割配置
-        WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.isNull(stepWrapper)) {
-            configuration.setImageStyleList(Collections.emptyList());
-            configuration.setAppInformation(appMarketResponse);
-            return configuration;
-        }
-
-        // 获取到海报风格配置
-        String posterConfig = stepWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(posterConfig) || "null".equalsIgnoreCase(posterConfig)) {
-            posterConfig = "[]";
-        }
-        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterConfig, PosterStyleDTO.class);
-
-        // 处理系统海报风格配置
-        String systemPosterConfig = stepWrapper.getStepModelVariableValue(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(systemPosterConfig) || "null".equalsIgnoreCase(systemPosterConfig)) {
-            systemPosterConfig = "[]";
-        }
-        List<PosterStyleDTO> systemPosterList = JsonUtils.parseArray(systemPosterConfig, PosterStyleDTO.class);
-
-        // 保证 posterStyleList 是从 systemPosterList 获取的最新的
-        posterStyleList = mergePosterStyleList(posterStyleList, systemPosterList);
-
-        // 过过滤掉非系统配置
-        systemPosterList = CollectionUtil.emptyIfNull(systemPosterList).stream()
-                .filter(item -> item.getSystem())
-                .collect(Collectors.toList());
-
-        // 重新放入应用
-        Map<String, Object> modelVariableMap = new HashMap<>();
-        modelVariableMap.put(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterList));
-        appMarketResponse.putStepModelVariable(stepWrapper.getField(), modelVariableMap);
-
-        // 应用参数变为空
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-        variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
-        appMarketResponse.putStepVariable(stepWrapper.getField(), variableMap);
-
-        configuration.setImageStyleList(posterStyleList);
-        configuration.setMaterialList(materialList);
+        // 默认海报风格列表为空
+        configuration.setImageStyleList(Collections.emptyList());
+        // 默认应用信息为传入的应用信息
         configuration.setAppInformation(appMarketResponse);
+
+        // 素材列表配置
+        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.nonNull(materialStepWrapper)) {
+            // 获取到素材库列表
+            List<Map<String, Object>> materialList = getMaterialListByStepWrapper(materialStepWrapper);
+            configuration.setMaterialList(materialList);
+        }
+
+        // 海报风格配置
+        WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        if (Objects.nonNull(stepWrapper)) {
+            // 获取到海报风格配置
+            List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
+            // 获取到最新的海报模板
+            posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
+            configuration.setImageStyleList(posterStyleList);
+
+            // 应用参数处理
+            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(stepWrapper);
+            // 重新放入应用
+            Map<String, Object> modelVariableMap = new HashMap<>();
+            modelVariableMap.put(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
+            appMarketResponse.putStepModelVariable(stepWrapper.getField(), modelVariableMap);
+
+            // 应用参数变为空
+            Map<String, Object> variableMap = new HashMap<>();
+            variableMap.put(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+            variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+            variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
+            appMarketResponse.putStepVariable(stepWrapper.getField(), variableMap);
+        }
+
         return configuration;
     }
 
@@ -489,93 +455,6 @@ public class CreativeUtils {
      */
     public static String removePlaceholder(String input) {
         return input.replaceAll("\\{\\{.*?}}", "");
-    }
-
-    /**
-     * 根据应用步骤获取素材库列表
-     *
-     * @param materialWrapper 应用步骤
-     * @return 素材库列表
-     */
-    public static List<Map<String, Object>> getMaterialListByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
-        // 获取到素材库列表
-        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
-        if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！"));
-        }
-        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
-        if (CollectionUtil.isEmpty(materialList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "素材列表不能为空！请上传素材后重试！"));
-        }
-        return materialList;
-    }
-
-    /**
-     * 根据应用步骤获取素材库列表
-     *
-     * @param materialWrapper 应用步骤
-     * @return 素材库列表
-     */
-    public static List<Map<String, Object>> getMaterialListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
-        // 获取到素材库列表
-        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
-        if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
-            return Collections.emptyList();
-        }
-        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
-        if (CollectionUtil.isEmpty(materialList)) {
-            return Collections.emptyList();
-        }
-        return materialList;
-    }
-
-    /**
-     * 根据应用步骤获取风格配置
-     *
-     * @param posterWrapper 海报步骤
-     */
-    public static PosterStyleDTO getPosterStyleByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
-        // 图片风格配置
-        if (Objects.isNull(posterWrapper)) {
-            return null;
-        }
-
-        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE);
-        if (StringUtils.isBlank(posterStyleString) || "{}".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成配置不能为空！请配置图片生成后重试！"));
-        }
-
-        PosterStyleDTO posterStyle = JsonUtils.parseObject(posterStyleString, PosterStyleDTO.class);
-        if (Objects.isNull(posterStyle)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "图片生成配置不能为空！请配置图片生成后重试！"));
-        }
-
-        return posterStyle;
-    }
-
-    /**
-     * 根据应用步骤获取风格配置
-     *
-     * @param posterWrapper 海报步骤
-     * @return 风格配置
-     */
-    public static List<PosterStyleDTO> getPosterStyleListOrEmptyByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
-        // 图片风格配置
-        if (Objects.isNull(posterWrapper)) {
-            return Collections.emptyList();
-        }
-
-        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-            return Collections.emptyList();
-        }
-
-        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
-        if (CollectionUtil.isEmpty(posterStyleList)) {
-            return Collections.emptyList();
-        }
-
-        return posterStyleList;
     }
 
     /**
@@ -648,6 +527,136 @@ public class CreativeUtils {
         }
 
         return posterStyleList;
+    }
+
+    /**
+     * 根据应用步骤获取素材库列表
+     *
+     * @param materialWrapper 应用步骤
+     * @return 素材库列表
+     */
+    public static List<Map<String, Object>> getMaterialListByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+        // 素材列表配置
+        if (Objects.isNull(materialWrapper)) {
+            return Collections.emptyList();
+        }
+
+        // 获取到素材库列表
+        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
+        if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
+            return Collections.emptyList();
+        }
+
+        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
+        if (CollectionUtil.isEmpty(materialList)) {
+            return Collections.emptyList();
+        }
+
+        return materialList;
+    }
+
+    /**
+     * 根据应用步骤获取风格配置
+     *
+     * @param posterWrapper 海报步骤
+     */
+    public static PosterStyleDTO getPosterStyleByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
+        // 图片风格配置
+        if (Objects.isNull(posterWrapper)) {
+            return null;
+        }
+
+        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE);
+        if (StringUtils.isBlank(posterStyleString) || "{}".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+            return null;
+        }
+
+        PosterStyleDTO posterStyle = JsonUtils.parseObject(posterStyleString, PosterStyleDTO.class);
+        if (Objects.isNull(posterStyle)) {
+            return null;
+        }
+
+        return posterStyle;
+    }
+
+    /**
+     * 根据应用步骤获取风格配置
+     *
+     * @param posterWrapper 海报步骤
+     * @return 风格配置
+     */
+    public static List<PosterStyleDTO> getPosterStyleListByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
+        // 图片风格配置
+        if (Objects.isNull(posterWrapper)) {
+            return Collections.emptyList();
+        }
+
+        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+            return Collections.emptyList();
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return Collections.emptyList();
+        }
+
+        return posterStyleList;
+    }
+
+    /**
+     * 根据应用步骤获取自定义风格配置
+     *
+     * @param posterWrapper 海报步骤
+     * @return 风格配置
+     */
+    public static List<PosterStyleDTO> getCustomPosterStyleListByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
+        // 图片风格配置
+        if (Objects.isNull(posterWrapper)) {
+            return Collections.emptyList();
+        }
+
+        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+            return Collections.emptyList();
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return Collections.emptyList();
+        }
+
+        return CollectionUtil.emptyIfNull(posterStyleList).stream()
+                .filter(item -> Objects.isNull(item.getSystem()) || !item.getSystem())
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 根据应用步骤获取系统海报风格配置
+     *
+     * @param posterWrapper 海报步骤
+     * @return 风格配置
+     */
+    public static List<PosterStyleDTO> getSystemPosterStyleListByStepWrapper(WorkflowStepWrapperRespVO posterWrapper) {
+        // 图片风格配置
+        if (Objects.isNull(posterWrapper)) {
+            return Collections.emptyList();
+        }
+
+        String posterStyleString = posterWrapper.getStepModelVariableValue(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+            return Collections.emptyList();
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return Collections.emptyList();
+        }
+
+        return CollectionUtil.emptyIfNull(posterStyleList).stream()
+                .filter(item -> Objects.nonNull(item.getSystem()) && item.getSystem())
+                .collect(Collectors.toList());
     }
 }
 
