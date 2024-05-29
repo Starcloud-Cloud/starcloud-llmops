@@ -255,7 +255,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         Map<String, Object> materialMap = new HashMap<>();
         materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(checkedFieldList));
+        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(mergeCheckedFieldList.stream()
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
         materialMap.put("GENERATE_COUNT", generateCount);
         materialMap.put("JSON_SCHEMA", JsonSchemaUtils.jsonSchema2Str(jsonSchema));
