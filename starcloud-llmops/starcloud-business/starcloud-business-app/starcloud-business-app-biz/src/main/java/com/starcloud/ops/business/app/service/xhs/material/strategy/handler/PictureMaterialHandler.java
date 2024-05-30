@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Component;
 
@@ -102,11 +103,21 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
                     break;
                 }
                 Map<String, Object> pictureMaterial = copyMaterialList.get(0);
-                Optional<Object> first = pictureMaterial.values().stream().findFirst();
-                if (!first.isPresent()) {
-                    break;
+                if (MapUtils.isEmpty(pictureMaterial)) {
+                    throw new IllegalArgumentException("素材列表数据异常！素材数据不能为空！");
                 }
-                variable.setValue(first.get());
+                if (pictureMaterial.size() != 1) {
+                    throw new IllegalArgumentException("素材数据异常！该场景素材字段配置只能有且只有一个素材！且字段为图片类型！");
+                }
+                Optional<Object> first = pictureMaterial.values().stream().findFirst();
+                if (StringUtil.objectBlank(first.get())) {
+                    throw new IllegalArgumentException("素材数据异常！图片素材字段值不能为空！");
+                }
+                String value = first.get().toString();
+                if (!value.startsWith("http")) {
+                    throw new IllegalArgumentException("素材数据异常！图片素材字段值必须为有效的URL地址！");
+                }
+                variable.setValue(value);
                 // 移除已使用的资料库
                 copyMaterialList.remove(0);
             }
