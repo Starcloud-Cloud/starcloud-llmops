@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -101,11 +102,11 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
                     break;
                 }
                 Map<String, Object> pictureMaterial = copyMaterialList.get(0);
-                Object picture = pictureMaterial.get(MATERIAL_KEY);
-                if (StringUtil.objectBlank(picture)) {
-                    picture = "";
+                Optional<Object> first = pictureMaterial.values().stream().findFirst();
+                if (!first.isPresent()) {
+                    break;
                 }
-                variable.setValue(picture);
+                variable.setValue(first.get());
                 // 移除已使用的资料库
                 copyMaterialList.remove(0);
             }
