@@ -171,8 +171,14 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
-        // MATERIAL_LIST 移除选中的字段 uuid,group
-        List<Map<String, Object>> cleanMaterialList = cleanMaterialList(materialList, checkedFieldList);
+        // 排序
+        List<String> sortedField = fieldList.stream()
+                .sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder))
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList());
+
+        // MATERIAL_LIST 移除选中的字段 uuid,group 并排序
+        List<Map<String, Object>> cleanMaterialList = cleanMaterialList(materialList, checkedFieldList, sortedField);
 
         // FIELD_LIST 只保留fieldName,desc两个字段
         List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
@@ -483,18 +489,24 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return fieldMapList;
     }
 
-    private List<Map<String, Object>> cleanMaterialList(List<Map<String, Object>> materialList, List<String> checkedFieldList) {
+    /**
+     * 移除选中的字段 uuid,group 并排序
+     *
+     * @param materialList
+     * @param checkedFieldList
+     * @param sortedField
+     * @return
+     */
+    private List<Map<String, Object>> cleanMaterialList(List<Map<String, Object>> materialList, List<String> checkedFieldList, List<String> sortedField) {
         List<Map<String, Object>> cleanMaterialList = new ArrayList<>(materialList.size());
-        for (Map<String, Object> map : materialList) {
-            Map<String, Object> cleanMaterial = new HashMap<>();
 
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (checkedFieldList.contains(entry.getKey())
-                        || "uuid".equalsIgnoreCase(entry.getKey())
-                        || "group".equalsIgnoreCase(entry.getKey())) {
+        for (Map<String, Object> map : materialList) {
+            Map<String, Object> cleanMaterial = new LinkedHashMap<>();
+            for (String fieldName : sortedField) {
+                if (checkedFieldList.contains(fieldName)) {
                     continue;
                 }
-                cleanMaterial.put(entry.getKey(), entry.getValue());
+                cleanMaterial.put(fieldName, map.get(fieldName));
             }
             cleanMaterialList.add(cleanMaterial);
         }
