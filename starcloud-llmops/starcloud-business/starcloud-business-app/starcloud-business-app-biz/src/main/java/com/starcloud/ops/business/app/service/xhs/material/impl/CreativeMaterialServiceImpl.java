@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
@@ -170,19 +171,18 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
-        for (Map<String, Object> material : materialList) {
-            for (String checked : checkedFieldList) {
-                // 将素材列表中选中的字段值置空，避免AI会根据字段值生成素材
-                if (material.containsKey(checked)) {
-                    material.put(checked, StringUtils.EMPTY);
-                }
-            }
-        }
+        // MATERIAL_LIST 移除选中的字段 uuid,group
+        List<Map<String, Object>> cleanMaterialList = cleanMaterialList(materialList, checkedFieldList);
+
+        // FIELD_LIST 只保留fieldName,desc两个字段
+        List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
 
         Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonString(materialList));
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(checkedFieldList));
+        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonString(cleanMaterialList));
+        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldMapList));
+        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(mergeCheckedFieldList.stream()
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
         materialMap.put("JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
 
@@ -253,8 +253,11 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
+        // FIELD_LIST 只保留fieldName,desc两个字段
+        List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
+
         Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldList));
+        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldMapList));
         materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
@@ -463,6 +466,39 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         }
 
         return objectSchema;
+    }
+
+
+    private List<Map<String, String>> cleanFieldConfig(List<MaterialFieldConfigDTO> fieldList) {
+        List<Map<String, String>> fieldMapList = new ArrayList<>(fieldList.size());
+        for (MaterialFieldConfigDTO fieldConfigDTO : fieldList) {
+            if (MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(fieldConfigDTO.getType())) {
+                continue;
+            }
+            Map<String, String> fieldMap = new HashMap<>();
+            fieldMap.put("fieldName", fieldConfigDTO.getFieldName());
+            fieldMap.put("desc", fieldConfigDTO.getDesc());
+            fieldMapList.add(fieldMap);
+        }
+        return fieldMapList;
+    }
+
+    private List<Map<String, Object>> cleanMaterialList(List<Map<String, Object>> materialList, List<String> checkedFieldList) {
+        List<Map<String, Object>> cleanMaterialList = new ArrayList<>(materialList.size());
+        for (Map<String, Object> map : materialList) {
+            Map<String, Object> cleanMaterial = new HashMap<>();
+
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if (checkedFieldList.contains(entry.getKey())
+                        || "uuid".equalsIgnoreCase(entry.getKey())
+                        || "group".equalsIgnoreCase(entry.getKey())) {
+                    continue;
+                }
+                cleanMaterial.put(entry.getKey(), entry.getValue());
+            }
+            cleanMaterialList.add(cleanMaterial);
+        }
+        return cleanMaterialList;
     }
 
 }

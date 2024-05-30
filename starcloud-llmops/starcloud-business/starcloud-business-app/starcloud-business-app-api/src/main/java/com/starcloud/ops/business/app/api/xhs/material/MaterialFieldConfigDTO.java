@@ -1,13 +1,11 @@
 package com.starcloud.ops.business.app.api.xhs.material;
 
-import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 @Data
 @Schema(description = "素材字段定义")
