@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +149,6 @@ public abstract class AbstractMaterialHandler {
      * @return 海报素材 map
      */
     protected Map<Integer, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList, List<Integer> materialSizeList) {
-        Map<Integer, List<Map<String, Object>>> resultMap = new HashMap<>();
 
         // 提供一个默认的复制逻辑，不同的素材可能需要不同的复制逻辑, 具体子类实现即可
         List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
@@ -172,6 +170,7 @@ public abstract class AbstractMaterialHandler {
         // 2. 如果 collect 的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量
         // 这时候，直接按照 materialSizeList 的数量进行复制即可
         if (collect.size() >= materialSizeList.size()) {
+            Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
             int index = 0;
             for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
                 resultMap.put(index, entry.getValue());
@@ -182,10 +181,12 @@ public abstract class AbstractMaterialHandler {
             }
             return resultMap;
         }
+
         // 3. 否则，一部分按照分组复制，一部分按照默认复制逻辑复制
+        Map<Integer, List<Map<String, Object>>> groupMap = new LinkedHashMap<>();
         int index = 0;
         for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
-            resultMap.put(index, entry.getValue());
+            groupMap.put(index, entry.getValue());
             index++;
         }
 
@@ -202,7 +203,14 @@ public abstract class AbstractMaterialHandler {
 
         // 将没有分组的素材按照默认复制逻辑复制
         Map<Integer, List<Map<String, Object>>> noGroupMap = this.defaultMaterialListMap(noGroupMaterial, subList);
-        resultMap.putAll(noGroupMap);
+
+        // 将分组的素材和没有分组的素材合并
+        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>(groupMap);
+        int noGroupIndex = groupMap.size();
+        for (Map.Entry<Integer, List<Map<String, Object>>> entry : noGroupMap.entrySet()) {
+            resultMap.put(noGroupIndex, entry.getValue());
+            noGroupIndex++;
+        }
 
         return resultMap;
     }
@@ -274,7 +282,7 @@ public abstract class AbstractMaterialHandler {
      */
     protected Map<Integer, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
         // 结果集合
-        Map<Integer, List<Map<String, Object>>> resultMap = new HashMap<>();
+        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
         // 如果素材列表为空或者需要复制的数量集合为空
         if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(needSizeList)) {
