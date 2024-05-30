@@ -5,6 +5,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -180,7 +181,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         Map<String, Object> materialMap = new HashMap<>();
         materialMap.put("MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
         materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonPrettyString(mergeCheckedFieldList.stream()
+        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
@@ -258,7 +259,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         Map<String, Object> materialMap = new HashMap<>();
         materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonPrettyString(mergeCheckedFieldList.stream()
+        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);

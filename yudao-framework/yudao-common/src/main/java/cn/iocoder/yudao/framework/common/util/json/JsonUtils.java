@@ -61,6 +61,12 @@ public class JsonUtils {
         return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
     }
 
+//    public static String toJsonPrettyList() {
+//        JSONUtil.toJsonPrettyStr()
+//    }
+
+
+
     public static <T> T parseObject(String text, Class<T> clazz) {
         if (StrUtil.isEmpty(text)) {
             return null;
