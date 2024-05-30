@@ -178,9 +178,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
 
         Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonString(cleanMaterialList));
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(mergeCheckedFieldList.stream()
+        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
+        materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
+        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonPrettyString(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
@@ -257,8 +257,8 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
 
         Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(mergeCheckedFieldList.stream()
+        materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
+        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonPrettyString(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
