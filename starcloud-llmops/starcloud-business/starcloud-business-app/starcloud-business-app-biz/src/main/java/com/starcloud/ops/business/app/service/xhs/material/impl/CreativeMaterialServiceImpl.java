@@ -166,6 +166,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         // 排序
         List<String> sortedField = fieldList.stream()
+                .filter(config -> !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(config.getType()))
                 .sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder))
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList());
