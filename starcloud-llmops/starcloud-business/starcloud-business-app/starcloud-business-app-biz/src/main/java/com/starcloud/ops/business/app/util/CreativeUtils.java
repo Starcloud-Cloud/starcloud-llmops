@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +156,6 @@ public class CreativeUtils {
     public static List<PosterStyleDTO> preHandlerPosterStyleList(List<PosterStyleDTO> posterStyleList) {
         return posterStyleList.stream()
                 .map(CreativeUtils::handlerPosterStyle)
-                .sorted(Comparator.comparingInt(PosterStyleDTO::getIndex))
                 .collect(Collectors.toList());
     }
 
@@ -332,7 +330,7 @@ public class CreativeUtils {
 
         return posterStyle;
     }
-    
+
     /**
      * 合并海报分割列表
      *
