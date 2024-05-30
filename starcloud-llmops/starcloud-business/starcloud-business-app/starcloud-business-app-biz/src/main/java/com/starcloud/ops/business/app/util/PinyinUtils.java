@@ -146,6 +146,8 @@ public class PinyinUtils {
                 log.error("转为拼音失败：失败的字符：{}，失败原因: {}", character, exception.getMessage());
                 return StringUtils.EMPTY;
             }
+        } else if (Character.isWhitespace(character)) {
+            return StringUtils.EMPTY;
         } else {
             return String.valueOf(character);
         }
