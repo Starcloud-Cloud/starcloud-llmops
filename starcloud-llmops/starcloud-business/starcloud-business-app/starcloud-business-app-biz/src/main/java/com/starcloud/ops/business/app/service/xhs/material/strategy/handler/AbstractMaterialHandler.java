@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +40,11 @@ public abstract class AbstractMaterialHandler {
      * 提取素材索引正则
      */
     private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
+
+    /**
+     * 分组字段
+     */
+    private static final String GROUP_FIELD = "group";
 
     /**
      * 不同的素材类型，验证海报风格的要求可能不一样。
@@ -71,7 +77,7 @@ public abstract class AbstractMaterialHandler {
             return Collections.emptyMap();
         }
 
-        List<Integer> needMaterialSizeList = needMaterialSizeList(posterStyleList);
+        List<Integer> needMaterialSizeList = computeNeedMaterialSize(posterStyleList);
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
         }
@@ -126,14 +132,14 @@ public abstract class AbstractMaterialHandler {
     }
 
     /**
-     * 获取每个海报风格需要的素材数量 <p>
+     * 计算每个海报风格需要的素材数量 <p>
      * 如果需要不同的分组逻辑，子类重写此方法即可
      *
      * @param posterStyleList 海报风格列表
      * @return 每个海报风格需要的素材数量
      */
-    protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
-        return this.defaultNeedMaterialSizeList(posterStyleList);
+    protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
+        return this.defaultComputeNeedMaterialSize(posterStyleList);
     }
 
     /**
@@ -144,8 +150,61 @@ public abstract class AbstractMaterialHandler {
      * @return 海报素材 map
      */
     protected Map<Integer, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList, List<Integer> materialSizeList) {
+        Map<Integer, List<Map<String, Object>>> resultMap = new HashMap<>();
+
         // 提供一个默认的复制逻辑，不同的素材可能需要不同的复制逻辑, 具体子类实现即可
-        return this.defaultMaterialListMap(materialList, materialSizeList);
+        List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
+        // 分组字段不为空的素材
+        List<Map<String, Object>> groupMaterial = copyMaterialList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> StringUtil.objectNotBlank(item.get(GROUP_FIELD)))
+                .collect(Collectors.toList());
+
+        // 1. 如果分组字段为空，直接按照默认的复制逻辑进行复制
+        if (CollectionUtil.isEmpty(groupMaterial)) {
+            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
+        }
+
+        // 将同一组的素材分组，并且保持原有的顺序。
+        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
+                .collect(Collectors.groupingBy(item -> item.get(GROUP_FIELD), LinkedHashMap::new, Collectors.toList()));
+
+        // 2. 如果 collect 的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量
+        // 这时候，直接按照 materialSizeList 的数量进行复制即可
+        if (collect.size() >= materialSizeList.size()) {
+            int index = 0;
+            for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
+                resultMap.put(index, entry.getValue());
+                index++;
+                if (index >= materialSizeList.size()) {
+                    break;
+                }
+            }
+            return resultMap;
+        }
+        // 3. 否则，一部分按照分组复制，一部分按照默认复制逻辑复制
+        int index = 0;
+        for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
+            resultMap.put(index, entry.getValue());
+            index++;
+        }
+
+        // 此时不需要担心下标越界，因为 collect.size() < materialSizeList.size()
+        // 剩余的部分按照默认复制逻辑复制
+        // 截取 materialSizeList 的剩余部分
+        List<Integer> subList = materialSizeList.subList(collect.size(), materialSizeList.size());
+
+        // 分组字段为空的素材
+        List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> Objects.isNull(item.get(GROUP_FIELD)))
+                .collect(Collectors.toList());
+
+        // 将没有分组的素材按照默认复制逻辑复制
+        Map<Integer, List<Map<String, Object>>> noGroupMap = this.defaultMaterialListMap(noGroupMaterial, subList);
+        resultMap.putAll(noGroupMap);
+
+        return resultMap;
     }
 
     /**
@@ -154,7 +213,7 @@ public abstract class AbstractMaterialHandler {
      * @param posterStyleList 海报列表
      * @return 风格海报素材选择最大索引列表
      */
-    protected List<Integer> defaultNeedMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
+    protected List<Integer> defaultComputeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
         List<Integer> materialIndexList = new ArrayList<>();
         for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
             // 如果风格为空，填充 0
@@ -230,11 +289,8 @@ public abstract class AbstractMaterialHandler {
             return item;
         }).collect(Collectors.toList());
 
-        // 深度复制一份资料库列表，避免修改原列表
-        List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
-
         // 记录原始素材列表的大小
-        int originalSize = copyMaterialList.size();
+        int originalSize = materialList.size();
         // 计算需要复制的总数
         int copyTotal = needSizeList.stream().mapToInt(Integer::intValue).sum();
 
@@ -244,7 +300,7 @@ public abstract class AbstractMaterialHandler {
             int requiredSize = copyTotal - originalSize;
             // 将imageList从头开始按顺序复制，直至满足扩容要求
             for (int i = 0; i < requiredSize; i++) {
-                copyMaterialList.add(copyMaterialList.get(i % originalSize));
+                materialList.add(materialList.get(i % originalSize));
             }
         }
 
@@ -252,7 +308,7 @@ public abstract class AbstractMaterialHandler {
         int currentIndex = 0;
         for (int i = 0; i < needSizeList.size(); i++) {
             int size = needSizeList.get(i);
-            List<Map<String, Object>> copiedImages = new ArrayList<>(copyMaterialList.subList(currentIndex, currentIndex + size));
+            List<Map<String, Object>> copiedImages = new ArrayList<>(materialList.subList(currentIndex, currentIndex + size));
             resultMap.put(i, copiedImages);
             currentIndex += size;
         }
@@ -298,6 +354,5 @@ public abstract class AbstractMaterialHandler {
         }
         return Integer.valueOf(matcher.group(1));
     }
-
 
 }

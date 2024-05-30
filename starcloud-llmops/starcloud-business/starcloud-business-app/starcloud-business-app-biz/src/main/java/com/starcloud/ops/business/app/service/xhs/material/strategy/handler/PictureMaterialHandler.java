@@ -47,7 +47,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
      * @return 每个海报风格需要的素材数量
      */
     @Override
-    protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
+    protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
         return CollectionUtil.emptyIfNull(posterStyleList)
                 .stream()
                 .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
