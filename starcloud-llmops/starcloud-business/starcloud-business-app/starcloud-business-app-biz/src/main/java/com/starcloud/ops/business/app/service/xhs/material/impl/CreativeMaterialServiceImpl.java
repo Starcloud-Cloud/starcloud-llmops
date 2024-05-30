@@ -5,6 +5,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -47,14 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -171,8 +165,15 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
-        // MATERIAL_LIST 移除选中的字段 uuid,group
-        List<Map<String, Object>> cleanMaterialList = cleanMaterialList(materialList, checkedFieldList);
+        // 排序
+        List<String> sortedField = fieldList.stream()
+                .filter(config -> !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(config.getType()))
+                .sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder))
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList());
+
+        // MATERIAL_LIST 移除选中的字段 uuid,group 并排序
+        List<Map<String, Object>> cleanMaterialList = cleanMaterialList(materialList, checkedFieldList, sortedField);
 
         // FIELD_LIST 只保留fieldName,desc两个字段
         List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
@@ -180,7 +181,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         Map<String, Object> materialMap = new HashMap<>();
         materialMap.put("MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
         materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonPrettyString(mergeCheckedFieldList.stream()
+        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
@@ -258,7 +259,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         Map<String, Object> materialMap = new HashMap<>();
         materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonPrettyString(mergeCheckedFieldList.stream()
+        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
@@ -483,18 +484,24 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return fieldMapList;
     }
 
-    private List<Map<String, Object>> cleanMaterialList(List<Map<String, Object>> materialList, List<String> checkedFieldList) {
+    /**
+     * 移除选中的字段 uuid,group 并排序
+     *
+     * @param materialList
+     * @param checkedFieldList
+     * @param sortedField
+     * @return
+     */
+    private List<Map<String, Object>> cleanMaterialList(List<Map<String, Object>> materialList, List<String> checkedFieldList, List<String> sortedField) {
         List<Map<String, Object>> cleanMaterialList = new ArrayList<>(materialList.size());
-        for (Map<String, Object> map : materialList) {
-            Map<String, Object> cleanMaterial = new HashMap<>();
 
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (checkedFieldList.contains(entry.getKey())
-                        || "uuid".equalsIgnoreCase(entry.getKey())
-                        || "group".equalsIgnoreCase(entry.getKey())) {
+        for (Map<String, Object> map : materialList) {
+            Map<String, Object> cleanMaterial = new LinkedHashMap<>();
+            for (String fieldName : sortedField) {
+                if (checkedFieldList.contains(fieldName)) {
                     continue;
                 }
-                cleanMaterial.put(entry.getKey(), entry.getValue());
+                cleanMaterial.put(fieldName, map.get(fieldName));
             }
             cleanMaterialList.add(cleanMaterial);
         }
