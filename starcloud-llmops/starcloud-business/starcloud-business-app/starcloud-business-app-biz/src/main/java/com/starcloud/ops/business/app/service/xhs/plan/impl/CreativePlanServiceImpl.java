@@ -19,12 +19,9 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchListReqVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
@@ -48,7 +45,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterAction
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
@@ -401,33 +397,50 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 creativePlanBatchService.updateStatus(batchUid);
 
                 // 查询当前计划下所有的创作批次
-                CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
-                bathQuery.setPlanUid(planUid);
-                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.listStatus(bathQuery));
+//                CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
+//                bathQuery.setPlanUid(planUid);
+//                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.listStatus(bathQuery));
+//
+//                // 查询当前计划下所有的创作内容
+//                CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
+//                contentQuery.setPlanUid(planUid);
+//                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listStatus(contentQuery));
+//
+//                // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
+//                boolean bathComplete = batchList.stream()
+//                        .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
+//                boolean contentComplete = contentList.stream()
+//                        .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
+//                if (bathComplete && contentComplete) {
+//                    log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
+//                    updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
+//                    log.info("更新计划状态【结束】，planUid: {}", planUid);
+//                    return;
+//                }
+//
+//                // 当前计划下只要有彻底失败的，则计划失败
+//                boolean contentFailure = contentList.stream()
+//                        .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
+//
+//                if (contentFailure) {
+//                    log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
+//                    updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
+//                    log.info("更新计划状态【结束】，planUid: {}", planUid);
+//                    return;
+//                }
 
-                // 查询当前计划下所有的创作内容
-                CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
-                contentQuery.setPlanUid(planUid);
-                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listStatus(contentQuery));
-
-                // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
-                boolean bathComplete = batchList.stream()
-                        .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
-                boolean contentComplete = contentList.stream()
-                        .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
-
-                if (bathComplete && contentComplete) {
+                // 查询当前批次
+                CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+                // 如果当前批次是完成状态，则计划完成
+                if (CreativePlanStatusEnum.COMPLETE.name().equals(batch.getStatus())) {
                     log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
                     updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
                     log.info("更新计划状态【结束】，planUid: {}", planUid);
                     return;
                 }
 
-                // 当前计划下只要有彻底失败的，则计划失败
-                boolean contentFailure = contentList.stream()
-                        .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
-
-                if (contentFailure) {
+                // 如果当前批次是失败状态，则计划失败
+                if (CreativePlanStatusEnum.FAILURE.name().equals(batch.getStatus())) {
                     log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
                     updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
                     log.info("更新计划状态【结束】，planUid: {}", planUid);
