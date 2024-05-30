@@ -1,6 +1,7 @@
-package com.starcloud.ops.biz.controller.admin.elementtype.vo;
+package com.starcloud.ops.biz.controller.admin.materialcategory.vo;
 
 import lombok.*;
+import java.util.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -8,23 +9,23 @@ import java.time.LocalDateTime;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
-@Schema(description = "管理后台 - 海报元素类型分页 Request VO")
+@Schema(description = "管理后台 - 素材分类分页 Request VO")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class ElementTypePageReqVO extends PageParam {
+public class MaterialCategoryPageReqVO extends PageParam {
 
-    @Schema(description = "uid", example = "5580")
-    private String uid;
+    @Schema(description = "父分类编号", example = "20467")
+    private Long parentId;
 
-    @Schema(description = "状态", example = "2")
-    private Integer status;
+    @Schema(description = "分类名称", example = "王五")
+    private String name;
 
-    @Schema(description = "标签")
-    private String label;
+    @Schema(description = "缩略图")
+    private String thumbnail;
 
-    @Schema(description = "次序")
-    private Integer order;
+    @Schema(description = "分类排序")
+    private Integer sort;
 
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

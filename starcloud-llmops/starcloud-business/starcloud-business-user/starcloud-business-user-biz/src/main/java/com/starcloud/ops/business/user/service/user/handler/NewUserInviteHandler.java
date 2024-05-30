@@ -14,6 +14,8 @@ import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.util.Objects;
@@ -45,8 +47,6 @@ public class NewUserInviteHandler implements NewUserHandler {
      */
     @Override
     public void afterUserRegister(AdminUserDO adminUserDO, AdminUserDO inviteUserDO) {
-
-
         log.info("【新用户注册 邀请人权益发放】，准备为邀请人发送邀请权益");
 
         // 判断是否存在邀请人
@@ -78,7 +78,16 @@ public class NewUserInviteHandler implements NewUserHandler {
         adminUserRightsService.createRights(commonDTO, inviteUserDO.getId(), bizTypeEnum.getType(), String.valueOf(invitationId));
         log.info("【afterUserRegister】邀请人信息设置成功,基础权益发放完成");
 
-        adminUserInviteService.setInviteRights(inviteUserDO, invitationId);
+
+        // 必须在事务提交后，在发起任务，否则 邀请数据还没入库，就提前回调接入的业务
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                adminUserInviteService.setInviteRights(inviteUserDO, invitationId);
+            }
+        });
+
+
         log.info("【afterUserRegister】邀请人权益发放，邀请人权益发放成功");
 
     }
