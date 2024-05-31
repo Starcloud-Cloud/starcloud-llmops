@@ -367,6 +367,8 @@ public class AppMarketServiceImpl implements AppMarketService {
         String appName = appEntity.getName() + RandomStringUtils.randomAlphanumeric(6);
         appEntity.setName(randomName(appName, appEntity.getName()));
         appEntity.setSource(AppSourceEnum.MARKET.name());
+        appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.insert();
