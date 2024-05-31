@@ -859,7 +859,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         AppMarketRespVO appInformation = configuration.getAppInformation();
         // 应用校验
-        validAppInformation(appInformation);
+        CreativeUtils.validAppInformation(appInformation);
 
         // 图片风格
         validImage(appInformation, configuration);
@@ -869,55 +869,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 处理海报风格数据
         validPoster(configuration, request);
-    }
-
-    /**
-     * 处理并且校验应用
-     *
-     * @param appInformation 应用信息
-     */
-    private void validAppInformation(AppMarketRespVO appInformation) {
-        List<WorkflowStepWrapperRespVO> customStepWrapperList = Optional.ofNullable(appInformation)
-                .map(AppMarketRespVO::getWorkflowConfig)
-                .map(WorkflowConfigRespVO::getSteps)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE))
-                .stream()
-                .filter(item -> CustomActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                .collect(Collectors.toList());
-        for (WorkflowStepWrapperRespVO stepWrapper : customStepWrapperList) {
-            VariableItemRespVO generateModeVariable = stepWrapper.getVariable(CreativeConstants.GENERATE_MODE);
-            if (Objects.isNull(generateModeVariable) || Objects.isNull(generateModeVariable.getValue())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，生成模式不能为空！"));
-            }
-            // 参考素材变量
-            VariableItemRespVO refersVariable = stepWrapper.getVariable(CreativeConstants.REFERS);
-            // 文案生成要求变量
-            VariableItemRespVO requirementVariable = stepWrapper.getVariable(CreativeConstants.REQUIREMENT);
-            // 生成模式
-            String generateMode = String.valueOf(generateModeVariable.getValue());
-            // 生成模式校验, 随机生成和AI模仿生成需要参考素材
-            if (CreativeSchemeGenerateModeEnum.RANDOM.name().equals(generateMode) ||
-                    CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
-                if (Objects.isNull(refersVariable) || Objects.isNull(refersVariable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，参考素材不能为空！"));
-                }
-                String refers = String.valueOf(refersVariable.getValue());
-                if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，参考素材不能为空！"));
-                }
-            }
-            // AI自定义校验，文案生成要求不能为空
-            else {
-                if (Objects.isNull(requirementVariable) || Objects.isNull(requirementVariable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，文案生成要求不能为空！"));
-                }
-                String requirement = String.valueOf(requirementVariable.getValue());
-                if (StringUtils.isBlank(requirement)) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，文案生成要求不能为空！"));
-                }
-            }
-        }
-
     }
 
     /**

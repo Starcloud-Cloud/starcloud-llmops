@@ -23,7 +23,6 @@ import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.operate.AppOperateConvert;
-import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.operate.AppOperateDO;
@@ -233,26 +232,6 @@ public class AppMarketServiceImpl implements AppMarketService {
 
         // 查询用户收藏的应用Map, key为应用市场 UID
         Map<String, AppFavoriteDO> favoriteMap = appFavoritesMapper.mapByUserId(String.valueOf(loginUserId));
-
-        // 查询我的应用列表
-        LambdaQueryWrapper<AppDO> appLambdaQuery = appMapper.queryWrapper(Boolean.TRUE);
-        appLambdaQuery.eq(AppDO::getCreator, loginUserId);
-        appLambdaQuery.orderByDesc(AppDO::getUpdateTime);
-        appLambdaQuery.last("LIMIT 10");
-
-        List<AppDO> appList = appMapper.selectList(appLambdaQuery);
-        List<AppMarketRespVO> myAppList = CollectionUtil.emptyIfNull(appList).stream()
-                .map(AppConvert.INSTANCE::convertResponse)
-                .map(AppMarketConvert.INSTANCE::convert)
-                .collect(Collectors.toList());
-
-        AppMarketGroupCategoryRespVO myAppResponse = new AppMarketGroupCategoryRespVO();
-        myAppResponse.setName("我的应用");
-        myAppResponse.setCode("MY_APP");
-        myAppResponse.setParentCode("ROOT");
-        myAppResponse.setIcon("my-app");
-        myAppResponse.setAppList(myAppList);
-        result.add(myAppResponse);
 
         // 是否查询热门搜索的应用
         if (query.getIsHot()) {

@@ -4,7 +4,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -17,15 +21,20 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialS
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import org.apache.commons.lang3.SerializationUtils;
@@ -37,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -643,6 +653,89 @@ public class CreativeUtils {
         return CollectionUtil.emptyIfNull(posterStyleList).stream()
                 .filter(item -> Objects.nonNull(item.getSystem()) && item.getSystem())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 处理并且校验应用
+     *
+     * @param appInformation 应用信息
+     */
+    public static void validAppInformation(AppMarketRespVO appInformation) {
+
+        List<WorkflowStepWrapperRespVO> stepWrappers = appInformation.getWorkflowConfig().getSteps();
+        AppValidate.notEmpty(stepWrappers, "应用最少需要一个步骤！");
+        for (WorkflowStepWrapperRespVO stepWrapper : stepWrappers) {
+            // name 不能重复
+            if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
+            }
+        }
+        // 如果类型为媒体素材
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType())) {
+            // 第一个步骤必须是：上传素材步骤，有且只有一个
+            boolean materialCount = stepWrappers.stream()
+                    .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！且有且只能有一个！"));
+            }
+            // 最后一个步骤必须是图片生成步骤, 有且只有一个
+            boolean posterMatch = stepWrappers.stream()
+                    .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
+            }
+            // 必须包含笔记生成步骤, 有且只有一个
+            boolean assembleMatch = stepWrappers.stream()
+                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!assembleMatch) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！且有且只能有一个！"));
+            }
+        }
+
+        List<WorkflowStepWrapperRespVO> customStepWrapperList = Optional.ofNullable(appInformation)
+                .map(AppMarketRespVO::getWorkflowConfig)
+                .map(WorkflowConfigRespVO::getSteps)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE))
+                .stream()
+                .filter(item -> CustomActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                .collect(Collectors.toList());
+        for (WorkflowStepWrapperRespVO stepWrapper : customStepWrapperList) {
+            VariableItemRespVO generateModeVariable = stepWrapper.getVariable(CreativeConstants.GENERATE_MODE);
+            if (Objects.isNull(generateModeVariable) || Objects.isNull(generateModeVariable.getValue())) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，生成模式不能为空！"));
+            }
+            // 参考素材变量
+            VariableItemRespVO refersVariable = stepWrapper.getVariable(CreativeConstants.REFERS);
+            // 文案生成要求变量
+            VariableItemRespVO requirementVariable = stepWrapper.getVariable(CreativeConstants.REQUIREMENT);
+            // 生成模式
+            String generateMode = String.valueOf(generateModeVariable.getValue());
+            // 生成模式校验, 随机生成和AI模仿生成需要参考素材
+            if (CreativeSchemeGenerateModeEnum.RANDOM.name().equals(generateMode) ||
+                    CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
+                if (Objects.isNull(refersVariable) || Objects.isNull(refersVariable.getValue())) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，参考素材不能为空！"));
+                }
+                String refers = String.valueOf(refersVariable.getValue());
+                if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，参考素材不能为空！"));
+                }
+            }
+            // AI自定义校验，文案生成要求不能为空
+            else {
+                if (Objects.isNull(requirementVariable) || Objects.isNull(requirementVariable.getValue())) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，文案生成要求不能为空！"));
+                }
+                String requirement = String.valueOf(requirementVariable.getValue());
+                if (StringUtils.isBlank(requirement)) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，文案生成要求不能为空！"));
+                }
+            }
+        }
+
     }
 }
 

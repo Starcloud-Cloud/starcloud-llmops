@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.content.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -41,12 +42,14 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.redisson.api.RLock;
@@ -60,6 +63,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -98,6 +102,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Resource
     private AppStepStatusCache appStepStatusCache;
+
+    @Resource
+    private CreativeThreadPoolHolder creativeThreadPoolHolder;
 
     /**
      * 获取创作内容详情
@@ -317,6 +324,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             request.validate();
             CreativeContentExecuteParam executeParam = request.getExecuteParam();
             AppMarketRespVO appInformation = executeParam.getAppInformation();
+            CreativeUtils.validAppInformation(appInformation);
 
             // 素材步骤
             WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
@@ -324,8 +332,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 获取素材库类型
             String businessType = materialWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
-//            AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
-
+            // 判断修改业务类型
+            Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
+            businessType = isPicture ? CreativeConstants.PICTURE : businessType;
+            materialWrapper.updateStepVariableValue(CreativeConstants.BUSINESS_TYPE, businessType);
 
             // 获取资料库的具体处理器
             AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
@@ -397,15 +407,23 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             executeRequest.setForce(Boolean.TRUE);
             executeRequest.setTenantId(content.getTenantId());
 
-            // 执行创作内容生成
-            creativeExecuteManager.execute(executeRequest);
-
-            // 重新生成之后，重新更新创作状态
-            creativePlanService.updatePlanStatus(content.getPlanUid(), content.getBatchUid());
-
+            // 异步执行
+            ThreadPoolExecutor executor = creativeThreadPoolHolder.executor();
+            executor.execute(() -> {
+                // 执行创作内容生成
+                creativeExecuteManager.execute(executeRequest);
+                // 重新生成之后，重新更新创作状态
+                creativePlanService.updatePlanStatus(content.getPlanUid(), content.getBatchUid());
+            });
+        } catch (ServiceException exception) {
+            log.error("创作内容重试执行失败", exception);
+            throw exception;
         } catch (InterruptedException e) {
             log.error("创作内容重试执行失败", e);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw ServiceExceptionUtil.exception(new ErrorCode(710100111, e.getMessage()));
         } finally {
             lock.unlock();
         }
