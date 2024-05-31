@@ -3,9 +3,6 @@ package com.starcloud.ops.business.poster.enums.material;
 import cn.iocoder.yudao.framework.common.core.IntArrayValuable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.util.Arrays;
 
 /**
  * 素材类似枚举

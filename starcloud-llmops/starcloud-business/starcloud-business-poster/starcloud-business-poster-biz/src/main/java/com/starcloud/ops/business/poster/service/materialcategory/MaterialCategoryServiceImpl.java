@@ -21,6 +21,7 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.PARENT_ID_NULL;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
 
 /**
  * 素材分类 Service 实现类
