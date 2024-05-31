@@ -74,6 +74,8 @@ public class JsonSchemaParser implements OutputParser<JSON> {
         try {
             log.info("生成结果格式化处理开始({}) 原始值: {}", this.getClass().getSimpleName(), text);
             text = StrUtil.replaceFirst(text, "```json", "", true);
+            text = StrUtil.replaceFirst(text, "```json", "", true);
+            text = StrUtil.replaceLast(text, "```", "", true);
             text = StrUtil.replaceLast(text, "```", "", true);
             // 先进行正常的 JSON 格式化处理
             JSON json = JSONUtil.parse(text);

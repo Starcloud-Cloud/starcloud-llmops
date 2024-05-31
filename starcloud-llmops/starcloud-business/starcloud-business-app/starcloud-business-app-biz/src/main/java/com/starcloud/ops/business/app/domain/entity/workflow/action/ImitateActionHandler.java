@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @TaskComponent
+@Deprecated
 public class ImitateActionHandler extends BaseActionHandler {
 
     @NoticeVar

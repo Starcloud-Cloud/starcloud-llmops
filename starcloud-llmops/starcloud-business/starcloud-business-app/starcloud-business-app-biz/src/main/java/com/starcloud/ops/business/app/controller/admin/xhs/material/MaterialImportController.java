@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.material;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.MaterialUploadReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
@@ -33,18 +34,19 @@ public class MaterialImportController {
     }
 
     @Operation(summary = "下载素材模板")
-    @GetMapping("/export/{materialType}")
+    @GetMapping("/download/template")
     @OperateLog(enable = false)
-    public void downloadTemplate(@PathVariable("materialType") String materialType,
-                                HttpServletResponse response){
-        parseMaterialService.downloadTemplate(materialType, response);
+    public void downloadTemplate(@RequestParam("uid") String uid,
+                                 @RequestParam("planSource") String planSource,
+                                 HttpServletResponse response) {
+        parseMaterialService.downloadTemplate(uid, planSource, response);
     }
 
     @PostMapping("/import")
     @Operation(summary = "导入素材", description = "导入素材")
     @OperateLog(enable = false)
-    public CommonResult<String> importMaterial(@RequestParam("file") MultipartFile file) {
-        return CommonResult.success(parseMaterialService.parseToRedis(file));
+    public CommonResult<String> importMaterial(@Valid MaterialUploadReqVO uploadReqVO) {
+        return CommonResult.success(parseMaterialService.parseToRedis(uploadReqVO));
     }
 
     @PostMapping("/parse")

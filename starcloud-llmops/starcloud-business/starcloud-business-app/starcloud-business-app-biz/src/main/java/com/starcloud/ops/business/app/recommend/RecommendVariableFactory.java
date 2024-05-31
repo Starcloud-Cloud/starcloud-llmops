@@ -134,7 +134,7 @@ public class RecommendVariableFactory {
         // 素材类型
         VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixMaterialType();
         materialType.setOrder(2);
-        materialType.setIsShow(Boolean.FALSE);
+        materialType.setIsShow(Boolean.TRUE);
 
         // 素材参考数量
         VariableItemRespVO refersCount = RecommendVariableItemFactory.defMediaMatrixRefersCount();
@@ -373,20 +373,25 @@ public class RecommendVariableFactory {
         materialTypeVariable.setOrder(1);
         materialTypeVariable.setIsShow(Boolean.FALSE);
 
+        VariableItemRespVO materialDefineVariable = RecommendVariableItemFactory.defMaterialDefineVariable();
+        materialDefineVariable.setOrder(2);
+        materialDefineVariable.setIsShow(Boolean.FALSE);
+
         VariableItemRespVO materialListVariable = RecommendVariableItemFactory.defMaterialListVariable();
-        materialListVariable.setOrder(2);
-        materialListVariable.setIsShow(Boolean.TRUE);
+        materialListVariable.setOrder(3);
+        materialListVariable.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO materialGenerateConfigVariable = RecommendVariableItemFactory.defMaterialGenerateConfigVariable();
-        materialGenerateConfigVariable.setOrder(3);
+        materialGenerateConfigVariable.setOrder(4);
         materialGenerateConfigVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO customMaterialGenerateConfigVariable = RecommendVariableItemFactory.defCustomMaterialGenerateConfigVariable();
-        customMaterialGenerateConfigVariable.setOrder(4);
+        customMaterialGenerateConfigVariable.setOrder(5);
         customMaterialGenerateConfigVariable.setIsShow(Boolean.TRUE);
 
         variable.setVariables(Arrays.asList(
                 materialTypeVariable,
+                materialDefineVariable,
                 materialListVariable,
                 materialGenerateConfigVariable,
                 customMaterialGenerateConfigVariable

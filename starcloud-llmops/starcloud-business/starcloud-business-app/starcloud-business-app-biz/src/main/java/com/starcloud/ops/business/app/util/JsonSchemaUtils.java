@@ -1,26 +1,25 @@
 package com.starcloud.ops.business.app.util;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
-import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +28,9 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_MATERIAL_DEFINE;
 
 /**
  * @author nacoyer
@@ -133,6 +135,7 @@ public class JsonSchemaUtils {
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
@@ -203,6 +206,8 @@ public class JsonSchemaUtils {
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
@@ -227,6 +232,7 @@ public class JsonSchemaUtils {
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
@@ -592,10 +598,26 @@ public class JsonSchemaUtils {
         return jsonSchema;
     }
 
-    public static void main(String[] args) {
-        String string = generateJsonSchemaStr(BookListCreativeMaterialDTO.class);
-        System.out.println(string);
-        CreativeOptionDTO a = jsonSchemaToOptions(CreativeOptionDTO.class, "生成文本", CreativeOptionModelEnum.STEP_RESPONSE.name());
-        System.out.println(a);
+    /**
+     * 素材自定义配置生成 jsonschema
+     *
+     * @param materialDefineJson
+     * @return
+     */
+    public static JsonSchema expendGenerateJsonSchema(String materialDefineJson) {
+        ObjectSchema obj = new ObjectSchema();
+        if (StringUtils.isBlank(materialDefineJson)) {
+            return obj;
+        }
+        List<MaterialFieldConfigDTO> configList = MaterialDefineUtil.parseConfig(materialDefineJson);
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(configList.size());
+        for (MaterialFieldConfigDTO materialFieldConfigDTO : configList) {
+            StringSchema schema = new StringSchema();
+            schema.setDescription(materialFieldConfigDTO.getDesc() + "-" + materialFieldConfigDTO.getType());
+            properties.put(materialFieldConfigDTO.getFieldName(), schema);
+        }
+        obj.setProperties(properties);
+        return obj;
     }
+
 }

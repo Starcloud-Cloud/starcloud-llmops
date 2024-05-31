@@ -11,6 +11,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 
 @Data
 @Accessors(chain = false)
+@Deprecated
 public class SnackRecipeCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = -5645484220659667132L;

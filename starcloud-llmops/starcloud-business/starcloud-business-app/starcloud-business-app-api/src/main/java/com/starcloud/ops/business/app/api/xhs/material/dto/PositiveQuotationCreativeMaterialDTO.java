@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = false)
+@Deprecated
 public class PositiveQuotationCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = 8909813313202932654L;

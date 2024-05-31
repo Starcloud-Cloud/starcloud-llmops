@@ -93,9 +93,9 @@ public class MaterialHandlerHolder implements ApplicationContextAware {
                 log.warn("资料库处理器[{}]未配置资料库类型！", matterialHandler.getKey());
                 continue;
             }
-            MaterialTypeEnum value = annotation.value();
-            if (!MATERIAL_HANDLER_MAP.containsKey(value.getTypeCode())) {
-                MATERIAL_HANDLER_MAP.put(value.getTypeCode(), matterialHandler.getValue());
+            String typeCode = annotation.value();
+            if (!MATERIAL_HANDLER_MAP.containsKey(typeCode)) {
+                MATERIAL_HANDLER_MAP.put(typeCode, matterialHandler.getValue());
             }
         }
         log.info("初始化资料库处理器完成: MATERIAL_HANDLER_MAP: {}", MATERIAL_HANDLER_MAP);

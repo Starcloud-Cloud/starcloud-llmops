@@ -1,13 +1,11 @@
 package com.starcloud.ops.business.app.api.xhs.material;
 
-import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 @Data
 @Schema(description = "素材字段定义")
@@ -23,6 +21,9 @@ public class MaterialFieldConfigDTO {
     @Schema(description = "字段是否必填")
     private boolean required = false;
 
+    @Schema(description = "字段顺序")
+    private int order;
+
     /**
      * {@link MaterialFieldTypeEnum#getTypeCode()}
      */
@@ -31,8 +32,4 @@ public class MaterialFieldConfigDTO {
     @InEnum(value = MaterialFieldTypeEnum.class, field = InEnum.EnumField.CODE, message = "素材字段类型({value}) 必须属于: {values}")
     private String type;
 
-
-    public static List<MaterialFieldConfigDTO> parse(String MaterialFieldJSON) {
-        return JSONUtil.parseArray(MaterialFieldJSON).toList(MaterialFieldConfigDTO.class);
-    }
 }

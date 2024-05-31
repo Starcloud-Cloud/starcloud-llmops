@@ -23,5 +23,5 @@ public @interface MaterialType {
      *
      * @return 资料库类型枚举
      */
-    MaterialTypeEnum value();
+    String value();
 }

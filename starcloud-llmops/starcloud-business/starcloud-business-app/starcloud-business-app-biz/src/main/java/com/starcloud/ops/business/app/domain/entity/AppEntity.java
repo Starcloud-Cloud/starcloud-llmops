@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -20,6 +21,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -30,12 +32,16 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -114,12 +120,37 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             return;
         }
         List<WorkflowStepWrapper> stepWrappers = config.getSteps();
+        AppValidate.notEmpty(stepWrappers, "应用最少需要一个步骤！");
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
             if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
                 throw exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
             }
             stepWrapper.validate();
+        }
+        // 如果类型为媒体素材
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
+            // 第一个步骤必须是：上传素材步骤，有且只有一个
+            boolean materialCount = stepWrappers.stream()
+                    .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！且有且只能有一个！"));
+            }
+            // 最后一个步骤必须是图片生成步骤, 有且只有一个
+            boolean posterMatch = stepWrappers.stream()
+                    .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
+            }
+            // 必须包含笔记生成步骤, 有且只有一个
+            boolean assembleMatch = stepWrappers.stream()
+                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!assembleMatch) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！且有且只能有一个！"));
+            }
         }
         config.setSteps(stepWrappers);
         this.setWorkflowConfig(config);

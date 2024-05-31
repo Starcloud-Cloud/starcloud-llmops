@@ -11,6 +11,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 
 @Data
 @Accessors(chain = false)
+@Deprecated
 public class ContractCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = -3928689367907211655L;

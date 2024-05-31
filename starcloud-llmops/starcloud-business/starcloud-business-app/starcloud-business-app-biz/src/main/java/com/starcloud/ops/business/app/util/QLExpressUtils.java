@@ -4,10 +4,12 @@ import cn.hutool.core.util.StrUtil;
 import com.ql.util.express.DefaultContext;
 import com.ql.util.express.ExpressRunner;
 import com.ql.util.express.config.QLExpressRunStrategy;
+import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.util.qlOperator.ListOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -63,6 +65,7 @@ public class QLExpressUtils {
 
     /**
      * 把字符串中的占位符进行 QLExpress 的批量替换
+     *
      * @param content
      * @param params
      * @param defEmpty 占位符不存在是否返回空字符串
@@ -105,9 +108,9 @@ public class QLExpressUtils {
             StringBuffer varsBuffer = new StringBuffer();
             while (matcher.find()) {
                 String variable = matcher.group(1);
-                String vars = (String) executeNative(variable, rootMap);
+                String vars = String.valueOf(executeNative(variable, rootMap));
 
-                if (vars != null) {
+                if (!StringUtils.isBlank(vars) && !"null".equalsIgnoreCase(vars)) {
                     matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
                 } else {
                     if (defEmpty) {
@@ -120,7 +123,7 @@ public class QLExpressUtils {
 
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.execute is fail: {}. content: {}", e.getMessage(), content);
+            log.error("QLExpressUtils.execute is fail ", e);
         }
 
         return content;
@@ -145,9 +148,9 @@ public class QLExpressUtils {
             StringBuffer varsBuffer = new StringBuffer();
             while (matcher.find()) {
                 String variable = matcher.group(1);
-                String vars = (String) executeNative(variable, rootMap);
+                String vars = String.valueOf(executeNative(variable, rootMap));
 
-                if (vars != null) {
+                if (!StringUtils.isBlank(vars) && !"null".equalsIgnoreCase(vars)) {
                     matcher.appendReplacement(varsBuffer, Matcher.quoteReplacement(vars));
                 } else {
                     matcher.appendReplacement(varsBuffer, StringUtils.EMPTY);
@@ -174,7 +177,7 @@ public class QLExpressUtils {
             return r;
         } catch (Exception e) {
 
-            log.error("QLExpressUtils.executeNative is fail: {}, content: {}", e.getMessage(), content);
+            log.error("QLExpressUtils.executeNative is fail content: {}", content, e);
 
         }
 

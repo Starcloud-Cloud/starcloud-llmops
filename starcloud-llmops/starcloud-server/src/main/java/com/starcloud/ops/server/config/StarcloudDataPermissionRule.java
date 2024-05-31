@@ -45,7 +45,11 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "llm_creative_plan_batch",
             "llm_creative_content",
             "llm_single_mission",
-            "llm_notification"
+            "llm_notification",
+            "poster_element",
+            "poster_elementtype",
+            "poster_template",
+            "poster_templatetype"
     );
 
     @Resource

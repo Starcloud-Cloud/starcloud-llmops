@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -23,13 +24,13 @@ public class CreativeMaterialGenerationDTO implements Serializable {
      * 素材列表
      */
     @Schema(description = "素材列表")
-    private List<AbstractCreativeMaterialDTO> materialList;
+    private List<Map<String, Object>> materialList;
 
     /**
      * 所有字段定义列表
      */
     @Schema(description = "所有字段定义列表")
-    private List<FieldDefinitionDTO> fieldList;
+    private List<MaterialFieldConfigDTO> fieldList;
 
     /**
      * 选中的字段定义列表

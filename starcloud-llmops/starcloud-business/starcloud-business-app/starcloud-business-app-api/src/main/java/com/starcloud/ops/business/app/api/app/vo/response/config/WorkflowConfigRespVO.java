@@ -163,10 +163,12 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     @JsonIgnore
     @JSONField(serialize = false)
     public void merge(WorkflowConfigRespVO workflowConfig) {
+        // 如果为空，则不进行合并处理
         if (CollectionUtil.isEmpty(this.steps) || CollectionUtil.isEmpty(workflowConfig.getSteps())) {
             return;
         }
 
+        // 将配置信息转换为map
         Map<String, WorkflowStepWrapperRespVO> stepWrapperMap = workflowConfig.getSteps()
                 .stream()
                 .collect(Collectors.toMap(WorkflowStepWrapperRespVO::getField, Function.identity()));
@@ -175,16 +177,18 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
 
         // 循环处理
         for (WorkflowStepWrapperRespVO step : this.steps) {
-            // 如果map中不存在，或者为空
+            // 如果map中不存在，或者为空，则不进行合并处理，直接放到新的list中
             if (!stepWrapperMap.containsKey(step.getField()) ||
                     Objects.isNull(stepWrapperMap.get(step.getField()))) {
                 mergeStepWrapperList.add(step);
                 continue;
             }
 
+            // 进行合并处理
             WorkflowStepWrapperRespVO stepWrapper = stepWrapperMap.get(step.getField());
             step.merge(stepWrapper);
 
+            // 将合并后的数据放到新的list中
             mergeStepWrapperList.add(step);
         }
 

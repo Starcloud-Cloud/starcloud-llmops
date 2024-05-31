@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
+import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
@@ -18,24 +19,25 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type", visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = BookListCreativeMaterialDTO.class, name = "bookList"),
-        @JsonSubTypes.Type(value = ContractCreativeMaterialDTO.class, name = "contract"),
+//        @JsonSubTypes.Type(value = BookListCreativeMaterialDTO.class, name = "bookList"),
+//        @JsonSubTypes.Type(value = ContractCreativeMaterialDTO.class, name = "contract"),
         @JsonSubTypes.Type(value = OrdinaryNoteContentMaterialDTO.class, name = "noteContent"),
         @JsonSubTypes.Type(value = OrdinaryNoteMaterialDTO.class, name = "note"),
-        @JsonSubTypes.Type(value = OrdinaryNoteTitleMaterialDTO.class, name = "noteTitle"),
-        @JsonSubTypes.Type(value = PersonaCreativeMaterialDTO.class, name = "persona"),
-        @JsonSubTypes.Type(value = PictureCreativeMaterialDTO.class, name = "picture"),
-        @JsonSubTypes.Type(value = PositiveQuotationCreativeMaterialDTO.class, name = "quotation"),
-        @JsonSubTypes.Type(value = SnackRecipeCreativeMaterialDTO.class, name = "snack"),
-        @JsonSubTypes.Type(value = TravelGuideCreativeMaterialDTO.class, name = "travel")
+        @JsonSubTypes.Type(value = OrdinaryNoteTitleMaterialDTO.class, name = "noteTitle")
+//        @JsonSubTypes.Type(value = PersonaCreativeMaterialDTO.class, name = "persona"),
+//        @JsonSubTypes.Type(value = PictureCreativeMaterialDTO.class, name = "picture"),
+//        @JsonSubTypes.Type(value = PositiveQuotationCreativeMaterialDTO.class, name = "quotation"),
+//        @JsonSubTypes.Type(value = SnackRecipeCreativeMaterialDTO.class, name = "snack"),
+//        @JsonSubTypes.Type(value = TravelGuideCreativeMaterialDTO.class, name = "travel")
 })
 @Schema(description = "素材内容")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Deprecated
 public abstract class AbstractCreativeMaterialDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 3089429508471148974L;
     /**
-     * 素材类型 {@link BookListCreativeMaterialDTO#getType()}
+     * 素材类型
      */
     @Schema(description = "素材类型")
     @JsonPropertyDescription("素材类型")
@@ -50,7 +52,7 @@ public abstract class AbstractCreativeMaterialDTO implements java.io.Serializabl
     public abstract String generateContent();
 
     /**
-     * 校验参数
+     * 校验非图片字段必填
      * 注解必填字段校验
      */
     public void valid() {
@@ -59,7 +61,7 @@ public abstract class AbstractCreativeMaterialDTO implements java.io.Serializabl
             if (Objects.isNull(fieldDefine)) {
                 continue;
             }
-            if (fieldDefine.required()) {
+            if (fieldDefine.required() && !FieldTypeEnum.image.equals(fieldDefine.type())) {
                 try {
                     field.setAccessible(true);
                     Object value = field.get(this);

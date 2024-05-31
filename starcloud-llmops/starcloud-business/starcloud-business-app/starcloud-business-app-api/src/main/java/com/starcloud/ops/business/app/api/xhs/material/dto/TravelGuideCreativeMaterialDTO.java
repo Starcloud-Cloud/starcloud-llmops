@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = false)
+@Deprecated
 public class TravelGuideCreativeMaterialDTO extends AbstractCreativeMaterialDTO{
 
     @JsonPropertyDescription("景区")

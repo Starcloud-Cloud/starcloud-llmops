@@ -19,6 +19,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Deprecated
 public class PosterSchemeStepDTO extends BaseSchemeStepDTO {
 
     private static final long serialVersionUID = 1488877429722884016L;
