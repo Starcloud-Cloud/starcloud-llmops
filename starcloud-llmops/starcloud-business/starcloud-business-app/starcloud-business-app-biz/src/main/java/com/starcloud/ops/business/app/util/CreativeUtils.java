@@ -464,29 +464,17 @@ public class CreativeUtils {
     public static WorkflowStepWrapperRespVO handlerPosterStepWrapper(WorkflowStepWrapperRespVO posterStepWrapper) {
         Map<String, PosterTemplateDTO> latestPosterTemplateMap = CREATIVE_IMAGE_MANAGER.mapPosterTemplate();
         // 处理海报系统风格配置
-        String systemPosterConfigValue = posterStepWrapper.getStepModelVariableValue(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(systemPosterConfigValue) || "null".equalsIgnoreCase(systemPosterConfigValue)) {
-            systemPosterConfigValue = "[]";
-        }
-        List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterConfigValue, PosterStyleDTO.class);
+        List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
         // 合并海报风格列表
         systemPosterStyleList = mergePosterStyleList(systemPosterStyleList, latestPosterTemplateMap);
 
         // 处理自定义海报风格配置
-        String customPosterConfigValue = posterStepWrapper.getStepVariableValue(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(customPosterConfigValue) || "null".equalsIgnoreCase(customPosterConfigValue)) {
-            customPosterConfigValue = "[]";
-        }
-        List<PosterStyleDTO> customPosterStyleList = JsonUtils.parseArray(customPosterConfigValue, PosterStyleDTO.class);
+        List<PosterStyleDTO> customPosterStyleList = getCustomPosterStyleListByStepWrapper(posterStepWrapper);
         // 合并海报风格列表
         customPosterStyleList = mergePosterStyleList(customPosterStyleList, latestPosterTemplateMap);
 
         // 海报配置
-        String posterConfig = posterStepWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(posterConfig) || "null".equalsIgnoreCase(posterConfig)) {
-            posterConfig = "[]";
-        }
-        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterConfig, PosterStyleDTO.class);
+        List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(posterStepWrapper);
         // 合并海报风格列表
         posterStyleList = mergePosterStyleList(posterStyleList, latestPosterTemplateMap);
 
