@@ -16,14 +16,15 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.starcloud.ops</groupId>
-            <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
-        </dependency>
+
 
         <dependency>
             <groupId>com.starcloud.ops</groupId>
             <artifactId>starcloud-business-poster-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-adapter-ruoyi-pro</artifactId>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
