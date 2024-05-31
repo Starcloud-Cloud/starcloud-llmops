@@ -35,5 +35,10 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-excel</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-user-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
     </dependencies>
 </project>
