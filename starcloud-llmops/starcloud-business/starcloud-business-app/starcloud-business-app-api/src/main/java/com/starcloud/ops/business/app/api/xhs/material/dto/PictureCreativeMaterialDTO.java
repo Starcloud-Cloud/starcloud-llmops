@@ -12,6 +12,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 
 @Data
 @Accessors(chain = false)
+@Deprecated
 public class PictureCreativeMaterialDTO extends AbstractCreativeMaterialDTO {
 
     private static final long serialVersionUID = 2659140387627230195L;

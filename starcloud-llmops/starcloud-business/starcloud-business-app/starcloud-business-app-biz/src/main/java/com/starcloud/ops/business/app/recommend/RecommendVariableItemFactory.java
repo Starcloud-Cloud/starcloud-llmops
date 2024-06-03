@@ -352,24 +352,42 @@ public class RecommendVariableItemFactory {
     }
 
     /**
-     * 资料库类型
+     * 业务类型
      *
      * @return 资料库类型
      */
     public static VariableItemRespVO defMaterialTypeVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.MATERIAL_TYPE);
-        variableItem.setLabel("素材类型");
-        variableItem.setDescription("素材类型");
-        variableItem.setDefaultValue(MaterialTypeEnum.BOOK_LIST.getCode());
-        variableItem.setValue(MaterialTypeEnum.BOOK_LIST.getCode());
+        variableItem.setField(CreativeConstants.BUSINESS_TYPE);
+        variableItem.setLabel("业务类型");
+        variableItem.setDescription("业务类型");
+        variableItem.setDefaultValue("default");
+        variableItem.setValue("default");
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
-        variableItem.setOptions(MaterialTypeEnum.allOptions());
+        return variableItem;
+    }
+
+    /**
+     * 素材自定义结构
+     *
+     * @return 资料库类型
+     */
+    public static VariableItemRespVO defMaterialDefineVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_DEFINE);
+        variableItem.setLabel("素材定义");
+        variableItem.setDescription("素材定义");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.ADVANCED.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
 
@@ -390,7 +408,7 @@ public class RecommendVariableItemFactory {
         variableItem.setStyle(AppVariableStyleEnum.MATERIAL.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
-        variableItem.setIsShow(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
         return variableItem;
     }
 
@@ -566,7 +584,7 @@ public class RecommendVariableItemFactory {
         variableItem.setValue(null);
         variableItem.setOrder(102);
         variableItem.setType(AppVariableTypeEnum.IMAGE.name());
-        variableItem.setStyle(AppVariableStyleEnum.IMAGE_LIST.name());
+//        variableItem.setStyle(AppVariableStyleEnum.IMAGE_LIST.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
@@ -578,7 +596,7 @@ public class RecommendVariableItemFactory {
         variableItem.setField(CreativeConstants.MATERIAL_TYPE);
         variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_DESCRIPTION"));
-        variableItem.setDefaultValue(MaterialTypeEnum.NOTE.getCode());
+        variableItem.setDefaultValue(MaterialTypeEnum.NOTE_TITLE.getCode());
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(10000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());

@@ -229,8 +229,7 @@ public class CustomActionHandler extends BaseActionHandler {
         // 处理参考内容
         List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
-        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
-        this.getAppContext().putVariable(CreativeConstants.REFERS_IMITATE, generateRefers(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();

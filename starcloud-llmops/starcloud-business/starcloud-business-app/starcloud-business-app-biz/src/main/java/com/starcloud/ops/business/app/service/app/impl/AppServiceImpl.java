@@ -49,6 +49,7 @@ import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -401,6 +402,7 @@ public class AppServiceImpl implements AppService {
             if (StringUtils.isBlank(request.getIcon())) {
                 request.setIcon(category.getIcon());
             }
+            MaterialDefineUtil.verifyAppConfig(request.getWorkflowConfig());
             // 图片默认为分类图片
             request.setImages(Collections.singletonList(category.getImage()));
         }
@@ -410,10 +412,11 @@ public class AppServiceImpl implements AppService {
             request.setType(AppTypeEnum.COMMON.name());
         }
 
-        // 非普通应用，只有管理员可以创建
-        if (!AppTypeEnum.COMMON.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
+        // 系统应用，只有管理员可以创建
+        if (AppTypeEnum.SYSTEM.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
         }
+
     }
 
     /**

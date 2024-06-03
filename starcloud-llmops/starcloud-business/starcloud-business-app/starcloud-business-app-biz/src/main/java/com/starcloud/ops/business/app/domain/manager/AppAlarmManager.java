@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.manager;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
@@ -23,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
 
 /**
  * 应用报警管理
@@ -112,10 +116,29 @@ public class AppAlarmManager {
         String userLevel = this.getUserLevel(request);
         // 通知时间
         String notifyTime = LocalDateTimeUtil.formatNormal(LocalDateTime.now());
+
         // 错误信息
-        String message = throwable.getMessage();
-        // 错误堆栈
-        String stackTrace = this.getExceptionMessage(throwable);
+        String message = StrUtil.EMPTY;
+        String stackTrace = StrUtil.EMPTY;
+        if (Objects.nonNull(throwable)) {
+            message = throwable.getMessage();
+            if (throwable instanceof ServiceException || throwable.getCause() instanceof ServiceException) {
+                ServiceException serviceException;
+                if (throwable instanceof ServiceException) {
+                    serviceException = (ServiceException) throwable;
+                } else {
+                    serviceException = (ServiceException) throwable.getCause();
+                }
+                // 魔法豆/图片不足，不打印堆栈信息
+                if (USER_RIGHTS_BEAN_NOT_ENOUGH.getCode().equals(serviceException.getCode()) ||
+                        USER_RIGHTS_IMAGE_NOT_ENOUGH.getCode().equals(serviceException.getCode())) {
+                    stackTrace = "";
+                }
+            } else {
+                stackTrace = this.getExceptionMessage(throwable);
+            }
+        }
+
         // 扩展信息
         String extended = this.getExtended(request);
 

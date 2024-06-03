@@ -57,8 +57,8 @@ public class ProductSkuApiImpl implements ProductSkuApi {
      * @param skuId  SKU 编号
      */
     @Override
-    public void canPlaceOrder(Long userId, Long skuId) {
-        productSkuService.canPlaceOrder(userId, skuId);
+    public void canPlaceOrder(Long userId, Long skuId,Long couponId) {
+        productSkuService.canPlaceOrder(userId, skuId,couponId);
     }
 
     /**

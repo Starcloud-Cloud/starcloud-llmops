@@ -121,6 +121,20 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     }
 
     /**
+     * 修改步骤变量
+     * @param key
+     * @param value
+     */
+    public void updateStepVariableValue(String key, String value) {
+        List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
+        for (VariableItemRespVO variableItemRespVO : variables) {
+            if (Objects.equals(variableItemRespVO.getField(), key)) {
+                variableItemRespVO.setValue(value);
+            }
+        }
+    }
+
+    /**
      * 添加步骤变量
      *
      * @param variable 变量
@@ -163,6 +177,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @JsonIgnore
     @JSONField(serialize = false)
     public void merge(WorkflowStepWrapperRespVO stepWrapper) {
+        // 只进行变量合并，不进行其他属性合并
         this.variable.merge(stepWrapper.getVariable());
     }
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -18,5 +19,5 @@ public class ParseResult {
     private boolean complete;
 
     @Schema(description = "素材明细")
-    List<AbstractCreativeMaterialDTO> materialDTOList;
+    List<Map<String, Object>> materialList;
 }

@@ -1,15 +1,15 @@
 package com.starcloud.ops.business.app.api.xhs.material;
 
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
-import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @Slf4j
@@ -23,28 +23,43 @@ public class UploadMaterialImageDTO {
     /**
      * 素材中的图片字段
      */
-    private List<Field> imageField;
+    private List<MaterialFieldConfigDTO> imageField;
 
     /**
      * excel的内容
      */
-    private List<? extends AbstractCreativeMaterialDTO> materialDTOList;
+    private List<Map<String, Object>> materialList;
 
-    private String materialType;
+    /**
+     * 字段配置
+     */
+    private List<MaterialFieldConfigDTO> materialFieldConfigDTOList;
 
     private Long tenantId;
 
     /**
-     * 是否保存数据库
+     * zip解压后绝对路径
      */
-    private boolean saveDb;
+    private String unzipDir;
 
-    public UploadMaterialImageDTO(String materialType, String parseUid, List<? extends AbstractCreativeMaterialDTO> materialDTOList) {
+    /**
+     * 是否需要截图文档
+     */
+    private boolean containsDocument;
+
+    public UploadMaterialImageDTO(String parseUid, List<Map<String, Object>> materialList,
+                                  List<MaterialFieldConfigDTO> materialFieldConfigDTOList, String unzipDir) {
         this.parseUid = parseUid;
-        this.imageField = MaterialTypeEnum.of(materialType).filterField(FieldTypeEnum.image);
-        this.materialDTOList = materialDTOList;
-        this.materialType = materialType;
+        this.materialList = materialList;
         this.tenantId = TenantContextHolder.getTenantId();
+        this.materialFieldConfigDTOList = materialFieldConfigDTOList;
+        this.imageField = materialFieldConfigDTOList.stream().filter(materialFieldConfigDTO -> {
+            return MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType());
+        }).collect(Collectors.toList());
+        this.containsDocument = materialFieldConfigDTOList.stream().anyMatch(materialFieldConfigDTO -> {
+            return MaterialFieldTypeEnum.document.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType());
+        });
+        this.unzipDir = unzipDir;
     }
 
     /**
@@ -53,11 +68,17 @@ public class UploadMaterialImageDTO {
      * @return
      */
     public boolean containsImage() {
-        if (CollectionUtils.isEmpty(imageField) || CollectionUtils.isEmpty(materialDTOList)) {
+        if (CollectionUtils.isEmpty(imageField) || CollectionUtils.isEmpty(materialList)) {
             log.info("Does not contain images, parseUid = {}", parseUid);
             return false;
         }
         return true;
+    }
+
+    public String getDocumentFieldName() {
+        return materialFieldConfigDTOList.stream().filter(materialFieldConfigDTO -> {
+            return MaterialFieldTypeEnum.document.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType());
+        }).findAny().map(MaterialFieldConfigDTO::getFieldName).orElse(StringUtils.EMPTY);
     }
 
 }

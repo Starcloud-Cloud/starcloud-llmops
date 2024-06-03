@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
@@ -17,7 +18,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -79,11 +88,24 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.create(request));
     }
 
+    @PostMapping("/createSameApp")
+    @Operation(summary = "创建同款应用", description = "创建同款应用")
+    @ApiOperationSupport(order = 60, author = "nacoyer")
+    public CommonResult<String> create(@Validated @RequestBody CreateSameAppReqVO request) {
+        return CommonResult.success(creativePlanService.createSameApp(request));
+    }
+
     @PostMapping("/modify")
     @Operation(summary = "更新创作计划", description = "更新创作计划")
     @ApiOperationSupport(order = 70, author = "nacoyer")
     public CommonResult<String> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modify(request));
+    }
+
+    @PostMapping("/modifyConfig")
+    @Operation(summary = "更新创作计划配置", description = "更新创作计划配置")
+    public CommonResult<String> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
+        return CommonResult.success(creativePlanService.modifyConfiguration(request));
     }
 
     @DeleteMapping("/delete/{uid}")

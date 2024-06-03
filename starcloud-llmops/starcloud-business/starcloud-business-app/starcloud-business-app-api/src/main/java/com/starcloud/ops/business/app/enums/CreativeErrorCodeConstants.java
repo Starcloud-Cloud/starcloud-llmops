@@ -175,7 +175,31 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode TEMP_IS_NOT_EXIST = new ErrorCode(730000009, "素材模版解析异常，请检测下载的模版文件名是否正确（不要修改目录名或留多余的空格），或重新下载模版修改后再次上传");
 
+    ErrorCode EXCEL_REQUIRED_FILED = new ErrorCode(730000010, "excel中缺少必填字段[{}]");
 
+    ErrorCode MATERIAL_STEP_NOT_EXIST = new ErrorCode(730000011, "上传素材步骤不存在");
+
+    ErrorCode NO_MATERIAL_DEFINE = new ErrorCode(730000012, "上传素材步骤素材定义不存在");
+
+    ErrorCode EXCEL_HEADER_REQUIRED_FILED = new ErrorCode(730000013, "上传素材excel表头缺少必填字段:{}");
+
+    ErrorCode DUPLICATE_FILED_NAME = new ErrorCode(730000014, "上传素材步骤素材定义中存在重复的字段code:{}");
+
+    ErrorCode DUPLICATE_FILED_DESC = new ErrorCode(730000015, "上传素材步骤素材定义中存在重复的字段名称:{}");
+
+    ErrorCode FILED_TYPE_MISTAKE = new ErrorCode(730000016, "上传素材步骤素材定义中存在错误的字段类型:{}");
+
+    ErrorCode NO_REQUIRED_FILED = new ErrorCode(730000017, "上传素材中缺少必填字段:{}");
+
+    ErrorCode FILED_NAME_ERROR = new ErrorCode(730000018, "素材定义字段code必须是英文字母和数字组成:{}");
+
+    ErrorCode FILED_DESC_IS_BLANK = new ErrorCode(730000019, "素材定义字段中文名不能为空");
+
+    ErrorCode FILED_DESC_LENGTH = new ErrorCode(730000020, "素材定义字段中文名10个字符以内 {}");
+
+    ErrorCode EXCEL_NOT_EXIST = new ErrorCode(730000021, "压缩包中未找到后缀为.xlsx的文件}");
+
+    ErrorCode IMAGES_NOT_EXIST = new ErrorCode(730000022, "压缩包中未找到images的文件夹}");
 
 
     /**

@@ -107,6 +107,7 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
         return selectList(new LambdaQueryWrapperX<CouponDO>()
                 .eq(CouponDO::getUserId, userId)
                 .eq(CouponDO::getStatus, status)
+                .ge(CouponDO::getValidEndTime, LocalDateTime.now())
                 .le(CouponDO::getUsePrice, usePrice) // 价格小于等于，满足价格使用条件
                 .and(w -> w.eq(CouponDO::getProductScope, PromotionProductScopeEnum.ALL.getScope()) // 商品范围一：全部
                         .or(ww -> ww.eq(CouponDO::getProductScope, PromotionProductScopeEnum.SPU.getScope()) // 商品范围二：满足指定商品
@@ -123,6 +124,7 @@ public interface CouponMapper extends BaseMapperX<CouponDO> {
         return selectList(new LambdaQueryWrapperX<CouponDO>()
                 .eq(CouponDO::getUserId, userId)
                 .eq(CouponDO::getStatus, status)
+                .ge(CouponDO::getValidEndTime, LocalDateTime.now())
                 .le(CouponDO::getUsePrice, usePrice) // 价格小于等于，满足价格使用条件
                 .and(w -> w.eq(CouponDO::getProductScope, PromotionProductScopeEnum.ALL.getScope()) // 商品范围一：全部
                         .or(ww -> ww.eq(CouponDO::getProductScope, PromotionProductScopeEnum.SPU.getScope()) // 商品范围二：满足指定商品

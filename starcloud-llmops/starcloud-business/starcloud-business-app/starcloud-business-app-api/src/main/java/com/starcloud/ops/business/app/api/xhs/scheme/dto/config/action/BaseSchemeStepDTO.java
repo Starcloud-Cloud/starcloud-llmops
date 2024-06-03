@@ -30,6 +30,7 @@ import lombok.ToString;
         @JsonSubTypes.Type(value = VariableSchemeStepDTO.class, name = "VariableActionHandler"),
         @JsonSubTypes.Type(value = MaterialSchemeStepDTO.class, name = "MaterialActionHandler")
 })
+@Deprecated
 public abstract class BaseSchemeStepDTO implements java.io.Serializable {
 
     private static final long serialVersionUID = 5401242096922842719L;

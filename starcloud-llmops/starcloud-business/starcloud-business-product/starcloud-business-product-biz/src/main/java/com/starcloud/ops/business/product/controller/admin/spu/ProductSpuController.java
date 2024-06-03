@@ -164,7 +164,7 @@ public class ProductSpuController {
         PageResult<AppProductSpuPageRespVO> voPageResult = ProductSpuConvert.INSTANCE.convertPageForGetSpuPage(pageResult);
 
         voPageResult.getList().stream().forEach(spu -> {
-            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId(),true,getLoginUserId(),spu.getCategoryId());
+            List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId(), true, getLoginUserId(), spu.getCategoryId());
             spu.setSkus(ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus));
 
         });
@@ -204,13 +204,13 @@ public class ProductSpuController {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.SPU_NOT_EXISTS);
         }
 
-        AppProductSpuPageReqVO pageVO =new AppProductSpuPageReqVO();
+        AppProductSpuPageReqVO pageVO = new AppProductSpuPageReqVO();
         String[] parts = spu.getName().split("-");
         ArrayList<Long> list = new ArrayList<>();
 
-        if (parts.length>1){
+        if (parts.length > 1) {
             pageVO.setName(parts[0]);
-        }else {
+        } else {
             return success(list);
         }
 
@@ -231,7 +231,7 @@ public class ProductSpuController {
     public CommonResult<AppProductSpuPageRespVO> getSpecialOffer() {
         ProductSpuDO specialOfferSku = productSpuService.getSpecialOfferSku();
 
-        List<AppProductSpuPageRespVO> appProductSpuPageRespVOS = ProductSpuConvert.INSTANCE.convertListForGetSpuList(Arrays.asList(specialOfferSku));
+        List<AppProductSpuPageRespVO> appProductSpuPageRespVOS = ProductSpuConvert.INSTANCE.convertListForGetSpuList(Collections.singletonList(specialOfferSku));
 
         appProductSpuPageRespVOS.stream().forEach(spu -> {
             List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId());

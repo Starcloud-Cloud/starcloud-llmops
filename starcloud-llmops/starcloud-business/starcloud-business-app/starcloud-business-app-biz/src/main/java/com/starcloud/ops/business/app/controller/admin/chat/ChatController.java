@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.app.controller.admin.chat;
 
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
@@ -40,6 +43,9 @@ public class ChatController {
     @Resource
     private AppLimitService appLimitService;
 
+    @Resource
+    private AppAlarmManager appAlarmManager;
+
     @Operation(summary = "聊天")
     @PostMapping("/completions")
     public SseEmitter conversation(@RequestBody ChatRequestVO request, HttpServletResponse httpServletResponse) {
@@ -49,8 +55,13 @@ public class ChatController {
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
 
-        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() >= 800) {
-            emitter.completeWithError(exception(new ErrorCode(500,"问题字符数大于0且小于800")));
+        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() > 800) {
+            ServiceException exception = exception(new ErrorCode(500, "问题字符数大于0且小于800"));
+            // 发送告警信息
+            request.setAppName(request.getAppName());
+            request.setMode(AppModelEnum.CHAT.name());
+            appAlarmManager.executeAlarm(request, exception);
+            emitter.completeWithError(exception);
             return emitter;
         }
 

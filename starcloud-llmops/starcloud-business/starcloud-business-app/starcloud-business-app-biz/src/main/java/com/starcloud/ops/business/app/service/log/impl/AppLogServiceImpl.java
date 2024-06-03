@@ -488,6 +488,9 @@ public class AppLogServiceImpl implements AppLogService {
             CreativeContentRespVO contentResponse = CreativeContentConvert.INSTANCE.convert(content);
             CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
             appLogMessageResponse.setExecuteResult(executeResult);
+            appLogMessageResponse.setContentUid(content.getUid());
+            appLogMessageResponse.setPlanUid(content.getPlanUid());
+            appLogMessageResponse.setPlanBatchUid(content.getBatchUid());
         }
         return appLogMessageResponse;
     }

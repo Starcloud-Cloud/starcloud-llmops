@@ -7,10 +7,18 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
 public enum MaterialFieldTypeEnum implements IEnumable<String> {
+    /***
+     * 此类型为前端样式 实际java类型全部为String
+     * 如果新增其他java类型
+     * {@link  com.starcloud.ops.business.app.util.JsonSchemaUtils#expendGenerateJsonSchema(String)}
+     * 此方法中新增对应的JsonSchema类型
+     */
 
     image("image", "图片"),
 
@@ -22,6 +30,9 @@ public enum MaterialFieldTypeEnum implements IEnumable<String> {
 
 
     ;
+
+    public static final Map<String, MaterialFieldTypeEnum> TYPE_ENUM_MAP = Arrays.stream(MaterialFieldTypeEnum.values())
+            .collect(Collectors.toMap(MaterialFieldTypeEnum::getTypeCode, Function.identity()));
 
     private final String typeCode;
 

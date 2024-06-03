@@ -481,7 +481,7 @@ public class TradeOrderQueryServiceImpl implements TradeOrderQueryService {
             // 当前运行环境
             templateParams.put("environmentName", environmentName);
             // 用户昵称
-            templateParams.put("userName", Optional.ofNullable(userRespDTO.getNickname()));
+            templateParams.put("userName", userRespDTO.getNickname());
             // 产品名称
             templateParams.put("productName", orderItems.get(0).getSpuName());
             // 商品属性

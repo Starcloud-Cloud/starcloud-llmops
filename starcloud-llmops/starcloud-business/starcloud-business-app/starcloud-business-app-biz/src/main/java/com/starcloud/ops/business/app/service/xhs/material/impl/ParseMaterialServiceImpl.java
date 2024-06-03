@@ -4,16 +4,23 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ZipUtil;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
+import cn.hutool.json.JSONException;
+import cn.hutool.poi.excel.ExcelReader;
+import cn.hutool.poi.excel.ExcelUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.UploadMaterialImageDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.MaterialUploadReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import com.starcloud.ops.business.app.service.xhs.material.UploadMaterialImageManager;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +32,17 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
@@ -49,6 +58,9 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     @Resource
     private UploadMaterialImageManager uploadMaterialImageManager;
 
+    @Resource
+    private CreativePlanService creativePlanService;
+
     @Override
     public Map<String, Object> template(String type) {
         Map<String, Object> result = new HashMap<>();
@@ -57,14 +69,23 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
     }
 
     @Override
-    public void downloadTemplate(String materialType, HttpServletResponse response) {
+    public void downloadTemplate(String uid, String planSource, HttpServletResponse response) {
+        AppMarketRespVO appMarketResponse = creativePlanService.getAppRespVO(uid, planSource);
+        List<MaterialFieldConfigDTO> materialConfig = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
+
         try {
-            File file = MaterialTemplateUtils.readTemplate(materialType);
+            List<String> excelHeader = materialConfig.stream().map(MaterialFieldConfigDTO::getDesc).collect(Collectors.toList());
+            String zipNamePrefix = appMarketResponse.getName() + MaterialTemplateUtils.DIVIDER + "模板";
+            String excelNamePrefix = "导入模板";
+            File file = MaterialTemplateUtils.readTemplate(zipNamePrefix, excelNamePrefix, uid, excelHeader);
             IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        } catch (JSONException e) {
+            log.error("JSON Exception", e);
+            throw exception(DOWNLOAD_TEMPLATE_ERROR, "自定义配置解析错误");
         } catch (Exception e) {
-            log.error("download template error", e);
+            log.error("generation template error", e);
             throw exception(DOWNLOAD_TEMPLATE_ERROR, e.getMessage());
         }
     }
@@ -79,44 +100,92 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
         if (StringUtils.isBlank(json)) {
             return new ParseResult();
         }
-        List<AbstractCreativeMaterialDTO> materialDTOList = JsonUtils.parseArray(json, AbstractCreativeMaterialDTO.class);
-        return new ParseResult(true, materialDTOList);
+        return new ParseResult(true, MaterialDefineUtil.parseData(json));
     }
 
     @Override
-    public String parseToRedis(MultipartFile file) {
+    public String parseToRedis(MaterialUploadReqVO uploadReqVO) {
         String parseUid = IdUtil.fastSimpleUUID();
         long start = System.currentTimeMillis();
-        try {
-            //文件名 {materialType}.zip
-            String[] split = file.getOriginalFilename().split("\\.");
-            if (split.length != 2 || !Objects.equals("zip", split[1])) {
-                throw exception(NOT_ZIP_PACKAGE);
-            }
-            String materialType = split[0];
-            MaterialTypeEnum materialTypeEnum = MaterialTypeEnum.of(materialType);
+        MultipartFile file = uploadReqVO.getFile();
 
+        //文件名 uid-source.zip
+        String[] fileNameSplit = file.getOriginalFilename().split("\\.");
+        if (fileNameSplit.length != 2 || !Objects.equals("zip", fileNameSplit[1])) {
+            throw exception(NOT_ZIP_PACKAGE);
+        }
+
+//        String zipPrefix = uploadReqVO.getUid() + MaterialTemplateUtils.DIVIDER + uploadReqVO.getPlanSource();
+        AppMarketRespVO appMarketResponse = creativePlanService.getAppRespVO(uploadReqVO.getUid(), uploadReqVO.getPlanSource());
+
+        List<MaterialFieldConfigDTO> materialConfigList = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
+
+        try {
             //     系统默认临时文件目录/material/parseUid
-            String dirPath = TMP_DIR_PATH + File.separator + parseUid;
+            String dirPath = Paths.get(MATERIAL_TMP_DIR_PATH, parseUid).toString();
             File dir = new File(dirPath);
             dir.mkdirs();
-            File zipFile = new File(dirPath + File.separator + file.getOriginalFilename());
+
+            File zipFile = Paths.get(dirPath, file.getOriginalFilename()).toFile();
             file.transferTo(zipFile);
             ZipUtil.unzip(zipFile, dir, StandardCharsets.UTF_8);
-            // 读取excel 第一行为表结构说明 第二行为表头
-            FileInputStream excelFile = new FileInputStream(dirPath + File.separator + materialType + File.separator + materialType + ".xlsx");
-            List<? extends AbstractCreativeMaterialDTO> result = ExcelUtils.read(excelFile, materialTypeEnum.getAClass(), 2);
-            for (AbstractCreativeMaterialDTO abstractBaseCreativeMaterialDTO : result) {
-                abstractBaseCreativeMaterialDTO.valid();
-                abstractBaseCreativeMaterialDTO.setType(materialType);
+            // 解析excel文件   解压文件下/目录/excel.xlsx
+            // 压缩包解压后下面的目录
+            File[] childrenDirs = dir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+                    return pathname.isDirectory();
+                }
+            });
+            if (childrenDirs == null) {
+                throw exception(EXCEL_NOT_EXIST);
             }
+
+            File excel = null;
+            File unzipDir = null;
+            // 从子目录中找后缀为xlsx的文件 且开头不为.
+            for (File childrenDir : childrenDirs) {
+                File[] excelFiles = childrenDir.listFiles((File pathname) -> {
+                    String[] split = pathname.getName().split("\\.");
+                    if (split.length < 2) {
+                        return false;
+                    }
+                    String suffix = split[split.length - 1];
+                    if (pathname.isFile() && "xlsx".equals(suffix) && !pathname.getName().startsWith(".")) {
+                        return true;
+                    }
+                    return false;
+                });
+                if (excelFiles != null && excelFiles.length > 0) {
+                    excel = excelFiles[0];
+                    unzipDir = childrenDir;
+                    break;
+                }
+            }
+
+            if (Objects.isNull(excel)) {
+                throw exception(EXCEL_NOT_EXIST);
+            }
+            // 读取excel 第一行为表结构说明 第二行为表头
+            ExcelReader reader = ExcelUtil.getReader(excel);
+            MaterialDefineUtil.addHeaderAlias(reader, materialConfigList);
+            List<Map<String, Object>> allExcel = reader.read(1, 2, Integer.MAX_VALUE);
+            List<Object> header = reader.readRow(1);
+            // 校验表头
+            MaterialDefineUtil.verifyExcelHeader(header, materialConfigList);
+            // 移除非定义字段 校验必填
+            MaterialDefineUtil.cleanMaterialData(materialConfigList, allExcel);
+            MaterialDefineUtil.verifyMaterialData(materialConfigList, allExcel);
+
             // 提交上传任务
-            UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(materialType, parseUid, result);
+            UploadMaterialImageDTO uploadMaterialDTO = new UploadMaterialImageDTO(parseUid, allExcel, materialConfigList, "");
             if (uploadMaterialDTO.containsImage()) {
+
+                uploadMaterialDTO.setUnzipDir(unzipDir.getAbsolutePath());
                 // 包含图片上传
                 uploadMaterialImageManager.submit(uploadMaterialDTO);
             } else {
-                redisTemplate.boundValueOps(MATERIAL_PREFIX + parseUid).set(JsonUtils.toJsonString(result), 3, TimeUnit.DAYS);
+                redisTemplate.boundValueOps(MATERIAL_PREFIX + parseUid).set(JSONObject.toJSONString(allExcel), 3, TimeUnit.DAYS);
             }
             long end = System.currentTimeMillis();
             log.info("material parse success, parseUid={}, {} ms", parseUid, end - start);
@@ -128,11 +197,11 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
             log.info("material parse error", e);
             throw exception(MATERIAL_PARSE_ERROR, e.getMessage());
         }
-
     }
 
     @Override
     public List<AbstractCreativeMaterialDTO> parseXhs(ParseXhsReqVO parseXhsReqVO) {
         return uploadMaterialImageManager.parseXhs(parseXhsReqVO);
     }
+
 }

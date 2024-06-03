@@ -30,4 +30,10 @@ public class CreativePlanModifyReqVO extends CreativePlanCreateReqVO {
     @NotBlank(message = "创作计划UID不能为空！")
     @Schema(description = "创作计划UID")
     private String uid;
+
+    /**
+     * 是否需要校验，默认需要校验
+     */
+    @Schema(description = "是否需要校验")
+    private Boolean validate;
 }

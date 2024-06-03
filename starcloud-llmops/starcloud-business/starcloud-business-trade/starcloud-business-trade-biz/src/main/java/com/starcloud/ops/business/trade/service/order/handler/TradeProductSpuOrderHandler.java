@@ -27,7 +27,8 @@ public class TradeProductSpuOrderHandler implements TradeOrderHandler {
         // 1. 新用户检验
         // 2. 特定优惠券检验
         orderItems.forEach( orderItem->
-                productSkuApi.canPlaceOrder(order.getUserId(),orderItem.getSkuId()));
+                productSkuApi.canPlaceOrder(order.getUserId(),orderItem.getSkuId(),order.getCouponId())
+        );
 
     }
 }

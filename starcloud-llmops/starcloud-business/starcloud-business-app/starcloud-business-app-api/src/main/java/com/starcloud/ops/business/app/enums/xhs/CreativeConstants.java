@@ -87,9 +87,21 @@ public interface CreativeConstants {
     String GENERATE_COUNT = "GENERATE_COUNT";
 
     /**
-     * 资料类型
+     * 资料类型 参考素材中定义素材类型
      */
     String MATERIAL_TYPE = "MATERIAL_TYPE";
+
+    /**
+     * 业务类型 上传素材节点 选择AbstractMaterialHandler
+     */
+    String BUSINESS_TYPE = "BUSINESS_TYPE";
+
+    String PICTURE = "picture";
+
+    /**
+     * 素材字段定义
+     */
+    String MATERIAL_DEFINE = "MATERIAL_DEFINE";
 
     /**
      * 素材节点 素材列表
@@ -128,7 +140,7 @@ public interface CreativeConstants {
     /**
      * 素材上传临时路径
      */
-    String TMP_DIR_PATH = Paths.get(System.getProperty("java.io.tmpdir"), "material").toString();
+    String MATERIAL_TMP_DIR_PATH = Paths.get(System.getProperty("java.io.tmpdir"), "material").toString();
 
     /**
      * word 解析地址

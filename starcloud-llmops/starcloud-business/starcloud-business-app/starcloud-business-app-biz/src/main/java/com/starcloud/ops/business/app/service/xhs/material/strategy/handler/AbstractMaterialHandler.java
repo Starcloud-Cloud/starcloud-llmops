@@ -1,14 +1,15 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,12 +33,17 @@ import java.util.stream.Collectors;
  * @since 2021-06-22
  */
 @Component
-public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterialDTO> {
+public abstract class AbstractMaterialHandler {
 
     /**
      * 提取素材索引正则
      */
     private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
+
+    /**
+     * 分组字段
+     */
+    private static final String GROUP_FIELD = "group";
 
     /**
      * 不同的素材类型，验证海报风格的要求可能不一样。
@@ -65,12 +71,12 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @param posterStyleList 海报风格列表
      * @return 处理后的资料库列表
      */
-    public Map<Integer, List<M>> handleMaterialMap(List<M> materialList, List<PosterStyleDTO> posterStyleList) {
+    public Map<Integer, List<Map<String, Object>>> handleMaterialMap(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList) {
         if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(posterStyleList)) {
             return Collections.emptyMap();
         }
 
-        List<Integer> needMaterialSizeList = needMaterialSizeList(posterStyleList);
+        List<Integer> needMaterialSizeList = computeNeedMaterialSize(posterStyleList);
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
         }
@@ -86,24 +92,53 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @param metadata     素材元数据
      * @return 处理后的海报风格
      */
-    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata) {
-        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-        for (PosterTemplateDTO template : templateList) {
-            template.setIsExecute(Boolean.TRUE);
+    public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata) {
+        // 如果资料库为空，直接返回海报风格，不做处理
+        if (CollectionUtil.isEmpty(materialList)) {
+            return posterStyle;
         }
-        posterStyle.setTemplateList(templateList);
-        return posterStyle;
+        PosterStyleDTO style = SerializationUtils.clone(posterStyle);
+        // 进行变量替换
+        Map<String, Object> replaceValueMap = this.replaceVariable(style, materialList, metadata, Boolean.TRUE);
+
+        List<PosterTemplateDTO> templates = Lists.newArrayList();
+
+        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+        // // 进行海报风格的处理
+        for (PosterTemplateDTO template : templateList) {
+            // 默认设置为 TRUE
+            template.setIsExecute(Boolean.TRUE);
+            // 模板变量列表
+            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+
+            // 只要存在是图片变量，且值不为空的，就需要生成图片
+            boolean anyMatchNotBlankImageValue = variableList.stream()
+                    .filter(CreativeUtils::isImageVariable)
+                    .anyMatch(variable -> StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid())));
+
+            if (anyMatchNotBlankImageValue) {
+                templates.add(template);
+                continue;
+            }
+
+            // 设置为FALSE,表示不需要生成改图片
+            template.setIsExecute(Boolean.FALSE);
+            templates.add(template);
+        }
+
+        style.setTemplateList(templates);
+        return style;
     }
 
     /**
-     * 获取每个海报风格需要的素材数量 <p>
+     * 计算每个海报风格需要的素材数量 <p>
      * 如果需要不同的分组逻辑，子类重写此方法即可
      *
      * @param posterStyleList 海报风格列表
      * @return 每个海报风格需要的素材数量
      */
-    protected List<Integer> needMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
-        return this.defaultNeedMaterialSizeList(posterStyleList);
+    protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
+        return this.defaultComputeNeedMaterialSize(posterStyleList);
     }
 
     /**
@@ -113,9 +148,71 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @param materialSizeList 每个海报风格需要的素材数量
      * @return 海报素材 map
      */
-    protected Map<Integer, List<M>> doHandleMaterialMap(List<M> materialList, List<Integer> materialSizeList) {
+    protected Map<Integer, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList, List<Integer> materialSizeList) {
+
         // 提供一个默认的复制逻辑，不同的素材可能需要不同的复制逻辑, 具体子类实现即可
-        return this.defaultMaterialListMap(materialList, materialSizeList);
+        List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
+        // 分组字段不为空的素材
+        List<Map<String, Object>> groupMaterial = copyMaterialList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> StringUtil.objectNotBlank(item.get(GROUP_FIELD)))
+                .collect(Collectors.toList());
+
+        // 1. 如果分组字段为空，直接按照默认的复制逻辑进行复制
+        if (CollectionUtil.isEmpty(groupMaterial)) {
+            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
+        }
+
+        // 将同一组的素材分组，并且保持原有的顺序。
+        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
+                .collect(Collectors.groupingBy(item -> item.get(GROUP_FIELD), LinkedHashMap::new, Collectors.toList()));
+
+        // 2. 如果 collect 的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量
+        // 这时候，直接按照 materialSizeList 的数量进行复制即可
+        if (collect.size() >= materialSizeList.size()) {
+            Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
+            int index = 0;
+            for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
+                resultMap.put(index, entry.getValue());
+                index++;
+                if (index >= materialSizeList.size()) {
+                    break;
+                }
+            }
+            return resultMap;
+        }
+
+        // 3. 否则，一部分按照分组复制，一部分按照默认复制逻辑复制
+        Map<Integer, List<Map<String, Object>>> groupMap = new LinkedHashMap<>();
+        int index = 0;
+        for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
+            groupMap.put(index, entry.getValue());
+            index++;
+        }
+
+        // 此时不需要担心下标越界，因为 collect.size() < materialSizeList.size()
+        // 剩余的部分按照默认复制逻辑复制
+        // 截取 materialSizeList 的剩余部分
+        List<Integer> subList = materialSizeList.subList(collect.size(), materialSizeList.size());
+
+        // 分组字段为空的素材
+        List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> Objects.isNull(item.get(GROUP_FIELD)))
+                .collect(Collectors.toList());
+
+        // 将没有分组的素材按照默认复制逻辑复制
+        Map<Integer, List<Map<String, Object>>> noGroupMap = this.defaultMaterialListMap(noGroupMaterial, subList);
+
+        // 将分组的素材和没有分组的素材合并
+        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>(groupMap);
+        int noGroupIndex = groupMap.size();
+        for (Map.Entry<Integer, List<Map<String, Object>>> entry : noGroupMap.entrySet()) {
+            resultMap.put(noGroupIndex, entry.getValue());
+            noGroupIndex++;
+        }
+
+        return resultMap;
     }
 
     /**
@@ -124,7 +221,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @param posterStyleList 海报列表
      * @return 风格海报素材选择最大索引列表
      */
-    protected List<Integer> defaultNeedMaterialSizeList(List<PosterStyleDTO> posterStyleList) {
+    protected List<Integer> defaultComputeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
         List<Integer> materialIndexList = new ArrayList<>();
         for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
             // 如果风格为空，填充 0
@@ -183,9 +280,9 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @param needSizeList 需要复制的列表
      * @return 分组后的资料库列表
      */
-    protected Map<Integer, List<M>> defaultMaterialListMap(List<M> materialList, List<Integer> needSizeList) {
+    protected Map<Integer, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
         // 结果集合
-        Map<Integer, List<M>> resultMap = new HashMap<>();
+        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
         // 如果素材列表为空或者需要复制的数量集合为空
         if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(needSizeList)) {
@@ -200,11 +297,8 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
             return item;
         }).collect(Collectors.toList());
 
-        // 深度复制一份资料库列表，避免修改原列表
-        List<M> copyMaterialList = SerializationUtils.clone((ArrayList<M>) materialList);
-
         // 记录原始素材列表的大小
-        int originalSize = copyMaterialList.size();
+        int originalSize = materialList.size();
         // 计算需要复制的总数
         int copyTotal = needSizeList.stream().mapToInt(Integer::intValue).sum();
 
@@ -214,7 +308,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
             int requiredSize = copyTotal - originalSize;
             // 将imageList从头开始按顺序复制，直至满足扩容要求
             for (int i = 0; i < requiredSize; i++) {
-                copyMaterialList.add(copyMaterialList.get(i % originalSize));
+                materialList.add(materialList.get(i % originalSize));
             }
         }
 
@@ -222,7 +316,7 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
         int currentIndex = 0;
         for (int i = 0; i < needSizeList.size(); i++) {
             int size = needSizeList.get(i);
-            List<M> copiedImages = new ArrayList<>(copyMaterialList.subList(currentIndex, currentIndex + size));
+            List<Map<String, Object>> copiedImages = new ArrayList<>(materialList.subList(currentIndex, currentIndex + size));
             resultMap.put(i, copiedImages);
             currentIndex += size;
         }
@@ -238,12 +332,12 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
      * @param metadata     素材元数据
      * @return 变量替换后的值
      */
-    protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<M> materialList, MaterialMetadata metadata, Boolean defEmpty) {
+    protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata, Boolean defEmpty) {
         // 获取变量uuid和value的集合
         Map<String, Object> variableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
 
         // 处理素材。变为可以替换的结构化数据
-        JsonDocsDefSchema<M> jsonDocsDefSchema = new JsonDocsDefSchema<>();
+        JsonDocsDefSchema<Map<String, Object>> jsonDocsDefSchema = new JsonDocsDefSchema<>();
         jsonDocsDefSchema.setDocs(materialList);
         Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepId(), jsonDocsDefSchema);
         return CreativeUtils.replaceVariable(variableMap, materialMap, defEmpty);
@@ -268,6 +362,5 @@ public abstract class AbstractMaterialHandler<M extends AbstractCreativeMaterial
         }
         return Integer.valueOf(matcher.group(1));
     }
-
 
 }

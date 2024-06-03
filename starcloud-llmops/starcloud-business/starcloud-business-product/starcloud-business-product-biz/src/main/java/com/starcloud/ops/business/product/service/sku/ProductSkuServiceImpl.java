@@ -15,6 +15,7 @@ import com.starcloud.ops.business.product.service.property.ProductPropertyServic
 import com.starcloud.ops.business.product.service.property.ProductPropertyValueService;
 import com.starcloud.ops.business.product.service.spu.ProductSpuService;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
 import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -264,7 +265,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
      * @param skuId  SKU 编号
      */
     @Override
-    public void canPlaceOrder(Long userId, Long skuId) {
+    public void canPlaceOrder(Long userId, Long skuId,Long couponId) {
         ProductSkuDO sku = getSku(skuId);
 
         if (sku == null) {
@@ -281,7 +282,12 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             }
         }
         if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
-            if (couponApi.validateUserExitTemplateId(userId, sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
+            if (Objects.isNull(couponId)){
+                throw exception(SKU_FAIL_COUPON_LIMIT_COUPON_NULL);
+            }
+            CouponRespDTO coupon = couponApi.getCoupon(couponId, userId);
+            List<Long> limitCouponTemplateId = sku.getOrderLimitConfig().getLimitCouponTemplateId();
+            if (!limitCouponTemplateId.contains(coupon.getTemplateId())) {
                 throw exception(SKU_FAIL_COUPON_LIMIT);
             }
         }

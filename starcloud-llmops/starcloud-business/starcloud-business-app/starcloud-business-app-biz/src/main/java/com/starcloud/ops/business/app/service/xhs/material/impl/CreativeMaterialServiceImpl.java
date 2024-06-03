@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -14,13 +17,14 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.FieldDefinitionDTO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -30,26 +34,28 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.material.CreativeMaterialMap
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.util.PinyinUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.FILED_DESC_IS_BLANK;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.FILED_DESC_LENGTH;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_NOT_EXIST;
 
 @Slf4j
@@ -65,11 +71,15 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     @Resource
     private AppService appService;
 
+    @Resource
+    private CreativePlanService creativePlanService;
+
     @Override
     public Map<String, Object> metadata() {
         Map<String, Object> result = new HashMap<>();
         result.put(MaterialTypeEnum.class.getSimpleName(), MaterialTypeEnum.allOptions());
         result.put(FieldTypeEnum.class.getSimpleName(), FieldTypeEnum.options());
+        result.put(MaterialFieldTypeEnum.class.getSimpleName(), MaterialFieldTypeEnum.options());
         return result;
     }
 
@@ -139,23 +149,41 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
                 .orElseThrow(() -> new IllegalArgumentException("生成素材的应用信息配置异常！请联系管理员"));
 
         // 素材数据
-        List<AbstractCreativeMaterialDTO> materialList = request.getMaterialList();
+        List<Map<String, Object>> materialList = request.getMaterialList();
+        // 去除空值
+        MaterialDefineUtil.removeNull(materialList);
+
         // 所有字段定义列表
-        List<FieldDefinitionDTO> fieldList = request.getFieldList();
+        List<MaterialFieldConfigDTO> fieldList = request.getFieldList();
         // 选中的字段定义列表
         List<String> checkedFieldList = request.getCheckedFieldList();
         // 素材要求
         String requirement = request.getRequirement();
 
         // 合并字段列表，使选中的字段配置完整
-        List<FieldDefinitionDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
+        List<MaterialFieldConfigDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
+        // 排序
+        List<String> sortedField = fieldList.stream()
+                .filter(config -> !MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(config.getType()))
+                .sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder))
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList());
+
+        // MATERIAL_LIST 移除选中的字段 uuid,group 并排序
+        List<Map<String, Object>> cleanMaterialList = cleanMaterialList(materialList, checkedFieldList, sortedField);
+
+        // FIELD_LIST 只保留fieldName,desc两个字段
+        List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
+
         Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonString(materialList));
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(checkedFieldList));
+        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
+        materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
+        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
         materialMap.put("JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
 
@@ -213,7 +241,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
                 .orElseThrow(() -> new IllegalArgumentException("生成素材的应用信息配置异常！请联系管理员"));
 
         // 所有字段定义列表
-        List<FieldDefinitionDTO> fieldList = request.getFieldList();
+        List<MaterialFieldConfigDTO> fieldList = request.getFieldList();
         // 选中的字段定义列表
         List<String> checkedFieldList = request.getCheckedFieldList();
         // 素材生成要求
@@ -222,16 +250,21 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         Integer generateCount = request.getGenerateCount();
 
         // 合并字段列表，使选中的字段配置完整
-        List<FieldDefinitionDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
+        List<MaterialFieldConfigDTO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
+        // FIELD_LIST 只保留fieldName,desc两个字段
+        List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
+
         Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonString(fieldList));
-        materialMap.put("CHECKED_FIELD_LIST", JsonUtils.toJsonString(checkedFieldList));
+        materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
+        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
+                .map(MaterialFieldConfigDTO::getFieldName)
+                .collect(Collectors.toList())));
         materialMap.put("REQUIREMENT", requirement);
         materialMap.put("GENERATE_COUNT", generateCount);
-        materialMap.put("JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
+        materialMap.put("JSON_SCHEMA", JsonSchemaUtils.jsonSchema2Str(jsonSchema));
 
         // 将处理后的数据放入到应用变量中
         appMarketResponse.putStepVariable(stepId, materialMap);
@@ -257,6 +290,73 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         return jsonSchemaParser.parse(String.valueOf(result));
     }
 
+    @Override
+    public List<MaterialFieldConfigDTO> generalFieldCode(GeneralFieldCodeReqVO reqVO) {
+        List<MaterialFieldConfigDTO> fieldConfigList = reqVO.getFieldConfigDTOList();
+        MaterialDefineUtil.verifyMaterialFieldDesc(fieldConfigList);
+
+        // 已有fieldName的字段排在前面，不重复生成，防止新字段fieldName重复
+        fieldConfigList = fieldConfigList.stream().sorted((a, b) -> {
+            if (StringUtils.isBlank(b.getFieldName())) {
+                return -1;
+            }
+            return 1;
+        }).collect(Collectors.toList());
+
+        // 已有的fieldName 验证新生成的是否重复
+        List<String> fieldCodeExist = new ArrayList<>(fieldConfigList.size());
+        for (MaterialFieldConfigDTO materialFieldConfigDTO : fieldConfigList) {
+            String desc = materialFieldConfigDTO.getDesc();
+            if (StringUtils.isBlank(desc)) {
+                throw exception(FILED_DESC_IS_BLANK);
+            }
+            if (desc.length() > 20) {
+                throw exception(FILED_DESC_LENGTH, desc);
+            }
+            // 已有fieldName的字段跳过
+            if (StringUtils.isNoneBlank(materialFieldConfigDTO.getFieldName())) {
+                fieldCodeExist.add(materialFieldConfigDTO.getFieldName());
+                continue;
+            }
+
+            char[] nameChar = desc.trim().toCharArray();
+            StringBuilder sb = new StringBuilder();
+            for (char c : nameChar) {
+                sb.append(PinyinUtils.pinyinFirstChar(c));
+            }
+            String code = pinyinFirstCharUnique(sb.toString(), fieldCodeExist);
+            fieldCodeExist.add(code);
+            materialFieldConfigDTO.setFieldName(code);
+        }
+        return fieldConfigList.stream()
+                .sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Boolean judgePicture(String uid, String planSource) {
+        AppMarketRespVO appRespVO = creativePlanService.getAppRespVO(uid, planSource);
+        try {
+            return MaterialDefineUtil.judgePicture(appRespVO);
+        } catch (Exception e) {
+            // 默认返回 false 显示列表
+            return false;
+        }
+    }
+
+    /**
+     * code重复拼接随机字符串
+     *
+     * @param fieldName
+     * @param fieldCodeExist
+     * @return
+     */
+    private String pinyinFirstCharUnique(String fieldName, List<String> fieldCodeExist) {
+        if (fieldCodeExist.contains(fieldName)) {
+            return pinyinFirstCharUnique(fieldName + RandomUtil.randomString(BASE_CHAR_NUMBER_LOWER, 1), fieldCodeExist);
+        }
+        return fieldName;
+    }
+
     /**
      * 根据 UID 获取素材
      *
@@ -278,19 +378,19 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList        所有字段配置列表
      * @return 合并后的选中的字段配置列表
      */
-    private List<FieldDefinitionDTO> mergeCheckedFieldList(List<String> checkedFieldList, List<FieldDefinitionDTO> fieldList) {
-        Map<String, FieldDefinitionDTO> fieldMap = CollectionUtil.emptyIfNull(fieldList).stream()
-                .collect(Collectors.toMap(FieldDefinitionDTO::getFieldName, Function.identity()));
+    private List<MaterialFieldConfigDTO> mergeCheckedFieldList(List<String> checkedFieldList, List<MaterialFieldConfigDTO> fieldList) {
+        Map<String, MaterialFieldConfigDTO> fieldMap = CollectionUtil.emptyIfNull(fieldList).stream()
+                .collect(Collectors.toMap(MaterialFieldConfigDTO::getFieldName, Function.identity()));
 
-        List<FieldDefinitionDTO> mergeCheckedFieldList = new ArrayList<>();
+        List<MaterialFieldConfigDTO> mergeCheckedFieldList = new ArrayList<>();
         for (String fieldName : checkedFieldList) {
-            FieldDefinitionDTO field = fieldMap.get(fieldName);
+            MaterialFieldConfigDTO field = fieldMap.get(fieldName);
             if (Objects.isNull(field)) {
                 continue;
             }
             mergeCheckedFieldList.add(field);
         }
-        return mergeCheckedFieldList;
+        return mergeCheckedFieldList.stream().sorted(Comparator.comparingInt(MaterialFieldConfigDTO::getOrder)).collect(Collectors.toList());
     }
 
     /**
@@ -301,7 +401,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @return JSON Schema 字符串
      */
     @SuppressWarnings("all")
-    private static JsonSchema materialFieldToJsonSchema(List<FieldDefinitionDTO> fieldList, Boolean isArray) {
+    private static JsonSchema materialFieldToJsonSchema(List<MaterialFieldConfigDTO> fieldList, Boolean isArray) {
         if (CollectionUtil.isEmpty(fieldList)) {
             throw new IllegalArgumentException("素材字段配置列表不能为空！");
         }
@@ -318,7 +418,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ArraySchema materialFieldToArraySchema(List<FieldDefinitionDTO> fieldList) {
+    private static ArraySchema materialFieldToArraySchema(List<MaterialFieldConfigDTO> fieldList) {
         ObjectSchema itemsSchema = materialFieldToObjectSchema(fieldList);
         itemsSchema.setId("urn:jsonschema:material:item:" + IdUtil.fastSimpleUUID());
 
@@ -336,7 +436,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ObjectSchema materialFieldToObjectSchema(List<FieldDefinitionDTO> fieldList) {
+    private static ObjectSchema materialFieldToObjectSchema(List<MaterialFieldConfigDTO> fieldList) {
         // 创建 JSON Schema 对象
         ObjectSchema objectSchema = JsonSchemaUtils.generateJsonSchema(Object.class).asObjectSchema();
         objectSchema.setId("urn:jsonschema:material:object:" + IdUtil.fastSimpleUUID());
@@ -344,7 +444,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         objectSchema.setRequired(true);
 
         // 遍历字段配置，向 JSON Schema 对象中添加字段
-        for (FieldDefinitionDTO materialField : CollectionUtil.emptyIfNull(fieldList)) {
+        for (MaterialFieldConfigDTO materialField : CollectionUtil.emptyIfNull(fieldList)) {
             String type = materialField.getType();
             if (FieldTypeEnum.string.getTypeCode().equals(type) ||
                     FieldTypeEnum.image.getTypeCode().equals(type) ||
@@ -367,6 +467,45 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         }
 
         return objectSchema;
+    }
+
+
+    private List<Map<String, String>> cleanFieldConfig(List<MaterialFieldConfigDTO> fieldList) {
+        List<Map<String, String>> fieldMapList = new ArrayList<>(fieldList.size());
+        for (MaterialFieldConfigDTO fieldConfigDTO : fieldList) {
+            if (MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(fieldConfigDTO.getType())) {
+                continue;
+            }
+            Map<String, String> fieldMap = new HashMap<>();
+            fieldMap.put("fieldName", fieldConfigDTO.getFieldName());
+            fieldMap.put("desc", fieldConfigDTO.getDesc());
+            fieldMapList.add(fieldMap);
+        }
+        return fieldMapList;
+    }
+
+    /**
+     * 移除选中的字段 uuid,group 并排序
+     *
+     * @param materialList
+     * @param checkedFieldList
+     * @param sortedField
+     * @return
+     */
+    private List<Map<String, Object>> cleanMaterialList(List<Map<String, Object>> materialList, List<String> checkedFieldList, List<String> sortedField) {
+        List<Map<String, Object>> cleanMaterialList = new ArrayList<>(materialList.size());
+
+        for (Map<String, Object> map : materialList) {
+            Map<String, Object> cleanMaterial = new LinkedHashMap<>();
+            for (String fieldName : sortedField) {
+                if (checkedFieldList.contains(fieldName)) {
+                    continue;
+                }
+                cleanMaterial.put(fieldName, map.get(fieldName));
+            }
+            cleanMaterialList.add(cleanMaterial);
+        }
+        return cleanMaterialList;
     }
 
 }

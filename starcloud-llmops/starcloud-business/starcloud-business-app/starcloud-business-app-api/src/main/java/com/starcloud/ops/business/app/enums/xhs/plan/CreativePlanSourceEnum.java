@@ -50,7 +50,7 @@ public enum CreativePlanSourceEnum implements IEnumable<Integer> {
      * @return 是否是我的应用
      */
     public static Boolean isApp(String source) {
-        return APP.name().equals(source);
+        return APP.name().equalsIgnoreCase(source);
     }
 
     /**

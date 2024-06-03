@@ -122,7 +122,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     @Override
     public Long getInviteCountByTimes(Long userId, LocalDateTime startTime, LocalDateTime endTime) {
         return adminUserInviteMapper.selectCount(Wrappers.lambdaQuery(AdminUserInviteDO.class)
-                .eq(AdminUserInviteDO::getInviteeId, userId)
+                .eq(AdminUserInviteDO::getInviterId, userId)
                 .between(AdminUserInviteDO::getCreateTime, startTime, endTime));
     }
 
@@ -162,6 +162,10 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         // 根据时间范围查询已经邀请人数
         Long count = getSelf().getInviteCountByTimes(inviteUserDO.getId(), startTime, endTime);
         log.info("用户{}当前邀请人数为{},开始检测是否满足规则", inviteUserDO.getId(), count);
+        if (count ==0L){
+            log.info("用户{}当前邀请人数为{},不否满足规则，直接跳出", inviteUserDO.getId(), count);
+            return;
+        }
         // 判断是否满足要求
         List<AdminUserInviteRuleDO.Rule> inviteRule = ruleDO.getInviteRule();
 
@@ -187,7 +191,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     public void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
         // 满足要求 添加权益
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
-            if (inviteCount % rule.getCount() == 0) {
+            if (inviteCount % rule.getCount() == 0L) {
                 log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}", inviteCount, inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环

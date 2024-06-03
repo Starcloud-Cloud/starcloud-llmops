@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
 import cn.hutool.json.JSON;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import org.springframework.validation.annotation.Validated;
@@ -75,4 +77,19 @@ public interface CreativeMaterialService {
      */
     JSON customMaterialGenerate(CreativeMaterialGenerationDTO request);
 
+    /**
+     * 生成字段code
+     *
+     * @param reqVO
+     * @return
+     */
+    List<MaterialFieldConfigDTO> generalFieldCode(GeneralFieldCodeReqVO reqVO);
+
+    /**
+     * 判断上传素材内容显示类型 true显示图片 false显示列表
+     * @param uid
+     * @param planSource
+     * @return
+     */
+    Boolean judgePicture(String uid, String planSource);
 }

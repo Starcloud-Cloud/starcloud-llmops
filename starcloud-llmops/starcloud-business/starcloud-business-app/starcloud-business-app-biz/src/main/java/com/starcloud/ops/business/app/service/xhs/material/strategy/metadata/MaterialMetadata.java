@@ -1,10 +1,13 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.metadata;
 
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -29,5 +32,7 @@ public class MaterialMetadata implements java.io.Serializable {
      * 素材步骤名称
      */
     private String materialStepId;
+
+    private List<MaterialFieldConfigDTO> fieldList;
 
 }
