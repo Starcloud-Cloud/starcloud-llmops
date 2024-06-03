@@ -308,6 +308,8 @@ public class AppServiceImpl implements AppService {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
+        appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.update();
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
