@@ -252,9 +252,13 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> skuIds, List<Long> categoryIds) {
-        return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
+
+        List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
-                price, spuIds, skuIds, categoryIds).size();
+                price, spuIds, skuIds, categoryIds);
+        // 兜底逻辑：如果 CouponExpireJob 未执行，status 未变成 EXPIRE ，但是 validEndTime 已经过期了，需要进行过滤
+        couponDOS.removeIf(coupon -> !LocalDateTimeUtils.isBetween(coupon.getValidStartTime(), coupon.getValidEndTime()));
+        return couponDOS.size();
     }
 
     @Override
