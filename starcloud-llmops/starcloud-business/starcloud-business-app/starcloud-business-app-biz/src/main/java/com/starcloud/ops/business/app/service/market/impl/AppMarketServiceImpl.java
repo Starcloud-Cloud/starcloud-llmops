@@ -273,7 +273,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         }
         // 只查询 COMPLETION 的应用
         appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
-        List<AppMarketDO> appMarketList = appMarketMapper.list(appMarketListQuery);
+        List<AppMarketDO> appMarketList = appMarketMapper.listWithoutConfig(appMarketListQuery);
 
         // 如果为空，直接返回
         if (CollectionUtil.isEmpty(appMarketList)) {
@@ -347,6 +347,10 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public void create(AppMarketReqVO request) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(request);
+        appMarketEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appMarketEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appMarketEntity.setCreateTime(LocalDateTime.now());
+        appMarketEntity.setUpdateTime(LocalDateTime.now());
         appMarketEntity.insert();
     }
 
@@ -383,6 +387,8 @@ public class AppMarketServiceImpl implements AppMarketService {
     @Override
     public void modify(AppMarketUpdateReqVO request) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(request);
+        appMarketEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appMarketEntity.setUpdateTime(LocalDateTime.now());
         appMarketEntity.update();
     }
 

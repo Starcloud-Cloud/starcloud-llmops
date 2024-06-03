@@ -61,6 +61,14 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
     List<AppMarketDO> list(@Param("query") AppMarketListQuery query);
 
     /**
+     * 获取应用市场列表选项
+     *
+     * @param query 查询条件
+     * @return 应用列表
+     */
+    List<AppMarketDO> listWithoutConfig(@Param("query") AppMarketListQuery query);
+
+    /**
      * 分页查询应用市场列表
      *
      * @param query 查询条件
