@@ -120,12 +120,11 @@ public abstract class AbstractMaterialHandler {
             // 模板变量列表
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
 
-            // 只要存在是图片变量，且值不为空的，就需要生成图片
-            boolean anyMatchNotBlankImageValue = variableList.stream()
-                    .filter(CreativeUtils::isImageVariable)
+            // 只要存在是变量，且值不为空的，就需要生成图片
+            boolean anyMatchNotBlankValue = variableList.stream()
                     .anyMatch(variable -> StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid())));
 
-            if (anyMatchNotBlankImageValue) {
+            if (anyMatchNotBlankValue) {
                 templates.add(template);
                 continue;
             }
