@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.poster.controller.admin.material.vo;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import com.starcloud.ops.business.poster.enums.material.MaterialTypeEnum;
+import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -15,10 +18,6 @@ public class MaterialSaveReqVO {
     @Schema(description = "主键id", requiredMode = Schema.RequiredMode.REQUIRED, example = "18992")
     private Long id;
 
-    @Schema(description = "编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "10885")
-    @NotEmpty(message = "编号不能为空")
-    private String uid;
-
     @Schema(description = "名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
     @NotEmpty(message = "名称不能为空")
     private String name;
@@ -29,15 +28,16 @@ public class MaterialSaveReqVO {
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "缩略图不能为空")
+    @URL(message = "缩略图必须是 URL 格式")
     private String thumbnail;
 
     @Schema(description = "描述")
     private String introduction;
 
     @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotEmpty(message = "类型不能为空")
-    @InEnum(value = MaterialTypeEnum.class,message = "素材类型不存在，{value}必须在指定范围 ")
-    private String type;
+    @NotNull(message = "类型不能为空")
+    @InEnum(value = MaterialTypeEnum.class,message = "素材类型不存在")
+    private Integer type;
 
     @Schema(description = "标签")
     private String materialTags;
@@ -55,13 +55,10 @@ public class MaterialSaveReqVO {
 
     @Schema(description = "开启状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @NotNull(message = "开启状态不能为空")
+    @InEnum(value = CommonStatusEnum.class,message = "请求状态必须在指定范围 {value}")
     private Integer status;
 
     @Schema(description = "分类排序")
     private Integer sort;
-
-    @Schema(description = "用户类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @NotEmpty(message = "用户类型不能为空")
-    private String userType;
 
 }

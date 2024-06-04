@@ -9,6 +9,7 @@ import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.Ma
 import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO;
 import com.starcloud.ops.business.poster.dal.mysql.materialcategory.MaterialCategoryMapper;
 import com.starcloud.ops.business.poster.service.material.MaterialService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -33,6 +34,7 @@ import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
 public class MaterialCategoryServiceImpl implements MaterialCategoryService {
 
     @Resource
+    @Lazy
     private MaterialService materialService;
 
 

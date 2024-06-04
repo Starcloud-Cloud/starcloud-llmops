@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.poster.controller.admin.materialcategory;
 
+import cn.hutool.core.lang.tree.TreeUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -36,14 +37,14 @@ public class MaterialCategoryController {
 
     @PostMapping("/create")
     @Operation(summary = "创建素材分类")
-    @PreAuthorize("@ss.hasPermission('poster:material-category:create')")
+    // @PreAuthorize("@ss.hasPermission('poster:material-category:create')")
     public CommonResult<Long> createMaterialCategory(@Valid @RequestBody MaterialCategorySaveReqVO createReqVO) {
         return success(materialCategoryService.createMaterialCategory(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新素材分类")
-    @PreAuthorize("@ss.hasPermission('poster:material-category:update')")
+    // @PreAuthorize("@ss.hasPermission('poster:material-category:update')")
     public CommonResult<Boolean> updateMaterialCategory(@Valid @RequestBody MaterialCategorySaveReqVO updateReqVO) {
         materialCategoryService.updateMaterialCategory(updateReqVO);
         return success(true);
@@ -52,7 +53,7 @@ public class MaterialCategoryController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除素材分类")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('poster:material-category:delete')")
+    // @PreAuthorize("@ss.hasPermission('poster:material-category:delete')")
     public CommonResult<Boolean> deleteMaterialCategory(@RequestParam("id") Long id) {
         materialCategoryService.deleteMaterialCategory(id);
         return success(true);

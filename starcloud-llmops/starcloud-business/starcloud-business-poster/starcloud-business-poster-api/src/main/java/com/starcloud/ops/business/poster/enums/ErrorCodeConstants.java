@@ -22,7 +22,7 @@ public interface ErrorCodeConstants {
     ErrorCode CATEGORY_DISABLED = new ErrorCode(600003005, "素材分类({})已禁用，无法使用");
 
 
-    ErrorCode SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR = new ErrorCode(600004001, "商品分类不正确，原因：必须使用第三级的商品分类及以下");
+    ErrorCode SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR = new ErrorCode(600004001, "素材分类不正确，原因：必须使用第三级的素材分类及以下");
 
 
 }

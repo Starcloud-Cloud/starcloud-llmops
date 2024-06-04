@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
@@ -63,7 +62,7 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
-    private CreativeMaterialMapper materialMapper;
+    private CreativeMaterialMapper creativeMaterialMapper;
 
     @Resource
     private AppMarketService appMarketService;
@@ -89,13 +88,13 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         materialDetail.valid();
         CreativeMaterialDO materialDO = CreativeMaterialConvert.INSTANCE.convert(reqVO, materialDetail);
         materialDO.setUid(IdUtil.fastSimpleUUID());
-        materialMapper.insert(materialDO);
+        creativeMaterialMapper.insert(materialDO);
     }
 
     @Override
     public void deleteMaterial(String uid) {
         CreativeMaterialDO materialDO = getByUid(uid);
-        materialMapper.deleteById(materialDO.getId());
+        creativeMaterialMapper.deleteById(materialDO.getId());
     }
 
     @Override
@@ -105,19 +104,19 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         CreativeMaterialDO materialDO = getByUid(reqVO.getUid());
         CreativeMaterialDO updateDO = CreativeMaterialConvert.INSTANCE.convert(reqVO, materialDetail);
         updateDO.setId(materialDO.getId());
-        materialMapper.updateById(updateDO);
+        creativeMaterialMapper.updateById(updateDO);
     }
 
     @Override
     public List<MaterialRespVO> filterMaterial(FilterMaterialReqVO queryReq) {
-        List<CreativeMaterialDO> creativeMaterialDOList = materialMapper.filterMaterial(queryReq);
+        List<CreativeMaterialDO> creativeMaterialDOList = creativeMaterialMapper.filterMaterial(queryReq);
         return CreativeMaterialConvert.INSTANCE.convert(creativeMaterialDOList);
     }
 
     @Override
     public void batchInsert(List<? extends AbstractCreativeMaterialDTO> materialDTOList) {
         List<CreativeMaterialDO> materialDOList = CreativeMaterialConvert.INSTANCE.convert2(materialDTOList);
-        materialMapper.insertBatch(materialDOList);
+        creativeMaterialMapper.insertBatch(materialDOList);
     }
 
     /**
@@ -364,7 +363,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @return 素材
      */
     private CreativeMaterialDO getByUid(String uid) {
-        CreativeMaterialDO materialDO = materialMapper.getByUid(uid);
+        CreativeMaterialDO materialDO = creativeMaterialMapper.getByUid(uid);
         if (Objects.isNull(materialDO)) {
             throw exception(MATERIAL_NOT_EXIST, uid);
         }

@@ -46,7 +46,6 @@ public class MaterialServiceImpl implements MaterialService {
         // 插入
         MaterialDO material = BeanUtils.toBean(createReqVO, MaterialDO.class);
         material.setUid(IdUtil.fastSimpleUUID());
-        material.setUid(IdUtil.fastSimpleUUID());
         material.setUserType(UserUtils.isAdmin()? UserTypeEnum.ADMIN.getValue():UserTypeEnum.MEMBER.getValue());
         materialMapper.insert(material);
         // 返回

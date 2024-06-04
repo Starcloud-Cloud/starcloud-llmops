@@ -1,7 +1,10 @@
 package com.starcloud.ops.business.poster.controller.admin.materialcategory.vo;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
+import cn.iocoder.yudao.framework.common.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.*;
 
@@ -22,9 +25,15 @@ public class MaterialCategorySaveReqVO {
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "缩略图不能为空")
+    @URL(message = "缩略图必须是 URL 格式")
     private String thumbnail;
 
     @Schema(description = "分类排序")
     private Integer sort;
+
+    @Schema(description = "开启状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "0")
+    @NotNull(message = "开启状态不能为空")
+    @InEnum(CommonStatusEnum.class)
+    private Integer status;
 
 }
