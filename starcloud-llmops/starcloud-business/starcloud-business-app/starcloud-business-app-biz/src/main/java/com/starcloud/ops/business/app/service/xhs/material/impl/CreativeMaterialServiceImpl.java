@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
@@ -54,9 +53,7 @@ import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.FILED_DESC_IS_BLANK;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.FILED_DESC_LENGTH;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
 @Service
