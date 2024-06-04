@@ -85,6 +85,11 @@ public class PosterVariableDTO implements java.io.Serializable {
     private String description;
 
     /**
+     * 变量要求，用于AI生成时候的要求
+     */
+    private String requirement;
+
+    /**
      * 变量选项, 变量类型为 SELECT 时使用
      */
     private List<Option> options;

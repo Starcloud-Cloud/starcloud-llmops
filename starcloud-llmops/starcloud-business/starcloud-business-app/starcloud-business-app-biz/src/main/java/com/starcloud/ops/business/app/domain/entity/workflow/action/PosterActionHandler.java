@@ -66,11 +66,6 @@ import java.util.stream.Collectors;
 @TaskComponent
 public class PosterActionHandler extends BaseActionHandler {
 
-    /**
-     * AI标识，标识需要AI生成的字段。图片除外
-     */
-    private static final String AI_SIGN = "";
-
     private static final String IMAGE_URL_LIMIT_PIXEL = "?x-oss-process=image/resize,m_lfit,w_440,h_440";
 
     /**
@@ -198,10 +193,12 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     private void assemble(PosterStyleDTO posterStyle) {
         List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+
         // 把每一个变量的uuid和value放到此map中
         Map<String, Object> templateVariableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
         // 替换变量，未找到的占位符会被替换为空字符串
         Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(templateVariableMap, this.getAppContext().getStepId());
+
         // 循环处理，进行变量替换
         for (PosterTemplateDTO posterTemplate : posterTemplateList) {
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
