@@ -41,7 +41,7 @@ public class CopyWritingContent implements java.io.Serializable {
      * 标签列表
      */
     @Schema(description = "标签列表")
-    @JsonPropertyDescription("文案列表")
+    @JsonPropertyDescription("标签列表")
     private List<String> tagList;
 
 }

@@ -7,6 +7,8 @@ import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -16,7 +18,6 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -133,7 +134,7 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         // 不支持的生成模式
-        return ActionResponse.failure("310100020", "自定义内容生成不支持的生成模式: " + generateMode, params);
+        throw ServiceExceptionUtil.exception(new ErrorCode(310100020, "自定义内容生成不支持的生成模式"));
     }
 
     /**
@@ -149,12 +150,12 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到参考文案
         String refers = String.valueOf(params.get(CreativeConstants.REFERS));
         if (StrUtil.isBlank(refers)) {
-            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
         }
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
 
         if (CollectionUtil.isEmpty(referList)) {
-            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
         }
 
         AbstractCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
@@ -209,10 +210,15 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 prompt
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         List<String> promptList = StrUtil.split(prompt, "----------");
-        prompt = promptList.get(0);
+        try {
+            prompt = promptList.get(0);
+        } catch (Exception e) {
+            log.error("自定义内容生成: AI仿写生成模式[{}]：系统应用配置异常：prompt不存在，请联系管理员！", this.getClass().getSimpleName());
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+        }
 
         if (StrUtil.isBlank(prompt)) {
-            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
         }
 
         // 获取到参考内容
@@ -220,7 +226,7 @@ public class CustomActionHandler extends BaseActionHandler {
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
 
         if (CollectionUtil.isEmpty(referList)) {
-            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
         }
 
         // 需要交给 ChatGPT 的参考内容数量
@@ -286,9 +292,14 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 prompt
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         List<String> promptList = StrUtil.split(prompt, "----------");
-        prompt = promptList.get(1);
+        try {
+            prompt = promptList.get(1);
+        } catch (Exception e) {
+            log.error("自定义内容生成: 自定义生成模式[{}]：系统应用配置异常：prompt不存在，请联系管理员！", this.getClass().getSimpleName());
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+        }
         if (StrUtil.isBlank(prompt)) {
-            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
         }
 
         // 获取到大模型 model
