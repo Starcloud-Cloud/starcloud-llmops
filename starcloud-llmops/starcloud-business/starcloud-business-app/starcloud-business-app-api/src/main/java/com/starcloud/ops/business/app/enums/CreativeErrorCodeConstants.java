@@ -169,7 +169,7 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode UPLOAD_QUEUE_FULL = new ErrorCode(730000006, "素材上传队列已满，请稍后重试");
 
-    ErrorCode NOT_ZIP_PACKAGE = new ErrorCode(730000007, "只支持上传zip压缩包");
+    ErrorCode NOT_ZIP_PACKAGE = new ErrorCode(730000007, "只支持上传zip、rar压缩包");
 
     ErrorCode DOWNLOAD_TEMPLATE_ERROR = new ErrorCode(730000008, "导出模板异常 {}");
 
@@ -197,7 +197,7 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode FILED_DESC_LENGTH = new ErrorCode(730000020, "素材定义字段中文名10个字符以内 {}");
 
-    ErrorCode EXCEL_NOT_EXIST = new ErrorCode(730000021, "压缩包中未找到名为:导入模板.xlsx 的文件}");
+    ErrorCode EXCEL_NOT_EXIST = new ErrorCode(730000021, "压缩包中未找到名为:导入模板.xlsx 的文件");
 
     ErrorCode IMAGES_NOT_EXIST = new ErrorCode(730000022, "压缩包中未找到images的文件夹}");
 
