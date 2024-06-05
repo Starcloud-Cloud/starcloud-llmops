@@ -224,9 +224,10 @@ public class CustomActionHandler extends BaseActionHandler {
                 throw new Exception("prompt 为空");
             }
         } catch (Exception e) {
-            log.error("用户prompt配置异常！获取默认配置！");
+            log.error("用户prompt配置异常！从字典配置中获取默认配置！");
             prompt = this.getDefaultFromDict("小红书仿写");
             if (StrUtil.isBlank(prompt)) {
+                log.error("自定默认配置为空！(小红书仿写) prompt 为空！请检查字典配置！");
                 throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
             }
             // 放入到上下文中
@@ -317,9 +318,10 @@ public class CustomActionHandler extends BaseActionHandler {
                 throw new Exception("prompt 为空");
             }
         } catch (Exception e) {
-            log.error("用户prompt配置异常！获取默认配置！");
+            log.error("用户prompt配置异常！从字典中获取默认配置！");
             prompt = this.getDefaultFromDict("小红书自定义");
             if (StrUtil.isBlank(prompt)) {
+                log.error("自定默认配置为空！(小红书自定义) prompt 为空！请检查字典配置！");
                 throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
             }
             // 放入到上下文中

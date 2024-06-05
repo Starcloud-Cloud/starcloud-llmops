@@ -235,7 +235,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     @Override
     public Map<String, String> actionDefaultConfig() {
         List<DictDataDO> dictDataList = getDictionaryList("prompt_template");
-        return CollectionUtil.emptyIfNull(dictDataList).stream().collect(Collectors.toMap(DictDataDO::getValue, DictDataDO::getRemark));
+        return CollectionUtil.emptyIfNull(dictDataList).stream().collect(Collectors.toMap(DictDataDO::getLabel, DictDataDO::getRemark));
     }
 
     /**
