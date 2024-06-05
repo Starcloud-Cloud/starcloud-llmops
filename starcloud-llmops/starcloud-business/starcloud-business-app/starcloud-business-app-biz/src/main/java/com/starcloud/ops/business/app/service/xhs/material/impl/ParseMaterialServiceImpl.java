@@ -143,7 +143,6 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
             File excel = null;
             File unzipDir = null;
-            // 从子目录中找后缀为xlsx的文件 且开头不为.
             for (File childrenDir : childrenDirs) {
                 File[] excelFiles = childrenDir.listFiles((File pathname) -> {
                     String[] split = pathname.getName().split("\\.");
@@ -151,9 +150,14 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
                         return false;
                     }
                     String suffix = split[split.length - 1];
-                    if (pathname.isFile() && "xlsx".equals(suffix) && !pathname.getName().startsWith(".")) {
+                    // 筛选出文件名为 导入模板.xlsx 的文件
+                    if (pathname.isFile() && "导入模板.xlsx".equalsIgnoreCase(pathname.getName())) {
                         return true;
                     }
+                    // 从子目录中找后缀为xlsx的文件 且开头不为.
+//                    if (pathname.isFile() && "xlsx".equals(suffix) && !pathname.getName().startsWith(".")) {
+//                        return true;
+//                    }
                     return false;
                 });
                 if (excelFiles != null && excelFiles.length > 0) {
