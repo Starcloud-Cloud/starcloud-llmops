@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
@@ -33,6 +35,7 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
@@ -58,6 +61,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @TaskComponent
 public class CustomActionHandler extends BaseActionHandler {
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppDictionaryService appDictionaryService = SpringUtil.getBean(AppDictionaryService.class);
 
     /**
      * 流程执行器，action 执行入口
@@ -212,13 +219,24 @@ public class CustomActionHandler extends BaseActionHandler {
         List<String> promptList = StrUtil.split(prompt, "----------");
         try {
             prompt = promptList.get(0);
+            // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
+            if (StrUtil.isBlank(prompt)) {
+                throw new Exception("prompt 为空");
+            }
         } catch (Exception e) {
-            log.error("自定义内容生成: AI仿写生成模式[{}]：系统应用配置异常：prompt不存在，请联系管理员！", this.getClass().getSimpleName());
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
-        }
-
-        if (StrUtil.isBlank(prompt)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            log.error("用户prompt配置异常！获取默认配置！");
+            prompt = this.getDefaultFromDict("小红书仿写");
+            if (StrUtil.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            }
+            // 放入到上下文中
+            this.getAppContext().putVariable("PROMPT", prompt);
+            // 重新获取替换后的 prompt
+            prompt = String.valueOf(this.getAppContext().getContextVariablesValues().get("PROMPT"));
+            // 如果还是为空，抛出异常
+            if (StrUtil.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            }
         }
 
         // 获取到参考内容
@@ -290,16 +308,28 @@ public class CustomActionHandler extends BaseActionHandler {
          * AI自定义为第二个 prompt
          */
         // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", ""));
         List<String> promptList = StrUtil.split(prompt, "----------");
         try {
             prompt = promptList.get(1);
+            // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
+            if (StrUtil.isBlank(prompt)) {
+                throw new Exception("prompt 为空");
+            }
         } catch (Exception e) {
-            log.error("自定义内容生成: 自定义生成模式[{}]：系统应用配置异常：prompt不存在，请联系管理员！", this.getClass().getSimpleName());
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
-        }
-        if (StrUtil.isBlank(prompt)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            log.error("用户prompt配置异常！获取默认配置！");
+            prompt = this.getDefaultFromDict("小红书自定义");
+            if (StrUtil.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            }
+            // 放入到上下文中
+            this.getAppContext().putVariable("PROMPT", prompt);
+            // 重新获取替换后的 prompt
+            prompt = String.valueOf(this.getAppContext().getContextVariablesValues().get("PROMPT"));
+            // 如果还是为空，抛出异常
+            if (StrUtil.isBlank(prompt)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            }
         }
 
         // 获取到大模型 model
@@ -410,6 +440,16 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         return actionResponse;
+    }
+
+    /**
+     * 从字典中获取默认值
+     *
+     * @param key key
+     * @return 默认值
+     */
+    private String getDefaultFromDict(String key) {
+        return MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(key, StrUtil.EMPTY);
     }
 
     private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {

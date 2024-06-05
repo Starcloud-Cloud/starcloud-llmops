@@ -129,5 +129,4 @@ public interface AppConstants {
      */
     String CHARS = "ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-
 }

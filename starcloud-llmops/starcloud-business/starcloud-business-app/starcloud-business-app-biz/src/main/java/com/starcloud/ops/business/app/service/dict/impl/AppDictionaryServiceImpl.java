@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -224,6 +225,17 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
                 .map(DictDataDO::getLabel).filter(StringUtils::isNotBlank)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取应用动作默认配置
+     *
+     * @return 应用动作默认配置
+     */
+    @Override
+    public Map<String, String> actionDefaultConfig() {
+        List<DictDataDO> dictDataList = getDictionaryList("prompt_template");
+        return CollectionUtil.emptyIfNull(dictDataList).stream().collect(Collectors.toMap(DictDataDO::getValue, DictDataDO::getRemark));
     }
 
     /**
