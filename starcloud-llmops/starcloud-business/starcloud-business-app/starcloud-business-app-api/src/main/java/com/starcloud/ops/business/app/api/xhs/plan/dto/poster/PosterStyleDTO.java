@@ -77,6 +77,14 @@ public class PosterStyleDTO implements java.io.Serializable {
     private String description;
 
     /**
+     * 所有参数为空时候不执行<br>
+     * {@code true} 所有参数为空时候不执行<br>
+     * {@code null}或者{@code false} 所有参数为空时候报错。
+     */
+    @Schema(description = "所有参数为空时候不执行")
+    private Boolean noExecuteIfEmpty;
+
+    /**
      * 模板列表
      */
     @Schema(description = "模板列表")

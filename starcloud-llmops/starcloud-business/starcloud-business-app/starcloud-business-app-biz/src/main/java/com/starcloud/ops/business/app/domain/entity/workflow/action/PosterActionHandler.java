@@ -233,7 +233,7 @@ public class PosterActionHandler extends BaseActionHandler {
             // 如果所有变量处理之后值为空
             if (isAllValueIsInvalid) {
                 // 如果设置所有变量为空报错(null/false)，则报错!
-                if (Objects.isNull(posterTemplate.getNoExecuteIfEmpty()) || !posterTemplate.getNoExecuteIfEmpty()) {
+                if (Objects.isNull(posterStyle.getNoExecuteIfEmpty()) || !posterStyle.getNoExecuteIfEmpty()) {
                     throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
                             "海报校验失败：[" + posterStyle.getName() +
                                     "][" + posterTemplate.getName() +
