@@ -187,10 +187,21 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 处理无依赖模版，包括海报风格参数填充。
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private void handlerNoDependencyTemplate(List<PosterTemplateDTO> posterTemplateList) {
+
+    }
+
+    /**
      * 海报风格参数填充
      *
      * @param posterStyle 海报风格
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private void assemble(PosterStyleDTO posterStyle) {
         List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
@@ -211,6 +222,96 @@ public class PosterActionHandler extends BaseActionHandler {
         }
 
         posterStyle.setTemplateList(posterTemplateList);
+    }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private List<PosterGenerationHandler.Response> batchPoster(List<PosterTemplateDTO> posterTemplateList) {
+        // 获取线程池
+        ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
+        // 任务列表，只执行需要执行的图片，isExecute 为空或者为true，都执行，为false则不需要执行改图片
+        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList)
+                .stream()
+                .filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute())
+                .map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor))
+                .collect(Collectors.toList());
+
+        // 任务合并
+        CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+
+        // 获取结果
+        List<HandlerResponse<PosterGenerationHandler.Response>> handlerResponseList = allFuture.join();
+
+        // 如果有一个失败，则返回失败
+        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> !item.getSuccess())
+                .findFirst();
+        if (failureOption.isPresent()) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(failureOption.get().getErrorCode(), failureOption.get().getErrorMsg()));
+        }
+
+        // 构建响应结果
+        return handlerResponseList.stream()
+                .filter(Objects::nonNull)
+                .map(HandlerResponse::getOutput)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 生成海报图片
+     *
+     * @param posterTemplate 海报模版
+     * @return 生成结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private HandlerResponse<PosterGenerationHandler.Response> poster(PosterTemplateDTO posterTemplate) {
+        try {
+            // 构建请求
+            PosterGenerationHandler.Request handlerRequest = new PosterGenerationHandler.Request();
+            handlerRequest.setCode(posterTemplate.getCode());
+            handlerRequest.setName(posterTemplate.getName());
+            handlerRequest.setIsMain(posterTemplate.getIsMain());
+            handlerRequest.setIndex(posterTemplate.getIndex());
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            PosterVariableDTO::getField,
+                            // 如果变量为值为空，则设置为空字符串
+                            item -> Optional.ofNullable(item.getValue()).orElse(StringUtils.EMPTY))
+                    );
+
+            handlerRequest.setParams(params);
+
+            // 构建请求
+            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(
+                    this.getAppUid(),
+                    this.getAppContext().getConversationUid(),
+                    this.getAppContext().getUserId(),
+                    this.getAppContext().getEndUserId(),
+                    this.getAppContext().getScene(),
+                    handlerRequest
+            );
+            PosterGenerationHandler handler = new PosterGenerationHandler();
+            return handler.execute(handlerContext);
+        } catch (ServiceException exception) {
+            log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
+            HandlerResponse<PosterGenerationHandler.Response> handlerResponse = new HandlerResponse<>();
+            handlerResponse.setSuccess(Boolean.FALSE);
+            handlerResponse.setErrorCode(exception.getCode());
+            handlerResponse.setErrorMsg(exception.getMessage());
+            return handlerResponse;
+        } catch (Exception exception) {
+            log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
+            HandlerResponse<PosterGenerationHandler.Response> handlerResponse = new HandlerResponse<>();
+            handlerResponse.setSuccess(Boolean.FALSE);
+            handlerResponse.setErrorCode(350400200);
+            handlerResponse.setErrorMsg(exception.getMessage());
+            return handlerResponse;
+        }
     }
 
     /**
@@ -351,57 +452,14 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 生成海报图片
+     * 判断图片模板生成是否依赖别的图片生成的结果
      *
      * @param posterTemplate 海报模版
-     * @return 生成结果
+     * @return 是否依赖
      */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private HandlerResponse<PosterGenerationHandler.Response> poster(PosterTemplateDTO posterTemplate) {
-        try {
-            // 构建请求
-            PosterGenerationHandler.Request handlerRequest = new PosterGenerationHandler.Request();
-            handlerRequest.setCode(posterTemplate.getCode());
-            handlerRequest.setName(posterTemplate.getName());
-            handlerRequest.setIsMain(posterTemplate.getIsMain());
-            handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList())
-                    .stream()
-                    .collect(Collectors.toMap(
-                            PosterVariableDTO::getField,
-                            // 如果变量为值为空，则设置为空字符串
-                            item -> Optional.ofNullable(item.getValue()).orElse(StringUtils.EMPTY))
-                    );
-
-            handlerRequest.setParams(params);
-
-            // 构建请求
-            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(
-                    this.getAppUid(),
-                    this.getAppContext().getConversationUid(),
-                    this.getAppContext().getUserId(),
-                    this.getAppContext().getEndUserId(),
-                    this.getAppContext().getScene(),
-                    handlerRequest
-            );
-            PosterGenerationHandler handler = new PosterGenerationHandler();
-            return handler.execute(handlerContext);
-        } catch (ServiceException exception) {
-            log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
-            HandlerResponse<PosterGenerationHandler.Response> handlerResponse = new HandlerResponse<>();
-            handlerResponse.setSuccess(Boolean.FALSE);
-            handlerResponse.setErrorCode(exception.getCode());
-            handlerResponse.setErrorMsg(exception.getMessage());
-            return handlerResponse;
-        } catch (Exception exception) {
-            log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
-            HandlerResponse<PosterGenerationHandler.Response> handlerResponse = new HandlerResponse<>();
-            handlerResponse.setSuccess(Boolean.FALSE);
-            handlerResponse.setErrorCode(350400200);
-            handlerResponse.setErrorMsg(exception.getMessage());
-            return handlerResponse;
-        }
+    private static boolean isdependencyResult(PosterTemplateDTO posterTemplate) {
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+        return false;
     }
 
     /**

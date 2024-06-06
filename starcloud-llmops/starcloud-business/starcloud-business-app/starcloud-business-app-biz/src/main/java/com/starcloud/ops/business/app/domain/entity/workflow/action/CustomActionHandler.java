@@ -231,7 +231,7 @@ public class CustomActionHandler extends BaseActionHandler {
                 throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
             }
             // 放入到上下文中
-            this.getAppContext().putVariable("PROMPT", prompt);
+            this.getAppContext().putModelVariable("PROMPT", prompt);
             // 重新获取替换后的 prompt
             prompt = String.valueOf(this.getAppContext().getContextVariablesValues().get("PROMPT"));
             // 如果还是为空，抛出异常
@@ -313,6 +313,7 @@ public class CustomActionHandler extends BaseActionHandler {
         List<String> promptList = StrUtil.split(prompt, "----------");
         try {
             prompt = promptList.get(1);
+            int a = 1 / 0;
             // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
             if (StrUtil.isBlank(prompt)) {
                 throw new Exception("prompt 为空");
@@ -325,7 +326,7 @@ public class CustomActionHandler extends BaseActionHandler {
                 throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
             }
             // 放入到上下文中
-            this.getAppContext().putVariable("PROMPT", prompt);
+            this.getAppContext().putModelVariable("PROMPT", prompt);
             // 重新获取替换后的 prompt
             prompt = String.valueOf(this.getAppContext().getContextVariablesValues().get("PROMPT"));
             // 如果还是为空，抛出异常
