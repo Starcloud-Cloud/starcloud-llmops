@@ -373,6 +373,24 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 图片搜索习惯
+     * @return
+     */
+    public static VariableItemRespVO defSearchHabitsVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.SEARCH_HABITS);
+        variableItem.setLabel("搜索习惯");
+        variableItem.setDescription("图片搜索习惯");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
      * 素材自定义结构
      *
      * @return 资料库类型
