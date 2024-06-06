@@ -281,6 +281,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected abstract String obtainLlmAiModelType(Q request);
 
     /**
@@ -550,6 +552,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationUid 会话UID
      * @param request         请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void successAppConversationLog(String conversationUid, Q request) {
         log.info("应用执行成功：更新会话记录开始 会话 UID：{}...", conversationUid);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
@@ -570,6 +574,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param errorMsg        错误消息
      * @param request         请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg, Q request) {
         log.info("应用执行失败：更新会话记录开始 会话 UID：{}, errorCode：{}，errorMsg：{} ...", conversationUid, errorCode, errorMsg);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
@@ -670,11 +676,26 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     }
 
     /**
+     * 放入到模型变量中
+     *
+     * @param stepId 步骤ID
+     * @param key    键
+     * @param value  值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String key, Object value) {
+        this.workflowConfig.putModelVariable(stepId, key, value);
+    }
+
+    /**
      * 异常
      *
      * @param errorCode 错误码
      * @return 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode) {
         return ServiceExceptionUtil.exception(errorCode);
     }
@@ -686,6 +707,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param params    参数
      * @return 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
     }
@@ -695,6 +718,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @return 会话 UID
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static String createAppConversationUid() {
         return IdUtil.fastSimpleUUID();
     }

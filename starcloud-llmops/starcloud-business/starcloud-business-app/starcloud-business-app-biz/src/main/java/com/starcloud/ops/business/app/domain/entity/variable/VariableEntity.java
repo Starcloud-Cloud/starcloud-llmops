@@ -153,7 +153,7 @@ public class VariableEntity {
     @JSONField(serialize = false)
     public void putVariable(String key, Object value) {
         for (VariableItemEntity variable : this.variables) {
-            if (variable.getField().equals(key)) {
+            if (variable.getField().toUpperCase().equalsIgnoreCase(key)) {
                 variable.setValue(value);
             }
         }
