@@ -209,6 +209,22 @@ public class CustomActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
+        // 获取到参考内容
+        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
+        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
+        if (CollectionUtil.isEmpty(referList)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
+        }
+
+        // 需要交给 ChatGPT 的参考内容数量
+        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
+
+        // 处理参考内容
+        List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
+        AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
+        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
+        // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
+        params = this.getAppContext().getContextVariablesValues();
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -240,24 +256,6 @@ public class CustomActionHandler extends BaseActionHandler {
             }
         }
 
-        // 获取到参考内容
-        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
-        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
-
-        if (CollectionUtil.isEmpty(referList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
-        }
-
-        // 需要交给 ChatGPT 的参考内容数量
-        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
-
-        // 处理参考内容
-        List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
-        AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
-        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
-
-        // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
-        params = this.getAppContext().getContextVariablesValues();
         log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
