@@ -104,19 +104,27 @@ public abstract class AbstractMaterialHandler {
         List<PosterTemplateDTO> templates = Lists.newArrayList();
 
         List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
-        // // 进行海报风格的处理
+        // 如果只有一个模板图片，直接执行。
+        if (templateList.size() == 1) {
+            for (PosterTemplateDTO posterTemplate : templateList) {
+                posterTemplate.setIsExecute(Boolean.TRUE);
+                templates.add(posterTemplate);
+            }
+            style.setTemplateList(templates);
+            return style;
+        }
+        // 进行海报风格的处理
         for (PosterTemplateDTO template : templateList) {
             // 默认设置为 TRUE
             template.setIsExecute(Boolean.TRUE);
             // 模板变量列表
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
 
-            // 只要存在是图片变量，且值不为空的，就需要生成图片
-            boolean anyMatchNotBlankImageValue = variableList.stream()
-                    .filter(CreativeUtils::isImageVariable)
+            // 只要存在是变量，且值不为空的，就需要生成图片
+            boolean anyMatchNotBlankValue = variableList.stream()
                     .anyMatch(variable -> StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid())));
 
-            if (anyMatchNotBlankImageValue) {
+            if (anyMatchNotBlankValue) {
                 templates.add(template);
                 continue;
             }

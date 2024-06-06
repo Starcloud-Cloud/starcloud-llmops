@@ -40,7 +40,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         wrapper.likeRight(StringUtils.isNotBlank(query.getName()), AppDO::getName, query.getName());
         // 非管理员用户智能查看普通应用
         if (UserUtils.isNotAdmin()) {
-            wrapper.eq(AppDO::getType, AppTypeEnum.COMMON.name());
+            wrapper.ne(AppDO::getType, AppTypeEnum.SYSTEM.name());
         }
         wrapper.eq(StringUtils.isNotBlank(query.getCategory()), AppDO::getCategory, query.getCategory());
         wrapper.ne(AppDO::getSource, AppSourceEnum.WX_WP.name());

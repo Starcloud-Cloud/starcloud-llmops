@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import com.starcloud.ops.business.app.service.xhs.material.UploadMaterialImageManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
+import com.starcloud.ops.business.app.util.UnpackUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -109,13 +110,6 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
         long start = System.currentTimeMillis();
         MultipartFile file = uploadReqVO.getFile();
 
-        //文件名 uid-source.zip
-        String[] fileNameSplit = file.getOriginalFilename().split("\\.");
-        if (fileNameSplit.length != 2 || !Objects.equals("zip", fileNameSplit[1])) {
-            throw exception(NOT_ZIP_PACKAGE);
-        }
-
-//        String zipPrefix = uploadReqVO.getUid() + MaterialTemplateUtils.DIVIDER + uploadReqVO.getPlanSource();
         AppMarketRespVO appMarketResponse = creativePlanService.getAppRespVO(uploadReqVO.getUid(), uploadReqVO.getPlanSource());
 
         List<MaterialFieldConfigDTO> materialConfigList = MaterialDefineUtil.getMaterialConfig(appMarketResponse);
@@ -128,7 +122,7 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
             File zipFile = Paths.get(dirPath, file.getOriginalFilename()).toFile();
             file.transferTo(zipFile);
-            ZipUtil.unzip(zipFile, dir, StandardCharsets.UTF_8);
+            UnpackUtils.unpack(zipFile, dir);
             // 解析excel文件   解压文件下/目录/excel.xlsx
             // 压缩包解压后下面的目录
             File[] childrenDirs = dir.listFiles(new FileFilter() {
@@ -143,7 +137,6 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
 
             File excel = null;
             File unzipDir = null;
-            // 从子目录中找后缀为xlsx的文件 且开头不为.
             for (File childrenDir : childrenDirs) {
                 File[] excelFiles = childrenDir.listFiles((File pathname) -> {
                     String[] split = pathname.getName().split("\\.");
@@ -151,9 +144,14 @@ public class ParseMaterialServiceImpl implements ParseMaterialService {
                         return false;
                     }
                     String suffix = split[split.length - 1];
-                    if (pathname.isFile() && "xlsx".equals(suffix) && !pathname.getName().startsWith(".")) {
+                    // 筛选出文件名为 导入模板.xlsx 的文件
+                    if (pathname.isFile() && "导入模板.xlsx".equalsIgnoreCase(pathname.getName())) {
                         return true;
                     }
+                    // 从子目录中找后缀为xlsx的文件 且开头不为.
+//                    if (pathname.isFile() && "xlsx".equals(suffix) && !pathname.getName().startsWith(".")) {
+//                        return true;
+//                    }
                     return false;
                 });
                 if (excelFiles != null && excelFiles.length > 0) {

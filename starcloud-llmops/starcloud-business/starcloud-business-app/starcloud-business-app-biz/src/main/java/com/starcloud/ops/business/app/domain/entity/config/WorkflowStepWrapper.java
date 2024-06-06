@@ -1,24 +1,17 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -184,6 +176,8 @@ public class WorkflowStepWrapper {
      *
      * @return 变量的 values 集合
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private Map<String, Object> getOriginalVariablesValues(String prefixKey, Boolean hasStepCode) {
         Function<VariableItemEntity, Object> consumer = (item) -> ObjectUtil.isEmpty(item.getValue()) ? item.getDefaultValue() : item.getValue();
 
@@ -237,15 +231,38 @@ public class WorkflowStepWrapper {
         }
     }
 
+    /**
+     * 获取模型变量
+     *
+     * @param key key
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public VariableItemEntity getModeVariableItem(String key) {
         return this.flowStep.getModeVariableItem(key);
     }
 
+    /**
+     * 将变量放入步骤变量中
+     *
+     * @param key   key
+     * @param value value
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public void putVariable(String key, Object value) {
         this.variable.putVariable(key, value);
+    }
+
+    /**
+     * 将变量放入步骤变量中
+     *
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String key, Object value) {
+        this.flowStep.putModelVariable(key, value);
     }
 }

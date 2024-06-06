@@ -99,6 +99,11 @@ public interface CreativeConstants {
     String PICTURE = "picture";
 
     /**
+     * 图片搜索习惯
+     */
+    String SEARCH_HABITS = "SEARCH_HABITS";
+
+    /**
      * 素材字段定义
      */
     String MATERIAL_DEFINE = "MATERIAL_DEFINE";

@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.api.image.dto.ImageMetaDTO;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用引用字典服务的接口
@@ -78,4 +79,11 @@ public interface AppDictionaryService {
      * @return 搜索应用模板名称
      */
     List<String> appTemplateAppNameList();
+
+    /**
+     * 获取应用action默认值
+     *
+     * @return 获取应用action默认值
+     */
+    Map<String, String> actionDefaultConfig();
 }

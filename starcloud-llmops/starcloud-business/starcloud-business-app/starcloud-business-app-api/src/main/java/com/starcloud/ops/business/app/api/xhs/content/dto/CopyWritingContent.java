@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.xhs.content.dto;
 
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,18 +27,21 @@ public class CopyWritingContent implements java.io.Serializable {
      * 文案标题
      */
     @Schema(description = "文案标题")
+    @JsonPropertyDescription("文案标题")
     private String title;
 
     /**
      * 文案内容
      */
     @Schema(description = "文案内容")
+    @JsonPropertyDescription("文案内容")
     private String content;
 
     /**
      * 标签列表
      */
     @Schema(description = "标签列表")
+    @JsonPropertyDescription("标签列表")
     private List<String> tagList;
 
 }
