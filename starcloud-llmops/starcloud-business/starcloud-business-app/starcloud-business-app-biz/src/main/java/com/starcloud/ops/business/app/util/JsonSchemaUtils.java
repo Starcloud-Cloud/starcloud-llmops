@@ -614,7 +614,7 @@ public class JsonSchemaUtils {
         for (MaterialFieldConfigDTO materialFieldConfigDTO : configList) {
             StringSchema schema = new StringSchema();
             schema.setTitle(materialFieldConfigDTO.getDesc());
-            schema.setDescription(materialFieldConfigDTO.getDesc() + "-" + materialFieldConfigDTO.getType());
+            schema.setDescription("" + "-" + materialFieldConfigDTO.getType());
             properties.put(materialFieldConfigDTO.getFieldName(), schema);
         }
         obj.setProperties(properties);
