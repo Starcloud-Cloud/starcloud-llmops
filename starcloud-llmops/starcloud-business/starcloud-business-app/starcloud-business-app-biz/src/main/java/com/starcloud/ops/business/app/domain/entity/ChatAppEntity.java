@@ -367,9 +367,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
 
-        int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
-        //设置 memory 必要参数
-        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
+        //int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
+        //设置 强制总结的 tokens
+        this.getMessageMemory().setSummaryMaxTokens(4000);
 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
@@ -378,7 +378,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
-            LLMChain<GenerationResult> llmChain = buildQwenLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
+            LLMChain<GenerationResult> llmChain = buildQwenLlm(request, chatConfig, chatPromptTemplate, emitter);
 
             BaseLLMResult<GenerationResult> result = llmChain.call(Arrays.asList(humanInput));
 
@@ -409,7 +409,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
                 ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
-                LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
+                LLMChain<ChatCompletionResult> llmChain = buildLlm(request, chatConfig, chatPromptTemplate, emitter);
 
                 BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
 
@@ -454,7 +454,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 千问 LLm
      *
      * @param request
-     * @param maxTokens
      * @param chatConfig
      * @param chatPromptTemplate
      * @param emitter
@@ -462,7 +461,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private LLMChain<GenerationResult> buildQwenLlm(ChatRequestVO request, int maxTokens,
+    private LLMChain<GenerationResult> buildQwenLlm(ChatRequestVO request,
                                                     ChatConfigEntity chatConfig,
                                                     ChatPromptTemplate chatPromptTemplate,
                                                     SseEmitter emitter) {
@@ -480,7 +479,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     @JsonIgnore
     @JSONField(serialize = false)
-    private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request, int maxTokens,
+    private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request,
                                                                                            ChatConfigEntity chatConfig,
                                                                                            ChatPromptTemplate chatPromptTemplate,
                                                                                            SseEmitter emitter) {
