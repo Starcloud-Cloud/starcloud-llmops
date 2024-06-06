@@ -92,6 +92,14 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Boolean isExecute;
 
     /**
+     * 所有参数为空时候不执行<br>
+     * {@code true} 所有参数为空时候不执行<br>
+     * {@code null}或者{@code false} 所有参数为空时候报错。
+     */
+    @Schema(description = "所有参数为空时候不执行")
+    private Boolean noExecuteIfEmpty;
+
+    /**
      * 海报模板描述
      */
     @Schema(description = "海报模板描述")

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -34,6 +35,7 @@ import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
 import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.MultiModalMessage;
@@ -203,24 +205,60 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private void assemble(PosterStyleDTO posterStyle) {
+        // "图片生成.result[0].url"
+        // 获取海报模版列表
         List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
-        // 把每一个变量的uuid和value放到此map中
-        Map<String, Object> templateVariableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
-        // 替换变量，未找到的占位符会被替换为空字符串
-        Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(templateVariableMap, this.getAppContext().getStepId());
-
-        // 循环处理，进行变量替换
+        // 循环处理海报模板列表
         for (PosterTemplateDTO posterTemplate : posterTemplateList) {
+
+            // 获取海报模板变量列表
             List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList());
+
+            // 如果变量列表为空，则直接执行图片生成
+            if (CollectionUtil.isEmpty(variableList)) {
+                posterTemplate.setIsExecute(Boolean.TRUE);
+                continue;
+            }
+
+            // 获取所有变量的uuid和value并且放到此map中
+            Map<String, Object> variableMap = CreativeUtils.getPosterVariableMap(variableList);
+            // 替换变量，未找到的占位符会被替换为空字符串
+            Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, this.getAppContext().getStepId());
+
+            // 判断变量替换之后，是否所有的变量都是空的。
+            boolean isAllValueIsInvalid = MapUtil.emptyIfNull(replaceValueMap).values().stream()
+                    .allMatch(item -> StringUtil.objectBlank(item));
+
+            // 如果所有变量处理之后值为空
+            if (isAllValueIsInvalid) {
+                // 如果设置所有变量为空报错(null/false)，则报错!
+                if (Objects.isNull(posterTemplate.getNoExecuteIfEmpty()) || !posterTemplate.getNoExecuteIfEmpty()) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
+                            "海报校验失败：[" + posterStyle.getName() +
+                                    "][" + posterTemplate.getName() +
+                                    "] 变量值都为空。或者占位符无法替换，请检查您的图片变量配置！"));
+                }
+                // 如果设置所有变量为空(true)不执行，则不执行
+                else {
+                    posterTemplate.setIsExecute(Boolean.FALSE);
+                    continue;
+                }
+            }
+
+            // 循环处理变量列表，进行值填充
             for (PosterVariableDTO variable : variableList) {
                 // 从作用域数据中获取变量值
-                Object value = replaceValueMap.getOrDefault(variable.getUuid(), variable.getValue());
+                Object value = replaceValueMap.get(variable.getUuid());
+                // 如果从作用域数据中获取的变量值为空，则为空字符串。
+                if (StringUtil.objectBlank(value)) {
+                    value = StrUtil.EMPTY;
+                }
                 variable.setValue(value);
             }
+            posterTemplate.setIsExecute(Boolean.TRUE);
             posterTemplate.setVariableList(variableList);
         }
-
         posterStyle.setTemplateList(posterTemplateList);
     }
 

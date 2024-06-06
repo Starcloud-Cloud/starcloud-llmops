@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespV
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -187,9 +188,8 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String aiParodyPrompt = getDefaultFromDict("小红书仿写");
-        String aiCustomPrompt = getDefaultFromDict("小红书自定义");
-        String defaultPrompt = aiParodyPrompt + "\n----------\n" + aiCustomPrompt;
+        String prompt = getDefaultFromDict("小红书生成");
+        String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);

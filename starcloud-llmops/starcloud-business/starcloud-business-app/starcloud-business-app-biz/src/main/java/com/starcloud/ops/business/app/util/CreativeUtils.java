@@ -268,6 +268,20 @@ public class CreativeUtils {
     }
 
     /**
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
+     */
+    public static Map<String, Object> getPosterVariableMap(List<PosterVariableDTO> variableList) {
+        Map<String, Object> variableMap = new HashMap<>();
+        for (PosterVariableDTO variable : variableList) {
+            variableMap.put(variable.getUuid(), variable.getValue());
+        }
+        return variableMap;
+    }
+
+    /**
      * 合并应用的海报缝合配置
      *
      * @param appMarket       应用

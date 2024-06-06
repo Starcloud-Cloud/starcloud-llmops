@@ -231,30 +231,7 @@ public class CustomActionHandler extends BaseActionHandler {
          * AI自定义为第二个 prompt
          */
         // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        List<String> promptList = StrUtil.split(prompt, "----------");
-        try {
-            prompt = promptList.get(0);
-            // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
-            if (StrUtil.isBlank(prompt)) {
-                throw new Exception("prompt 为空");
-            }
-        } catch (Exception e) {
-            log.error("用户prompt配置异常！从字典配置中获取默认配置！");
-            prompt = this.getDefaultFromDict("小红书仿写");
-            if (StrUtil.isBlank(prompt)) {
-                log.error("自定默认配置为空！(小红书仿写) prompt 为空！请检查字典配置！");
-                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
-            }
-            // 放入到上下文中
-            this.getAppContext().putModelVariable("PROMPT", prompt);
-            // 重新获取替换后的 prompt
-            prompt = String.valueOf(this.getAppContext().getContextVariablesValues().get("PROMPT"));
-            // 如果还是为空，抛出异常
-            if (StrUtil.isBlank(prompt)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
-            }
-        }
+        String prompt = this.getPrompt(params, false);
 
         log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
@@ -307,30 +284,7 @@ public class CustomActionHandler extends BaseActionHandler {
          * AI自定义为第二个 prompt
          */
         // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", ""));
-        List<String> promptList = StrUtil.split(prompt, "----------");
-        try {
-            prompt = promptList.get(1);
-            // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
-            if (StrUtil.isBlank(prompt)) {
-                throw new Exception("prompt 为空");
-            }
-        } catch (Exception e) {
-            log.error("用户prompt配置异常！从字典中获取默认配置！");
-            prompt = this.getDefaultFromDict("小红书自定义");
-            if (StrUtil.isBlank(prompt)) {
-                log.error("自定默认配置为空！(小红书自定义) prompt 为空！请检查字典配置！");
-                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
-            }
-            // 放入到上下文中
-            this.getAppContext().putModelVariable("PROMPT", prompt);
-            // 重新获取替换后的 prompt
-            prompt = String.valueOf(this.getAppContext().getContextVariablesValues().get("PROMPT"));
-            // 如果还是为空，抛出异常
-            if (StrUtil.isBlank(prompt)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
-            }
-        }
+        String prompt = this.getPrompt(params, true);
 
         // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
@@ -443,13 +397,70 @@ public class CustomActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 获取 prompt
+     *
+     * @param params   参数
+     * @param isCustom 是否是自定义
+     * @return prompt
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private String getPrompt(Map<String, Object> params, boolean isCustom) {
+        // 获取到 prompt
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        try {
+            if (!isCustom) {
+                prompt = promptList.get(0);
+            } else {
+                prompt = promptList.get(1);
+            }
+            // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
+            if (StrUtil.isBlank(prompt)) {
+                throw new RuntimeException("用户 prompt 为空！");
+            }
+        } catch (Exception e) {
+            try {
+                log.error("用户prompt配置异常！从字典中获取默认配置！");
+                List<String> defaultPromptList = getDefaultPromptList();
+                if (!isCustom) {
+                    prompt = defaultPromptList.get(0);
+                } else {
+                    prompt = defaultPromptList.get(1);
+                }
+                if (StrUtil.isBlank(prompt)) {
+                    throw new RuntimeException("系统默认promp为空！");
+                }
+                // 放入到上下文中
+                this.getAppContext().putModelVariable("PROMPT", prompt);
+                // 重新获取替换后的 prompt
+                prompt = String.valueOf(this.getAppContext().getContextVariablesValues().getOrDefault("PROMPT", StrUtil.EMPTY));
+                // 如果还是为空，抛出异常
+                if (StrUtil.isBlank(prompt)) {
+                    throw new RuntimeException("系统默认promp为空！");
+                }
+            } catch (Exception exception) {
+                log.error("prompt 异常：{}", e.getMessage(), e);
+                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            }
+        }
+
+        return prompt;
+    }
+
+    /**
      * 从字典中获取默认值
      *
      * @param key key
      * @return 默认值
      */
-    private String getDefaultFromDict(String key) {
-        return MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(key, StrUtil.EMPTY);
+    private List<String> getDefaultPromptList() {
+        String prompt = MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault("小红书生成", StrUtil.EMPTY);
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        if (promptList.size() < 2) {
+            throw new RuntimeException("系统默认promp配置异常！请检查字典配置：小红书生成");
+        }
+        return promptList;
     }
 
     private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {
