@@ -14,11 +14,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
-import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
-import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
+import com.starcloud.ops.business.app.domain.entity.*;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -86,6 +82,7 @@ public interface AppConvert {
      */
     default AppDO convert(BaseAppEntity appEntity) {
         AppDO app = new AppDO();
+        app.setMaterialList(appEntity.getMaterialList());
         app.setUid(appEntity.getUid());
         app.setName(appEntity.getName());
         app.setModel(appEntity.getModel());
@@ -178,6 +175,7 @@ public interface AppConvert {
         appEntity.setCreateTime(app.getCreateTime());
         appEntity.setUpdateTime(app.getUpdateTime());
         appEntity.setTenantId(app.getTenantId());
+        appEntity.setMaterialList(app.getMaterialList());
 
         // 处理配置
         if (StringUtils.isNotBlank(app.getConfig())) {

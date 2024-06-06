@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -13,7 +14,6 @@ import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -63,6 +63,26 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         LambdaQueryWrapper<AppDO> wrapper = queryWrapper(isSimple);
         wrapper.eq(AppDO::getUid, uid);
         wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
+        return this.selectOne(wrapper);
+    }
+
+    default AppDO getWithoutMaterial(String uid) {
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
+        wrapper.select(AppDO::getId, AppDO::getUid, AppDO::getName, AppDO::getModel,
+                AppDO::getType, AppDO::getSource, AppDO::getSort, AppDO::getTags,
+                AppDO::getCategory, AppDO::getScenes, AppDO::getImages, AppDO::getIcon,
+                AppDO::getConfig, AppDO::getDescription, AppDO::getInstallUid, AppDO::getLastPublish,
+                AppDO::getExample, AppDO::getDemo);
+
+        wrapper.eq(AppDO::getUid, uid);
+        wrapper.eq(AppDO::getDeleted, Boolean.FALSE);
+        return this.selectOne(wrapper);
+    }
+
+    default AppDO getMaterial(String uid) {
+        LambdaQueryWrapper<AppDO> wrapper = Wrappers.lambdaQuery(AppDO.class);
+        wrapper.select(AppDO::getId, AppDO::getUid, AppDO::getName, AppDO::getMaterialList);
+        wrapper.eq(AppDO::getUid, uid);
         return this.selectOne(wrapper);
     }
 

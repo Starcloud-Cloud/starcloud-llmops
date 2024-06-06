@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 应用表对应的实体对象
@@ -22,7 +25,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName("llm_app")
+@TableName(value = "llm_app", autoResultMap = true)
 @KeySequence("llm_app_seq")
 public class AppDO extends TenantBaseDO {
 
@@ -141,5 +144,11 @@ public class AppDO extends TenantBaseDO {
      */
     @TableField("demo")
     private String demo;
+
+    /**
+     * 素材列表
+     */
+    @TableField(typeHandler = CreativePlanMaterialDO.MaterialHandler.class)
+    private List<Map<String, Object>> materialList;
 
 }

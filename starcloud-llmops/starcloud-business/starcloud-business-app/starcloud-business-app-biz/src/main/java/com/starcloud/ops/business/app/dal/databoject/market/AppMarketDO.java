@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -23,7 +26,7 @@ import java.math.BigDecimal;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName("llm_app_market")
+@TableName(value = "llm_app_market", autoResultMap = true)
 @KeySequence("llm_app_market_seq")
 public class AppMarketDO extends TenantBaseDO {
 
@@ -172,5 +175,11 @@ public class AppMarketDO extends TenantBaseDO {
      */
     @TableField("audit")
     private Integer audit;
+
+    /**
+     * 素材列表
+     */
+    @TableField(typeHandler = CreativePlanMaterialDO.MaterialHandler.class)
+    private List<Map<String, Object>> materialList;
 
 }

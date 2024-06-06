@@ -142,7 +142,7 @@ public class AppMarketServiceImpl implements AppMarketService {
     public AppMarketRespVO getAndIncreaseView(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
-        AppMarketDO appMarket = appMarketMapper.get(uid, Boolean.FALSE);
+        AppMarketDO appMarket = appMarketMapper.getWithoutMaterial(uid);
         AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
 
         // 转换应用数据
