@@ -313,7 +313,6 @@ public class CustomActionHandler extends BaseActionHandler {
         List<String> promptList = StrUtil.split(prompt, "----------");
         try {
             prompt = promptList.get(1);
-            int a = 1 / 0;
             // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
             if (StrUtil.isBlank(prompt)) {
                 throw new Exception("prompt 为空");
