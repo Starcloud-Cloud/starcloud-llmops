@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto.poster;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.AppValidate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -119,8 +119,7 @@ public class PosterTemplateDTO implements java.io.Serializable {
      * 校验
      */
     public void validate() {
-        AppValidate.notEmpty(this.variableList, "缺少系统必填项！图片模板变量不能为空！请联系管理员！");
-        this.variableList.forEach(PosterVariableDTO::validate);
+        CollectionUtil.emptyIfNull(this.variableList).forEach(PosterVariableDTO::validate);
     }
 
     /**

@@ -100,6 +100,6 @@ public class PosterVariableDTO implements java.io.Serializable {
     private Integer count;
 
     public void validate() {
-        AppValidate.notBlank(this.field, "缺少系统必填项！变量field不能为空！请联系管理员！");
+        AppValidate.notBlank(this.field, "缺少系统必填项！(" + this.label + ")变量field不能为空！请联系管理员！");
     }
 }
