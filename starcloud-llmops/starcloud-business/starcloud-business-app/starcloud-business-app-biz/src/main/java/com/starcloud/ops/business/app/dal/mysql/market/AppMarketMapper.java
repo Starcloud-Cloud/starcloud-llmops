@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketPageQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketQuery;
@@ -13,7 +14,6 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -40,6 +40,27 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
      */
     default AppMarketDO get(String uid, boolean isSimple) {
         LambdaQueryWrapper<AppMarketDO> wrapper = queryMapper(isSimple);
+        wrapper.eq(AppMarketDO::getUid, uid);
+        return this.selectOne(wrapper);
+    }
+
+    default AppMarketDO getWithoutMaterial(String uid) {
+        LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class);
+        wrapper.select(AppMarketDO::getId, AppMarketDO::getUid, AppMarketDO::getName,
+                AppMarketDO::getType, AppMarketDO::getModel, AppMarketDO::getVersion,
+                AppMarketDO::getLanguage, AppMarketDO::getSort, AppMarketDO::getTags,
+                AppMarketDO::getCategory, AppMarketDO::getScenes, AppMarketDO::getImages,
+                AppMarketDO::getIcon, AppMarketDO::getFree, AppMarketDO::getCost,
+                AppMarketDO::getUsageCount, AppMarketDO::getLikeCount, AppMarketDO::getViewCount,
+                AppMarketDO::getInstallCount, AppMarketDO::getConfig, AppMarketDO::getDescription,
+                AppMarketDO::getExample, AppMarketDO::getDemo, AppMarketDO::getAudit);
+        wrapper.eq(AppMarketDO::getUid, uid);
+        return this.selectOne(wrapper);
+    }
+
+    default AppMarketDO getMaterial(String uid) {
+        LambdaQueryWrapper<AppMarketDO> wrapper = Wrappers.lambdaQuery(AppMarketDO.class);
+        wrapper.select(AppMarketDO::getId, AppMarketDO::getName, AppMarketDO::getUid, AppMarketDO::getMaterialList);
         wrapper.eq(AppMarketDO::getUid, uid);
         return this.selectOne(wrapper);
     }

@@ -211,7 +211,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO get(String uid) {
-        AppDO app = appMapper.get(uid, Boolean.FALSE);
+        AppDO app = appMapper.getWithoutMaterial(uid);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {

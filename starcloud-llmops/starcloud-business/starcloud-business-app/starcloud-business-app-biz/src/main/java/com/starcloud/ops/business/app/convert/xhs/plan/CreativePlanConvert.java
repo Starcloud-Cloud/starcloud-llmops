@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
@@ -12,6 +13,8 @@ import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModify
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -23,7 +26,10 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_LIST;
 
 /**
  * @author nacoyer
@@ -75,6 +81,39 @@ public interface CreativePlanConvert {
         creativePlan.setStatus(null);
         creativePlan.setUid(request.getUid());
         return creativePlan;
+    }
+
+    default CreativePlanMaterialDO convertModifyReq(CreativePlanModifyReqVO request) {
+        AppValidate.notNull(request.getConfiguration(), "创作计划配置信息不能为空！");
+        AppValidate.notNull(request.getConfiguration().getAppInformation(), "应用配置信息不能为空！");
+        AppMarketRespVO appInformation = request.getConfiguration().getAppInformation();
+
+        CreativePlanMaterialDO creativePlanMaterialDO = new CreativePlanMaterialDO();
+        creativePlanMaterialDO.setUid(IdUtil.fastSimpleUUID());
+        creativePlanMaterialDO.setAppUid(appInformation.getUid());
+        creativePlanMaterialDO.setVersion(appInformation.getVersion());
+        creativePlanMaterialDO.setSource(request.getSource());
+        creativePlanMaterialDO.setMaterialList(request.getConfiguration().getMaterialList());
+        creativePlanMaterialDO.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
+
+        WorkflowStepWrapperRespVO materialStep = request.getConfiguration().getAppInformation()
+                .getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (materialStep != null) {
+            materialStep.updateStepVariableValue(MATERIAL_LIST,StringUtils.EMPTY);
+        }
+
+        creativePlanMaterialDO.setTotalCount(request.getTotalCount());
+        creativePlanMaterialDO.setStatus(CreativePlanStatusEnum.PENDING.name());
+        creativePlanMaterialDO.setDeleted(Boolean.FALSE);
+        creativePlanMaterialDO.setCreateTime(LocalDateTime.now());
+        creativePlanMaterialDO.setUpdateTime(LocalDateTime.now());
+
+        // 修改时，不修改创建时间和状态
+        creativePlanMaterialDO.setCreateTime(null);
+        creativePlanMaterialDO.setStatus(null);
+        creativePlanMaterialDO.setUid(request.getUid());
+
+        return creativePlanMaterialDO;
     }
 
     /**

@@ -75,6 +75,7 @@ public interface AppMarketConvert {
      */
     default AppMarketDO convert(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = new AppMarketDO();
+        appMarket.setMaterialList(appMarketEntity.getMaterialList());
         appMarket.setUid(appMarketEntity.getUid());
         appMarket.setName(appMarketEntity.getName());
         appMarket.setType(appMarketEntity.getType());
