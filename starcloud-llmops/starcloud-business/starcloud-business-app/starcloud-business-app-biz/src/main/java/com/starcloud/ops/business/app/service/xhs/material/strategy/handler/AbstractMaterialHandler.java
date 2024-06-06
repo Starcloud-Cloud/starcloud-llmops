@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
@@ -94,48 +93,49 @@ public abstract class AbstractMaterialHandler {
      */
     public PosterStyleDTO handlePosterStyle(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata) {
         // 如果资料库为空，直接返回海报风格，不做处理
-        if (CollectionUtil.isEmpty(materialList)) {
-            return posterStyle;
-        }
-        PosterStyleDTO style = SerializationUtils.clone(posterStyle);
-        // 进行变量替换
-        Map<String, Object> replaceValueMap = this.replaceVariable(style, materialList, metadata, Boolean.TRUE);
-
-        List<PosterTemplateDTO> templates = Lists.newArrayList();
-
-        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
-        // 如果只有一个模板图片，直接执行。
-        if (templateList.size() == 1) {
-            for (PosterTemplateDTO posterTemplate : templateList) {
-                posterTemplate.setIsExecute(Boolean.TRUE);
-                templates.add(posterTemplate);
-            }
-            style.setTemplateList(templates);
-            return style;
-        }
-        // 进行海报风格的处理
-        for (PosterTemplateDTO template : templateList) {
-            // 默认设置为 TRUE
-            template.setIsExecute(Boolean.TRUE);
-            // 模板变量列表
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
-
-            // 只要存在是变量，且值不为空的，就需要生成图片
-            boolean anyMatchNotBlankValue = variableList.stream()
-                    .anyMatch(variable -> StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid())));
-
-            if (anyMatchNotBlankValue) {
-                templates.add(template);
-                continue;
-            }
-
-            // 设置为FALSE,表示不需要生成改图片
-            template.setIsExecute(Boolean.FALSE);
-            templates.add(template);
-        }
-
-        style.setTemplateList(templates);
-        return style;
+//        if (CollectionUtil.isEmpty(materialList)) {
+//            return posterStyle;
+//        }
+//        PosterStyleDTO style = SerializationUtils.clone(posterStyle);
+//        // 进行变量替换
+//        Map<String, Object> replaceValueMap = this.replaceVariable(style, materialList, metadata, Boolean.TRUE);
+//
+//        List<PosterTemplateDTO> templates = Lists.newArrayList();
+//
+//        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+//        // 如果只有一个模板图片，直接执行。
+//        if (templateList.size() == 1) {
+//            for (PosterTemplateDTO posterTemplate : templateList) {
+//                posterTemplate.setIsExecute(Boolean.TRUE);
+//                templates.add(posterTemplate);
+//            }
+//            style.setTemplateList(templates);
+//            return style;
+//        }
+//        // 进行海报风格的处理
+//        for (PosterTemplateDTO template : templateList) {
+//            // 默认设置为 TRUE
+//            template.setIsExecute(Boolean.TRUE);
+//            // 模板变量列表
+//            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList());
+//
+//            // 只要存在是变量，且值不为空的，就需要生成图片
+//            boolean anyMatchNotBlankValue = variableList.stream()
+//                    .anyMatch(variable -> StringUtil.objectNotBlank(replaceValueMap.get(variable.getUuid())));
+//
+//            if (anyMatchNotBlankValue) {
+//                templates.add(template);
+//                continue;
+//            }
+//
+//            // 设置为FALSE,表示不需要生成改图片
+//            template.setIsExecute(Boolean.FALSE);
+//            templates.add(template);
+//        }
+//
+//        style.setTemplateList(templates);
+//        return style;
+        return posterStyle;
     }
 
     /**

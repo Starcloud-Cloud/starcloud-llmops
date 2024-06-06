@@ -205,6 +205,8 @@ public class CreativeUtils {
             String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
             // 获取模板标题生成模式，如果为空则默认为默认模式
             String titleGenerateMode = StringUtils.isBlank(template.getTitleGenerateMode()) ? PosterTitleModeEnum.DEFAULT.name() : template.getTitleGenerateMode();
+            // 变量都为空是否执行，如果为null则设置为fase
+            Boolean noExecuteIfEmpty = Objects.isNull(template.getNoExecuteIfEmpty()) ? Boolean.FALSE : template.getNoExecuteIfEmpty();
 
             // 模板信息补充
             template.setIndex(i);
@@ -214,6 +216,7 @@ public class CreativeUtils {
             template.setTitleGenerateMode(titleGenerateMode);
             template.setVariableList(variableList);
             template.setIsExecute(Boolean.TRUE);
+            template.setNoExecuteIfEmpty(noExecuteIfEmpty);
 
             // 添加到列表
             templateList.add(template);
