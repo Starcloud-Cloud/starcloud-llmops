@@ -613,7 +613,8 @@ public class JsonSchemaUtils {
         Map<String, JsonSchema> properties = new LinkedHashMap<>(configList.size());
         for (MaterialFieldConfigDTO materialFieldConfigDTO : configList) {
             StringSchema schema = new StringSchema();
-            schema.setDescription(materialFieldConfigDTO.getDesc() + "-" + materialFieldConfigDTO.getType());
+            schema.setTitle(materialFieldConfigDTO.getDesc());
+            schema.setDescription("" + "-" + materialFieldConfigDTO.getType());
             properties.put(materialFieldConfigDTO.getFieldName(), schema);
         }
         obj.setProperties(properties);
