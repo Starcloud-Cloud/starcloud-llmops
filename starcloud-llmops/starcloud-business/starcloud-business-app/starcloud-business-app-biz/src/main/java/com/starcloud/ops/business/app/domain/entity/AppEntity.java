@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -30,11 +32,13 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
@@ -42,6 +46,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -66,6 +71,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * App 实体类
@@ -153,6 +159,31 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     .count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
                 throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！"));
+            }
+            // 如果存在变量步骤，变量不能为空
+            List<WorkflowStepWrapper> variableStepList = stepWrappers.stream()
+                    .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .collect(Collectors.toList());
+            for (WorkflowStepWrapper variableStep : variableStepList) {
+                VariableEntity variable = variableStep.getVariable();
+                if (variable == null || CollectionUtil.isEmpty(variable.getVariables())) {
+                    throw exception(new ErrorCode(300100140, "媒体矩阵类型应用变量步骤【" + variableStep.getName() + "】最少需要配置一个变量！"));
+                }
+            }
+            // 获取图片配置变量
+            WorkflowStepWrapper posterWorkStepWrapper = stepWrappers.get(stepWrappers.size() - 1);
+            VariableItemEntity posterStyleConfigItem = posterWorkStepWrapper.getVariable().getVariableItem(CreativeConstants.POSTER_STYLE_CONFIG);
+            if (posterStyleConfigItem == null || posterStyleConfigItem.getValue() == null) {
+                throw exception(new ErrorCode(300100140, "图片生成步骤未选择图片风格，不能为空！"));
+            }
+            String posterStyleString = String.valueOf(posterStyleConfigItem.getValue());
+            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+                throw exception(new ErrorCode(300100140, "图片生成步骤未选择图片风格，不能为空！"));
+            }
+
+            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+            if (CollectionUtil.isEmpty(posterStyleList)) {
+                throw exception(new ErrorCode(300100140, "图片生成步骤未选择图片风格，不能为空！"));
             }
 
         }

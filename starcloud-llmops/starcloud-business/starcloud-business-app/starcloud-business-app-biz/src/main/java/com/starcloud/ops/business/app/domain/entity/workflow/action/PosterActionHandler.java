@@ -205,7 +205,6 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private void assemble(PosterStyleDTO posterStyle) {
-        // "图片生成.result[0].url"
         // 获取海报模版列表
         List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
 
