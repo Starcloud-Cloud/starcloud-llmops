@@ -164,6 +164,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             List<WorkflowStepWrapper> variableStepList = stepWrappers.stream()
                     .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .collect(Collectors.toList());
+            if (variableStepList.size() > 1) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最多只能有一个【全局变量】步骤！"));
+            }
             for (WorkflowStepWrapper variableStep : variableStepList) {
                 VariableEntity variable = variableStep.getVariable();
                 if (variable == null || CollectionUtil.isEmpty(variable.getVariables())) {
@@ -174,16 +177,16 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             WorkflowStepWrapper posterWorkStepWrapper = stepWrappers.get(stepWrappers.size() - 1);
             VariableItemEntity posterStyleConfigItem = posterWorkStepWrapper.getVariable().getVariableItem(CreativeConstants.POSTER_STYLE_CONFIG);
             if (posterStyleConfigItem == null || posterStyleConfigItem.getValue() == null) {
-                throw exception(new ErrorCode(300100140, "图片生成步骤未选择图片风格，不能为空！"));
+                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
             }
             String posterStyleString = String.valueOf(posterStyleConfigItem.getValue());
             if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-                throw exception(new ErrorCode(300100140, "图片生成步骤未选择图片风格，不能为空！"));
+                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
             }
 
             List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
             if (CollectionUtil.isEmpty(posterStyleList)) {
-                throw exception(new ErrorCode(300100140, "图片生成步骤未选择图片风格，不能为空！"));
+                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
             }
 
         }
