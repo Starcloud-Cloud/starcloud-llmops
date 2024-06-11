@@ -53,7 +53,8 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getIcon, AppMarketDO::getFree, AppMarketDO::getCost,
                 AppMarketDO::getUsageCount, AppMarketDO::getLikeCount, AppMarketDO::getViewCount,
                 AppMarketDO::getInstallCount, AppMarketDO::getConfig, AppMarketDO::getDescription,
-                AppMarketDO::getExample, AppMarketDO::getDemo, AppMarketDO::getAudit);
+                AppMarketDO::getExample, AppMarketDO::getDemo, AppMarketDO::getAudit,
+                AppMarketDO::getUpdateTime,AppMarketDO::getCreateTime);
         wrapper.eq(AppMarketDO::getUid, uid);
         return this.selectOne(wrapper);
     }
