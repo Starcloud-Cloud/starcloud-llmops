@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.plan;
 
 import cn.hutool.core.lang.TypeReference;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -39,7 +40,7 @@ public class CreativePlanMaterialDO extends CreativePlanDO {
         @Override
         protected String toJson(List<Map<String, Object>> obj) {
             if (CollectionUtils.isEmpty(obj)) {
-                return StringUtils.EMPTY;
+                return StrUtil.EMPTY_JSON;
             }
             return JSONUtil.toJsonStr(obj);
         }
