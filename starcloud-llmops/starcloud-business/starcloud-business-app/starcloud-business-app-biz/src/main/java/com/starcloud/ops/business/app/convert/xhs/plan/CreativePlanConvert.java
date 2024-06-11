@@ -100,6 +100,7 @@ public interface CreativePlanConvert {
         if (materialStep != null) {
             materialStep.updateStepVariableValue(MATERIAL_LIST,StringUtils.EMPTY);
         }
+        request.getConfiguration().setMaterialList(Collections.EMPTY_LIST);
         creativePlanMaterialDO.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
 
         creativePlanMaterialDO.setTotalCount(request.getTotalCount());
