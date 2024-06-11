@@ -52,6 +52,7 @@ import java.util.Set;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getSumValue;
+import static com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO.PAY_DELAY_NUM;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 @Service
@@ -135,7 +136,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
             tradeSignDO.getSignConfigs().setPeriodType(30);
         }
 
-        tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), 4, tradeSignDO.getSignConfigs().getPeriodType()));
+        tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), PAY_DELAY_NUM, tradeSignDO.getSignConfigs().getPeriodType()));
 
         // 2.0 订单创建前的验证
         tradeSignHandlers.forEach(handler -> handler.beforeSignValidate(tradeSignDO, signItemDOS));
@@ -200,7 +201,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
         //     @Override
         //     public void afterCommit() {
-                tradeSignQueryService.executeAutoTradeSignPay();
+        tradeSignQueryService.executeAutoTradeSignPay();
         //     }
         // });
 
@@ -327,28 +328,10 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         return TradeSignConvert.INSTANCE.convertList(tradeSignDO, calculateRespBO);
     }
 
-    private LocalDate buildSignPayTime(LocalDate date, TimeRangeTypeEnum timeRange) {
-        // 判断日期是否为每个月的28号以后
-        if (date.getDayOfMonth() > 28) {
-            switch (timeRange) {
-                case DAY:
-                    // 如果是，则将日期设置为下个月的1号
-                    return date.plusDays(7);
-                case MONTH:
-                    // 如果是，则将日期设置为下个月的1号
-                    return date.plusMonths(1).withDayOfMonth(1);
-            }
-            // 如果是，则将日期设置为下个月的1号
-            return date.plusMonths(1).withDayOfMonth(1);
-        }
-        return date;
-    }
-
 
     public static LocalDate calculateExpectedPaymentDate(LocalDate payTime, Integer plusNums, Integer timeRange) {
 
         if (TimeRangeTypeEnum.DAY.getType().equals(timeRange)) {
-            // 如果是，则将日期设置为下个月的1号
             return payTime.plusDays(7);
         }
 
@@ -361,7 +344,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
             calculateTime = payTime.plusMonths(1).withDayOfMonth(1);
         }
 
-        if (calculateTime.isAfter(payTime.plusDays(5))) {
+        if (calculateTime.isAfter(payTime.plusDays(PAY_DELAY_NUM + 1))) {
             calculateTime = calculateExpectedPaymentDate(payTime, plusNums - 1, timeRange); // 递归调用，并使用返回的结果替换calculateTime
         }
         return calculateTime;
@@ -436,7 +419,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
                         .setUserId(1L)
                         .setMobile("17835411844")
                         .setTemplateCode("SIGN_CLOSE_NO_PAY_NOTIFY").
-                        setTemplateParams(MapUtil.<String, Object>builder().put("params", StrUtil.format("签约订单编号为{}的数据 关闭签约,且当前签约不存在有效的支付记录",id)).put("environmentName",environmentName).build()));
+                        setTemplateParams(MapUtil.<String, Object>builder().put("params", StrUtil.format("签约订单编号为{}的数据 关闭签约,且当前签约不存在有效的支付记录", id)).put("environmentName", environmentName).build()));
             }
         } catch (RuntimeException e) {
             log.error("closeSignPayOrderCheck 发送通知失败");
