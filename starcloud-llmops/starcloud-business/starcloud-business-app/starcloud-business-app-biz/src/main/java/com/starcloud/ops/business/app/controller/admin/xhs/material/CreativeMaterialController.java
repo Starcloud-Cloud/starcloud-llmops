@@ -2,8 +2,10 @@ package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
@@ -12,6 +14,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.G
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -90,5 +94,11 @@ public class CreativeMaterialController {
     @Operation(summary = "素材生成")
     public CommonResult<JSON> customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
         return CommonResult.success(materialService.customMaterialGenerate(request));
+    }
+
+    @PostMapping(value = "/infoPageByMarketUid")
+    @Operation(summary = "获得素材应用执行日志信息分页")
+    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@RequestBody AppLogConversationInfoPageUidReqVO query) {
+        return CommonResult.success(materialService.infoPageByMarketUid(query));
     }
 }

@@ -44,9 +44,7 @@ public class PixabayServiceImpl {
     /**
      * 获取Pixabay 图片
      */
-    public static final String PIXABAY_IMAGE_REQUEST_URL =
-            "https://pixabay.com/api/";
-
+    public static final String PIXABAY_IMAGE_REQUEST_URL = "https://pixabay.com/api/";
 
     public PixabayImageResult getPixabayImage(PixabayImageRequestDTO requestDTO) {
         try {
