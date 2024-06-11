@@ -44,6 +44,11 @@ public class TradeSignDO extends TenantBaseDO {
      */
     public static final Long LOGISTICS_ID_NULL = 0L;
 
+    /**
+     *  扣款延迟时间
+     */
+    public static final Integer PAY_DELAY_NUM = 4;
+
     // ========== 签约单基本信息 ==========
     /**
      * 签约编号，主键自增
