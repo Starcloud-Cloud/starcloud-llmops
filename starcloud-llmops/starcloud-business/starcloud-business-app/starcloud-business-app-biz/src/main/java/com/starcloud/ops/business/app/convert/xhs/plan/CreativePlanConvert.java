@@ -94,13 +94,13 @@ public interface CreativePlanConvert {
         creativePlanMaterialDO.setVersion(appInformation.getVersion());
         creativePlanMaterialDO.setSource(request.getSource());
         creativePlanMaterialDO.setMaterialList(request.getConfiguration().getMaterialList());
-        creativePlanMaterialDO.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
 
         WorkflowStepWrapperRespVO materialStep = request.getConfiguration().getAppInformation()
                 .getStepByHandler(MaterialActionHandler.class.getSimpleName());
         if (materialStep != null) {
             materialStep.updateStepVariableValue(MATERIAL_LIST,StringUtils.EMPTY);
         }
+        creativePlanMaterialDO.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
 
         creativePlanMaterialDO.setTotalCount(request.getTotalCount());
         creativePlanMaterialDO.setStatus(CreativePlanStatusEnum.PENDING.name());

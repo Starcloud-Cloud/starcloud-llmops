@@ -328,9 +328,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
         // 更新创作计划
-        CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyReq(request);
+        CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyReq(request);
         modifyPlan.setId(plan.getId());
-        creativePlanMapper.updateById(modifyPlan);
+        creativePlanMaterialMapper.updateById(modifyPlan);
         return modifyPlan.getUid();
     }
 
