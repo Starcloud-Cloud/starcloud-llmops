@@ -15,4 +15,11 @@ public interface CreativePlanMaterialMapper  extends BaseMapper<CreativePlanMate
         wrapper.eq(CreativePlanMaterialDO::getUid, uid);
         return this.selectOne(wrapper);
     }
+
+    default CreativePlanMaterialDO getMaterialByAppUid(String appUid) {
+        LambdaQueryWrapper<CreativePlanMaterialDO> wrapper = Wrappers.lambdaQuery(CreativePlanMaterialDO.class);
+        wrapper.select(CreativePlanMaterialDO::getUid, CreativePlanMaterialDO::getMaterialList);
+        wrapper.eq(CreativePlanMaterialDO::getAppUid, appUid);
+        return this.selectOne(wrapper);
+    }
 }

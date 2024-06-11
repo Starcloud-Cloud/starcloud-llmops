@@ -346,7 +346,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Override
     public List<Map<String, Object>> listMaterial(String uid, String source) {
-        return creativeMaterialManager.getMaterialList(uid, source);
+        return creativeMaterialManager.getUserMaterialList(uid, source);
     }
 
     /**

@@ -25,17 +25,23 @@ public class CreativeMaterialManager {
     @Resource
     private AppMapper appMapper;
 
-
+    /**
+     * 查询素材列表
+     *
+     * @param appUid
+     * @param source
+     * @return
+     */
     public List<Map<String, Object>> getMaterialList(String appUid, String source) {
         AppValidate.notBlank(appUid, "应用UID为必填项！");
         AppValidate.notBlank(source, "创作计划来源为必填项！");
         if (CreativePlanSourceEnum.isApp(source)) {
             AppDO appDO = appMapper.getMaterial(appUid);
-            AppValidate.notNull(appDO,"我的应用不存在");
+            AppValidate.notNull(appDO, "我的应用不存在");
             return appDO.getMaterialList();
         } else {
             AppMarketDO material = appMarketMapper.getMaterial(appUid);
-            AppValidate.notNull(material,"应用市场不存在");
+            AppValidate.notNull(material, "应用市场不存在");
             return material.getMaterialList();
         }
     }
@@ -45,5 +51,25 @@ public class CreativeMaterialManager {
         return creativePlanMaterialMapper.getMaterial(planUid).getMaterialList();
     }
 
+    public List<Map<String, Object>> getPlanMaterialListByAppUid(String appUid) {
+        return creativePlanMaterialMapper.getMaterialByAppUid(appUid).getMaterialList();
+    }
 
+    /**
+     * 应用市场从执行计划中拿素材列表
+     * @param appUid
+     * @param source
+     * @return
+     */
+    public List<Map<String, Object>> getUserMaterialList(String appUid, String source) {
+        AppValidate.notBlank(appUid, "应用UID为必填项！");
+        AppValidate.notBlank(source, "创作计划来源为必填项！");
+        if (CreativePlanSourceEnum.isApp(source)) {
+            AppDO appDO = appMapper.getMaterial(appUid);
+            AppValidate.notNull(appDO, "我的应用不存在");
+            return appDO.getMaterialList();
+        } else {
+            return getPlanMaterialListByAppUid(appUid);
+        }
+    }
 }
