@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMaterialMapper;
@@ -51,12 +53,16 @@ public class CreativeMaterialManager {
         return creativePlanMaterialMapper.getMaterial(planUid).getMaterialList();
     }
 
-    public List<Map<String, Object>> getPlanMaterialListByAppUid(String appUid) {
-        return creativePlanMaterialMapper.getMaterialByAppUid(appUid).getMaterialList();
+    public List<Map<String, Object>> getPlanMaterialListByAppUid(String appUid, String source) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        CreativePlanMaterialDO materialByAppUid = creativePlanMaterialMapper.getMaterialByAppUid(appUid, loginUserId, source);
+        AppValidate.notNull(materialByAppUid, "执行计划不存在");
+        return materialByAppUid.getMaterialList();
     }
 
     /**
      * 应用市场从执行计划中拿素材列表
+     *
      * @param appUid
      * @param source
      * @return
@@ -69,7 +75,7 @@ public class CreativeMaterialManager {
             AppValidate.notNull(appDO, "我的应用不存在");
             return appDO.getMaterialList();
         } else {
-            return getPlanMaterialListByAppUid(appUid);
+            return getPlanMaterialListByAppUid(appUid, source);
         }
     }
 }
