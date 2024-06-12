@@ -17,6 +17,8 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
@@ -24,6 +26,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -31,9 +34,11 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
@@ -106,9 +111,18 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+        ObjectSchema objectSchema = new ObjectSchema();
+        objectSchema.setTitle(workflowStepWrapper.getStepCode());
+        objectSchema.setDescription(workflowStepWrapper.getDescription());
+        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
 
-        return null;
-
+        for (int i = 1; i < 10; i++) {
+            StringSchema schema = new StringSchema();
+            schema.setTitle("图片" + i);
+            schema.setDescription("图片" + i + "-" + MaterialFieldTypeEnum.image.getCode());
+            objectSchema.putProperty("图片" + i, schema);
+        }
+        return objectSchema;
     }
 
     /**

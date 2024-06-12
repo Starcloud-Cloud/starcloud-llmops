@@ -79,5 +79,8 @@ public class CreativeOptionDTO implements Serializable {
     @Schema(description = "节点出参")
     private String outJsonSchema;
 
+    @Schema(description = "是否为当前节点")
+    private boolean currentStep;
+
 
 }
