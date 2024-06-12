@@ -40,7 +40,7 @@ public class CreativePlanMaterialDO extends CreativePlanDO {
         @Override
         protected String toJson(List<Map<String, Object>> obj) {
             if (CollectionUtils.isEmpty(obj)) {
-                return StrUtil.EMPTY_JSON;
+                return "[]";
             }
             return JSONUtil.toJsonStr(obj);
         }

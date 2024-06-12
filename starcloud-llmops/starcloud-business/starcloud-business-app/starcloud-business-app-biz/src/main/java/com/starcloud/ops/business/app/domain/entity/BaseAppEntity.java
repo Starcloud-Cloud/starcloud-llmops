@@ -484,10 +484,10 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             materialList = Optional.ofNullable(workflowConfig.getStepWrapper(MaterialActionHandler.class))
                     .map(step -> step.getVariablesValue(MATERIAL_LIST))
                     .map(Object::toString)
-                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? StrUtil.EMPTY_JSON : str, typeReference, true))
+                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
                     .orElse(Collections.emptyList());
 
-            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, StrUtil.EMPTY_JSON);
+            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
         }
     }
 
