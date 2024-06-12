@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto.poster;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,6 +14,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -92,6 +96,13 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Boolean isExecute;
 
     /**
+     * 是否依赖图片生成结果，目前只针对图片变量<br>
+     * 有一个图片变量依赖图片生成结果，则整个模板依赖图片生成结果
+     */
+    @Schema(description = "是否依赖图片生成结果")
+    private Boolean isDependency;
+
+    /**
      * 海报模板描述
      */
     @Schema(description = "海报模板描述")
@@ -116,8 +127,22 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private String json;
 
     /**
+     * 获取图片模板变量列表<br>
+     * 过滤空对象
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<PosterVariableDTO> getPosterVariableList() {
+        return CollectionUtil.emptyIfNull(this.getVariableList()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 校验
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void validate() {
         CollectionUtil.emptyIfNull(this.variableList).forEach(PosterVariableDTO::validate);
     }
@@ -127,6 +152,8 @@ public class PosterTemplateDTO implements java.io.Serializable {
      *
      * @return 主图模板
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static PosterTemplateDTO ofMain() {
         PosterTemplateDTO posterTemplate = new PosterTemplateDTO();
         posterTemplate.setName("首图");
