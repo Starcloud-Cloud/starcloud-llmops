@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -16,6 +18,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
@@ -35,11 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_LIST;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
@@ -207,6 +209,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 应用状态
      */
     private Long tenantId;
+
+    /**
+     * 素材列表
+     */
+    private List<Map<String, Object>> materialList;
 
     /**
      * 模版方法：基础校验
@@ -462,7 +469,25 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void update() {
         this.validate(null);
+        disposeMaterial();
         this.doUpdate();
+    }
+
+    /**
+     * 素材单独拆出一个字段
+     */
+    private void disposeMaterial() {
+        if (Objects.nonNull(workflowConfig)) {
+            TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<List<Map<String, Object>>>() {
+            };
+            materialList = Optional.ofNullable(workflowConfig.getStepWrapper(MaterialActionHandler.class))
+                    .map(step -> step.getVariablesValue(MATERIAL_LIST))
+                    .map(Object::toString)
+                    .map(str -> JSONUtil.toBean(str, typeReference, true))
+                    .orElse(Collections.emptyList());
+
+            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, StringUtils.EMPTY);
+        }
     }
 
     /**

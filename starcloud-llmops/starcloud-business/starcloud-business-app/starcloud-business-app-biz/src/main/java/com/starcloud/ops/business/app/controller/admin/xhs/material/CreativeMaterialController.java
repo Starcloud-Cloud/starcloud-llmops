@@ -91,4 +91,11 @@ public class CreativeMaterialController {
     public CommonResult<JSON> customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
         return CommonResult.success(materialService.customMaterialGenerate(request));
     }
+
+    @GetMapping("/list")
+    @Operation(summary = "素材列表", description = "素材列表")
+    public CommonResult<List<Map<String, Object>>> listMaterial(@RequestParam("uid") String uid,
+                                                                @RequestParam("source") String source) {
+        return CommonResult.success(materialService.listMaterial(uid, source));
+    }
 }
