@@ -33,6 +33,7 @@ import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -483,10 +484,10 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             materialList = Optional.ofNullable(workflowConfig.getStepWrapper(MaterialActionHandler.class))
                     .map(step -> step.getVariablesValue(MATERIAL_LIST))
                     .map(Object::toString)
-                    .map(str -> JSONUtil.toBean(str, typeReference, true))
+                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? StrUtil.EMPTY_JSON : str, typeReference, true))
                     .orElse(Collections.emptyList());
 
-            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, StringUtils.EMPTY);
+            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, StrUtil.EMPTY_JSON);
         }
     }
 
