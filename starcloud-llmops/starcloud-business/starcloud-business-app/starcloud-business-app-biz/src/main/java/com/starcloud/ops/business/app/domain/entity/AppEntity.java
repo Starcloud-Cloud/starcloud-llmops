@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -46,7 +45,6 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -174,20 +172,20 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 }
             }
             // 获取图片配置变量
-            WorkflowStepWrapper posterWorkStepWrapper = stepWrappers.get(stepWrappers.size() - 1);
-            VariableItemEntity posterStyleConfigItem = posterWorkStepWrapper.getVariable().getVariableItem(CreativeConstants.POSTER_STYLE_CONFIG);
-            if (posterStyleConfigItem == null || posterStyleConfigItem.getValue() == null) {
-                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
-            }
-            String posterStyleString = String.valueOf(posterStyleConfigItem.getValue());
-            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
-            }
-
-            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
-            if (CollectionUtil.isEmpty(posterStyleList)) {
-                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
-            }
+//            WorkflowStepWrapper posterWorkStepWrapper = stepWrappers.get(stepWrappers.size() - 1);
+//            VariableItemEntity posterStyleConfigItem = posterWorkStepWrapper.getVariable().getVariableItem(CreativeConstants.POSTER_STYLE_CONFIG);
+//            if (posterStyleConfigItem == null || posterStyleConfigItem.getValue() == null) {
+//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
+//            }
+//            String posterStyleString = String.valueOf(posterStyleConfigItem.getValue());
+//            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
+//            }
+//
+//            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+//            if (CollectionUtil.isEmpty(posterStyleList)) {
+//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
+//            }
 
         }
         config.setSteps(stepWrappers);
