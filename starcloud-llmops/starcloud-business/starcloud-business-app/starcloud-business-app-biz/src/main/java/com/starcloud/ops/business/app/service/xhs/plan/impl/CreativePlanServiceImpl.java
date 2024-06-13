@@ -521,15 +521,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = request.getConfiguration();
         // 获取应用配置
         AppMarketRespVO appInformation = configuration.getAppInformation();
-
+        // 更新升级之后的计划
+        CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
         // 如果全量覆盖，否则直接使用最新应用配置
         if (isFullCover) {
             // 把最新的素材库步骤填充到配置中
-            WorkflowStepWrapperRespVO materialStepWrapper = latestAppMarket.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-            List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialStepWrapper);
-            // 如果最新应用配置的素材库不为空，且计划配置的素材库为空，则填充最新应用配置的素材库
-            configuration.setMaterialList(CollectionUtil.emptyIfNull(materialList));
-
+            configuration.setMaterialList(Collections.emptyList());
+            creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(request.getAppUid(), plan.getSource()));
             // 把最新的海报步骤填充到配置中
             WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
             List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListByStepWrapper(posterStepWrapper);
@@ -539,11 +537,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         else {
             latestAppMarket.merge(appInformation);
         }
-
         configuration.setAppInformation(latestAppMarket);
 
-        // 更新升级之后的计划
-        CreativePlanDO creativePlan = new CreativePlanDO();
         creativePlan.setId(plan.getId());
         creativePlan.setAppUid(latestAppMarket.getUid());
         creativePlan.setVersion(latestAppMarket.getVersion());
@@ -551,7 +546,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setUpdateTime(LocalDateTime.now());
         creativePlan.setTotalCount(request.getTotalCount());
 
-        creativePlanMapper.updateById(creativePlan);
+        creativePlanMaterialMapper.updateById(creativePlan);
     }
 
     /**
