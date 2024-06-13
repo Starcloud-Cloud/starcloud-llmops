@@ -392,7 +392,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         ArrayList<MaterialRespLogVO> materialRespLogVOS = new ArrayList<>();
         appLogMessageRespVOPageResult.getList().forEach(logVO -> {
             List<VariableItemRespVO> variables = logVO.getAppInfo().getWorkflowConfig().getSteps().get(0).getVariable().getVariables();
-            Object o = variables.stream().filter(variablesData -> variablesData.getField().equals(CreativeConstants.REQUIREMENT)).map(VariableItemRespVO::getValue).findFirst().orElse(null);
+            Object o = variables.stream().filter(variablesData -> variablesData.getField().equals(CreativeConstants.REQUIREMENT)).map(VariableItemRespVO::getValue).findFirst().orElse("无数据");
             materialRespLogVOS.add(new MaterialRespLogVO().setRequestContent(o.toString())
                     .setCreateTime(logVO.getCreateTime()));
         });
