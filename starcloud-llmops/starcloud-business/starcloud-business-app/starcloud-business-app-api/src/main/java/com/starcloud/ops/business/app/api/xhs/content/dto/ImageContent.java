@@ -1,14 +1,11 @@
 package com.starcloud.ops.business.app.api.xhs.content.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.api.poster.dto.PosterImage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.util.List;
 
 /**
  * @author nacoyer
@@ -57,5 +54,5 @@ public class ImageContent implements java.io.Serializable {
      */
     @Schema(description = "海报图片地址")
     @JsonPropertyDescription("图片地址")
-    private List<PosterImage> urlList;
+    private String url;
 }
