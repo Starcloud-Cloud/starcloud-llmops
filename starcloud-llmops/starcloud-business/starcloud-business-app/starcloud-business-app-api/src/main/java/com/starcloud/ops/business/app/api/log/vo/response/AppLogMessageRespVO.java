@@ -71,7 +71,6 @@ public class AppLogMessageRespVO extends LogMessageDetailRespVO {
     @Schema(description = "执行结果")
     private CreativeContentExecuteResult executeResult;
 
-
     /**
      * 消息类型
      */

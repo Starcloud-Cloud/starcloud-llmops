@@ -7,7 +7,6 @@ import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
@@ -15,6 +14,7 @@ import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMater
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespLogVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.material.CreativeMaterialConvert;
@@ -34,6 +35,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMateri
 import com.starcloud.ops.business.app.dal.mysql.xhs.material.CreativeMaterialMapper;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
@@ -46,7 +48,6 @@ import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -355,8 +356,8 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @return
      */
     @Override
-    public PageResult<AppLogMessageRespVO> infoPageByMarketUid(AppLogConversationInfoPageUidReqVO reqVO) {
-        if (getLoginUserId()==null){
+    public PageResult<MaterialRespLogVO> infoPageByMarketUid(AppLogConversationInfoPageUidReqVO reqVO) {
+        if (getLoginUserId() == null) {
             return new PageResult<>(Collections.emptyList(), 0L);
         }
         // 根据标签查询生成素材的应用信息
@@ -370,10 +371,30 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         AppLogConversationInfoPageUidReqVO pageUidReqVO = new AppLogConversationInfoPageUidReqVO();
         pageUidReqVO.setMarketUid(appMarketResponse.getUid());
-        return appLogService.pageLogConversationByMarketUid(pageUidReqVO);
+
+        PageResult<AppLogMessageRespVO> appLogMessageRespVOPageResult = appLogService.pageLogConversationByMarketUid(pageUidReqVO);
+
+        // 无结果 直接返回空结果
+        if (appLogMessageRespVOPageResult.getList().isEmpty() || appLogMessageRespVOPageResult.getTotal() == 0L) {
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+
+        ArrayList<MaterialRespLogVO> materialRespLogVOS = new ArrayList<>();
+        appLogMessageRespVOPageResult.getList().forEach(logVO -> {
+            List<VariableItemRespVO> variables = logVO.getAppInfo().getWorkflowConfig().getSteps().get(0).getVariable().getVariables();
+            Object o = variables.stream().filter(variablesData -> variablesData.getField().equals(CreativeConstants.REQUIREMENT)).map(VariableItemRespVO::getValue).findFirst().orElse(null);
+            materialRespLogVOS.add(new MaterialRespLogVO().setRequestContent(o.toString())
+                    .setCreateTime(logVO.getCreateTime()));
+        });
+        PageResult<MaterialRespLogVO> materialRespLogVOPageResult = new PageResult<>();
+
+        materialRespLogVOPageResult.setTotal(appLogMessageRespVOPageResult.getTotal());
+        materialRespLogVOPageResult.setList(materialRespLogVOS);
+
+        return materialRespLogVOPageResult;
     }
 
-     /**
+    /**
      * code重复拼接随机字符串
      *
      * @param fieldName
