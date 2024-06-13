@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.xhs.material;
 
 import cn.hutool.json.JSON;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
@@ -9,6 +11,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.F
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -100,4 +104,10 @@ public interface CreativeMaterialService {
      * @return
      */
     List<Map<String, Object>> listMaterial(String uid, String source);
+
+    /**
+     *
+     * @return
+     */
+    PageResult<AppLogMessageRespVO> infoPageByMarketUid(AppLogConversationInfoPageUidReqVO query);
 }
