@@ -34,7 +34,6 @@ import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHand
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -42,10 +41,6 @@ import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
 import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.HumanMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.multimodal.MultiModalMessage;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +73,26 @@ public class PosterActionHandler extends BaseActionHandler {
      * 图片URL限制像素
      */
     private static final String IMAGE_URL_LIMIT_PIXEL = "?x-oss-process=image/resize,m_lfit,w_440,h_440";
+
+    /**
+     * 首图
+     */
+    private static final String MAIN_IMAGE = "首图";
+
+    /**
+     * 图片
+     */
+    private static final String IMAGE = "图片";
+
+    /**
+     * 是否依赖的正则表达式
+     */
+    private static final String DEPENDENCY_REGEX = "%s\\.(" + MAIN_IMAGE + "|" + IMAGE + "\\d)";
+
+    /**
+     * 使用多模态正则表达式
+     */
+    private static final Pattern MULTIMODAL_PATTERN = Pattern.compile("AI分析\\.(图片标题|图片副标题)");
 
     /**
      * 线程池
@@ -123,15 +138,15 @@ public class PosterActionHandler extends BaseActionHandler {
         for (int i = 0; i < 10; i++) {
             if (i == 0) {
                 StringSchema schema = new StringSchema();
-                schema.setTitle("首图");
-                schema.setDescription("首图-" + MaterialFieldTypeEnum.image.getCode());
-                objectSchema.putProperty("首图", schema);
+                schema.setTitle(MAIN_IMAGE);
+                schema.setDescription(MAIN_IMAGE + "-" + MaterialFieldTypeEnum.image.getCode());
+                objectSchema.putProperty(MAIN_IMAGE, schema);
                 continue;
             }
             StringSchema schema = new StringSchema();
-            schema.setTitle("图片" + i);
-            schema.setDescription("图片" + i + "-" + MaterialFieldTypeEnum.image.getCode());
-            objectSchema.putProperty("图片" + i, schema);
+            schema.setTitle(IMAGE + i);
+            schema.setDescription(IMAGE + i + "-" + MaterialFieldTypeEnum.image.getCode());
+            objectSchema.putProperty(IMAGE + i, schema);
         }
         return objectSchema;
     }
@@ -210,20 +225,17 @@ public class PosterActionHandler extends BaseActionHandler {
         // 海报模版参数
         String posterStyle = String.valueOf(this.getAppContext().getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
         if (StringUtils.isBlank(posterStyle) || "null".equalsIgnoreCase(posterStyle) || "{}".equals(posterStyle)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                    "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
         }
         // 转为海报模版对象
         try {
             PosterStyleDTO style = JsonUtils.parseObject(posterStyle, PosterStyleDTO.class);
             if (Objects.isNull(style)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                        "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
             }
             return style;
         } catch (Exception e) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                    "海报校验失败：海报风格配置解析失败，请检查您的图片配置或联系管理员！"));
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置解析失败，请检查您的图片配置或联系管理员！"));
         }
     }
 
@@ -236,8 +248,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private boolean hasDependencyTemplate(PosterStyleDTO style) {
-        return style.getPosterTemplateList().stream()
-                .anyMatch(PosterTemplateDTO::getIsDependency);
+        return style.getPosterTemplateList().stream().anyMatch(PosterTemplateDTO::getIsDependency);
     }
 
     /**
@@ -250,7 +261,7 @@ public class PosterActionHandler extends BaseActionHandler {
     private void markerDependencyTemplate(PosterStyleDTO posterStyle) {
         // 校验海报风格模板
         List<PosterTemplateDTO> templateList = posterStyle.getPosterTemplateList();
-
+        String stepCode = this.getAppContext().getStepWrapper().getStepCode();
         for (int i = 0; i < templateList.size(); i++) {
             PosterTemplateDTO posterTemplate = templateList.get(i);
             List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
@@ -266,19 +277,15 @@ public class PosterActionHandler extends BaseActionHandler {
                 }
 
                 // 是否依赖图片生成结果的正则表达式
-                Pattern pattern = Pattern.compile(this.getAppContext().getStepWrapper().getStepCode() + "\\.(首图|图片\\d)");
+                Pattern pattern = Pattern.compile(String.format(DEPENDENCY_REGEX, stepCode));
                 Matcher matcher = pattern.matcher(value);
                 // 如果匹配到，则设置为依赖，并且跳出变量列表循环，否则抛出异常
                 boolean matched = false;
                 while (matcher.find()) {
                     String group = matcher.group();
-                    if (group.contains("首图")) {
+                    if (group.contains(MAIN_IMAGE)) {
                         if (i == 0) {
-                            throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                                    "海报校验失败：[" + posterStyle.getName() + "][" +
-                                            posterTemplate.getName() + "][" +
-                                            variable.getLabel() + "] " +
-                                            "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
+                            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "][" + variable.getLabel() + "] " + "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
                         }
                         matched = true;
                         continue;
@@ -286,18 +293,10 @@ public class PosterActionHandler extends BaseActionHandler {
                     // 提取出匹配到的数字
                     Integer dependencyIndex = Integer.parseInt(group.substring(group.length() - 1));
                     if (i == dependencyIndex) {
-                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                                "海报校验失败：[" + posterStyle.getName() + "][" +
-                                        posterTemplate.getName() + "][" +
-                                        variable.getLabel() + "] " +
-                                        "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
+                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "][" + variable.getLabel() + "] " + "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
                     }
                     if (dependencyIndex > templateList.size()) {
-                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                                "海报校验失败：[" + posterStyle.getName() + "][" +
-                                        posterTemplate.getName() + "][" +
-                                        variable.getLabel() + "] " +
-                                        "变量依赖的模板生成结果超出模板数量，经检查您的模板变量配置！"));
+                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "][" + variable.getLabel() + "] " + "变量依赖的模板生成结果超出模板数量，经检查您的模板变量配置！"));
                     }
                     matched = true;
                 }
@@ -311,9 +310,7 @@ public class PosterActionHandler extends BaseActionHandler {
         boolean allDependency = templateList.stream().allMatch(PosterTemplateDTO::getIsDependency);
         // 如果所有的模板都依赖图片生成的结果，则说明出现循环依赖，抛出异常
         if (allDependency) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                    "海报校验失败：[" + posterStyle.getName() + "]" +
-                            "所有的海报模板均有依赖其他海报模板生成结果的变量，导致无法进行图片生成，请检查您的海报模板变量配置！"));
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "]" + "所有的海报模板均有依赖其他海报模板生成结果的变量，导致无法进行图片生成，请检查您的海报模板变量配置！"));
         }
         posterStyle.setTemplateList(templateList);
     }
@@ -328,10 +325,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private List<PosterTemplateDTO> getPosterTemplateList(PosterStyleDTO posterStyle, boolean isDependencyResult) {
-        return posterStyle.getPosterTemplateList().stream()
-                .filter(item -> item.getIsDependency().equals(isDependencyResult))
-                .filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute())
-                .collect(Collectors.toList());
+        return posterStyle.getPosterTemplateList().stream().filter(item -> item.getIsDependency().equals(isDependencyResult)).filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute()).collect(Collectors.toList());
     }
 
     /**
@@ -345,6 +339,7 @@ public class PosterActionHandler extends BaseActionHandler {
     private void assemble(PosterStyleDTO posterStyle, boolean isDependencyResult) {
         // 获取海报模版列表
         List<PosterTemplateDTO> posterTemplateList = posterStyle.getPosterTemplateList();
+        String stepCode = this.getAppContext().getStepWrapper().getStepCode();
 
         // 循环处理海报模板列表
         for (PosterTemplateDTO posterTemplate : posterTemplateList) {
@@ -362,21 +357,25 @@ public class PosterActionHandler extends BaseActionHandler {
             }
 
             // 获取所有变量的uuid和value并且放到此map中
-            Map<String, Object> variableMap = CreativeUtils.getPosterVariableMap(variableList);
+            Map<String, Object> variableMap = getPosterVariableMap(posterTemplate);
             // 替换变量，未找到的占位符会被替换为空字符串
-            Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, this.getAppContext().getStepId());
+            Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, stepCode);
+            // 如果需要进行多模态生成标题，则进行多模态处理，这里是只有改值为 true 的时候才会进行多模态处理。
+            if (isNeedMultimodal(posterTemplate)) {
+                PosterTitleDTO posterTitle = multimodalTitle(posterTemplate, replaceValueMap);
+                // 将多模态处理生成标题放入到变量中
+                replaceValueMap.put("AI分析.图片标题", posterTitle.getImgTitle());
+                replaceValueMap.put("AI分析.图片副标题", posterTitle.getImgSubTitle());
+            }
+
             // 判断变量替换之后，是否所有的变量都是空的。
-            boolean isAllValueIsInvalid = MapUtil.emptyIfNull(replaceValueMap).values().stream()
-                    .allMatch(item -> StringUtil.objectBlank(item));
+            boolean isAllValueIsInvalid = MapUtil.emptyIfNull(replaceValueMap).values().stream().allMatch(item -> StringUtil.objectBlank(item));
 
             // 如果所有变量处理之后值为空
             if (isAllValueIsInvalid) {
                 // 如果设置所有变量为空报错(null/false)，则报错!
                 if (Objects.isNull(posterStyle.getNoExecuteIfEmpty()) || !posterStyle.getNoExecuteIfEmpty()) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
-                            "海报校验失败：[" + posterStyle.getName() +
-                                    "][" + posterTemplate.getName() +
-                                    "] 变量值都为空。或者占位符无法替换，请检查您的图片变量配置！"));
+                    throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "] 变量值都为空。或者占位符无法替换，请检查您的图片变量配置！"));
                 }
                 // 如果设置所有变量为空(true)不执行，则不执行
                 else {
@@ -397,6 +396,8 @@ public class PosterActionHandler extends BaseActionHandler {
             }
             posterTemplate.setIsExecute(Boolean.TRUE);
             posterTemplate.setVariableList(variableList);
+
+
         }
         posterStyle.setTemplateList(posterTemplateList);
     }
@@ -418,16 +419,16 @@ public class PosterActionHandler extends BaseActionHandler {
             PosterTemplateDTO template = templateList.get(i);
             if (i == 0) {
                 if (!template.getIsDependency()) {
-                    posterResult.put("首图", responseList.remove(0).getUrlList());
+                    posterResult.put(MAIN_IMAGE, responseList.remove(0).getUrlList());
                 } else {
-                    posterResult.put("首图", null);
+                    posterResult.put(MAIN_IMAGE, null);
                 }
                 continue;
             }
             if (!template.getIsDependency()) {
-                posterResult.put("图片" + i, responseList.remove(0).getUrlList());
+                posterResult.put(IMAGE + i, responseList.remove(0).getUrlList());
             } else {
-                posterResult.put("图片" + i, null);
+                posterResult.put(IMAGE + i, null);
             }
         }
         ActionResponse response = new ActionResponse();
@@ -447,9 +448,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private List<PosterGenerationHandler.Response> handlerAllResponse(PosterStyleDTO style,
-                                                                      List<PosterGenerationHandler.Response> dependencyResponse,
-                                                                      List<PosterGenerationHandler.Response> undependencyResponse) {
+    private List<PosterGenerationHandler.Response> handlerAllResponse(PosterStyleDTO style, List<PosterGenerationHandler.Response> dependencyResponse, List<PosterGenerationHandler.Response> undependencyResponse) {
         // 合并结果，需要和 style 的 templateList 顺序一致
         List<PosterGenerationHandler.Response> list = new ArrayList<>();
         List<PosterGenerationHandler.Response> dependencyList = SerializationUtils.clone(new ArrayList<>(dependencyResponse));
@@ -522,34 +521,23 @@ public class PosterActionHandler extends BaseActionHandler {
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
         // 任务列表，只执行需要执行的图片，isExecute 为空或者为true，都执行，为false则不需要执行改图片
-        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList)
-                .stream()
-                .map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor))
-                .collect(Collectors.toList());
+        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList).stream().map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor)).collect(Collectors.toList());
 
         // 任务合并
-        CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0]))
-                .thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
 
         // 获取结果
         List<HandlerResponse<PosterGenerationHandler.Response>> handlerResponseList = allFuture.join();
 
         // 如果有一个失败，则返回失败
-        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream()
-                .filter(Objects::nonNull)
-                .filter(item -> !item.getSuccess())
-                .findFirst();
+        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream().filter(Objects::nonNull).filter(item -> !item.getSuccess()).findFirst();
 
         if (failureOption.isPresent()) {
             throw ServiceExceptionUtil.exception(new ErrorCode(failureOption.get().getErrorCode(), failureOption.get().getErrorMsg()));
         }
 
         // 构建响应结果
-        return handlerResponseList.stream()
-                .filter(Objects::nonNull)
-                .map(HandlerResponse::getOutput)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return handlerResponseList.stream().filter(Objects::nonNull).map(HandlerResponse::getOutput).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     /**
@@ -568,25 +556,14 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList())
-                    .stream()
-                    .collect(Collectors.toMap(
-                            PosterVariableDTO::getField,
-                            // 如果变量为值为空，则设置为空字符串
-                            PosterVariableDTO::emptyIfNullValue)
-                    );
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream().collect(Collectors.toMap(PosterVariableDTO::getField,
+                    // 如果变量为值为空，则设置为空字符串
+                    PosterVariableDTO::emptyIfNullValue));
 
             handlerRequest.setParams(params);
 
             // 构建请求
-            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(
-                    this.getAppUid(),
-                    this.getAppContext().getConversationUid(),
-                    this.getAppContext().getUserId(),
-                    this.getAppContext().getEndUserId(),
-                    this.getAppContext().getScene(),
-                    handlerRequest
-            );
+            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(this.getAppUid(), this.getAppContext().getConversationUid(), this.getAppContext().getUserId(), this.getAppContext().getEndUserId(), this.getAppContext().getScene(), handlerRequest);
             PosterGenerationHandler handler = new PosterGenerationHandler();
             return handler.execute(handlerContext);
         } catch (ServiceException exception) {
@@ -607,118 +584,50 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 处理图片标题
-     *
-     * @param posterStyle 海报风格
-     * @param title       文案标题
-     * @param content     文案内容
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private void handlerPosterTitle(PosterStyleDTO posterStyle, String title, String content) {
-        List<PosterTemplateDTO> templateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-
-        // 循环处理
-        for (PosterTemplateDTO posterTemplate : templateList) {
-            // 默认模式生成
-            String titleGenerateMode = Optional.ofNullable(posterTemplate.getTitleGenerateMode()).orElse(PosterTitleModeEnum.DEFAULT.name());
-            if (PosterTitleModeEnum.DEFAULT.name().equals(titleGenerateMode)) {
-                List<PosterVariableDTO> variableList = posterTemplate.getVariableList();
-                for (PosterVariableDTO variable : variableList) {
-                    // 获取变量值，不存在取默认值，默认值不存在，为空字符串
-                    Object value = Objects.nonNull(variable.getValue()) ? variable.getValue() :
-                            Objects.nonNull(variable.getDefaultValue()) ? variable.getDefaultValue() : "";
-
-                    // 从变量缓存中获取变量值
-                    Map<String, Object> objectMap = this.getAppContext().getContextVariablesValues(MaterialActionHandler.class);
-
-                    //素材.docs[1].url
-                    Object replaceValue = objectMap.getOrDefault(value, value);
-                    variable.setValue(replaceValue);
-                }
-                posterTemplate.setVariableList(variableList);
-
-            } else if (PosterTitleModeEnum.AI.name().equals(titleGenerateMode)) {
-                this.getAppContext().putVariable(CreativeConstants.TITLE, title);
-                this.getAppContext().putVariable(CreativeConstants.CONTENT, content);
-                this.getAppContext().putVariable(CreativeConstants.REQUIREMENT, posterTemplate.getTitleGenerateRequirement());
-                // 执行多模态生成海报标题副标题
-                MultimodalPosterTitleResponse response = multimodalPosterTitle(posterTemplate);
-                if (!response.getSuccess()) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(350400200, response.errorMessage));
-                }
-                // 获取结果，并且进行变量替换
-                PosterTitleDTO posterTitle = response.getPosterTitle();
-
-                // 变量替换
-                List<PosterVariableDTO> variableList = posterTemplate.getVariableList();
-                posterTemplate.setVariableList(variableList);
-            } else {
-                log.error("不支持的图片标题生成模式: {}", titleGenerateMode);
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "不支持的图片标题生成模式: " + titleGenerateMode));
-            }
-        }
-        posterStyle.setTemplateList(templateList);
-    }
-
-    /**
      * 多模态处理
      *
      * @param posterTemplate 海报模版
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public MultimodalPosterTitleResponse multimodalPosterTitle(PosterTemplateDTO posterTemplate) {
+    public PosterTitleDTO multimodalTitle(PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
         try {
+            log.info("通义千问多模态执行开始...... 海报模板：{}:{}", posterTemplate.getName(), posterTemplate.getCode());
             // 获取变量值
-            Map<String, Object> variablesValues = this.getAppContext().getContextVariablesValues();
+            Map<String, Object> params = this.getAppContext().getContextVariablesValues();
 
+            /*
+             * 构建多模态执行参数，并且执行
+             */
             // 构建消息列表
             List<Map<String, Object>> messages = new ArrayList<>();
-
-            // 获取标题提示
-            String prompt = String.valueOf(variablesValues.getOrDefault("PROMPT", "图片上画了什么？"));
+            // 获取提示词
+            String prompt = String.valueOf(params.getOrDefault("PROMPT", "图片上画了什么？"));
             messages.add(Collections.singletonMap(MultiModalMessage.MESSAGE_TEXT_KEY, prompt));
-
-            // 图片变量列表
-            List<PosterVariableDTO> imageVariableList = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
-                    .filter(item -> "IMAGE".equals(item.getType())).collect(Collectors.toList());
             // 处理需要上传的图片
-            List<String> urlList = new ArrayList<>();
-            // 如果图片数量大于2，只取前2个，否则取全部
-            for (int i = 0; i < imageVariableList.size(); i++) {
-                if (i > 1) {
-                    break;
-                }
-                PosterVariableDTO imageVariable = imageVariableList.get(i);
-                Object value = imageVariable.getValue();
-                if (Objects.isNull(value)) {
-                    continue;
-                }
-                String imageUrl = String.valueOf(value) + IMAGE_URL_LIMIT_PIXEL;
-                urlList.add(imageUrl);
+            List<String> urlList = imageMessageList(posterTemplate, valueMap);
+            for (String imageUrl : urlList) {
                 messages.add(Collections.singletonMap(MultiModalMessage.MESSAGE_IMAGE_KEY, imageUrl));
             }
-
             // 调用通义千问VL模型
+            log.info("通义千问多模态执行参数：{}", JsonUtils.toJsonPrettyString(messages));
             HumanMessage humanMessage = new HumanMessage(messages);
             ChatVLQwen chatVLQwen = new ChatVLQwen();
             String call = chatVLQwen.call(Arrays.asList(humanMessage));
 
-            if (log.isDebugEnabled()) {
-                log.info("通义千问多模态执行结果: {}", call);
-            }
-
             // 判断结果是否为空
             if (StrUtil.isBlank(call)) {
-                log.error("通义千问多模态执行失败：标题生成结果为空");
-                return MultimodalPosterTitleResponse.failure("350400200", "标题生成结果为空！", prompt, urlList);
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成：AI分析多模态生成执行失败：响应结果为空！"));
             }
 
+            /*
+             * 解析结果
+             */
             // 解析结果
             if (!call.contains("标题") || !call.contains("副标题")) {
-                return MultimodalPosterTitleResponse.failure("350400200", "标题生成格式不正确！", prompt, urlList);
+                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成：AI分析多模态生成执行失败：响应结果格式不正确！"));
             }
+
             Integer titleIndex = call.indexOf("标题");
             Integer subTitleIndex = call.indexOf("副标题");
             String title = call.substring(titleIndex + 3, subTitleIndex).trim();
@@ -727,98 +636,71 @@ public class PosterActionHandler extends BaseActionHandler {
             PosterTitleDTO posterTitle = new PosterTitleDTO();
             posterTitle.setImgTitle(title);
             posterTitle.setImgSubTitle(subTitle);
-
-            // 构建结果并且返回
-            MultimodalPosterTitleResponse response = new MultimodalPosterTitleResponse();
-            response.setSuccess(Boolean.TRUE);
-            response.setPrompt(prompt);
-            response.setUrlList(urlList);
-            response.setCostPoints(1);
-            response.setPosterTitle(posterTitle);
-
-            return response;
+            return posterTitle;
+        } catch (ServiceException exception) {
+            log.error("海报生成: AI分析多模态执行失败：{}", exception.getMessage(), exception);
+            throw exception;
         } catch (Exception exception) {
-            log.error("通义千问多模态执行失败：{}", exception.getMessage());
-            return MultimodalPosterTitleResponse.failure("350400200", exception.getMessage());
+            log.error("海报生成: AI分析多模态执行失败：{}", exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成：AI分析多模态执行失败：" + exception.getMessage()));
         }
     }
 
     /**
-     * 多模态生成标题返回结果
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
      */
-    @Data
-    @ToString
-    @EqualsAndHashCode
-    @NoArgsConstructor
-    public static class MultimodalPosterTitleResponse {
-
-        /**
-         * 是否成功
-         */
-        private Boolean success;
-
-        /**
-         * 错误码
-         */
-        private String errorCode;
-
-        /**
-         * 错误信息
-         */
-        private String errorMessage;
-
-        /**
-         * 消耗点数
-         */
-        private Integer costPoints;
-
-        /**
-         * 提示词
-         */
-        private String prompt;
-
-        /**
-         * 图片列表
-         */
-        private List<String> urlList;
-
-        /**
-         * 海报标题
-         */
-        private PosterTitleDTO posterTitle;
-
-        /**
-         * 失败返回结果
-         *
-         * @param errorCode    错误码
-         * @param errorMessage 错误信息
-         * @return 失败返回结果
-         */
-        public static MultimodalPosterTitleResponse failure(String errorCode, String errorMessage) {
-            MultimodalPosterTitleResponse response = new MultimodalPosterTitleResponse();
-            response.setSuccess(Boolean.FALSE);
-            response.setErrorCode(errorCode);
-            response.setErrorMessage(errorMessage);
-            response.setCostPoints(0);
-            return response;
+    private static Map<String, Object> getPosterVariableMap(PosterTemplateDTO posterTemplate) {
+        Map<String, Object> variableMap = new HashMap<>();
+        for (PosterVariableDTO variable : posterTemplate.getPosterVariableList()) {
+            variableMap.put(variable.getUuid(), variable.getValue());
         }
+        return variableMap;
+    }
 
-        /**
-         * 失败返回结果
-         *
-         * @param errorCode    错误码
-         * @param errorMessage 错误信息
-         * @return 失败返回结果
-         */
-        public static MultimodalPosterTitleResponse failure(String errorCode, String errorMessage, String prompt, List<String> urlList) {
-            MultimodalPosterTitleResponse response = new MultimodalPosterTitleResponse();
-            response.setSuccess(Boolean.FALSE);
-            response.setErrorCode(errorCode);
-            response.setErrorMessage(errorMessage);
-            response.setPrompt(prompt);
-            response.setUrlList(urlList);
-            response.setCostPoints(0);
-            return response;
+    /**
+     * 是否需要多模态处理生成标题
+     *
+     * @param posterTemplate 海报模版
+     * @return 是否需要多模态处理生成标题
+     */
+    private static boolean isNeedMultimodal(PosterTemplateDTO posterTemplate) {
+        // 如果需要多模态处理生成标题，只要该值为 false，则不需要多模态处理。该值为 true，且变量中有匹配到多模态正则表达式，才需要多模态处理
+        if (posterTemplate.getIsMultimodalTitle()) {
+            // 获取所有的变量列表
+            List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
+            // 只要有一个变量匹配到多模态正则表达式，则需要多模态处理
+            return variableList.stream().anyMatch(item -> MULTIMODAL_PATTERN.matcher(item.emptyIfNullValue()).matches());
         }
+        return false;
+    }
+
+    /**
+     * 获取多模态参数图片消息列表
+     *
+     * @param posterTemplate 海报模版
+     * @return 图片消息列表
+     */
+    private static List<String> imageMessageList(PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
+        // 图片变量列表
+        List<PosterVariableDTO> imageVariableList = CreativeUtils.getImageVariableList(posterTemplate);
+        // 处理需要上传的图片
+        List<String> urlList = new ArrayList<>();
+        // 如果图片数量大于2，只取前2个，否则取全部
+        for (PosterVariableDTO imageVariable : imageVariableList) {
+            if (urlList.size() == 2) {
+                break;
+            }
+            // 获取图片地址
+            String value = String.valueOf(valueMap.getOrDefault(imageVariable.getUuid(), StrUtil.EMPTY));
+            if (StringUtils.isBlank(value)) {
+                continue;
+            }
+            String imageUrl = value + IMAGE_URL_LIMIT_PIXEL;
+            urlList.add(imageUrl);
+        }
+        return urlList;
     }
 }
