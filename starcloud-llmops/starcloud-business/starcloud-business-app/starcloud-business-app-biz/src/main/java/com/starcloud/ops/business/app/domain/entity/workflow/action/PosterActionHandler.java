@@ -251,7 +251,8 @@ public class PosterActionHandler extends BaseActionHandler {
         // 校验海报风格模板
         List<PosterTemplateDTO> templateList = posterStyle.getPosterTemplateList();
 
-        for (PosterTemplateDTO posterTemplate : templateList) {
+        for (int i = 0; i < templateList.size(); i++) {
+            PosterTemplateDTO posterTemplate = templateList.get(i);
             List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
             // 默认设置为不依赖生成结果
             posterTemplate.setIsDependency(Boolean.FALSE);
@@ -270,13 +271,27 @@ public class PosterActionHandler extends BaseActionHandler {
                 // 如果匹配到，则设置为依赖，并且跳出变量列表循环，否则抛出异常
                 boolean matched = false;
                 while (matcher.find()) {
-                    // 提取出匹配到的数字
                     String group = matcher.group();
                     if (group.contains("首图")) {
+                        if (i == 0) {
+                            throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
+                                    "海报校验失败：[" + posterStyle.getName() + "][" +
+                                            posterTemplate.getName() + "][" +
+                                            variable.getLabel() + "] " +
+                                            "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
+                        }
                         matched = true;
                         continue;
                     }
+                    // 提取出匹配到的数字
                     Integer dependencyIndex = Integer.parseInt(group.substring(group.length() - 1));
+                    if (i == dependencyIndex) {
+                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
+                                "海报校验失败：[" + posterStyle.getName() + "][" +
+                                        posterTemplate.getName() + "][" +
+                                        variable.getLabel() + "] " +
+                                        "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
+                    }
                     if (dependencyIndex > templateList.size()) {
                         throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
                                 "海报校验失败：[" + posterStyle.getName() + "][" +
