@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.api.poster.dto.PosterImage;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import io.swagger.v3.oas.annotations.media.Schema;
