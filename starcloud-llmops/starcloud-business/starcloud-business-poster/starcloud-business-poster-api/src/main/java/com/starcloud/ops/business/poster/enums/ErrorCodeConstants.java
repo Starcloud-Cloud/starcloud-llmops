@@ -15,7 +15,7 @@ public interface ErrorCodeConstants {
 
 
 
-    ErrorCode MATERIAL_CATEGORY_NOT_EXISTS = new ErrorCode(600003001, " 当前分类数据不存在");
+    ErrorCode MATERIAL_CATEGORY_NOT_EXISTS = new ErrorCode(600003001, "当前分类不存在，请重新选择");
     ErrorCode CATEGORY_PARENT_NOT_EXISTS = new ErrorCode(600003002, "上级分类不存在");
     ErrorCode CATEGORY_EXISTS_CHILDREN = new ErrorCode(600003003, "存在子分类，无法删除");
     ErrorCode CATEGORY_HAVE_BIND_SPU = new ErrorCode(600003004, "类别下存在商品，无法删除");

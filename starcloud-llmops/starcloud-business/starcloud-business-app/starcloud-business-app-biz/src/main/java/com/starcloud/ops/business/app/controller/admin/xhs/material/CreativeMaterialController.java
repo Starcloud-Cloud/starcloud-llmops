@@ -15,7 +15,6 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.M
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -99,12 +98,7 @@ public class CreativeMaterialController {
     @PostMapping(value = "/infoPageByMarketUid")
     @Operation(summary = "获得素材应用执行日志信息分页")
     public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@RequestBody AppLogConversationInfoPageUidReqVO query) {
-        return CommonResult.success(materialService.infoPageByMarketUid(query));
+        return CommonResult.success(creativeMaterialService.infoPageByMarketUid(query));
     }
 
-    @PostMapping(value = "/infoPageByMarketUid")
-    @Operation(summary = "获得素材应用执行日志信息分页")
-    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@RequestBody AppLogConversationInfoPageUidReqVO query) {
-        return CommonResult.success(materialService.infoPageByMarketUid(query));
-    }
 }
