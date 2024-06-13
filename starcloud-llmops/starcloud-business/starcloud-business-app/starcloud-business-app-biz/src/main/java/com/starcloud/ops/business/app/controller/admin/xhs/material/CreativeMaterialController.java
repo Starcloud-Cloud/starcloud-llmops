@@ -101,4 +101,10 @@ public class CreativeMaterialController {
     public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@RequestBody AppLogConversationInfoPageUidReqVO query) {
         return CommonResult.success(materialService.infoPageByMarketUid(query));
     }
+
+    @PostMapping(value = "/infoPageByMarketUid")
+    @Operation(summary = "获得素材应用执行日志信息分页")
+    public CommonResult<PageResult<AppLogMessageRespVO>> infoPageByMarketUid(@RequestBody AppLogConversationInfoPageUidReqVO query) {
+        return CommonResult.success(materialService.infoPageByMarketUid(query));
+    }
 }
