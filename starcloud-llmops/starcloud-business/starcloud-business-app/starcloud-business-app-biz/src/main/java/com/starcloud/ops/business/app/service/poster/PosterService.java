@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.service.poster;
 
-import com.starcloud.ops.business.app.api.poster.dto.PosterImage;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateType;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;

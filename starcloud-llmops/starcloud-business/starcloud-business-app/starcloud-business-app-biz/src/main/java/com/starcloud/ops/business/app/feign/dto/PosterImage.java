@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.poster.dto;
+package com.starcloud.ops.business.app.feign.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

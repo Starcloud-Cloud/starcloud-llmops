@@ -15,7 +15,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.poster.dto.PosterImage;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
@@ -68,7 +68,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * @author nacoyer
