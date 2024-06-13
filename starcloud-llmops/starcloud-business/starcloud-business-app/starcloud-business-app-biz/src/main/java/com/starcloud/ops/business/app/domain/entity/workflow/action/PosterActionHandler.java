@@ -272,6 +272,10 @@ public class PosterActionHandler extends BaseActionHandler {
                 while (matcher.find()) {
                     // 提取出匹配到的数字
                     String group = matcher.group();
+                    if (group.contains("首图")) {
+                        matched = true;
+                        continue;
+                    }
                     Integer dependencyIndex = Integer.parseInt(group.substring(group.length() - 1));
                     if (dependencyIndex > templateList.size()) {
                         throw ServiceExceptionUtil.exception(new ErrorCode(350400200,
