@@ -15,6 +15,7 @@ import cn.iocoder.yudao.module.member.service.point.MemberPointRecordService;
 import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import com.starcloud.ops.business.app.api.poster.dto.PosterImage;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
@@ -478,7 +479,10 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         }
         StringJoiner sj = new StringJoiner(StringUtils.LF);
         for (ImageContent creativeImageDTO : list) {
-            sj.add(creativeImageDTO.getUrl());
+            List<PosterImage> urlList = creativeImageDTO.getUrlList();
+            urlList.forEach(posterImage -> {
+                sj.add(posterImage.getUrl());
+            });
         }
         return sj.toString();
     }

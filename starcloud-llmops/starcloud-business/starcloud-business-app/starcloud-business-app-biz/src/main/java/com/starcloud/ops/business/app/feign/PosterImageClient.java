@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.feign;
 
-import com.starcloud.ops.business.app.feign.dto.PosterImage;
+import com.starcloud.ops.business.app.api.poster.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateType;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
@@ -52,6 +52,6 @@ public interface PosterImageClient {
      * @return 海报
      */
     @PostMapping(value = "/poster")
-    PosterResponse<PosterImage> poster(@Validated @RequestBody PosterRequest request);
+    PosterResponse<List<PosterImage>> poster(@Validated @RequestBody PosterRequest request);
 
 }

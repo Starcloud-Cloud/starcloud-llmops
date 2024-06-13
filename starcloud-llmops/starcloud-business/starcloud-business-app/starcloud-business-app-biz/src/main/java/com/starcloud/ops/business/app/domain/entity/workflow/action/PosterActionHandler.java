@@ -418,14 +418,14 @@ public class PosterActionHandler extends BaseActionHandler {
             PosterTemplateDTO template = templateList.get(i);
             if (i == 0) {
                 if (!template.getIsDependency()) {
-                    posterResult.put("首图", responseList.remove(0).getUrl());
+                    posterResult.put("首图", responseList.remove(0).getUrlList());
                 } else {
                     posterResult.put("首图", null);
                 }
                 continue;
             }
             if (!template.getIsDependency()) {
-                posterResult.put("图片" + i, responseList.remove(0).getUrl());
+                posterResult.put("图片" + i, responseList.remove(0).getUrlList());
             } else {
                 posterResult.put("图片" + i, null);
             }
