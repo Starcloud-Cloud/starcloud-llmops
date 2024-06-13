@@ -1,12 +1,16 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -16,7 +20,6 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -32,6 +35,7 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
@@ -57,6 +61,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @TaskComponent
 public class CustomActionHandler extends BaseActionHandler {
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppDictionaryService appDictionaryService = SpringUtil.getBean(AppDictionaryService.class);
 
     /**
      * 流程执行器，action 执行入口
@@ -133,7 +141,7 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         // 不支持的生成模式
-        return ActionResponse.failure("310100020", "自定义内容生成不支持的生成模式: " + generateMode, params);
+        throw ServiceExceptionUtil.exception(new ErrorCode(310100020, "自定义内容生成不支持的生成模式"));
     }
 
     /**
@@ -149,12 +157,12 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到参考文案
         String refers = String.valueOf(params.get(CreativeConstants.REFERS));
         if (StrUtil.isBlank(refers)) {
-            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
         }
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
 
         if (CollectionUtil.isEmpty(referList)) {
-            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
         }
 
         AbstractCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
@@ -201,26 +209,11 @@ public class CustomActionHandler extends BaseActionHandler {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
-        /*
-         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
-         * AI仿写为第一个 prompt
-         * AI自定义为第二个 prompt
-         */
-        // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        List<String> promptList = StrUtil.split(prompt, "----------");
-        prompt = promptList.get(0);
-
-        if (StrUtil.isBlank(prompt)) {
-            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
-        }
-
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
-
         if (CollectionUtil.isEmpty(referList)) {
-            return ActionResponse.failure("310100019", "参考内容不能为空", params);
+            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
         }
 
         // 需要交给 ChatGPT 的参考内容数量
@@ -230,9 +223,16 @@ public class CustomActionHandler extends BaseActionHandler {
         List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
-
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
+        /*
+         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
+         * AI仿写为第一个 prompt
+         * AI自定义为第二个 prompt
+         */
+        // 获取到 prompt
+        String prompt = this.getPrompt(params, false);
+
         log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), this.getAppContext().getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
@@ -284,12 +284,7 @@ public class CustomActionHandler extends BaseActionHandler {
          * AI自定义为第二个 prompt
          */
         // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        List<String> promptList = StrUtil.split(prompt, "----------");
-        prompt = promptList.get(1);
-        if (StrUtil.isBlank(prompt)) {
-            return ActionResponse.failure("310100019", "系统应用配置异常：prompt不存在，请联系管理员！", params);
-        }
+        String prompt = this.getPrompt(params, true);
 
         // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
@@ -399,6 +394,73 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         return actionResponse;
+    }
+
+    /**
+     * 获取 prompt
+     *
+     * @param params   参数
+     * @param isCustom 是否是自定义
+     * @return prompt
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private String getPrompt(Map<String, Object> params, boolean isCustom) {
+        // 获取到 prompt
+        String prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        try {
+            if (!isCustom) {
+                prompt = promptList.get(0);
+            } else {
+                prompt = promptList.get(1);
+            }
+            // 判断 prompt 是否为空，如果为空，抛出异常，走catch逻辑获取默认配置
+            if (StrUtil.isBlank(prompt)) {
+                throw new RuntimeException("用户 prompt 为空！");
+            }
+        } catch (Exception e) {
+            try {
+                log.error("用户prompt配置异常！从字典中获取默认配置！");
+                List<String> defaultPromptList = getDefaultPromptList();
+                if (!isCustom) {
+                    prompt = defaultPromptList.get(0);
+                } else {
+                    prompt = defaultPromptList.get(1);
+                }
+                if (StrUtil.isBlank(prompt)) {
+                    throw new RuntimeException("系统默认promp为空！");
+                }
+                // 放入到上下文中
+                this.getAppContext().putModelVariable("PROMPT", prompt);
+                // 重新获取替换后的 prompt
+                prompt = String.valueOf(this.getAppContext().getContextVariablesValues().getOrDefault("PROMPT", StrUtil.EMPTY));
+                // 如果还是为空，抛出异常
+                if (StrUtil.isBlank(prompt)) {
+                    throw new RuntimeException("系统默认promp为空！");
+                }
+            } catch (Exception exception) {
+                log.error("prompt 异常：{}", e.getMessage(), e);
+                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+            }
+        }
+
+        return prompt;
+    }
+
+    /**
+     * 从字典中获取默认值
+     *
+     * @param key key
+     * @return 默认值
+     */
+    private List<String> getDefaultPromptList() {
+        String prompt = MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault("小红书生成", StrUtil.EMPTY);
+        List<String> promptList = StrUtil.split(prompt, "----------");
+        if (promptList.size() < 2) {
+            throw new RuntimeException("系统默认promp配置异常！请检查字典配置：小红书生成");
+        }
+        return promptList;
     }
 
     private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {

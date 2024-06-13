@@ -20,7 +20,7 @@ import javax.annotation.PostConstruct;
 @ComponentScan(basePackages = "com.starcloud.ops")
 @PropertySource(value = {"classpath:config/starcloud-llm-config.properties", "classpath:starcloud-llm-config.properties",
         "classpath:config/starcloud-llm-config-${spring.profiles.active}.properties", "classpath:starcloud-llm-config-${spring.profiles.active}.properties"}, ignoreResourceNotFound = true)
-@EnableConfigurationProperties(value = {StarcloudServerProperties.class, BusinessAppProperties.class, BusinessChatProperties.class, BusinessDatasetProperties.class, BusinessLimitProperties.class, BusinessOrderProperties.class})
+@EnableConfigurationProperties(value = {StarcloudServerProperties.class, BusinessAppProperties.class, BusinessChatProperties.class, BusinessDatasetProperties.class, BusinessLimitProperties.class, BusinessOrderProperties.class, BusinessPosterProperties.class})
 // @EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)
 public class StarcloudServerConfiguration {
 

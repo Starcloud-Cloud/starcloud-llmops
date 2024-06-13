@@ -439,9 +439,27 @@ public class AppContext {
         this.app.setActionResponse(this.stepId, response);
     }
 
+    /**
+     * 放入变量
+     *
+     * @param key   key
+     * @param value value
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public void putVariable(String key, Object value) {
         this.app.putVariable(this.stepId, key, value);
+    }
+
+    /**
+     * 放入变量
+     *
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String key, Object value) {
+        this.app.putModelVariable(this.stepId, key, value);
     }
 }

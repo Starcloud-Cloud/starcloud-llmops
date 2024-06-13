@@ -8,12 +8,12 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -108,15 +109,14 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
             log.info("海报图片生成：执行生成图片【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
 
             // 调用海报生成服务
-            String url = POSTER_SERVICE.poster(posterRequest);
-            AppValidate.notBlank(url, "图片生成失败：结果为空！请重试或者联系管理员！");
+            List<PosterImage> posterImageList = POSTER_SERVICE.poster(posterRequest);
 
             Response response = new Response();
             response.setCode(request.getCode());
             response.setName(request.getName());
             response.setIsMain(request.getIsMain());
             response.setIndex(request.getIndex());
-            response.setUrl(url);
+            response.setUrlList(posterImageList);
             log.info("海报图片生成: 执行生成图片【成功】，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
             return response;
         } catch (ServiceException exception) {
@@ -207,7 +207,7 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
          */
         @Schema(description = "海报图片地址")
         @JsonPropertyDescription("海报图片地址")
-        private String url;
+        private List<PosterImage> urlList;
 
     }
 

@@ -61,18 +61,6 @@ public class AssembleActionHandler extends BaseActionHandler {
     }
 
 
-    /**
-     * 暂时不返回任何结构
-     *
-     * @return
-     */
-    @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
-        return null;
-
-    }
-
 
     /**
      * 执行OpenApi生成的步骤

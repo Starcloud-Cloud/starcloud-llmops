@@ -70,9 +70,27 @@ public class WorkflowStepEntity extends ActionEntity {
         }
     }
 
+    /**
+     * 获取步骤变量
+     *
+     * @param key key
+     * @return VariableItemEntity
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     public VariableItemEntity getModeVariableItem(String key) {
         return this.variable.getVariableItem(key);
+    }
+
+    /**
+     * 将变量放入步骤变量中
+     *
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String key, Object value) {
+        this.variable.putVariable(key, value);
     }
 }

@@ -1,9 +1,14 @@
 package com.starcloud.ops.business.app.recommend;
 
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +22,8 @@ import java.util.List;
  * @since 2023-06-25
  */
 public class RecommendStepWrapperFactory {
+
+    private static AppDictionaryService appDictionaryService = SpringUtil.getBean(AppDictionaryService.class);
 
     /**
      * 默认生成文本步骤
@@ -181,7 +188,8 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String defaultPrompt = "";
+        String prompt = getDefaultFromDict("小红书生成");
+        String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -194,6 +202,7 @@ public class RecommendStepWrapperFactory {
 
     /**
      * 仿写步骤
+     *
      * @return
      */
     public static WorkflowStepWrapperRespVO defImitateStepWrapper() {
@@ -289,6 +298,16 @@ public class RecommendStepWrapperFactory {
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );
+    }
+
+    /**
+     * 从字典中获取默认值
+     *
+     * @param key key
+     * @return 默认值
+     */
+    private static String getDefaultFromDict(String key) {
+        return MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(key, StrUtil.EMPTY);
     }
 
 }

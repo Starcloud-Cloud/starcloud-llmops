@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.poster.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -85,18 +86,25 @@ public class PosterServiceImpl implements PosterService {
      * @return 海报URL
      */
     @Override
-    public String poster(PosterRequest request) {
+    public List<PosterImage> poster(PosterRequest request) {
         log.info("[Poster] 调用海报生成接口开始......");
-        PosterResponse<PosterImage> response = posterImageClient.poster(request);
+        PosterResponse<List<PosterImage>> response = posterImageClient.poster(request);
         validateResponse(response, "海报生成失败");
-        PosterImage poster = response.getData();
-        String url = poster.getUrl();
-        if (StringUtils.isBlank(url)) {
-            log.error("[Poster] 调用海报生成接口失败：错误信息: {}", CreativeErrorCodeConstants.POSTER_URL_IS_BLANK.getMsg());
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_URL_IS_BLANK);
+        List<PosterImage> posterList = response.getData();
+        if (CollectionUtil.isEmpty(posterList)) {
+            log.error("[Poster] 调用海报生成接口失败：错误信息: 生成结果为空！");
+            throw ServiceExceptionUtil.exception(new ErrorCode(350700114, "生成结果为空！"));
         }
-        log.info("[Poster] 调用海报生成接口完成：海报URL：{}", url);
-        return url;
+
+        for (PosterImage posterImage : posterList) {
+            if (StringUtils.isBlank(posterImage.getUrl())) {
+                log.error("[Poster] 调用海报生成接口失败：错误信息: {}", CreativeErrorCodeConstants.POSTER_URL_IS_BLANK.getMsg());
+                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_URL_IS_BLANK);
+            }
+        }
+
+        log.info("[Poster] 调用海报生成接口完成：海报URL：{}", posterList);
+        return posterList;
     }
 
     /**

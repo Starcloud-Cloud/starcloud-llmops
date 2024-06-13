@@ -138,6 +138,63 @@
         ORDER BY sort IS NULL, sort, update_time DESC
     </select>
     
+    <select id="listWithoutConfig"
+            resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
+        SELECT id,
+               uid,
+               name,
+               type,
+               model,
+               version,
+               sort,
+               tags,
+               category,
+               scenes,
+               icon,
+               description,
+               creator,
+               updater,
+               create_time,
+               update_time
+        FROM llm_app_market
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND name LIKE CONCAT(#{query.name}, '%')
+            </if>
+            <if test="query.typeList != null and query.typeList.size() > 0">
+                AND type IN
+                <foreach collection='query.typeList' item='type' separator=',' open='(' close=')'>
+                    #{type}
+                </foreach>
+            </if>
+            <if test="query.model != null and query.model != ''">
+                AND model = #{query.model}</if>
+            <if test="query.category != null and query.category != ''">
+                AND category = #{query.category}
+            </if>
+            <if test="query.scenes != null and query.scenes.size() > 0">
+                AND
+                <foreach collection='query.scenes' item='scene' separator=' AND '>
+                    FIND_IN_SET(#{scene}, scenes)
+                </foreach>
+            </if>
+            <if test="query.tags != null and query.tags.size() > 0">
+                AND
+                <foreach collection='query.tags' item='tag' separator=' AND '>
+                    FIND_IN_SET(#{tag}, tags)
+                </foreach>
+            </if>
+            <if test="query.uidList != null and query.uidList.size() > 0">
+                AND uid IN
+                <foreach collection='query.uidList' item='uid' separator=',' open='(' close=')'>
+                    #{uid}
+                </foreach>
+            </if>
+            AND deleted = 0
+        </where>
+        ORDER BY sort IS NULL, sort, update_time DESC
+    </select>
+    
     <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->
     <select id="countCompletionAppByName" resultType="java.lang.Long">
         SELECT COUNT(*)

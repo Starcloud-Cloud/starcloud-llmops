@@ -16,6 +16,7 @@ import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * App 配置实体类
@@ -144,11 +145,43 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         }
     }
 
+    /**
+     * 将变量放入步骤变量中
+     *
+     * @param stepId 步骤ID
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(String stepId, String key, Object value) {
         for (WorkflowStepWrapper step : this.steps) {
             if (step.getName().equals(stepId)) {
                 step.putVariable(key, value);
             }
+        }
+    }
+
+    /**
+     * 将变量放入步骤变量中
+     *
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String key, Object value) {
+        for (WorkflowStepWrapper step : this.steps) {
+            if (step.getName().equals(stepId)) {
+                step.putModelVariable(key, value);
+            }
+        }
+    }
+
+    public void putVariable(Class<? extends BaseActionHandler> classz, String key, Object value) {
+        WorkflowStepWrapper stepWrapper = getStepWrapper(classz);
+        if (Objects.nonNull(stepWrapper)) {
+            stepWrapper.putVariable(key, value);
         }
     }
 }

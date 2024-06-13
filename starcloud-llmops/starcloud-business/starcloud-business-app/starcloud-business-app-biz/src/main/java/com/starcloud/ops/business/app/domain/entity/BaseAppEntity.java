@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -16,6 +18,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
@@ -30,16 +33,16 @@ import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_LIST;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
@@ -209,6 +212,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private Long tenantId;
 
     /**
+     * 素材列表
+     */
+    private List<Map<String, Object>> materialList;
+
+    /**
      * 模版方法：基础校验
      *
      * @param request 请求参数
@@ -281,6 +289,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected abstract String obtainLlmAiModelType(Q request);
 
     /**
@@ -460,7 +470,25 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void update() {
         this.validate(null);
+        disposeMaterial();
         this.doUpdate();
+    }
+
+    /**
+     * 素材单独拆出一个字段
+     */
+    private void disposeMaterial() {
+        if (Objects.nonNull(workflowConfig)) {
+            TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<List<Map<String, Object>>>() {
+            };
+            materialList = Optional.ofNullable(workflowConfig.getStepWrapper(MaterialActionHandler.class))
+                    .map(step -> step.getVariablesValue(MATERIAL_LIST))
+                    .map(Object::toString)
+                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
+                    .orElse(Collections.emptyList());
+
+            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
+        }
     }
 
     /**
@@ -550,6 +578,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationUid 会话UID
      * @param request         请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void successAppConversationLog(String conversationUid, Q request) {
         log.info("应用执行成功：更新会话记录开始 会话 UID：{}...", conversationUid);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
@@ -570,6 +600,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param errorMsg        错误消息
      * @param request         请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg, Q request) {
         log.info("应用执行失败：更新会话记录开始 会话 UID：{}, errorCode：{}，errorMsg：{} ...", conversationUid, errorCode, errorMsg);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
@@ -670,11 +702,26 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     }
 
     /**
+     * 放入到模型变量中
+     *
+     * @param stepId 步骤ID
+     * @param key    键
+     * @param value  值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String key, Object value) {
+        this.workflowConfig.putModelVariable(stepId, key, value);
+    }
+
+    /**
      * 异常
      *
      * @param errorCode 错误码
      * @return 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode) {
         return ServiceExceptionUtil.exception(errorCode);
     }
@@ -686,6 +733,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param params    参数
      * @return 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
     }
@@ -695,6 +744,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @return 会话 UID
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static String createAppConversationUid() {
         return IdUtil.fastSimpleUUID();
     }

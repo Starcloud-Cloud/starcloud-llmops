@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -30,11 +31,13 @@ import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
@@ -66,6 +69,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * App 实体类
@@ -130,27 +134,59 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         }
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
+            if (stepWrappers.size() < 3) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】"));
+            }
             // 第一个步骤必须是：上传素材步骤，有且只有一个
             boolean materialCount = stepWrappers.stream()
                     .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！且有且只能有一个！"));
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
+            }
+            // 倒数第二个必须包含笔记生成步骤, 有且只有一个
+            boolean assembleMatch = stepWrappers.stream()
+                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!AssembleActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 2).getFlowStep().getHandler()) && !assembleMatch) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
             }
             // 最后一个步骤必须是图片生成步骤, 有且只有一个
             boolean posterMatch = stepWrappers.stream()
                     .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！"));
             }
-            // 必须包含笔记生成步骤, 有且只有一个
-            boolean assembleMatch = stepWrappers.stream()
-                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
-            if (!assembleMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！且有且只能有一个！"));
+            // 如果存在变量步骤，变量不能为空
+            List<WorkflowStepWrapper> variableStepList = stepWrappers.stream()
+                    .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .collect(Collectors.toList());
+            if (variableStepList.size() > 1) {
+                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最多只能有一个【全局变量】步骤！"));
             }
+            for (WorkflowStepWrapper variableStep : variableStepList) {
+                VariableEntity variable = variableStep.getVariable();
+                if (variable == null || CollectionUtil.isEmpty(variable.getVariables())) {
+                    throw exception(new ErrorCode(300100140, "媒体矩阵类型应用变量步骤【" + variableStep.getName() + "】最少需要配置一个变量！"));
+                }
+            }
+            // 获取图片配置变量
+//            WorkflowStepWrapper posterWorkStepWrapper = stepWrappers.get(stepWrappers.size() - 1);
+//            VariableItemEntity posterStyleConfigItem = posterWorkStepWrapper.getVariable().getVariableItem(CreativeConstants.POSTER_STYLE_CONFIG);
+//            if (posterStyleConfigItem == null || posterStyleConfigItem.getValue() == null) {
+//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
+//            }
+//            String posterStyleString = String.valueOf(posterStyleConfigItem.getValue());
+//            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
+//            }
+//
+//            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+//            if (CollectionUtil.isEmpty(posterStyleList)) {
+//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
+//            }
+
         }
         config.setSteps(stepWrappers);
         this.setWorkflowConfig(config);

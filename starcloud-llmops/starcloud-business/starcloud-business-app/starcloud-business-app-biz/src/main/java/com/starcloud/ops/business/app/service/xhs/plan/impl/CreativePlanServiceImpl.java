@@ -14,7 +14,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
@@ -37,9 +36,10 @@ import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
+import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMaterialMapper;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
@@ -48,11 +48,11 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
@@ -96,6 +96,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private CreativePlanMapper creativePlanMapper;
+
+    @Resource
+    private CreativePlanMaterialMapper creativePlanMaterialMapper;
+
+    @Resource
+    private CreativeMaterialManager creativeMaterialManager;
 
     @Resource
     private CreativePlanBatchService creativePlanBatchService;
@@ -262,7 +268,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse);
 
         // 创建一个计划
-        CreativePlanDO creativePlan = new CreativePlanDO();
+        CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
         creativePlan.setUid(IdUtil.fastSimpleUUID());
         creativePlan.setAppUid(appMarketResponse.getUid());
         creativePlan.setVersion(appMarketResponse.getVersion());
@@ -273,7 +279,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
         creativePlan.setUpdateTime(LocalDateTime.now());
-        creativePlanMapper.insert(creativePlan);
+        creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(query.getAppUid(), query.getSource()));
+        creativePlanMaterialMapper.insert(creativePlan);
         return get(creativePlan.getUid());
     }
 
@@ -321,9 +328,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
 
         // 更新创作计划
-        CreativePlanDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
+        CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyReq(request);
         modifyPlan.setId(plan.getId());
-        creativePlanMapper.updateById(modifyPlan);
+        creativePlanMaterialMapper.updateById(modifyPlan);
         return modifyPlan.getUid();
     }
 
@@ -348,6 +355,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         validPoster(configuration, request);
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
+        // 素材单独存放
+        request.getConfiguration().setMaterialList(null);
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
@@ -657,7 +666,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate();
         // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = configuration.getMaterialList();
+        List<Map<String, Object>> materialList = creativeMaterialManager.getPlanMaterialList(creativePlan.getUid());
 
         /*
          * 获取计划应用信息
@@ -880,7 +889,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private void validImage(AppMarketRespVO appInformation, CreativePlanConfigurationDTO configuration) {
         WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
         if (Objects.nonNull(posterWrapper)) {
-            AppValidate.notEmpty(configuration.getImageStyleList(), "图片生成未选择图片风格，不能为空！");
+            AppValidate.notEmpty(configuration.getImageStyleList(), "图片生成步骤【" + posterWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！");
         }
     }
 

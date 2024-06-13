@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.app.api.xhs.plan.dto.poster;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.AppValidate;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +17,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -77,6 +82,14 @@ public class PosterStyleDTO implements java.io.Serializable {
     private String description;
 
     /**
+     * 所有参数为空时候不执行<br>
+     * {@code true} 所有参数为空时候不执行<br>
+     * {@code null}或者{@code false} 所有参数为空时候报错。
+     */
+    @Schema(description = "所有参数为空时候不执行")
+    private Boolean noExecuteIfEmpty;
+
+    /**
      * 模板列表
      */
     @Schema(description = "模板列表")
@@ -85,8 +98,22 @@ public class PosterStyleDTO implements java.io.Serializable {
     private List<PosterTemplateDTO> templateList;
 
     /**
+     * 获取海报模板列表<br>
+     * 过滤空对象
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<PosterTemplateDTO> getPosterTemplateList() {
+        return CollectionUtil.emptyIfNull(this.getTemplateList()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 校验风格对象
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void validate() {
         AppValidate.notBlank(uuid, "{}, 风格UUID不能为空！请联系管理员！", this.name);
         AppValidate.notEmpty(templateList, "{}, 请选择图片模板！", this.name);
@@ -98,6 +125,8 @@ public class PosterStyleDTO implements java.io.Serializable {
      *
      * @return 风格1
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static PosterStyleDTO ofOne() {
         PosterStyleDTO posterStyle = new PosterStyleDTO();
         posterStyle.setName("风格 1");

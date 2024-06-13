@@ -218,6 +218,9 @@ public class CreativeUtils {
             // 添加到列表
             templateList.add(template);
         }
+        // 变量都为空是否执行，如果为null则设置为fase
+        Boolean noExecuteIfEmpty = Objects.isNull(posterStyle.getNoExecuteIfEmpty()) ? Boolean.FALSE : posterStyle.getNoExecuteIfEmpty();
+        posterStyle.setNoExecuteIfEmpty(noExecuteIfEmpty);
         Integer imageCount = templateList.stream().mapToInt(PosterTemplateDTO::getTotalImageCount).sum();
         posterStyle.setTotalImageCount(imageCount);
         posterStyle.setTemplateList(templateList);
@@ -265,6 +268,20 @@ public class CreativeUtils {
             }
         }
         return variableValueMap;
+    }
+
+    /**
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
+     */
+    public static Map<String, Object> getPosterVariableMap(List<PosterVariableDTO> variableList) {
+        Map<String, Object> variableMap = new HashMap<>();
+        for (PosterVariableDTO variable : variableList) {
+            variableMap.put(variable.getUuid(), variable.getValue());
+        }
+        return variableMap;
     }
 
     /**
@@ -672,27 +689,31 @@ public class CreativeUtils {
         }
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType())) {
+            if (stepWrappers.size() < 3) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】"));
+            }
             // 第一个步骤必须是：上传素材步骤，有且只有一个
             boolean materialCount = stepWrappers.stream()
                     .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个应用必须是【上传素材】步骤！且有且只能有一个！"));
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
+            }
+            // 倒数第二个必须包含笔记生成步骤, 有且只有一个
+            boolean assembleMatch = stepWrappers.stream()
+                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
+                    .count() == 1;
+            if (!AssembleActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 2).getFlowStep().getHandler()) && !assembleMatch) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
             }
             // 最后一个步骤必须是图片生成步骤, 有且只有一个
             boolean posterMatch = stepWrappers.stream()
                     .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                     .count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
+                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型步骤最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
             }
-            // 必须包含笔记生成步骤, 有且只有一个
-            boolean assembleMatch = stepWrappers.stream()
-                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
-            if (!assembleMatch) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用必须包含【笔记生成】步骤！且有且只能有一个！"));
-            }
+
         }
 
         List<WorkflowStepWrapperRespVO> customStepWrapperList = Optional.ofNullable(appInformation)

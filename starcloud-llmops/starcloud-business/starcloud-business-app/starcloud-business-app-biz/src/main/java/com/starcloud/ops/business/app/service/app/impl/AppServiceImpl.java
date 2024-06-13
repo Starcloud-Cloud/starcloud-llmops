@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.app.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -210,7 +211,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO get(String uid) {
-        AppDO app = appMapper.get(uid, Boolean.FALSE);
+        AppDO app = appMapper.getWithoutMaterial(uid);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
@@ -248,6 +249,10 @@ public class AppServiceImpl implements AppService {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.insert();
+        appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appEntity.setCreateTime(LocalDateTime.now());
+        appEntity.setUpdateTime(LocalDateTime.now());
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
@@ -303,6 +308,8 @@ public class AppServiceImpl implements AppService {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
+        appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+        appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.update();
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }

@@ -52,6 +52,6 @@ public interface PosterImageClient {
      * @return 海报
      */
     @PostMapping(value = "/poster")
-    PosterResponse<PosterImage> poster(@Validated @RequestBody PosterRequest request);
+    PosterResponse<List<PosterImage>> poster(@Validated @RequestBody PosterRequest request);
 
 }

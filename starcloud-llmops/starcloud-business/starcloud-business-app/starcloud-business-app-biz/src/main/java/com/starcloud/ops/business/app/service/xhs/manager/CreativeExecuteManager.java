@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
@@ -33,6 +34,7 @@ import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
@@ -55,6 +57,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +68,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * @author nacoyer
@@ -513,12 +515,25 @@ public class CreativeExecuteManager {
         // 文案生成结果
         CopyWritingContent copyWriting = JsonUtils.parseObject(String.valueOf(assembleOutput.getData()), CopyWritingContent.class);
         // 图片生成结果
-        List<ImageContent> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), ImageContent.class);
+        List<PosterGenerationHandler.Response> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), PosterGenerationHandler.Response.class);
 
+        List<ImageContent> imageList = new ArrayList<>();
+        for (PosterGenerationHandler.Response response : posterList) {
+            List<PosterImage> urlList = CollectionUtil.emptyIfNull(response.getUrlList());
+            for (PosterImage posterImage : urlList) {
+                ImageContent imageContent = new ImageContent();
+                imageContent.setCode(response.getCode());
+                imageContent.setIndex(response.getIndex());
+                imageContent.setName(response.getName());
+                imageContent.setIsMain(response.getIsMain());
+                imageContent.setUrl(posterImage.getUrl());
+                imageList.add(imageContent);
+            }
+        }
         // 组装结果
         CreativeContentExecuteResult result = new CreativeContentExecuteResult();
         result.setCopyWriting(copyWriting);
-        result.setImageList(posterList);
+        result.setImageList(imageList);
 
         CreativeContentExecuteRespVO response = new CreativeContentExecuteRespVO();
         response.setSuccess(Boolean.TRUE);
