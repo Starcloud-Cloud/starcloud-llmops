@@ -33,7 +33,6 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
-import com.starcloud.ops.business.app.enums.xhs.poster.PosterTitleModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -158,6 +157,18 @@ public class CreativeUtils {
     }
 
     /**
+     * 获取海报模板中图片类型的所有变量
+     *
+     * @param posterTemplate 海报模板
+     * @return 图片类型的变量
+     */
+    public static List<PosterVariableDTO> getImageVariableList(PosterTemplateDTO posterTemplate) {
+        return posterTemplate.getPosterVariableList().stream()
+                .filter(CreativeUtils::isImageVariable)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 预处理海报风格列表，一些数据处理，填充。
      *
      * @param posterStyleList
@@ -203,15 +214,15 @@ public class CreativeUtils {
             Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
             // 获取模板模式，如果为空则默认为顺序模式
             String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
-            // 获取模板标题生成模式，如果为空则默认为默认模式
-            String titleGenerateMode = StringUtils.isBlank(template.getTitleGenerateMode()) ? PosterTitleModeEnum.DEFAULT.name() : template.getTitleGenerateMode();
+            // 获取模板标题生成模式，如果为空则默认为false
+            boolean isMultimodalTitle = Objects.isNull(template.getIsMultimodalTitle()) ? Boolean.FALSE : template.getIsMultimodalTitle();
 
             // 模板信息补充
             template.setIndex(i);
             template.setIsMain(i == 0);
             template.setTotalImageCount(totalImageCount);
             template.setMode(mode);
-            template.setTitleGenerateMode(titleGenerateMode);
+            template.setIsMultimodalTitle(isMultimodalTitle);
             template.setVariableList(variableList);
             template.setIsExecute(Boolean.TRUE);
 
@@ -268,20 +279,6 @@ public class CreativeUtils {
             }
         }
         return variableValueMap;
-    }
-
-    /**
-     * 获取模板变量集合，变量 UUID 和 value 的Map集合
-     *
-     * @param posterTemplateList 模板列表
-     * @return 模板变量集合
-     */
-    public static Map<String, Object> getPosterVariableMap(List<PosterVariableDTO> variableList) {
-        Map<String, Object> variableMap = new HashMap<>();
-        for (PosterVariableDTO variable : variableList) {
-            variableMap.put(variable.getUuid(), variable.getValue());
-        }
-        return variableMap;
     }
 
     /**

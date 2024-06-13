@@ -78,16 +78,16 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Integer totalImageCount;
 
     /**
-     * 标题生成模式
+     * 是否进行多模态生成标题，副标题文字内容等
      */
     @Schema(description = "标题生成模式")
-    private String titleGenerateMode;
+    private Boolean isMultimodalTitle;
 
     /**
-     * 标题生成规则
+     * 多模态生成要求
      */
     @Schema(description = "标题生成要求")
-    private String titleGenerateRequirement;
+    private String multimodalTitleRequirement;
 
     /**
      * 是否执行
