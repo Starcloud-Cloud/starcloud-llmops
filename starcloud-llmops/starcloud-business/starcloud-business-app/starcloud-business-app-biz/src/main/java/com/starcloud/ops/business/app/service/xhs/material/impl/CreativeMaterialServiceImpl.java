@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
@@ -36,6 +38,7 @@ import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
@@ -43,6 +46,8 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
+import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -54,6 +59,7 @@ import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
@@ -61,7 +67,7 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
-    private CreativeMaterialMapper materialMapper;
+    private CreativeMaterialMapper creativeMaterialMapper;
 
     @Resource
     private AppMarketService appMarketService;
@@ -71,6 +77,10 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
     private CreativePlanService creativePlanService;
+
+    @Resource
+    private AppLogService appLogService;
+
 
     @Resource
     private CreativeMaterialManager creativeMaterialManager;
@@ -90,13 +100,13 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         materialDetail.valid();
         CreativeMaterialDO materialDO = CreativeMaterialConvert.INSTANCE.convert(reqVO, materialDetail);
         materialDO.setUid(IdUtil.fastSimpleUUID());
-        materialMapper.insert(materialDO);
+        creativeMaterialMapper.insert(materialDO);
     }
 
     @Override
     public void deleteMaterial(String uid) {
         CreativeMaterialDO materialDO = getByUid(uid);
-        materialMapper.deleteById(materialDO.getId());
+        creativeMaterialMapper.deleteById(materialDO.getId());
     }
 
     @Override
@@ -106,19 +116,19 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         CreativeMaterialDO materialDO = getByUid(reqVO.getUid());
         CreativeMaterialDO updateDO = CreativeMaterialConvert.INSTANCE.convert(reqVO, materialDetail);
         updateDO.setId(materialDO.getId());
-        materialMapper.updateById(updateDO);
+        creativeMaterialMapper.updateById(updateDO);
     }
 
     @Override
     public List<MaterialRespVO> filterMaterial(FilterMaterialReqVO queryReq) {
-        List<CreativeMaterialDO> creativeMaterialDOList = materialMapper.filterMaterial(queryReq);
+        List<CreativeMaterialDO> creativeMaterialDOList = creativeMaterialMapper.filterMaterial(queryReq);
         return CreativeMaterialConvert.INSTANCE.convert(creativeMaterialDOList);
     }
 
     @Override
     public void batchInsert(List<? extends AbstractCreativeMaterialDTO> materialDTOList) {
         List<CreativeMaterialDO> materialDOList = CreativeMaterialConvert.INSTANCE.convert2(materialDTOList);
-        materialMapper.insertBatch(materialDOList);
+        creativeMaterialMapper.insertBatch(materialDOList);
     }
 
     /**
@@ -350,6 +360,29 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     }
 
     /**
+     * @param
+     * @return
+     */
+    @Override
+    public PageResult<AppLogMessageRespVO> infoPageByMarketUid(AppLogConversationInfoPageUidReqVO reqVO) {
+        if (getLoginUserId()==null){
+            return new PageResult<>(Collections.emptyList(), 0L);
+        }
+        // 根据标签查询生成素材的应用信息
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setTags(Collections.singletonList("CreativeMaterialCustomGenerate"));
+        List<AppMarketRespVO> list = appMarketService.list(query);
+        AppValidate.notEmpty(list, "未找到生成素材的应用信息，请联系管理员！");
+
+        // 获取第一个应用信息
+        AppMarketRespVO appMarketResponse = list.get(0);
+
+        AppLogConversationInfoPageUidReqVO pageUidReqVO = new AppLogConversationInfoPageUidReqVO();
+        pageUidReqVO.setMarketUid(appMarketResponse.getUid());
+        return appLogService.pageLogConversationByMarketUid(pageUidReqVO);
+    }
+
+     /**
      * code重复拼接随机字符串
      *
      * @param fieldName
@@ -370,7 +403,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @return 素材
      */
     private CreativeMaterialDO getByUid(String uid) {
-        CreativeMaterialDO materialDO = materialMapper.getByUid(uid);
+        CreativeMaterialDO materialDO = creativeMaterialMapper.getByUid(uid);
         if (Objects.isNull(materialDO)) {
             throw exception(MATERIAL_NOT_EXIST, uid);
         }
