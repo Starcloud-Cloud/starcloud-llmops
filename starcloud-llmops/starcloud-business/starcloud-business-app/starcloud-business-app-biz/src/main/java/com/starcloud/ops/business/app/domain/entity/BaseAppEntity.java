@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -478,7 +479,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 素材单独拆出一个字段
      */
     private void disposeMaterial() {
-        if (Objects.nonNull(workflowConfig)) {
+        if (Objects.nonNull(workflowConfig) && CollectionUtil.isEmpty(materialList)) {
             TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<List<Map<String, Object>>>() {
             };
             materialList = Optional.ofNullable(workflowConfig.getStepWrapper(MaterialActionHandler.class))
