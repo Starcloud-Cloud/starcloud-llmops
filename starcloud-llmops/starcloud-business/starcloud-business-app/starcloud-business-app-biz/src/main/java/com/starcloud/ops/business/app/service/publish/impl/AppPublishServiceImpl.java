@@ -444,6 +444,7 @@ public class AppPublishServiceImpl implements AppPublishService {
                 appMarketEntity.setLikeCount(appMarket.getLikeCount());
                 appMarketEntity.setViewCount(appMarket.getViewCount());
                 appMarketEntity.setInstallCount(appMarket.getInstallCount());
+                appMarketEntity.setMaterialList(appMarket.getMaterialList());
                 appMarketEntity.update();
                 return appMarketEntity;
             }
