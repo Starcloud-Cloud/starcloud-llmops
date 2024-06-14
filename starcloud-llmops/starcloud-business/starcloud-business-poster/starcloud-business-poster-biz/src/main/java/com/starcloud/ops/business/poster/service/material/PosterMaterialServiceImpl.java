@@ -6,9 +6,9 @@ import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.PosterMaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.PosterMaterialPageReqsVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.PosterMaterialSaveReqVO;
-import com.starcloud.ops.business.poster.controller.admin.material.vo.PosterMaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategoryListReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.PosterMaterialDO;
 import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.PosterMaterialCategoryDO;
@@ -25,7 +25,6 @@ import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.PosterMaterialCategoryDO.CATEGORY_LEVEL;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.POSTER_MATERIAL_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR;
@@ -97,13 +96,12 @@ public class PosterMaterialServiceImpl implements PosterMaterialService {
      * 获取当前分类下素材数量
      *
      * @param categoryId 素材分类 ID
-     * @return
+     * @return 素材数量
      */
     @Override
     public Long getMaterialCountByCategoryId(Long categoryId) {
         return posterMaterialMapper.selectCount(PosterMaterialDO::getCategoryId, categoryId);
     }
-
 
 
     @Override
