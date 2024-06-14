@@ -39,8 +39,8 @@ public class RecommendVariableFactory {
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
         modelVariable.setIsShow(Boolean.FALSE);
-        modelVariable.setDefaultValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        modelVariable.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        modelVariable.setDefaultValue(ModelTypeEnum.QWEN.getName());
+        modelVariable.setValue(ModelTypeEnum.QWEN.getName());
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
