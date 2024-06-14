@@ -57,16 +57,10 @@ public interface PosterMaterialService {
     /**
      * 获取当前分类下素材数量
      * @param  categoryId  素材分类 ID
-     * @return
+     * @return 素材数量
      */
     Long getMaterialCountByCategoryId(Long categoryId);
 
-    PageResult<PosterMaterialDO> getPosterMaterial(PosterMaterialPageReqVO pageReqVO);
+    PageResult<PosterMaterialDO> getPosterMaterialPage(PosterMaterialPageReqVO pageReqVO);
 
-    /**
-     * 根据素材分类获取素材
-     * @param categoryId
-     * @return
-     */
-    PosterMaterialDO getMaterialByCategoryId(Long categoryId);
 }

@@ -24,7 +24,10 @@ import java.util.List;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.PosterMaterialCategoryDO.CATEGORY_LEVEL;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.POSTER_MATERIAL_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR;
 
 /**
@@ -76,7 +79,7 @@ public class PosterMaterialServiceImpl implements PosterMaterialService {
 
     private void validateMaterialExists(Long id) {
         if (posterMaterialMapper.selectById(id) == null) {
-            // throw exception(MATERIAL_NOT_EXISTS);
+            throw exception(POSTER_MATERIAL_NOT_EXISTS);
         }
     }
 
@@ -101,24 +104,11 @@ public class PosterMaterialServiceImpl implements PosterMaterialService {
         return posterMaterialMapper.selectCount(PosterMaterialDO::getCategoryId, categoryId);
     }
 
-    /**
-     * 根据素材分类获取素材
-     *
-     * @param categoryId 素材分类 ID
-     * @return
-     */
-    @Override
-    public PosterMaterialDO getMaterialByCategoryId(Long categoryId) {
-        // 验证分类ID
-        posterMaterialCategoryService.validateCategory(categoryId);
-
-        return null;
-    }
 
 
     @Override
-    public PageResult<PosterMaterialDO> getPosterMaterial(PosterMaterialPageReqVO pageReqVO) {
-        // 查找时，如果查找某个分类编号，则包含它的子分类。因为顶级分类不包含商品
+    public PageResult<PosterMaterialDO> getPosterMaterialPage(PosterMaterialPageReqVO pageReqVO) {
+        // 查找时，如果查找某个分类编号，则包含它的子分类。因为顶级分类不包含素材
         Set<Long> categoryIds = new HashSet<>();
         if (pageReqVO.getCategoryId() != null && pageReqVO.getCategoryId() > 0) {
             categoryIds.add(pageReqVO.getCategoryId());
@@ -127,9 +117,8 @@ public class PosterMaterialServiceImpl implements PosterMaterialService {
             categoryIds.addAll(CollectionUtils.convertList(categoryChildren, PosterMaterialCategoryDO::getId));
         }
         // 分页查询
-        PageResult<PosterMaterialDO> pageResult = posterMaterialMapper.selectPage(pageReqVO, categoryIds);
 
-        return pageResult;
+        return posterMaterialMapper.selectPage(pageReqVO, categoryIds, getLoginUserId());
     }
 
 

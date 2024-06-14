@@ -1,13 +1,16 @@
 package com.starcloud.ops.business.poster.dal.mysql.material;
 
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.PosterMaterialPageReqsVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.PosterMaterialPageReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.PosterMaterialDO;
+import com.starcloud.ops.business.user.util.UserUtils;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,10 +40,20 @@ public interface PosterMaterialMapper extends BaseMapperX<PosterMaterialDO> {
                 .orderByDesc(PosterMaterialDO::getId));
     }
 
-    default PageResult<PosterMaterialDO> selectPage(PosterMaterialPageReqVO pageReqVO, Set<Long> categoryIds) {
+    default PageResult<PosterMaterialDO> selectPage(PosterMaterialPageReqVO pageReqVO, Set<Long> categoryIds,Long loginUserId) {
         LambdaQueryWrapperX<PosterMaterialDO> query = new LambdaQueryWrapperX<PosterMaterialDO>()
                 // 分类
                 .inIfPresent(PosterMaterialDO::getCategoryId, categoryIds);
+
+        if (Objects.isNull(loginUserId)){
+            query.eq(PosterMaterialDO::getUserType, UserTypeEnum.ADMIN.getValue());
+        }else if (UserUtils.isNotAdmin()) {
+            query.eq(PosterMaterialDO::getUserType, UserTypeEnum.MEMBER.getValue());
+            query.eq(PosterMaterialDO::getCreator, loginUserId);
+        }else{
+            query.in(PosterMaterialDO::getUserType, UserTypeEnum.ADMIN.getValue(),UserTypeEnum.MEMBER.getValue());
+        }
+
         return selectPage(pageReqVO, query);
     }
 
