@@ -42,6 +42,8 @@ public class RecommendVariableFactory {
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
         maxTokenVariable.setIsShow(Boolean.FALSE);
+        maxTokenVariable.setValue(4000);
+        maxTokenVariable.setDefaultValue(4000);
 
         VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
         temperatureVariable.setOrder(3);

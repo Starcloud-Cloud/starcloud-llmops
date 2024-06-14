@@ -721,9 +721,10 @@ public class CreativeUtils {
                 .filter(item -> CustomActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
                 .collect(Collectors.toList());
         for (WorkflowStepWrapperRespVO stepWrapper : customStepWrapperList) {
+            String stepName = stepWrapper.getName();
             VariableItemRespVO generateModeVariable = stepWrapper.getVariable(CreativeConstants.GENERATE_MODE);
             if (Objects.isNull(generateModeVariable) || Objects.isNull(generateModeVariable.getValue())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，生成模式不能为空！"));
+                throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，生成模式为必选项！"));
             }
             // 参考素材变量
             VariableItemRespVO refersVariable = stepWrapper.getVariable(CreativeConstants.REFERS);
@@ -735,21 +736,21 @@ public class CreativeUtils {
             if (CreativeSchemeGenerateModeEnum.RANDOM.name().equals(generateMode) ||
                     CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
                 if (Objects.isNull(refersVariable) || Objects.isNull(refersVariable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，参考素材不能为空！"));
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，参考素材不能为空！"));
                 }
                 String refers = String.valueOf(refersVariable.getValue());
                 if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，参考素材不能为空！"));
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，参考素材不能为空！"));
                 }
             }
             // AI自定义校验，文案生成要求不能为空
             else {
                 if (Objects.isNull(requirementVariable) || Objects.isNull(requirementVariable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，文案生成要求不能为空！"));
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，文案生成要求不能为空！"));
                 }
                 String requirement = String.valueOf(requirementVariable.getValue());
                 if (StringUtils.isBlank(requirement)) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, stepWrapper.getName() + "步骤，文案生成要求不能为空！"));
+                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，文案生成要求不能为空！"));
                 }
             }
         }
