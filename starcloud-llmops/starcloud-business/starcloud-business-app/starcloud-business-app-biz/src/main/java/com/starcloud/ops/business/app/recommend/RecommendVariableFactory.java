@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +39,8 @@ public class RecommendVariableFactory {
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
         modelVariable.setIsShow(Boolean.FALSE);
+        modelVariable.setDefaultValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        modelVariable.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
