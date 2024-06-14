@@ -30,7 +30,7 @@ public enum CreativeSchemeGenerateModeEnum implements IEnumable<Integer> {
     /**
      * 自定义
      */
-    AI_CUSTOM(3, "AI自定义");
+    AI_CUSTOM(3, "AI生成");
 
     /**
      * 类型编码
