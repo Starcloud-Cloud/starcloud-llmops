@@ -22,7 +22,7 @@ import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialDO extends BaseDO {
+public class PosterMaterialDO extends BaseDO {
 
     /**
      * 主键id

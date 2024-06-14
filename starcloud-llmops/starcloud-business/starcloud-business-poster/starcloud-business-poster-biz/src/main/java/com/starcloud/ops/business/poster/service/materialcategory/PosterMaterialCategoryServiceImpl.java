@@ -3,12 +3,12 @@ package com.starcloud.ops.business.poster.service.materialcategory;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
-import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.MaterialCategoryListReqVO;
-import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.MaterialCategoryPageReqVO;
-import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.MaterialCategorySaveReqVO;
-import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO;
-import com.starcloud.ops.business.poster.dal.mysql.materialcategory.MaterialCategoryMapper;
-import com.starcloud.ops.business.poster.service.material.MaterialService;
+import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategoryListReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategoryPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategorySaveReqVO;
+import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.PosterMaterialCategoryDO;
+import com.starcloud.ops.business.poster.dal.mysql.materialcategory.PosterMaterialCategoryMapper;
+import com.starcloud.ops.business.poster.service.material.PosterMaterialService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
@@ -21,7 +21,7 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.PARENT_ID_NULL;
+import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.PosterMaterialCategoryDO.PARENT_ID_NULL;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
 
 /**
@@ -31,30 +31,30 @@ import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
  */
 @Service
 @Validated
-public class MaterialCategoryServiceImpl implements MaterialCategoryService {
+public class PosterMaterialCategoryServiceImpl implements PosterMaterialCategoryService {
 
     @Resource
     @Lazy
-    private MaterialService materialService;
+    private PosterMaterialService posterMaterialService;
 
 
     @Resource
-    private MaterialCategoryMapper materialCategoryMapper;
+    private PosterMaterialCategoryMapper posterMaterialCategoryMapper;
 
     @Override
-    public Long createMaterialCategory(MaterialCategorySaveReqVO createReqVO) {
+    public Long createMaterialCategory(PosterMaterialCategorySaveReqVO createReqVO) {
         // 校验父分类存在
         validateParentMaterialCategory(createReqVO.getParentId());
         // 插入
-        MaterialCategoryDO materialCategory = BeanUtils.toBean(createReqVO, MaterialCategoryDO.class);
-        materialCategoryMapper.insert(materialCategory);
+        PosterMaterialCategoryDO materialCategory = BeanUtils.toBean(createReqVO, PosterMaterialCategoryDO.class);
+        posterMaterialCategoryMapper.insert(materialCategory);
         // 返回
         return materialCategory.getId();
     }
 
 
     @Override
-    public void updateMaterialCategory(MaterialCategorySaveReqVO updateReqVO) {
+    public void updateMaterialCategory(PosterMaterialCategorySaveReqVO updateReqVO) {
         // 校验分类是否存在
         validateMaterialCategoryExists(updateReqVO.getId());
         // 校验父分类存在
@@ -64,8 +64,8 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
         // 校验存在
         validateMaterialCategoryExists(updateReqVO.getId());
         // 更新
-        MaterialCategoryDO updateObj = BeanUtils.toBean(updateReqVO, MaterialCategoryDO.class);
-        materialCategoryMapper.updateById(updateObj);
+        PosterMaterialCategoryDO updateObj = BeanUtils.toBean(updateReqVO, PosterMaterialCategoryDO.class);
+        posterMaterialCategoryMapper.updateById(updateObj);
     }
 
     @Override
@@ -73,27 +73,27 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
         // 校验分类是否存在
         validateMaterialCategoryExists(id);
         // 校验是否还有子分类
-        if (materialCategoryMapper.selectCountByParentId(id) > 0) {
+        if (posterMaterialCategoryMapper.selectCountByParentId(id) > 0) {
             throw exception(CATEGORY_EXISTS_CHILDREN);
         }
         // 校验分类是否绑定了素材
-        Long spuCount = materialService.getMaterialCountByCategoryId(id);
+        Long spuCount = posterMaterialService.getMaterialCountByCategoryId(id);
         if (spuCount > 0) {
             throw exception(CATEGORY_HAVE_BIND_SPU);
         }
         // 删除
-        materialCategoryMapper.deleteById(id);
+        posterMaterialCategoryMapper.deleteById(id);
     }
 
     private void validateMaterialCategoryExists(Long id) {
-        if (materialCategoryMapper.selectById(id) == null) {
+        if (posterMaterialCategoryMapper.selectById(id) == null) {
             throw exception(MATERIAL_CATEGORY_NOT_EXISTS);
         }
     }
 
     @Override
-    public MaterialCategoryDO getMaterialCategory(Long id) {
-        return materialCategoryMapper.selectById(id);
+    public PosterMaterialCategoryDO getMaterialCategory(Long id) {
+        return posterMaterialCategoryMapper.selectById(id);
     }
 
     /**
@@ -103,7 +103,7 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
      */
     @Override
     public void validateCategory(Long id) {
-        MaterialCategoryDO category = materialCategoryMapper.selectById(id);
+        PosterMaterialCategoryDO category = posterMaterialCategoryMapper.selectById(id);
         if (category == null) {
             throw exception(MATERIAL_CATEGORY_NOT_EXISTS);
         }
@@ -126,7 +126,7 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
         int level = 1;
         for (int i = 0; i < Byte.MAX_VALUE; i++) {
             // 如果没有父节点，break 结束
-            MaterialCategoryDO category = materialCategoryMapper.selectById(id);
+            PosterMaterialCategoryDO category = posterMaterialCategoryMapper.selectById(id);
             if (category == null
                     || Objects.equals(category.getParentId(), PARENT_ID_NULL)) {
                 break;
@@ -145,8 +145,8 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
      * @return 商品分类列表
      */
     @Override
-    public List<MaterialCategoryDO> getEnableCategoryList(MaterialCategoryListReqVO listReqVO) {
-        return materialCategoryMapper.selectList(listReqVO);
+    public List<PosterMaterialCategoryDO> getEnableCategoryList(PosterMaterialCategoryListReqVO listReqVO) {
+        return posterMaterialCategoryMapper.selectList(listReqVO);
     }
 
     /**
@@ -155,8 +155,8 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
      * @return 商品分类列表
      */
     @Override
-    public List<MaterialCategoryDO> getEnableCategoryList() {
-        return materialCategoryMapper.selectListByStatus(CommonStatusEnum.ENABLE.getStatus());
+    public List<PosterMaterialCategoryDO> getEnableCategoryList() {
+        return posterMaterialCategoryMapper.selectListByStatus(CommonStatusEnum.ENABLE.getStatus());
     }
 
     /**
@@ -172,11 +172,11 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
             return;
         }
         // 获得商品分类信息
-        List<MaterialCategoryDO> list = materialCategoryMapper.selectBatchIds(ids);
-        Map<Long, MaterialCategoryDO> categoryMap = CollectionUtils.convertMap(list, MaterialCategoryDO::getId);
+        List<PosterMaterialCategoryDO> list = posterMaterialCategoryMapper.selectBatchIds(ids);
+        Map<Long, PosterMaterialCategoryDO> categoryMap = CollectionUtils.convertMap(list, PosterMaterialCategoryDO::getId);
         // 校验
         ids.forEach(id -> {
-            MaterialCategoryDO category = categoryMap.get(id);
+            PosterMaterialCategoryDO category = categoryMap.get(id);
             if (category == null) {
                 throw exception(MATERIAL_CATEGORY_NOT_EXISTS);
             }
@@ -188,8 +188,8 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
     }
 
     @Override
-    public PageResult<MaterialCategoryDO> getMaterialCategoryPage(MaterialCategoryPageReqVO pageReqVO) {
-        return materialCategoryMapper.selectPage(pageReqVO);
+    public PageResult<PosterMaterialCategoryDO> getMaterialCategoryPage(PosterMaterialCategoryPageReqVO pageReqVO) {
+        return posterMaterialCategoryMapper.selectPage(pageReqVO);
     }
 
 
@@ -200,7 +200,7 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
             return;
         }
         // 父分类不存在
-        MaterialCategoryDO category = materialCategoryMapper.selectById(parentId);
+        PosterMaterialCategoryDO category = posterMaterialCategoryMapper.selectById(parentId);
         if (category == null) {
             throw exception(CATEGORY_PARENT_NOT_EXISTS);
         }

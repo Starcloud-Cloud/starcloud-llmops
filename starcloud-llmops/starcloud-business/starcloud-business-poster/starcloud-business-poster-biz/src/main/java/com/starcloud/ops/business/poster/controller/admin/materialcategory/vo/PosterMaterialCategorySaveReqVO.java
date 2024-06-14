@@ -10,7 +10,7 @@ import javax.validation.constraints.*;
 
 @Schema(description = "管理后台 - 素材分类新增/修改 Request VO")
 @Data
-public class MaterialCategorySaveReqVO {
+public class PosterMaterialCategorySaveReqVO {
 
     @Schema(description = "主键", requiredMode = Schema.RequiredMode.REQUIRED, example = "9776")
     private Long id;

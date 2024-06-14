@@ -12,7 +12,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class MaterialCategoryPageReqVO extends PageParam {
+public class PosterMaterialCategoryPageReqVO extends PageParam {
 
     @Schema(description = "父分类编号", example = "20467")
     private Long parentId;

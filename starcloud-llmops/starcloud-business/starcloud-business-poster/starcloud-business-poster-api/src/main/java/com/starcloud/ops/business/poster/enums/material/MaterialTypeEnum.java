@@ -31,7 +31,7 @@ public enum MaterialTypeEnum implements IntArrayValuable {
      */
     private final String name;
 
-    ;
+
 
     /**
      * @return int 数组

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Schema(description = "管理后台 - 商品分类列表查询 Request VO")
 @Data
-public class MaterialCategoryListReqVO {
+public class PosterMaterialCategoryListReqVO {
 
     @Schema(description = "分类名称", example = "办公文具")
     private String name;

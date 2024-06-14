@@ -3,7 +3,6 @@ package com.starcloud.ops.business.poster.controller.admin.material.vo;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.validation.InEnum;
 import com.starcloud.ops.business.poster.enums.material.MaterialTypeEnum;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
@@ -13,7 +12,7 @@ import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 海报素材新增/修改 Request VO")
 @Data
-public class MaterialSaveReqVO {
+public class PosterMaterialSaveReqVO {
 
     @Schema(description = "主键id", requiredMode = Schema.RequiredMode.REQUIRED, example = "18992")
     private Long id;

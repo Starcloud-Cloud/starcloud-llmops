@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Schema(description = "管理后台 - 海报素材 Response VO")
 @Data
 @ExcelIgnoreUnannotated
-public class MaterialRespVO {
+public class PosterMaterialRespVO {
 
     @Schema(description = "主键id", requiredMode = Schema.RequiredMode.REQUIRED, example = "18992")
     @ExcelProperty("主键id")

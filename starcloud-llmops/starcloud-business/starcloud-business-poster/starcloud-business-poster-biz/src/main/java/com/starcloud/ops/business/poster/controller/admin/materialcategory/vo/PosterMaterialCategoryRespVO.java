@@ -9,7 +9,7 @@ import com.alibaba.excel.annotation.*;
 @Schema(description = "管理后台 - 素材分类 Response VO")
 @Data
 @ExcelIgnoreUnannotated
-public class MaterialCategoryRespVO {
+public class PosterMaterialCategoryRespVO {
 
     @Schema(description = "主键", requiredMode = Schema.RequiredMode.REQUIRED, example = "9776")
     @ExcelProperty("主键")

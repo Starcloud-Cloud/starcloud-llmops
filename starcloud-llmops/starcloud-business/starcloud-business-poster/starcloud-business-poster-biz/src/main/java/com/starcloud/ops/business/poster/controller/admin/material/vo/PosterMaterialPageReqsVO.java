@@ -15,7 +15,7 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class MaterialPageReqVO extends PageParam {
+public class PosterMaterialPageReqsVO extends PageParam {
 
     @Schema(description = "编号", example = "10885")
     private String uid;

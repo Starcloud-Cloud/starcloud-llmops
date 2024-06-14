@@ -4,17 +4,17 @@ import java.util.*;
 import javax.validation.*;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.MaterialCategoryListReqVO;
-import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.MaterialCategoryPageReqVO;
-import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.MaterialCategorySaveReqVO;
-import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO;
+import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategoryListReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategoryPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.PosterMaterialCategorySaveReqVO;
+import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.PosterMaterialCategoryDO;
 
 /**
  * 素材分类 Service 接口
  *
  * @author starcloudadmin
  */
-public interface MaterialCategoryService {
+public interface PosterMaterialCategoryService {
 
     /**
      * 创建素材分类
@@ -22,14 +22,14 @@ public interface MaterialCategoryService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createMaterialCategory(@Valid MaterialCategorySaveReqVO createReqVO);
+    Long createMaterialCategory(@Valid PosterMaterialCategorySaveReqVO createReqVO);
 
     /**
      * 更新素材分类
      *
      * @param updateReqVO 更新信息
      */
-    void updateMaterialCategory(@Valid MaterialCategorySaveReqVO updateReqVO);
+    void updateMaterialCategory(@Valid PosterMaterialCategorySaveReqVO updateReqVO);
 
     /**
      * 删除素材分类
@@ -44,7 +44,7 @@ public interface MaterialCategoryService {
      * @param id 编号
      * @return 素材分类
      */
-    MaterialCategoryDO getMaterialCategory(Long id);
+    PosterMaterialCategoryDO getMaterialCategory(Long id);
 
     /**
      * 校验分类
@@ -67,14 +67,14 @@ public interface MaterialCategoryService {
      * @param listReqVO 查询条件
      * @return 商品分类列表
      */
-    List<MaterialCategoryDO> getEnableCategoryList(MaterialCategoryListReqVO listReqVO);
+    List<PosterMaterialCategoryDO> getEnableCategoryList(PosterMaterialCategoryListReqVO listReqVO);
 
     /**
      * 获得开启状态的商品分类列表
      *
      * @return 商品分类列表
      */
-    List<MaterialCategoryDO> getEnableCategoryList();
+    List<PosterMaterialCategoryDO> getEnableCategoryList();
 
     /**
      * 校验商品分类是否有效。如下情况，视为无效：
@@ -91,6 +91,6 @@ public interface MaterialCategoryService {
      * @param pageReqVO 分页查询
      * @return 素材分类分页
      */
-    PageResult<MaterialCategoryDO> getMaterialCategoryPage(MaterialCategoryPageReqVO pageReqVO);
+    PageResult<PosterMaterialCategoryDO> getMaterialCategoryPage(PosterMaterialCategoryPageReqVO pageReqVO);
 
 }

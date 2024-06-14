@@ -18,7 +18,7 @@ import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialCategoryDO extends BaseDO {
+public class PosterMaterialCategoryDO extends BaseDO {
 
     /**
      * 父分类编号 - 根分类
