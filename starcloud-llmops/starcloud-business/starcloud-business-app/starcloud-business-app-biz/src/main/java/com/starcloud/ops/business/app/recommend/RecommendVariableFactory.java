@@ -39,6 +39,41 @@ public class RecommendVariableFactory {
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
         modelVariable.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
+        maxTokenVariable.setOrder(2);
+        maxTokenVariable.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
+        temperatureVariable.setOrder(3);
+        temperatureVariable.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
+        promptVariable.setOrder(4);
+
+
+        variable.setVariables(Arrays.asList(
+                modelVariable,
+                maxTokenVariable,
+                temperatureVariable,
+                promptVariable
+        ));
+
+        return variable;
+    }
+
+    /**
+     * Open AI Chat Completion 默认变量
+     *
+     * @param defaultPrompt 默认提示
+     * @return VariableRespVO
+     */
+    public static VariableRespVO defCustomVariable(String defaultPrompt, Boolean isShow) {
+        VariableRespVO variable = new VariableRespVO();
+
+        VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
+        modelVariable.setOrder(1);
+        modelVariable.setIsShow(Boolean.FALSE);
         modelVariable.setDefaultValue(ModelTypeEnum.QWEN.getName());
         modelVariable.setValue(ModelTypeEnum.QWEN.getName());
 
