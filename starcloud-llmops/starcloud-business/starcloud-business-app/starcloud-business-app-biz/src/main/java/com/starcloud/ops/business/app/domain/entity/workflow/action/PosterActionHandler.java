@@ -34,6 +34,7 @@ import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHand
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -419,14 +420,22 @@ public class PosterActionHandler extends BaseActionHandler {
             PosterTemplateDTO template = templateList.get(i);
             if (i == 0) {
                 if (!template.getIsDependency()) {
-                    posterResult.put(MAIN_IMAGE, responseList.remove(0).getUrlList());
+                    String url = CollectionUtil.emptyIfNull(responseList.remove(0).getUrlList())
+                            .stream()
+                            .map(PosterImage::getUrl)
+                            .findFirst().get();
+                    posterResult.put(MAIN_IMAGE, url);
                 } else {
                     posterResult.put(MAIN_IMAGE, null);
                 }
                 continue;
             }
             if (!template.getIsDependency()) {
-                posterResult.put(IMAGE + i, responseList.remove(0).getUrlList());
+                String url = CollectionUtil.emptyIfNull(responseList.remove(0).getUrlList())
+                        .stream()
+                        .map(PosterImage::getUrl)
+                        .findFirst().get();
+                posterResult.put(IMAGE + i, url);
             } else {
                 posterResult.put(IMAGE + i, null);
             }
