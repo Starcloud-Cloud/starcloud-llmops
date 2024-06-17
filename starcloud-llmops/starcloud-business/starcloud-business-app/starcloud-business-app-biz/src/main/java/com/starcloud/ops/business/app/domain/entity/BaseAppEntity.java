@@ -716,6 +716,19 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     }
 
     /**
+     * 获取步骤状态
+     *
+     * @param stepId 步骤ID
+     * @param key    键
+     * @param value  值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariableForce(String stepId, String key, Object value) {
+        this.workflowConfig.putVariableForce(stepId, key, value);
+    }
+
+    /**
      * 异常
      *
      * @param errorCode 错误码

@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMater
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespLogVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
@@ -109,5 +110,5 @@ public interface CreativeMaterialService {
      *
      * @return
      */
-    PageResult<AppLogMessageRespVO> infoPageByMarketUid(AppLogConversationInfoPageUidReqVO query);
+    PageResult<MaterialRespLogVO> infoPageByMarketUid(AppLogConversationInfoPageUidReqVO query);
 }

@@ -265,4 +265,16 @@ public class WorkflowStepWrapper {
     public void putModelVariable(String key, Object value) {
         this.flowStep.putModelVariable(key, value);
     }
+
+    /**
+     * 将变量放入步骤变量中
+     *
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariableForce(String key, Object value) {
+        this.variable.putVariableForce(key, value);
+    }
 }

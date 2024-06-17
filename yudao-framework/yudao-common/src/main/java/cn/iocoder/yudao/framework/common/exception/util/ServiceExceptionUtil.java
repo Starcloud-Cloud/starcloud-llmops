@@ -12,12 +12,12 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * {@link ServiceException} 工具类
- *
+ * <p>
  * 目的在于，格式化异常信息提示。
  * 考虑到 String.format 在参数不正确时会报错，因此使用 {} 作为占位符，并使用 {@link #doFormat(int, String, Object...)} 方法来格式化
- *
+ * <p>
  * 因为 {@link #MESSAGES} 里面默认是没有异常信息提示的模板的，所以需要使用方自己初始化进去。目前想到的有几种方式：
- *
+ * <p>
  * 1. 异常提示信息，写在枚举类中，例如说，cn.iocoder.oceans.user.api.constants.ErrorCodeEnum 类 + ServiceExceptionConfiguration
  * 2. 异常提示信息，写在 .properties 等等配置文件
  * 3. 异常提示信息，写在 Apollo 等等配置中心中，从而实现可动态刷新
@@ -50,9 +50,19 @@ public class ServiceExceptionUtil {
         return exception0(errorCode.getCode(), messagePattern);
     }
 
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause) {
+        String messagePattern = MESSAGES.getOrDefault(errorCode.getCode(), errorCode.getMsg());
+        return exception1(errorCode.getCode(), messagePattern, cause);
+    }
+
     public static ServiceException exception(ErrorCode errorCode, Object... params) {
         String messagePattern = MESSAGES.getOrDefault(errorCode.getCode(), errorCode.getMsg());
         return exception0(errorCode.getCode(), messagePattern, params);
+    }
+
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
+        String messagePattern = MESSAGES.getOrDefault(errorCode.getCode(), errorCode.getMsg());
+        return exception1(errorCode.getCode(), messagePattern, cause, params);
     }
 
     /**
@@ -68,7 +78,7 @@ public class ServiceExceptionUtil {
     /**
      * 创建指定编号的 ServiceException 的异常
      *
-     * @param code 编号
+     * @param code   编号
      * @param params 消息提示的占位符对应的参数
      * @return 异常
      */
@@ -79,6 +89,11 @@ public class ServiceExceptionUtil {
     public static ServiceException exception0(Integer code, String messagePattern, Object... params) {
         String message = doFormat(code, messagePattern, params);
         return new ServiceException(code, message);
+    }
+
+    public static ServiceException exception1(Integer code, String messagePattern, Throwable cause, Object... params) {
+        String message = doFormat(code, messagePattern, params);
+        return new ServiceException(code, message, cause);
     }
 
     public static ServiceException invalidParamException(String messagePattern, Object... params) {
