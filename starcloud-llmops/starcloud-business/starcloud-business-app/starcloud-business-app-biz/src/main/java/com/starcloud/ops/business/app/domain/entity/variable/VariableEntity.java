@@ -10,6 +10,7 @@ import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ValueTypeSchema;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
@@ -165,5 +166,17 @@ public class VariableEntity {
         return this.variables.stream()
                 .filter(item -> item.getField().equalsIgnoreCase(key))
                 .findFirst().orElse(null);
+    }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariableForce(String key, Object value) {
+        VariableItemEntity variableItemEntity = new VariableItemEntity();
+        variableItemEntity.setField(key);
+        variableItemEntity.setLabel(key);
+        variableItemEntity.setDefaultValue(value);
+        variableItemEntity.setValue(value);
+        variableItemEntity.setGroup(AppVariableGroupEnum.PARAMS.name());
+        this.variables.add(variableItemEntity);
     }
 }

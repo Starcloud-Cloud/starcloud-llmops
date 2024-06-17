@@ -358,15 +358,20 @@ public class PosterActionHandler extends BaseActionHandler {
             }
 
             // 获取所有变量的uuid和value并且放到此map中
-            Map<String, Object> variableMap = getPosterVariableMap(posterTemplate);
+            Map<String, Object> variableMap = getPosterVariableMap(posterTemplate, Boolean.FALSE);
             // 替换变量，未找到的占位符会被替换为空字符串
             Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, stepCode);
             // 如果需要进行多模态生成标题，则进行多模态处理，这里是只有改值为 true 的时候才会进行多模态处理。
             if (isNeedMultimodal(posterTemplate)) {
                 PosterTitleDTO posterTitle = multimodalTitle(posterTemplate, replaceValueMap);
-                // 将多模态处理生成标题放入到变量中
-                replaceValueMap.put("AI分析.图片标题", posterTitle.getImgTitle());
-                replaceValueMap.put("AI分析.图片副标题", posterTitle.getImgSubTitle());
+                Map<String, Object> multimodalMap = new HashMap<>();
+                multimodalMap.put("图片标题", posterTitle.getImgTitle());
+                multimodalMap.put("图片副标题", posterTitle.getImgSubTitle());
+                this.getAppContext().putVariableForce("AI分析", multimodalMap);
+                // 重新获取变量值，包含多模态处理生成的标题
+                variableMap = getPosterVariableMap(posterTemplate, Boolean.TRUE);
+                // 重新进行一次变量替换
+                replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, stepCode);
             }
 
             // 判断变量替换之后，是否所有的变量都是空的。
@@ -661,10 +666,17 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param posterTemplateList 模板列表
      * @return 模板变量集合
      */
-    private static Map<String, Object> getPosterVariableMap(PosterTemplateDTO posterTemplate) {
+    private static Map<String, Object> getPosterVariableMap(PosterTemplateDTO posterTemplate, boolean isIncludeMultimodal) {
         Map<String, Object> variableMap = new HashMap<>();
         for (PosterVariableDTO variable : posterTemplate.getPosterVariableList()) {
-            variableMap.put(variable.getUuid(), variable.getValue());
+            // 如果不包含多模态处理生成标题，则不包含多模态处理生成标题的变量
+            if (!isIncludeMultimodal) {
+                if (MULTIMODAL_PATTERN.matcher(variable.emptyIfNullValue()).find()) {
+                    continue;
+                }
+            }
+            String value = variable.emptyIfNullValue();
+            variableMap.put(variable.getUuid(), value);
         }
         return variableMap;
     }
@@ -677,11 +689,11 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     private static boolean isNeedMultimodal(PosterTemplateDTO posterTemplate) {
         // 如果需要多模态处理生成标题，只要该值为 false，则不需要多模态处理。该值为 true，且变量中有匹配到多模态正则表达式，才需要多模态处理
-        if (posterTemplate.getIsMultimodalTitle()) {
+        if (Objects.nonNull(posterTemplate.getIsMultimodalTitle()) && posterTemplate.getIsMultimodalTitle()) {
             // 获取所有的变量列表
             List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
             // 只要有一个变量匹配到多模态正则表达式，则需要多模态处理
-            return variableList.stream().anyMatch(item -> MULTIMODAL_PATTERN.matcher(item.emptyIfNullValue()).matches());
+            return variableList.stream().anyMatch(item -> MULTIMODAL_PATTERN.matcher(item.emptyIfNullValue()).find());
         }
         return false;
     }

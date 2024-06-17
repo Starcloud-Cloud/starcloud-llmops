@@ -462,4 +462,16 @@ public class AppContext {
     public void putModelVariable(String key, Object value) {
         this.app.putModelVariable(this.stepId, key, value);
     }
+
+    /**
+     * 放入变量
+     *
+     * @param key   key
+     * @param value value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariableForce(String key, Object value) {
+        this.app.putVariableForce(this.stepId, key, value);
+    }
 }
