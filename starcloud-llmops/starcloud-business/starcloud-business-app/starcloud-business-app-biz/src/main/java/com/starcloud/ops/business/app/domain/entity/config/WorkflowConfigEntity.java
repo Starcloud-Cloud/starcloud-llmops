@@ -178,10 +178,22 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         }
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void putVariable(Class<? extends BaseActionHandler> classz, String key, Object value) {
         WorkflowStepWrapper stepWrapper = getStepWrapper(classz);
         if (Objects.nonNull(stepWrapper)) {
             stepWrapper.putVariable(key, value);
+        }
+    }
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariableForce(String stepId, String key, Object value) {
+        for (WorkflowStepWrapper step : this.steps) {
+            if (step.getName().equals(stepId)) {
+                step.putVariableForce(key, value);
+            }
         }
     }
 }
