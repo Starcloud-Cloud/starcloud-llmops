@@ -1,15 +1,12 @@
 package com.starcloud.ops.business.app.util;
 
-import cn.hutool.core.util.StrUtil;
 import com.ql.util.express.DefaultContext;
 import com.ql.util.express.ExpressRunner;
 import com.ql.util.express.config.QLExpressRunStrategy;
-import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
 import com.starcloud.ops.business.app.util.qlOperator.ListOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
