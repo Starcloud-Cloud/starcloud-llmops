@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -72,6 +73,22 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @Schema(description = "步骤变量")
     private VariableRespVO variable;
 
+
+    /**
+     * 补充步骤默认变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
+        if (Objects.isNull(flowStep) || Objects.isNull(variable) || CollectionUtil.isEmpty(variableRespVOMap)) {
+            return;
+        }
+
+        String handler = flowStep.getHandler();
+        VariableRespVO defaultVariables = variableRespVOMap.get(handler);
+        variable.supplementStepVariable(defaultVariables.getVariables());
+    }
+
     /**
      * 添加步骤变量
      *
@@ -122,6 +139,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
 
     /**
      * 修改步骤变量
+     *
      * @param key
      * @param value
      */

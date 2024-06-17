@@ -50,6 +50,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -408,8 +410,17 @@ public class CustomActionHandler extends BaseActionHandler {
     private String getPrompt(Map<String, Object> params, boolean isCustom) {
         // 获取到 prompt
         String prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
-        List<String> promptList = StrUtil.split(prompt, "----------");
+
         try {
+            // prompt是 {{_SYS_内容生成_PROMPT}} 使用字典配置
+            String var = "{{" + CreativeConstants.SYS_PROMPT + "}}";
+            if (prompt != null && var.equals(prompt.replaceAll("\\s+", ""))) {
+                this.getAppContext().putVariable("PROMPT", sysPrompt());
+                params = this.getAppContext().getContextVariablesValues();
+                prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
+            }
+
+            List<String> promptList = StrUtil.split(prompt, "----------");
             if (!isCustom) {
                 prompt = promptList.get(0);
             } else {
@@ -445,6 +456,11 @@ public class CustomActionHandler extends BaseActionHandler {
             }
         }
 
+        return prompt;
+    }
+
+    private String sysPrompt() {
+        String prompt = MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(CreativeConstants.SYS_PROMPT, StrUtil.EMPTY);
         return prompt;
     }
 

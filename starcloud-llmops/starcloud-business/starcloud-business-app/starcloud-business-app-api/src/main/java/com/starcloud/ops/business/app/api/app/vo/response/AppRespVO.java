@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.api.app.vo.response;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,6 +17,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -204,6 +207,18 @@ public class AppRespVO implements Serializable {
 
     @Schema(description = "租户Id")
     private Long tenantId;
+
+    /*
+     * 补充步骤默认变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
+        if (Objects.isNull(workflowConfig) || CollectionUtil.isEmpty(variableRespVOMap)) {
+            return;
+        }
+        workflowConfig.supplementStepVariable(variableRespVOMap);
+    }
 
     @JsonIgnore
     @JSONField(serialize = false)
