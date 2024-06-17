@@ -146,10 +146,13 @@ public class PinyinUtils {
                 log.error("转为拼音失败：失败的字符：{}，失败原因: {}", character, exception.getMessage());
                 return StringUtils.EMPTY;
             }
-        } else if (Character.isWhitespace(character)) {
-            return StringUtils.EMPTY;
-        } else {
+        } else if (CharUtils.isAsciiAlphaLower(character)
+                || CharUtils.isAsciiAlphaUpper(character)
+                || CharUtils.isAsciiNumeric(character)) {
+            // a-z或者A-Z转换则不做任何处理
             return String.valueOf(character);
+        } else {
+            return StringUtils.EMPTY;
         }
     }
 
