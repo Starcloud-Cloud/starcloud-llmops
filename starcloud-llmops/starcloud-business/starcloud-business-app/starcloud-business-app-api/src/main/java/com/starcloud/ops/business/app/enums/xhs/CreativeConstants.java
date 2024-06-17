@@ -20,6 +20,11 @@ public interface CreativeConstants {
     String REFERS = "REFERS";
 
     /**
+     * 字段配置prompt
+     */
+    String SYS_PROMPT = "_SYS_内容生成_PROMPT";
+
+    /**
      * 参考内容 带模仿要求
      */
     String REFERS_IMITATE = "REFERS_IMITATE";

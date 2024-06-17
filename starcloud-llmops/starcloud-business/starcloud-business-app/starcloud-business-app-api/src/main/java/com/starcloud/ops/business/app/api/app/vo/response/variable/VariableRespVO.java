@@ -41,6 +41,30 @@ public class VariableRespVO implements Serializable {
     private List<VariableItemRespVO> variables;
 
     /**
+     * 补充默认变量
+     * 如果变量已存在则跳过
+     *
+     * @param variableItemRespVO
+     */
+    public void supplementStepVariable(List<VariableItemRespVO> variableItemRespVO) {
+        if (CollectionUtil.isEmpty(variableItemRespVO)) {
+            return;
+        }
+        if (CollectionUtil.isEmpty(variables)) {
+            variables = variableItemRespVO;
+            return;
+        }
+
+        for (VariableItemRespVO itemRespVO : variableItemRespVO) {
+            boolean contains = variables.stream().anyMatch(variable -> Objects.equals(itemRespVO.getField(), variable.getField()));
+            if (contains) {
+                continue;
+            }
+            variables.add(itemRespVO);
+        }
+    }
+
+    /**
      * 放入变量值
      *
      * @param variable 变量

@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.business.app.util.UserUtils;
@@ -287,6 +288,7 @@ public interface AppConvert {
                 appResponse.setImageConfig(JsonUtils.parseObject(app.getConfig(), ImageConfigRespVO.class));
             }
         }
+        appResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
 
         return appResponse;
     }
