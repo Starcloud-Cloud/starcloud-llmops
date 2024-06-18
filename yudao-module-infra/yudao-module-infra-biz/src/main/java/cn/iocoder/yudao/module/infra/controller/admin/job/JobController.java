@@ -63,6 +63,7 @@ public class JobController {
             @Parameter(name = "status", description = "状态", required = true, example = "1"),
     })
     @PreAuthorize("@ss.hasPermission('infra:job:update')")
+
     public CommonResult<Boolean> updateJobStatus(@RequestParam(value = "id") Long id, @RequestParam("status") Integer status)
             throws SchedulerException {
         jobService.updateJobStatus(id, status);
