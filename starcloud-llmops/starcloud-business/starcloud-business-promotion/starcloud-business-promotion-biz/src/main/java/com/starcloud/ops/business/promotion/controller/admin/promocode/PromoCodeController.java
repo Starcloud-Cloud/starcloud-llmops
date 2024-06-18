@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
 import com.starcloud.ops.business.product.api.spu.dto.ProductSpuRespDTO;
 import com.starcloud.ops.business.promotion.controller.admin.promocode.vo.code.PromoCodePageItemRespVO;
@@ -62,6 +64,9 @@ public class PromoCodeController {
     @Resource
     private ProductSpuApi productSpuApi;
 
+    @Resource
+    private ProductSkuApi productSkuApi;
+
 
     @GetMapping("/page")
     @Operation(summary = "获得兑换码分页")
@@ -94,14 +99,9 @@ public class PromoCodeController {
 
     @GetMapping("/u/get_coupon_code")
     @Operation(summary = "获取优惠码信息")
-    @Parameters({
-            @Parameter(name = "code", description = "兑换码", required = true),
-            @Parameter(name = "spuId", description = "商品 SPU 编号", required = true),
-    })
+    @Parameters({@Parameter(name = "code", description = "兑换码", required = true), @Parameter(name = "spuId", description = "商品 SPU 编号", required = true),})
     @PreAuthenticated
-    public CommonResult<AppCouponTemplateRespVO> getCouponPromoCode(
-            @RequestParam(value = "code") String code,
-            @RequestParam(value = "spuId") Long spuId) {
+    public CommonResult<AppCouponTemplateRespVO> getCouponPromoCode(@RequestParam(value = "code") String code, @RequestParam(value = "spuId") Long spuId) {
         // 1. 领取兑换码
         Long userId = getLoginUserId();
         PromoCodeTemplateDO template = promoCodeTemplateService.getTemplate(code, PromotionCodeTypeEnum.COUPON_CODE.getType());
@@ -122,6 +122,7 @@ public class PromoCodeController {
 
         // 通用券 可以领取
         if (Objects.equals(PromotionProductScopeEnum.ALL.getScope(), couponTemplate.getProductScope())) {
+            canTakeAgain = true;
         }
         // 商品券 校验商品
         if (Objects.equals(PromotionProductScopeEnum.SPU.getScope(), couponTemplate.getProductScope())) {
@@ -138,6 +139,15 @@ public class PromoCodeController {
             ProductSpuRespDTO spu = productSpuApi.getSpu(spuId);
             if (spu != null) {
                 canTakeAgain = CollUtil.contains(couponTemplate.getProductScopeValues(), spu.getCategoryId());
+            } else {
+                canTakeAgain = false;
+            }
+        }
+        // 品类券 校验商品品类
+        if (Objects.equals(PromotionProductScopeEnum.SKU.getScope(), couponTemplate.getProductScope())) {
+            ProductSkuRespDTO sku = productSkuApi.getSku(spuId);
+            if (sku != null) {
+                canTakeAgain = CollUtil.contains(couponTemplate.getProductScopeValues(), sku.getId());
             } else {
                 canTakeAgain = false;
             }
