@@ -357,8 +357,8 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     }
 
     @Override
-    public List<Map<String, Object>> listMaterial(String uid, String source) {
-        return creativeMaterialManager.getUserMaterialList(uid, source);
+    public List<Map<String, Object>> listMaterial(String uid) {
+        return creativeMaterialManager.getPlanMaterialList(uid);
     }
 
     /**
