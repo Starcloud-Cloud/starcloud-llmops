@@ -374,6 +374,7 @@ public class RecommendVariableItemFactory {
 
     /**
      * 图片搜索习惯
+     *
      * @return
      */
     public static VariableItemRespVO defSearchHabitsVariable() {
@@ -716,6 +717,27 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 系统默认prompt
+     *
+     * @return
+     */
+    public static VariableItemRespVO defSysPromptRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.SYS_PROMPT);
+        variableItem.setLabel("系统默认prompt");
+        variableItem.setDescription("系统默认prompt");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(103);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
         return variableItem;
     }
 

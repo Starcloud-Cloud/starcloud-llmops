@@ -163,6 +163,10 @@ public class RecommendVariableFactory {
         respJsonSchema.setOrder(8);
         respJsonSchema.setIsShow(Boolean.FALSE);
 
+        VariableItemRespVO sysPrompt = RecommendVariableItemFactory.defSysPromptRequirement();
+        sysPrompt.setOrder(9);
+        sysPrompt.setIsShow(Boolean.FALSE);
+
         variable.setVariables(Arrays.asList(
                 generateVariable,
                 materialType,
@@ -170,7 +174,8 @@ public class RecommendVariableFactory {
                 refers,
                 requirement,
                 jsonSchema,
-                respJsonSchema
+                respJsonSchema,
+                sysPrompt
         ));
         return variable;
     }

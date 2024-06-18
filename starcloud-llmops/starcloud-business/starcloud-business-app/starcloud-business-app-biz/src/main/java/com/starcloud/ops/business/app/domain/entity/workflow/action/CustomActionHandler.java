@@ -225,6 +225,7 @@ public class CustomActionHandler extends BaseActionHandler {
         List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
         /*
@@ -410,17 +411,8 @@ public class CustomActionHandler extends BaseActionHandler {
     private String getPrompt(Map<String, Object> params, boolean isCustom) {
         // 获取到 prompt
         String prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
-
+        List<String> promptList = StrUtil.split(prompt, "----------");
         try {
-            // prompt是 {{_SYS_内容生成_PROMPT}} 使用字典配置
-            String var = "{{" + CreativeConstants.SYS_PROMPT + "}}";
-            if (prompt != null && var.equals(prompt.replaceAll("\\s+", ""))) {
-                this.getAppContext().putVariable("PROMPT", sysPrompt());
-                params = this.getAppContext().getContextVariablesValues();
-                prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
-            }
-
-            List<String> promptList = StrUtil.split(prompt, "----------");
             if (!isCustom) {
                 prompt = promptList.get(0);
             } else {
