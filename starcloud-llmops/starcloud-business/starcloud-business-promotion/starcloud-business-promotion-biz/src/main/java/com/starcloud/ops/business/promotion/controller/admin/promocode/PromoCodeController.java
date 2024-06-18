@@ -99,14 +99,9 @@ public class PromoCodeController {
 
     @GetMapping("/u/get_coupon_code")
     @Operation(summary = "获取优惠码信息")
-    @Parameters({
-            @Parameter(name = "code", description = "兑换码", required = true),
-            @Parameter(name = "spuId", description = "商品 SPU 编号", required = true),
-    })
+    @Parameters({@Parameter(name = "code", description = "兑换码", required = true), @Parameter(name = "spuId", description = "商品 SPU 编号", required = true),})
     @PreAuthenticated
-    public CommonResult<AppCouponTemplateRespVO> getCouponPromoCode(
-            @RequestParam(value = "code") String code,
-            @RequestParam(value = "spuId") Long spuId) {
+    public CommonResult<AppCouponTemplateRespVO> getCouponPromoCode(@RequestParam(value = "code") String code, @RequestParam(value = "spuId") Long spuId) {
         // 1. 领取兑换码
         Long userId = getLoginUserId();
         PromoCodeTemplateDO template = promoCodeTemplateService.getTemplate(code, PromotionCodeTypeEnum.COUPON_CODE.getType());
