@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -332,7 +333,12 @@ public class ImageUploadUtils {
             URLConnection urlConnection = url.openConnection();
             urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
             inputStream = urlConnection.getInputStream();
-            return ImageUploadUtils.uploadImage(imageName, relativePath, IoUtil.readBytes(inputStream)).getUrl();
+            String suffix = "jpg";
+            String contentType = urlConnection.getContentType();
+            if (StringUtils.isNoneBlank(contentType)) {
+                suffix = contentType.substring(contentType.lastIndexOf("/") + 1);
+            }
+            return ImageUploadUtils.uploadImage(imageName + "." + suffix, relativePath, IoUtil.readBytes(inputStream)).getUrl();
         } catch (Exception e) {
             log.info("dump to oss error", e);
         } finally {

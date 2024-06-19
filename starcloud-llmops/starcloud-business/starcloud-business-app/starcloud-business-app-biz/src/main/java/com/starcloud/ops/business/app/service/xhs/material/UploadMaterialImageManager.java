@@ -175,7 +175,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         } else if (StringUtil.isUrl(imagePath)) {
             // excel 中有内容 为http图片地址
             String relativePath = "material" + File.separator + parseUid;
-            ossUrl = ImageUploadUtils.dumpToOss(imagePath, IdUtil.fastSimpleUUID() + ".jpg", relativePath);
+            ossUrl = ImageUploadUtils.dumpToOss(imagePath, IdUtil.fastSimpleUUID(), relativePath);
         }
         return ossUrl;
     }
