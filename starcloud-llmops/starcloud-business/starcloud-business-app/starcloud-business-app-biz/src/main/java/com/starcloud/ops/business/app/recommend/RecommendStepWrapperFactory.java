@@ -188,7 +188,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String prompt = getDefaultFromDict("小红书生成");
+        String prompt = "{{_SYS_内容生成_PROMPT}}";
         String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
