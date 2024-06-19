@@ -34,6 +34,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import org.apache.commons.lang3.SerializationUtils;
@@ -311,7 +312,18 @@ public class CreativeUtils {
         }
 
         // 示例取最新的
+        appMarket.setName(latestAppMarket.getName());
+        appMarket.setIcon(latestAppMarket.getIcon());
+        appMarket.setSpell(latestAppMarket.getSpell());
+        appMarket.setSpellSimple(latestAppMarket.getSpellSimple());
+        appMarket.setDescription(latestAppMarket.getDescription());
         appMarket.setExample(latestAppMarket.getExample());
+        appMarket.setSource(latestAppMarket.getSource());
+        appMarket.setCategory(latestAppMarket.getCategory());
+        appMarket.setDemo(latestAppMarket.getDemo());
+        appMarket.setScenes(latestAppMarket.getScenes());
+        appMarket.setSort(latestAppMarket.getSort());
+        appMarket.setModel(latestAppMarket.getModel());
         return appMarket;
     }
 
@@ -414,6 +426,9 @@ public class CreativeUtils {
      * @return 计划配置
      */
     public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse) {
+        // 补充步骤默认变量
+        appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
+
         CreativePlanConfigurationDTO configuration = new CreativePlanConfigurationDTO();
         // 默认素材列表为空
         configuration.setMaterialList(Collections.emptyList());

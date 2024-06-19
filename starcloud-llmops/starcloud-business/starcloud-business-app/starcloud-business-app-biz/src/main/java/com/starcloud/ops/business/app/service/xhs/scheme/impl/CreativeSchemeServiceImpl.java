@@ -537,10 +537,12 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
             stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
 
             if (stepCode.equals(currentStepCode)) {
-                JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
-                stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
-                stepOption.setCurrentStep(true);
-                result.add(stepOption);
+                if (PosterActionHandler.class.getSimpleName().equalsIgnoreCase(stepWrapper.getFlowStep().getHandler())) {
+                    JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
+                    stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                    stepOption.setCurrentStep(true);
+                    result.add(stepOption);
+                }
                 return result;
             }
 

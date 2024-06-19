@@ -40,7 +40,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_LIST;
@@ -340,7 +345,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getTenantId() != null) {
             TenantContextHolder.setTenantId(request.getTenantId());
         }
-        // 会话记录
+        // 初始化回话记录
         this.initAppConversationLog(request);
 
         try {

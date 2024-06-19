@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
@@ -13,8 +14,10 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
@@ -33,14 +36,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.app.*;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
@@ -49,6 +45,7 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
@@ -62,13 +59,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.DUPLICATE_LABEL;
 
 /**
  * 应用管理服务实现类
@@ -176,10 +172,10 @@ public class AppServiceImpl implements AppService {
     @Override
     public List<WorkflowStepWrapperRespVO> stepList(String type) {
         if (StringUtils.isBlank(type)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_REQUIRED);
+            throw exception(ErrorCodeConstants.APP_TYPE_REQUIRED);
         }
         if (!IEnumable.contains(type, AppTypeEnum.class)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
+            throw exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
         }
         if (AppTypeEnum.COMMON.name().equalsIgnoreCase(type) || AppTypeEnum.SYSTEM.name().equalsIgnoreCase(type)) {
             return RecommendStepWrapperFactory.defCommonStepWrapperList();
@@ -188,7 +184,7 @@ public class AppServiceImpl implements AppService {
         if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(type) && UserUtils.isAdmin()) {
             return RecommendStepWrapperFactory.defMediaMatrixStepWrapperList();
         }
-        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
+        throw exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
     }
 
     /**
@@ -379,6 +375,67 @@ public class AppServiceImpl implements AppService {
         }
     }
 
+    @Override
+    public List<VariableItemRespVO> generalFieldCode(VariableReqVO reqVO) {
+        List<VariableItemRespVO> variables = reqVO.getVariables();
+        if (CollectionUtil.isEmpty(variables)) {
+            return CollectionUtil.newArrayList();
+        }
+
+        // 是否存在重复的label
+        Set<String> duplicateLabel = variables.stream()
+                .collect(Collectors.groupingBy(e -> e.getLabel(), Collectors.counting()))
+                .entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        if (CollectionUtil.isNotEmpty(duplicateLabel)) {
+            throw exception(DUPLICATE_LABEL, duplicateLabel);
+        }
+
+        // 已有field的字段排在前面，不重复生成，防止新字段field重复
+        variables = variables.stream().sorted((a, b) -> {
+            if (StringUtils.isBlank(b.getField())) {
+                return -1;
+            }
+            return 1;
+        }).collect(Collectors.toList());
+
+        List<String> fieldCodeExist = new ArrayList<>(variables.size());
+
+        for (VariableItemRespVO variable : variables) {
+            String label = variable.getLabel();
+            AppValidate.notBlank(label, "变量 label 不能为空");
+            if (StringUtils.isNotBlank(variable.getField())) {
+                fieldCodeExist.add(variable.getField().toUpperCase());
+                continue;
+            }
+            char[] nameChar = label.trim().toCharArray();
+            StringBuilder sb = new StringBuilder();
+            for (char c : nameChar) {
+                sb.append(PinyinUtils.pinyinFirstChar(c).toUpperCase());
+            }
+            String code = pinyinFirstCharUnique(sb.toString(), fieldCodeExist);
+            fieldCodeExist.add(code);
+            variable.setField(code);
+        }
+        return variables;
+    }
+
+    /**
+     * code重复拼接随机字符串
+     *
+     * @param field
+     * @param fieldCodeExist
+     * @return
+     */
+    private String pinyinFirstCharUnique(String field, List<String> fieldCodeExist) {
+        if (fieldCodeExist.contains(field)) {
+            return pinyinFirstCharUnique(field + RandomUtil.randomString(BASE_CHAR_NUMBER_LOWER, 1), fieldCodeExist);
+        }
+        return field;
+    }
+
     /**
      * 处理校验请求
      *
@@ -394,17 +451,17 @@ public class AppServiceImpl implements AppService {
                 } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
                     request.setCategory("COMMON");
                 } else {
-                    throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED);
+                    throw exception(ErrorCodeConstants.APP_CATEGORY_REQUIRED);
                 }
             }
             List<AppCategoryVO> categoryList = appDictionaryService.categoryList(Boolean.FALSE);
             Optional<AppCategoryVO> categoryOptional = categoryList.stream().filter(category -> category.getCode().equals(request.getCategory())).findFirst();
             if (!categoryOptional.isPresent()) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
+                throw exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT, request.getCategory());
             }
             AppCategoryVO category = categoryOptional.get();
             if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId) && AppConstants.ROOT.equals(category.getParentCode())) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
+                throw exception(ErrorCodeConstants.APP_CATEGORY_NONSUPPORT_FIRST, request.getCategory());
             }
             if (StringUtils.isBlank(request.getIcon())) {
                 request.setIcon(category.getIcon());
@@ -421,7 +478,7 @@ public class AppServiceImpl implements AppService {
 
         // 系统应用，只有管理员可以创建
         if (AppTypeEnum.SYSTEM.name().equals(request.getType()) && UserUtils.isNotAdmin()) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
+            throw exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT, request.getType());
         }
 
     }

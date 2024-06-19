@@ -23,6 +23,7 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -295,7 +296,7 @@ public interface AppMarketConvert {
                 appMarketResponse.setImageConfig(config);
             }
         }
-
+        appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
         return appMarketResponse;
     }
 

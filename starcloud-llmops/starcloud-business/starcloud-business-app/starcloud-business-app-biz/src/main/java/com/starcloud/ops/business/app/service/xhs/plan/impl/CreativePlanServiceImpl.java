@@ -48,6 +48,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
@@ -254,6 +255,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             // 合并应用市场配置，某一些配置项需要保持最新
             AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
+            appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
             configuration.setAppInformation(appInformation);
 
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
