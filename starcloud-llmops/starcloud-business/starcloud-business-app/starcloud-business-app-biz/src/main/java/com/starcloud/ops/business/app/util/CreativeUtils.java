@@ -312,7 +312,18 @@ public class CreativeUtils {
         }
 
         // 示例取最新的
+        appMarket.setName(latestAppMarket.getName());
+        appMarket.setIcon(latestAppMarket.getIcon());
+        appMarket.setSpell(latestAppMarket.getSpell());
+        appMarket.setSpellSimple(latestAppMarket.getSpellSimple());
+        appMarket.setDescription(latestAppMarket.getDescription());
         appMarket.setExample(latestAppMarket.getExample());
+        appMarket.setSource(latestAppMarket.getSource());
+        appMarket.setCategory(latestAppMarket.getCategory());
+        appMarket.setDemo(latestAppMarket.getDemo());
+        appMarket.setScenes(latestAppMarket.getScenes());
+        appMarket.setSort(latestAppMarket.getSort());
+        appMarket.setModel(latestAppMarket.getModel());
         return appMarket;
     }
 
