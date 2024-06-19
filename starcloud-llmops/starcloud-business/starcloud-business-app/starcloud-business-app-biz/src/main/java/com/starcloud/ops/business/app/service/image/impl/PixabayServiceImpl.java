@@ -52,7 +52,7 @@ public class PixabayServiceImpl {
             return JSONUtil.toBean(stringResult, PixabayImageResult.class);
         } catch (ServiceException e) {
             this.executeAlarm(e.getMessage());
-            throw exception(e.getCode());
+            throw e;
         }
     }
 
@@ -112,7 +112,7 @@ public class PixabayServiceImpl {
     }
 
     public void executeAlarm(String errMsg) {
-        log.info("Pixabay 图片搜索失败：开始发送报警信息");
+        log.info("Pixabay 图片搜索失败：开始发送报警信息，当前错误信息为：{}", errMsg);
         try {
             // 构建模板信息
             Map<String, Object> templateParams = MapUtil.<String, Object>builder().put("environment", this.getEnvironment()).put("errMsg", errMsg).build();
