@@ -95,6 +95,8 @@ public class AppMarketRespVO implements Serializable {
     @Schema(description = "应用类别")
     private String category;
 
+    private String source;
+
     /**
      * 应用标签，多个以逗号分割
      */
