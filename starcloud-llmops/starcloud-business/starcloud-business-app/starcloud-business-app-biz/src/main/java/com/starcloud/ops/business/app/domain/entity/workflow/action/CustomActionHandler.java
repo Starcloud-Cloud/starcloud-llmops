@@ -225,6 +225,7 @@ public class CustomActionHandler extends BaseActionHandler {
         List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
         /*
@@ -279,7 +280,8 @@ public class CustomActionHandler extends BaseActionHandler {
     private ActionResponse doAiCustomExecute(Map<String, Object> params) {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
-
+        this.getAppContext().putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
+        params = this.getAppContext().getContextVariablesValues();
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -410,17 +412,8 @@ public class CustomActionHandler extends BaseActionHandler {
     private String getPrompt(Map<String, Object> params, boolean isCustom) {
         // 获取到 prompt
         String prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
-
+        List<String> promptList = StrUtil.split(prompt, "----------");
         try {
-            // prompt是 {{_SYS_内容生成_PROMPT}} 使用字典配置
-            String var = "{{" + CreativeConstants.SYS_PROMPT + "}}";
-            if (prompt != null && var.equals(prompt.replaceAll("\\s+", ""))) {
-                this.getAppContext().putVariable("PROMPT", sysPrompt());
-                params = this.getAppContext().getContextVariablesValues();
-                prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
-            }
-
-            List<String> promptList = StrUtil.split(prompt, "----------");
             if (!isCustom) {
                 prompt = promptList.get(0);
             } else {

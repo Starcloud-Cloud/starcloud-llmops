@@ -50,7 +50,9 @@ public class CreativeMaterialManager {
 
     public List<Map<String, Object>> getPlanMaterialList(String planUid) {
         AppValidate.notBlank(planUid, "执行计划UID为必填项！");
-        return creativePlanMaterialMapper.getMaterial(planUid).getMaterialList();
+        CreativePlanMaterialDO material = creativePlanMaterialMapper.getMaterial(planUid);
+        AppValidate.notNull(material, "执行计划不存在");
+        return material.getMaterialList();
     }
 
     public List<Map<String, Object>> getPlanMaterialListByAppUid(String appUid, String source) {

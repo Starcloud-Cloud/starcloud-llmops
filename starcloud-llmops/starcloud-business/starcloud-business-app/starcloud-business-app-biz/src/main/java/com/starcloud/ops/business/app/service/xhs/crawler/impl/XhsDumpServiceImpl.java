@@ -42,7 +42,7 @@ public class XhsDumpServiceImpl extends XhsNoteDetailWrapperImpl {
                     if (!"WB_DFT".equalsIgnoreCase(imageInfo.getImageScene())) {
                         continue;
                     }
-                    String imageName = traceId + "-" + i + ".jpg";
+                    String imageName = traceId + "-" + i;
                     String url = imageInfo.getUrl();
                     String ossUrl = ImageUploadUtils.dumpToOss(url, imageName,RELATIVE_PATH);
                     infoList.get(i).setUrl(ossUrl);

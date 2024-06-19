@@ -100,11 +100,10 @@ public interface CreativeMaterialService {
 
     /**
      * 查询素材集合
-     * @param uid
-     * @param source
+     * @param uid 执行计划uid
      * @return
      */
-    List<Map<String, Object>> listMaterial(String uid, String source);
+    List<Map<String, Object>> listMaterial(String uid);
 
     /**
      *
