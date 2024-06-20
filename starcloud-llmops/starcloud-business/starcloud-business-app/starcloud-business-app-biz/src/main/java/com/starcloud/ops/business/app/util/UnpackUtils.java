@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.github.junrar.Junrar;
 import com.github.junrar.exception.RarException;
@@ -31,7 +32,13 @@ public class UnpackUtils {
     }
 
     public static void unzip(File zipFile, File outDir) {
-        ZipUtil.unzip(zipFile, outDir, StandardCharsets.UTF_8);
+        try {
+            ZipUtil.unzip(zipFile, outDir, StandardCharsets.UTF_8);
+
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            ZipUtil.unzip(zipFile, outDir, CharsetUtil.CHARSET_GBK);
+        }
     }
 
 
@@ -42,6 +49,6 @@ public class UnpackUtils {
     }
 
     public static void junrar(File rarFile, File outDir) throws RarException, IOException {
-        Junrar.extract(rarFile,outDir);
+        Junrar.extract(rarFile, outDir);
     }
 }
