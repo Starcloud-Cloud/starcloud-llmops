@@ -199,7 +199,9 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode EXCEL_NOT_EXIST = new ErrorCode(730000021, "压缩包中未找到名为:导入模板.xlsx 的文件");
 
-    ErrorCode IMAGES_NOT_EXIST = new ErrorCode(730000022, "压缩包中未找到images的文件夹}");
+    ErrorCode IMAGES_NOT_EXIST = new ErrorCode(730000022, "压缩包中未找到images的文件夹");
+
+    ErrorCode TOO_MANY_DOCUMENT = new ErrorCode(730000023, "只能包含一个文档类型的字段");
 
 
     /**
