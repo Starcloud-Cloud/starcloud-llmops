@@ -593,4 +593,9 @@ public interface ErrorCodeConstants {
 
     ErrorCode PIXABAY_API_KEYS_NETWORK_ERROR = new ErrorCode(300701203, "网络出小差了，请稍候再试");
 
+
+    // ========== 创作计划定时任务 错误码 ==========
+    ErrorCode APP_INFRA_JOB_ADD_FAIL_EXISTS = new ErrorCode(300702201, "当前定时任务已经存在");
+    ErrorCode APP_INFRA_JOB_NOT_EXISTS = new ErrorCode(300702202, "任务不存在");
+
 }

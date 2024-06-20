@@ -27,7 +27,7 @@ public class AppInfraJobRespVO {
 
     @Schema(description = "应用编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "14120")
     @ExcelProperty("应用编号")
-    private Integer appUid;
+    private String creativePlanUid;
 
     @Schema(description = "CRON 表达式", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("CRON 表达式")

@@ -4,11 +4,10 @@ import com.starcloud.ops.business.app.controller.admin.appinfrajob.vo.AppInfraJo
 import com.starcloud.ops.business.app.controller.admin.appinfrajob.vo.AppInfraJobRespVO;
 import com.starcloud.ops.business.app.controller.admin.appinfrajob.vo.AppInfraJobSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.appinfrajob.AppInfraJobDO;
-import com.starcloud.ops.business.app.service.app.appinfrajob.AppInfraJobService;
+import com.starcloud.ops.business.app.service.appinfrajob.AppInfraJobService;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.security.access.prepost.PreAuthorize;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,14 +40,12 @@ public class AppInfraJobController {
 
     @PostMapping("/create")
     @Operation(summary = "创建应用定时执行任务")
-    @PreAuthorize("@ss.hasPermission('llm:app-infra-job:create')")
     public CommonResult<Long> createAppInfraJob(@Valid @RequestBody AppInfraJobSaveReqVO createReqVO) {
         return success(appInfraJobService.createAppInfraJob(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新应用定时执行任务")
-    @PreAuthorize("@ss.hasPermission('llm:app-infra-job:update')")
     public CommonResult<Boolean> updateAppInfraJob(@Valid @RequestBody AppInfraJobSaveReqVO updateReqVO) {
         appInfraJobService.updateAppInfraJob(updateReqVO);
         return success(true);
@@ -57,7 +54,6 @@ public class AppInfraJobController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除应用定时执行任务")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('llm:app-infra-job:delete')")
     public CommonResult<Boolean> deleteAppInfraJob(@RequestParam("id") Long id) {
         appInfraJobService.deleteAppInfraJob(id);
         return success(true);
@@ -66,7 +62,6 @@ public class AppInfraJobController {
     @GetMapping("/get")
     @Operation(summary = "获得应用定时执行任务")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('llm:app-infra-job:query')")
     public CommonResult<AppInfraJobRespVO> getAppInfraJob(@RequestParam("id") Long id) {
         AppInfraJobDO appInfraJob = appInfraJobService.getAppInfraJob(id);
         return success(BeanUtils.toBean(appInfraJob, AppInfraJobRespVO.class));
@@ -74,7 +69,6 @@ public class AppInfraJobController {
 
     @GetMapping("/page")
     @Operation(summary = "获得应用定时执行任务分页")
-    @PreAuthorize("@ss.hasPermission('llm:app-infra-job:query')")
     public CommonResult<PageResult<AppInfraJobRespVO>> getAppInfraJobPage(@Valid AppInfraJobPageReqVO pageReqVO) {
         PageResult<AppInfraJobDO> pageResult = appInfraJobService.getAppInfraJobPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, AppInfraJobRespVO.class));
@@ -82,7 +76,6 @@ public class AppInfraJobController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出应用定时执行任务 Excel")
-    @PreAuthorize("@ss.hasPermission('llm:app-infra-job:export')")
     @OperateLog(type = EXPORT)
     public void exportAppInfraJobExcel(@Valid AppInfraJobPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {

@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.app.appinfrajob;
+package com.starcloud.ops.business.app.service.appinfrajob;
 
 import javax.validation.*;
 
@@ -53,11 +53,14 @@ public interface AppInfraJobService {
      */
     PageResult<AppInfraJobDO> getAppInfraJobPage(AppInfraJobPageReqVO pageReqVO);
 
+
+
     /**
-     * 触发定时任务
-     * @param id
-     * @throws SchedulerException
+     * 定时任务检测
+     *
      */
-    void triggerJob(Long id) throws SchedulerException;
+   void infraJobCheck();
+
+
 
 }

@@ -23,7 +23,7 @@ public class AppInfraJobSaveReqVO {
 
     @Schema(description = "应用编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "14120")
     @NotNull(message = "应用编号不能为空")
-    private Integer appUid;
+    private String creativePlanUid;
 
     @Schema(description = "CRON 表达式", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "CRON 表达式不能为空")

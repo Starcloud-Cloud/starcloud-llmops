@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.appinfrajob;
 
+import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import lombok.*;
 import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
@@ -17,7 +18,7 @@ import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppInfraJobDO extends BaseDO {
+public class AppInfraJobDO extends TenantBaseDO {
 
     /**
      * 任务编号
@@ -35,7 +36,7 @@ public class AppInfraJobDO extends BaseDO {
     /**
      * 应用编号
      */
-    private Integer appUid;
+    private String creativePlanUid;
     /**
      * CRON 表达式
      */

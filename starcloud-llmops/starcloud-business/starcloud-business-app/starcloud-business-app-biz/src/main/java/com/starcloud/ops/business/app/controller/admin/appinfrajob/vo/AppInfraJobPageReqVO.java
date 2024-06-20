@@ -22,7 +22,7 @@ public class AppInfraJobPageReqVO extends PageParam {
     private Integer appFrom;
 
     @Schema(description = "应用编号", example = "14120")
-    private Integer appUid;
+    private String creativePlanUid;
 
     @Schema(description = "CRON 表达式")
     private String cronExpression;

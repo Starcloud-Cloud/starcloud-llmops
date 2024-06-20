@@ -71,7 +71,7 @@ public class NewUserInviteHandler implements NewUserHandler {
                         .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
                         .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                 .setLevelBasicDTO(new UserLevelBasicDTO()
-                        .setLevelId(1L)
+                        .setLevelId(null)
                         .setTimesRange(new TimesRangeDTO().setNums(99).setRange(TimeRangeTypeEnum.YEAR.getType()))
                         .setOperateDTO(new OperateDTO().setIsAdd(false).setIsSuperposition(false)));
 

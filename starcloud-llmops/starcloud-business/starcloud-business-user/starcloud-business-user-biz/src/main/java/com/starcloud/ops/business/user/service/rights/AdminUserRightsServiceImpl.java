@@ -269,7 +269,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             return null;
         }
 
-        // 是否添加会员等级记录
+        // 是否添加会员权益记录
         if (!rightsBasicDTO.getOperateDTO().getIsAdd()) {
             log.info("【当前配置无需添加用户权益，跳出添加步骤");
             return null;
@@ -293,7 +293,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
 
         // 设置权益结束时间
-        LocalDateTime endTime = getPlusTimeByRange(rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
+        LocalDateTime endTime = getPlusTimeByRange(timesRange.getRange(), timesRange.getNums(), startTime);
 
         // 构建对象
         AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime, Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()) ? null : rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId());
