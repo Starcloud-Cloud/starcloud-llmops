@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
@@ -26,6 +28,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -49,6 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +88,11 @@ public class PosterActionHandler extends BaseActionHandler {
      * 图片
      */
     private static final String IMAGE = "图片";
+
+    /**
+     * 提取素材索引正则
+     */
+    private static final Pattern MATERIAL_PATTERN = Pattern.compile("\\.docs\\[(\\d+)]");
 
     /**
      * 是否依赖的正则表达式
@@ -178,6 +187,13 @@ public class PosterActionHandler extends BaseActionHandler {
              * 只做标记和必要的校验，不进行参数的填充。
              */
             markerDependencyTemplate(style);
+
+            /*
+             * 处理需要复制的模板 <br>
+             * 并且进行复制模版的关于素材的变量的填充。
+             * 需要依赖结果的模板，即使是复制的模板，也不会复制。
+             */
+            handlerCopyTemplate(style);
 
             /*
              * 执行不依赖结果的海报模板，并且获取到结果
@@ -317,6 +333,180 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 处理需要复制的模板
+     *
+     * @param style 海报风格
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private void handlerCopyTemplate(PosterStyleDTO style) {
+        // 获取海报模板列表
+        List<PosterTemplateDTO> templateList = style.getPosterTemplateList();
+
+        PosterTemplateDTO copyTemplate = null;
+        int copyIndex = -1;
+        int copyTemplateNeedMaterialCount = -1;
+        // 获取到最后一个需要复制的模板，倒序查找
+        for (int i = templateList.size() - 1; i >= 0; i--) {
+            PosterTemplateDTO template = templateList.get(i);
+            if (Objects.nonNull(template) && Objects.nonNull(template.getIsCopy()) &&
+                    template.getIsCopy() && !template.getIsDependency()) {
+                // 计算需要复制到的模板需要的素材数量
+                int templateNeedMaterialCount = calculateTemplateNeedMaterialCount(template);
+                if (templateNeedMaterialCount == -1) {
+                    continue;
+                }
+                copyTemplate = template;
+                copyIndex = i;
+                copyTemplateNeedMaterialCount = templateNeedMaterialCount;
+                break;
+            }
+        }
+
+        // 如果没有需要复制的模板，则直接返回
+        if (Objects.isNull(copyTemplate) || copyIndex == -1 || copyTemplateNeedMaterialCount == -1) {
+            return;
+        }
+
+        // 获取到素材列表
+        List<Map<String, Object>> materialList = getMaterialList();
+        if (CollectionUtil.isEmpty(materialList)) {
+            return;
+        }
+        // 计算现在模板需要的素材数量
+        int needMaterialCount = calculateNeedMaterialCount(style);
+        // 如果需要的素材数量为 -1，说明不需要素材，直接返回
+        if (needMaterialCount == -1 || needMaterialCount >= materialList.size()) {
+            return;
+        }
+
+        // 复制素材，并且截取需要的素材
+        List<Map<String, Object>> copyMaterialList = SerializationUtils.clone(new ArrayList<>(materialList));
+
+        // 此为需要进行复制的素材
+        List<Map<String, Object>> subMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
+        // 计算需要复制的次数，取余如果余数不为 0 则加 1
+        int remainder = subMaterialList.size() % copyTemplateNeedMaterialCount;
+        // 获取相除的整数部分
+        int copyCount = (subMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+
+        for (int i = 0; i < copyCount; i++) {
+            PosterTemplateDTO copy = SerializationUtils.clone(copyTemplate);
+            copy.setUuid(IdUtil.fastSimpleUUID());
+            copy.setName("copy");
+
+            List<Map<String, Object>> materials = new ArrayList<>();
+            if (copyTemplateNeedMaterialCount > subMaterialList.size()) {
+                materials = subMaterialList;
+                subMaterialList = new ArrayList<>();
+            } else {
+                materials = subMaterialList.subList(0, copyTemplateNeedMaterialCount);
+                subMaterialList = subMaterialList.subList(copyTemplateNeedMaterialCount, subMaterialList.size());
+            }
+
+            WorkflowStepWrapper materialStepWrapper = this.getAppContext().getStepWrapper(MaterialActionHandler.class);
+
+            Map<String, Object> materialMap = new HashMap<>();
+            JsonDocsDefSchema materialData = new JsonDocsDefSchema();
+            materialData.setDocs(materials);
+            materialMap.put(materialStepWrapper.getStepCode(), materialData);
+
+            // 截取需要的素材
+            Map<String, Object> variableMap = getPosterVariableMap(copy, Boolean.FALSE);
+            Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariablesValues(variableMap, materialMap);
+
+            // 循环处理变量列表，进行值填充
+            for (PosterVariableDTO variable : copy.getPosterVariableList()) {
+                // 从作用域数据中获取变量值
+                Object value = replaceValueMap.get(variable.getUuid());
+                // 如果从作用域数据中获取的变量值为空，则为空字符串。
+                if (StringUtil.objectBlank(value)) {
+                    value = StrUtil.EMPTY;
+                }
+                variable.setValue(value);
+            }
+            copyIndex = copyIndex + 1;
+            // 将复制的模板放入到模板列表中
+            templateList.add(copyIndex, copy);
+        }
+
+        style.setTemplateList(templateList);
+    }
+
+    /**
+     * 计算需要的素材数量
+     *
+     * @param style 海报风格
+     * @return 需要的素材数量
+     */
+    private int calculateNeedMaterialCount(PosterStyleDTO style) {
+
+        // 报模板，图片变量值，获取到选择素材的最大索引列表
+        List<Integer> templateIndexList = new ArrayList<>();
+        for (PosterTemplateDTO template : style.getPosterTemplateList()) {
+            // 如果海报模板为空，设置默认值为 -1
+            if (Objects.isNull(template)) {
+                templateIndexList.add(-1);
+                continue;
+            }
+            int templateMaxIndex = calculateTemplateNeedMaterialCount(template);
+            templateIndexList.add(templateMaxIndex);
+        }
+
+        // 获取到最大的索引
+        int maxIndex = templateIndexList
+                .stream().max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
+
+        return maxIndex;
+    }
+
+    /**
+     * 计算需要的素材数量
+     *
+     * @param style 海报风格
+     * @return 需要的素材数量
+     */
+    private int calculateTemplateNeedMaterialCount(PosterTemplateDTO template) {
+
+        // 如果海报模板为空，设置默认值为 -1
+        if (Objects.isNull(template)) {
+            return -1;
+        }
+        // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
+        Integer maxIndex = template.getPosterVariableList().stream()
+                .filter(Objects::nonNull)
+                .map(item -> {
+                    Integer matcher = matcherMax(item.emptyIfNullValue());
+                    if (matcher == -1) {
+                        return -1;
+                    }
+                    return matcher + 1;
+                })
+                .max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
+        return maxIndex;
+    }
+
+    /**
+     * 获取素材列表
+     *
+     * @return 素材列表
+     * @return
+     */
+    private List<Map<String, Object>> getMaterialList() {
+        // 获取素材的步骤
+        WorkflowStepWrapper materialStepWrapper = this.getAppContext().getStepWrapper(MaterialActionHandler.class);
+        // 获取素材的响应结果
+        ActionResponse materialStepWrapperResponse = this.getAppContext().getStepResponse(materialStepWrapper.getStepCode());
+        AppValidate.notNull(materialStepWrapperResponse, materialStepWrapper.getStepCode() + "步骤结果为空！无法进行图片变量替换！");
+        // 获取素材的响应结果
+        JsonData output = materialStepWrapperResponse.getOutput();
+        JsonDocsDefSchema data = (JsonDocsDefSchema) output.getData();
+        AppValidate.notNull(data, materialStepWrapper.getStepCode() + "步骤结果为空！无法进行图片变量替换！");
+        List docs = data.getDocs();
+        return docs;
+    }
+
+    /**
      * 获取海报模板
      *
      * @param posterStyle        海报风格
@@ -402,9 +592,8 @@ public class PosterActionHandler extends BaseActionHandler {
             }
             posterTemplate.setIsExecute(Boolean.TRUE);
             posterTemplate.setVariableList(variableList);
-
-
         }
+
         posterStyle.setTemplateList(posterTemplateList);
     }
 
@@ -724,4 +913,33 @@ public class PosterActionHandler extends BaseActionHandler {
         }
         return urlList;
     }
+
+    /**
+     * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
+     *
+     * @param input 输入
+     * @return 返回的数字，没有匹配到，返回 -1
+     */
+    private static Integer matcherMax(String input) {
+        if (StringUtils.isBlank(input)) {
+            return -1;
+        }
+        // 定义正则表达式匹配方括号中的数字
+        Matcher matcher = MATERIAL_PATTERN.matcher(input);
+        // 如果匹配到，则返回最大的数字。
+        int max = -1;
+        try {
+            while (matcher.find()) {
+                int number = Integer.valueOf(matcher.group(1));
+                if (number > max) {
+                    max = number;
+                }
+            }
+        } catch (Exception exception) {
+            log.error("{}解析素材正则异常：{}: {}", PosterActionHandler.class.getSimpleName(), input, exception.getMessage());
+            return -1;
+        }
+        return max;
+    }
+
 }
