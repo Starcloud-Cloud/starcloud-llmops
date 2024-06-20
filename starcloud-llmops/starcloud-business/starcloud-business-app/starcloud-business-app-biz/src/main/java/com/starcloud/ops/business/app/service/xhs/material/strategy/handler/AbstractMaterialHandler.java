@@ -41,6 +41,11 @@ public abstract class AbstractMaterialHandler {
     private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
 
     /**
+     * 分组字段
+     */
+    private static final String GROUP = "group";
+
+    /**
      * 不同的素材类型，验证海报风格的要求可能不一样。
      * 提供一个默认的实现，子类可以覆盖
      *
@@ -163,12 +168,17 @@ public abstract class AbstractMaterialHandler {
             return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
         }
 
+        // 如果没有分组字段，则定义一个默认分组字段，作为默认分组字段
+        MaterialFieldConfigDTO defaultGroup = new MaterialFieldConfigDTO();
+        defaultGroup.setFieldName(GROUP);
+        defaultGroup.setIsGroupField(Boolean.TRUE);
         // 获取分组字段
         MaterialFieldConfigDTO groupField = materialFieldList.stream()
-                .filter(item -> Objects.equals(item.getIsGroupField(), Boolean.TRUE))
-                .findFirst().orElse(null);
+                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
+                .findFirst().orElse(defaultGroup);
+
         // 如果分组字段为空，直接按照默认的复制逻辑进行复制
-        if (Objects.isNull(groupField) || StringUtil.isBlank(groupField.getFieldName())) {
+        if (StringUtil.isBlank(groupField.getFieldName())) {
             return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
         }
 
