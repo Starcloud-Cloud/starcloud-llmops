@@ -21,6 +21,9 @@ public class MaterialFieldConfigDTO {
     @Schema(description = "字段是否必填")
     private boolean required = false;
 
+    @Schema(description = "字段是否为分组字段")
+    private Boolean isGroupField = false;
+
     @Schema(description = "字段顺序")
     private int order;
 

@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
@@ -217,6 +218,7 @@ public class CreativeUtils {
             String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
             // 获取模板标题生成模式，如果为空则默认为false
             boolean isMultimodalTitle = Objects.isNull(template.getIsMultimodalTitle()) ? Boolean.FALSE : template.getIsMultimodalTitle();
+            boolean isCopy = Objects.isNull(template.getIsCopy()) ? Boolean.FALSE : template.getIsCopy();
 
             // 模板信息补充
             template.setIndex(i);
@@ -226,12 +228,13 @@ public class CreativeUtils {
             template.setIsMultimodalTitle(isMultimodalTitle);
             template.setVariableList(variableList);
             template.setIsExecute(Boolean.TRUE);
+            template.setIsCopy(isCopy);
 
             // 添加到列表
             templateList.add(template);
         }
-        // 变量都为空是否执行，如果为null则设置为fase
-        Boolean noExecuteIfEmpty = Objects.isNull(posterStyle.getNoExecuteIfEmpty()) ? Boolean.FALSE : posterStyle.getNoExecuteIfEmpty();
+        // 变量都为空是否执行
+        Boolean noExecuteIfEmpty = Boolean.TRUE;
         posterStyle.setNoExecuteIfEmpty(noExecuteIfEmpty);
         Integer imageCount = templateList.stream().mapToInt(PosterTemplateDTO::getTotalImageCount).sum();
         posterStyle.setTotalImageCount(imageCount);
@@ -578,6 +581,32 @@ public class CreativeUtils {
         }
 
         return materialList;
+    }
+
+    /**
+     * 根据应用步骤获取素材库列表
+     *
+     * @param materialWrapper 应用步骤
+     * @return 素材库列表
+     */
+    public static List<MaterialFieldConfigDTO> getMaterialFieldByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+        // 素材列表配置
+        if (Objects.isNull(materialWrapper)) {
+            return Collections.emptyList();
+        }
+
+        // 获取到素材库列表
+        String materialConfigString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_DEFINE);
+        if (StringUtils.isBlank(materialConfigString) || "[]".equals(materialConfigString) || "null".equalsIgnoreCase(materialConfigString)) {
+            return Collections.emptyList();
+        }
+
+        List<MaterialFieldConfigDTO> materialFieldConfigList = MaterialDefineUtil.parseConfig(materialConfigString);
+        if (CollectionUtil.isEmpty(materialFieldConfigList)) {
+            return Collections.emptyList();
+        }
+
+        return materialFieldConfigList;
     }
 
     /**
