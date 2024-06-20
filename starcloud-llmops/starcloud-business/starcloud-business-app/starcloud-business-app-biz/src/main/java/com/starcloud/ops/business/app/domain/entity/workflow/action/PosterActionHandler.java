@@ -396,7 +396,10 @@ public class PosterActionHandler extends BaseActionHandler {
             copy.setName("copy");
 
             List<Map<String, Object>> materials = new ArrayList<>();
-            if (copyTemplateNeedMaterialCount > subMaterialList.size()) {
+            if (subMaterialList.isEmpty()) {
+                break;
+            }
+            if (copyTemplateNeedMaterialCount >= subMaterialList.size()) {
                 materials = subMaterialList;
                 subMaterialList = new ArrayList<>();
             } else {
