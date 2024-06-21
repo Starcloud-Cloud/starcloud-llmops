@@ -225,6 +225,7 @@ public class CustomActionHandler extends BaseActionHandler {
         List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
         AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
         this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
+        this.getAppContext().putVariable(CreativeConstants.REQUIREMENT,params.getOrDefault(CreativeConstants.REQUIREMENT,""));
         this.getAppContext().putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = this.getAppContext().getContextVariablesValues();
@@ -280,6 +281,7 @@ public class CustomActionHandler extends BaseActionHandler {
     private ActionResponse doAiCustomExecute(Map<String, Object> params) {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
+        this.getAppContext().putVariable(CreativeConstants.REQUIREMENT,params.getOrDefault(CreativeConstants.REQUIREMENT,""));
         this.getAppContext().putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
         params = this.getAppContext().getContextVariablesValues();
         /*
