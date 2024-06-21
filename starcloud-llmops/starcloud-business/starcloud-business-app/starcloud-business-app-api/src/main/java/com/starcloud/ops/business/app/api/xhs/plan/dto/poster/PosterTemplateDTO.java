@@ -90,6 +90,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private String multimodalTitleRequirement;
 
     /**
+     * 是否复制图片
+     */
+    @Schema(description = "是否复制")
+    private Boolean isCopy;
+
+    /**
      * 是否执行
      */
     @Schema(description = "是否执行")

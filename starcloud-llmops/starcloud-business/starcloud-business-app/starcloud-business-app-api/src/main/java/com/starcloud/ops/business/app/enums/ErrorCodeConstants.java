@@ -588,7 +588,7 @@ public interface ErrorCodeConstants {
 
 
 
-    // ========== 媒体评论 错误码 ==========
+    // ==========图片搜索 错误码 ==========
     ErrorCode PIXABAY_API_KEYS_LIMIT = new ErrorCode(300701201, "请求频率太快了，请等一分钟后再试");
 
     ErrorCode PIXABAY_API_KEYS_REQUEST_ERROR = new ErrorCode(300701202, "请求异常，请稍候再试");

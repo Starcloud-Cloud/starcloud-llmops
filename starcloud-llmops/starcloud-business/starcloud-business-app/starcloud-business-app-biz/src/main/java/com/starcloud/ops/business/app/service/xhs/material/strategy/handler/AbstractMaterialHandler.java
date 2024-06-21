@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
@@ -42,7 +43,7 @@ public abstract class AbstractMaterialHandler {
     /**
      * 分组字段
      */
-    private static final String GROUP_FIELD = "group";
+    private static final String GROUP = "group";
 
     /**
      * 不同的素材类型，验证海报风格的要求可能不一样。
@@ -70,7 +71,7 @@ public abstract class AbstractMaterialHandler {
      * @param posterStyleList 海报风格列表
      * @return 处理后的资料库列表
      */
-    public Map<Integer, List<Map<String, Object>>> handleMaterialMap(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList) {
+    public Map<Integer, List<Map<String, Object>>> handleMaterialMap(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList, MaterialMetadata metadata) {
         if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(posterStyleList)) {
             return Collections.emptyMap();
         }
@@ -79,7 +80,7 @@ public abstract class AbstractMaterialHandler {
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
         }
-        return this.doHandleMaterialMap(materialList, needMaterialSizeList);
+        return this.doHandleMaterialMap(materialList, needMaterialSizeList, metadata);
     }
 
     /**
@@ -156,27 +157,49 @@ public abstract class AbstractMaterialHandler {
      * @param materialSizeList 每个海报风格需要的素材数量
      * @return 海报素材 map
      */
-    protected Map<Integer, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList, List<Integer> materialSizeList) {
+    protected Map<Integer, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList, List<Integer> materialSizeList, MaterialMetadata metadata) {
 
-        // 提供一个默认的复制逻辑，不同的素材可能需要不同的复制逻辑, 具体子类实现即可
+        // 复制一份素材列表，防止修改原始数据
         List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
+
+        // 获取素材字段配置
+        List<MaterialFieldConfigDTO> materialFieldList = metadata.getMaterialFieldList();
+        if (CollectionUtil.isEmpty(materialFieldList)) {
+            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
+        }
+
+        // 如果没有分组字段，则定义一个默认分组字段，作为默认分组字段
+        MaterialFieldConfigDTO defaultGroup = new MaterialFieldConfigDTO();
+        defaultGroup.setFieldName(GROUP);
+        defaultGroup.setIsGroupField(Boolean.TRUE);
+        // 获取分组字段
+        MaterialFieldConfigDTO groupField = materialFieldList.stream()
+                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
+                .findFirst().orElse(defaultGroup);
+
+        // 如果分组字段为空，直接按照默认的复制逻辑进行复制
+        if (StringUtil.isBlank(groupField.getFieldName())) {
+            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
+        }
+
+        String group = groupField.getFieldName();
+
         // 分组字段不为空的素材
         List<Map<String, Object>> groupMaterial = copyMaterialList.stream()
                 .filter(Objects::nonNull)
-                .filter(item -> StringUtil.objectNotBlank(item.get(GROUP_FIELD)))
+                .filter(item -> StringUtil.objectNotBlank(item.get(group)))
                 .collect(Collectors.toList());
 
-        // 1. 如果分组字段为空，直接按照默认的复制逻辑进行复制
+        // 1. 如果有分组的素材为空，直接按照默认的复制逻辑进行复制
         if (CollectionUtil.isEmpty(groupMaterial)) {
             return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
         }
 
         // 将同一组的素材分组，并且保持原有的顺序。
         LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
-                .collect(Collectors.groupingBy(item -> item.get(GROUP_FIELD), LinkedHashMap::new, Collectors.toList()));
+                .collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
 
-        // 2. 如果 collect 的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量
-        // 这时候，直接按照 materialSizeList 的数量进行复制即可
+        // 2. 如果分组的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量，这时候，直接按照 materialSizeList 的数量进行复制即可
         if (collect.size() >= materialSizeList.size()) {
             Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
             int index = 0;
@@ -206,7 +229,7 @@ public abstract class AbstractMaterialHandler {
         // 分组字段为空的素材
         List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream()
                 .filter(Objects::nonNull)
-                .filter(item -> Objects.isNull(item.get(GROUP_FIELD)))
+                .filter(item -> Objects.isNull(item.get(group)))
                 .collect(Collectors.toList());
 
         // 将没有分组的素材按照默认复制逻辑复制
