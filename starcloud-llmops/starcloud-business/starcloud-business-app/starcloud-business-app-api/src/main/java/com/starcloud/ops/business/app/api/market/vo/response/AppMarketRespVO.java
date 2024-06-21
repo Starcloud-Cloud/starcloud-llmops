@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.market.vo.response;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,6 +9,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigResp
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 应用市场对象响应实体VO
@@ -94,6 +97,8 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "应用类别")
     private String category;
+
+    private String source;
 
     /**
      * 应用标签，多个以逗号分割
@@ -230,6 +235,18 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "是否收藏")
     private Boolean isFavorite;
+
+    /*
+     * 补充步骤默认变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
+        if (Objects.isNull(workflowConfig) || CollectionUtil.isEmpty(variableRespVOMap)) {
+            return;
+        }
+        workflowConfig.supplementStepVariable(variableRespVOMap);
+    }
 
     /**
      * 设置应用变量值

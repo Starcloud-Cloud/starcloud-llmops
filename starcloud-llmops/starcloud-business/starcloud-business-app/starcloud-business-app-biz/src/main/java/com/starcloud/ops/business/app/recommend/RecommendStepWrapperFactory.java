@@ -5,14 +5,14 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -188,7 +188,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String prompt = getDefaultFromDict("小红书生成");
+        String prompt = "{{_SYS_内容生成_PROMPT}}";
         String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -298,6 +298,19 @@ public class RecommendStepWrapperFactory {
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );
+    }
+
+    /**
+     * 步骤默认变量
+     *
+     * @return
+     */
+    public static Map<String, VariableRespVO> getStepVariable() {
+        Map<String, VariableRespVO> result = new HashMap<>();
+        for (WorkflowStepWrapperRespVO workflowStepWrapperRespVO : defMediaMatrixStepWrapperList()) {
+            result.put(workflowStepWrapperRespVO.getFlowStep().getHandler(), workflowStepWrapperRespVO.getVariable());
+        }
+        return result;
     }
 
     /**

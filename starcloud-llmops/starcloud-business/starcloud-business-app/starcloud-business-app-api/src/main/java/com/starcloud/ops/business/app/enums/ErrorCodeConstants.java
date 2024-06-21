@@ -574,6 +574,8 @@ public interface ErrorCodeConstants {
 
     ErrorCode CREATIVE_CONTENT_CLAIMED = new ErrorCode(300500009, "创作任务已绑定,不允许修改 {}");
 
+    ErrorCode DUPLICATE_LABEL = new ErrorCode(300500010, "存在重复label: {}");
+
 
     // ========== 媒体评论 错误码 ==========
     ErrorCode MEDIA_COMMENTS_NOT_EXISTS = new ErrorCode(300700101, "媒体评论不存在");

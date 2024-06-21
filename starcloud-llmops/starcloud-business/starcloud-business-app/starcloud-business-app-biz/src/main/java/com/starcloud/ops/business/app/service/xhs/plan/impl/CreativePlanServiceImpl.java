@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
@@ -48,6 +49,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
@@ -254,6 +256,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
             // 合并应用市场配置，某一些配置项需要保持最新
             AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
+            appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
             configuration.setAppInformation(appInformation);
 
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
@@ -680,6 +683,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(materialStepWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
         // 素材库步骤不为空的话，上传素材不能为空
         AppValidate.notEmpty(materialList, "素材列表不能为空，请上传素材后重试！");
+        // 素材字段配置列表
+        List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(materialStepWrapper);
+        AppValidate.notEmpty(fieldList, "素材字段配置不能为空，请联系管理员！");
+
         // 获取素材库类型
         String businessType = materialStepWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
 
@@ -767,8 +774,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 从创作内容任务列表中获取每个任务的海报配置，组成列表。总数为任务总数。
         List<PosterStyleDTO> contentPosterStyleList = getPosterStyleList(contentCreateRequestList, posterStepId);
         // 素材处理器进行素材处理
-        Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList);
+        // 不同的处理器处理海报风格
+        MaterialMetadata materialMetadata = new MaterialMetadata();
+        materialMetadata.setMaterialType(businessType);
+        materialMetadata.setMaterialStepId(materialStepId);
+        materialMetadata.setMaterialFieldList(fieldList);
+        Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList, materialMetadata);
         // 二次处理批量内容任务
+        List<CreativeContentCreateReqVO> handleContentCreateRequestList = Lists.newArrayList();
         for (int index = 0; index < contentCreateRequestList.size(); index++) {
             CreativeContentCreateReqVO contentCreateRequest = contentCreateRequestList.get(index);
             CreativeContentExecuteParam contentExecute = contentCreateRequest.getExecuteParam();
@@ -783,12 +796,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterStyleVariable.getValue()), PosterStyleDTO.class);
                 // 获取到该风格下的素材列表
                 List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
+                // 如果没有素材列表，直接跳过，不创建任务
+                if (handleMaterialList.isEmpty()) {
+                    // 如果没有素材列表，直接跳过，不创建任务
+                    continue;
+                }
 
                 // 不同的处理器处理海报风格
-                MaterialMetadata metadata = new MaterialMetadata();
-                metadata.setMaterialType(businessType);
-                metadata.setMaterialStepId(materialStepId);
-                PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList, metadata);
+                PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList, materialMetadata);
 
                 // 将处理后的海报风格填充到执行参数中
                 Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
@@ -800,12 +815,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             }
             contentExecute.setAppInformation(appResponse);
             contentCreateRequest.setExecuteParam(contentExecute);
+            handleContentCreateRequestList.add(contentCreateRequest);
         }
 
         /*
          * 批量创建任务
          */
-        creativeContentService.batchCreate(contentCreateRequestList);
+        creativeContentService.batchCreate(handleContentCreateRequestList);
     }
 
     /**

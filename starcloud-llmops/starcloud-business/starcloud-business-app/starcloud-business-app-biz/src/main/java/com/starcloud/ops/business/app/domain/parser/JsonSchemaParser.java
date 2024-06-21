@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -94,7 +93,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
                 return result;
             } catch (Exception exception) {
                 log.error("二次处理 生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), text, e.getMessage(), e);
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR);
+                throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR, e);
             }
         }
     }
@@ -238,7 +237,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
             return JSONUtil.parse(strValue);
         } catch (IOException e) {
             log.error("解析 JSON 字符串({}) 失败", text, e);
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR);
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR, e);
         }
     }
 

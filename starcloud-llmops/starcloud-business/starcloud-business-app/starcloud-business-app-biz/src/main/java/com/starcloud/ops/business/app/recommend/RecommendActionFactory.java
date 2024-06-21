@@ -191,7 +191,7 @@ public class RecommendActionFactory {
         step.setIcon("content");
         step.setTags(Collections.singletonList("Custom"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
+        step.setVariable(RecommendVariableFactory.defCustomVariable(defaultPrompt, Boolean.FALSE));
         return step;
     }
 

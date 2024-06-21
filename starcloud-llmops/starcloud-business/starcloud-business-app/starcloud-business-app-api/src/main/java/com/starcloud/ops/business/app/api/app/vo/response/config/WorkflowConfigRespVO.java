@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 @ToString(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用工作流函数请求对象")
+@Slf4j
 public class WorkflowConfigRespVO extends BaseConfigRespVO {
 
     private static final long serialVersionUID = -4540655599582546170L;
@@ -49,6 +51,24 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
      */
     @Schema(description = "模版变量")
     private VariableRespVO variable;
+
+    /**
+     * 补充步骤默认变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
+        try {
+            if (CollectionUtil.isEmpty(steps) || CollectionUtil.isEmpty(variableRespVOMap)) {
+                return;
+            }
+            for (WorkflowStepWrapperRespVO step : steps) {
+                step.supplementStepVariable(variableRespVOMap);
+            }
+        } catch (Exception e) {
+            log.warn("supplementStepVariable error", e);
+        }
+    }
 
     /**
      * 向step 中添加变量
