@@ -102,7 +102,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         handlerRequest.setN(n);
 
         // 构建请求
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(context), conversationId, userId, endUser, context.getScene(), handlerRequest);
+        HandlerContext handlerContext = HandlerContext.createContext(context.getUid(), conversationId, userId, endUser, context.getScene(), handlerRequest);
         // 执行步骤
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
         ActionResponse response = convert(context, handlerResponse);

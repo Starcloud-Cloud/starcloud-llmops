@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
@@ -90,31 +91,28 @@ public class PosterServiceImpl implements PosterService {
     @Override
     public List<PosterImage> poster(PosterRequest request) {
         try {
-            log.info("[Poster] 调用海报生成接口开始......");
             PosterResponse<List<PosterImage>> response = posterImageClient.poster(request);
             validateResponse(response, "海报生成失败");
             List<PosterImage> posterList = response.getData();
             if (CollectionUtil.isEmpty(posterList)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350700114, "生成结果为空！"));
+                throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(), "海报图片生成失败: 生成结果不存在！");
             }
 
             for (PosterImage posterImage : posterList) {
                 if (StringUtils.isBlank(posterImage.getUrl())) {
-                    throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_URL_IS_BLANK);
+                    throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(), "海报图片生成失败: 生成结果地址为空！");
                 }
             }
-
-            log.info("[Poster] 调用海报生成接口完成：海报URL：{}", posterList);
             return posterList;
         } catch (ServiceException exception) {
             log.error("[Poster][ServiceException] 调用海报生成接口失败：错误信息: {}", exception.getMessage());
             throw exception;
         } catch (HttpMessageNotReadableException exception) {
             log.error("[Poster][HttpMessageNotReadableException] 调用海报生成接口失败：错误信息: {}", exception.getMessage());
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_IS_NOT_SUCCESS, "图片生成失败", "响应解构异常！");
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
         } catch (Exception exception) {
             log.error("[Poster][Exception] 调用海报生成接口失败：错误信息: {}", exception.getMessage());
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_IS_NOT_SUCCESS, exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -125,14 +123,14 @@ public class PosterServiceImpl implements PosterService {
      */
     private void validateResponse(PosterResponse<?> response, String errorMessage) {
         if (Objects.isNull(response)) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_IS_NULL, errorMessage);
+            throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(), errorMessage);
         }
         if (!response.getSuccess()) {
             String message = StringUtils.isBlank(response.getMessage()) ? "海报请求响应失败" : response.getMessage();
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_IS_NOT_SUCCESS, errorMessage, message);
+            throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(), message);
         }
         if (Objects.isNull(response.getData())) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_RESPONSE_DATA_IS_NULL, errorMessage);
+            throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(), errorMessage);
         }
     }
 }

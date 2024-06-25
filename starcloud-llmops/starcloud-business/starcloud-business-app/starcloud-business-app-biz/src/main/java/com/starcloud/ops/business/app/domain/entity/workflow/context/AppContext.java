@@ -149,9 +149,6 @@ public class AppContext {
     @JSONField(serialize = false)
     private SseEmitter sseEmitter;
 
-    private Throwable throwable;
-
-
     public Long getEndUserId() {
         return StrUtil.isNotBlank(this.endUser) ? Long.valueOf(this.endUser) : null;
     }

@@ -253,7 +253,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
     private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest, Map<String, Object> params) {
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
-                this.getAppUid(context),
+                context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
                 context.getEndUserId(),

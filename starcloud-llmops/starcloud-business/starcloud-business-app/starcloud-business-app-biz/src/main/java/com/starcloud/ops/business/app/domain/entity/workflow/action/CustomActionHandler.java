@@ -101,14 +101,12 @@ public class CustomActionHandler extends BaseActionHandler {
      */
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         //优先返回 素材类型的结构
 //        String refers = (String) params.get(CreativeConstants.MATERIAL_TYPE);
 //        if (StrUtil.isNotBlank(refers)) {
 //            //获取参考素材的结构
 //            return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
 //        }
-
         return super.getOutVariableJsonSchema(workflowStepWrapper);
     }
 
@@ -350,7 +348,7 @@ public class CustomActionHandler extends BaseActionHandler {
     private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest) {
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
-                this.getAppUid(context),
+                context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
                 context.getEndUserId(),
@@ -382,7 +380,8 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 构建响应结果
         ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(handlerResponse.getSuccess());
+        // 调用节点 Handler，失败都是直接抛出异常，所以这里只要能获取到结果，都是执行成功的，失败的都会抛出异常。
+        actionResponse.setSuccess(true);
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
         actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
         actionResponse.setType(handlerResponse.getType());
@@ -397,25 +396,8 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
         actionResponse.setAiModel(llmModel);
-        try {
-            // 解析输出内容
-            JsonData output = this.parseOutput(context, handlerResponse);
-            // 设置输出内容
-            handlerResponse.setOutput(output);
-            actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
-        } catch (Exception exception) {
-            actionResponse.setSuccess(Boolean.FALSE);
-            if (exception instanceof ServiceException) {
-                ServiceException serviceException = (ServiceException) exception;
-                actionResponse.setErrorCode(String.valueOf(serviceException.getCode()));
-            } else {
-                actionResponse.setErrorCode(ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode().toString());
-            }
-            actionResponse.setErrorMsg("【{}】步骤执行失败: " + exception.getMessage());
-            actionResponse.setCostPoints(0);
-            actionResponse.setThrowable(exception);
-            return actionResponse;
-        }
+        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        handlerResponse.setOutput(this.parseOutput(context, handlerResponse));
         return actionResponse;
     }
 

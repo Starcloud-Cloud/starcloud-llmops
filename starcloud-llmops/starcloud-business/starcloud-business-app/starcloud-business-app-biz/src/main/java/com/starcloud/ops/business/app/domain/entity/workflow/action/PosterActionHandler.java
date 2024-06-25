@@ -763,14 +763,19 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setName(posterTemplate.getName());
             handlerRequest.setIsMain(posterTemplate.getIsMain());
             handlerRequest.setIndex(posterTemplate.getIndex());
-            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream().collect(Collectors.toMap(PosterVariableDTO::getField,
-                    // 如果变量为值为空，则设置为空字符串
-                    PosterVariableDTO::emptyIfNullValue));
-
+            Map<String, Object> params = CollectionUtil.emptyIfNull(posterTemplate.getVariableList()).stream()
+                    .collect(Collectors.toMap(PosterVariableDTO::getField, PosterVariableDTO::emptyIfNullValue));
             handlerRequest.setParams(params);
 
             // 构建请求
-            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(this.getAppUid(context), context.getConversationUid(), context.getUserId(), context.getEndUserId(), context.getScene(), handlerRequest);
+            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(
+                    context.getUid(),
+                    context.getConversationUid(),
+                    context.getUserId(),
+                    context.getEndUserId(),
+                    context.getScene(),
+                    handlerRequest
+            );
             PosterGenerationHandler handler = new PosterGenerationHandler();
             return handler.execute(handlerContext);
         } catch (ServiceException exception) {

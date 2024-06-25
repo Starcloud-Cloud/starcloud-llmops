@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 
@@ -125,9 +126,29 @@ public class ActionResponse {
     private Object stepConfig;
 
     /**
-     * 异常
+     * 转换错误码
+     *
+     * @return 错误码
      */
-    private Throwable throwable;
+    public Integer transformErrorCode() {
+        if (StringUtils.isBlank(errorCode)) {
+            return ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode();
+        }
+        return parseIntCode(errorCode);
+    }
+
+    /**
+     * 转换错误信息
+     *
+     * @param stepId 步骤ID
+     * @return 错误信息
+     */
+    public String transformErrorMessage(String stepId) {
+        if (StringUtils.isBlank(errorMsg)) {
+            return "【" + stepId + "】" + "步骤执行失败，请联系管理员或稍后重试！";
+        }
+        return errorMsg;
+    }
 
     public static ActionResponse failure(String errorCode, String errorMsg, Object stepConfig) {
         ActionResponse actionResponse = new ActionResponse();

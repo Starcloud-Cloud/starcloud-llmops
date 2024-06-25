@@ -154,7 +154,7 @@ public class ImitateActionHandler extends BaseActionHandler {
     private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest) {
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
-                this.getAppUid(context),
+                context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
                 context.getEndUserId(),

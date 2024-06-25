@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action.base;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
@@ -11,6 +12,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
@@ -30,6 +32,7 @@ import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -124,14 +127,12 @@ public abstract class BaseActionHandler extends Object {
         }
     }
 
-
     /**
      * 具体当前handler的出参定义
      *
      * @return
      */
     public JsonSchema getOutVariableJsonSchema(AppContext context) {
-
         WorkflowStepWrapper workflowStepWrapper = context.getStepWrapper(context.getStepId());
         return this.getOutVariableJsonSchema(workflowStepWrapper);
     }
@@ -155,23 +156,96 @@ public abstract class BaseActionHandler extends Object {
      * @return
      */
     public Boolean hasResponseJsonSchema(AppContext context) {
-
         WorkflowStepWrapper workflowStepWrapper = context.getStepWrapper(context.getStepId());
         return this.hasResponseJsonSchema(workflowStepWrapper);
     }
 
     /**
-     * 获取应用的UID
+     * 流程执行器，action 执行入口。
+     * 异常自己吃掉，放入到上下文中，由上层处理
      *
-     * @return 应用的UID
+     * @param context           上下文
+     * @param scopeDataOperator 作用域数据操作器
+     * @return 执行结果
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected String getAppUid(AppContext context) {
-        return Optional.ofNullable(context)
-                .map(AppContext::getApp)
-                .map(BaseAppEntity::getUid)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_REQUIRED));
+    public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+        AppValidate.notNull(context, "应用步骤执行失败！无法获取应用执行上下文信息，请联系管理员或稍后重试！");
+        AppValidate.notNull(scopeDataOperator, "应用步骤执行失败！无法获取应用执行元数据，请联系管理员或稍后重试！");
+        String clazz = this.getClass().getSimpleName();
+        Long tanentId = TenantContextHolder.getTenantId();
+        String stepId = this.getStepId(scopeDataOperator);
+        String appUid = context.getUid();
+        Long userId = context.getUserId();
+
+        try {
+            log.info("步骤节点【开始执行】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}",
+                    clazz, stepId, appUid, userId, tanentId);
+
+            // 更新缓存为开始
+            appStepStatusCache.stepStart(context.getConversationUid(), context.getStepId());
+
+            // 执行前的准备工作
+            context.setStepId(stepId);
+
+            // 执行具体的步骤, 传入上下文，避免多线层的影响
+            ActionResponse actionResponse = this.doExecute(context);
+
+            // 将执行结果设置到上下文中
+            context.setActionResponse(actionResponse);
+
+            // 执行结果校验, 如果失败，抛出异常
+            validateResponse(actionResponse, stepId);
+
+            // 权益扣除
+            reduceRights(context, actionResponse, stepId, appUid);
+
+            // 更新缓存为成功
+            appStepStatusCache.stepSuccess(context.getConversationUid(), context.getStepId());
+
+            log.info("步骤节点【执行成功】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}",
+                    clazz, stepId, appUid, userId, tanentId);
+
+            return actionResponse;
+
+        } catch (ServiceException exception) {
+            // 更新缓存为失败
+            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, exception.getCode().toString(), exception.getMessage());
+            log.error("步骤节点【执行失败】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t错误码: {}, 异常信息: {}",
+                    clazz, stepId, appUid, userId, tanentId, exception.getCode(), exception.getMessage());
+
+            exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
+            throw exception;
+        } catch (Exception exception) {
+            // 更新缓存为失败
+            ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE;
+            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, String.valueOf(errorCode.getCode()), exception.getMessage());
+            log.error("步骤节点【执行失败】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t异常信息: {}",
+                    clazz, stepId, appUid, userId, tanentId, exception.getMessage());
+
+            throw ServiceExceptionUtil.exceptionWithCause(errorCode, "【" + stepId + "】步骤执行失败: " + exception.getMessage(), exception);
+        }
+    }
+
+    /**
+     * 获取步骤ID
+     *
+     * @return 获取步骤ID
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected String getStepId(ScopeDataOperator scopeDataOperator) {
+        try {
+            // 从工作流上下文中获取步骤ID
+            Optional<String> property = scopeDataOperator.getTaskProperty();
+            AppProcessParser.ServiceTaskPropertyDTO serviceTaskProperty = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
+            return serviceTaskProperty.getStepId();
+        } catch (Exception exception) {
+            log.error("步骤执行失败: 获取步骤ID异常: {}", exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE,
+                    "步骤执行失败: 获取步骤ID异常！请联系管理员或稍后重试！", exception);
+        }
     }
 
     /**
@@ -191,6 +265,7 @@ public abstract class BaseActionHandler extends Object {
                 .map(AppContext::getApp)
                 .map(AppEntity::getWorkflowConfig)
                 .map(config -> config.getStepWrapperByStepId(context.getStepId()));
+
         if (!stepWrapperOptional.isPresent()) {
             return null;
         }
@@ -212,95 +287,21 @@ public abstract class BaseActionHandler extends Object {
     }
 
     /**
-     * 流程执行器，action 执行入口。
-     * 异常自己吃掉，放入到上下文中，由上层处理
-     *
-     * @param context           上下文
-     * @param scopeDataOperator 作用域数据操作器
-     * @return 执行结果
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-
-        // 从工作流上下文中获取步骤ID
-        Optional<String> property = scopeDataOperator.getTaskProperty();
-        AppProcessParser.ServiceTaskPropertyDTO serviceTaskProperty = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
-        String stepId = serviceTaskProperty.getStepId();
-        String appUid = this.getAppUid(context);
-
-        try {
-
-            if (Objects.isNull(context)) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONTEXT_REQUIRED);
-            }
-
-            // 更新缓存为开始
-            appStepStatusCache.stepStart(context.getConversationUid(), context.getStepId());
-
-            // 执行前的准备工作
-            context.setStepId(stepId);
-
-            // 执行具体的步骤, 传入上下文，避免多线层的影响
-            ActionResponse actionResponse = this.doExecute(context);
-
-            // 将执行结果设置到上下文中
-            context.setActionResponse(actionResponse);
-
-            // 执行结果校验, 如果失败，抛出异常
-            validateResponse(actionResponse);
-
-            // 权益扣除
-            reduceRights(context, actionResponse, stepId, appUid);
-
-            // 更新缓存为成功
-            appStepStatusCache.stepSuccess(context.getConversationUid(), context.getStepId());
-
-            log.info("步骤节点【执行成功】: 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 权益用户: {}, 权益租户: {}",
-                    this.getClass().getSimpleName(), stepId, appUid, context.getUserId(), TenantContextHolder.getTenantId());
-
-            return actionResponse;
-
-        } catch (ServiceException exception) {
-            // 更新缓存为失败
-            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, exception.getCode().toString(), exception.getMessage());
-            log.error("步骤节点【执行失败】: 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t错误码: {}, 异常信息: {}",
-                    this.getClass().getSimpleName(), context.getStepId(), exception.getCode(), exception.getMessage());
-
-            throw exception;
-
-        } catch (Exception exception) {
-            // 更新缓存为失败
-            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString(), exception.getMessage());
-            log.error("步骤节点【执行失败】: 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t异常信息: {}",
-                    this.getClass().getSimpleName(), context.getStepId(), exception.getMessage());
-
-            throw exception;
-        }
-    }
-
-    /**
      * 执行结果校验
      *
      * @param actionResponse 执行结果
      */
-    private static void validateResponse(ActionResponse actionResponse) {
-
+    private static void validateResponse(ActionResponse actionResponse, String stepId) {
         if (actionResponse == null) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE);
+            throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode(),
+                    "【{}】步骤执行失败: 执行结果不存在，请联系管理员或稍后重试！", stepId);
         }
-
-//        if (!actionResponse.getSuccess()) {
-//            String errorCode = StringUtils.isNoneBlank(actionResponse.getErrorCode()) ? actionResponse.getErrorCode() : ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString();
-//            String errorMsg = StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "应用Action执行失败，请稍后重试或者联系管理员！";
-//            Integer code;
-//            try {
-//                code = Integer.parseInt(errorCode);
-//            } catch (Exception e) {
-//                code = ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode();
-//            }
-//            throw ServiceExceptionUtil.exception(new ErrorCode(code, errorMsg));
-//        }
+        // 基本不会走到这里，因为失败都是直接抛出异常，能拿到直接结果，说明已经执行成功！兜底。
+        if (!actionResponse.getSuccess()) {
+            Integer errorCode = actionResponse.transformErrorCode();
+            String errorMessage = actionResponse.transformErrorMessage(actionResponse.getStyle());
+            throw ServiceExceptionUtil.exception(new ErrorCode(errorCode, errorMessage));
+        }
     }
 
     /**

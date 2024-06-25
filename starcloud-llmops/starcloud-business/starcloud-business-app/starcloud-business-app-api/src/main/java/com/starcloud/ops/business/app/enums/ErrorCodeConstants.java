@@ -34,6 +34,11 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_LLM_FAILURE = new ErrorCode(300_100_550, "大模型执行异常！请稍候重试！");
 
+    /**
+     * 大模型执行异常
+     */
+    ErrorCode EXECUTE_POSTER_FAILURE = new ErrorCode(300_100_551, "海报执行异常！请稍候重试！");
+
     // 1.========== 通用错误 300 000 xxx ==========
 
     /**

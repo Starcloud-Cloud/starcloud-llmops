@@ -50,14 +50,14 @@ public class ServiceExceptionUtil {
         return exception0(errorCode.getCode(), messagePattern);
     }
 
-    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause) {
-        String messagePattern = MESSAGES.getOrDefault(errorCode.getCode(), errorCode.getMsg());
-        return exception1(errorCode.getCode(), messagePattern, cause);
-    }
-
     public static ServiceException exception(ErrorCode errorCode, Object... params) {
         String messagePattern = MESSAGES.getOrDefault(errorCode.getCode(), errorCode.getMsg());
         return exception0(errorCode.getCode(), messagePattern, params);
+    }
+
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause) {
+        String messagePattern = MESSAGES.getOrDefault(errorCode.getCode(), errorCode.getMsg());
+        return exception1(errorCode.getCode(), messagePattern, cause);
     }
 
     public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
