@@ -165,11 +165,12 @@ public class PosterActionHandler extends BaseActionHandler {
      * 执行OpenApi生成的步骤
      *
      * @return 执行结果
+     * @param context
      */
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
         try {
             log.info("海报生成 Action 执行开始......");
 
@@ -177,7 +178,7 @@ public class PosterActionHandler extends BaseActionHandler {
              * 获取到待执行的海报风格，并进行校验
              */
             // 获取海报风格
-            PosterStyleDTO style = getPosterStyle();
+            PosterStyleDTO style = getPosterStyle(context);
             // 校验海报模版
             style.validate();
 
@@ -186,19 +187,19 @@ public class PosterActionHandler extends BaseActionHandler {
              * 是否依赖别的模板的生成结果
              * 只做标记和必要的校验，不进行参数的填充。
              */
-            markerDependencyTemplate(style);
+            markerDependencyTemplate(context, style);
 
             /*
              * 处理需要复制的模板 <br>
              * 并且进行复制模版的关于素材的变量的填充。
              * 需要依赖结果的模板，即使是复制的模板，也不会复制。
              */
-            handlerCopyTemplate(style);
+            handlerCopyTemplate(context, style);
 
             /*
              * 执行不依赖结果的海报模板，并且获取到结果
              */
-            List<PosterGenerationHandler.Response> undependencyResponse = batchPoster(style, Boolean.FALSE);
+            List<PosterGenerationHandler.Response> undependencyResponse = batchPoster(context, style, Boolean.FALSE);
 
             /*
              * 判断是否要执行依赖结果的模板，
@@ -217,9 +218,9 @@ public class PosterActionHandler extends BaseActionHandler {
              * 其次执行依赖结果的模板
              */
             // 将不依赖的模板结果的模板结果放入到全局上下文中
-            putNoDependencyResultContext(style, undependencyResponse);
+            putNoDependencyResultContext(context, style, undependencyResponse);
             // 执行依赖结果的模板列表
-            List<PosterGenerationHandler.Response> dependencyResponse = batchPoster(style, Boolean.TRUE);
+            List<PosterGenerationHandler.Response> dependencyResponse = batchPoster(context, style, Boolean.TRUE);
             // 对最终结果进行处理，合并，排序
             List<PosterGenerationHandler.Response> list = handlerAllResponse(style, dependencyResponse, undependencyResponse);
             // 处理并且返回结果
@@ -238,9 +239,9 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private PosterStyleDTO getPosterStyle() {
+    private PosterStyleDTO getPosterStyle(AppContext context) {
         // 海报模版参数
-        String posterStyle = String.valueOf(this.getAppContext().getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
+        String posterStyle = String.valueOf(context.getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
         if (StringUtils.isBlank(posterStyle) || "null".equalsIgnoreCase(posterStyle) || "{}".equals(posterStyle)) {
             throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
         }
@@ -275,10 +276,10 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void markerDependencyTemplate(PosterStyleDTO posterStyle) {
+    private void markerDependencyTemplate(AppContext context, PosterStyleDTO posterStyle) {
         // 校验海报风格模板
         List<PosterTemplateDTO> templateList = posterStyle.getPosterTemplateList();
-        String stepCode = this.getAppContext().getStepWrapper().getStepCode();
+        String stepCode = context.getStepWrapper().getStepCode();
         for (int i = 0; i < templateList.size(); i++) {
             PosterTemplateDTO posterTemplate = templateList.get(i);
             List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
@@ -339,7 +340,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void handlerCopyTemplate(PosterStyleDTO style) {
+    private void handlerCopyTemplate(AppContext context, PosterStyleDTO style) {
         // 获取海报模板列表
         List<PosterTemplateDTO> templateList = style.getPosterTemplateList();
 
@@ -369,7 +370,7 @@ public class PosterActionHandler extends BaseActionHandler {
         }
 
         // 获取到素材列表
-        List<Map<String, Object>> materialList = getMaterialList();
+        List<Map<String, Object>> materialList = getMaterialList(context);
         if (CollectionUtil.isEmpty(materialList)) {
             return;
         }
@@ -407,7 +408,7 @@ public class PosterActionHandler extends BaseActionHandler {
                 subMaterialList = subMaterialList.subList(copyTemplateNeedMaterialCount, subMaterialList.size());
             }
 
-            WorkflowStepWrapper materialStepWrapper = this.getAppContext().getStepWrapper(MaterialActionHandler.class);
+            WorkflowStepWrapper materialStepWrapper = context.getStepWrapper(MaterialActionHandler.class);
 
             Map<String, Object> materialMap = new HashMap<>();
             JsonDocsDefSchema materialData = new JsonDocsDefSchema();
@@ -416,7 +417,7 @@ public class PosterActionHandler extends BaseActionHandler {
 
             // 截取需要的素材
             Map<String, Object> variableMap = getPosterVariableMap(copy, Boolean.FALSE);
-            Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariablesValues(variableMap, materialMap);
+            Map<String, Object> replaceValueMap = context.parseMapFromVariablesValues(variableMap, materialMap);
 
             // 循环处理变量列表，进行值填充
             for (PosterVariableDTO variable : copy.getPosterVariableList()) {
@@ -495,11 +496,11 @@ public class PosterActionHandler extends BaseActionHandler {
      * @return 素材列表
      * @return
      */
-    private List<Map<String, Object>> getMaterialList() {
+    private List<Map<String, Object>> getMaterialList(AppContext context) {
         // 获取素材的步骤
-        WorkflowStepWrapper materialStepWrapper = this.getAppContext().getStepWrapper(MaterialActionHandler.class);
+        WorkflowStepWrapper materialStepWrapper = context.getStepWrapper(MaterialActionHandler.class);
         // 获取素材的响应结果
-        ActionResponse materialStepWrapperResponse = this.getAppContext().getStepResponse(materialStepWrapper.getStepCode());
+        ActionResponse materialStepWrapperResponse = context.getStepResponse(materialStepWrapper.getStepCode());
         AppValidate.notNull(materialStepWrapperResponse, materialStepWrapper.getStepCode() + "步骤结果为空！无法进行图片变量替换！");
         // 获取素材的响应结果
         JsonData output = materialStepWrapperResponse.getOutput();
@@ -530,10 +531,10 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void assemble(PosterStyleDTO posterStyle, boolean isDependencyResult) {
+    private void assemble(AppContext context, PosterStyleDTO posterStyle, boolean isDependencyResult) {
         // 获取海报模版列表
         List<PosterTemplateDTO> posterTemplateList = posterStyle.getPosterTemplateList();
-        String stepCode = this.getAppContext().getStepWrapper().getStepCode();
+        String stepCode = context.getStepWrapper().getStepCode();
 
         // 循环处理海报模板列表
         for (PosterTemplateDTO posterTemplate : posterTemplateList) {
@@ -553,18 +554,18 @@ public class PosterActionHandler extends BaseActionHandler {
             // 获取所有变量的uuid和value并且放到此map中
             Map<String, Object> variableMap = getPosterVariableMap(posterTemplate, Boolean.FALSE);
             // 替换变量，未找到的占位符会被替换为空字符串
-            Map<String, Object> replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, stepCode);
+            Map<String, Object> replaceValueMap = context.parseMapFromVariables(variableMap, stepCode);
             // 如果需要进行多模态生成标题，则进行多模态处理，这里是只有改值为 true 的时候才会进行多模态处理。
             if (isNeedMultimodal(posterTemplate)) {
-                PosterTitleDTO posterTitle = multimodalTitle(posterTemplate, replaceValueMap);
+                PosterTitleDTO posterTitle = multimodalTitle(context, posterTemplate, replaceValueMap);
                 Map<String, Object> multimodalMap = new HashMap<>();
                 multimodalMap.put("图片标题", posterTitle.getImgTitle());
                 multimodalMap.put("图片副标题", posterTitle.getImgSubTitle());
-                this.getAppContext().putVariableForce("AI分析", multimodalMap);
+                context.putVariableForce("AI分析", multimodalMap);
                 // 重新获取变量值，包含多模态处理生成的标题
                 variableMap = getPosterVariableMap(posterTemplate, Boolean.TRUE);
                 // 重新进行一次变量替换
-                replaceValueMap = this.getAppContext().parseMapFromVariables(variableMap, stepCode);
+                replaceValueMap = context.parseMapFromVariables(variableMap, stepCode);
             }
 
             // 判断变量替换之后，是否所有的变量都是空的。
@@ -608,7 +609,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void putNoDependencyResultContext(PosterStyleDTO style, List<PosterGenerationHandler.Response> undependencyResponse) {
+    private void putNoDependencyResultContext(AppContext context, PosterStyleDTO style, List<PosterGenerationHandler.Response> undependencyResponse) {
         // 将不依赖结果的模板结果放入到全局上下文中。保证 undependencyResponse 和 templateList 顺序一致
         Map<String, Object> posterResult = new HashMap<>();
         List<PosterGenerationHandler.Response> responseList = SerializationUtils.clone(new ArrayList<>(undependencyResponse));
@@ -641,7 +642,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setSuccess(Boolean.TRUE);
         response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setOutput(JsonData.of(posterResult));
-        this.getAppContext().setActionResponse(response);
+        context.setActionResponse(response);
     }
 
     /**
@@ -702,13 +703,13 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private List<PosterGenerationHandler.Response> batchPoster(PosterStyleDTO posterStyle, boolean isDependencyResult) {
+    private List<PosterGenerationHandler.Response> batchPoster(AppContext context, PosterStyleDTO posterStyle, boolean isDependencyResult) {
         // 组装海报风格参数
-        assemble(posterStyle, isDependencyResult);
+        assemble(context, posterStyle, isDependencyResult);
         // 现获取到依赖结果的模板列表
         List<PosterTemplateDTO> templateList = getPosterTemplateList(posterStyle, isDependencyResult);
         // 执行依赖结果的模板列表
-        return doBatchPoster(templateList);
+        return doBatchPoster(context, templateList);
     }
 
     /**
@@ -719,7 +720,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private List<PosterGenerationHandler.Response> doBatchPoster(List<PosterTemplateDTO> posterTemplateList) {
+    private List<PosterGenerationHandler.Response> doBatchPoster(AppContext context, List<PosterTemplateDTO> posterTemplateList) {
         // 如果海报模版列表为空，则返回空列表
         if (CollectionUtil.isEmpty(posterTemplateList)) {
             return Collections.emptyList();
@@ -727,7 +728,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
         // 任务列表，只执行需要执行的图片，isExecute 为空或者为true，都执行，为false则不需要执行改图片
-        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList).stream().map(item -> CompletableFuture.supplyAsync(() -> poster(item), executor)).collect(Collectors.toList());
+        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList).stream().map(item -> CompletableFuture.supplyAsync(() -> poster(context, item), executor)).collect(Collectors.toList());
 
         // 任务合并
         CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
@@ -754,7 +755,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private HandlerResponse<PosterGenerationHandler.Response> poster(PosterTemplateDTO posterTemplate) {
+    private HandlerResponse<PosterGenerationHandler.Response> poster(AppContext context, PosterTemplateDTO posterTemplate) {
         try {
             // 构建请求
             PosterGenerationHandler.Request handlerRequest = new PosterGenerationHandler.Request();
@@ -769,7 +770,7 @@ public class PosterActionHandler extends BaseActionHandler {
             handlerRequest.setParams(params);
 
             // 构建请求
-            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(this.getAppUid(), this.getAppContext().getConversationUid(), this.getAppContext().getUserId(), this.getAppContext().getEndUserId(), this.getAppContext().getScene(), handlerRequest);
+            HandlerContext<PosterGenerationHandler.Request> handlerContext = HandlerContext.createContext(this.getAppUid(context), context.getConversationUid(), context.getUserId(), context.getEndUserId(), context.getScene(), handlerRequest);
             PosterGenerationHandler handler = new PosterGenerationHandler();
             return handler.execute(handlerContext);
         } catch (ServiceException exception) {
@@ -796,11 +797,11 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public PosterTitleDTO multimodalTitle(PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
+    public PosterTitleDTO multimodalTitle(AppContext context, PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
         try {
             log.info("通义千问多模态执行开始...... 海报模板：{}:{}", posterTemplate.getName(), posterTemplate.getCode());
             // 获取变量值
-            Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+            Map<String, Object> params = context.getContextVariablesValues();
 
             /*
              * 构建多模态执行参数，并且执行
