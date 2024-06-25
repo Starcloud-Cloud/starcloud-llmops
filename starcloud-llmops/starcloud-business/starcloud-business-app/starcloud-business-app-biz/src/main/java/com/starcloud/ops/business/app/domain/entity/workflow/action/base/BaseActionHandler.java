@@ -74,7 +74,17 @@ public abstract class BaseActionHandler extends Object {
     /**
      * 请求应用上下文
      */
-    private AppContext appContext;
+    private static final ThreadLocal<AppContext> threadLocal = new ThreadLocal<>();
+
+
+    public AppContext getAppContext() {
+        return threadLocal.get();
+    }
+
+    public void setAppContext(AppContext appContext) {
+        threadLocal.set(appContext);
+    }
+
 
     /**
      * 生成个handler 实例
