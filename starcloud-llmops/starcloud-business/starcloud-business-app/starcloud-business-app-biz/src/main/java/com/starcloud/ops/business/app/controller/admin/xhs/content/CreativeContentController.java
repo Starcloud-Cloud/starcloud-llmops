@@ -28,13 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -138,18 +132,6 @@ public class CreativeContentController {
                 })
                 .collect(Collectors.toList());
         List<CreativeContentExecuteRespVO> response = creativeContentService.batchExecute(collect);
-        return CommonResult.success(response);
-    }
-
-    @PostMapping("test")
-    @Operation(summary = "test", description = "test")
-    @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<Map<String, Object>> testq() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("localTime", LocalTime.now());
-        response.put("localDate", LocalDate.now());
-        response.put("localDateTime", LocalDateTime.now());
-        response.put("date", new Date());
         return CommonResult.success(response);
     }
 

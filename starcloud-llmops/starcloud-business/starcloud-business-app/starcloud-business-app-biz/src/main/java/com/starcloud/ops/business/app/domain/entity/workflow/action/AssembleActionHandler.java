@@ -9,9 +9,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -66,15 +64,16 @@ public class AssembleActionHandler extends BaseActionHandler {
      * 执行OpenApi生成的步骤
      *
      * @param request 请求参数
+     * @param context
      * @return 执行结果
      */
     @Override
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
         // 获取所有上游信息
-        final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        final Map<String, Object> params = context.getContextVariablesValues();
         // 获取到参考文案标题
         String title = String.valueOf(params.get(CreativeConstants.TITLE));
         // 获取到参考文案内容
@@ -93,7 +92,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         copyWriting.setTagList(tagList);
 
         // 转换响应结果
-        ActionResponse response = convert(copyWriting);
+        ActionResponse response = convert(context, copyWriting);
 
         log.info("AssembleActionHandler 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
         return response;
@@ -108,7 +107,7 @@ public class AssembleActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(CopyWritingContent copyWriting) {
+    private ActionResponse convert(AppContext context, CopyWritingContent copyWriting) {
 
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
@@ -116,8 +115,8 @@ public class AssembleActionHandler extends BaseActionHandler {
         actionResponse.setAnswer(JsonUtils.toJsonPrettyString(copyWriting));
         actionResponse.setOutput(JsonData.of(copyWriting, CopyWritingContent.class));
 
-        actionResponse.setMessage(JsonUtils.toJsonString(this.getAppContext().getContextVariablesValues()));
-        actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
+        actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
+        actionResponse.setStepConfig(context.getContextVariablesValues());
         actionResponse.setMessageTokens(0L);
         actionResponse.setMessageUnitPrice(new BigDecimal("0"));
         actionResponse.setAnswerTokens(0L);

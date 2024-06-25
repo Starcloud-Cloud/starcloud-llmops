@@ -97,25 +97,26 @@ public class ParagraphActionHandler extends BaseActionHandler {
      * 执行OpenApi生成的步骤
      *
      * @return 执行结果
+     * @param context
      */
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
         log.info("段落内容生成[{}]：执行开始......", this.getClass().getSimpleName());
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        Map<String, Object> params = context.getContextVariablesValues();
         log.info("段落内容生成[{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), JsonUtils.toJsonPrettyString(params));
         // 获取到生成模式
         String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
 
         // AI仿写模式
         if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
-            return doAiParodyExecute(params);
+            return doAiParodyExecute(context, params);
         }
 
         // AI自定义模式
         if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(generateMode)) {
-            return doAiCustomExecute(params);
+            return doAiCustomExecute(context, params);
         }
 
         // 不支持的生成模式
@@ -130,7 +131,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse doAiParodyExecute(Map<String, Object> params) {
+    private ActionResponse doAiParodyExecute(AppContext context, Map<String, Object> params) {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
         log.info("段落内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
@@ -156,16 +157,16 @@ public class ParagraphActionHandler extends BaseActionHandler {
 
         // 处理参考内容
         List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
-        this.getAppContext().putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
+        context.putVariable(CreativeConstants.REFERS, JsonUtils.toJsonString(handlerReferList));
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
-        params = this.getAppContext().getContextVariablesValues();
+        params = context.getContextVariablesValues();
         log.info("段落内容生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
+        Integer n = Optional.ofNullable(context.getN()).orElse(1);
         // 获取到 maxTokens
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature
@@ -173,7 +174,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
+        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
         handlerRequest.setModel(model);
         handlerRequest.setN(n);
         handlerRequest.setPrompt(prompt);
@@ -181,7 +182,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         handlerRequest.setTemperature(temperature);
 
         // 执行步骤
-        ActionResponse actionResponse = this.doGenerateExecute(handlerRequest, params);
+        ActionResponse actionResponse = this.doGenerateExecute(context, handlerRequest, params);
         log.info("段落内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JsonUtils.toJsonPrettyString(actionResponse)
@@ -197,7 +198,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse doAiCustomExecute(Map<String, Object> params) {
+    private ActionResponse doAiCustomExecute(AppContext context, Map<String, Object> params) {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
         log.info("段落内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
@@ -215,9 +216,9 @@ public class ParagraphActionHandler extends BaseActionHandler {
         }
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
+        Integer n = Optional.ofNullable(context.getN()).orElse(1);
         // 获取到 maxTokens
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature
@@ -225,7 +226,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
+        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
         handlerRequest.setModel(model);
         handlerRequest.setN(n);
         handlerRequest.setPrompt(prompt);
@@ -233,7 +234,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         handlerRequest.setTemperature(temperature);
 
         // 执行步骤
-        ActionResponse actionResponse = this.doGenerateExecute(handlerRequest, params);
+        ActionResponse actionResponse = this.doGenerateExecute(context, handlerRequest, params);
         log.info("段落内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
                 generateMode,
                 JsonUtils.toJsonPrettyString(actionResponse)
@@ -249,19 +250,19 @@ public class ParagraphActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse doGenerateExecute(OpenAIChatHandler.Request handlerRequest, Map<String, Object> params) {
+    private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest, Map<String, Object> params) {
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
-                this.getAppUid(),
-                this.getAppContext().getConversationUid(),
-                this.getAppContext().getUserId(),
-                this.getAppContext().getEndUserId(),
-                this.getAppContext().getScene(),
+                this.getAppUid(context),
+                context.getConversationUid(),
+                context.getUserId(),
+                context.getEndUserId(),
+                context.getScene(),
                 handlerRequest
         );
 
         // 构建OpenAI处理器
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
         // 执行OpenAI处理器
@@ -305,7 +306,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
         }
 
         // 转换响应结果
-        ActionResponse response = convert(handlerResponse);
+        ActionResponse response = convert(context, handlerResponse);
         return response;
     }
 
@@ -317,7 +318,7 @@ public class ParagraphActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(HandlerResponse<String> handlerResponse) {
+    private ActionResponse convert(AppContext context, HandlerResponse<String> handlerResponse) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(handlerResponse.getSuccess());
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
@@ -334,12 +335,12 @@ public class ParagraphActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
 
         return actionResponse;
