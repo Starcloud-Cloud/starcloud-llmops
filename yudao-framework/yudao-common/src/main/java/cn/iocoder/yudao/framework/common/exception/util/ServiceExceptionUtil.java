@@ -65,6 +65,10 @@ public class ServiceExceptionUtil {
         return exception1(errorCode.getCode(), messagePattern, cause, params);
     }
 
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, String message, Throwable cause, Object... params) {
+        return exception1(errorCode.getCode(), message, cause, params);
+    }
+
     /**
      * 创建指定编号的 ServiceException 的异常
      *

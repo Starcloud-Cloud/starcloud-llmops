@@ -6,6 +6,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
@@ -128,47 +129,39 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
             if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
+                throw invalidParamException("应用步骤【{}】名称重复，请检查后重试", stepWrapper.getName());
             }
             stepWrapper.validate();
         }
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
             if (stepWrappers.size() < 3) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】"));
+                throw invalidParamException("媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】");
             }
             // 第一个步骤必须是：上传素材步骤，有且只有一个
-            boolean materialCount = stepWrappers.stream()
-                    .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
+            boolean materialCount = stepWrappers.stream().filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
+                throw invalidParamException("媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！");
             }
             // 倒数第二个必须包含笔记生成步骤, 有且只有一个
-            boolean assembleMatch = stepWrappers.stream()
-                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
+            boolean assembleMatch = stepWrappers.stream().filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!AssembleActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 2).getFlowStep().getHandler()) && !assembleMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
+                throw invalidParamException("媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！");
             }
             // 最后一个步骤必须是图片生成步骤, 有且只有一个
-            boolean posterMatch = stepWrappers.stream()
-                    .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
+            boolean posterMatch = stepWrappers.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！"));
+                throw invalidParamException("媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！");
             }
             // 如果存在变量步骤，变量不能为空
-            List<WorkflowStepWrapper> variableStepList = stepWrappers.stream()
-                    .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .collect(Collectors.toList());
+            List<WorkflowStepWrapper> variableStepList = stepWrappers.stream().filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).collect(Collectors.toList());
             if (variableStepList.size() > 1) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最多只能有一个【全局变量】步骤！"));
+                throw invalidParamException("媒体矩阵类型应用最多只能有一个【全局变量】步骤！");
             }
             for (WorkflowStepWrapper variableStep : variableStepList) {
                 VariableEntity variable = variableStep.getVariable();
                 if (variable == null || CollectionUtil.isEmpty(variable.getVariables())) {
-                    throw exception(new ErrorCode(300100140, "媒体矩阵类型应用变量步骤【" + variableStep.getName() + "】最少需要配置一个变量！"));
+                    throw invalidParamException("媒体矩阵类型应用变量步骤【{}】最少需要配置一个变量！", variableStep.getName());
                 }
             }
             // 获取图片配置变量
@@ -220,44 +213,45 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
-        log.info("应用工作流执行开始...");
         AppContext appContext;
+
         try {
+            log.info("应用执行【开始执行】: 应用UID: {}, 执行场景: {}, 会话UID: {}",
+                    this.getUid(), request.getScene(), request.getConversationUid());
             // 权益检测
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_BEAN, request.getUserId());
-            // 构建应用上下文
-            appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-            appContext.setUserId(request.getUserId());
-            appContext.setEndUser(request.getEndUser());
-            appContext.setConversationUid(request.getConversationUid());
-            appContext.setSseEmitter(request.getSseEmitter());
-            appContext.setMediumUid(request.getMediumUid());
-            appContext.setAiModel(this.obtainLlmAiModelType(request));
-            appContext.setN(request.getN());
-            appContext.setContinuous(request.getContinuous());
 
-            if (StringUtils.isNotBlank(request.getStepId())) {
-                appContext.setStepId(request.getStepId());
-            } else {
-                request.setStepId(appContext.getStepId());
-                //不传入节点，默认从头开始执行到最后节点
-                appContext.setContinuous(true);
-            }
+            // 构建应用上下文
+            appContext = buildAppContext(request);
+
         } catch (ServiceException exception) {
-            log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), request.getScene(), request.getConversationUid(), exception.getCode(), exception.getMessage());
+
+            // 创建应用消息日志
             String messageUid = this.createAppMessageLog(request, exception);
-            // ServiceException 时候将消息UID传入exception中
-            exception.setScene(request.getScene());
             exception.setBizUid(messageUid);
+            exception.setScene(request.getScene());
             throw exception;
+
         } catch (Exception exception) {
-            log.error("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
-            this.createAppMessageLog(request, exception);
-            throw exception;
+            ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_FAILURE;
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), request.getScene(), request.getConversationUid(), errorCode.getCode(), exception.getMessage());
+            // 创建应用消息日志
+            String messageUid = this.createAppMessageLog(request, exception);
+            ServiceException serviceException = ServiceExceptionUtil.exceptionWithCause(errorCode, exception);
+            serviceException.setBizUid(messageUid);
+            serviceException.setScene(request.getScene());
+            throw serviceException;
         }
 
         // 执行工作流应用
-        return this.fire(appContext);
+        AppExecuteRespVO response = fire(appContext);
+
+        log.info("应用执行【执行成功】: 应用UID: {}, 执行场景: {}, 会话UID: {}",
+                this.getUid(), request.getScene(), request.getConversationUid());
+        return response;
     }
 
     /**
@@ -428,6 +422,33 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     }
 
     /**
+     * 构建应用上下文
+     *
+     * @param request 请求参数
+     * @return 应用上下文
+     */
+    private AppContext buildAppContext(AppExecuteReqVO request) {
+        // 构建应用上下文
+        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+        appContext.setUserId(request.getUserId());
+        appContext.setEndUser(request.getEndUser());
+        appContext.setConversationUid(request.getConversationUid());
+        appContext.setSseEmitter(request.getSseEmitter());
+        appContext.setMediumUid(request.getMediumUid());
+        appContext.setAiModel(this.obtainLlmAiModelType(request));
+        appContext.setN(request.getN());
+        appContext.setContinuous(request.getContinuous());
+        if (StringUtils.isNotBlank(request.getStepId())) {
+            appContext.setStepId(request.getStepId());
+        } else {
+            request.setStepId(appContext.getStepId());
+            //不传入节点，默认从头开始执行到最后节点
+            appContext.setContinuous(true);
+        }
+        return appContext;
+    }
+
+    /**
      * 执行应用
      *
      * @param appContext 执行应用上下文
@@ -435,68 +456,47 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO fire(@Valid AppContext appContext) {
-        // 组装请信息
-        StoryRequest<ActionResponse> fireRequest = ReqBuilder.returnType(ActionResponse.class)
-                .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
-                .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
-                .startId(appContext.getConversationUid())
-                .request(appContext)
-                .recallStoryHook(this.recallStoryHook(appContext))
-                .build();
+        try {
+            // 组装请求信息
+            StoryRequest<ActionResponse> fireRequest = ReqBuilder.returnType(ActionResponse.class)
+                    .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
+                    .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
+                    .startId(appContext.getConversationUid())
+                    .request(appContext)
+                    .recallStoryHook(this.recallStoryHook(appContext))
+                    .build();
 
-        // 执行工作流
-        TaskResponse<ActionResponse> fire = storyEngine.fire(fireRequest);
+            // 执行工作流
+            TaskResponse<ActionResponse> taskResponse = storyEngine.fire(fireRequest);
 
-        // 如果异常，抛出异常
-        if (Objects.nonNull(fire.getResultException())) {
-            Throwable resultException = fire.getResultException();
-            log.error("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
-            if (resultException instanceof ServiceException) {
-                throw (ServiceException) resultException;
-            }
-            // 工作流框架可能会包装 ServiceException，所以尝试从 cause 中获取
-            if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
-                throw (ServiceException) resultException.getCause();
-            }
-            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage());
+            // 校验并且处理结果
+            ActionResponse result = validateAndHandlerResponse(taskResponse, appContext);
+
+            // 组装并且返回结果
+            AppExecuteRespVO appExecuteResponse = new AppExecuteRespVO();
+            appExecuteResponse.setSuccess(Boolean.TRUE);
+            appExecuteResponse.setResultCode(taskResponse.getResultCode());
+            appExecuteResponse.setResultDesc(taskResponse.getResultDesc());
+            appExecuteResponse.setResult(result.getOutput().getData());
+            appExecuteResponse.setConversationUid(appContext.getConversationUid());
+            appExecuteResponse.setIsSendSseAll(result.getIsSendSseAll());
+            return appExecuteResponse;
+
+        } catch (ServiceException exception) {
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), appContext.getScene().name(), appContext.getConversationUid(), exception.getCode(), exception.getMessage());
+            exception.setScene(appContext.getScene().name());
+            throw exception;
+
+        } catch (Exception exception) {
+            ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_FAILURE;
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), appContext.getScene().name(), appContext.getConversationUid(), errorCode.getCode(), exception.getMessage());
+
+            ServiceException serviceException = ServiceExceptionUtil.exceptionWithCause(errorCode, exception);
+            serviceException.setScene(appContext.getScene().name());
+            throw serviceException;
         }
-
-        // 如果执行失败，抛出异常
-        if (!fire.isSuccess()) {
-            log.error("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
-        }
-
-        /**
-         * 因为执行到最后 stepId 就是最后的节点
-         */
-        ActionResponse result = appContext.getStepResponse(appContext.getStepId());
-
-        if (Objects.isNull(result)) {
-            log.error("应用工作流执行异常(ActionResponse 结果为空): 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT);
-        }
-
-        if (!result.getSuccess()) {
-            log.error("应用工作流执行异常(ActionResponse success 为 false): 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, StringUtils.isBlank(result.getErrorMsg()) ? "执行失败" : result.getErrorMsg());
-        }
-
-        String answer = result.getAnswer();
-        if (StringUtils.isBlank(answer)) {
-            log.error("应用工作流执行异常(ActionResponse answer 为空): 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_ANSWER_NOT_EXIST, appContext.getStepId());
-        }
-        result.setAnswer(answer.trim());
-
-        log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
-
-        AppExecuteRespVO appExecuteRespVO = AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getOutput().getData(), appContext.getConversationUid());
-        appExecuteRespVO.setIsSendSseAll(result.getIsSendSseAll());
-
-        //只返回内容
-        return appExecuteRespVO;
-
     }
 
     /**
@@ -509,15 +509,18 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
         return (story) -> {
-            log.info("应用执行回调开始...");
-            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking).orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
+            log.info("应用执行【工作流回调开始】");
+            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking())
+                    .map(MonitorTracking::getStoryTracking)
+                    .orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
+
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
                     //把业务的异常传入进来
                     this.createAppMessageLog(appContext, nodeTracking, story.getException());
                 }
             }
-            log.info("应用执行回调结束...");
+            log.info("应用执行【工作流回调结束】");
         };
     }
 
@@ -530,7 +533,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking, Optional<Throwable> storyException) {
-
         this.createAppMessage((messageCreateRequest) -> {
 
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
@@ -667,10 +669,77 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     private <T> T getTracking(List<FieldTracking> noticeTrackingList, Class<T> clazz) {
         String clsName = clazz.getSimpleName();
         String field = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, clsName);
-        return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream()
-                .filter(noticeTracking -> noticeTracking.getSourceName().equals(field))
-                .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
-                .findFirst().orElse(null);
+        return Optional.ofNullable(noticeTrackingList).orElse(new ArrayList<>()).stream().filter(noticeTracking -> noticeTracking.getSourceName().equals(field)).map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz)).findFirst().orElse(null);
     }
-    
+
+    /**
+     * 校验工作流执行结果
+     *
+     * @param taskResponse 工作流执行结果
+     * @return 执行结果
+     */
+    private ActionResponse validateAndHandlerResponse(TaskResponse<ActionResponse> taskResponse, AppContext appContext) {
+
+        // 如果异常存在异常，则处理后抛出该异常。
+        Throwable resultException = taskResponse.getResultException();
+        if (Objects.nonNull(resultException)) {
+
+            // 如果是 ServiceException 异常，直接抛出
+            if (resultException instanceof ServiceException) {
+                throw (ServiceException) resultException;
+            }
+
+            // 尝试从 cause 中获取，如果是 ServiceException 异常，直接抛出
+            if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
+                throw (ServiceException) resultException.getCause();
+            }
+
+            // 其他异常: 直接抛出即可
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage(), resultException);
+        }
+
+        // 如果执行失败，抛出异常
+        if (!taskResponse.isSuccess()) {
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, taskResponse.getResultDesc());
+        }
+
+        /*
+         * 因为执行到最后 stepId 就是最后的节点
+         */
+        ActionResponse response = appContext.getStepResponse(appContext.getStepId());
+
+        // 如果执行结果不存在，抛出异常
+        if (Objects.isNull(response)) {
+            throw exceptionWithMessage(ErrorCodeConstants.EXECUTE_APP_FAILURE, "应用执行失败，执行结果不存在！");
+        }
+
+        // 如果执行结果失败，抛出异常
+        if (!response.getSuccess()) {
+            String errorMessage = response.getErrorMsg();
+            String errorCode = response.getErrorCode();
+            errorMessage = StringUtils.isBlank(errorMessage) ? ErrorCodeConstants.EXECUTE_APP_FAILURE.getMsg() : errorMessage;
+            int code = ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode();
+            try {
+                code = Integer.parseInt(errorCode);
+            } catch (Exception exception) {
+                // ignore
+            }
+            throw exception(new ErrorCode(code, errorMessage));
+        }
+
+        // 如果执行结果为空，抛出异常
+        String answer = response.getAnswer();
+        if (StringUtils.isBlank(answer)) {
+            throw exceptionWithMessage(ErrorCodeConstants.EXECUTE_APP_FAILURE, "应用执行失败，执行结果为空！");
+        }
+
+        // 如果执行结果为空，抛出异常
+        if (Objects.isNull(response.getOutput()) || Objects.isNull(response.getOutput().getData())) {
+            throw exceptionWithMessage(ErrorCodeConstants.EXECUTE_APP_FAILURE, "应用执行失败，执行结果为空！");
+        }
+
+        response.setAnswer(answer.trim());
+        return response;
+    }
+
 }

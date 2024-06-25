@@ -239,7 +239,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract R doExecute(Q request);
+    protected abstract R
+    doExecute(Q request);
 
     /**
      * 模版方法：异步执行应用
@@ -756,6 +757,62 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
+    }
+
+    /**
+     * 异常
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException exceptionWithMessage(ErrorCode errorCode, String message, Object... params) {
+        return ServiceExceptionUtil.exception0(errorCode.getCode(), message, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, String message, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exception1(errorCode.getCode(), message, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exceptionWithCause(errorCode, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param message 错误消息模板
+     * @param params  参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException invalidParamException(String message, Object... params) {
+        return ServiceExceptionUtil.invalidParamException(message, params);
     }
 
     /**

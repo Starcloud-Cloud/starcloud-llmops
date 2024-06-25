@@ -1,13 +1,12 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +19,6 @@ import java.util.List;
  * @version 1.0.0
  * @since 2023-05-31
  */
-@SuppressWarnings("all")
 @Slf4j
 @Data
 public abstract class BaseHandler<Q, R> {
@@ -56,27 +54,10 @@ public abstract class BaseHandler<Q, R> {
      * @param context 请求上下文
      * @return 执行结果
      */
+    @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
     protected abstract HandlerResponse<R> _execute(HandlerContext<Q> context);
-
-    /**
-     * 生成个handler 实例
-     *
-     * @param name handler 名称
-     * @return handler
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static BaseHandler of(String name) {
-        try {
-            //头部小写驼峰
-            return SpringUtil.getBean(StrUtil.lowerFirst(name));
-        } catch (Exception e) {
-            log.error("BaseHandler of is fail: {}", name);
-        }
-        return null;
-    }
 
     /**
      * 获取handler 标签，前端分类筛选用
@@ -98,38 +79,42 @@ public abstract class BaseHandler<Q, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public HandlerResponse<R> execute(HandlerContext<Q> context) {
-        HandlerResponse<R> handlerResponse = new HandlerResponse<>();
-        handlerResponse.setSuccess(false);
-        long start = System.currentTimeMillis();
         try {
-            // @todo 默认执行开始 tips 提示
-            // 中间的交互提示 可以在 具体的handler内继续调用
-            HandlerResponse<R> source = this._execute(context);
-            // 设置的属性copy
-            BeanUtil.copyProperties(source, handlerResponse);
-            handlerResponse.setSuccess(true);
+            log.info("节点处理器【开始执行】: 处理器名称: {}", this.getClass().getSimpleName());
+
+            // 记录开始时间
+            long start = System.currentTimeMillis();
+            // 执行具体的处理器
+            HandlerResponse<R> handlerResponse = this._execute(context);
+            // 处理返回结果
             handlerResponse.setType(this.getClass().getSimpleName());
             // 临时放这里
-            if (StringUtils.isBlank(source.getMessage())) {
+            if (StringUtils.isBlank(handlerResponse.getMessage())) {
                 handlerResponse.setMessage(JsonUtils.toJsonString(context.getRequest()));
             }
-            if (StringUtils.isBlank(source.getAnswer())) {
-                handlerResponse.setAnswer(JsonUtils.toJsonString(source.getOutput()));
+            if (StringUtils.isBlank(handlerResponse.getAnswer())) {
+                handlerResponse.setAnswer(JsonUtils.toJsonString(handlerResponse.getOutput()));
             }
-        } catch (ServiceException e) {
-            log.error("BaseHandler（{}） execute is error: {}", this.getClass().getSimpleName(), e.getMessage(), e);
-            handlerResponse.setErrorCode(e.getCode());
-            handlerResponse.setErrorMsg(e.getMessage());
-            context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
-        } catch (Exception e) {
-            log.error("BaseHandler（{}）execute is fail: {}", this.getClass().getSimpleName(), e.getMessage(), e);
-            handlerResponse.setErrorCode(ChatErrorCodeConstants.TOOL_RUN_ERROR.getCode());
-            handlerResponse.setErrorMsg(e.getMessage());
-            context.sendCurrentInteractiveError(handlerResponse.getErrorCode(), handlerResponse.getErrorMsg());
-        }
-        handlerResponse.setElapsed(System.currentTimeMillis() - start);
-        return handlerResponse;
+            // 记录执行时间
+            handlerResponse.setElapsed(System.currentTimeMillis() - start);
+            log.info("节点处理器【执行成功】: 处理器名称: {}, 执行时间: {}ms",
+                    this.getClass().getSimpleName(), handlerResponse.getElapsed());
 
+            return handlerResponse;
+        } catch (ServiceException exception) {
+            log.error("节点处理器【执行异常】: 处理器名称: {}, 错误码: {}, 异常信息: {}",
+                    this.getClass().getSimpleName(), exception.getCode(), exception.getMessage());
+            // 发送错误交互反馈
+            context.sendCurrentInteractiveError(exception.getCode(), exception.getMessage());
+            throw exception;
+        } catch (Exception exception) {
+            ErrorCode errorCode = ErrorCodeConstants.EXECUTE_STEP_HANDLER_FAILURE;
+            log.error("节点处理器【执行异常】: 处理器名称: {}, 异常信息: {}",
+                    this.getClass().getSimpleName(), exception.getMessage());
+            // 发送错误交互反馈
+            context.sendCurrentInteractiveError(errorCode.getCode(), errorCode.getMsg());
+            throw ServiceExceptionUtil.exceptionWithCause(errorCode, exception.getMessage(), exception);
+        }
     }
 
 }

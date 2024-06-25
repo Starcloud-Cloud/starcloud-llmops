@@ -286,7 +286,6 @@ public class CreativeExecuteManager {
         extended.put("contentMaxRetry", maxRetry);
         extended.put("contentStatus", latestContent.getStatus());
         extended.put("contentSource", latestContent.getSource());
-        // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
         extended.put("isSendAlarm", false);
 
         // 构建应用执行参数

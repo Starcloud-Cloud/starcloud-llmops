@@ -21,11 +21,7 @@ public class AppValidate {
      * @param args    参数
      */
     public static void isNull(Object object, String message, Object... args) {
-        Assert.isNull(object, () -> ServiceExceptionUtil.exception(
-                        new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), message),
-                        args
-                )
-        );
+        Assert.isNull(object, () -> ServiceExceptionUtil.invalidParamException(message, args));
     }
 
     /**
@@ -47,12 +43,7 @@ public class AppValidate {
      * @param args    参数
      */
     public static void notNull(Object object, String message, Object... args) {
-        Assert.notNull(
-                object, () -> ServiceExceptionUtil.exception(
-                        new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), message),
-                        args
-                )
-        );
+        Assert.notNull(object, () -> ServiceExceptionUtil.invalidParamException(message, args));
     }
 
     /**
@@ -74,12 +65,7 @@ public class AppValidate {
      * @param args    参数
      */
     public static void notBlank(String text, String message, Object... args) {
-        Assert.notBlank(
-                text, () -> ServiceExceptionUtil.exception(
-                        new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), message),
-                        args
-                )
-        );
+        Assert.notBlank(text, () -> ServiceExceptionUtil.invalidParamException(message, args));
     }
 
     /**
@@ -101,12 +87,7 @@ public class AppValidate {
      * @param args       参数
      */
     public static void isTrue(boolean expression, String message, Object... args) {
-        Assert.isTrue(
-                expression, () -> ServiceExceptionUtil.exception(
-                        new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), message),
-                        args
-                )
-        );
+        Assert.isTrue(expression, () -> ServiceExceptionUtil.invalidParamException(message, args));
     }
 
     /**
@@ -128,12 +109,7 @@ public class AppValidate {
      * @param args       参数
      */
     public static void isFalse(boolean expression, String message, Object... args) {
-        Assert.isFalse(
-                expression, () -> ServiceExceptionUtil.exception(
-                        new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), message),
-                        args
-                )
-        );
+        Assert.isFalse(expression, () -> ServiceExceptionUtil.invalidParamException(message, args));
     }
 
     /**
@@ -155,12 +131,7 @@ public class AppValidate {
      * @param args       参数
      */
     public static <E, T extends Iterable<E>> void notEmpty(T collection, String message, Object... args) {
-        Assert.notEmpty(
-                collection, () -> ServiceExceptionUtil.exception(
-                        new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), message),
-                        args
-                )
-        );
+        Assert.notEmpty(collection, () -> ServiceExceptionUtil.invalidParamException(message, args));
     }
 
     /**

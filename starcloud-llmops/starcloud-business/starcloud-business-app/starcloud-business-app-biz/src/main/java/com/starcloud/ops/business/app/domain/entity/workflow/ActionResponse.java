@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.domain.entity.workflow;
 
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import lombok.Data;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 
@@ -124,6 +124,11 @@ public class ActionResponse {
      */
     private Object stepConfig;
 
+    /**
+     * 异常
+     */
+    private Throwable throwable;
+
     public static ActionResponse failure(String errorCode, String errorMsg, Object stepConfig) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.FALSE);
@@ -136,6 +141,30 @@ public class ActionResponse {
         actionResponse.setStepConfig(stepConfig);
         actionResponse.setCostPoints(0);
         return actionResponse;
+    }
+
+    /**
+     * 解析错误码
+     *
+     * @param errorCode 错误码
+     * @return 错误码
+     */
+    public static int parseIntCode(String errorCode) {
+        try {
+            return Integer.parseInt(errorCode);
+        } catch (Exception exception) {
+            return ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode();
+        }
+    }
+
+    /**
+     * 将错误码转换为字符串
+     *
+     * @param code 错误码
+     * @return 错误码
+     */
+    public static String valueOfCode(int code) {
+        return String.valueOf(code);
     }
 
 }

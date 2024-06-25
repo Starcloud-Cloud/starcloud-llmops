@@ -9,7 +9,7 @@ import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
@@ -62,6 +63,9 @@ import java.util.stream.Collectors;
 @TaskComponent
 public class CustomActionHandler extends BaseActionHandler {
 
+    /**
+     * 字典服务
+     */
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppDictionaryService appDictionaryService = SpringUtil.getBean(AppDictionaryService.class);
@@ -90,7 +94,6 @@ public class CustomActionHandler extends BaseActionHandler {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
-
     /**
      * 具体handler的出参定义
      *
@@ -112,17 +115,14 @@ public class CustomActionHandler extends BaseActionHandler {
     /**
      * 执行OpenApi生成的步骤
      *
-     * @return 执行结果
      * @param context
+     * @return 执行结果
      */
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
-
         Map<String, Object> params = context.getContextVariablesValues();
-        log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), context.getStepId(), JsonUtils.toJsonPrettyString(params));
-
         // 获取到生成模式
         String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
 
@@ -142,7 +142,7 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         // 不支持的生成模式
-        throw ServiceExceptionUtil.exception(new ErrorCode(310100020, "自定义内容生成不支持的生成模式"));
+        throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 不支持的生成模式: {}", generateMode);
     }
 
     /**
@@ -154,46 +154,57 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse doRandomExecute(AppContext context, Map<String, Object> params) {
-        log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), CreativeSchemeGenerateModeEnum.RANDOM.name());
+
+        log.info("内容生成步骤【开始执行】: 执行步骤: {}, 生成模式: {}, 应用UID: {}",
+                context.getStepId(), CreativeSchemeGenerateModeEnum.RANDOM.name(), context.getUid());
+
         // 获取到参考文案
-        String refers = String.valueOf(params.get(CreativeConstants.REFERS));
-        if (StrUtil.isBlank(refers)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
-        }
+        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
-
         if (CollectionUtil.isEmpty(referList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 生成模式为【{}】时，参考内容不能为空！", context.getStepId(), CreativeSchemeGenerateModeEnum.RANDOM.getLabel());
         }
 
+        // 随机获取一条参考文案，作为生成结果
         AbstractCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
+
+        // 计算价格相关结果
+        ModelTypeEnum llmModel = ModelTypeEnum.GPT_3_5_TURBO;
+        String message = CreativeSchemeGenerateModeEnum.RANDOM.name();
+        String answer = reference.generateContent();
+        long messageTokens = message.length();
+        long answerTokens = answer.length();
+        long totalTokens = messageTokens + answerTokens;
+        BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(llmModel, true);
+        BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(llmModel, false);
+        BigDecimal messagePrice = TokenCalculator.getTextPrice(messageTokens, llmModel, true);
+        BigDecimal answerPrice = TokenCalculator.getTextPrice(answerTokens, llmModel, false);
+        BigDecimal totalPrice = messagePrice.add(answerPrice);
+        int costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModel.getName(), totalTokens);
+
+        // 返回响应结果
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
         actionResponse.setIsShow(Boolean.TRUE);
-        actionResponse.setMessage(" ");
-        actionResponse.setAnswer(reference.generateContent());
-        actionResponse.setOutput(JsonData.of(reference.generateContent()));
-        actionResponse.setMessageTokens((long) actionResponse.getMessage().length());
-        actionResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, true));
-        actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
-        actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, false));
-        actionResponse.setTotalTokens(actionResponse.getMessageTokens() + actionResponse.getAnswerTokens());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
-        BigDecimal messagePrice = new BigDecimal(String.valueOf(actionResponse.getMessageTokens())).multiply(actionResponse.getMessageUnitPrice());
-        BigDecimal answerPrice = new BigDecimal(String.valueOf(actionResponse.getAnswerTokens())).multiply(actionResponse.getAnswerUnitPrice());
-        actionResponse.setTotalPrice(messagePrice.add(answerPrice));
+        actionResponse.setAiModel(llmModel.getName());
+        actionResponse.setMessage(message);
+        actionResponse.setAnswer(answer);
+        actionResponse.setOutput(JsonData.of(answer));
+        actionResponse.setMessageTokens(messageTokens);
+        actionResponse.setMessageUnitPrice(messageUnitPrice);
+        actionResponse.setAnswerTokens(answerTokens);
+        actionResponse.setAnswerUnitPrice(answerUnitPrice);
+        actionResponse.setTotalTokens(totalTokens);
+        actionResponse.setTotalPrice(totalPrice);
+        actionResponse.setCostPoints(costPoints);
         actionResponse.setStepConfig(params);
 
-        // 计算权益点数
-        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
-        actionResponse.setCostPoints(costPoints);
-
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
+        log.info("内容生成步骤【执行成功】: 执行步骤: {}, 生成模式: {}, 应用UID: {}, 生成结果: \n{}",
+                context.getStepId(),
                 CreativeSchemeGenerateModeEnum.RANDOM.name(),
-                JsonUtils.toJsonPrettyString(actionResponse)
-        );
+                context.getUid(),
+                JsonUtils.toJsonPrettyString(actionResponse));
 
         return actionResponse;
     }
@@ -208,13 +219,14 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private ActionResponse doAiParodyExecute(AppContext context, Map<String, Object> params) {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
-        log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
+        String stepId = context.getStepId();
+        log.info("内容生成步骤【开始执行】: 执行步骤: {}, 生成模式: {}, 应用UID: {}", stepId, generateMode, context.getUid());
 
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
         if (CollectionUtil.isEmpty(referList)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "参考内容不能为空"));
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 生成模式为【{}】时，参考内容不能为空！", stepId, generateMode);
         }
 
         // 需要交给 ChatGPT 的参考内容数量
@@ -225,11 +237,12 @@ public class CustomActionHandler extends BaseActionHandler {
         AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
 
         context.putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
-        context.putVariable(CreativeConstants.REQUIREMENT,params.getOrDefault(CreativeConstants.REQUIREMENT,""));
+        context.putVariable(CreativeConstants.REQUIREMENT, params.getOrDefault(CreativeConstants.REQUIREMENT, ""));
         context.putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
 
         // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
         params = context.getContextVariablesValues();
+
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -237,8 +250,6 @@ public class CustomActionHandler extends BaseActionHandler {
          */
         // 获取到 prompt
         String prompt = this.getPrompt(context, params, false);
-
-        log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), context.getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
         String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
@@ -248,6 +259,9 @@ public class CustomActionHandler extends BaseActionHandler {
         Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
         // 获取到 temperature
         Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
+
+        log.info("内容生成步骤【调用大模型】: 执行步骤: {}, 生成模式: {}, 应用UID: {}, 执行参数: \n{}", generateMode, stepId, context.getUid(),
+                JsonUtils.toJsonPrettyString(params));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
@@ -260,14 +274,12 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 执行步骤
         ActionResponse actionResponse = this.doGenerateExecute(context, handlerRequest);
-
         //本身输出已经走Sse了，不需要在发送一次完整的结果
         actionResponse.setIsSendSseAll(false);
 
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 最终结果：\n{}", this.getClass().getSimpleName(),
-                generateMode,
-                JsonUtils.toJsonPrettyString(actionResponse)
-        );
+        log.info("内容生成步骤【执行成功】: 生成模式: {}, 步骤ID: {}, 应用UID: {}, 生成结果: \n{}", generateMode, stepId, context.getStepId(),
+                JsonUtils.toJsonPrettyString(actionResponse));
+
         return actionResponse;
     }
 
@@ -281,9 +293,10 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private ActionResponse doAiCustomExecute(AppContext context, Map<String, Object> params) {
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
-        log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
+        String stepId = context.getStepId();
+        log.info("内容生成步骤【开始执行】: 执行步骤: {}, 生成模式: {}, 应用UID: {}", stepId, generateMode, context.getUid());
 
-        context.putVariable(CreativeConstants.REQUIREMENT,params.getOrDefault(CreativeConstants.REQUIREMENT,""));
+        context.putVariable(CreativeConstants.REQUIREMENT, params.getOrDefault(CreativeConstants.REQUIREMENT, ""));
         context.putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
         params = context.getContextVariablesValues();
 
@@ -304,6 +317,9 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 temperature
         Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
 
+        log.info("内容生成步骤【调用大模型】: 执行步骤: {}, 生成模式: {}, 应用UID: {}, 执行参数: \n{}", generateMode, stepId, context.getUid(),
+                JsonUtils.toJsonPrettyString(params));
+
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
         handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
@@ -318,10 +334,8 @@ public class CustomActionHandler extends BaseActionHandler {
         //本身输出已经走Sse了，不需要在发送一次完整的结果
         actionResponse.setIsSendSseAll(false);
 
-        log.info("自定义内容生成[{}]：执行成功。生成模式: [{}], : 最终结果：\n{}", this.getClass().getSimpleName(),
-                generateMode,
-                JsonUtils.toJsonPrettyString(actionResponse)
-        );
+        log.info("内容生成步骤【执行成功】: 生成模式: {}, 步骤ID: {}, 应用UID: {}, 生成结果: \n{}", generateMode, stepId, context.getStepId(),
+                JsonUtils.toJsonPrettyString(actionResponse));
         return actionResponse;
     }
 
@@ -348,9 +362,6 @@ public class CustomActionHandler extends BaseActionHandler {
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
         // 执行OpenAI处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
-        log.info("自定义内容生成[{}]：执行成功, : 未转化前结果：\n{}", this.getClass().getSimpleName(),
-                JsonUtils.toJsonPrettyString(handlerResponse)
-        );
         // 转换并且返回响应结果
         return convert(context, handlerResponse);
     }
@@ -364,6 +375,12 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
+        // 计算权益点数
+        Long tokens = handlerResponse.getMessageTokens() + handlerResponse.getAnswerTokens();
+        String llmModel = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModel, tokens);
+
+        // 构建响应结果
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(handlerResponse.getSuccess());
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
@@ -372,7 +389,6 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setIsShow(true);
         actionResponse.setMessage(handlerResponse.getMessage());
         actionResponse.setAnswer(handlerResponse.getAnswer());
-        //actionResponse.setOutput(JsonData.of(handlerResponse.getAnswer()));
         actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
         actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
         actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
@@ -380,29 +396,50 @@ public class CustomActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        actionResponse.setAiModel(llmModel);
+        try {
+            // 解析输出内容
+            JsonData output = this.parseOutput(context, handlerResponse);
+            // 设置输出内容
+            handlerResponse.setOutput(output);
+            actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        } catch (Exception exception) {
+            actionResponse.setSuccess(Boolean.FALSE);
+            if (exception instanceof ServiceException) {
+                ServiceException serviceException = (ServiceException) exception;
+                actionResponse.setErrorCode(String.valueOf(serviceException.getCode()));
+            } else {
+                actionResponse.setErrorCode(ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode().toString());
+            }
+            actionResponse.setErrorMsg("【{}】步骤执行失败: " + exception.getMessage());
+            actionResponse.setCostPoints(0);
+            actionResponse.setThrowable(exception);
+            return actionResponse;
+        }
+        return actionResponse;
+    }
 
-        // 计算权益点数
-        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
-
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
-
-        //如果配置了 JsonSchema
+    /**
+     * 解析输出内容
+     *
+     * @param context         上下文
+     * @param handlerResponse 处理结果
+     * @return 解析后的结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private JsonData parseOutput(AppContext context, HandlerResponse handlerResponse) {
+        // 如果配置了 JsonSchema
         if (this.hasResponseJsonSchema(context)) {
             //获取当前定义的返回结构
             JsonSchema jsonSchema = this.getOutVariableJsonSchema(context);
-
             JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
-            JSON json = jsonSchemaParser.parse(actionResponse.getAnswer());
-
-            actionResponse.setOutput(JsonData.of(json, jsonSchema));
+            JSON json = jsonSchemaParser.parse(handlerResponse.getAnswer());
+            return JsonData.of(json, jsonSchema);
         } else {
             //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
-            actionResponse.setOutput(JsonData.of(actionResponse.getAnswer()));
+            return JsonData.of(handlerResponse.getAnswer());
         }
-
-        return actionResponse;
     }
 
     /**
@@ -449,14 +486,19 @@ public class CustomActionHandler extends BaseActionHandler {
                     throw new RuntimeException("系统默认promp为空！");
                 }
             } catch (Exception exception) {
-                log.error("prompt 异常：{}", e.getMessage(), e);
-                throw ServiceExceptionUtil.exception(new ErrorCode(310100019, "系统应用配置异常：prompt不存在，请联系管理员！"));
+                log.error("【{}】步骤执行失败: prompt 配置异常，{}", context.getStepId(), exception.getMessage());
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: prompt 配置异常，请联系管理员或稍后重试！", context.getStepId());
             }
         }
 
         return prompt;
     }
 
+    /**
+     * 系统默认配置prompt
+     *
+     * @return prompt
+     */
     private String sysPrompt() {
         String prompt = MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(CreativeConstants.SYS_PROMPT, StrUtil.EMPTY);
         return prompt;
@@ -477,6 +519,12 @@ public class CustomActionHandler extends BaseActionHandler {
         return promptList;
     }
 
+    /**
+     * 处理参考内容
+     *
+     * @param referList 参考内容
+     * @return 处理后的参考内容
+     */
     private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {
         try {
             StringJoiner sj = new StringJoiner("\n");

@@ -3,10 +3,8 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action.base;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
@@ -32,7 +30,6 @@ import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -62,17 +59,6 @@ public abstract class BaseActionHandler extends Object {
     private static AppStepStatusCache appStepStatusCache = SpringUtil.getBean(AppStepStatusCache.class);
 
     /**
-     * 步骤名称
-     */
-    private String name;
-
-    /**
-     * 步骤描述
-     */
-    private String description;
-
-
-    /**
      * 生成个handler 实例
      *
      * @param name handler 名称
@@ -84,8 +70,8 @@ public abstract class BaseActionHandler extends Object {
         try {
             //头部小写驼峰
             return SpringUtil.getBean(StrUtil.lowerFirst(name));
-        } catch (Exception e) {
-            log.error("BaseActionHandler of is fail: {}", name);
+        } catch (Exception exception) {
+            log.error("获取步骤节点处理器失败：{}", name);
         }
         return null;
     }
@@ -102,8 +88,8 @@ public abstract class BaseActionHandler extends Object {
     /**
      * 执行具体的步骤
      *
-     * @return 执行结果
      * @param context
+     * @return 执行结果
      */
     @JsonIgnore
     @JSONField(serialize = false)
@@ -115,9 +101,7 @@ public abstract class BaseActionHandler extends Object {
      * @return
      */
     public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         //默认所有节点的入参都不返回支持
-
         return null;
     }
 
@@ -128,22 +112,16 @@ public abstract class BaseActionHandler extends Object {
      * @return
      */
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         //如果配置了返回结构定义就获取，不然就创建一个默认的
         String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
         if (StrUtil.isNotBlank(json)) {
             //有配置，直接返回
-
             JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
-
             return jsonSchema;
-
         } else {
-
             //定义一个默认的JsonSchema结构， xxx.data
             return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
         }
-
     }
 
 
@@ -165,7 +143,6 @@ public abstract class BaseActionHandler extends Object {
      * @return
      */
     public Boolean hasResponseJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         //如果配置了返回结构定义就获取，不然就创建一个默认的
         String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
         return StrUtil.isNotBlank(json);
@@ -235,7 +212,8 @@ public abstract class BaseActionHandler extends Object {
     }
 
     /**
-     * 流程执行器，action 执行入口
+     * 流程执行器，action 执行入口。
+     * 异常自己吃掉，放入到上下文中，由上层处理
      *
      * @param context           上下文
      * @param scopeDataOperator 作用域数据操作器
@@ -244,74 +222,113 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
-        log.info("Action[{}]执行开始： 当前用户信息 {}, {}, {}, {}", this.getClass().getSimpleName(), context.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
 
         // 从工作流上下文中获取步骤ID
         Optional<String> property = scopeDataOperator.getTaskProperty();
         AppProcessParser.ServiceTaskPropertyDTO serviceTaskProperty = JSONUtil.toBean(property.get(), AppProcessParser.ServiceTaskPropertyDTO.class);
         String stepId = serviceTaskProperty.getStepId();
-
-        log.info("当前步骤：{}", stepId);
+        String appUid = this.getAppUid(context);
 
         try {
+
             if (Objects.isNull(context)) {
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_CONTEXT_REQUIRED);
             }
 
-            context.setStepId(stepId);
             // 更新缓存为开始
             appStepStatusCache.stepStart(context.getConversationUid(), context.getStepId());
 
+            // 执行前的准备工作
+            context.setStepId(stepId);
+
             // 执行具体的步骤, 传入上下文，避免多线层的影响
             ActionResponse actionResponse = this.doExecute(context);
-            //设置到上下文中
+
+            // 将执行结果设置到上下文中
             context.setActionResponse(actionResponse);
 
             // 执行结果校验, 如果失败，抛出异常
-            if (!actionResponse.getSuccess()) {
-                String errorCode = StringUtils.isNoneBlank(actionResponse.getErrorCode()) ? actionResponse.getErrorCode() : ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString();
-                String errorMsg = StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "应用Action执行失败，请稍后重试或者联系管理员！";
-                Integer code;
-                try {
-                    code = Integer.parseInt(errorCode);
-                } catch (Exception e) {
-                    code = ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode();
-                }
-                throw ServiceExceptionUtil.exception(new ErrorCode(code, errorMsg));
-            }
+            validateResponse(actionResponse);
 
-            AdminUserRightsTypeEnum userRightsType = this.getUserRightsType();
-            Integer costPoints = actionResponse.getCostPoints();
-            // 权益放在此处是为了准确的扣除权益 并且控制不同action不同权益的情况
-            if (userRightsType != null && costPoints > 0) {
-                // 扣除权益
-                ReduceRightsDTO reduceRights = new ReduceRightsDTO();
-                reduceRights.setUserId(context.getUserId());
-                reduceRights.setTeamOwnerId(null);
-                reduceRights.setTeamId(null);
-                reduceRights.setRightType(userRightsType.getType());
-                reduceRights.setReduceNums(costPoints);
-                reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType());
-                reduceRights.setBizId(context.getConversationUid());
-                ADMIN_USER_RIGHTS_API.reduceRights(reduceRights);
-                log.info("扣除权益成功，权益类型：{}，权益点数：{}，用户ID：{}，会话ID：{}", userRightsType.name(), costPoints, context.getUserId(), context.getConversationUid());
-            }
+            // 权益扣除
+            reduceRights(context, actionResponse, stepId, appUid);
+
             // 更新缓存为成功
             appStepStatusCache.stepSuccess(context.getConversationUid(), context.getStepId());
-            log.info("Action[{}] 执行成功, 步骤：{} ...", this.getClass().getSimpleName(), context.getStepId());
+
+            log.info("步骤节点【执行成功】: 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 权益用户: {}, 权益租户: {}",
+                    this.getClass().getSimpleName(), stepId, appUid, context.getUserId(), TenantContextHolder.getTenantId());
+
             return actionResponse;
+
         } catch (ServiceException exception) {
             // 更新缓存为失败
             appStepStatusCache.stepFailure(context.getConversationUid(), stepId, exception.getCode().toString(), exception.getMessage());
-            log.error("Action[{}] 执行异常： 步骤：{}, 异常码: {}, 异常信息: {}", this.getClass().getSimpleName(), context.getStepId(), exception.getCode(), exception.getMessage());
+            log.error("步骤节点【执行失败】: 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t错误码: {}, 异常信息: {}",
+                    this.getClass().getSimpleName(), context.getStepId(), exception.getCode(), exception.getMessage());
+
             throw exception;
 
         } catch (Exception exception) {
             // 更新缓存为失败
             appStepStatusCache.stepFailure(context.getConversationUid(), stepId, ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString(), exception.getMessage());
-            log.error("Action[{}] 执行失败：步骤: {}, 异常信息: {}", this.getClass().getSimpleName(), context.getStepId(), exception.getMessage());
+            log.error("步骤节点【执行失败】: 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t异常信息: {}",
+                    this.getClass().getSimpleName(), context.getStepId(), exception.getMessage());
+
             throw exception;
         }
+    }
+
+    /**
+     * 执行结果校验
+     *
+     * @param actionResponse 执行结果
+     */
+    private static void validateResponse(ActionResponse actionResponse) {
+
+        if (actionResponse == null) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_FAILURE);
+        }
+
+//        if (!actionResponse.getSuccess()) {
+//            String errorCode = StringUtils.isNoneBlank(actionResponse.getErrorCode()) ? actionResponse.getErrorCode() : ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode().toString();
+//            String errorMsg = StringUtils.isNoneBlank(actionResponse.getErrorMsg()) ? actionResponse.getErrorMsg() : "应用Action执行失败，请稍后重试或者联系管理员！";
+//            Integer code;
+//            try {
+//                code = Integer.parseInt(errorCode);
+//            } catch (Exception e) {
+//                code = ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode();
+//            }
+//            throw ServiceExceptionUtil.exception(new ErrorCode(code, errorMsg));
+//        }
+    }
+
+    /**
+     * 权益扣除
+     *
+     * @param context        上下文
+     * @param actionResponse 执行结果
+     */
+    private void reduceRights(AppContext context, ActionResponse actionResponse, String stepId, String appUid) {
+        AdminUserRightsTypeEnum userRightsType = this.getUserRightsType();
+        Integer costPoints = actionResponse.getCostPoints();
+        if (userRightsType != null && costPoints > 0) {
+            // 扣除权益
+            ReduceRightsDTO reduceRights = new ReduceRightsDTO();
+            reduceRights.setUserId(context.getUserId());
+            reduceRights.setTeamOwnerId(null);
+            reduceRights.setTeamId(null);
+            reduceRights.setRightType(userRightsType.getType());
+            reduceRights.setReduceNums(costPoints);
+            reduceRights.setBizType(UserRightSceneUtils.getUserRightsBizType(context.getScene().name()).getType());
+            reduceRights.setBizId(context.getConversationUid());
+            ADMIN_USER_RIGHTS_API.reduceRights(reduceRights);
+            log.info("步骤节点【扣除权益成功】: 权益类型: {}, 权益点数: {}, 用户ID: {}, 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 会话ID: {}",
+                    userRightsType.name(), costPoints, context.getUserId(), this.getClass().getSimpleName(), stepId, appUid, context.getConversationUid());
+            return;
+        }
+        log.info("步骤节点【无需扣除权益】: 权益类型: {}, 权益点数: {}, 用户ID: {}, 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 会话ID: {}",
+                userRightsType.name(), costPoints, context.getUserId(), this.getClass().getSimpleName(), stepId, appUid, context.getConversationUid());
     }
 
     /**
