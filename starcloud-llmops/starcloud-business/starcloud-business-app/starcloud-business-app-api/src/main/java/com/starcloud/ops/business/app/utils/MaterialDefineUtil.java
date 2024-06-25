@@ -191,7 +191,7 @@ public class MaterialDefineUtil {
     }
 
     /**
-     * 校验素材字段类型
+     * 校验素材字段类型 只能包含一个文档字段
      *
      * @param materialConfigList
      */
@@ -199,6 +199,11 @@ public class MaterialDefineUtil {
         List<MaterialFieldConfigDTO> mistakeDefine = materialConfigList.stream().filter(config -> {
             return !MaterialFieldTypeEnum.TYPE_ENUM_MAP.containsKey(config.getType());
         }).collect(Collectors.toList());
+        long documentCount = materialConfigList.stream()
+                .filter(config -> MaterialFieldTypeEnum.document.getCode().equals(config.getType())).count();
+        if (documentCount > 1) {
+            throw exception(TOO_MANY_DOCUMENT);
+        }
         if (CollUtil.isNotEmpty(mistakeDefine)) {
             throw exception(FILED_TYPE_MISTAKE, mistakeDefine);
         }
