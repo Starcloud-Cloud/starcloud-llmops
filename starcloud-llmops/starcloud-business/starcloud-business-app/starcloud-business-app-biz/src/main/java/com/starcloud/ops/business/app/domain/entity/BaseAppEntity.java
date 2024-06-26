@@ -588,7 +588,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void successAppConversationLog(String conversationUid, Q request) {
-        log.info("应用执行成功：更新会话记录开始 会话 UID：{}...", conversationUid);
+        log.info("应用执行成功：更新会话记录开始: 应用UID: {}, 会话 UID：{}...", this.getUid(), conversationUid);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
         updateRequest.setUid(conversationUid);
         updateRequest.setAiModel(this.obtainLlmAiModelType(request));
@@ -610,7 +610,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg, Q request) {
-        log.info("应用执行失败：更新会话记录开始 会话 UID：{}, errorCode：{}，errorMsg：{} ...", conversationUid, errorCode, errorMsg);
+        log.info("应用执行失败：更新会话记录开始: 应用ID: {}, 会话 UID：{}, 错误码：{}", this.getUid(), conversationUid, errorCode);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
         updateRequest.setUid(conversationUid);
         updateRequest.setAiModel(this.obtainLlmAiModelType(request));

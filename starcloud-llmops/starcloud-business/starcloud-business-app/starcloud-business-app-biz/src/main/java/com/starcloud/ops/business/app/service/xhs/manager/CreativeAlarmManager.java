@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,20 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHT
 @Component
 public class CreativeAlarmManager {
 
+    /**
+     * 模板编码
+     */
     private static final String TEMPLATE_CODE = "CREATIVE_EXECUTE_ALARM_TEMPLATE";
+
+    /**
+     * 不打印堆栈信息的错误码
+     */
+    private static final List<Integer> NO_STACK_TRACE_CODE_LIST = Arrays.asList(
+            USER_RIGHTS_BEAN_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_IMAGE_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH.getCode()
+    );
 
     @Resource
     private SmsSendApi smsSendApi;
@@ -155,31 +169,10 @@ public class CreativeAlarmManager {
         String appModeLabel = AppModelEnum.COMPLETION.getLabel();
         // 通知时间
         String notifyTime = LocalDateTimeUtil.formatNormal(LocalDateTime.now());
-
         // 错误信息
-        String message = StrUtil.EMPTY;
-        String stackTrace = StrUtil.EMPTY;
-        if (Objects.nonNull(throwable)) {
-            message = throwable.getMessage();
-            if (throwable instanceof ServiceException || throwable.getCause() instanceof ServiceException) {
-                ServiceException serviceException;
-                if (throwable instanceof ServiceException) {
-                    serviceException = (ServiceException) throwable;
-                } else {
-                    serviceException = (ServiceException) throwable.getCause();
-                }
-                // 魔法豆/图片不足/矩阵豆，不打印堆栈信息
-                if (USER_RIGHTS_BEAN_NOT_ENOUGH.getCode().equals(serviceException.getCode()) ||
-                        USER_RIGHTS_IMAGE_NOT_ENOUGH.getCode().equals(serviceException.getCode()) ||
-                        USER_RIGHTS_NOT_ENOUGH.getCode().equals(serviceException.getCode()) ||
-                        USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH.getCode().equals(serviceException.getCode())) {
-                    stackTrace = "";
-                }
-            } else {
-                stackTrace = this.getExceptionMessage(throwable);
-            }
-        }
-
+        String message = this.getErrorMessage(throwable);
+        // 堆栈信息
+        String stackTrace = this.getStackTrace(throwable);
         // 扩展信息
         String extended = this.getExtended(content);
 
@@ -260,13 +253,54 @@ public class CreativeAlarmManager {
     }
 
     /**
+     * 获取错误信息
+     *
+     * @param throwable 异常
+     * @return 错误信息
+     */
+    private String getErrorMessage(Throwable throwable) {
+        if (throwable != null) {
+            return throwable.getMessage();
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * 获取堆栈信息
+     *
+     * @param throwable 异常
+     * @return 堆栈信息
+     */
+    private String getStackTrace(Throwable throwable) {
+        if (throwable == null) {
+            return StringUtils.EMPTY;
+        }
+
+        if (throwable instanceof ServiceException || throwable.getCause() instanceof ServiceException) {
+            ServiceException serviceException;
+            if (throwable instanceof ServiceException) {
+                serviceException = (ServiceException) throwable;
+            } else {
+                serviceException = (ServiceException) throwable.getCause();
+            }
+
+            // 魔法豆/图片不足，不打印堆栈信息
+            if (NO_STACK_TRACE_CODE_LIST.contains(serviceException.getCode())) {
+                return StrUtil.EMPTY;
+            }
+        }
+
+        return this.getStackTraceMessage(throwable);
+    }
+
+    /**
      * 获取异常信息
      *
      * @param throwable 异常
      * @return 异常信息
      */
-    private String getExceptionMessage(Throwable throwable) {
-        return ExceptionUtil.stackTraceToString(throwable, 500);
+    private String getStackTraceMessage(Throwable throwable) {
+        return ExceptionUtil.stackTraceToString(throwable, 1000);
     }
 
     /**
