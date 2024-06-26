@@ -2,18 +2,11 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.ImitateActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.*;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -101,6 +94,25 @@ public class RecommendActionFactory {
         step.setTags(Arrays.asList("Open AI", "Completion", "Chat"));
         step.setScenes(scenes);
         step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, isShow));
+        return step;
+    }
+
+    public static WorkflowStepRespVO defXhsOcrStep() {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName("小红书ocr");
+        step.setDescription("小红书ocr");
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(XhsParseActionHandler.class.getSimpleName());
+        step.setResponse(RecommendResponseFactory.defTextResponse(Boolean.FALSE));
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("xhs-ocr");
+        step.setTags(Arrays.asList("xhs", "ocr"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        step.setVariable(variable);
         return step;
     }
 

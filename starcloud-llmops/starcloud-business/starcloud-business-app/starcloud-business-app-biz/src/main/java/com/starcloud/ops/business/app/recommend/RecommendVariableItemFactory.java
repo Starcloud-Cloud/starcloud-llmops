@@ -411,6 +411,46 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * xhs字段映射
+     *
+     * @return
+     */
+    public static VariableItemRespVO defFieldMapVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.FIELD_MAP);
+        variableItem.setDefaultValue(StrUtil.EMPTY_JSON);
+        variableItem.setLabel("字段映射");
+        variableItem.setDescription("字段映射");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.ADVANCED.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 小红书笔记地址
+     * @return
+     */
+    public static VariableItemRespVO defXhsUrlVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.XHS_NOTE_URL);
+        variableItem.setLabel("小红书笔记地址");
+        variableItem.setDefaultValue(StrUtil.EMPTY);
+        variableItem.setDescription("小红书笔记地址");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.ADVANCED.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+
+    /**
      * 素材列表
      *
      * @return 素材列表

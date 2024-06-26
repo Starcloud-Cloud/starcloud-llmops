@@ -25,6 +25,21 @@ public interface CreativeConstants {
     String SYS_PROMPT = "_SYS_内容生成_PROMPT";
 
     /**
+     * 小红书链接
+     */
+    String XHS_NOTE_URL = "XHS_NOTE_URL";
+
+    /**
+     * 字段映射
+     */
+    String FIELD_MAP = "FIELD_MAP";
+
+    /**
+     * 字段定义集合
+     */
+    String FIELD_DEFINE = "FIELD_DEFINE";
+
+    /**
      * 参考内容 带模仿要求
      */
     String REFERS_IMITATE = "REFERS_IMITATE";
