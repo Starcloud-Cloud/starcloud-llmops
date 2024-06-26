@@ -88,34 +88,34 @@ public class VariableActionHandler extends BaseActionHandler {
      */
     @Override
     protected ActionResponse doExecute(AppContext context) {
-
-        log.info("全局变量步骤【开始执行】: 执行步骤: {}, 应用UID: {}",
-                context.getStepId(), context.getUid());
+        // 开始日志打印
+        loggerBegin(context, "全局变量步骤");
 
         Map<String, Object> params = MapUtils.emptyIfNull(context.getContextVariablesValues());
         JsonSchema jsonSchema = this.getInVariableJsonSchema(context.getStepWrapper());
 
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(Boolean.TRUE);
-        actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
-        actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
-        actionResponse.setIsShow(Boolean.FALSE);
-        actionResponse.setMessage("variable");
-        actionResponse.setAnswer(JsonUtils.toJsonPrettyString(params));
-        actionResponse.setOutput(JsonData.of(params, jsonSchema));
-        actionResponse.setMessageTokens(0L);
-        actionResponse.setMessageUnitPrice(BigDecimal.ZERO);
-        actionResponse.setAnswerTokens(0L);
-        actionResponse.setAnswerUnitPrice(BigDecimal.ZERO);
-        actionResponse.setTotalTokens(0L);
-        actionResponse.setTotalPrice(BigDecimal.ZERO);
-        actionResponse.setStepConfig("{}");
-        actionResponse.setAiModel("variable");
-        actionResponse.setCostPoints(0);
+        // 返回结果
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(Boolean.TRUE);
+        response.setType(AppStepResponseTypeEnum.TEXT.name());
+        response.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
+        response.setIsShow(Boolean.FALSE);
+        response.setMessage("variable");
+        response.setAnswer(JsonUtils.toJsonPrettyString(params));
+        response.setOutput(JsonData.of(params, jsonSchema));
+        response.setMessageTokens(0L);
+        response.setMessageUnitPrice(BigDecimal.ZERO);
+        response.setAnswerTokens(0L);
+        response.setAnswerUnitPrice(BigDecimal.ZERO);
+        response.setTotalTokens(0L);
+        response.setTotalPrice(BigDecimal.ZERO);
+        response.setStepConfig("{}");
+        response.setAiModel("variable");
+        response.setCostPoints(0);
 
-        log.info("全局变量步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: \n{}",
-                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(actionResponse));
-        return actionResponse;
+        // 结束日志打印
+        loggerSuccess(context, response, "全局变量步骤");
+        return response;
     }
 
 }

@@ -9,9 +9,9 @@ import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -31,10 +31,10 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
@@ -152,9 +152,8 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse doRandomExecute(AppContext context, Map<String, Object> params) {
-
-        log.info("内容生成步骤【开始执行】: 执行步骤: {}, 生成模式: {}, 应用UID: {}",
-                context.getStepId(), CreativeSchemeGenerateModeEnum.RANDOM.name(), context.getUid());
+        // 开始日志打印
+        loggerBegin(context, CreativeSchemeGenerateModeEnum.RANDOM.name(), "生成步骤");
 
         // 获取到参考文案
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
@@ -181,30 +180,28 @@ public class CustomActionHandler extends BaseActionHandler {
         int costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModel.getName(), totalTokens);
 
         // 返回响应结果
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(Boolean.TRUE);
-        actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
-        actionResponse.setIsShow(Boolean.TRUE);
-        actionResponse.setAiModel(llmModel.getName());
-        actionResponse.setMessage(message);
-        actionResponse.setAnswer(answer);
-        actionResponse.setOutput(JsonData.of(answer));
-        actionResponse.setMessageTokens(messageTokens);
-        actionResponse.setMessageUnitPrice(messageUnitPrice);
-        actionResponse.setAnswerTokens(answerTokens);
-        actionResponse.setAnswerUnitPrice(answerUnitPrice);
-        actionResponse.setTotalTokens(totalTokens);
-        actionResponse.setTotalPrice(totalPrice);
-        actionResponse.setCostPoints(costPoints);
-        actionResponse.setStepConfig(params);
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(Boolean.TRUE);
+        response.setType(AppStepResponseTypeEnum.TEXT.name());
+        response.setIsShow(Boolean.TRUE);
+        response.setAiModel(llmModel.getName());
+        response.setMessage(message);
+        response.setAnswer(answer);
+        response.setOutput(JsonData.of(answer));
+        response.setMessageTokens(messageTokens);
+        response.setMessageUnitPrice(messageUnitPrice);
+        response.setAnswerTokens(answerTokens);
+        response.setAnswerUnitPrice(answerUnitPrice);
+        response.setTotalTokens(totalTokens);
+        response.setTotalPrice(totalPrice);
+        response.setCostPoints(costPoints);
+        response.setStepConfig(params);
+        response.setIsSendSseAll(false);
 
-        log.info("内容生成步骤【执行成功】: 执行步骤: {}, 生成模式: {}, 应用UID: {}, 生成结果: \n{}",
-                context.getStepId(),
-                CreativeSchemeGenerateModeEnum.RANDOM.name(),
-                context.getUid(),
-                JsonUtils.toJsonPrettyString(actionResponse));
+        // 结束日志打印
+        loggerSuccess(context, response, CreativeSchemeGenerateModeEnum.RANDOM.name(), "生成步骤");
 
-        return actionResponse;
+        return response;
     }
 
     /**
@@ -216,10 +213,13 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse doAiParodyExecute(AppContext context, Map<String, Object> params) {
+        // 生成模式
         String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
-        String stepId = context.getStepId();
-        log.info("内容生成步骤【开始执行】: 执行步骤: {}, 生成模式: {}, 应用UID: {}", stepId, generateMode, context.getUid());
+        // 开始日志打印
+        loggerBegin(context, generateMode, "生成步骤");
 
+        // 获取到步骤 ID
+        String stepId = context.getStepId();
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
         List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
@@ -258,8 +258,8 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 temperature
         Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
 
-        log.info("内容生成步骤【调用大模型】: 执行步骤: {}, 生成模式: {}, 应用UID: {}, 执行参数: \n{}", generateMode, stepId, context.getUid(),
-                JsonUtils.toJsonPrettyString(params));
+        // 打印参数日志
+        loggerParamter(context, params, generateMode, "生成步骤");
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
@@ -271,14 +271,12 @@ public class CustomActionHandler extends BaseActionHandler {
         handlerRequest.setTemperature(temperature);
 
         // 执行步骤
-        ActionResponse actionResponse = this.doGenerateExecute(context, handlerRequest);
-        //本身输出已经走Sse了，不需要在发送一次完整的结果
-        actionResponse.setIsSendSseAll(false);
+        ActionResponse response = this.doGenerateExecute(context, handlerRequest);
 
-        log.info("内容生成步骤【执行成功】: 生成模式: {}, 步骤ID: {}, 应用UID: {}, 生成结果: \n{}", generateMode, stepId, context.getStepId(),
-                JsonUtils.toJsonPrettyString(actionResponse));
+        // 结束日志打印
+        loggerSuccess(context, response, generateMode, "生成步骤");
 
-        return actionResponse;
+        return response;
     }
 
     /**
@@ -290,10 +288,13 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse doAiCustomExecute(AppContext context, Map<String, Object> params) {
+        // 生成模式
         String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
-        String stepId = context.getStepId();
-        log.info("内容生成步骤【开始执行】: 执行步骤: {}, 生成模式: {}, 应用UID: {}", stepId, generateMode, context.getUid());
+        // 开始日志打印
+        loggerBegin(context, generateMode, "生成步骤");
 
+        // 获取到步骤 ID
+        String stepId = context.getStepId();
         context.putVariable(CreativeConstants.REQUIREMENT, params.getOrDefault(CreativeConstants.REQUIREMENT, ""));
         context.putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
         params = context.getContextVariablesValues();
@@ -315,8 +316,8 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 temperature
         Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
 
-        log.info("内容生成步骤【调用大模型】: 执行步骤: {}, 生成模式: {}, 应用UID: {}, 执行参数: \n{}", generateMode, stepId, context.getUid(),
-                JsonUtils.toJsonPrettyString(params));
+        // 打印参数日志
+        loggerParamter(context, params, generateMode, "生成步骤");
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
@@ -328,13 +329,12 @@ public class CustomActionHandler extends BaseActionHandler {
         handlerRequest.setTemperature(temperature);
 
         // 执行步骤
-        ActionResponse actionResponse = this.doGenerateExecute(context, handlerRequest);
-        //本身输出已经走Sse了，不需要在发送一次完整的结果
-        actionResponse.setIsSendSseAll(false);
+        ActionResponse response = this.doGenerateExecute(context, handlerRequest);
 
-        log.info("内容生成步骤【执行成功】: 生成模式: {}, 步骤ID: {}, 应用UID: {}, 生成结果: \n{}", generateMode, stepId, context.getStepId(),
-                JsonUtils.toJsonPrettyString(actionResponse));
-        return actionResponse;
+        // 结束日志打印
+        loggerSuccess(context, response, generateMode, "生成步骤");
+
+        return response;
     }
 
     /**
@@ -379,26 +379,28 @@ public class CustomActionHandler extends BaseActionHandler {
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModel, tokens);
 
         // 构建响应结果
-        ActionResponse actionResponse = new ActionResponse();
+        ActionResponse response = new ActionResponse();
         // 调用节点 Handler，失败都是直接抛出异常，所以这里只要能获取到结果，都是执行成功的，失败的都会抛出异常。
-        actionResponse.setSuccess(true);
-        actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
-        actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
-        actionResponse.setType(handlerResponse.getType());
-        actionResponse.setIsShow(true);
-        actionResponse.setMessage(handlerResponse.getMessage());
-        actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
-        actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
-        actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
-        actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
-        actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
-        actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        actionResponse.setAiModel(llmModel);
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
-        handlerResponse.setOutput(this.parseOutput(context, handlerResponse));
-        return actionResponse;
+        response.setSuccess(true);
+        response.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
+        response.setErrorMsg(handlerResponse.getErrorMsg());
+        response.setType(handlerResponse.getType());
+        response.setIsShow(true);
+        response.setMessage(handlerResponse.getMessage());
+        response.setAnswer(handlerResponse.getAnswer());
+        response.setMessageTokens(handlerResponse.getMessageTokens());
+        response.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
+        response.setAnswerTokens(handlerResponse.getAnswerTokens());
+        response.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
+        response.setTotalTokens(handlerResponse.getTotalTokens());
+        response.setTotalPrice(handlerResponse.getTotalPrice());
+        response.setStepConfig(handlerResponse.getStepConfig());
+        response.setAiModel(llmModel);
+        response.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        // 本身输出已经走 Sse了，不需要在发送一次完整的结果
+        response.setIsSendSseAll(false);
+        response.setOutput(this.parseOutput(context, response));
+        return response;
     }
 
     /**
@@ -410,17 +412,21 @@ public class CustomActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private JsonData parseOutput(AppContext context, HandlerResponse handlerResponse) {
-        // 如果配置了 JsonSchema
-        if (this.hasResponseJsonSchema(context)) {
-            //获取当前定义的返回结构
-            JsonSchema jsonSchema = this.getOutVariableJsonSchema(context);
-            JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
-            JSON json = jsonSchemaParser.parse(handlerResponse.getAnswer());
-            return JsonData.of(json, jsonSchema);
-        } else {
-            //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
-            return JsonData.of(handlerResponse.getAnswer());
+    private JsonData parseOutput(AppContext context, ActionResponse response) {
+        try {
+            // 如果配置了 JsonSchema
+            if (this.hasResponseJsonSchema(context)) {
+                //获取当前定义的返回结构
+                JsonSchema jsonSchema = this.getOutVariableJsonSchema(context);
+                JsonSchemaParser jsonSchemaParser = new JsonSchemaParser(jsonSchema);
+                JSON json = jsonSchemaParser.parse(response.getAnswer());
+                return JsonData.of(json, jsonSchema);
+            } else {
+                //如果还是字符串结构，就自动包一层 data 结构 @todo 需要保证prompt不要格式化结果
+                return JsonData.of(response.getAnswer());
+            }
+        } catch (Exception exception) {
+            throw ActionResponseException.exception(response, exception);
         }
     }
 
@@ -549,6 +555,87 @@ public class CustomActionHandler extends BaseActionHandler {
             result.add(refersList.get(RandomUtil.randomInt(refersList.size())));
         }
         return result;
+    }
+
+    /**
+     * 记录开始日志
+     *
+     * @param context 上下文
+     */
+    private void loggerBegin(AppContext context, String model, String title) {
+        log.info("\n{}【开始执行】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t生成模式: {}," +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, ",
+                title,
+                context.getStepId(),
+                model,
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId()
+        );
+    }
+
+    /**
+     * 记录参数日志
+     *
+     * @param context 上下文
+     * @param param   参数
+     */
+    private void loggerParamter(AppContext context, Object param, String model, String title) {
+        log.info("\n{}【准备调用模型】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t生成模式: {}," +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, " +
+                        "\n\t请求参数: {}",
+                title,
+                context.getStepId(),
+                model,
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId(),
+                JsonUtils.toJsonString(param)
+        );
+    }
+
+    /**
+     * 记录结束日志
+     *
+     * @param context  上下文
+     * @param response 执行结果
+     */
+    private void loggerSuccess(AppContext context, ActionResponse response, String model, String title) {
+        log.info("\n{}【执行成功】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t生成模式: {}," +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, " +
+                        "\n\t执行结果: {}",
+                title,
+                context.getStepId(),
+                model,
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId(),
+                JsonUtils.toJsonString(response.getOutput())
+        );
     }
 
 }

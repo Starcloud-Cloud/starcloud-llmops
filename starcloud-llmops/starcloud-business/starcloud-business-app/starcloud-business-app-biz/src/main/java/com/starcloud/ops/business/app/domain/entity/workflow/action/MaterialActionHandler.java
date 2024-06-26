@@ -103,29 +103,33 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
-        log.info("素材上传步骤【开始执行】: 执行步骤: {}, 应用UID: {}",
-                context.getStepId(), context.getUid());
+        // 开始日志打印
+        loggerBegin(context, "素材上传步骤");
 
         // 获取所有上游信息
         Map<String, Object> params = context.getContextVariablesValues();
+        //保持跟返回结果一样的JsonSchema
+        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
+
         // 获取到资料库类型
         String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
-        // 转换响应结果
-        ActionResponse response = convert(params, businessType);
 
         // 获取到处理好的上传素材
         String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
         List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
 
+        // 构造结构
         JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
         jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));
-        //保持跟返回结果一样的JsonSchema
-        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
+
+        // 转换响应结果
+        ActionResponse response = convert(params, businessType);
         response.setAnswer(JsonUtils.toJsonPrettyString(response.getAnswer()));
         response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
 
-        log.info("素材上传步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: \n{}",
-                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(response));
+        // 结束日志打印
+        loggerSuccess(context, response, "素材上传步骤");
+
         return response;
     }
 
@@ -139,21 +143,21 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse convert(Map<String, Object> params, String answer) {
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(Boolean.TRUE);
-        actionResponse.setIsShow(Boolean.FALSE);
-        actionResponse.setAnswer(answer);
-        actionResponse.setOutput(JsonData.of(answer));
-        actionResponse.setMessage(JsonUtils.toJsonString(params));
-        actionResponse.setStepConfig(params);
-        actionResponse.setMessageTokens(0L);
-        actionResponse.setMessageUnitPrice(BigDecimal.ZERO);
-        actionResponse.setAnswerTokens(0L);
-        actionResponse.setAnswerUnitPrice(BigDecimal.ZERO);
-        actionResponse.setTotalTokens(0L);
-        actionResponse.setTotalPrice(BigDecimal.ZERO);
-        actionResponse.setAiModel("material");
-        actionResponse.setCostPoints(0);
-        return actionResponse;
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(Boolean.TRUE);
+        response.setIsShow(Boolean.FALSE);
+        response.setAnswer(answer);
+        response.setOutput(JsonData.of(answer));
+        response.setMessage(JsonUtils.toJsonString(params));
+        response.setStepConfig(params);
+        response.setMessageTokens(0L);
+        response.setMessageUnitPrice(BigDecimal.ZERO);
+        response.setAnswerTokens(0L);
+        response.setAnswerUnitPrice(BigDecimal.ZERO);
+        response.setTotalTokens(0L);
+        response.setTotalPrice(BigDecimal.ZERO);
+        response.setAiModel("material");
+        response.setCostPoints(0);
+        return response;
     }
 }

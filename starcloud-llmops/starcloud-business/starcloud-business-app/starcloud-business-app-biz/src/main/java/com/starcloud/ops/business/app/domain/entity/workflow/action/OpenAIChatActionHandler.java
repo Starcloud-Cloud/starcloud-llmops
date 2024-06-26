@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -74,21 +73,19 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
-
-        log.info("AI生成步骤【执行开始】: 执行步骤: {}, 应用UID: {}",
-                context.getStepId(), context.getUid());
+        // 开始日志打印
+        loggerBegin(context, "AI生成步骤");
 
         // 获取执行参数
         Map<String, Object> params = context.getContextVariablesValues();
-
-        log.info("AI生成步骤【准备调用模型】: 执行步骤: {}, 应用UID: {}, 请求参数: \n{}",
-                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(params));
-
         String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7d"));
+
+        // 参数日志打印
+        loggerParamter(context, params, "AI生成步骤");
 
         // 构建AI生成请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
@@ -117,8 +114,9 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
         ActionResponse response = convert(context, handlerResponse);
 
-        log.info("AI生成步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: \n{}",
-                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(response));
+        // 结束日志打印
+        loggerSuccess(context, response, "AI生成步骤");
+
         return response;
     }
 
@@ -132,29 +130,29 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(handlerResponse.getSuccess());
-        actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
-        actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
-        actionResponse.setType(handlerResponse.getType());
-        actionResponse.setIsShow(true);
-        actionResponse.setMessage(handlerResponse.getMessage());
-        actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
-        actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
-        actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
-        actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
-        actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
-        actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
-        actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
-        actionResponse.setStepConfig(handlerResponse.getStepConfig());
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(handlerResponse.getSuccess());
+        response.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
+        response.setErrorMsg(handlerResponse.getErrorMsg());
+        response.setType(handlerResponse.getType());
+        response.setIsShow(true);
+        response.setMessage(handlerResponse.getMessage());
+        response.setAnswer(handlerResponse.getAnswer());
+        response.setOutput(JsonData.of(handlerResponse.getOutput()));
+        response.setMessageTokens(handlerResponse.getMessageTokens());
+        response.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
+        response.setAnswerTokens(handlerResponse.getAnswerTokens());
+        response.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
+        response.setTotalTokens(handlerResponse.getTotalTokens());
+        response.setTotalPrice(handlerResponse.getTotalPrice());
+        response.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        response.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
-        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
+        Long tokens = response.getMessageTokens() + response.getAnswerTokens();
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
-        return actionResponse;
+        response.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+        return response;
     }
 
 

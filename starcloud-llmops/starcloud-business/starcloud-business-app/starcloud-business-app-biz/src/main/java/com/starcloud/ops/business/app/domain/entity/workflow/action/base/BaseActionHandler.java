@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
@@ -15,7 +16,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
@@ -32,9 +33,7 @@ import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -173,57 +172,47 @@ public abstract class BaseActionHandler extends Object {
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         AppValidate.notNull(context, "应用步骤执行失败！无法获取应用执行上下文信息，请联系管理员或稍后重试！");
         AppValidate.notNull(scopeDataOperator, "应用步骤执行失败！无法获取应用执行元数据，请联系管理员或稍后重试！");
-        String clazz = this.getClass().getSimpleName();
-        Long tanentId = TenantContextHolder.getTenantId();
         String stepId = this.getStepId(scopeDataOperator);
-        String appUid = context.getUid();
-        Long userId = context.getUserId();
+        String conversationUid = context.getConversationUid();
 
         try {
-            log.info("步骤节点【开始执行】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}",
-                    clazz, stepId, appUid, userId, tanentId);
 
             // 更新缓存为开始
-            appStepStatusCache.stepStart(context.getConversationUid(), context.getStepId());
+            appStepStatusCache.stepStart(conversationUid, stepId);
 
             // 执行前的准备工作
             context.setStepId(stepId);
 
             // 执行具体的步骤, 传入上下文，避免多线层的影响
-            ActionResponse actionResponse = this.doExecute(context);
+            ActionResponse response = this.doExecute(context);
 
             // 将执行结果设置到上下文中
-            context.setActionResponse(actionResponse);
+            context.setActionResponse(response);
 
             // 执行结果校验, 如果失败，抛出异常
-            validateResponse(actionResponse, stepId);
+            validateResponse(response, stepId);
 
             // 权益扣除
-            reduceRights(context, actionResponse, stepId, appUid);
+            reduceRights(context, response);
 
             // 更新缓存为成功
-            appStepStatusCache.stepSuccess(context.getConversationUid(), context.getStepId());
+            appStepStatusCache.stepSuccess(conversationUid, stepId);
 
-            log.info("步骤节点【执行成功】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}",
-                    clazz, stepId, appUid, userId, tanentId);
-
-            return actionResponse;
-
+            return response;
+        } catch (ActionResponseException exception) {
+            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(exception.getCode()), exception.getMessage());
+            loggerError(context, exception, "步骤");
+            exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
+            throw exception;
         } catch (ServiceException exception) {
-            // 更新缓存为失败
-            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, exception.getCode().toString(), exception.getMessage());
-            log.error("步骤节点【执行失败】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t错误码: {}, 异常信息: {}",
-                    clazz, stepId, appUid, userId, tanentId, exception.getCode(), exception.getMessage());
-
+            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(exception.getCode()), exception.getMessage());
+            loggerError(context, exception, "步骤");
             exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
             throw exception;
         } catch (Exception exception) {
-            // 更新缓存为失败
             ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE;
-            appStepStatusCache.stepFailure(context.getConversationUid(), stepId, String.valueOf(errorCode.getCode()), exception.getMessage());
-            log.error("步骤节点【执行失败】: 步骤执行器: {}, 执行步骤: {}, 应用UID {}, 权益用户: {}, 权益租户: {}, \n\t异常信息: {}",
-                    clazz, stepId, appUid, userId, tanentId, exception.getMessage());
-
+            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(errorCode.getCode()), exception.getMessage());
+            loggerError(context, exception, "步骤");
             throw ServiceExceptionUtil.exceptionWithCause(errorCode, "【" + stepId + "】步骤执行失败: " + exception.getMessage(), exception);
         }
     }
@@ -291,7 +280,7 @@ public abstract class BaseActionHandler extends Object {
      *
      * @param actionResponse 执行结果
      */
-    private static void validateResponse(ActionResponse actionResponse, String stepId) {
+    protected void validateResponse(ActionResponse actionResponse, String stepId) {
         if (actionResponse == null) {
             throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode(),
                     "【{}】步骤执行失败: 执行结果不存在，请联系管理员或稍后重试！", stepId);
@@ -310,7 +299,7 @@ public abstract class BaseActionHandler extends Object {
      * @param context        上下文
      * @param actionResponse 执行结果
      */
-    private void reduceRights(AppContext context, ActionResponse actionResponse, String stepId, String appUid) {
+    protected void reduceRights(AppContext context, ActionResponse actionResponse) {
         AdminUserRightsTypeEnum userRightsType = this.getUserRightsType();
         Integer costPoints = actionResponse.getCostPoints();
         if (userRightsType != null && costPoints > 0) {
@@ -325,11 +314,123 @@ public abstract class BaseActionHandler extends Object {
             reduceRights.setBizId(context.getConversationUid());
             ADMIN_USER_RIGHTS_API.reduceRights(reduceRights);
             log.info("步骤节点【扣除权益成功】: 权益类型: {}, 权益点数: {}, 用户ID: {}, 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 会话ID: {}",
-                    userRightsType.name(), costPoints, context.getUserId(), this.getClass().getSimpleName(), stepId, appUid, context.getConversationUid());
+                    userRightsType.name(), costPoints, context.getUserId(), this.getClass().getSimpleName(),
+                    context.getStepId(), context.getUid(), context.getConversationUid());
             return;
         }
-        log.info("步骤节点【无需扣除权益】: 权益类型: {}, 权益点数: {}, 用户ID: {}, 步骤执行器: {}, 步骤ID: {}, 应用UID {}, 会话ID: {}",
-                userRightsType.name(), costPoints, context.getUserId(), this.getClass().getSimpleName(), stepId, appUid, context.getConversationUid());
+    }
+
+    /**
+     * 记录开始日志
+     *
+     * @param context 上下文
+     */
+    protected void loggerBegin(AppContext context, String title) {
+        log.info("\n{}【开始执行】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, ",
+                title,
+                context.getStepId(),
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId()
+        );
+    }
+
+    /**
+     * 记录参数日志
+     *
+     * @param context 上下文
+     * @param param   参数
+     */
+    protected void loggerParamter(AppContext context, Object param, String title) {
+        log.info("\n{}【准备调用模型】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, " +
+                        "\n\t请求参数: {}",
+                title,
+                context.getStepId(),
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId(),
+                JsonUtils.toJsonString(param)
+        );
+    }
+
+    /**
+     * 记录结束日志
+     *
+     * @param context  上下文
+     * @param response 执行结果
+     */
+    protected void loggerSuccess(AppContext context, ActionResponse response, String title) {
+        log.info("\n{}【执行成功】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, " +
+                        "\n\t执行结果: {}",
+                title,
+                context.getStepId(),
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId(),
+                JsonUtils.toJsonString(response.getOutput())
+        );
+    }
+
+    /**
+     * 记录错误日志
+     *
+     * @param context   上下文
+     * @param exception 异常
+     */
+    protected void loggerError(AppContext context, Exception exception, String title) {
+        Integer errorCode = ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode();
+        if (exception instanceof ActionResponseException) {
+            errorCode = ((ActionResponseException) exception).getCode();
+        }
+        if (exception instanceof ServiceException) {
+            errorCode = ((ServiceException) exception).getCode();
+        }
+        log.error("\n{}【执行失败】: " +
+                        "\n\t执行步骤: {}, " +
+                        "\n\t步骤执行器: {}, " +
+                        "\n\t应用UID: {}, " +
+                        "\n\t会话UID: {}, " +
+                        "\n\t权益用户: {}, " +
+                        "\n\t权益租户: {}, " +
+                        "\n\t异常类型: {}, " +
+                        "\n\t错误码: {}, " +
+                        "\n\t异常信息: {}",
+                title,
+                context.getStepId(),
+                this.getClass().getSimpleName(),
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                TenantContextHolder.getTenantId(),
+                exception.getClass().getSimpleName(),
+                errorCode,
+                exception.getMessage()
+        );
+
     }
 
     /**

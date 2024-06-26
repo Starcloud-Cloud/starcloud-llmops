@@ -14,7 +14,6 @@ import cn.kstry.framework.core.engine.facade.ReqBuilder;
 import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
-import cn.kstry.framework.core.exception.KstryException;
 import cn.kstry.framework.core.monitor.FieldTracking;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
@@ -24,11 +23,9 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -46,6 +43,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -540,6 +538,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
             // 将执行结果设置到上下文中
             appContext.setActionResponse(stepId, actionResponse);
+            // 获取step变量信息
+            Map<String, Object> variables = appContext.getContextVariablesValues(stepId);
 
             // 基础信息填充
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
@@ -554,17 +554,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
             messageCreateRequest.setCurrency("USD");
-
-            AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(appContext.getApp());
-
-            // 获取step变量
-            Map<String, Object> variables = appContext.getContextVariablesValues(stepId);
+            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
             messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
                 messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
-                messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appResponse));
                 messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
                 messageCreateRequest.setMessageTokens(actionResponse.getMessageTokens().intValue());
@@ -578,26 +573,52 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 return;
             }
 
-            // 说明执行handler时异常
+            // 说明步骤执行异常
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appResponse));
-            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
             messageCreateRequest.setCostPoints(0);
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
-
+            // 处理异常
             if (storyException.isPresent()) {
+
                 Throwable throwable = storyException.get();
                 messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(throwable));
 
-                // ServiceException
-                if (Objects.nonNull(throwable.getCause()) && throwable instanceof ServiceException) {
-                    ServiceException serverException = (ServiceException) throwable.getCause();
-                    messageCreateRequest.setErrorCode(String.valueOf(serverException.getCode()));
+                // ActionResponseException
+                if (throwable instanceof ActionResponseException ||
+                        (Objects.nonNull(throwable.getCause()) && throwable.getCause() instanceof ActionResponseException)) {
+                    // 转为具体的异常
+                    ActionResponseException actionResponseException = (throwable instanceof ActionResponseException) ?
+                            (ActionResponseException) throwable : (ActionResponseException) throwable.getCause();
+
+                    // 设置错误码
+                    messageCreateRequest.setErrorCode(String.valueOf(actionResponseException.getCode()));
+
+                    // 获取结果信息，填充到日志中
+                    ActionResponse failureResponse = actionResponseException.getResponse();
+                    if (failureResponse == null) {
+                        return;
+                    }
+                    messageCreateRequest.setVariables(JsonUtils.toJsonString(failureResponse.getStepConfig()));
+                    messageCreateRequest.setMessage(Optional.ofNullable(failureResponse.getMessage()).orElse(StringUtils.EMPTY));
+                    messageCreateRequest.setMessageTokens(Optional.ofNullable(failureResponse.getMessageTokens()).map(Long::intValue).orElse(0));
+                    messageCreateRequest.setMessageUnitPrice(Optional.ofNullable(failureResponse.getMessageUnitPrice()).orElse(BigDecimal.ZERO));
+                    messageCreateRequest.setAnswer(Optional.ofNullable(failureResponse.getAnswer()).orElse(StringUtils.EMPTY));
+                    messageCreateRequest.setAnswerTokens(Optional.ofNullable(failureResponse.getAnswerTokens()).map(Long::intValue).orElse(0));
+                    messageCreateRequest.setAnswerUnitPrice(Optional.ofNullable(failureResponse.getAnswerUnitPrice()).orElse(BigDecimal.ZERO));
+                    messageCreateRequest.setTotalPrice(Optional.ofNullable(failureResponse.getTotalPrice()).orElse(BigDecimal.ZERO));
+                    messageCreateRequest.setCostPoints(Optional.ofNullable(failureResponse.getCostPoints()).orElse(0));
+                    messageCreateRequest.setAiModel(Optional.ofNullable(failureResponse.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
                     return;
                 }
-                if (throwable instanceof ServiceException) {
-                    ServiceException serverException = (ServiceException) throwable;
-                    messageCreateRequest.setErrorCode(String.valueOf(serverException.getCode()));
+
+                // ServiceException
+                if (throwable instanceof ServiceException ||
+                        (Objects.nonNull(throwable.getCause()) && throwable.getCause() instanceof ServiceException)) {
+                    // 转为具体的异常
+                    ServiceException serviceException = (throwable instanceof ServiceException) ?
+                            (ServiceException) throwable : (ServiceException) throwable.getCause();
+                    // 错误码填充到日志中
+                    messageCreateRequest.setErrorCode(String.valueOf(serviceException.getCode()));
                 }
             } else {
                 messageCreateRequest.setErrorMsg(ErrorCodeConstants.EXECUTE_APP_FAILURE.getMsg());
@@ -693,18 +714,25 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         // 如果异常存在异常，则处理后抛出该异常。
         Throwable resultException = taskResponse.getResultException();
         if (Objects.nonNull(resultException)) {
+            // 如果是 ActionResponseException 异常，包装成 ServiceException 异常，外不需要感知该异常
+            if (resultException instanceof ActionResponseException ||
+                    (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ActionResponseException)) {
+                // 转为具体的异常
+                ActionResponseException actionResponseException = (resultException instanceof ActionResponseException) ?
+                        (ActionResponseException) resultException : (ActionResponseException) resultException.getCause();
+                ErrorCode errorCode = new ErrorCode(actionResponseException.getCode(), actionResponseException.getMessage());
+                // 转为 ServiceException 异常并且抛出
+                throw exceptionWithCause(errorCode, resultException);
+            }
 
             // 如果是 ServiceException 异常，直接抛出
-            if (resultException instanceof ServiceException) {
-                throw (ServiceException) resultException;
+            if (resultException instanceof ServiceException ||
+                    (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException)) {
+
+                throw (resultException instanceof ServiceException) ? (ServiceException) resultException : (ServiceException) resultException.getCause();
             }
 
-            // 尝试从 cause 中获取，如果是 ServiceException 异常，直接抛出
-            if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
-                throw (ServiceException) resultException.getCause();
-            }
-
-            // 其他异常: 直接抛出即可
+            // 其他异常: 转为 ServiceException 异常并且抛出
             throw exceptionWithCause(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage(), resultException);
         }
 
