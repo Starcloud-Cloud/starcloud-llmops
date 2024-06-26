@@ -35,11 +35,6 @@ public interface CreativeConstants {
     String FIELD_MAP = "FIELD_MAP";
 
     /**
-     * 字段定义集合
-     */
-    String FIELD_DEFINE = "FIELD_DEFINE";
-
-    /**
      * 参考内容 带模仿要求
      */
     String REFERS_IMITATE = "REFERS_IMITATE";
