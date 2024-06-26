@@ -52,7 +52,7 @@ public interface XhsNoteConvert {
 
     default Map<String, Object> convert(XhsNoteDTO xhsNoteDTO, Map<String, String> fieldMap) {
         Map<String, Object> result = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(fieldMap)) {
+        if (CollectionUtils.isEmpty(fieldMap)) {
             return result;
         }
 

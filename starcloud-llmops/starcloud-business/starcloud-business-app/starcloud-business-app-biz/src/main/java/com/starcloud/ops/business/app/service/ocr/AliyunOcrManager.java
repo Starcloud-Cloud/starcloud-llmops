@@ -53,6 +53,7 @@ public class AliyunOcrManager {
             OcrGeneralDTO result = new OcrGeneralDTO();
             result.setContent(recognizeAllTextResponse.getBody().getData().getContent());
             result.setData(JsonUtils.toJsonString(recognizeAllTextResponse.getBody().getData()));
+            ocrResult.setSuccess(true);
             ocrResult.setOcrGeneralDTO(result);
             return ocrResult;
         } catch (Exception e) {

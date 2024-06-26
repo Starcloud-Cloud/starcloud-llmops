@@ -4,10 +4,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.Invoke;
-import cn.kstry.framework.core.annotation.NoticeVar;
-import cn.kstry.framework.core.annotation.TaskComponent;
-import cn.kstry.framework.core.annotation.TaskService;
+import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.api.ocr.OcrResult;
@@ -55,6 +53,10 @@ public class XhsParseActionHandler extends BaseActionHandler {
     @NoticeVar
     @TaskService(name = "XhsParseActionHandler", invoke = @Invoke(timeout = 180000))
     @Override
+    public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
+        return super.execute(context, scopeDataOperator);
+    }
+
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
 
@@ -62,7 +64,7 @@ public class XhsParseActionHandler extends BaseActionHandler {
         String xhsNoteUrl = String.valueOf(params.get(CreativeConstants.XHS_NOTE_URL));
         XhsDetailConstants.validNoteUrl(xhsNoteUrl);
 
-        Object fieldDefine = params.get(CreativeConstants.FIELD_DEFINE);
+        Object fieldDefine = params.get(CreativeConstants.MATERIAL_DEFINE);
         Object fieldMap = params.get(CreativeConstants.FIELD_MAP);
         // 参数必填校验 fieldMap校验图片对应的字段类型
         if (Objects.isNull(fieldDefine) || Objects.isNull(fieldMap)) {
@@ -79,7 +81,7 @@ public class XhsParseActionHandler extends BaseActionHandler {
 
         TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
         };
-        Map<String, Object> material = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail(), JSONObject.parseObject(JSONObject.toJSONString(fieldMap), typeReference));
+        Map<String, Object> material = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail(), JSONObject.parseObject(fieldMap.toString(), typeReference));
 
         for (MaterialFieldConfigDTO materialFieldConfigDTO : fieldConfigDTOList) {
             if (!MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType())) {
@@ -107,7 +109,7 @@ public class XhsParseActionHandler extends BaseActionHandler {
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
-        actionResponse.setAnswer(material.toString());
+        actionResponse.setAnswer(JsonUtils.toJsonString(material));
         actionResponse.setOutput(JsonData.of(material));
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
         actionResponse.setStepConfig(context.getContextVariablesValues());
