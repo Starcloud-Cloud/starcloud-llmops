@@ -108,7 +108,7 @@ public class RecommendVariableFactory {
     public static VariableRespVO defXhsOcrVariable() {
         VariableItemRespVO materialDefineVariable = RecommendVariableItemFactory.defMaterialDefineVariable();
         materialDefineVariable.setOrder(1);
-        materialDefineVariable.setIsShow(Boolean.FALSE);
+        materialDefineVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO fieldMapVariable = RecommendVariableItemFactory.defFieldMapVariable();
         fieldMapVariable.setOrder(2);
