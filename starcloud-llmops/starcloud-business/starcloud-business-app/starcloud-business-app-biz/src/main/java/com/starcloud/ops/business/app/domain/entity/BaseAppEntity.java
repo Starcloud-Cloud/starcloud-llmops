@@ -476,7 +476,12 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void update() {
         this.validate(null);
-        disposeMaterial();
+        try {
+            disposeMaterial();
+        } catch (Exception e) {
+            log.warn("disposeMaterial error", e);
+        }
+
         this.doUpdate();
     }
 
