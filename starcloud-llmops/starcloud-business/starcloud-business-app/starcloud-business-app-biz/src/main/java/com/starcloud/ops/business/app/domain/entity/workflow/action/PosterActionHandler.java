@@ -172,71 +172,65 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
-        try {
-            log.info("海报生成步骤【执行开始】: 执行步骤: {}, 应用UID: {}", context.getStepId(), context.getUid());
+        // 开始日志打印
+        loggerBegin(context, "海报图片生成步骤");
 
-            /*
-             * 获取到待执行的海报风格，并进行校验
-             */
-            // 获取海报风格
-            PosterStyleDTO style = getPosterStyle(context);
-            // 校验海报模版
-            style.validate();
+        /*
+         * 获取到待执行的海报风格，并进行校验
+         */
+        // 获取海报风格
+        PosterStyleDTO style = getPosterStyle(context);
+        // 校验海报模版
+        style.validate();
 
-            /*
-             * 对风格的模板进行标记处理
-             * 是否依赖别的模板的生成结果
-             * 只做标记和必要的校验，不进行参数的填充。
-             */
-            markerDependencyTemplate(context, style);
+        /*
+         * 对风格的模板进行标记处理
+         * 是否依赖别的模板的生成结果
+         * 只做标记和必要的校验，不进行参数的填充。
+         */
+        markerDependencyTemplate(context, style);
 
-            /*
-             * 处理需要复制的模板 <br>
-             * 并且进行复制模版的关于素材的变量的填充。
-             * 需要依赖结果的模板，即使是复制的模板，也不会复制。
-             */
-            handlerCopyTemplate(context, style);
+        /*
+         * 处理需要复制的模板 <br>
+         * 并且进行复制模版的关于素材的变量的填充。
+         * 需要依赖结果的模板，即使是复制的模板，也不会复制。
+         */
+        handlerCopyTemplate(context, style);
 
-            /*
-             * 执行不依赖结果的海报模板，并且获取到结果
-             */
-            List<PosterGenerationHandler.Response> undependencyResponse = batchPoster(context, style, Boolean.FALSE);
+        /*
+         * 执行不依赖结果的海报模板，并且获取到结果
+         */
+        List<PosterGenerationHandler.Response> undependencyResponse = batchPoster(context, style, Boolean.FALSE);
 
-            /*
-             * 判断是否要执行依赖结果的模板，
-             * 只要有一个依赖其他模板生成结果，该值就为true。
-             * 如果没有依赖其他模板生成结果的模板，则直接返回结果，此时顺序已经天然一致，不需要进行额外的排序
-             * 如果有依赖其他模板生成结果的模板，执行依赖结果的模板
-             */
-            boolean hasDependency = hasDependencyTemplate(style);
-            if (!hasDependency) {
-                return successResponse(undependencyResponse, style);
-            }
-
-            /*
-             * 执行依赖结果的模板
-             * 首先将不依赖结果的模板结果放入到全局上下文中，以便后续的依赖结果的模板可以使用
-             * 其次执行依赖结果的模板
-             */
-            // 将不依赖的模板结果的模板结果放入到全局上下文中
-            putNoDependencyResultContext(context, style, undependencyResponse);
-            // 执行依赖结果的模板列表
-            List<PosterGenerationHandler.Response> dependencyResponse = batchPoster(context, style, Boolean.TRUE);
-            // 对最终结果进行处理，合并，排序
-            List<PosterGenerationHandler.Response> list = handlerAllResponse(style, dependencyResponse, undependencyResponse);
-            // 处理并且返回结果
-            ActionResponse response = successResponse(list, style);
-            log.info("海报生成步骤【执行结束】: 执行步骤: {}, 应用UID: {}", context.getStepId(), context.getUid());
-            return response;
-        } catch (ServiceException exception) {
-            log.error("海报生成步骤【执行失败】: 执行步骤: {}, 应用UID: {}, \n\t错误码: {}, 错误信息: {}",
-                    context.getStepId(), context.getUid(), exception.getCode(), exception.getMessage(), exception);
-            throw exception;
-        } catch (Exception exception) {
-            log.error("海报生成步骤【执行失败】: 执行步骤: {}, 应用UID: {}, \n\t错误信息: {}",
-                    context.getStepId(), context.getUid(), exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
+        /*
+         * 判断是否要执行依赖结果的模板，
+         * 只要有一个依赖其他模板生成结果，该值就为true。
+         * 如果没有依赖其他模板生成结果的模板，则直接返回结果，此时顺序已经天然一致，不需要进行额外的排序
+         * 如果有依赖其他模板生成结果的模板，执行依赖结果的模板
+         */
+        boolean hasDependency = hasDependencyTemplate(style);
+        if (!hasDependency) {
+            return successResponse(undependencyResponse, style);
         }
+
+        /*
+         * 执行依赖结果的模板
+         * 首先将不依赖结果的模板结果放入到全局上下文中，以便后续的依赖结果的模板可以使用
+         * 其次执行依赖结果的模板
+         */
+        // 将不依赖的模板结果的模板结果放入到全局上下文中
+        putNoDependencyResultContext(context, style, undependencyResponse);
+        // 执行依赖结果的模板列表
+        List<PosterGenerationHandler.Response> dependencyResponse = batchPoster(context, style, Boolean.TRUE);
+        // 对最终结果进行处理，合并，排序
+        List<PosterGenerationHandler.Response> list = handlerAllResponse(style, dependencyResponse, undependencyResponse);
+        // 处理并且返回结果
+        ActionResponse response = successResponse(list, style);
+
+        // 结束日志打印
+        loggerSuccess(context, response, "海报图片生成步骤");
+
+        return response;
     }
 
     /**

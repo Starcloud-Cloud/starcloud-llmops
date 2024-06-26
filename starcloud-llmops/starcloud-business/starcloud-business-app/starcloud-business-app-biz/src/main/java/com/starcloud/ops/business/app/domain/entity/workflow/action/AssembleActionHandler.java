@@ -72,9 +72,8 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
-        log.info("笔记生成步骤【开始执行】: 执行步骤: {}, 应用UID: {}",
-                context.getStepId(), context.getUid());
-
+        // 开始日志打印
+        loggerBegin(context, "笔记生成步骤");
         // 获取所有上游信息
         Map<String, Object> params = context.getContextVariablesValues();
         // 获取到参考文案标题
@@ -93,9 +92,8 @@ public class AssembleActionHandler extends BaseActionHandler {
         // 转换响应结果
         ActionResponse response = convert(params, copyWriting);
 
-        log.info("笔记生成步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: {}",
-                context.getStepId(), context.getUid(), response);
-
+        // 结束日志打印
+        loggerSuccess(context, response, "笔记生成步骤");
         return response;
     }
 
