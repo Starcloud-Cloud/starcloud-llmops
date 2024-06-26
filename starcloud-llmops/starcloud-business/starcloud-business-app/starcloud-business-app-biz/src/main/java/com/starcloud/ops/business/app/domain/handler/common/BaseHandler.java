@@ -80,7 +80,7 @@ public abstract class BaseHandler<Q, R> {
     @JSONField(serialize = false)
     public HandlerResponse<R> execute(HandlerContext<Q> context) {
         try {
-            log.info("节点处理器【开始执行】: 处理器名称: {}", this.getClass().getSimpleName());
+            log.info("步骤节点处理器【开始执行】: 处理器名称: {}", this.getClass().getSimpleName());
 
             // 记录开始时间
             long start = System.currentTimeMillis();
@@ -97,19 +97,19 @@ public abstract class BaseHandler<Q, R> {
             }
             // 记录执行时间
             handlerResponse.setElapsed(System.currentTimeMillis() - start);
-            log.info("节点处理器【执行成功】: 处理器名称: {}, 执行时间: {}ms",
+            log.info("步骤节点处理器【执行成功】: 处理器名称: {}, 执行时间: {}ms",
                     this.getClass().getSimpleName(), handlerResponse.getElapsed());
 
             return handlerResponse;
         } catch (ServiceException exception) {
-            log.error("节点处理器【执行异常】: 处理器名称: {}, 错误码: {}, 异常信息: {}",
+            log.error("步骤节点处理器【执行异常】: 处理器名称: {}, 错误码: {}, 异常信息: {}",
                     this.getClass().getSimpleName(), exception.getCode(), exception.getMessage());
             // 发送错误交互反馈
             context.sendCurrentInteractiveError(exception.getCode(), exception.getMessage());
             throw exception;
         } catch (Exception exception) {
             ErrorCode errorCode = ErrorCodeConstants.EXECUTE_STEP_HANDLER_FAILURE;
-            log.error("节点处理器【执行异常】: 处理器名称: {}, 异常信息: {}",
+            log.error("步骤节点处理器【执行异常】: 处理器名称: {}, 异常信息: {}",
                     this.getClass().getSimpleName(), exception.getMessage());
             // 发送错误交互反馈
             context.sendCurrentInteractiveError(errorCode.getCode(), errorCode.getMsg());

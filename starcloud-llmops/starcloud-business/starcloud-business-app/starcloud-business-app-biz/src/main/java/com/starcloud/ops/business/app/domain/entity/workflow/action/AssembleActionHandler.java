@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +60,6 @@ public class AssembleActionHandler extends BaseActionHandler {
     }
 
 
-
     /**
      * 执行OpenApi生成的步骤
      *
@@ -72,18 +72,17 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
+        log.info("笔记生成步骤【开始执行】: 执行步骤: {}, 应用UID: {}",
+                context.getStepId(), context.getUid());
+
         // 获取所有上游信息
-        final Map<String, Object> params = context.getContextVariablesValues();
+        Map<String, Object> params = context.getContextVariablesValues();
         // 获取到参考文案标题
         String title = String.valueOf(params.get(CreativeConstants.TITLE));
         // 获取到参考文案内容
         String content = String.valueOf(params.get(CreativeConstants.CONTENT));
-        // 获取到标签
-        String tag = String.valueOf(params.get(CreativeConstants.TAG_LIST));
-        if (StringUtils.isBlank(tag) || "null".equals(tag)) {
-            tag = "[]";
-        }
-        List<String> tagList = JsonUtils.parseArray(tag, String.class);
+        // 获取到标签列表
+        List<String> tagList = getTagList(params);
 
         // 组装文案内容
         CopyWritingContent copyWriting = new CopyWritingContent();
@@ -92,39 +91,57 @@ public class AssembleActionHandler extends BaseActionHandler {
         copyWriting.setTagList(tagList);
 
         // 转换响应结果
-        ActionResponse response = convert(context, copyWriting);
+        ActionResponse response = convert(params, copyWriting);
 
-        log.info("AssembleActionHandler 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
+        log.info("笔记生成步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: {}",
+                context.getStepId(), context.getUid(), response);
+
         return response;
+    }
+
+    /**
+     * 获取标签列表
+     *
+     * @param params 参数
+     * @return 标签列表
+     */
+    private List<String> getTagList(Map<String, Object> params) {
+        // 获取到标签
+        String tag = String.valueOf(params.get(CreativeConstants.TAG_LIST));
+        if (StringUtils.isBlank(tag) || "null".equalsIgnoreCase(tag)) {
+            tag = "[]";
+        }
+        try {
+            return JsonUtils.parseArray(tag, String.class);
+        } catch (Exception e) {
+            // 返回空数组
+            return Collections.emptyList();
+        }
     }
 
     /**
      * 转换响应结果
      *
-     * @param handlerResponse 响应结果
+     * @param params      参数
+     * @param copyWriting 文案内容
      * @return 转换后的响应结果
      */
-    @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(AppContext context, CopyWritingContent copyWriting) {
-
+    private ActionResponse convert(Map<String, Object> params, CopyWritingContent copyWriting) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(true);
-
         actionResponse.setAnswer(JsonUtils.toJsonPrettyString(copyWriting));
         actionResponse.setOutput(JsonData.of(copyWriting, CopyWritingContent.class));
-
-        actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
-        actionResponse.setStepConfig(context.getContextVariablesValues());
+        actionResponse.setMessage(JsonUtils.toJsonString(params));
+        actionResponse.setStepConfig(params);
         actionResponse.setMessageTokens(0L);
-        actionResponse.setMessageUnitPrice(new BigDecimal("0"));
+        actionResponse.setMessageUnitPrice(BigDecimal.ZERO);
         actionResponse.setAnswerTokens(0L);
-        actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
+        actionResponse.setAnswerUnitPrice(BigDecimal.ZERO);
         actionResponse.setTotalTokens(0L);
-        actionResponse.setTotalPrice(new BigDecimal("0"));
-        actionResponse.setAiModel(null);
-        // 组装消耗为 0
+        actionResponse.setTotalPrice(BigDecimal.ZERO);
+        actionResponse.setAiModel("assemble");
         actionResponse.setCostPoints(0);
         return actionResponse;
     }

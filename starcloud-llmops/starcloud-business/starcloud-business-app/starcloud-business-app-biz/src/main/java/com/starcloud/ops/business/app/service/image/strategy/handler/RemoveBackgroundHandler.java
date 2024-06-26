@@ -59,7 +59,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public void handleRequest(RemoveBackgroundRequest request) {
-        log.info("去除图片背景【智能抠图】：请求参数：{}", JsonUtils.toJsonString(request));
+
     }
 
     /**
@@ -84,7 +84,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
         RemoveBackgroundResponse response = new RemoveBackgroundResponse();
         response.setOriginalUrl(request.getImageUrl());
         response.setImages(Collections.singletonList(image));
-        log.info("去除图片背景【智能抠图】结束：响应结果：{}", JsonUtils.toJsonString(response));
+        log.info("去除图片背景【智能抠图】结束：响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

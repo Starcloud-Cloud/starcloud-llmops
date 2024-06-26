@@ -57,7 +57,6 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleRequest(UpscaleImageRequest request) {
-        log.info("放大/高清图片：请求参数处理开始：请求参数：{}", JsonUtils.toJsonString(request));
         // 获取原始图像的BufferedImage
         BufferedImage originalImage = ImageUploadUtils.getBufferedImage(request.getInitImage());
         int originalWidth = originalImage.getWidth();
@@ -87,8 +86,6 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
 
         request.setOriginalWidth(originalWidth);
         request.setOriginalHeight(originalHeight);
-
-        log.info("放大/高清图片：请求参数处理结束：请求参数：{}", JsonUtils.toJsonString(request));
 
     }
 
@@ -125,7 +122,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         response.setHeight(request.getHeight());
         response.setImages(ImageConvert.INSTANCE.convert(vSearchImages));
 
-        log.info("放大/高清图片结束：响应结果：{}", JsonUtils.toJsonString(response));
+        log.info("放大/高清图片结束：响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

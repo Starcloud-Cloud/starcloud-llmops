@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -129,7 +128,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             throw exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
         }
         try {
-
             // 检测权益
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_IMAGE, request.getUserId());
 
@@ -208,7 +206,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
 
-            throw exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -330,10 +328,10 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setVariables(JsonUtils.toJsonString(request.getImageRequest()));
         messageRequest.setMessage("");
         messageRequest.setMessageTokens(0);
-        messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));
+        messageRequest.setMessageUnitPrice(BigDecimal.ZERO);
         messageRequest.setAnswerTokens(0);
         messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
-        messageRequest.setTotalPrice(new BigDecimal("0.0000"));
+        messageRequest.setTotalPrice(BigDecimal.ZERO);
         messageRequest.setCurrency("USD");
         messageRequest.setCostPoints(0);
         messageRequest.setImagePoints(0);

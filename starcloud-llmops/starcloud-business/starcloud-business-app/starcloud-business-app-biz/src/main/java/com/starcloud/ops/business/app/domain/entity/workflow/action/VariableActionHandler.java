@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -56,16 +57,43 @@ public class VariableActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 具体handler的入参定义
+     *
+     * @return 步骤信息
+     */
+    @Override
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+        ObjectSchema objectSchema = workflowStepWrapper.getVariable().getJsonSchema();
+        objectSchema.setTitle(workflowStepWrapper.getStepCode());
+        objectSchema.setDescription(workflowStepWrapper.getDescription());
+        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
+        return objectSchema;
+    }
+
+    /**
+     * 具体handler的出参定义
+     *
+     * @return 步骤信息
+     */
+    @Override
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+        return null;
+    }
+
+    /**
      * 执行具体的步骤
      *
+     * @param context 上下文
      * @return 执行结果
-     * @param context
      */
     @Override
     protected ActionResponse doExecute(AppContext context) {
-        log.info("VariableActionHandler doExecute");
 
-        Map<String, Object> params = context.getContextVariablesValues();
+        log.info("全局变量步骤【开始执行】: 执行步骤: {}, 应用UID: {}",
+                context.getStepId(), context.getUid());
+
+        Map<String, Object> params = MapUtils.emptyIfNull(context.getContextVariablesValues());
+        JsonSchema jsonSchema = this.getInVariableJsonSchema(context.getStepWrapper());
 
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
@@ -73,53 +101,21 @@ public class VariableActionHandler extends BaseActionHandler {
         actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage("variable");
-
-
         actionResponse.setAnswer(JsonUtils.toJsonPrettyString(params));
-        JsonSchema jsonSchema = this.getInVariableJsonSchema(context.getStepWrapper());
         actionResponse.setOutput(JsonData.of(params, jsonSchema));
-
         actionResponse.setMessageTokens(0L);
-        actionResponse.setMessageUnitPrice(new BigDecimal("0"));
+        actionResponse.setMessageUnitPrice(BigDecimal.ZERO);
         actionResponse.setAnswerTokens(0L);
-        actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
+        actionResponse.setAnswerUnitPrice(BigDecimal.ZERO);
         actionResponse.setTotalTokens(0L);
-        actionResponse.setTotalPrice(new BigDecimal("0"));
+        actionResponse.setTotalPrice(BigDecimal.ZERO);
         actionResponse.setStepConfig("{}");
-        actionResponse.setAiModel(null);
+        actionResponse.setAiModel("variable");
         actionResponse.setCostPoints(0);
 
-        log.info("VariableActionHandler doExecute end");
+        log.info("全局变量步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: \n{}",
+                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(actionResponse));
         return actionResponse;
-    }
-
-    /**
-     * 具体handler的入参定义
-     *
-     * @return
-     */
-    @Override
-    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
-        ObjectSchema objectSchema = workflowStepWrapper.getVariable().getJsonSchema();
-
-        objectSchema.setTitle(workflowStepWrapper.getStepCode());
-        objectSchema.setDescription(workflowStepWrapper.getDescription());
-        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
-
-        return objectSchema;
-    }
-
-    /**
-     * 具体handler的出参定义
-     *
-     * @return
-     */
-    @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
-        return null;
-
     }
 
 }

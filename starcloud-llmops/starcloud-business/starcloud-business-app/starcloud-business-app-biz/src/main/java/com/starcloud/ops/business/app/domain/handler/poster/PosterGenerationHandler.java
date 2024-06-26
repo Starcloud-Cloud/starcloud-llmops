@@ -85,34 +85,28 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
      * @return 响应
      */
     public Response poster(Request request) {
-        try {
-            // 校验模版ID
-            if (StringUtils.isBlank(request.getCode())) {
-                throw ServiceExceptionUtil.invalidParamException("图片模板ID不能为空！");
-            }
-
-            // 组装参数
-            PosterRequest posterRequest = new PosterRequest();
-            posterRequest.setId(request.getCode());
-            posterRequest.setParams(MapUtil.emptyIfNull(request.getParams()));
-
-            log.info("海报图片生成:【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
-
-            // 调用海报生成服务
-            List<PosterImage> posterImageList = POSTER_SERVICE.poster(posterRequest);
-
-            Response response = new Response();
-            response.setCode(request.getCode());
-            response.setName(request.getName());
-            response.setIsMain(request.getIsMain());
-            response.setIndex(request.getIndex());
-            response.setUrlList(posterImageList);
-            return response;
-        } catch (ServiceException exception) {
-            throw exception;
-        } catch (Exception exception) {
-            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
+        // 校验模版ID
+        if (StringUtils.isBlank(request.getCode())) {
+            throw ServiceExceptionUtil.invalidParamException("图片模板ID不能为空！");
         }
+
+        // 组装参数
+        PosterRequest posterRequest = new PosterRequest();
+        posterRequest.setId(request.getCode());
+        posterRequest.setParams(MapUtil.emptyIfNull(request.getParams()));
+
+        log.info("海报图片生成:【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
+
+        // 调用海报生成服务
+        List<PosterImage> posterImageList = POSTER_SERVICE.poster(posterRequest);
+
+        Response response = new Response();
+        response.setCode(request.getCode());
+        response.setName(request.getName());
+        response.setIsMain(request.getIsMain());
+        response.setIndex(request.getIndex());
+        response.setUrlList(posterImageList);
+        return response;
     }
 
     /**

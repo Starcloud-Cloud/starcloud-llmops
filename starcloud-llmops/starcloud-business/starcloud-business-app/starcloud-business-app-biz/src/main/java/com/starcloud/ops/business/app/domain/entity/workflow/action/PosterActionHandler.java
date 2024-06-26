@@ -34,6 +34,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
+import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
@@ -164,15 +165,15 @@ public class PosterActionHandler extends BaseActionHandler {
     /**
      * 执行OpenApi生成的步骤
      *
-     * @return 执行结果
      * @param context
+     * @return 执行结果
      */
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
         try {
-            log.info("海报生成 Action 执行开始......");
+            log.info("海报生成步骤【执行开始】: 执行步骤: {}, 应用UID: {}", context.getStepId(), context.getUid());
 
             /*
              * 获取到待执行的海报风格，并进行校验
@@ -224,11 +225,17 @@ public class PosterActionHandler extends BaseActionHandler {
             // 对最终结果进行处理，合并，排序
             List<PosterGenerationHandler.Response> list = handlerAllResponse(style, dependencyResponse, undependencyResponse);
             // 处理并且返回结果
-            return successResponse(list, style);
+            ActionResponse response = successResponse(list, style);
+            log.info("海报生成步骤【执行结束】: 执行步骤: {}, 应用UID: {}", context.getStepId(), context.getUid());
+            return response;
         } catch (ServiceException exception) {
+            log.error("海报生成步骤【执行失败】: 执行步骤: {}, 应用UID: {}, \n\t错误码: {}, 错误信息: {}",
+                    context.getStepId(), context.getUid(), exception.getCode(), exception.getMessage(), exception);
             throw exception;
         } catch (Exception exception) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成失败：" + exception.getMessage()));
+            log.error("海报生成步骤【执行失败】: 执行步骤: {}, 应用UID: {}, \n\t错误信息: {}",
+                    context.getStepId(), context.getUid(), exception.getMessage(), exception);
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -243,17 +250,17 @@ public class PosterActionHandler extends BaseActionHandler {
         // 海报模版参数
         String posterStyle = String.valueOf(context.getContextVariablesValue(CreativeConstants.POSTER_STYLE, Boolean.FALSE));
         if (StringUtils.isBlank(posterStyle) || "null".equalsIgnoreCase(posterStyle) || "{}".equals(posterStyle)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：海报风格配置为空，请检查您的配置或联系管理员！", context.getStepId());
         }
         // 转为海报模版对象
         try {
             PosterStyleDTO style = JsonUtils.parseObject(posterStyle, PosterStyleDTO.class);
             if (Objects.isNull(style)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置为空，请检查您的图片配置或联系管理员！"));
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：海报风格配置为空，请检查您的配置或联系管理员！", context.getStepId());
             }
             return style;
         } catch (Exception e) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：海报风格配置解析失败，请检查您的图片配置或联系管理员！"));
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：海报风格配置解析失败，请检查您的配置或联系管理员！", context.getStepId());
         }
     }
 
@@ -303,7 +310,9 @@ public class PosterActionHandler extends BaseActionHandler {
                     String group = matcher.group();
                     if (group.contains(MAIN_IMAGE)) {
                         if (i == 0) {
-                            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "][" + variable.getLabel() + "] " + "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
+                            throw ServiceExceptionUtil.invalidParamException(
+                                    "【{}】步骤执行失败: [{}][{}][{}] 变量不能依赖自身生成结果，经检查您的模板变量配置！",
+                                    context.getStepId(), posterStyle.getName(), posterTemplate.getName(), variable.getLabel());
                         }
                         matched = true;
                         continue;
@@ -311,10 +320,14 @@ public class PosterActionHandler extends BaseActionHandler {
                     // 提取出匹配到的数字
                     Integer dependencyIndex = Integer.parseInt(group.substring(group.length() - 1));
                     if (i == dependencyIndex) {
-                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "][" + variable.getLabel() + "] " + "变量不能依赖自身生成结果，经检查您的模板变量配置！"));
+                        throw ServiceExceptionUtil.invalidParamException("" +
+                                        "【{}】步骤执行失败: [{}][{}][{}] 变量不能依赖自身生成结果，经检查您的模板变量配置！",
+                                context.getStepId(), posterStyle.getName(), posterTemplate.getName(), variable.getLabel());
                     }
                     if (dependencyIndex > templateList.size()) {
-                        throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "][" + variable.getLabel() + "] " + "变量依赖的模板生成结果超出模板数量，经检查您的模板变量配置！"));
+                        throw ServiceExceptionUtil.invalidParamException(
+                                "【{}】步骤执行失败: [{}][{}][{}] 变量依赖的模板生成结果超出模板数量，经检查您的模板变量配置！",
+                                context.getStepId(), posterStyle.getName(), posterTemplate.getName(), variable.getLabel());
                     }
                     matched = true;
                 }
@@ -328,7 +341,9 @@ public class PosterActionHandler extends BaseActionHandler {
         boolean allDependency = templateList.stream().allMatch(PosterTemplateDTO::getIsDependency);
         // 如果所有的模板都依赖图片生成的结果，则说明出现循环依赖，抛出异常
         if (allDependency) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "]" + "所有的海报模板均有依赖其他海报模板生成结果的变量，导致无法进行图片生成，请检查您的海报模板变量配置！"));
+            throw ServiceExceptionUtil.invalidParamException(
+                    "【{}】步骤执行失败: [{}] 所有的海报模板均有依赖其他海报模板生成结果的变量，导致无法进行图片生成，请检查您的海报模板变量配置！",
+                    context.getStepId(), posterStyle.getName());
         }
         posterStyle.setTemplateList(templateList);
     }
@@ -575,7 +590,9 @@ public class PosterActionHandler extends BaseActionHandler {
             if (isAllValueIsInvalid) {
                 // 如果设置所有变量为空报错(null/false)，则报错!
                 if (Objects.isNull(posterStyle.getNoExecuteIfEmpty()) || !posterStyle.getNoExecuteIfEmpty()) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报校验失败：[" + posterStyle.getName() + "][" + posterTemplate.getName() + "] 变量值都为空。或者占位符无法替换，请检查您的图片变量配置！"));
+                    throw ServiceExceptionUtil.invalidParamException(
+                            "【{}】步骤执行失败:[{}][{}] 变量值都为空。或者占位符无法替换，请检查您的图片变量配置！",
+                            context.getStepId(), posterStyle.getName(), posterTemplate.getName());
                 }
                 // 如果设置所有变量为空(true)不执行，则不执行
                 else {
@@ -690,8 +707,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setAnswer(JsonUtils.toJsonPrettyString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());
-        response.setAiModel(null);
-        log.info("海报生成 Action 执行结束......");
+        response.setAiModel("poster-tubor");
         return response;
     }
 
@@ -728,23 +744,30 @@ public class PosterActionHandler extends BaseActionHandler {
         // 获取线程池
         ThreadPoolExecutor executor = POSTER_TEMPLATE_THREAD_POOL_HOLDER.executor();
         // 任务列表，只执行需要执行的图片，isExecute 为空或者为true，都执行，为false则不需要执行改图片
-        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList).stream().map(item -> CompletableFuture.supplyAsync(() -> poster(context, item), executor)).collect(Collectors.toList());
+        List<CompletableFuture<HandlerResponse<PosterGenerationHandler.Response>>> futureList = CollectionUtil.emptyIfNull(posterTemplateList).stream()
+                .map(item -> CompletableFuture.supplyAsync(() -> poster(context, item), executor)).collect(Collectors.toList());
 
         // 任务合并
-        CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        CompletableFuture<List<HandlerResponse<PosterGenerationHandler.Response>>> allFuture = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futureList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
 
         // 获取结果
         List<HandlerResponse<PosterGenerationHandler.Response>> handlerResponseList = allFuture.join();
 
         // 如果有一个失败，则返回失败
-        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream().filter(Objects::nonNull).filter(item -> !item.getSuccess()).findFirst();
+        Optional<HandlerResponse<PosterGenerationHandler.Response>> failureOption = handlerResponseList.stream()
+                .filter(Objects::nonNull).filter(item -> !item.getSuccess()).findFirst();
 
         if (failureOption.isPresent()) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(failureOption.get().getErrorCode(), failureOption.get().getErrorMsg()));
+            HandlerResponse<PosterGenerationHandler.Response> failure = failureOption.get();
+            throw ServiceExceptionUtil.exception(new ErrorCode(failure.getErrorCode(), failure.getErrorMsg()));
         }
 
         // 构建响应结果
-        return handlerResponseList.stream().filter(Objects::nonNull).map(HandlerResponse::getOutput).filter(Objects::nonNull).collect(Collectors.toList());
+        return handlerResponseList.stream().filter(Objects::nonNull)
+                .map(HandlerResponse::getOutput)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -779,14 +802,12 @@ public class PosterActionHandler extends BaseActionHandler {
             PosterGenerationHandler handler = new PosterGenerationHandler();
             return handler.execute(handlerContext);
         } catch (ServiceException exception) {
-            log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
             HandlerResponse<PosterGenerationHandler.Response> handlerResponse = new HandlerResponse<>();
             handlerResponse.setSuccess(Boolean.FALSE);
             handlerResponse.setErrorCode(exception.getCode());
             handlerResponse.setErrorMsg(exception.getMessage());
             return handlerResponse;
         } catch (Exception exception) {
-            log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
             HandlerResponse<PosterGenerationHandler.Response> handlerResponse = new HandlerResponse<>();
             handlerResponse.setSuccess(Boolean.FALSE);
             handlerResponse.setErrorCode(350400200);
@@ -804,7 +825,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     public PosterTitleDTO multimodalTitle(AppContext context, PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
         try {
-            log.info("通义千问多模态执行开始...... 海报模板：{}:{}", posterTemplate.getName(), posterTemplate.getCode());
+            log.info("通义千问多模态【执行开始】: 海报模板：{}: {}", posterTemplate.getName(), posterTemplate.getCode());
             // 获取变量值
             Map<String, Object> params = context.getContextVariablesValues();
 
@@ -822,14 +843,15 @@ public class PosterActionHandler extends BaseActionHandler {
                 messages.add(Collections.singletonMap(MultiModalMessage.MESSAGE_IMAGE_KEY, imageUrl));
             }
             // 调用通义千问VL模型
-            log.info("通义千问多模态执行参数：{}", JsonUtils.toJsonPrettyString(messages));
+            log.info("通义千问多模态【调用模型】: 执行参数: \n{}", JsonUtils.toJsonPrettyString(messages));
             HumanMessage humanMessage = new HumanMessage(messages);
             ChatVLQwen chatVLQwen = new ChatVLQwen();
             String call = chatVLQwen.call(Arrays.asList(humanMessage));
 
             // 判断结果是否为空
             if (StrUtil.isBlank(call)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成：AI分析多模态生成执行失败：响应结果为空！"));
+                throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(),
+                        "海报生成：AI分析多模态生成执行失败：响应结果为空！");
             }
 
             /*
@@ -837,7 +859,8 @@ public class PosterActionHandler extends BaseActionHandler {
              */
             // 解析结果
             if (!call.contains("标题") || !call.contains("副标题")) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成：AI分析多模态生成执行失败：响应结果格式不正确！"));
+                throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(),
+                        "海报生成：AI分析多模态生成执行失败：响应结果格式不正确！");
             }
 
             Integer titleIndex = call.indexOf("标题");
@@ -848,13 +871,18 @@ public class PosterActionHandler extends BaseActionHandler {
             PosterTitleDTO posterTitle = new PosterTitleDTO();
             posterTitle.setImgTitle(title);
             posterTitle.setImgSubTitle(subTitle);
+            log.info("通义千问多模态【执行结束】: 海报模板：{}: {}, 执行结果: \n{}",
+                    posterTemplate.getName(), posterTemplate.getCode(), JsonUtils.toJsonPrettyString(posterTitle));
+
             return posterTitle;
         } catch (ServiceException exception) {
-            log.error("海报生成: AI分析多模态执行失败：{}", exception.getMessage(), exception);
+            log.error("通义千问多模态【执行失败】: 海报模板：{}: {}, 、\n\t错误码: {}, 错误信息: {}",
+                    posterTemplate.getName(), posterTemplate.getCode(), exception.getCode(), exception.getMessage());
             throw exception;
         } catch (Exception exception) {
-            log.error("海报生成: AI分析多模态执行失败：{}", exception.getMessage(), exception);
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, "海报生成：AI分析多模态执行失败：" + exception.getMessage()));
+            log.error("通义千问多模态【执行失败】: 海报模板：{}: {}, 、\n\t错误信息: {}",
+                    posterTemplate.getName(), posterTemplate.getCode(), exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
         }
     }
 

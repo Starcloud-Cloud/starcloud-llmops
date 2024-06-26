@@ -75,16 +75,14 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
 
-        log.info("OpenAI ChatGPT Action 执行开始......");
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
-        OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
+        log.info("AI生成步骤【执行开始】: 执行步骤: {}, 应用UID: {}",
+                context.getStepId(), context.getUid());
 
-        //获取前端传的完整字段（老结构）
-        Long userId = context.getUserId();
-        Long endUser = context.getEndUserId();
-        String conversationId = context.getConversationUid();
+        // 获取执行参数
         Map<String, Object> params = context.getContextVariablesValues();
-        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JsonUtils.toJsonPrettyString(params));
+
+        log.info("AI生成步骤【准备调用模型】: 执行步骤: {}, 应用UID: {}, 请求参数: \n{}",
+                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(params));
 
         String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
@@ -92,7 +90,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7d"));
 
-        // 构建请求
+        // 构建AI生成请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
         handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
         handlerRequest.setModel(model);
@@ -101,12 +99,26 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         handlerRequest.setTemperature(temperature);
         handlerRequest.setN(n);
 
-        // 构建请求
-        HandlerContext handlerContext = HandlerContext.createContext(context.getUid(), conversationId, userId, endUser, context.getScene(), handlerRequest);
-        // 执行步骤
+        // 构建AI生成请求上下文
+        HandlerContext handlerContext = HandlerContext.createContext(
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                context.getEndUserId(),
+                context.getScene(),
+                handlerRequest
+        );
+
+        // 构建AI生成处理器
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
+        OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
+
+        // 执行AI生成处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
         ActionResponse response = convert(context, handlerResponse);
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
+
+        log.info("AI生成步骤【执行结束】: 执行步骤: {}, 应用UID: {}, 响应结果: \n{}",
+                context.getStepId(), context.getUid(), JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

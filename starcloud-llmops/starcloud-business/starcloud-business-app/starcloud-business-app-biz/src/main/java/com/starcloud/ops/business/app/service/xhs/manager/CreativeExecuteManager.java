@@ -15,7 +15,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
@@ -39,6 +38,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
@@ -307,9 +307,6 @@ public class CreativeExecuteManager {
         } else {
             AppMarketEntity entity = AppFactory.factoryMarket(appExecuteRequest);
             response = entity.execute(appExecuteRequest);
-        }
-        if (Objects.isNull(response) || !response.getSuccess()) {
-            throw exception(350600110, "创作内容执行失败，错误码：" + response.getResultCode() + ",错误信息：" + response.getResultDesc());
         }
 
         return response;

@@ -376,7 +376,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            throw exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage());
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage(), exception);
         }
     }
 
