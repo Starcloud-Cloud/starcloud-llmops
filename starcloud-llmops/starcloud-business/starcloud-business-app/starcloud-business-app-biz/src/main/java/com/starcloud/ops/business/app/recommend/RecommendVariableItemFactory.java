@@ -424,7 +424,7 @@ public class RecommendVariableItemFactory {
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.JSON.name());
-        variableItem.setGroup(AppVariableGroupEnum.ADVANCED.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
@@ -443,7 +443,7 @@ public class RecommendVariableItemFactory {
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
-        variableItem.setGroup(AppVariableGroupEnum.ADVANCED.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
