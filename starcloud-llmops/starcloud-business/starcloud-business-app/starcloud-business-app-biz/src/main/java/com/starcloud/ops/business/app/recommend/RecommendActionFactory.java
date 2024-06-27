@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
+import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.*;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -103,7 +104,8 @@ public class RecommendActionFactory {
         step.setDescription("小红书ocr");
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(XhsParseActionHandler.class.getSimpleName());
-        step.setResponse(RecommendResponseFactory.defTextResponse(Boolean.FALSE));
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(XhsNoteDTO.class);
+        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);

@@ -106,21 +106,17 @@ public class RecommendVariableFactory {
      * @return
      */
     public static VariableRespVO defXhsOcrVariable() {
-        VariableItemRespVO materialDefineVariable = RecommendVariableItemFactory.defMaterialDefineVariable();
-        materialDefineVariable.setOrder(1);
-        materialDefineVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO fieldMapVariable = RecommendVariableItemFactory.defFieldMapVariable();
-        fieldMapVariable.setOrder(2);
+        fieldMapVariable.setOrder(1);
         fieldMapVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO xhsUrlVariable = RecommendVariableItemFactory.defXhsUrlVariable();
-        xhsUrlVariable.setOrder(3);
+        xhsUrlVariable.setOrder(2);
         xhsUrlVariable.setIsShow(Boolean.TRUE);
 
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-                materialDefineVariable,
                 fieldMapVariable,
                 xhsUrlVariable
         ));

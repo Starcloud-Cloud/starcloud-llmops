@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.convert.xhs.material;
 
 import cn.hutool.core.bean.BeanPath;
 import cn.smallbun.screw.core.util.CollectionUtils;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.api.xhs.note.ImageInfo;
 import com.starcloud.ops.business.app.api.xhs.note.NoteDetail;
@@ -34,7 +35,7 @@ public interface XhsNoteConvert {
             xhsNoteDTO.setTags(tags);
         }
         List<NoteImage> imageList = noteDetail.getImageList();
-
+        List<String> dumpUrls = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(imageList)) {
             for (NoteImage noteImage : imageList) {
                 List<ImageInfo> infoList = noteImage.getInfoList();
@@ -43,10 +44,11 @@ public interface XhsNoteConvert {
                 }
                 Optional<ImageInfo> info = infoList.stream().filter(imageInfo -> "WB_DFT".equalsIgnoreCase(imageInfo.getImageScene())).findAny();
                 if (info.isPresent() && StringUtils.isNotBlank(info.get().getUrl())) {
-                    xhsNoteDTO.addImage(info.get().getUrl());
+                    dumpUrls.add(info.get().getUrl());
                 }
             }
         }
+        xhsNoteDTO.addImage(dumpUrls);
         return xhsNoteDTO;
     }
 
@@ -68,4 +70,5 @@ public interface XhsNoteConvert {
         XhsNoteDTO xhsNoteDTO = convert(noteDetail);
         return convert(xhsNoteDTO, fieldMap);
     }
+
 }

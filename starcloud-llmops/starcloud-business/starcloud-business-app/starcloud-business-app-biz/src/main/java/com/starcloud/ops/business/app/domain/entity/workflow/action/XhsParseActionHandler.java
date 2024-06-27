@@ -1,15 +1,13 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.ocr.OcrResult;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
 import com.starcloud.ops.business.app.convert.xhs.material.XhsNoteConvert;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -18,12 +16,14 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
+import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.ocr.AliyunOcrManager;
 import com.starcloud.ops.business.app.service.xhs.crawler.impl.XhsDumpServiceImpl;
-import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,9 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_MATERIAL_DEFINE;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_OCR_ERROR;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_OCR_PARAM_REQUIRED;
 
 @Slf4j
 @TaskComponent
@@ -59,58 +57,45 @@ public class XhsParseActionHandler extends BaseActionHandler {
 
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
-
         // 爬取小红书内容
         String xhsNoteUrl = String.valueOf(params.get(CreativeConstants.XHS_NOTE_URL));
         XhsDetailConstants.validNoteUrl(xhsNoteUrl);
-
-        Object fieldDefine = params.get(CreativeConstants.MATERIAL_DEFINE);
-        Object fieldMap = params.get(CreativeConstants.FIELD_MAP);
-        // 参数必填校验 fieldMap校验图片对应的字段类型
-        if (Objects.isNull(fieldDefine) || Objects.isNull(fieldMap)) {
-            throw exception(XHS_OCR_PARAM_REQUIRED);
-        }
-
-        List<MaterialFieldConfigDTO> fieldConfigDTOList = MaterialDefineUtil.parseConfig(JSONUtil.toJsonStr(fieldDefine));
-        if (CollUtil.isEmpty(fieldConfigDTOList)) {
-            throw exception(NO_MATERIAL_DEFINE);
-        }
-
         String noteId = XhsDetailConstants.parsingNoteId(xhsNoteUrl);
+        long start = System.currentTimeMillis();
+        // 串行转存图片 笔记中有大量图片需改成并行
         ServerRequestInfo noteDetail = XHS_DUMP_SERVICE.requestDetail(noteId);
+        long end = System.currentTimeMillis();
+        log.info("xhs time {}", end - start);
+        XhsNoteDTO xhsNoteDTO = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail());
 
-        TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        Map<String, Object> material = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail(), JSONObject.parseObject(fieldMap.toString(), typeReference));
-
-        for (MaterialFieldConfigDTO materialFieldConfigDTO : fieldConfigDTOList) {
-            if (!MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType())) {
-                continue;
-            }
-            String fieldName = materialFieldConfigDTO.getFieldName();
-            Object url = material.get(fieldName);
-            if (Objects.isNull(url)) {
-                continue;
-            }
-
-            OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(url.toString());
+        List<OcrGeneralDTO> ocrDTOList = xhsNoteDTO.listOcrDTO();
+        // 有大量图片ocr需改成并行
+        start = System.currentTimeMillis();
+        for (OcrGeneralDTO ocrGeneralDTO : ocrDTOList) {
+            OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(ocrGeneralDTO.getUrl());
             if (!ocrResult.isSuccess()) {
                 throw exception(XHS_OCR_ERROR, ocrResult.getMessage());
             }
-
-            material.put(fieldName + "_ocr", ocrResult.getOcrGeneralDTO());
+            BeanUtils.copyProperties(ocrResult.getOcrGeneralDTO(), ocrGeneralDTO);
         }
-        return convert(material, context);
+        end = System.currentTimeMillis();
+        log.info("ocr time {}", end - start);
+        SseEmitter sseEmitter = context.getSseEmitter();
+        if (Objects.nonNull(sseEmitter)) {
+            StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
+            callBackHandler.onLLMNewToken(JSONUtil.toJsonStr(xhsNoteDTO));
+        }
+        return convert(xhsNoteDTO, context, ocrDTOList.size());
     }
 
 
-    private ActionResponse convert(Map<String, Object> material, AppContext context) {
+    private ActionResponse convert(XhsNoteDTO xhsNoteDTO, AppContext context, int cost) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
-        actionResponse.setAnswer(JsonUtils.toJsonString(material));
-        actionResponse.setOutput(JsonData.of(material));
+        actionResponse.setAnswer(JsonUtils.toJsonString(xhsNoteDTO));
+        actionResponse.setOutput(JsonData.of(xhsNoteDTO));
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
         actionResponse.setStepConfig(context.getContextVariablesValues());
         actionResponse.setMessageTokens(0L);
@@ -120,8 +105,8 @@ public class XhsParseActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(0L);
         actionResponse.setTotalPrice(new BigDecimal("0"));
         actionResponse.setAiModel(null);
-        // 组装消耗为 0
-        actionResponse.setCostPoints(0);
+        // 一个图片OCR一次 一个点
+        actionResponse.setCostPoints(cost);
         return actionResponse;
     }
 

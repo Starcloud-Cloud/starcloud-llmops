@@ -1,35 +1,87 @@
 package com.starcloud.ops.business.app.api.xhs.material;
 
 
+import cn.hutool.core.bean.BeanPath;
+import cn.hutool.core.collection.CollectionUtil;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class XhsNoteDTO {
 
-    @Schema(description = "笔记id")
+    @JsonPropertyDescription("笔记id")
     private String noteId;
 
-    @Schema(description = "标题")
+    @JsonPropertyDescription("标题")
     private String title;
 
-    @Schema(description = "内容")
+    @JsonPropertyDescription("内容")
     private String content;
 
-    @Schema(description = "标签")
+    @JsonPropertyDescription("标签 多标签逗号分割")
     private String tags;
 
-    @Schema(description = "图片集合")
-    private List<String> imageList;
+    @JsonPropertyDescription("图片1")
+    private OcrGeneralDTO image1;
 
+    @JsonPropertyDescription("图片2")
+    private OcrGeneralDTO image2;
 
-    public void addImage(String url) {
-        if (imageList == null) {
-            imageList = new ArrayList<>();
+    @JsonPropertyDescription("图片3")
+    private OcrGeneralDTO image3;
+
+    @JsonPropertyDescription("图片4")
+    private OcrGeneralDTO image4;
+
+    @JsonPropertyDescription("图片5")
+    private OcrGeneralDTO image5;
+
+    @JsonPropertyDescription("图片6")
+    private OcrGeneralDTO image6;
+
+    @JsonPropertyDescription("图片7")
+    private OcrGeneralDTO image7;
+
+    @JsonPropertyDescription("图片8")
+    private OcrGeneralDTO image8;
+
+    @JsonPropertyDescription("图片9")
+    private OcrGeneralDTO image9;
+
+    @JsonPropertyDescription("图片10")
+    private OcrGeneralDTO image10;
+
+    /**
+     * 填充图片地址
+     * @param urls
+     */
+    public void addImage(List<String> urls) {
+        for (int i = 0; i < urls.size() && i < 10; i++) {
+            BeanPath beanPath = new BeanPath("image" + (i + 1));
+            OcrGeneralDTO ocrGeneralDTO = new OcrGeneralDTO();
+            ocrGeneralDTO.setUrl(urls.get(i));
+            beanPath.set(this, ocrGeneralDTO);
         }
-        imageList.add(url);
+    }
+
+    public List<OcrGeneralDTO> listOcrDTO() {
+        List<OcrGeneralDTO> ocrDTOList = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            BeanPath beanPath = new BeanPath("image" + i);
+            OcrGeneralDTO o = (OcrGeneralDTO) beanPath.get(this);
+            if (Objects.isNull(o)) {
+                return ocrDTOList;
+            }
+            ocrDTOList.add(o);
+        }
+        return ocrDTOList;
     }
 }
