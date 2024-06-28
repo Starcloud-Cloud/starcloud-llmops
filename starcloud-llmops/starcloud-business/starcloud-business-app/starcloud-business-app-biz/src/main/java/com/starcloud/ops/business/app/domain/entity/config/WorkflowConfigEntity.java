@@ -110,6 +110,17 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, handler));
     }
 
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapper getStepWrapperWithoutError(Class<? extends BaseActionHandler> classz) {
+        String handler = classz.getSimpleName();
+
+        return CollectionUtil.emptyIfNull(steps).stream()
+                .filter(item -> item.getFlowStep().getHandler().equals(handler))
+                .findFirst()
+                .orElse(null);
+    }
+
     /**
      * 获取指定步骤之前的所有步骤，包括指定步骤
      *

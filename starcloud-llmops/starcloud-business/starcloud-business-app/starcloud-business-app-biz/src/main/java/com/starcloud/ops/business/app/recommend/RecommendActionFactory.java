@@ -119,6 +119,31 @@ public class RecommendActionFactory {
     }
 
     /**
+     * 图片ocr
+     *
+     * @return
+     */
+    public static WorkflowStepRespVO defImageOcrStep() {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName("图片ocr");
+        step.setDescription("图片ocr");
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(ImageOcrActionHandler.class.getSimpleName());
+//        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(XhsNoteDTO.class);
+//        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("image-ocr");
+        step.setTags(Arrays.asList("image", "ocr"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        step.setVariable(variable);
+        return step;
+    }
+
+    /**
      * 默认生成内容步骤
      *
      * @return WorkflowStepRespVO

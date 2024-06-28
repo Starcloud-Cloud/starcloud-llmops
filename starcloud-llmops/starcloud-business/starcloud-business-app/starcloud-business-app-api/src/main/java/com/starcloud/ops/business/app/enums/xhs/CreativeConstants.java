@@ -30,6 +30,11 @@ public interface CreativeConstants {
     String XHS_NOTE_URL = "XHS_NOTE_URL";
 
     /**
+     * 图片链接集合
+     */
+    String IMAGE_OCR_LIST = "IMAGE_OCR_LIST";
+
+    /**
      * 字段映射
      */
     String FIELD_MAP = "FIELD_MAP";

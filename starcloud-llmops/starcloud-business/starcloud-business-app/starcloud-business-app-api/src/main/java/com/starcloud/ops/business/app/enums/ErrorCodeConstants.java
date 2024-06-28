@@ -599,7 +599,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode XHS_OCR_PARAM_REQUIRED = new ErrorCode(300701301, "缺少必填字段");
 
-    ErrorCode XHS_OCR_ERROR  = new ErrorCode(300701302, "ocr 异常：{}");
+    ErrorCode IMAGE_OCR_ERROR = new ErrorCode(300701302, "ocr 异常：{}");
 
 
 

@@ -4,10 +4,6 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.aliyun.ocr_api20210707.Client;
 import com.aliyun.ocr_api20210707.models.RecognizeAllTextRequest;
 import com.aliyun.ocr_api20210707.models.RecognizeAllTextResponse;
-import com.aliyun.ocr_api20210707.models.RecognizeGeneralRequest;
-import com.aliyun.ocr_api20210707.models.RecognizeGeneralResponse;
-import com.aliyun.tea.*;
-import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
 import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.ocr.OcrResult;
@@ -18,7 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_OCR_ERROR;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.IMAGE_OCR_ERROR;
 
 @Slf4j
 @Component
@@ -40,7 +36,7 @@ public class AliyunOcrManager {
             RecognizeAllTextResponse recognizeAllTextResponse = ocrClient.recognizeAllTextWithOptions(recognizeAllTextRequest, runtime);
             OcrResult ocrResult = new OcrResult();
             if (recognizeAllTextResponse.getStatusCode() != 200) {
-                throw exception(XHS_OCR_ERROR, recognizeAllTextResponse.getStatusCode());
+                throw exception(IMAGE_OCR_ERROR, recognizeAllTextResponse.getStatusCode());
             }
 
             if (StringUtils.isNotBlank(recognizeAllTextResponse.getBody().getMessage())) {
