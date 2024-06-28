@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -487,17 +488,18 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (Objects.nonNull(workflowConfig) && CollectionUtil.isEmpty(materialList)) {
             TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<List<Map<String, Object>>>() {
             };
-            try {
-                materialList = Optional.ofNullable(workflowConfig.getStepWrapperWithoutError(MaterialActionHandler.class))
-                        .map(step -> step.getVariablesValue(MATERIAL_LIST))
-                        .map(Object::toString)
-                        .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
-                        .orElse(Collections.emptyList());
+            WorkflowStepWrapper stepWrapper = workflowConfig.getStepWrapperWithoutError(MaterialActionHandler.class);
 
-                workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
-            } catch (Exception e) {
-                log.warn("disposeMaterial error", e);
+            if (Objects.isNull(stepWrapper)) {
+                return;
             }
+
+            materialList = Optional.ofNullable(stepWrapper)
+                    .map(step -> step.getVariablesValue(MATERIAL_LIST))
+                    .map(Object::toString)
+                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
+                    .orElse(Collections.emptyList());
+            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
         }
     }
 
