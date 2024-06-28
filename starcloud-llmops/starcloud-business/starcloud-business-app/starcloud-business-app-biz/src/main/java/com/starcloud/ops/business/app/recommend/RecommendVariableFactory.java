@@ -122,13 +122,13 @@ public class RecommendVariableFactory {
      * @return
      */
     public static VariableRespVO defImageOcrVariable() {
-//        VariableItemRespVO xhsUrlVariable = RecommendVariableItemFactory.defXhsUrlVariable();
-//        xhsUrlVariable.setOrder(1);
-//        xhsUrlVariable.setIsShow(Boolean.TRUE);
+        VariableItemRespVO imageUrlVariable = RecommendVariableItemFactory.defImageUrlVariable();
+        imageUrlVariable.setOrder(1);
+        imageUrlVariable.setIsShow(Boolean.TRUE);
 
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Arrays.asList(
-//                xhsUrlVariable
+                imageUrlVariable
         ));
         return variable;
     }

@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.*;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.starcloud.ops.business.app.api.ocr.ImageOcrDTO;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.ocr.OcrResult;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -50,32 +51,28 @@ public class ImageOcrActionHandler extends BaseActionHandler {
     @Override
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
-        String imageUrlStr = params.get(CreativeConstants.IMAGE_OCR_LIST).toString();
-        List<ImageOcrDTO> imageOcrList = JSONUtil.parseArray(imageUrlStr).toList(ImageOcrDTO.class);
-        for (ImageOcrDTO imageOcrDTO : imageOcrList) {
-            OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(imageOcrDTO.getValue());
-            if (!ocrResult.isSuccess()) {
-                throw exception(IMAGE_OCR_ERROR, ocrResult.getMessage());
-            }
-            imageOcrDTO.setOcrGeneralDTO(ocrResult.getOcrGeneralDTO());
+        String imageUrlStr = params.get(CreativeConstants.IMAGE_OCR_URL).toString();
+        OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(imageUrlStr);
+        if (!ocrResult.isSuccess()) {
+            throw exception(IMAGE_OCR_ERROR, ocrResult.getMessage());
         }
 
         SseEmitter sseEmitter = context.getSseEmitter();
         if (Objects.nonNull(sseEmitter)) {
             StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
-            callBackHandler.onLLMNewToken(JSONUtil.toJsonStr(imageOcrList));
+            callBackHandler.onLLMNewToken(JSONUtil.toJsonStr(ocrResult.getOcrGeneralDTO()));
         }
 
-        return response(imageOcrList, context, imageOcrList.size());
+        return response(ocrResult.getOcrGeneralDTO(), context, 1);
     }
 
-    private ActionResponse response(List<ImageOcrDTO> imageOcrList, AppContext context, int cost) {
+    private ActionResponse response(OcrGeneralDTO ocrGeneralDTO, AppContext context, int cost) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
-        actionResponse.setAnswer(JsonUtils.toJsonString(imageOcrList));
-        actionResponse.setOutput(JsonData.of(imageOcrList));
+        actionResponse.setAnswer(JsonUtils.toJsonString(ocrGeneralDTO));
+        actionResponse.setOutput(JsonData.of(ocrGeneralDTO));
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
         actionResponse.setStepConfig(context.getContextVariablesValues());
         actionResponse.setMessageTokens(0L);

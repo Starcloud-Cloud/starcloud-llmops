@@ -32,7 +32,7 @@ public interface CreativeConstants {
     /**
      * 图片链接集合
      */
-    String IMAGE_OCR_LIST = "IMAGE_OCR_LIST";
+    String IMAGE_OCR_URL = "IMAGE_OCR_URL";
 
     /**
      * 字段映射

@@ -449,6 +449,24 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
+    /**
+     * 图片oss地址
+     * @return
+     */
+    public static VariableItemRespVO defImageUrlVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.IMAGE_OCR_URL);
+        variableItem.setLabel("图片oss地址");
+        variableItem.setDefaultValue(StrUtil.EMPTY);
+        variableItem.setDescription("图片oss地址");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
 
     /**
      * 素材列表

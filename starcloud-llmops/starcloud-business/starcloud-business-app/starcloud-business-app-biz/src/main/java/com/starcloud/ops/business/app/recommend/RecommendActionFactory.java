@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.recommend;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
@@ -129,8 +130,8 @@ public class RecommendActionFactory {
         step.setDescription("图片ocr");
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(ImageOcrActionHandler.class.getSimpleName());
-//        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(XhsNoteDTO.class);
-//        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(OcrGeneralDTO.class);
+        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
         step.setVersion(AppConstants.DEFAULT_VERSION);
