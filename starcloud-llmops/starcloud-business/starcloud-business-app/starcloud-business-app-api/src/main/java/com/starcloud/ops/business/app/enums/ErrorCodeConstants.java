@@ -587,12 +587,30 @@ public interface ErrorCodeConstants {
     ErrorCode MEDIA_STRATEGY_SAME_EXISTS = new ErrorCode(300700302, "存在相同的策略，请核对后重新提交");
 
 
-
     // ==========图片搜索 错误码 ==========
     ErrorCode PIXABAY_API_KEYS_LIMIT = new ErrorCode(300701201, "请求频率太快了，请等一分钟后再试");
 
     ErrorCode PIXABAY_API_KEYS_REQUEST_ERROR = new ErrorCode(300701202, "请求异常，请稍候再试");
 
     ErrorCode PIXABAY_API_KEYS_NETWORK_ERROR = new ErrorCode(300701203, "网络出小差了，请稍候再试");
+
+
+    // ==========素材库 错误码 ==========
+    ErrorCode MATERIAL_LIBRARY_NOT_EXISTS = new ErrorCode(300702201, "素材库不存在，请刷新后再试");
+
+    ErrorCode MATERIAL_LIBRARY_FORAMT_NO_MODIFY = new ErrorCode(300702202, "素材库类型创建后不支持修改");
+
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS = new ErrorCode(300703201, "素材表列信息不存在");
+
+    ErrorCode MATERIAL_LIBRARY_SLICE_NOT_EXISTS = new ErrorCode(300704201, "素材数据不存在");
+
+
+
+
+
+
+
+
 
 }
