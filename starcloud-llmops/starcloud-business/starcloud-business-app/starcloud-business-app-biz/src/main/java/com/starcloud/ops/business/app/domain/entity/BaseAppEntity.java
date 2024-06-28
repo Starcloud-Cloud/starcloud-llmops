@@ -476,12 +476,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     public void update() {
         this.validate(null);
-        try {
-            disposeMaterial();
-        } catch (Exception e) {
-            log.warn("disposeMaterial error", e);
-        }
-
+        disposeMaterial();
         this.doUpdate();
     }
 
@@ -492,13 +487,17 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (Objects.nonNull(workflowConfig) && CollectionUtil.isEmpty(materialList)) {
             TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<List<Map<String, Object>>>() {
             };
-            materialList = Optional.ofNullable(workflowConfig.getStepWrapper(MaterialActionHandler.class))
-                    .map(step -> step.getVariablesValue(MATERIAL_LIST))
-                    .map(Object::toString)
-                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
-                    .orElse(Collections.emptyList());
+            try {
+                materialList = Optional.ofNullable(workflowConfig.getStepWrapperWithoutError(MaterialActionHandler.class))
+                        .map(step -> step.getVariablesValue(MATERIAL_LIST))
+                        .map(Object::toString)
+                        .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
+                        .orElse(Collections.emptyList());
 
-            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
+                workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
+            } catch (Exception e) {
+                log.warn("disposeMaterial error", e);
+            }
         }
     }
 
