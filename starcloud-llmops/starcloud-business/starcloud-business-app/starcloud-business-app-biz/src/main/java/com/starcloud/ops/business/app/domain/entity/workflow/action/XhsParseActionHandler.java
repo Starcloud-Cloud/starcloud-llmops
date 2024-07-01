@@ -32,7 +32,6 @@ import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.IMAGE_OCR_ERROR;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.XHS_OCR_ERROR;
 
 @Slf4j
 @TaskComponent
