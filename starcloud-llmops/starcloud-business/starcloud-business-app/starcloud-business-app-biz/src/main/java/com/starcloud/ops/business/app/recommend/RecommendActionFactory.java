@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.recommend;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
@@ -111,6 +112,31 @@ public class RecommendActionFactory {
         step.setVersion(AppConstants.DEFAULT_VERSION);
         step.setIcon("xhs-ocr");
         step.setTags(Arrays.asList("xhs", "ocr"));
+        step.setScenes(AppUtils.DEFAULT_SCENES);
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Collections.emptyList());
+        step.setVariable(variable);
+        return step;
+    }
+
+    /**
+     * 图片ocr
+     *
+     * @return
+     */
+    public static WorkflowStepRespVO defImageOcrStep() {
+        WorkflowStepRespVO step = new WorkflowStepRespVO();
+        step.setName("图片ocr");
+        step.setDescription("图片ocr");
+        step.setType(AppStepTypeEnum.WORKFLOW.name());
+        step.setHandler(ImageOcrActionHandler.class.getSimpleName());
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(OcrGeneralDTO.class);
+        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
+        step.setIsAuto(Boolean.TRUE);
+        step.setIsCanEditStep(Boolean.TRUE);
+        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setIcon("image-ocr");
+        step.setTags(Arrays.asList("image", "ocr"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.emptyList());
