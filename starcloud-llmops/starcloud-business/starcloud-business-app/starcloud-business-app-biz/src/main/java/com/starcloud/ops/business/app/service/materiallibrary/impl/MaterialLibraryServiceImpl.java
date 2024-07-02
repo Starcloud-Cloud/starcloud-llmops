@@ -21,12 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_FORAMT_NO_MODIFY;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
-// import static cn.iocoder.yudao.module.llm.enums.ErrorCodeConstants.*;
 
 /**
  * 素材知识库 Service 实现类
@@ -35,6 +33,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_L
  */
 @Service
 @Validated
+
 public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
 
@@ -132,13 +131,12 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public void importMaterialData(MaterialLibraryImportReqVO importRespVO) {
         // 验证数据类型
-        MaterialLibraryDO materialLibraryDO = validateMaterialLibraryExists(importRespVO.getLibraryId());
+        validateMaterialLibraryExists(importRespVO.getLibraryId());
         // 根据素材类型获取素材执行策略
         MaterialImportStrategy strategy = getImportStrategy(importRespVO.getMaterialType());
         // 导入素材
         strategy.importMaterial(importRespVO);
     }
-
 
 
 // ========================================私有方法区 ========================================

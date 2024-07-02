@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.app.service.materiallibrary.handle;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
@@ -43,7 +44,7 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
     private MaterialLibrarySliceService materialLibrarySliceService;
 
     /**
-     * @param importReqVO
+     * @param importReqVO 素材导入VO
      */
     @Override
     public void importMaterial(MaterialLibraryImportReqVO importReqVO) {
@@ -80,14 +81,16 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         // 获取素材库表头信息
         List<MaterialLibraryTableColumnDO> materialConfigList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(importReqVO.getLibraryId());
 
-        if (CollUtil.isEmpty(materialConfigList)){
+        List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS;
+        if (CollUtil.isEmpty(materialConfigList)) {
             // 新增表头数据
-            materialConfigList =addMaterialTableColumn(newHeads, importReqVO.getLibraryId());
-        }else {
+            saveReqVOS = addMaterialTableColumn(newHeads, importReqVO.getLibraryId());
+        } else {
             // 获取初始表头数据
             Set<String> heads = materialConfigList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toSet());
             // 表头验证
             validateMaterialTableColumn(heads, newHeads);
+            saveReqVOS = BeanUtils.toBean(materialConfigList, MaterialLibraryTableColumnSaveReqVO.class);
         }
         log.info("表头读取完成，验证成功 开始异步存储数据");
 
@@ -96,10 +99,10 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         importConfigDTO.setLibraryId(getLoginUserId());
 
 
-        importConfigDTO.setColumnConfig(BeanUtil.copyToList(materialConfigList, MaterialLibraryTableColumnRespVO.class));
+        importConfigDTO.setColumnConfig(BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnRespVO.class));
 
         // 异步存储数据
-        OperateImportUtil.readExcel(excel, childrenDirs,importConfigDTO, materialLibrarySliceService, 2);
+        OperateImportUtil.readExcel(excel, childrenDirs, importConfigDTO, materialLibrarySliceService, 2);
     }
 
 
@@ -131,20 +134,26 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
     }
 
     /**
-     * @param importTableColumn   导入数据的表头
+     * @param importTableColumn 导入数据的表头
      */
-    private List<MaterialLibraryTableColumnDO>  addMaterialTableColumn( Set<String> importTableColumn,Long libraryId) {
-        int sequence =1;
-        ArrayList<MaterialLibraryTableColumnDO> tableColumnDOS = new ArrayList<>();
+    private List<MaterialLibraryTableColumnSaveReqVO> addMaterialTableColumn(Set<String> importTableColumn, Long libraryId) {
+        int sequence = 1;
+
+
+        List<MaterialLibraryTableColumnSaveReqVO> tableColumnDOS = new ArrayList<>();
+
         for (String headName : importTableColumn) {
-            MaterialLibraryTableColumnDO materialLibraryTableColumnDO = new MaterialLibraryTableColumnDO();
-            materialLibraryTableColumnDO.setLibraryId(libraryId);
-            materialLibraryTableColumnDO.setColumnName(headName);
-            materialLibraryTableColumnDO.setColumnType(ColumnTypeEnum.STRING.getCode());
-            materialLibraryTableColumnDO.setDescription(null);
-            materialLibraryTableColumnDO.setIsRequired(false);
-            materialLibraryTableColumnDO.setSequence((long) sequence++);
-            tableColumnDOS.add(materialLibraryTableColumnDO);
+
+            MaterialLibraryTableColumnSaveReqVO saveReqVO = new MaterialLibraryTableColumnSaveReqVO();
+
+            saveReqVO.setLibraryId(libraryId);
+            saveReqVO.setColumnName(headName);
+            saveReqVO.setColumnCode(null);
+            saveReqVO.setColumnType(ColumnTypeEnum.STRING.getCode());
+            saveReqVO.setDescription(null);
+            saveReqVO.setIsRequired(false);
+            saveReqVO.setSequence((long) sequence++);
+            tableColumnDOS.add(saveReqVO);
         }
         materialLibraryTableColumnService.saveBatchData(tableColumnDOS);
         return tableColumnDOS;

@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -93,8 +92,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     /**
      * 批量设置数据为共享数据
      *
-     * @param shareReqVO
-     * @return 是否成功
+     * @param shareReqVO 设置数据分享状态
      */
     @Override
     public void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO) {
@@ -165,7 +163,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public <T> Integer saveBatchData(List<T> list) {
-        materialLibrarySliceMapper.insertBatch(BeanUtil.copyToList(list, MaterialLibrarySliceDO.class));
+        materialLibrarySliceMapper.insertBatch(BeanUtils.toBean(list, MaterialLibrarySliceDO.class));
         return list.size();
 
     }

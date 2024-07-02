@@ -32,6 +32,11 @@ public class MaterialLibraryTableColumnDO extends BaseDO {
      * 列名
      */
     private String columnName;
+
+    /**
+     * 列名
+     */
+    private String columnCode;
     /**
      * 类型
      */

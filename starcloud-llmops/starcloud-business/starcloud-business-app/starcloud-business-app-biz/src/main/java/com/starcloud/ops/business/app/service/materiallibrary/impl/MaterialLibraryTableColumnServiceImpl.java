@@ -1,24 +1,32 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryTableColumnMapper;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import com.starcloud.ops.business.app.util.PinyinUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
 
 /**
  * 素材知识库表格信息 Service 实现类
@@ -29,11 +37,25 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_L
 @Validated
 public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTableColumnService {
 
+
+    @Resource
+    private MaterialLibraryService materialLibraryService;
+
     @Resource
     private MaterialLibraryTableColumnMapper materialLibraryTableColumnMapper;
 
     @Override
     public Long createMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO createReqVO) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(createReqVO.getLibraryId());
+
+        if (!MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
+            throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL);
+        }
+        validateMaterialLibraryTableColumnName(createReqVO.getLibraryId(), Collections.singletonList(createReqVO.getColumnName()));
+
+        // 填充ColumnCode
+        generateColumnCode(Collections.singletonList(createReqVO));
+
         // 插入
         MaterialLibraryTableColumnDO materialLibraryTableColumn = BeanUtils.toBean(createReqVO, MaterialLibraryTableColumnDO.class);
         materialLibraryTableColumnMapper.insert(materialLibraryTableColumn);
@@ -43,8 +65,20 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
 
     @Override
     public void updateMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO updateReqVO) {
+
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(updateReqVO.getLibraryId());
+
+        if (!MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
+            throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL);
+        }
         // 校验存在
         validateMaterialLibraryTableColumnExists(updateReqVO.getId());
+        // 校验名称
+        validateMaterialLibraryTableColumnName(updateReqVO.getLibraryId(), Collections.singletonList(updateReqVO.getColumnName()));
+        // 填充ColumnCode
+        generateColumnCode(Collections.singletonList(updateReqVO));
+
+
         // 更新
         MaterialLibraryTableColumnDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibraryTableColumnDO.class);
         materialLibraryTableColumnMapper.updateById(updateObj);
@@ -76,11 +110,6 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
 
     }
 
-    private void validateMaterialLibraryTableColumnExists(Long id) {
-        if (materialLibraryTableColumnMapper.selectById(id) == null) {
-            throw exception(MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS);
-        }
-    }
 
     @Override
     public MaterialLibraryTableColumnDO getMaterialLibraryTableColumn(Long id) {
@@ -113,7 +142,95 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
      */
     @Override
     public <T> Integer saveBatchData(List<T> list) {
-        materialLibraryTableColumnMapper.insertBatch(BeanUtil.copyToList(list,MaterialLibraryTableColumnDO.class));
+        List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS;
+        try {
+            saveReqVOS = BeanUtils.toBean(list, MaterialLibraryTableColumnSaveReqVO.class);
+        } catch (RuntimeException e) {
+            throw exception(MATERIAL_LIBRARY_TABLE_COULMN_BATCH_ADD_FAIL);
+        }
+        List<Long> collect = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getLibraryId).collect(Collectors.toList());
+        List<String> columnNames = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getColumnName).collect(Collectors.toList());
+        validateMaterialLibraryTableColumnName(collect.get(0), columnNames);
+
+        // 填充ColumnCode
+        generateColumnCode(saveReqVOS);
+
+        List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
+
+        materialLibraryTableColumnMapper.insertBatch(bean);
         return list.size();
     }
+
+//
+
+    /**
+     * 生成 列code
+     */
+    private void generateColumnCode(List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS) {
+
+        List<String> columnCodeExistList = new ArrayList<>();
+
+        List<Long> collect = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getLibraryId).collect(Collectors.toList());
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(collect.get(0));
+
+        if (CollUtil.isNotEmpty(tableColumnDOList)) {
+            columnCodeExistList.addAll(tableColumnDOList.stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList()));
+        }
+
+        for (MaterialLibraryTableColumnSaveReqVO saveReqVO : saveReqVOS) {
+
+            String columnName = saveReqVO.getColumnName();
+
+            // 已有ColumnCode的字段跳过
+            if (StringUtils.isNoneBlank(saveReqVO.getColumnCode())) {
+                columnCodeExistList.add(saveReqVO.getColumnCode());
+                continue;
+            }
+
+            char[] nameChar = columnName.trim().toCharArray();
+            StringBuilder sb = new StringBuilder();
+            for (char c : nameChar) {
+                sb.append(PinyinUtils.pinyinFirstChar(c));
+            }
+            String code = pinyinFirstCharUnique(sb.toString(), columnCodeExistList);
+            columnCodeExistList.add(code);
+            saveReqVO.setColumnCode(code);
+        }
+    }
+
+
+    private void validateMaterialLibraryTableColumnExists(Long id) {
+        if (materialLibraryTableColumnMapper.selectById(id) == null) {
+            throw exception(MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS);
+        }
+    }
+
+    /**
+     * 验证同名列
+     *
+     * @param libraryId 素材库编号
+     */
+    private void validateMaterialLibraryTableColumnName(Long libraryId, List<String> columnNames) {
+        if (materialLibraryTableColumnMapper.selectCountByName(libraryId, columnNames) > 0) {
+            throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN, columnNames);
+        }
+    }
+
+
+    /**
+     * code重复拼接随机字符串
+     *
+     * @param columnCode          列 code
+     * @param columnCodeExistList 已经存在的列 code
+     * @return 列 code
+     */
+    private String pinyinFirstCharUnique(String columnCode, List<String> columnCodeExistList) {
+        if (columnCodeExistList.contains(columnCode)) {
+            return pinyinFirstCharUnique(columnCode + RandomUtil.randomString(BASE_CHAR_NUMBER_LOWER, 1), columnCodeExistList);
+        }
+        return columnCode;
+    }
+
+
 }

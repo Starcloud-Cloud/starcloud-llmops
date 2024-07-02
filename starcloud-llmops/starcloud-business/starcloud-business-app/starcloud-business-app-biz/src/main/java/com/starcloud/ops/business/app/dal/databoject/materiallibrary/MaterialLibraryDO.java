@@ -1,11 +1,10 @@
 package com.starcloud.ops.business.app.dal.databoject.materiallibrary;
 
-import lombok.*;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
-import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 
 /**
  * 素材知识库 DO
@@ -41,24 +40,22 @@ public class MaterialLibraryDO extends BaseDO {
     private String description;
     /**
      * 素材类型
-     *
-     * 枚举 {@link TODO material_format_type 对应的类}
      */
     private Integer formatType;
     /**
      * 素材库大小
      */
     private Long allFileSize;
+
     /**
      * 分享范围
-     *
-     * 枚举 {@link TODO material_share_range 对应的类}
      */
     private String shareRange;
     /**
      * 总使用次数
      */
     private Long totalUsedCount;
+
     /**
      * 插件配置
      */

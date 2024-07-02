@@ -1,15 +1,16 @@
 package com.starcloud.ops.business.app.dal.mysql.materiallibrary;
 
-import java.util.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
  * 素材知识库表格信息 Mapper
@@ -31,14 +32,24 @@ public interface MaterialLibraryTableColumnMapper extends BaseMapperX<MaterialLi
                 .orderByDesc(MaterialLibraryTableColumnDO::getId));
     }
 
-    default List<MaterialLibraryTableColumnDO> selectMaterialLibraryTableColumnByLibrary(Long libraryId){
+    default List<MaterialLibraryTableColumnDO> selectMaterialLibraryTableColumnByLibrary(Long libraryId) {
         LambdaQueryWrapper<MaterialLibraryTableColumnDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryTableColumnDO.class);
         wrapper.eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId);
         wrapper.orderByDesc(MaterialLibraryTableColumnDO::getSequence);
         return selectList(wrapper);
     }
 
-   default void deleteByLibraryId(Long libraryId){
+    default void deleteByLibraryId(Long libraryId) {
+        LambdaUpdateWrapper<MaterialLibraryTableColumnDO> wrapper = Wrappers.lambdaUpdate(MaterialLibraryTableColumnDO.class);
+        wrapper.eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId);
+        delete(wrapper);
+    }
 
-   }
+    default int selectCountByName(Long libraryId, List<String> columnName) {
+
+
+        return Math.toIntExact(selectCount(new LambdaQueryWrapper<>(MaterialLibraryTableColumnDO.class)
+                .eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId)
+                .in(MaterialLibraryTableColumnDO::getColumnName, columnName)));
+    }
 }
