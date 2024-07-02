@@ -22,7 +22,22 @@ public interface CreativeConstants {
     /**
      * 字段配置prompt
      */
-    String SYS_PROMPT = "_SYS_内容生成_PROMPT";
+    String STEP_SYSTEM_PROMPT = "STEP_SYSTEM_PROMPT";
+
+    /**
+     * JSON解析PROMPT
+     */
+    String STEP_RESP_JSON_PARSER_PROMPT = "STEP_RESP_JSON_PARSER_PROMPT";
+
+    /**
+     * 小红书链接
+     */
+    String XHS_NOTE_URL = "XHS_NOTE_URL";
+
+    /**
+     * 字段映射
+     */
+    String FIELD_MAP = "FIELD_MAP";
 
     /**
      * 参考内容 带模仿要求

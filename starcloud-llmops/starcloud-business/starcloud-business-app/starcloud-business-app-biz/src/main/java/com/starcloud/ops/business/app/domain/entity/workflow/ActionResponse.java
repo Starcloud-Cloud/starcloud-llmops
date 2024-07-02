@@ -8,6 +8,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 /**
  * action 响应实体类
@@ -126,6 +127,17 @@ public class ActionResponse {
     private Object stepConfig;
 
     /**
+     * 获取 jsonSchema
+     *
+     * @return jsonSchema
+     */
+    public String getJsonSchema() {
+        return Optional.ofNullable(output)
+                .map(JsonData::getJsonSchema)
+                .orElse(StringUtils.EMPTY);
+    }
+
+    /**
      * 转换错误码
      *
      * @return 错误码
@@ -176,16 +188,6 @@ public class ActionResponse {
         } catch (Exception exception) {
             return ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode();
         }
-    }
-
-    /**
-     * 将错误码转换为字符串
-     *
-     * @param code 错误码
-     * @return 错误码
-     */
-    public static String valueOfCode(int code) {
-        return String.valueOf(code);
     }
 
 }

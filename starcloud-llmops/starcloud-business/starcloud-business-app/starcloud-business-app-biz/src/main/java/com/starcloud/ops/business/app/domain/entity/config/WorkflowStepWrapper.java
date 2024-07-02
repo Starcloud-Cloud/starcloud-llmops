@@ -212,6 +212,15 @@ public class WorkflowStepWrapper {
     }
 
     /**
+     * 根据步骤ID获取响应
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public ActionResponse getActionResponse() {
+        return this.flowStep.getResponse();
+    }
+
+    /**
      * 执行成功后，响应更新
      *
      * @param stepId   步骤ID

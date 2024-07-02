@@ -85,5 +85,6 @@ public interface AppDictionaryService {
      *
      * @return 获取应用action默认值
      */
-    Map<String, String> actionDefaultConfig();
+    Map<String, String> defaultStepConfig();
+
 }
