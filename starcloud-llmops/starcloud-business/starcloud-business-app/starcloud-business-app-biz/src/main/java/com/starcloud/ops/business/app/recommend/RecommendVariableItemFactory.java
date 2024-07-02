@@ -766,7 +766,7 @@ public class RecommendVariableItemFactory {
      *
      * @return 系统默认prompt
      */
-    public static VariableItemRespVO defSystemPromptVariable() {
+    public static VariableItemRespVO defDefaultContentStepPromptVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT);
         variableItem.setLabel("内容生成默认prompt");
@@ -787,7 +787,7 @@ public class RecommendVariableItemFactory {
      *
      * @return 系统默认prompt
      */
-    public static VariableItemRespVO defStepRespJsonParserPromptVariable() {
+    public static VariableItemRespVO defDefaultResponseJsonParserPromptVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT);
         variableItem.setLabel("生成数据JSON格式化默认Prompt");

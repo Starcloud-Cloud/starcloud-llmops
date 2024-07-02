@@ -248,12 +248,12 @@ public class UpgradeDataService {
         }
 
         // 系统提示
-        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defSystemPromptVariable();
+        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
         systemPrompt.setOrder(8);
         systemPrompt.setIsShow(Boolean.FALSE);
         variableList.add(systemPrompt);
 
-        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defStepRespJsonParserPromptVariable();
+        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
         stepRespJsonParserPrompt.setOrder(9);
         stepRespJsonParserPrompt.setIsShow(Boolean.FALSE);
         variableList.add(stepRespJsonParserPrompt);

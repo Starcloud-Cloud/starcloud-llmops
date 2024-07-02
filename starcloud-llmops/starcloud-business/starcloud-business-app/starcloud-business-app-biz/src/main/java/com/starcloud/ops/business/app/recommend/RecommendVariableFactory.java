@@ -221,13 +221,13 @@ public class RecommendVariableFactory {
         respJsonSchema.setIsShow(Boolean.FALSE);
 
         // 系统提示
-        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defSystemPromptVariable();
-        systemPrompt.setOrder(8);
-        systemPrompt.setIsShow(Boolean.FALSE);
+        VariableItemRespVO defaultContentStepPromp = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
+        defaultContentStepPromp.setOrder(8);
+        defaultContentStepPromp.setIsShow(Boolean.FALSE);
 
-        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defStepRespJsonParserPromptVariable();
-        stepRespJsonParserPrompt.setOrder(9);
-        stepRespJsonParserPrompt.setIsShow(Boolean.FALSE);
+        VariableItemRespVO defaultResponseJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
+        defaultResponseJsonParserPrompt.setOrder(9);
+        defaultResponseJsonParserPrompt.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 generateVariable,
@@ -237,8 +237,8 @@ public class RecommendVariableFactory {
                 requirement,
                 jsonSchema,
                 respJsonSchema,
-                systemPrompt,
-                stepRespJsonParserPrompt
+                defaultContentStepPromp,
+                defaultResponseJsonParserPrompt
         ));
         return variable;
     }
