@@ -52,11 +52,13 @@ public class ImageOcrActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
         String imageUrlStr = params.get(CreativeConstants.IMAGE_OCR_URL).toString();
+        long start = System.currentTimeMillis();
         OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(imageUrlStr);
         if (!ocrResult.isSuccess()) {
             throw exception(IMAGE_OCR_ERROR, ocrResult.getMessage());
         }
-
+        long end = System.currentTimeMillis();
+        log.info("image ocr {} ms", end - start);
         SseEmitter sseEmitter = context.getSseEmitter();
         if (Objects.nonNull(sseEmitter)) {
             StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
