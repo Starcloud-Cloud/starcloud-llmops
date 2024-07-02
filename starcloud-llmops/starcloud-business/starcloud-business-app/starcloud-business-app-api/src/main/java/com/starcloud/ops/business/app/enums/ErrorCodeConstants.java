@@ -595,6 +595,15 @@ public interface ErrorCodeConstants {
     ErrorCode PIXABAY_API_KEYS_NETWORK_ERROR = new ErrorCode(300701203, "网络出小差了，请稍候再试");
 
 
+
+    ErrorCode XHS_OCR_PARAM_REQUIRED = new ErrorCode(300701301, "缺少必填字段");
+
+    ErrorCode IMAGE_OCR_ERROR = new ErrorCode(300701302, "ocr 异常：{}");
+
+
+
+
+
     // ==========素材库 错误码 ==========
     ErrorCode MATERIAL_LIBRARY_NOT_EXISTS = new ErrorCode(300702201, "素材库不存在，请刷新后再试");
 

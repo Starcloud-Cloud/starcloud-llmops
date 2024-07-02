@@ -102,6 +102,38 @@ public class RecommendVariableFactory {
     }
 
     /**
+     * 小红书ocr变量
+     * @return
+     */
+    public static VariableRespVO defXhsOcrVariable() {
+        VariableItemRespVO xhsUrlVariable = RecommendVariableItemFactory.defXhsUrlVariable();
+        xhsUrlVariable.setOrder(1);
+        xhsUrlVariable.setIsShow(Boolean.TRUE);
+
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                xhsUrlVariable
+        ));
+        return variable;
+    }
+
+    /**
+     * 图片ocr
+     * @return
+     */
+    public static VariableRespVO defImageOcrVariable() {
+        VariableItemRespVO imageUrlVariable = RecommendVariableItemFactory.defImageUrlVariable();
+        imageUrlVariable.setOrder(1);
+        imageUrlVariable.setIsShow(Boolean.TRUE);
+
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                imageUrlVariable
+        ));
+        return variable;
+    }
+
+    /**
      * 生成文章全局变量
      *
      * @return VariableRespVO

@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -64,19 +63,20 @@ public class MaterialActionHandler extends BaseActionHandler {
      * 执行OpenApi生成的步骤
      *
      * @param request 请求参数
+     * @param context
      * @return 执行结果
      */
     @Override
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
         // 获取所有上游信息
-        final Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        final Map<String, Object> params = context.getContextVariablesValues();
         // 获取到资料库类型
         String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
         // 转换响应结果
-        ActionResponse response = convert(businessType);
+        ActionResponse response = convert(context, businessType);
 
         // 获取到处理好的上传素材
         String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
@@ -86,7 +86,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));
 
         //保持跟返回结果一样的JsonSchema
-        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(this.getAppContext().getStepWrapper());
+        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
 
         response.setAnswer(JsonUtils.toJsonPrettyString(response.getAnswer()));
         response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
@@ -134,14 +134,14 @@ public class MaterialActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(String answer) {
+    private ActionResponse convert(AppContext context, String answer) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setAnswer(answer);
         actionResponse.setOutput(JsonData.of(answer));
-        actionResponse.setMessage(JsonUtils.toJsonString(this.getAppContext().getContextVariablesValues()));
-        actionResponse.setStepConfig(this.getAppContext().getContextVariablesValues());
+        actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
+        actionResponse.setStepConfig(context.getContextVariablesValues());
         actionResponse.setMessageTokens(0L);
         actionResponse.setMessageUnitPrice(new BigDecimal("0"));
         actionResponse.setAnswerTokens(0L);

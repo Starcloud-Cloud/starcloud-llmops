@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -15,10 +14,12 @@ import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
@@ -28,9 +29,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_MATERIAL_DEFINE;
 
 /**
  * @author nacoyer
@@ -616,6 +614,11 @@ public class JsonSchemaUtils {
             schema.setTitle(materialFieldConfigDTO.getDesc());
             schema.setDescription("" + "-" + materialFieldConfigDTO.getType());
             properties.put(materialFieldConfigDTO.getFieldName(), schema);
+            if (MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType())) {
+                JsonSchema ocrSchema = generateJsonSchema(OcrGeneralDTO.class);
+                ocrSchema.setDescription(materialFieldConfigDTO.getDesc() + "_ocr");
+                properties.put("_ocr_" + materialFieldConfigDTO.getFieldName(), ocrSchema);
+            }
         }
         obj.setProperties(properties);
         return obj;

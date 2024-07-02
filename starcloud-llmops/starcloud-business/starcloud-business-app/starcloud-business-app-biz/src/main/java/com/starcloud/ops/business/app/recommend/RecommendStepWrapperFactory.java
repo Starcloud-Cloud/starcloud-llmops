@@ -44,6 +44,36 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
+     * xhs + ocr
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defXhsOcrStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField("小红书ocr");
+        stepWrapper.setName("小红书ocr");
+        stepWrapper.setDescription("小红书ocr");
+        stepWrapper.setButtonLabel("小红书ocr");
+        stepWrapper.setFlowStep(RecommendActionFactory.defXhsOcrStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defXhsOcrVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 图片ocr
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defImageOcrStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField("图片ocr");
+        stepWrapper.setName("图片ocr");
+        stepWrapper.setDescription("图片ocr");
+        stepWrapper.setButtonLabel("图片ocr");
+        stepWrapper.setFlowStep(RecommendActionFactory.defImageOcrStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defImageOcrVariable());
+        return stepWrapper;
+    }
+
+    /**
      * 默认生成文章标题步骤
      *
      * @return WorkflowStepRespVO
@@ -282,7 +312,11 @@ public class RecommendStepWrapperFactory {
      * @return 通用步骤
      */
     public static List<WorkflowStepWrapperRespVO> defCommonStepWrapperList() {
-        return Collections.singletonList(defDefaultTextCompletionStepWrapper());
+        return Arrays.asList(
+                defDefaultTextCompletionStepWrapper(),
+                defXhsOcrStepWrapper(),
+                defImageOcrStepWrapper()
+        );
     }
 
     /**

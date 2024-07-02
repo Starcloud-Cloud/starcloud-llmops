@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -13,19 +12,15 @@ import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -64,12 +59,13 @@ public class VariableActionHandler extends BaseActionHandler {
      * 执行具体的步骤
      *
      * @return 执行结果
+     * @param context
      */
     @Override
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
         log.info("VariableActionHandler doExecute");
 
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        Map<String, Object> params = context.getContextVariablesValues();
 
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
@@ -80,7 +76,7 @@ public class VariableActionHandler extends BaseActionHandler {
 
 
         actionResponse.setAnswer(JsonUtils.toJsonPrettyString(params));
-        JsonSchema jsonSchema = this.getInVariableJsonSchema(this.getAppContext().getStepWrapper());
+        JsonSchema jsonSchema = this.getInVariableJsonSchema(context.getStepWrapper());
         actionResponse.setOutput(JsonData.of(params, jsonSchema));
 
         actionResponse.setMessageTokens(0L);

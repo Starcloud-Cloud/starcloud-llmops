@@ -72,11 +72,6 @@ public abstract class BaseActionHandler extends Object {
     private String description;
 
     /**
-     * 请求应用上下文
-     */
-    private AppContext appContext;
-
-    /**
      * 生成个handler 实例
      *
      * @param name handler 名称
@@ -107,10 +102,11 @@ public abstract class BaseActionHandler extends Object {
      * 执行具体的步骤
      *
      * @return 执行结果
+     * @param context
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract ActionResponse doExecute();
+    protected abstract ActionResponse doExecute(AppContext context);
 
     /**
      * 具体handler的入参定义
@@ -155,9 +151,9 @@ public abstract class BaseActionHandler extends Object {
      *
      * @return
      */
-    public JsonSchema getOutVariableJsonSchema() {
+    public JsonSchema getOutVariableJsonSchema(AppContext context) {
 
-        WorkflowStepWrapper workflowStepWrapper = this.getAppContext().getStepWrapper(this.getAppContext().getStepId());
+        WorkflowStepWrapper workflowStepWrapper = context.getStepWrapper(context.getStepId());
         return this.getOutVariableJsonSchema(workflowStepWrapper);
     }
 
@@ -180,9 +176,9 @@ public abstract class BaseActionHandler extends Object {
      * @param workflowStepWrapper
      * @return
      */
-    public Boolean hasResponseJsonSchema() {
+    public Boolean hasResponseJsonSchema(AppContext context) {
 
-        WorkflowStepWrapper workflowStepWrapper = this.getAppContext().getStepWrapper(this.getAppContext().getStepId());
+        WorkflowStepWrapper workflowStepWrapper = context.getStepWrapper(context.getStepId());
         return this.hasResponseJsonSchema(workflowStepWrapper);
     }
 
@@ -193,8 +189,8 @@ public abstract class BaseActionHandler extends Object {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected String getAppUid() {
-        return Optional.ofNullable(this.getAppContext())
+    protected String getAppUid(AppContext context) {
+        return Optional.ofNullable(context)
                 .map(AppContext::getApp)
                 .map(BaseAppEntity::getUid)
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.APP_UID_REQUIRED));
@@ -207,16 +203,16 @@ public abstract class BaseActionHandler extends Object {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected String getAiModel() {
-        String aiModel = this.getAppContext().getAiModel();
+    protected String getAiModel(AppContext context) {
+        String aiModel = context.getAiModel();
         if (aiModel != null) {
             return aiModel;
         }
 
-        Optional<WorkflowStepWrapper> stepWrapperOptional = Optional.ofNullable(this.getAppContext())
+        Optional<WorkflowStepWrapper> stepWrapperOptional = Optional.ofNullable(context)
                 .map(AppContext::getApp)
                 .map(AppEntity::getWorkflowConfig)
-                .map(config -> config.getStepWrapperByStepId(this.getAppContext().getStepId()));
+                .map(config -> config.getStepWrapperByStepId(context.getStepId()));
         if (!stepWrapperOptional.isPresent()) {
             return null;
         }
@@ -265,11 +261,8 @@ public abstract class BaseActionHandler extends Object {
             // 更新缓存为开始
             appStepStatusCache.stepStart(context.getConversationUid(), context.getStepId());
 
-            // 设置到上下文中
-            this.setAppContext(context);
-
-            // 执行具体的步骤
-            ActionResponse actionResponse = this.doExecute();
+            // 执行具体的步骤, 传入上下文，避免多线层的影响
+            ActionResponse actionResponse = this.doExecute(context);
             //设置到上下文中
             context.setActionResponse(actionResponse);
 

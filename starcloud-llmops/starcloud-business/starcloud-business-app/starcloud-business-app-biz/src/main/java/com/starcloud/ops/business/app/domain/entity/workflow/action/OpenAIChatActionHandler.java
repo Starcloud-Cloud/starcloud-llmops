@@ -66,34 +66,35 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
      * 执行OpenApi生成的步骤
      *
      * @param request 请求参数
+     * @param context
      * @return 执行结果
      */
     @Override
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
 
         log.info("OpenAI ChatGPT Action 执行开始......");
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
 
         //获取前端传的完整字段（老结构）
-        Long userId = this.getAppContext().getUserId();
-        Long endUser = this.getAppContext().getEndUserId();
-        String conversationId = this.getAppContext().getConversationUid();
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
+        Long userId = context.getUserId();
+        Long endUser = context.getEndUserId();
+        String conversationId = context.getConversationUid();
+        Map<String, Object> params = context.getContextVariablesValues();
         log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JsonUtils.toJsonPrettyString(params));
 
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
+        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        Integer n = Optional.ofNullable(context.getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
         Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7d"));
 
         // 构建请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
+        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
         handlerRequest.setModel(model);
         handlerRequest.setPrompt(prompt);
         handlerRequest.setMaxTokens(maxTokens);
@@ -101,10 +102,10 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         handlerRequest.setN(n);
 
         // 构建请求
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
+        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(context), conversationId, userId, endUser, context.getScene(), handlerRequest);
         // 执行步骤
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
-        ActionResponse response = convert(handlerResponse);
+        ActionResponse response = convert(context, handlerResponse);
         log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
@@ -118,7 +119,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(HandlerResponse handlerResponse) {
+    private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(handlerResponse.getSuccess());
         actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
@@ -134,12 +135,12 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
         return actionResponse;
     }
