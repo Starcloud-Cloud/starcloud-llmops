@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -104,4 +105,15 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         return materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(libraryId);
     }
 
+    /**
+     * 批量保存数据
+     *
+     * @param list 要保存的数据
+     * @return Integer 保存成功的条数
+     */
+    @Override
+    public <T> Integer saveBatchData(List<T> list) {
+        materialLibraryTableColumnMapper.insertBatch(BeanUtil.copyToList(list,MaterialLibraryTableColumnDO.class));
+        return list.size();
+    }
 }

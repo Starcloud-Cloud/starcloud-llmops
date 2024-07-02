@@ -1,14 +1,16 @@
 package com.starcloud.ops.business.app.service.materiallibrary.listener;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ConcurrentHashSet;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson.JSON;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -17,25 +19,26 @@ public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, S
 
     // 定义变量，分别表示限制列数和行数 以及限定的表头
     private Integer limitColSize;
-    private Set<String> oldHead;
+    /**
+     * -- GETTER --
+     * 获取excel的所有数据，数据量太大会出现内存溢出
+     *
+     * @return list
+     */
+    @Getter
+    private Set<String> heads = new ConcurrentHashSet<>();
 
-
-    // 构造函数
-    ExcelHeadEventListener() {
-
-    }
 
     // 带参构造函数，直接赋值限制行列
-    public ExcelHeadEventListener(Integer limitColSize, Set<String> oldHead) {
+    public ExcelHeadEventListener(Integer limitColSize) {
         this.limitColSize = limitColSize;
-        this.oldHead = oldHead;
     }
 
     /**
      * When analysis one row trigger invoke function.
      *
-     * @param data    one row value. It is same as {@link AnalysisContext#readRowHolder()}
-     * @param context analysis context
+     * @param integerStringMap    one row value. It is same as {@link AnalysisContext#readRowHolder()}
+     * @param analysisContext analysis context
      */
     @Override
     public void invoke(Map<Integer, String> integerStringMap, AnalysisContext analysisContext) {
@@ -44,35 +47,22 @@ public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, S
     /**
      * 这里会一行行的返回头
      *
-     * @param headMap
-     * @param context
+     * @param headMap 头数据
+     * @param context 内容
      */
     @Override
     public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-        Set<String> newHead = new HashSet<>();
-        if (context.getCurrentRowNum() == limitColSize) {
-            newHead.addAll(headMap.values());
+        if (Objects.equals(context.getCurrentRowNum(), limitColSize)) {
+            heads.addAll(headMap.values());
             log.info("解析表头数据:{}", JSON.toJSONString(headMap));
         }
-
-        //
-        //
-        // Integer size = headMap.keySet().size();
-        //
-        //
-        // for (int i = 0; i < (size >= this.limitColSize ? this.limitColSize : size); i++) {
-        //
-        // }
-        // log.info("解析表头数据:{}", JSON.toJSONString(headMap));
-        // 验证表头
-        checkHead(this.oldHead, newHead);
     }
 
 
     /**
      * if have something to do after all analysis
      *
-     * @param context
+     * @param context 内容
      */
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {

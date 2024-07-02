@@ -1,12 +1,11 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn;
 
+import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
+import com.alibaba.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import java.util.*;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.Data;
+
 import java.time.LocalDateTime;
-import com.alibaba.excel.annotation.*;
 
 @Schema(description = "管理后台 - 素材知识库表格信息 Response VO")
 @Data
@@ -27,7 +26,7 @@ public class MaterialLibraryTableColumnRespVO {
 
     @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("类型")
-    private String columnType;
+    private Integer columnType;
 
     @Schema(description = "描述")
     @ExcelProperty("描述")
@@ -39,7 +38,7 @@ public class MaterialLibraryTableColumnRespVO {
 
     @Schema(description = "序号", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("序号")
-    private String sequence;
+    private Long sequence;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")

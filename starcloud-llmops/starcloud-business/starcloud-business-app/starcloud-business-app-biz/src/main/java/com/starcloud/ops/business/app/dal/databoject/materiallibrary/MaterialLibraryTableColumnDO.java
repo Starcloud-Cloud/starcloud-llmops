@@ -35,7 +35,7 @@ public class MaterialLibraryTableColumnDO extends BaseDO {
     /**
      * 类型
      */
-    private String columnType;
+    private Integer columnType;
     /**
      * 描述
      */
@@ -43,10 +43,10 @@ public class MaterialLibraryTableColumnDO extends BaseDO {
     /**
      * 是否必须
      */
-    private Integer isRequired;
+    private Boolean isRequired;
     /**
      * 序号
      */
-    private String sequence;
+    private Long sequence;
 
 }

@@ -12,7 +12,7 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
  *
  * @author starcloudadmin
  */
-public interface MaterialLibraryService {
+public interface MaterialLibraryService{
 
     /**
      * 创建素材知识库

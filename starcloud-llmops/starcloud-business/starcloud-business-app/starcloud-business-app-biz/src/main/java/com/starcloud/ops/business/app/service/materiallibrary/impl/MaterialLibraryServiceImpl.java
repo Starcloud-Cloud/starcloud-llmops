@@ -16,12 +16,12 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.ExcelMateri
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ImageMaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_FORAMT_NO_MODIFY;
@@ -40,7 +40,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Resource
     private MaterialLibrarySliceService materialLibrarySliceService;
-
 
 
     @Resource
@@ -100,18 +99,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         materialLibraryMapper.deleteById(id);
     }
 
-    private void validateMaterialLibraryExists(Long id, String formatType) {
-        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(id);
-
-        if (materialLibraryDO == null) {
-            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
-        }
-
-        if (formatType != null && !formatType.equals(materialLibraryDO.getFormatType())) {
-            throw exception(MATERIAL_LIBRARY_FORAMT_NO_MODIFY);
-        }
-    }
-
     @Override
     public MaterialLibraryDO getMaterialLibrary(Long id) {
         return materialLibraryMapper.selectById(id);
@@ -152,6 +139,23 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         strategy.importMaterial(importRespVO);
     }
 
+
+
+// ========================================私有方法区 ========================================
+
+
+    private void validateMaterialLibraryExists(Long id, Integer formatType) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(id);
+
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+
+        if (formatType != null && !formatType.equals(materialLibraryDO.getFormatType())) {
+            throw exception(MATERIAL_LIBRARY_FORAMT_NO_MODIFY);
+        }
+    }
+
     /**
      * 根据素材库的格式类型获取相应的导入策略。
      *
@@ -166,7 +170,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             return applicationContext.getBean(ImageMaterialImportStrategy.class);
         }
         if (MaterialTypeEnum.isZip(formatType)) {
-            return  applicationContext.getBean(ZipMaterialImportStrategy.class);
+            return applicationContext.getBean(ZipMaterialImportStrategy.class);
         }
         // 对于未知的素材类型，返回错误信息
         throw new UnsupportedOperationException("Unsupported material format type.");

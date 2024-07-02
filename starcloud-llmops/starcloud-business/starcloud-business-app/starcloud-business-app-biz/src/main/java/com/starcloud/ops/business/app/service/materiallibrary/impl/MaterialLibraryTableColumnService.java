@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.service.materiallibrary;
+package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author starcloudadmin
  */
-public interface MaterialLibraryTableColumnService  extends CommonExcelReadService{
+public interface MaterialLibraryTableColumnService {
 
     /**
      * 创建素材知识库表格信息

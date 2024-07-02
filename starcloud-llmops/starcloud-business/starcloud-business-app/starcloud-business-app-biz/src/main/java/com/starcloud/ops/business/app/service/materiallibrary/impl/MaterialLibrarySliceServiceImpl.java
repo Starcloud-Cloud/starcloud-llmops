@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -37,7 +37,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         // 插入
         MaterialLibrarySliceDO materialLibrarySlice = BeanUtils.toBean(createReqVO, MaterialLibrarySliceDO.class);
 
-        Long nextSequence = 1L;
+        long nextSequence = 1L;
         // 设置数据最新的序号
         MaterialLibrarySliceDO lastSequenceSliceDO = materialLibrarySliceMapper.selectLastSequence(materialLibrarySlice.getLibraryId());
 
@@ -157,4 +157,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
     }
 
+    /**
+     * 批量保存数据
+     *
+     * @param list 要保存的数据
+     * @return Integer 保存成功的条数
+     */
+    @Override
+    public <T> Integer saveBatchData(List<T> list) {
+        materialLibrarySliceMapper.insertBatch(BeanUtil.copyToList(list, MaterialLibrarySliceDO.class));
+        return list.size();
+
+    }
 }

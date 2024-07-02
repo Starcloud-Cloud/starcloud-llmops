@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author starcloudadmin
  */
-public interface MaterialLibrarySliceService {
+public interface MaterialLibrarySliceService extends CommonExcelReadService{
 
     /**
      * 创建素材知识库数据
@@ -67,7 +67,6 @@ public interface MaterialLibrarySliceService {
      * 批量设置数据为共享数据
      *
      * @param shareReqVO 数据共享请求 VO
-     * @return 共享数据是否成功
      */
     void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO);
 

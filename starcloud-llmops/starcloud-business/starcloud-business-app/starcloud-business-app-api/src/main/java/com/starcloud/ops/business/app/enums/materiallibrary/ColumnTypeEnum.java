@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.enums.materiallibrary;
 
-import cn.hutool.core.util.ObjUtil;
 import cn.iocoder.yudao.framework.common.core.IntArrayValuable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,18 +15,18 @@ public enum ColumnTypeEnum implements IntArrayValuable {
 
     STRING(0, "字符串"),
     INTEGER(1, "数字"),
-    TIME(1, "时间"),
-    NUMBER(1, "数字"),
-    BOOLEAN(1, "布尔值"),
-    IMAGE(1, "图片"),
+    TIME(2, "时间"),
+    NUMBER(3, "数字"),
+    BOOLEAN(4, "布尔值"),
+    IMAGE(5, "图片"),
     ;
 
-    public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(ColumnTypeEnum::getStatus).toArray();
+    public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(ColumnTypeEnum::getCode).toArray();
 
     /**
      * 状态值
      */
-    private final Integer status;
+    private final Integer code;
     /**
      * 状态名
      */

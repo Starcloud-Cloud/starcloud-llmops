@@ -1,13 +1,14 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
-import retrofit2.http.Url;
 
-import java.util.*;
-import javax.validation.constraints.*;
-import java.util.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Schema(description = "管理后台 - 素材知识库数据新增/修改 Request VO")
 @Data
@@ -36,6 +37,9 @@ public class MaterialLibrarySliceSaveReqVO {
     @NotNull(message = "状态不能为空")
     private Boolean status;
 
+    @Schema(description = "字符数", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
+    private Long charCount;
+
 
     @Schema(description = "列属性")
     @Data
@@ -46,7 +50,7 @@ public class MaterialLibrarySliceSaveReqVO {
          * 列名
          */
         @Schema(description = " 列 ID", example = " 1")
-        private String columnId;
+        private Long columnId;
         /**
          * 描述
          */
