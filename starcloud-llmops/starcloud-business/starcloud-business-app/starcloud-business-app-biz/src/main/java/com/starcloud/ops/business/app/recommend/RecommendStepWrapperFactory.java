@@ -187,7 +187,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String prompt = "{{"+ CreativeConstants.STEP_SYSTEM_PROMPT +"}}";
+        String prompt = "{{"+ CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT +"}}";
         String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -319,7 +319,7 @@ public class RecommendStepWrapperFactory {
      * @return 默认值
      */
     private static String getDefaultFromDict(String key) {
-        return MapUtil.emptyIfNull(appDictionaryService.defaultStepConfig()).getOrDefault(key, StrUtil.EMPTY);
+        return MapUtil.emptyIfNull(appDictionaryService.defaultAppConfiguration()).getOrDefault(key, StrUtil.EMPTY);
     }
 
 }

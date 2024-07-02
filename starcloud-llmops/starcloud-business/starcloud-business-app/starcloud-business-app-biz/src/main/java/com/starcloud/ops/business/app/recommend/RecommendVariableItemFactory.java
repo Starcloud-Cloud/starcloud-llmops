@@ -49,7 +49,7 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
-        variableItem.setOptions(AppUtils.aiModelList());
+        variableItem.setOptions(AppUtils.llmModelTypeList());
         return variableItem;
     }
 
@@ -768,9 +768,9 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defSystemPromptVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.STEP_SYSTEM_PROMPT);
-        variableItem.setLabel("系统默认prompt");
-        variableItem.setDescription("系统默认prompt");
+        variableItem.setField(CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT);
+        variableItem.setLabel("内容生成默认prompt");
+        variableItem.setDescription("内容生成默认prompt");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(103);
@@ -789,7 +789,7 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defStepRespJsonParserPromptVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT);
+        variableItem.setField(CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT);
         variableItem.setLabel("生成数据JSON格式化默认Prompt");
         variableItem.setDescription("生成数据JSON格式化默认Prompt，返回结果-响应类型选择为 JSON 时才会生效");
         variableItem.setDefaultValue(StringUtils.EMPTY);

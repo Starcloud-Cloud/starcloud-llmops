@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.app.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -103,7 +102,7 @@ public class AppServiceImpl implements AppService {
         // 语言列表
         metadata.put("language", LanguageEnum.languageList());
         // AI 模型
-        metadata.put("llmModelType", AppUtils.aiModelList());
+        metadata.put("llmModelType", AppUtils.llmModelTypeList());
         // 应用类型
         metadata.put("appType", AppTypeEnum.options(UserUtils.isAdmin()));
         // 素材类型

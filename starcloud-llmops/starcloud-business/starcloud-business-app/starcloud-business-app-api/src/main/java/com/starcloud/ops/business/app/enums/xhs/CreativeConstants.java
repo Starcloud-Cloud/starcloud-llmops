@@ -22,12 +22,12 @@ public interface CreativeConstants {
     /**
      * 字段配置prompt
      */
-    String STEP_SYSTEM_PROMPT = "STEP_SYSTEM_PROMPT";
+    String DEFAULT_CONTENT_STEP_PROMPT = "DEFAULT_CONTENT_STEP_PROMPT";
 
     /**
      * JSON解析PROMPT
      */
-    String STEP_RESP_JSON_PARSER_PROMPT = "STEP_RESP_JSON_PARSER_PROMPT";
+    String DEFAULT_RESPONSE_JSON_PARSER_PROMPT = "DEFAULT_RESPONSE_JSON_PARSER_PROMPT";
 
     /**
      * 小红书链接

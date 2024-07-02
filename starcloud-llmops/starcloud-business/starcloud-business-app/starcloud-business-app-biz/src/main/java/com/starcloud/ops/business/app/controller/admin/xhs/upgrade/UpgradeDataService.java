@@ -232,10 +232,16 @@ public class UpgradeDataService {
             if ("_SYS_内容生成_PROMPT".equals(variable.getField())) {
                 continue;
             }
-            if (CreativeConstants.STEP_SYSTEM_PROMPT.equals(variable.getField())) {
+            if ("STEP_SYSTEM_PROMPT".equals(variable.getField())) {
                 continue;
             }
-            if (CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT.equals(variable.getField())) {
+            if ("STEP_RESP_JSON_PARSER_PROMPT".equals(variable.getField())) {
+                continue;
+            }
+            if (CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT.equals(variable.getField())) {
+                continue;
+            }
+            if (CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT.equals(variable.getField())) {
                 continue;
             }
             variableList.add(variable);
@@ -279,8 +285,8 @@ public class UpgradeDataService {
         // 模型参数 prompt 修改
         for (VariableItemRespVO variable : modelVariables) {
             if ("PROMPT".equalsIgnoreCase(variable.getField())) {
-                variable.setValue("{{" + CreativeConstants.STEP_SYSTEM_PROMPT + "}}");
-                variable.setDefaultValue("{{" + CreativeConstants.STEP_SYSTEM_PROMPT + "}}");
+                variable.setValue("{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}");
+                variable.setDefaultValue("{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}");
             }
             if ("max_tokens".equalsIgnoreCase(variable.getField())) {
                 variable.setValue(4000);

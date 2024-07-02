@@ -30,6 +30,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -70,6 +71,13 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppDictionaryService appDictionaryService = SpringUtil.getBean(AppDictionaryService.class);
+
+    /**
+     * 字典服务
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppDefaultConfigManager appDefaultConfigManager = SpringUtil.getBean(AppDefaultConfigManager.class);
 
     /**
      * 流程执行器，action 执行入口
@@ -240,15 +248,15 @@ public class CustomActionHandler extends BaseActionHandler {
         context.putVariable(CreativeConstants.REQUIREMENT, requirementPrompt);
 
         // 获取到系统默认配置
-        Map<String, String> stepDefaultConfig = appDictionaryService.defaultStepConfig();
+        Map<String, String> defaultAppConfiguration = appDefaultConfigManager.configuration();
 
         // 处理返回结构JSON格式化提示
-        String stepRespJsonParserPrompt = this.stepRespJsonParserPrompt(context, stepDefaultConfig);
-        context.putVariable(CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT, stepRespJsonParserPrompt);
+        String defaultResponseJsonParserPrompt = this.defaultResponseJsonParserPrompt(context, defaultAppConfiguration);
+        context.putVariable(CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT, defaultResponseJsonParserPrompt);
 
         // 处理提示词
-        String prompt = this.stepSystemPrompt(stepDefaultConfig);
-        context.putVariable(CreativeConstants.STEP_SYSTEM_PROMPT, prompt);
+        String defaultContentStepPrompt = this.defaultContentStepPrompt(defaultAppConfiguration);
+        context.putVariable(CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT, defaultContentStepPrompt);
     }
 
     /**
@@ -280,7 +288,7 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 prompt
         String prompt = this.getPrompt(context, params, isCustom);
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
         // 获取到 maxTokens
@@ -328,7 +336,7 @@ public class CustomActionHandler extends BaseActionHandler {
     private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
         // 计算权益点数
         Long tokens = handlerResponse.getMessageTokens() + handlerResponse.getAnswerTokens();
-        String llmModel = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String llmModel = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModel, tokens);
 
         // 构建响应结果
@@ -403,17 +411,10 @@ public class CustomActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private String stepRespJsonParserPrompt(AppContext context, Map<String, String> defaultStepConfig) {
+    private String defaultResponseJsonParserPrompt(AppContext context, Map<String, String> defaultAppConfiguration) {
         // 如果返回结果需要解析 JSON，返回提示
         if (this.hasResponseJsonSchema(context)) {
-            return MapUtil.emptyIfNull(defaultStepConfig)
-                    .getOrDefault(CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT,
-                            "Your response should be in JSON format.\n" +
-                                    "Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\n" +
-                                    "Do not include markdown code blocks in your response.\n" +
-                                    "Here is the JSON Schema instance your output must adhere to:\n" +
-                                    "```\n {{STEP_RESP_JSONSCHEMA}} \n```"
-                    );
+            return appDefaultConfigManager.defaultResponseJsonParserPrompt(defaultAppConfiguration);
         }
         return StringUtils.EMPTY;
     }
@@ -423,9 +424,8 @@ public class CustomActionHandler extends BaseActionHandler {
      *
      * @return prompt
      */
-    private String stepSystemPrompt(Map<String, String> defaultStepConfig) {
-        return MapUtil.emptyIfNull(defaultStepConfig)
-                .getOrDefault(CreativeConstants.STEP_SYSTEM_PROMPT, StrUtil.EMPTY);
+    private String defaultContentStepPrompt(Map<String, String> defaultAppConfiguration) {
+        return appDefaultConfigManager.defaultContentStepPrompt(defaultAppConfiguration);
     }
 
     /**
@@ -455,8 +455,8 @@ public class CustomActionHandler extends BaseActionHandler {
             try {
                 log.error("用户prompt配置异常！从字典中获取默认配置！");
 
-                String defaultPrompt = MapUtil.emptyIfNull(appDictionaryService.defaultStepConfig())
-                        .getOrDefault(CreativeConstants.STEP_SYSTEM_PROMPT, StrUtil.EMPTY);
+                String defaultPrompt = MapUtil.emptyIfNull(appDictionaryService.defaultAppConfiguration())
+                        .getOrDefault(CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT, StrUtil.EMPTY);
                 List<String> defaultPromptList = StrUtil.split(defaultPrompt, "----------");
                 if (defaultPromptList.size() < 2) {
                     throw new RuntimeException("系统默认promp配置异常！检查您的配置或者联系管理员！");

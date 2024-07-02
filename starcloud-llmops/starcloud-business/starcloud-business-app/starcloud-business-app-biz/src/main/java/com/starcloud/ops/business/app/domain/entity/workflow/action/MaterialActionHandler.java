@@ -156,7 +156,6 @@ public class MaterialActionHandler extends BaseActionHandler {
         response.setAnswerUnitPrice(BigDecimal.ZERO);
         response.setTotalTokens(0L);
         response.setTotalPrice(BigDecimal.ZERO);
-        response.setAiModel("material");
         response.setCostPoints(0);
         return response;
     }
