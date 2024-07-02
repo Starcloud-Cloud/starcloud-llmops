@@ -40,19 +40,9 @@ public interface CreativeConstants {
     String FIELD_MAP = "FIELD_MAP";
 
     /**
-     * 小红书链接
-     */
-    String XHS_NOTE_URL = "XHS_NOTE_URL";
-
-    /**
      * 图片链接集合
      */
     String IMAGE_OCR_URL = "IMAGE_OCR_URL";
-
-    /**
-     * 字段映射
-     */
-    String FIELD_MAP = "FIELD_MAP";
 
     /**
      * 参考内容 带模仿要求
