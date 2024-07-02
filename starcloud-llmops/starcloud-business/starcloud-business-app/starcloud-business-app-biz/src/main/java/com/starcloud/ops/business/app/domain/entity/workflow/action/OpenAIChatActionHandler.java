@@ -78,7 +78,7 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
 
         // 获取执行参数
         Map<String, Object> params = context.getContextVariablesValues();
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
         String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
         Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
@@ -145,12 +145,12 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         response.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         response.setTotalTokens(handlerResponse.getTotalTokens());
         response.setTotalPrice(handlerResponse.getTotalPrice());
-        response.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        response.setAiModel(Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         response.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
         Long tokens = response.getMessageTokens() + response.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getLlmModelType(context), tokens);
         response.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
         return response;
     }

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.upgrade;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.baomidou.mybatisplus.core.batch.MybatisBatch;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
@@ -40,12 +41,14 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -141,6 +144,9 @@ public class UpgradeDataService {
 
     }
 
+    @Resource
+    private SqlSessionFactory sqlSessionFactory;
+
     @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativePlanBatch() {
 
@@ -158,8 +164,12 @@ public class UpgradeDataService {
             configuration.setAppInformation(appInformation);
 
             batch.setConfiguration(JsonUtils.toJsonString(configuration));
-            creativePlanBatchMapper.updateById(batch);
+            //creativePlanBatchMapper.updateById(batch);
         }
+
+        MybatisBatch<CreativePlanBatchDO> mybatisBatch = new MybatisBatch<>(sqlSessionFactory, creativePlanBatchList);
+        MybatisBatch.Method<CreativePlanBatchDO> method = new MybatisBatch.Method<>(CreativePlanBatchMapper.class);
+        mybatisBatch.execute(method.updateById());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -222,22 +232,28 @@ public class UpgradeDataService {
             if ("_SYS_内容生成_PROMPT".equals(variable.getField())) {
                 continue;
             }
-            if (CreativeConstants.STEP_SYSTEM_PROMPT.equals(variable.getField())) {
+            if ("STEP_SYSTEM_PROMPT".equals(variable.getField())) {
                 continue;
             }
-            if (CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT.equals(variable.getField())) {
+            if ("STEP_RESP_JSON_PARSER_PROMPT".equals(variable.getField())) {
+                continue;
+            }
+            if (CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT.equals(variable.getField())) {
+                continue;
+            }
+            if (CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT.equals(variable.getField())) {
                 continue;
             }
             variableList.add(variable);
         }
 
         // 系统提示
-        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defSystemPromptVariable();
+        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
         systemPrompt.setOrder(8);
         systemPrompt.setIsShow(Boolean.FALSE);
         variableList.add(systemPrompt);
 
-        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defStepRespJsonParserPromptVariable();
+        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
         stepRespJsonParserPrompt.setOrder(9);
         stepRespJsonParserPrompt.setIsShow(Boolean.FALSE);
         variableList.add(stepRespJsonParserPrompt);
@@ -251,7 +267,7 @@ public class UpgradeDataService {
         WorkflowStepRespVO flowStep = customHandler.getFlowStep();
         ActionResponseRespVO response = flowStep.getResponse();
 
-        JsonDataVO output = response.getOutput();
+        JsonDataVO output = Optional.ofNullable(response.getOutput()).orElse(new JsonDataVO());
         output.setJsonSchema(null);
 
         response.setOutput(output);
@@ -269,8 +285,8 @@ public class UpgradeDataService {
         // 模型参数 prompt 修改
         for (VariableItemRespVO variable : modelVariables) {
             if ("PROMPT".equalsIgnoreCase(variable.getField())) {
-                variable.setValue("{{" + CreativeConstants.STEP_SYSTEM_PROMPT + "}}");
-                variable.setDefaultValue("{{" + CreativeConstants.STEP_SYSTEM_PROMPT + "}}");
+                variable.setValue("{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}");
+                variable.setDefaultValue("{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}");
             }
             if ("max_tokens".equalsIgnoreCase(variable.getField())) {
                 variable.setValue(4000);

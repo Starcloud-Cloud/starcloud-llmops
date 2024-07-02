@@ -224,7 +224,7 @@ public class AppUtils {
      *
      * @return AI 模型集合
      */
-    public static List<Option> aiModelList() {
+    public static List<Option> llmModelTypeList() {
         Locale locale = LocaleContextHolder.getLocale();
         List<Option> options = new ArrayList<>();
         Option option35 = new Option();
@@ -234,13 +234,18 @@ public class AppUtils {
 
         Option option40 = new Option();
         option40.setLabel(Locale.CHINA.equals(locale) ? "默认模型4.0" : "Default Model 4.0");
-        option40.setValue(ModelTypeEnum.GPT_4_TURBO.getName());
+        option40.setValue(ModelTypeEnum.GPT_4_O.getName());
         options.add(option40);
 
         Option optionQwen = new Option();
         optionQwen.setLabel(Locale.CHINA.equals(locale) ? "通义千问" : "QWEN");
         optionQwen.setValue(ModelTypeEnum.QWEN.getName());
         options.add(optionQwen);
+
+        Option optionQwenMax = new Option();
+        optionQwenMax.setLabel(Locale.CHINA.equals(locale) ? "通义千问MAX" : "QWEN MAX");
+        optionQwenMax.setValue(ModelTypeEnum.QWEN_MAX.getName());
+        options.add(optionQwenMax);
         return options;
     }
 }

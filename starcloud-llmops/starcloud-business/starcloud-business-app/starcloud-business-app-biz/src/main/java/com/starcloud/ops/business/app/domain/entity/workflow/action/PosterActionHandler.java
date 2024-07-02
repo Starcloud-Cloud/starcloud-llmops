@@ -701,7 +701,6 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setAnswer(JsonUtils.toJsonPrettyString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());
-        response.setAiModel("poster-tubor");
         return response;
     }
 

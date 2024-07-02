@@ -139,7 +139,6 @@ public class AssembleActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(BigDecimal.ZERO);
         actionResponse.setTotalTokens(0L);
         actionResponse.setTotalPrice(BigDecimal.ZERO);
-        actionResponse.setAiModel("assemble");
         actionResponse.setCostPoints(0);
         return actionResponse;
     }

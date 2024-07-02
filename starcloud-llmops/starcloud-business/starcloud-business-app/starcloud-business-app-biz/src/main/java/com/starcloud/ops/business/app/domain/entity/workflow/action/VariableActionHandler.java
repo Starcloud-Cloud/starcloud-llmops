@@ -110,7 +110,6 @@ public class VariableActionHandler extends BaseActionHandler {
         response.setTotalTokens(0L);
         response.setTotalPrice(BigDecimal.ZERO);
         response.setStepConfig("{}");
-        response.setAiModel("variable");
         response.setCostPoints(0);
 
         // 结束日志打印

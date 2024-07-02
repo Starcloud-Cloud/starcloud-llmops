@@ -22,6 +22,10 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
@@ -247,8 +251,9 @@ public abstract class BaseActionHandler extends Object {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected String getAiModel(AppContext context) {
-        String aiModel = context.getAiModel();
+    protected String getLlmModelType(AppContext context) {
+
+        String aiModel = context.getLlmModelType();
         if (aiModel != null) {
             return aiModel;
         }

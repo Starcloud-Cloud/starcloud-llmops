@@ -432,7 +432,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         appContext.setConversationUid(request.getConversationUid());
         appContext.setSseEmitter(request.getSseEmitter());
         appContext.setMediumUid(request.getMediumUid());
-        appContext.setAiModel(this.obtainLlmAiModelType(request));
+        appContext.setLlmModelType(this.obtainLlmAiModelType(request));
         appContext.setN(request.getN());
         appContext.setContinuous(request.getContinuous());
         if (StringUtils.isNotBlank(request.getStepId())) {
@@ -549,7 +549,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setFromScene(appContext.getScene().name());
             messageCreateRequest.setMediumUid(appContext.getMediumUid());
-            messageCreateRequest.setAiModel(appContext.getAiModel());
+            messageCreateRequest.setAiModel(appContext.getLlmModelType());
             messageCreateRequest.setCreateTime(nodeTracking.getStartTime());
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
