@@ -103,6 +103,7 @@ public class RecommendVariableFactory {
 
     /**
      * 小红书ocr变量
+     *
      * @return
      */
     public static VariableRespVO defXhsOcrVariable() {
@@ -119,6 +120,7 @@ public class RecommendVariableFactory {
 
     /**
      * 图片ocr
+     *
      * @return
      */
     public static VariableRespVO defImageOcrVariable() {

@@ -432,6 +432,7 @@ public class RecommendVariableItemFactory {
 
     /**
      * 小红书笔记地址
+     *
      * @return
      */
     public static VariableItemRespVO defXhsUrlVariable() {
@@ -451,6 +452,7 @@ public class RecommendVariableItemFactory {
 
     /**
      * 图片oss地址
+     *
      * @return
      */
     public static VariableItemRespVO defImageUrlVariable() {
