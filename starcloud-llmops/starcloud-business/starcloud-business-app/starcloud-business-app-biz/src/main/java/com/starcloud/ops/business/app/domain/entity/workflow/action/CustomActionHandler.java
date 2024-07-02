@@ -43,6 +43,7 @@ import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandle
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.utils.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -129,14 +130,10 @@ public class CustomActionHandler extends BaseActionHandler {
             return this.doRandomExecute(context, params);
         }
 
-        // AI仿写模式
-        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
-            return this.doAiParodyExecute(context, params);
-        }
-
-        // AI自定义模式
-        if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(generateMode)) {
-            return this.doAiCustomExecute(context, params);
+        // AI仿写模式/ AI自定义模式
+        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)
+                || CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(generateMode)) {
+            return this.doAiExecute(context, params, generateMode);
         }
 
         // 不支持的生成模式
@@ -156,12 +153,7 @@ public class CustomActionHandler extends BaseActionHandler {
         loggerBegin(context, CreativeSchemeGenerateModeEnum.RANDOM.name(), "生成步骤");
 
         // 获取到参考文案
-        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
-        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
-        if (CollectionUtil.isEmpty(referList)) {
-            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 生成模式为【{}】时，参考内容不能为空！", context.getStepId(), CreativeSchemeGenerateModeEnum.RANDOM.getLabel());
-        }
-
+        List<AbstractCreativeMaterialDTO> referList = this.getReferList(context, params, CreativeSchemeGenerateModeEnum.RANDOM.name());
         // 随机获取一条参考文案，作为生成结果
         AbstractCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
 
@@ -212,129 +204,51 @@ public class CustomActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse doAiParodyExecute(AppContext context, Map<String, Object> params) {
-        // 生成模式
-        String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
+    private ActionResponse doAiExecute(AppContext context, Map<String, Object> params, String generateMode) {
         // 开始日志打印
         loggerBegin(context, generateMode, "生成步骤");
-
-        // 获取到步骤 ID
-        String stepId = context.getStepId();
-        // 获取到参考内容
-        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
-        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
-        if (CollectionUtil.isEmpty(referList)) {
-            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 生成模式为【{}】时，参考内容不能为空！", stepId, generateMode);
-        }
-
-        // 需要交给 ChatGPT 的参考内容数量
-        Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
-
-        // 处理参考内容
-        List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
-        AbstractCreativeMaterialDTO reference = handlerReferList.get(0);
-
-        context.putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
-        context.putVariable(CreativeConstants.REQUIREMENT, params.getOrDefault(CreativeConstants.REQUIREMENT, ""));
-        context.putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
-
-        // 重新获取上下文处理参数，因为参考内容已经被处理了，需要重新获取
-        params = context.getContextVariablesValues();
-
-        /*
-         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
-         * AI仿写为第一个 prompt
-         * AI自定义为第二个 prompt
-         */
-        // 获取到 prompt
-        String prompt = this.getPrompt(context, params, false);
-
-        // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        // 获取到生成数量 n
-        Integer n = Optional.ofNullable(context.getN()).orElse(1);
-        // 获取到 maxTokens
-        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
-        // 获取到 temperature
-        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
-
-        // 打印参数日志
-        loggerParamter(context, params, generateMode, "生成步骤");
-
-        // 构建请求
-        OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
-        handlerRequest.setModel(model);
-        handlerRequest.setN(n);
-        handlerRequest.setPrompt(prompt);
-        handlerRequest.setMaxTokens(maxTokens);
-        handlerRequest.setTemperature(temperature);
-
+        // 处理上下文
+        handlerContext(context, params, generateMode);
         // 执行步骤
-        ActionResponse response = this.doGenerateExecute(context, handlerRequest);
-
+        ActionResponse response = this.generate(context, generateMode);
         // 结束日志打印
         loggerSuccess(context, response, generateMode, "生成步骤");
-
         return response;
     }
 
     /**
-     * AI 仿写模式
+     * 处理上下文
      *
-     * @param params 参数
-     * @return 生成结果
+     * @param context      上下文
+     * @param generateMode 生成模式
      */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private ActionResponse doAiCustomExecute(AppContext context, Map<String, Object> params) {
-        // 生成模式
-        String generateMode = CreativeSchemeGenerateModeEnum.AI_CUSTOM.name();
-        // 开始日志打印
-        loggerBegin(context, generateMode, "生成步骤");
+    private void handlerContext(AppContext context, Map<String, Object> params, String generateMode) {
+        // 处理参考内容
+        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
+            // 获取到参考内容
+            List<AbstractCreativeMaterialDTO> referList = getReferList(context, params, generateMode);
+            // 需要交给 ChatGPT 的参考内容数量
+            Integer refersCount = Integer.valueOf(String.valueOf(params.getOrDefault(CreativeConstants.REFERS_COUNT, "3")));
+            // 处理参考内容
+            List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
+            // 处理参数，并且重新放入到上下文中
+            context.putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
+        }
 
-        // 获取到步骤 ID
-        String stepId = context.getStepId();
-        context.putVariable(CreativeConstants.REQUIREMENT, params.getOrDefault(CreativeConstants.REQUIREMENT, ""));
-        context.putVariable(CreativeConstants.SYS_PROMPT, sysPrompt());
-        params = context.getContextVariablesValues();
+        // 处理用户要求
+        Object requirementPrompt = this.requirementPrompt(context, params);
+        context.putVariable(CreativeConstants.REQUIREMENT, requirementPrompt);
 
-        /*
-         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
-         * AI仿写为第一个 prompt
-         * AI自定义为第二个 prompt
-         */
-        // 获取到 prompt
-        String prompt = this.getPrompt(context, params, true);
+        // 获取到系统默认配置
+        Map<String, String> stepDefaultConfig = appDictionaryService.defaultStepConfig();
 
-        // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        // 获取到生成数量 n
-        Integer n = Optional.ofNullable(context.getN()).orElse(1);
-        // 获取到 maxTokens
-        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
-        // 获取到 temperature
-        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
+        // 处理返回结构JSON格式化提示
+        String stepRespJsonParserPrompt = this.stepRespJsonParserPrompt(context, stepDefaultConfig);
+        context.putVariable(CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT, stepRespJsonParserPrompt);
 
-        // 打印参数日志
-        loggerParamter(context, params, generateMode, "生成步骤");
-
-        // 构建请求
-        OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
-        handlerRequest.setModel(model);
-        handlerRequest.setN(n);
-        handlerRequest.setPrompt(prompt);
-        handlerRequest.setMaxTokens(maxTokens);
-        handlerRequest.setTemperature(temperature);
-
-        // 执行步骤
-        ActionResponse response = this.doGenerateExecute(context, handlerRequest);
-
-        // 结束日志打印
-        loggerSuccess(context, response, generateMode, "生成步骤");
-
-        return response;
+        // 处理提示词
+        String prompt = this.stepSystemPrompt(stepDefaultConfig);
+        context.putVariable(CreativeConstants.STEP_SYSTEM_PROMPT, prompt);
     }
 
     /**
@@ -345,7 +259,46 @@ public class CustomActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest) {
+    private ActionResponse generate(AppContext context, String generateMode) {
+
+        // 获取到参数列表
+        Map<String, Object> params = context.getContextVariablesValues();
+        /*
+         * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
+         * AI仿写为第一个 prompt
+         * AI自定义为第二个 prompt
+         */
+        boolean isCustom;
+        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
+            isCustom = false;
+        } else if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(generateMode)) {
+            isCustom = true;
+        } else {
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 不支持的生成模式！", context.getStepId());
+        }
+
+        // 获取到 prompt
+        String prompt = this.getPrompt(context, params, isCustom);
+        // 获取到大模型 model
+        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        // 获取到生成数量 n
+        Integer n = Optional.ofNullable(context.getN()).orElse(1);
+        // 获取到 maxTokens
+        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
+        // 获取到 temperature
+        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
+
+        // 打印参数日志
+        loggerParamter(context, params, generateMode, "生成步骤");
+
+        // 构建请求
+        OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
+        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
+        handlerRequest.setModel(model);
+        handlerRequest.setN(n);
+        handlerRequest.setPrompt(prompt);
+        handlerRequest.setMaxTokens(maxTokens);
+        handlerRequest.setTemperature(temperature);
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
                 context.getUid(),
@@ -431,6 +384,51 @@ public class CustomActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 返回用户要求
+     *
+     * @param context 上下文
+     * @return 用户要求
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private Object requirementPrompt(AppContext context, Map<String, Object> params) {
+        return params.getOrDefault(CreativeConstants.REQUIREMENT, StringUtils.EMPTY);
+    }
+
+    /**
+     * 获取 JSON 格式化提示
+     *
+     * @param context
+     * @return
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private String stepRespJsonParserPrompt(AppContext context, Map<String, String> defaultStepConfig) {
+        // 如果返回结果需要解析 JSON，返回提示
+        if (this.hasResponseJsonSchema(context)) {
+            return MapUtil.emptyIfNull(defaultStepConfig)
+                    .getOrDefault(CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT,
+                            "Your response should be in JSON format.\n" +
+                                    "Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\n" +
+                                    "Do not include markdown code blocks in your response.\n" +
+                                    "Here is the JSON Schema instance your output must adhere to:\n" +
+                                    "```\n {{STEP_RESP_JSONSCHEMA}} \n```"
+                    );
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * 系统默认配置prompt
+     *
+     * @return prompt
+     */
+    private String stepSystemPrompt(Map<String, String> defaultStepConfig) {
+        return MapUtil.emptyIfNull(defaultStepConfig)
+                .getOrDefault(CreativeConstants.STEP_SYSTEM_PROMPT, StrUtil.EMPTY);
+    }
+
+    /**
      * 获取 prompt
      *
      * @param params   参数
@@ -456,15 +454,24 @@ public class CustomActionHandler extends BaseActionHandler {
         } catch (Exception e) {
             try {
                 log.error("用户prompt配置异常！从字典中获取默认配置！");
-                List<String> defaultPromptList = getDefaultPromptList();
+
+                String defaultPrompt = MapUtil.emptyIfNull(appDictionaryService.defaultStepConfig())
+                        .getOrDefault(CreativeConstants.STEP_SYSTEM_PROMPT, StrUtil.EMPTY);
+                List<String> defaultPromptList = StrUtil.split(defaultPrompt, "----------");
+                if (defaultPromptList.size() < 2) {
+                    throw new RuntimeException("系统默认promp配置异常！检查您的配置或者联系管理员！");
+                }
+
                 if (!isCustom) {
                     prompt = defaultPromptList.get(0);
                 } else {
                     prompt = defaultPromptList.get(1);
                 }
+
                 if (StrUtil.isBlank(prompt)) {
                     throw new RuntimeException("系统默认promp为空！");
                 }
+
                 // 放入到上下文中
                 context.putModelVariable("PROMPT", prompt);
                 // 重新获取替换后的 prompt
@@ -479,32 +486,25 @@ public class CustomActionHandler extends BaseActionHandler {
             }
         }
 
-        return prompt;
+        return prompt.trim();
     }
 
     /**
-     * 系统默认配置prompt
+     * 获取参考内容
      *
-     * @return prompt
+     * @param params       参数
+     * @param stepId       步骤ID
+     * @param generateMode 生成模式
+     * @return
      */
-    private String sysPrompt() {
-        String prompt = MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(CreativeConstants.SYS_PROMPT, StrUtil.EMPTY);
-        return prompt;
-    }
-
-    /**
-     * 从字典中获取默认值
-     *
-     * @param key key
-     * @return 默认值
-     */
-    private List<String> getDefaultPromptList() {
-        String prompt = MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault("小红书生成", StrUtil.EMPTY);
-        List<String> promptList = StrUtil.split(prompt, "----------");
-        if (promptList.size() < 2) {
-            throw new RuntimeException("系统默认promp配置异常！请检查字典配置：小红书生成");
+    private List<AbstractCreativeMaterialDTO> getReferList(AppContext context, Map<String, Object> params, String generateMode) {
+        // 获取到参考内容
+        String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
+        List<AbstractCreativeMaterialDTO> referList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
+        if (CollectionUtil.isEmpty(referList)) {
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 生成模式为【{}】时，参考内容不能为空！", context.getStepId(), generateMode);
         }
-        return promptList;
+        return referList;
     }
 
     /**

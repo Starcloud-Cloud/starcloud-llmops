@@ -5,14 +5,13 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -218,7 +217,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String prompt = "{{_SYS_内容生成_PROMPT}}";
+        String prompt = "{{"+ CreativeConstants.STEP_SYSTEM_PROMPT +"}}";
         String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -354,7 +353,7 @@ public class RecommendStepWrapperFactory {
      * @return 默认值
      */
     private static String getDefaultFromDict(String key) {
-        return MapUtil.emptyIfNull(appDictionaryService.actionDefaultConfig()).getOrDefault(key, StrUtil.EMPTY);
+        return MapUtil.emptyIfNull(appDictionaryService.defaultStepConfig()).getOrDefault(key, StrUtil.EMPTY);
     }
 
 }

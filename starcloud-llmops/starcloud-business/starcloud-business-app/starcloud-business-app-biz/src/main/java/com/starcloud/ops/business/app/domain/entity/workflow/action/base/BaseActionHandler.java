@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
@@ -115,8 +116,8 @@ public abstract class BaseActionHandler extends Object {
      */
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
         //如果配置了返回结构定义就获取，不然就创建一个默认的
-        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
-        if (StrUtil.isNotBlank(json)) {
+        if (hasResponseJsonSchema(workflowStepWrapper)) {
+            String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
             //有配置，直接返回
             JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
             return jsonSchema;
@@ -144,8 +145,10 @@ public abstract class BaseActionHandler extends Object {
      */
     public Boolean hasResponseJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
         //如果配置了返回结构定义就获取，不然就创建一个默认的
-        String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
-        return StrUtil.isNotBlank(json);
+        ActionResponse actionResponse = workflowStepWrapper.getActionResponse();
+        String jsonSchema = actionResponse.getJsonSchema();
+        String type = actionResponse.getType();
+        return AppStepResponseTypeEnum.JSON.name().equalsIgnoreCase(type) && StrUtil.isNotBlank(jsonSchema);
     }
 
     /**

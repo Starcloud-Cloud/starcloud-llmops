@@ -375,7 +375,7 @@ public class RecommendVariableItemFactory {
     /**
      * 图片搜索习惯
      *
-     * @return
+     * @return 资料库类型
      */
     public static VariableItemRespVO defSearchHabitsVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -781,16 +781,37 @@ public class RecommendVariableItemFactory {
     /**
      * 系统默认prompt
      *
-     * @return
+     * @return 系统默认prompt
      */
-    public static VariableItemRespVO defSysPromptRequirement() {
+    public static VariableItemRespVO defSystemPromptVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.SYS_PROMPT);
+        variableItem.setField(CreativeConstants.STEP_SYSTEM_PROMPT);
         variableItem.setLabel("系统默认prompt");
         variableItem.setDescription("系统默认prompt");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(103);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
+     * 系统 json parser prompt
+     *
+     * @return 系统默认prompt
+     */
+    public static VariableItemRespVO defStepRespJsonParserPromptVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.STEP_RESP_JSON_PARSER_PROMPT);
+        variableItem.setLabel("生成数据JSON格式化默认Prompt");
+        variableItem.setDescription("生成数据JSON格式化默认Prompt，返回结果-响应类型选择为 JSON 时才会生效");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(104);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());

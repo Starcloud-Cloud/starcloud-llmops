@@ -220,22 +220,27 @@ public class RecommendVariableFactory {
 
         // 生成要求
         VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
-        requirement.setOrder(6);
+        requirement.setOrder(5);
         requirement.setIsShow(Boolean.TRUE);
 
         // JSON Schema
         VariableItemRespVO jsonSchema = RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema();
-        jsonSchema.setOrder(7);
+        jsonSchema.setOrder(6);
         jsonSchema.setIsShow(Boolean.FALSE);
 
         // 响应JSON Schema
         VariableItemRespVO respJsonSchema = RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema();
-        respJsonSchema.setOrder(8);
+        respJsonSchema.setOrder(7);
         respJsonSchema.setIsShow(Boolean.FALSE);
 
-        VariableItemRespVO sysPrompt = RecommendVariableItemFactory.defSysPromptRequirement();
-        sysPrompt.setOrder(9);
-        sysPrompt.setIsShow(Boolean.FALSE);
+        // 系统提示
+        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defSystemPromptVariable();
+        systemPrompt.setOrder(8);
+        systemPrompt.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defStepRespJsonParserPromptVariable();
+        stepRespJsonParserPrompt.setOrder(9);
+        stepRespJsonParserPrompt.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 generateVariable,
@@ -245,7 +250,8 @@ public class RecommendVariableFactory {
                 requirement,
                 jsonSchema,
                 respJsonSchema,
-                sysPrompt
+                systemPrompt,
+                stepRespJsonParserPrompt
         ));
         return variable;
     }

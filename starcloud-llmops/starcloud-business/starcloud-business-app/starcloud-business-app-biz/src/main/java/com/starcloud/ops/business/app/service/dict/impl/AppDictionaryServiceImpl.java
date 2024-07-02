@@ -233,9 +233,9 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
      * @return 应用动作默认配置
      */
     @Override
-    public Map<String, String> actionDefaultConfig() {
-        List<DictDataDO> dictDataList = getDictionaryList("prompt_template");
-        return CollectionUtil.emptyIfNull(dictDataList).stream().collect(Collectors.toMap(DictDataDO::getLabel, DictDataDO::getRemark));
+    public Map<String, String> defaultStepConfig() {
+        List<DictDataDO> dictDataList = getDictionaryList("DEFAULT_STEP_CONFIG");
+        return CollectionUtil.emptyIfNull(dictDataList).stream().collect(Collectors.toMap(DictDataDO::getValue, DictDataDO::getRemark));
     }
 
     /**
