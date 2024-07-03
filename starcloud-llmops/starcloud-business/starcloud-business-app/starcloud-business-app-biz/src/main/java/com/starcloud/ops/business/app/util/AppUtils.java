@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -245,6 +246,36 @@ public class AppUtils {
         Option optionQwenMax = new Option();
         optionQwenMax.setLabel(Locale.CHINA.equals(locale) ? "通义千问MAX" : "QWEN MAX");
         optionQwenMax.setValue(ModelTypeEnum.QWEN_MAX.getName());
+        options.add(optionQwenMax);
+        return options;
+    }
+
+    /**
+     * 聊天类型
+     *
+     * @return 聊天类型
+     */
+    public static List<Option> chatLlmModelTypeMap() {
+        Locale locale = LocaleContextHolder.getLocale();
+        List<Option> options = new ArrayList<>();
+        Option option35 = new Option();
+        option35.setLabel(Locale.CHINA.equals(locale) ? "默认模型3.5" : "Default Model 3.5");
+        option35.setValue(ModelProviderEnum.GPT35.name());
+        options.add(option35);
+
+        Option option40 = new Option();
+        option40.setLabel(Locale.CHINA.equals(locale) ? "默认模型4.0" : "Default Model 4.0");
+        option40.setValue(ModelProviderEnum.GPT4.name());
+        options.add(option40);
+
+        Option optionQwen = new Option();
+        optionQwen.setLabel(Locale.CHINA.equals(locale) ? "通义千问" : "QWEN");
+        optionQwen.setValue(ModelProviderEnum.QWEN.name());
+        options.add(optionQwen);
+
+        Option optionQwenMax = new Option();
+        optionQwenMax.setLabel(Locale.CHINA.equals(locale) ? "通义千问MAX" : "QWEN Max");
+        optionQwenMax.setValue(ModelProviderEnum.QWEN_MAX.name());
         options.add(optionQwenMax);
         return options;
     }
