@@ -516,17 +516,17 @@ public class CreativeExecuteManager {
         copyWriting = Optional.ofNullable(copyWriting).orElseThrow(() -> exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "文案生成结果异常！请联系管理员！"));
         // 处理文案标题
         String title = copyWriting.getTitle();
-//        if (StringUtils.isNotBlank(title)) {
-//            title = MarkdownUtils.clear(title);
-//        }
+        if (StringUtils.isNotBlank(title)) {
+            title = MarkdownUtils.clear(title);
+        }
         copyWriting.setTitle(title);
 
         // 处理文案内容
         String content = copyWriting.getContent();
-//        if (StringUtils.isNotBlank(content)) {
-//            // 清除html标签
-//            content = MarkdownUtils.clear(content);
-//        }
+        if (StringUtils.isNotBlank(content)) {
+            // 清除html标签
+            content = MarkdownUtils.clear(content);
+        }
         copyWriting.setContent(content);
 
         // 图片生成结果

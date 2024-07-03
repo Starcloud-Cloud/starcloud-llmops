@@ -13,7 +13,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import org.commonmark.renderer.text.TextContentRenderer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +71,7 @@ public class MarkdownUtils {
         document.select("p").prepend("\\n");
         document.select("p").append("\\n");
         String newHtml = document.html().replaceAll("\\\\n", "\n");
-        String plainText = Jsoup.clean(newHtml, "", Whitelist.none(), outputSettings);
+        String plainText = Jsoup.clean(newHtml, "", Safelist.none(), outputSettings);
         return StringEscapeUtils.unescapeHtml(plainText.trim());
     }
 
