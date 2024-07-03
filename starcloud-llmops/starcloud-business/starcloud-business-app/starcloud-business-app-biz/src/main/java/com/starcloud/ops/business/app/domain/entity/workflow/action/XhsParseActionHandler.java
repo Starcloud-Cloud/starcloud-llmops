@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -19,12 +20,15 @@ import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.ocr.AliyunOcrManager;
 import com.starcloud.ops.business.app.service.xhs.crawler.impl.XhsDumpServiceImpl;
+import com.starcloud.ops.business.app.service.xhs.crawler.impl.XhsNoteDetailWrapperImpl;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +41,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.IMAGE_OCR_
 @TaskComponent
 public class XhsParseActionHandler extends BaseActionHandler {
 
-    private static final XhsDumpServiceImpl XHS_DUMP_SERVICE = SpringUtil.getBean(XhsDumpServiceImpl.class);
+    private static final XhsNoteDetailWrapperImpl XHS_DUMP_SERVICE = SpringUtil.getBean("xhsNoteDetailWrapperImpl");
 
     private static final AliyunOcrManager ALIYUN_OCR_MANAGER = SpringUtil.getBean(AliyunOcrManager.class);
 
@@ -61,25 +65,27 @@ public class XhsParseActionHandler extends BaseActionHandler {
         String xhsNoteUrl = String.valueOf(params.get(CreativeConstants.XHS_NOTE_URL));
         XhsDetailConstants.validNoteUrl(xhsNoteUrl);
         String noteId = XhsDetailConstants.parsingNoteId(xhsNoteUrl);
-        long start = System.currentTimeMillis();
-        // 串行转存图片 笔记中有大量图片需改成并行
+        // 小红书爬取
         ServerRequestInfo noteDetail = XHS_DUMP_SERVICE.requestDetail(noteId);
-        long end = System.currentTimeMillis();
-        log.info("xhs time {}", end - start);
-        XhsNoteDTO xhsNoteDTO = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail());
 
+        XhsNoteDTO xhsNoteDTO = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail());
         List<OcrGeneralDTO> ocrDTOList = xhsNoteDTO.listOcrDTO();
-        // 有大量图片ocr需改成并行
-        start = System.currentTimeMillis();
-        for (OcrGeneralDTO ocrGeneralDTO : ocrDTOList) {
+        long start = System.currentTimeMillis();
+        // 笔记中有大量图片ocr需改成并行 限制取10张图片
+        for (int i = 0; i < ocrDTOList.size() && i < 10; i++) {
+            OcrGeneralDTO ocrGeneralDTO = ocrDTOList.get(i);
             OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(ocrGeneralDTO.getUrl());
+            // 转存 & ocr
             if (!ocrResult.isSuccess()) {
                 throw exception(IMAGE_OCR_ERROR, ocrResult.getMessage());
             }
-            BeanUtils.copyProperties(ocrResult.getOcrGeneralDTO(), ocrGeneralDTO);
+            BeanUtils.copyProperties(ocrResult.getOcrGeneralDTO(), ocrGeneralDTO, "url");
+            String ossUrl = ImageUploadUtils.dumpToOss(ocrGeneralDTO.getUrl(), IdUtil.fastSimpleUUID(), "material" + File.separator + "xhsOcr");
+            ocrGeneralDTO.setUrl(ossUrl);
         }
-        end = System.currentTimeMillis();
-        log.info("ocr time {}", end - start);
+
+        long end = System.currentTimeMillis();
+        log.info("ocr and dump time {}", end - start);
         SseEmitter sseEmitter = context.getSseEmitter();
         if (Objects.nonNull(sseEmitter)) {
             StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
