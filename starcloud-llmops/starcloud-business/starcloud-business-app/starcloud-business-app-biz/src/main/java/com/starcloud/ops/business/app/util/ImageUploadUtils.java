@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -326,7 +327,7 @@ public class ImageUploadUtils {
         return ImageUtils.handlerBase64Image(base64);
     }
 
-    public static String dumpToOss(String xhsUrl, String imageName,String relativePath) {
+    public static String dumpToOss(String xhsUrl, String imageName, String relativePath) {
         InputStream inputStream = null;
         try {
             URL url = new URL(xhsUrl);
@@ -351,6 +352,23 @@ public class ImageUploadUtils {
             }
         }
         return org.apache.commons.lang.StringUtils.EMPTY;
+    }
+
+    /**
+     * 校验url是不是图片
+     *
+     * @param imageUrl
+     * @return
+     */
+    public static boolean isImage(String imageUrl) {
+        try {
+            URL url = new URL(imageUrl);
+            URLConnection urlConnection = url.openConnection();
+            String contentType = urlConnection.getContentType();
+            return StringUtils.isNoneBlank(contentType) && contentType.startsWith("image");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
