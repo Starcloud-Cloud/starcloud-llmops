@@ -190,7 +190,7 @@ public class CreativeExecuteManager {
                 updateContentSuccess(latestContent, executeResult, start);
                 // 返回结果
                 return executeResponse;
-            } catch (Exception exception) {
+            } catch (Throwable exception) {
                 // 后置处理步骤缓存状态更新
                 appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", exception.getMessage());
                 updateContentFailure(latestContent, start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
@@ -201,7 +201,7 @@ public class CreativeExecuteManager {
             // 报警
             creativeAlarmManager.executeAlarm(request.getUid(), request.getForce(), getMaxRetry(request), exception);
             return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             log.error("创作中心：创作内容任务执行失败： 错误信息: {}", exception.getMessage(), exception);
             // 报警
             creativeAlarmManager.executeAlarm(request.getUid(), request.getForce(), getMaxRetry(request), exception);
@@ -513,24 +513,21 @@ public class CreativeExecuteManager {
 
         // 文案生成结果
         CopyWritingContent copyWriting = JsonUtils.parseObject(String.valueOf(assembleOutput.getData()), CopyWritingContent.class);
-        Optional.ofNullable(copyWriting)
-                .ifPresent(item -> {
-                    // 处理文案标题
-                    String title = item.getTitle();
-                    if (StringUtils.isNotBlank(title)) {
-                        title = MarkdownUtils.clear(title);
-                    }
-                    item.setTitle(title);
+        copyWriting = Optional.ofNullable(copyWriting).orElseThrow(() -> exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "文案生成结果异常！请联系管理员！"));
+        // 处理文案标题
+        String title = copyWriting.getTitle();
+//        if (StringUtils.isNotBlank(title)) {
+//            title = MarkdownUtils.clear(title);
+//        }
+        copyWriting.setTitle(title);
 
-                    // 处理文案内容
-                    String content = item.getContent();
-                    if (StringUtils.isNotBlank(content)) {
-                        // 清除html标签
-                        content = MarkdownUtils.clear(content);
-                    }
-                    item.setContent(content);
-                });
-
+        // 处理文案内容
+        String content = copyWriting.getContent();
+//        if (StringUtils.isNotBlank(content)) {
+//            // 清除html标签
+//            content = MarkdownUtils.clear(content);
+//        }
+        copyWriting.setContent(content);
 
         // 图片生成结果
         List<PosterGenerationHandler.Response> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), PosterGenerationHandler.Response.class);
