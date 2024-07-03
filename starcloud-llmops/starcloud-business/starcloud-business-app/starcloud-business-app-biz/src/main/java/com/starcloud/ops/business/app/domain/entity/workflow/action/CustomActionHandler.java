@@ -32,6 +32,7 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
@@ -260,6 +261,18 @@ public class CustomActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 获取应用执行模型
+     *
+     * @param context
+     * @return 应用执行模型
+     */
+    @Override
+    protected String getLlmModelType(AppContext context) {
+        String llmModelType = super.getLlmModelType(context);
+        return TokenCalculator.fromName(llmModelType).getName();
+    }
+
+    /**
      * 执行AI生成
      *
      * @param handlerRequest 请求
@@ -288,13 +301,13 @@ public class CustomActionHandler extends BaseActionHandler {
         // 获取到 prompt
         String prompt = this.getPrompt(context, params, isCustom);
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = this.getLlmModelType(context);
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
         // 获取到 maxTokens
-        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault("MAX_TOKENS", "1000")));
+        Integer maxTokens = Integer.valueOf(String.valueOf(params.getOrDefault(AppConstants.MAX_TOKENS, "4000")));
         // 获取到 temperature
-        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault("TEMPERATURE", "0.7")));
+        Double temperature = Double.valueOf(String.valueOf(params.getOrDefault(AppConstants.TEMPERATURE, "0.7")));
 
         // 打印参数日志
         loggerParamter(context, params, generateMode, "生成步骤");
@@ -336,8 +349,8 @@ public class CustomActionHandler extends BaseActionHandler {
     private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
         // 计算权益点数
         Long tokens = handlerResponse.getMessageTokens() + handlerResponse.getAnswerTokens();
-        String llmModel = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModel, tokens);
+        String llmModelType = this.getLlmModelType(context);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModelType, tokens);
 
         // 构建响应结果
         ActionResponse response = new ActionResponse();
@@ -356,7 +369,7 @@ public class CustomActionHandler extends BaseActionHandler {
         response.setTotalTokens(handlerResponse.getTotalTokens());
         response.setTotalPrice(handlerResponse.getTotalPrice());
         response.setStepConfig(handlerResponse.getStepConfig());
-        response.setAiModel(llmModel);
+        response.setAiModel(llmModelType);
         response.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
         // 本身输出已经走 Sse了，不需要在发送一次完整的结果
         response.setIsSendSseAll(false);
@@ -439,7 +452,7 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private String getPrompt(AppContext context, Map<String, Object> params, boolean isCustom) {
         // 获取到 prompt
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", StrUtil.EMPTY));
+        String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, StrUtil.EMPTY));
         List<String> promptList = StrUtil.split(prompt, "----------");
         try {
             if (!isCustom) {
@@ -473,9 +486,9 @@ public class CustomActionHandler extends BaseActionHandler {
                 }
 
                 // 放入到上下文中
-                context.putModelVariable("PROMPT", prompt);
+                context.putModelVariable(AppConstants.PROMPT, prompt);
                 // 重新获取替换后的 prompt
-                prompt = String.valueOf(context.getContextVariablesValues().getOrDefault("PROMPT", StrUtil.EMPTY));
+                prompt = String.valueOf(context.getContextVariablesValues().getOrDefault(AppConstants.PROMPT, StrUtil.EMPTY));
                 // 如果还是为空，抛出异常
                 if (StrUtil.isBlank(prompt)) {
                     throw new RuntimeException("系统默认promp为空！");

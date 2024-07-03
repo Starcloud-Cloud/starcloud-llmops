@@ -22,11 +22,8 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.exception.ActionResponseException;
@@ -38,6 +35,7 @@ import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Optional;
 
@@ -253,9 +251,9 @@ public abstract class BaseActionHandler extends Object {
     @JSONField(serialize = false)
     protected String getLlmModelType(AppContext context) {
 
-        String aiModel = context.getLlmModelType();
-        if (aiModel != null) {
-            return aiModel;
+        String llmModelType = context.getLlmModelType();
+        if (StringUtils.isNotBlank(llmModelType)) {
+            return llmModelType;
         }
 
         Optional<WorkflowStepWrapper> stepWrapperOptional = Optional.ofNullable(context)
@@ -267,17 +265,13 @@ public abstract class BaseActionHandler extends Object {
             return null;
         }
 
-        VariableItemEntity modeVariableItem = stepWrapperOptional.get().getModeVariableItem("MODEL");
+        VariableItemEntity modeVariableItem = stepWrapperOptional.get().getModeVariableItem(AppConstants.MODEL);
         if (modeVariableItem == null) {
             return null;
         }
 
         if (modeVariableItem.getValue() != null) {
             return String.valueOf(modeVariableItem.getValue());
-        }
-
-        if (modeVariableItem.getDefaultValue() != null) {
-            return String.valueOf(modeVariableItem.getDefaultValue());
         }
 
         return null;

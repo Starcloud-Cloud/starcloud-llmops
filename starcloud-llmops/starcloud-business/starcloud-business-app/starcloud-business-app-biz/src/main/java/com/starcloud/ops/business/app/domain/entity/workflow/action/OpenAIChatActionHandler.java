@@ -15,11 +15,12 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -62,6 +63,18 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 获取应用执行模型
+     *
+     * @param context 上下文
+     * @return 应用执行模型
+     */
+    @Override
+    protected String getLlmModelType(AppContext context) {
+        String llmModelType = super.getLlmModelType(context);
+        return TokenCalculator.fromName(llmModelType).getName();
+    }
+
+    /**
      * 执行OpenApi生成的步骤
      *
      * @param request 请求参数
@@ -78,11 +91,11 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
 
         // 获取执行参数
         Map<String, Object> params = context.getContextVariablesValues();
-        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = this.getLlmModelType(context);
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
-        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7d"));
+        String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, "hi, what you name?"));
+        Integer maxTokens = Integer.valueOf((String) params.getOrDefault(AppConstants.MAX_TOKENS, "1000"));
+        Double temperature = Double.valueOf((String) params.getOrDefault(AppConstants.TEMPERATURE, "0.7d"));
 
         // 参数日志打印
         loggerParamter(context, params, "AI生成步骤");
@@ -130,6 +143,11 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
+        // 计算权益点数
+        Long tokens = handlerResponse.getMessageTokens() + handlerResponse.getAnswerTokens();
+        String llmModelType = this.getLlmModelType(context);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModelType, tokens);
+
         ActionResponse response = new ActionResponse();
         response.setSuccess(handlerResponse.getSuccess());
         response.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
@@ -145,13 +163,10 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
         response.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         response.setTotalTokens(handlerResponse.getTotalTokens());
         response.setTotalPrice(handlerResponse.getTotalPrice());
-        response.setAiModel(Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        response.setAiModel(llmModelType);
         response.setStepConfig(handlerResponse.getStepConfig());
-
-        // 计算权益点数
-        Long tokens = response.getMessageTokens() + response.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getLlmModelType(context), tokens);
         response.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+
         return response;
     }
 

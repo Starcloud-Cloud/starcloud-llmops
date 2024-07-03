@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.domain.manager;
 
 import com.starcloud.ops.business.app.enums.AppConstants;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
@@ -51,47 +50,53 @@ public class AppDefaultConfigManager {
     /**
      * 获取默认模型类型
      *
-     * @param modelType 模型类型
-     * @param modelEnum 模型枚举
+     * @param modelType   模型类型
+     * @param appTypeEnum 应用类型
      * @return 默认模型类型
      */
-    public String defaultLlmModelType(String modelType, AppModelEnum modelEnum, AppTypeEnum appTypeEnum) {
-        return defaultLlmModelType(modelType, modelEnum, appTypeEnum, configuration());
+    public String defaultLlmModelType(String modelType, AppTypeEnum appTypeEnum) {
+        return defaultLlmModelType(modelType, appTypeEnum, configuration());
     }
 
     /**
      * 获取默认模型类型
      *
      * @param modelType     模型类型
-     * @param modelEnum     模型枚举
+     * @param appTypeEnum   应用类型
      * @param configuration 配置
      * @return 默认模型类型
      */
-    public String defaultLlmModelType(String modelType, AppModelEnum modelEnum, AppTypeEnum appTypeEnum, Map<String, String> configuration) {
-        // 默认模型类型
-        String defaultModelType = MapUtils.emptyIfNull(configuration)
-                .getOrDefault(AppConstants.DEFAULT_MODEL_TYPE, modelType);
-
+    public String defaultLlmModelType(String modelType, AppTypeEnum appTypeEnum, Map<String, String> configuration) {
         // 如果是媒体矩阵类型的应用。
         if (AppTypeEnum.MEDIA_MATRIX.equals(appTypeEnum)) {
             return MapUtils.emptyIfNull(configuration)
-                    .getOrDefault(AppConstants.DEFAULT_MEDIA_MATRIX_MODEL_TYPE, defaultModelType);
+                    .getOrDefault(AppConstants.DEFAULT_MEDIA_MATRIX_MODEL_TYPE, modelType);
+        } else {
+            return MapUtils.emptyIfNull(configuration)
+                    .getOrDefault(AppConstants.DEFAULT_COMPLETION_MODEL_TYPE, modelType);
         }
+    }
 
-        // 生成模式
-        if (AppModelEnum.COMPLETION.equals(modelEnum)) {
-            return MapUtils.emptyIfNull(configuration)
-                    .getOrDefault(AppConstants.DEFAULT_COMPLETION_MODEL_TYPE, defaultModelType);
-        }
-        // 聊天模式
-        else if (AppModelEnum.CHAT.equals(modelEnum)) {
-            return MapUtils.emptyIfNull(configuration)
-                    .getOrDefault(AppConstants.DEFAULT_CHAT_MODEL_TYPE, defaultModelType);
-        }
-        // 其他情况
-        else {
-            return defaultModelType;
-        }
+    /**
+     * 获取默认模型类型
+     *
+     * @param modelType 模型类型
+     * @return 默认模型类型
+     */
+    public String defaultChatLlmModelType(String modelType) {
+        return defaultChatLlmModelType(modelType, configuration());
+    }
+
+    /**
+     * 获取默认模型类型
+     *
+     * @param modelType     模型类型
+     * @param configuration 配置
+     * @return 默认模型类型
+     */
+    public String defaultChatLlmModelType(String modelType, Map<String, String> configuration) {
+        return MapUtils.emptyIfNull(configuration)
+                .getOrDefault(AppConstants.DEFAULT_CHAT_MODEL_TYPE, modelType);
     }
 
     /**
