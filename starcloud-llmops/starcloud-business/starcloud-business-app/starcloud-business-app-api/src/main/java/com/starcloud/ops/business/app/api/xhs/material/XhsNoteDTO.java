@@ -2,16 +2,13 @@ package com.starcloud.ops.business.app.api.xhs.material;
 
 
 import cn.hutool.core.bean.BeanPath;
-import cn.hutool.core.collection.CollectionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
