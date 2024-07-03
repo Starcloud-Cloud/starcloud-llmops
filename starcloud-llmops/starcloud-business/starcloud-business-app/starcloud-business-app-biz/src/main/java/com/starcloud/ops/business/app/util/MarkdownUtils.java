@@ -5,11 +5,15 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.ParagraphDTO;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import lombok.Getter;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.commonmark.renderer.text.TextContentRenderer;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Whitelist;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +57,22 @@ public class MarkdownUtils {
      */
     public static String convertToText(String markdown) {
         return TEXT_CONTENT_RENDERER.render(MARKDOWN_PARSER.parse(markdown));
+    }
+
+    /**
+     * markdown to text
+     */
+    public static String clear(String markdown) {
+        String html = convertToHtml(markdown);
+        Document document = Jsoup.parse(html);
+        Document.OutputSettings outputSettings = new Document.OutputSettings().prettyPrint(false);
+        document.outputSettings(outputSettings);
+        document.select("br").append("\\n");
+        document.select("p").prepend("\\n");
+        document.select("p").append("\\n");
+        String newHtml = document.html().replaceAll("\\\\n", "\n");
+        String plainText = Jsoup.clean(newHtml, "", Whitelist.none(), outputSettings);
+        return StringEscapeUtils.unescapeHtml(plainText.trim());
     }
 
     /**

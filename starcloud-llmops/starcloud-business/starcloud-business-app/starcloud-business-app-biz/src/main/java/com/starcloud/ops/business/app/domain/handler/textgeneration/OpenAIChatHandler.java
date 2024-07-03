@@ -97,11 +97,11 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             Request request = context.getRequest();
             // 获取模型类型
             ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
-
+            request.setModel(modelType.getName());
             BaseLLMUsage baseLLMUsage;
             String message;
             // 执行通义千问
-            if (ModelTypeEnum.QWEN.equals(modelType)) {
+            if (ModelTypeEnum.QWEN.equals(modelType) || ModelTypeEnum.QWEN_MAX.equals(modelType)) {
                 BaseLLMResult<GenerationResult> result = this._executeQwen(request);
                 baseLLMUsage = result.getUsage();
                 message = result.getText();
@@ -230,6 +230,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             // 构建 ChatQwen 对象，用于调用通义千问大模型
             ChatQwen chatQwen = new ChatQwen();
             chatQwen.setTopP(request.getTemperature());
+            chatQwen.setModel(request.getModel());
             chatQwen.setStream(false);
             chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
 

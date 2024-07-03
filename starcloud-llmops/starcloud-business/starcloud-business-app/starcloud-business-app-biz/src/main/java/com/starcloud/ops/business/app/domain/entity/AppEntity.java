@@ -38,7 +38,9 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterAction
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
+import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -108,6 +110,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
+
+    /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppDefaultConfigManager appDefaultConfigManager = SpringUtil.getBean(AppDefaultConfigManager.class);
 
     /**
      * 模版方法：基础校验
@@ -220,7 +229,22 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_BEAN, request.getUserId());
 
             // 构建应用上下文
-            appContext = buildAppContext(request);
+            appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
+            appContext.setUserId(request.getUserId());
+            appContext.setEndUser(request.getEndUser());
+            appContext.setConversationUid(request.getConversationUid());
+            appContext.setSseEmitter(request.getSseEmitter());
+            appContext.setMediumUid(request.getMediumUid());
+            appContext.setLlmModelType(request.getAiModel());
+            appContext.setN(request.getN());
+            appContext.setContinuous(request.getContinuous());
+            if (StringUtils.isNotBlank(request.getStepId())) {
+                appContext.setStepId(request.getStepId());
+            } else {
+                request.setStepId(appContext.getStepId());
+                //不传入节点，默认从头开始执行到最后节点
+                appContext.setContinuous(true);
+            }
 
         } catch (ServiceException exception) {
             log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
@@ -271,6 +295,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected void beforeExecute(AppExecuteReqVO request) {
+        this.handlerLlmModelType(request);
         appStepStatusCache.init(request.getConversationUid(), this);
     }
 
@@ -345,16 +370,67 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     }
 
     /**
-     * 模版方法：获取应用的 AI 模型类型
+     * 模版方法：获取应用的 AI 模型类型。
+     * 处理之后的 AI 模型，同步到应用的 AI 模型变量中。方面节点执行时候，直接获取。
      *
      * @param request 请求参数
      */
     @Override
-    protected String obtainLlmAiModelType(AppExecuteReqVO request) {
+    protected String handlerLlmModelType(AppExecuteReqVO request) {
+        // 引用类别
+        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
+        // 获取默认配置
+        Map<String, String> configuration = appDefaultConfigManager.configuration();
+
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
-            return request.getAiModel();
+            // 获取到模型类型
+            String defaultModel = appDefaultConfigManager.defaultLlmModelType(request.getAiModel(), appTypeEnum, configuration);
+            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
+
+            // 更新步骤中的模型变量
+            List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
+            for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+                if (stepWrapper == null) {
+                    continue;
+                }
+                VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+                if (modeVariableItem == null) {
+                    continue;
+                }
+                // 更新变量
+                stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
+            }
+            // 更新配置
+            this.getWorkflowConfig().setSteps(stepWrappers);
+            // 更新请求
+            request.setAiModel(modelType.getName());
+            // 返回模型类型
+            return modelType.getName();
         }
+
+        // 首先更新应用配置信息
+        List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
+        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+            if (stepWrapper == null) {
+                continue;
+            }
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+            if (modeVariableItem == null) {
+                continue;
+            }
+            // 获取模型类型
+            String model = Optional.ofNullable(modeVariableItem.getValue())
+                    .map(String::valueOf)
+                    .orElse(null);
+            String defaultModel = appDefaultConfigManager.defaultLlmModelType(model, appTypeEnum, configuration);
+            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
+
+            // 更新变量值
+            stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
+        }
+        // 更新配置
+        this.getWorkflowConfig().setSteps(stepWrappers);
 
         // 如果没有传入步骤 ID，使用第一步参数信息
         if (StringUtils.isBlank(request.getStepId())) {
@@ -367,17 +443,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             return null;
         }
 
-        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem("MODEL");
+        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem(AppConstants.MODEL);
         if (modelVariable == null) {
             return null;
         }
 
         if (Objects.nonNull(modelVariable.getValue())) {
             return String.valueOf(modelVariable.getValue());
-        }
-
-        if (modelVariable.getDefaultValue() != null) {
-            return String.valueOf(modelVariable.getDefaultValue());
         }
 
         // 如果没有找到模型变量
@@ -416,33 +488,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     protected void doUpdate() {
         appRepository.update(this);
-    }
-
-    /**
-     * 构建应用上下文
-     *
-     * @param request 请求参数
-     * @return 应用上下文
-     */
-    private AppContext buildAppContext(AppExecuteReqVO request) {
-        // 构建应用上下文
-        AppContext appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
-        appContext.setUserId(request.getUserId());
-        appContext.setEndUser(request.getEndUser());
-        appContext.setConversationUid(request.getConversationUid());
-        appContext.setSseEmitter(request.getSseEmitter());
-        appContext.setMediumUid(request.getMediumUid());
-        appContext.setLlmModelType(this.obtainLlmAiModelType(request));
-        appContext.setN(request.getN());
-        appContext.setContinuous(request.getContinuous());
-        if (StringUtils.isNotBlank(request.getStepId())) {
-            appContext.setStepId(request.getStepId());
-        } else {
-            request.setStepId(appContext.getStepId());
-            //不传入节点，默认从头开始执行到最后节点
-            appContext.setContinuous(true);
-        }
-        return appContext;
     }
 
     /**
@@ -577,6 +622,15 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setCostPoints(0);
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
+            WorkflowStepWrapper stepWrapper = appContext.getStepWrapper(stepId);
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+
+            String llmModel = Optional.ofNullable(modeVariableItem)
+                    .map(VariableItemEntity::getValue)
+                    .map(String::valueOf)
+                    .orElse(null);
+
+            messageCreateRequest.setAiModel(llmModel);
             // 处理异常
             if (storyException.isPresent()) {
 
@@ -607,7 +661,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     messageCreateRequest.setAnswerUnitPrice(Optional.ofNullable(failureResponse.getAnswerUnitPrice()).orElse(BigDecimal.ZERO));
                     messageCreateRequest.setTotalPrice(Optional.ofNullable(failureResponse.getTotalPrice()).orElse(BigDecimal.ZERO));
                     messageCreateRequest.setCostPoints(Optional.ofNullable(failureResponse.getCostPoints()).orElse(0));
-                    messageCreateRequest.setAiModel(Optional.ofNullable(failureResponse.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+                    messageCreateRequest.setAiModel(TokenCalculator.fromName(failureResponse.getAiModel()).name());
                     return;
                 }
 
@@ -645,20 +699,32 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             }
 
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            String llmModel = Optional.ofNullable(this.obtainLlmAiModelType(request)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
-            ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
-            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
-            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+
+            WorkflowStepWrapper stepWrapper = appContext.getStepWrapper(appContext.getStepId());
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+
+            String llmModel = Optional.ofNullable(modeVariableItem)
+                    .map(VariableItemEntity::getValue)
+                    .map(String::valueOf)
+                    .orElse(null);
+
+            BigDecimal messageUnitPrice = BigDecimal.ZERO;
+            BigDecimal answerUnitPrice = BigDecimal.ZERO;
+            if (StringUtils.isNotBlank(llmModel)) {
+                ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
+                messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+                answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+            }
 
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(appContext.getStepId());
             messageCreateRequest.setFromScene(request.getScene());
-            messageCreateRequest.setAiModel(modelType.getName());
+            messageCreateRequest.setAiModel(llmModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
             messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
             messageCreateRequest.setVariables(JsonUtils.toJsonString(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault("PROMPT", "")));
+            messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault(AppConstants.PROMPT, "")));
             messageCreateRequest.setMessageTokens(0);
             messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");

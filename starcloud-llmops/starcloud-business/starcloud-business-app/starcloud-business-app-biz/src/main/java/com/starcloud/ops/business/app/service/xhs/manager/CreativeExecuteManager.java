@@ -41,6 +41,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.util.MarkdownUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
@@ -50,6 +51,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -63,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -510,6 +513,25 @@ public class CreativeExecuteManager {
 
         // 文案生成结果
         CopyWritingContent copyWriting = JsonUtils.parseObject(String.valueOf(assembleOutput.getData()), CopyWritingContent.class);
+        Optional.ofNullable(copyWriting)
+                .ifPresent(item -> {
+                    // 处理文案标题
+                    String title = item.getTitle();
+                    if (StringUtils.isNotBlank(title)) {
+                        title = MarkdownUtils.clear(title);
+                    }
+                    item.setTitle(title);
+
+                    // 处理文案内容
+                    String content = item.getContent();
+                    if (StringUtils.isNotBlank(content)) {
+                        // 清除html标签
+                        content = MarkdownUtils.clear(content);
+                    }
+                    item.setContent(content);
+                });
+
+
         // 图片生成结果
         List<PosterGenerationHandler.Response> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), PosterGenerationHandler.Response.class);
 

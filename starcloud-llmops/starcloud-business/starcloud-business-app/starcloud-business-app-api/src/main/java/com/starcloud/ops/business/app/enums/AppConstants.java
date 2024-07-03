@@ -25,6 +25,26 @@ public interface AppConstants {
     Long JUZHEN_TENANT_ID = 3L;
 
     /**
+     * Prompt 变量表示
+     */
+    String PROMPT = "PROMPT";
+
+    /**
+     * Model 变量表示
+     */
+    String MODEL = "MODEL";
+
+    /**
+     * MAX_TOKENS 变量表示
+     */
+    String MAX_TOKENS = "MAX_TOKENS";
+
+    /**
+     * TEMPERATURE 变量表示
+     */
+    String TEMPERATURE = "TEMPERATURE";
+
+    /**
      * 默认模式类型标识
      */
     String DEFAULT_MODEL_TYPE = "DEFAULT_MODEL_TYPE";
