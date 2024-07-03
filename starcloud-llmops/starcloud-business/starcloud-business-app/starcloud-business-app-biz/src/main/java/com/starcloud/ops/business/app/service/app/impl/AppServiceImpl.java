@@ -103,6 +103,8 @@ public class AppServiceImpl implements AppService {
         metadata.put("language", LanguageEnum.languageList());
         // AI 模型
         metadata.put("llmModelType", AppUtils.llmModelTypeList());
+        // 聊天AI模型
+        metadata.put("chatLlmModelTypeMap", AppUtils.chatLlmModelTypeMap());
         // 应用类型
         metadata.put("appType", AppTypeEnum.options(UserUtils.isAdmin()));
         // 素材类型
