@@ -168,7 +168,6 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.12.2</version>
         </dependency>
         
         <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
