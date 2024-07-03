@@ -517,7 +517,7 @@ public class CreativeExecuteManager {
         // 处理文案标题
         String title = copyWriting.getTitle();
         if (StringUtils.isNotBlank(title)) {
-            title = MarkdownUtils.clear(title);
+            title = MarkdownUtils.clean(title);
         }
         copyWriting.setTitle(title);
 
@@ -525,7 +525,7 @@ public class CreativeExecuteManager {
         String content = copyWriting.getContent();
         if (StringUtils.isNotBlank(content)) {
             // 清除html标签
-            content = MarkdownUtils.clear(content);
+            content = MarkdownUtils.clean(content);
         }
         copyWriting.setContent(content);
 

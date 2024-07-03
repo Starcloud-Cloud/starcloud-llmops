@@ -62,7 +62,7 @@ public class MarkdownUtils {
     /**
      * markdown to text
      */
-    public static String clear(String markdown) {
+    public static String clean(String markdown) {
         String html = convertToHtml(markdown);
         Document document = Jsoup.parse(html);
         Document.OutputSettings outputSettings = new Document.OutputSettings().prettyPrint(false);
