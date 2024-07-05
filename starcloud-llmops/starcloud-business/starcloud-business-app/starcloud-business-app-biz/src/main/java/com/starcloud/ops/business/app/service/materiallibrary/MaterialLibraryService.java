@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 素材知识库 Service 接口
@@ -84,7 +85,7 @@ public interface MaterialLibraryService {
     /**
      * 获取应用执行的素材
      *
-     * @param appReqVO 素材库编号
+     * @param appReqVO 素材库查询map
      */
-    List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO);
+    List<Map<Long, MaterialLibrarySliceUseRespVO>> getMaterialLibrarySliceList(List<Map<Long, MaterialLibrarySliceAppReqVO>> appReqVO);
 }

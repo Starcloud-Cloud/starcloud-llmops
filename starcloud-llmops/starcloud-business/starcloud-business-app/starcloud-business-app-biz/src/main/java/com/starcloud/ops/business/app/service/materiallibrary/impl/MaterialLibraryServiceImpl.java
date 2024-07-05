@@ -38,6 +38,7 @@ import java.io.File;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -159,6 +160,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     /**
      * 导出表格素材模板
+     *
      * @param id       素材库 编号
      * @param response response
      */
@@ -204,9 +206,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @param appReqVO 素材库编号
      */
     @Override
-    public List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO) {
-        Assert.notNull(appReqVO.getLibraryId(),"素材库编号不能为空");
-
+    public List<Map<Long, MaterialLibrarySliceUseRespVO>> getMaterialLibrarySliceList(List<Map<Long, MaterialLibrarySliceAppReqVO>> appReqVO) {
+        // Assert.notNull(appReqVO.getLibraryId(), "素材库编号不能为空");
 
 
         return Collections.emptyList();
