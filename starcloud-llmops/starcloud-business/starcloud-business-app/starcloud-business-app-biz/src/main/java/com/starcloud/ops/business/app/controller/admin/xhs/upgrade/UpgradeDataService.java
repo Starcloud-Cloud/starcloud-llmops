@@ -247,6 +247,10 @@ public class UpgradeDataService {
             }
             if ("MATERIAL_TYPE".equalsIgnoreCase(variable.getField())) {
                 variable.setOptions(MaterialTypeEnum.referOptions());
+                if("note".equalsIgnoreCase(String.valueOf(variable.getValue()))) {
+                    variable.setValue(null);
+                    variable.setDefaultValue(null);
+                }
             }
 
             variableList.add(variable);
