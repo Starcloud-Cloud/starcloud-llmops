@@ -85,7 +85,7 @@ public interface MaterialLibraryService {
     /**
      * 获取应用执行的素材
      *
-     * @param appReqVO 素材库查询map
+     * @param appReqVO 素材库查询
      */
-    List<Map<Long, MaterialLibrarySliceUseRespVO>> getMaterialLibrarySliceList(List<Map<Long, MaterialLibrarySliceAppReqVO>> appReqVO);
+    List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(List<MaterialLibrarySliceAppReqVO> appReqVO);
 }

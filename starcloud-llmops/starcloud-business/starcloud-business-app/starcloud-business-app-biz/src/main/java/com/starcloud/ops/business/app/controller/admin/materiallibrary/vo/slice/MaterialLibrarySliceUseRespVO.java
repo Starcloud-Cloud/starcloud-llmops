@@ -12,7 +12,9 @@ import java.util.List;
 @Data
 public class MaterialLibrarySliceUseRespVO {
 
-
+    @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
+    @NotNull(message = "素材库ID不能为空")
+    private Long libraryId;
 
     @Schema(description = "表头")
     @ExcelProperty("表头")

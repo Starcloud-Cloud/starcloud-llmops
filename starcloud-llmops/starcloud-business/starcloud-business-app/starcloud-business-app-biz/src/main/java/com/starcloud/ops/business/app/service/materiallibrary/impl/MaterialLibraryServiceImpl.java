@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -206,8 +205,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @param appReqVO 素材库编号
      */
     @Override
-    public List<Map<Long, MaterialLibrarySliceUseRespVO>> getMaterialLibrarySliceList(List<Map<Long, MaterialLibrarySliceAppReqVO>> appReqVO) {
-        // Assert.notNull(appReqVO.getLibraryId(), "素材库编号不能为空");
+    public List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(List<MaterialLibrarySliceAppReqVO> appReqVO) {
 
 
         return Collections.emptyList();

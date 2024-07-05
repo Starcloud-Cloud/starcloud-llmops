@@ -10,6 +10,11 @@ import java.util.List;
 @Data
 public class MaterialLibrarySliceAppReqVO {
 
+
+    @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
+    @NotNull(message = "素材库ID不能为空")
+    private Long libraryId;
+
     @Schema(description = "素材编号列表", requiredMode = Schema.RequiredMode.REQUIRED, example = "19427")
     private List<Long> ids;
 
