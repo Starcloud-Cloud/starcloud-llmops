@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -15,6 +16,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySer
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -22,10 +24,13 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
 
 /**
@@ -39,6 +44,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
 
 
     @Resource
+    @Lazy
     private MaterialLibraryService materialLibraryService;
 
     @Resource
@@ -132,6 +138,36 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 明确校验一下
         Assert.notNull(libraryId, "获取素材库表头数据失败，素材库编号为空");
         return materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(libraryId);
+    }
+
+    /**
+     * 批量更新表格字段
+     *
+     * @param batchSaveReqVO 批量更新 VO
+     */
+    @Override
+    public void updateBatchByLibraryId(MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
+        List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS = batchSaveReqVO.getTableColumnSaveReqVOList();
+        List<MaterialLibraryTableColumnDO> newList = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
+        // 第一步，对比新老数据，获得添加、修改、删除的列表
+        List<MaterialLibraryTableColumnDO> oldList = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(batchSaveReqVO.getLibraryId());
+
+        List<List<MaterialLibraryTableColumnDO>> diffList =
+                diffList(oldList, newList, // id 不同，就认为是不同的记录
+                        (oldVal, newVal) -> Objects.nonNull(newVal.getId()));
+
+        // 第二步，批量添加、修改、删除
+        if (CollUtil.isNotEmpty(diffList.get(0))) {
+            materialLibraryTableColumnMapper.insertBatch(diffList.get(0));
+        }
+        if (CollUtil.isNotEmpty(diffList.get(1))) {
+            materialLibraryTableColumnMapper.updateBatch(diffList.get(1));
+        }
+        if (CollUtil.isNotEmpty(diffList.get(2))) {
+            materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
+        }
+
+
     }
 
     /**

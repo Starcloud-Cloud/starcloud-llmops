@@ -51,4 +51,16 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
 
         return selectList(wrapper);
     }
+
+    default Long selectSliceDataCountByLibraryId(Long libraryId){
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
+        return selectCount(wrapper);
+    }
+
+   default List<MaterialLibrarySliceDO> selectListByLibraryId(Long libraryId){
+       LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
+       wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
+       return selectList(wrapper);
+   }
 }

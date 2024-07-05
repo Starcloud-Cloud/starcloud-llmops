@@ -15,7 +15,9 @@ import java.util.Objects;
 public enum MaterialFormatTypeEnum implements IntArrayValuable {
 
     EXCEL(0, "表格"),
-    IMAGE(1, "图片");
+    IMAGE(1, "图片"),
+    TEXT(2, "文本"),
+    ;
 
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(MaterialFormatTypeEnum::getCode).toArray();
 
@@ -53,6 +55,18 @@ public enum MaterialFormatTypeEnum implements IntArrayValuable {
     public static boolean isImage(Integer status) {
         return Objects.equals(status, IMAGE.getCode());
     }
+
+
+    /**
+     * 判断是否是【文本】类型
+     *
+     * @param status 指定状态
+     * @return 是否
+     */
+    public static boolean isText(Integer status) {
+        return Objects.equals(status, TEXT.getCode());
+    }
+
 
 
 }

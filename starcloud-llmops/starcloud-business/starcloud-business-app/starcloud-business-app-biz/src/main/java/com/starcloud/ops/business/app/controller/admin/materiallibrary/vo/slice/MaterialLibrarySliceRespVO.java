@@ -1,14 +1,16 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import java.util.*;
-import org.springframework.format.annotation.DateTimeFormat;
-import java.time.LocalDateTime;
-import com.alibaba.excel.annotation.*;
 import cn.iocoder.yudao.framework.excel.core.annotations.DictFormat;
 import cn.iocoder.yudao.framework.excel.core.convert.DictConvert;
+import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
+import com.alibaba.excel.annotation.ExcelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Schema(description = "管理后台 - 素材知识库数据 Response VO")
 @Data
@@ -33,7 +35,7 @@ public class MaterialLibrarySliceRespVO {
 
     @Schema(description = "描述", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("描述")
-    private String content;
+    private List<TableContent> content;
 
     @Schema(description = "序列", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("序列")
@@ -51,5 +53,34 @@ public class MaterialLibrarySliceRespVO {
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "列属性")
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TableContent {
+        /**
+         * 列ID
+         */
+        @Schema(description = "列 ID", example = " 1")
+        private Long columnId;
+
+        /**
+         * 列ID
+         */
+        @Schema(description = "列Code", example = " 1")
+        private String columnCode;
+
+        /**
+         * 列ID
+         */
+        @Schema(description = "列名称", example = " 1")
+        private String columnName;
+        /**
+         * 值
+         */
+        @Schema(description = "列值", example = " 1")
+        private String value;
+    }
 
 }

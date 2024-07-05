@@ -4,15 +4,14 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,11 +20,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 
 
 @Tag(name = "管理后台 - 素材知识库")
@@ -40,11 +40,24 @@ public class MaterialLibraryController {
     @Resource
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
+    @Resource
+    private MaterialLibrarySliceService materialLibrarySliceService;
+
+    @Resource
+    private AdminUserApi adminUserApi;
+
     @GetMapping("/page")
     @Operation(summary = "获得素材知识库分页")
-    public CommonResult<PageResult<MaterialLibraryRespVO>> getMaterialLibraryPage(@Valid MaterialLibraryPageReqVO pageReqVO) {
+    public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid MaterialLibraryPageReqVO pageReqVO) {
         PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, MaterialLibraryRespVO.class));
+        PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
+        String nickname = adminUserApi.getUser(getLoginUserId()).getNickname();
+        bean.getList().forEach(reqVO -> {
+            reqVO.setFileCount(materialLibrarySliceService.getSliceDataCountByLibraryId(reqVO.getId()));
+            reqVO.setCreateName(nickname);
+        });
+
+        return success(bean);
     }
 
     @PostMapping("/create")
@@ -87,10 +100,18 @@ public class MaterialLibraryController {
     @PostMapping("/import")
     @Operation(summary = "导入数据")
     @OperateLog(enable = false)
-    @PermitAll
     public CommonResult<Boolean> importMaterialData(@Valid MaterialLibraryImportReqVO importRespVO) {
         materialLibraryService.importMaterialData(importRespVO);
         return success(true);
+    }
+
+
+    @PostMapping("/export-template")
+    @Operation(summary = "导出模板")
+    @OperateLog(enable = false)
+    @Parameter(name = "id", description = "编号", required = true, example = "1024")
+    public void exportTemplate(@RequestParam("id") Long id, HttpServletResponse response) {
+        materialLibraryService.exportTemplate(id, response);
     }
 
 

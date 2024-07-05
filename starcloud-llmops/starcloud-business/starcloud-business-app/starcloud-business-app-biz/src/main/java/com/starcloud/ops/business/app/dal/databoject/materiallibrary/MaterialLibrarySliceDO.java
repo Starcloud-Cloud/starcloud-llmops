@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.List;
  *
  * @author starcloudadmin
  */
-@TableName("llm_material_library_slice")
+@TableName(value = "llm_material_library_slice", autoResultMap = true)
 @KeySequence("llm_material_library_slice_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -60,7 +59,7 @@ public class MaterialLibrarySliceDO extends BaseDO {
     /**
      * 状态
      * <p>
-     * 枚举 {@link TODO common_status 对应的类}
+     * 枚举
      */
     private Boolean status;
     /**
@@ -69,7 +68,6 @@ public class MaterialLibrarySliceDO extends BaseDO {
     private Boolean isShare;
 
 
-    @Schema(description = "列属性")
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -77,8 +75,17 @@ public class MaterialLibrarySliceDO extends BaseDO {
         /**
          * 列ID
          */
-        @Schema(description = " 列 ID", example = " 1")
-        private String columnId;
+        private Long columnId;
+
+        /**
+         * 列ID
+         */
+        private String columnCode;
+
+        /**
+         * 列ID
+         */
+        private String columnName;
         /**
          * 值
          */
@@ -99,5 +106,6 @@ public class MaterialLibrarySliceDO extends BaseDO {
         }
 
     }
+
 
 }

@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 
@@ -66,6 +68,16 @@ public class MaterialLibrarySliceController {
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
     }
+
+    @GetMapping("/list")
+    @Operation(summary = "获得素材知识库数据列表")
+    @Parameter(name = "id", description = "编号", required = true)
+    public CommonResult<List<MaterialLibrarySliceRespVO>> getMaterialLibrarySliceList(@RequestParam("libraryId") Long libraryId) {
+        List<MaterialLibrarySliceDO> librarySliceDOS = materialLibrarySliceService.getMaterialLibrarySliceByLibraryId(libraryId);
+        return success(BeanUtils.toBean(librarySliceDOS, MaterialLibrarySliceRespVO.class));
+    }
+
+
 
 
 }

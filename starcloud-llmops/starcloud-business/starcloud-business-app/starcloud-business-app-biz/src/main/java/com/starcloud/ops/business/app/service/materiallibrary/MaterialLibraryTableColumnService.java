@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -13,7 +14,7 @@ import java.util.List;
  *
  * @author starcloudadmin
  */
-public interface MaterialLibraryTableColumnService  extends CommonExcelReadService{
+public interface MaterialLibraryTableColumnService extends CommonExcelReadService {
 
     /**
      * 创建素材知识库表格信息
@@ -68,5 +69,10 @@ public interface MaterialLibraryTableColumnService  extends CommonExcelReadServi
      */
     List<MaterialLibraryTableColumnDO> getMaterialLibraryTableColumnByLibrary(Long libraryId);
 
-
+    /**
+     * 批量更新表格字段
+     *
+     * @param batchSaveReqVO 批量更新 VO
+     */
+    void updateBatchByLibraryId(MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO);
 }

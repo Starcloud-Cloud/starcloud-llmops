@@ -63,6 +63,6 @@ public class MaterialLibraryDO extends BaseDO {
     /**
      * 状态
      */
-    private Boolean status;
+    private Integer status;
 
 }

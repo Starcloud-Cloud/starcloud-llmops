@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import javax.validation.constraints.*;
-import java.util.*;
+import lombok.Data;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 素材知识库新增/修改 Request VO")
 @Data
@@ -31,6 +31,6 @@ public class MaterialLibrarySaveReqVO {
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @NotNull(message = "状态不能为空")
-    private Boolean status;
+    private Integer status;
 
 }

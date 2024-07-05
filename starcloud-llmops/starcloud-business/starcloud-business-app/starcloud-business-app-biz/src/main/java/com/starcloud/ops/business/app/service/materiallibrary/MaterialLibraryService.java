@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
@@ -64,4 +65,6 @@ public interface MaterialLibraryService{
      * @param importRespVO 导入数据的 VO
      */
     void importMaterialData(MaterialLibraryImportReqVO importRespVO);
+
+    void exportTemplate(Long id, HttpServletResponse response);
 }

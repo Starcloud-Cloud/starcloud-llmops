@@ -24,6 +24,11 @@ public class MaterialLibraryTableColumnRespVO {
     @ExcelProperty("列名")
     private String columnName;
 
+
+    @Schema(description = "列Code", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    @ExcelProperty("列Code")
+    private String columnCode;
+
     @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("类型")
     private Integer columnType;

@@ -29,4 +29,7 @@ public interface MaterialLibraryConstants {
     Integer TEMPLATE_FILE_TABLE_HEAD_CELL = 2;
 
 
+    String TEMPLATE_FILE_SUFFIX = "的导入模板";
+
+
 }

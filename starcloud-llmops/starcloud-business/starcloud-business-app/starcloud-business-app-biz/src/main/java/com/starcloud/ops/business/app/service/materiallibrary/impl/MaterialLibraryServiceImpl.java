@@ -1,11 +1,17 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialTypeEnum;
@@ -16,24 +22,33 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.ExcelMateri
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ImageMaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
+import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_FORAMT_NO_MODIFY;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.DOWNLOAD_TEMPLATE_ERROR;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.TEMPLATE_FILE_SUFFIX;
 
 /**
  * 素材知识库 Service 实现类
  *
  * @author starcloudadmin
  */
+@Slf4j
 @Service
 @Validated
-
 public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
 
@@ -70,7 +85,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (materialLibraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
-        if (materialLibraryDO.getFormatType().equals(updateReqVO.getFormatType())) {
+        if (!materialLibraryDO.getFormatType().equals(updateReqVO.getFormatType())) {
             throw exception(MATERIAL_LIBRARY_FORAMT_NO_MODIFY);
 
         }
@@ -136,6 +151,46 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         MaterialImportStrategy strategy = getImportStrategy(importRespVO.getMaterialType());
         // 导入素材
         strategy.importMaterial(importRespVO);
+    }
+
+    /**
+     * @param id       素材库 编号
+     * @param response response
+     */
+    @Override
+    public void exportTemplate(Long id, HttpServletResponse response) {
+
+        MaterialLibraryDO libraryDO = materialLibraryMapper.selectById(id);
+
+        if (libraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+
+        // 删除表头信息
+        if (!MaterialFormatTypeEnum.isExcel(libraryDO.getFormatType())) {
+            throw exception(MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE);
+        }
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(id);
+        if (CollUtil.isEmpty(tableColumnDOList)) {
+            throw exception(MATERIAL_LIBRARY_EXPORT_FAIL_COULMN_EMPTY);
+        }
+        List<String> columnNames = tableColumnDOList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toList());
+        try {
+            String zipNamePrefix = StrUtil.format("{}-{}", libraryDO.getName(), TEMPLATE_FILE_SUFFIX);
+            String excelNamePrefix = "导入模板";
+            File file = MaterialTemplateUtils.readTemplate(zipNamePrefix, excelNamePrefix, String.valueOf(libraryDO.getId()), columnNames);
+            IoUtil.write(response.getOutputStream(), false, FileUtil.readBytes(file));
+            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        } catch (JSONException e) {
+            log.error("JSON Exception", e);
+            throw exception(DOWNLOAD_TEMPLATE_ERROR, "自定义配置解析错误");
+        } catch (Exception e) {
+            log.error("generation template error", e);
+            throw exception(DOWNLOAD_TEMPLATE_ERROR, e.getMessage());
+        }
+
+
     }
 
 

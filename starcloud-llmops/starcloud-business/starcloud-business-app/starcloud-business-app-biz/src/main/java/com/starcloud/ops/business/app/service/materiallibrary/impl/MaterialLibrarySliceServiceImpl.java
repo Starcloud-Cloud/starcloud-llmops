@@ -80,8 +80,8 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      * @return 素材知识库数据
      */
     @Override
-    public MaterialLibrarySliceDO getMaterialLibrarySliceByLibraryId(Long libraryId) {
-        return null;
+    public List<MaterialLibrarySliceDO> getMaterialLibrarySliceByLibraryId(Long libraryId) {
+       return materialLibrarySliceMapper.selectListByLibraryId(libraryId);
     }
 
     @Override
@@ -118,6 +118,17 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId) {
         return materialLibrarySliceMapper.selectSliceShareData(libraryId);
+    }
+
+    /**
+     * 获取共享数据列表
+     *
+     * @param libraryId 素材库 编号
+     * @return 共享数据列表
+     */
+    @Override
+    public Long getSliceDataCountByLibraryId(Long libraryId) {
+        return materialLibrarySliceMapper.selectSliceDataCountByLibraryId(libraryId);
     }
 
     /**

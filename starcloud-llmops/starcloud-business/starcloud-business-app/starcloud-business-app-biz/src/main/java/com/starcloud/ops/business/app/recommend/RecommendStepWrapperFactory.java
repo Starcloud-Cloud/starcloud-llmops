@@ -5,14 +5,12 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -45,6 +43,7 @@ public class RecommendStepWrapperFactory {
 
     /**
      * xhs + ocr
+     *
      * @return
      */
     public static WorkflowStepWrapperRespVO defXhsOcrStepWrapper() {
@@ -60,6 +59,7 @@ public class RecommendStepWrapperFactory {
 
     /**
      * 图片ocr
+     *
      * @return
      */
     public static WorkflowStepWrapperRespVO defImageOcrStepWrapper() {

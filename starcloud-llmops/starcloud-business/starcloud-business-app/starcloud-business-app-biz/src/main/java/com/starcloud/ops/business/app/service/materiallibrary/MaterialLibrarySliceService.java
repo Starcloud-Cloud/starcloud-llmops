@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author starcloudadmin
  */
-public interface MaterialLibrarySliceService extends CommonExcelReadService{
+public interface MaterialLibrarySliceService extends CommonExcelReadService {
 
     /**
      * 创建素材知识库数据
@@ -53,7 +53,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService{
      * @param libraryId 素材库编号
      * @return 素材知识库数据
      */
-    MaterialLibrarySliceDO getMaterialLibrarySliceByLibraryId(Long libraryId);
+    List<MaterialLibrarySliceDO> getMaterialLibrarySliceByLibraryId(Long libraryId);
 
     /**
      * 获得素材知识库数据分页
@@ -75,12 +75,21 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService{
      * 获取共享数据列表
      *
      * @param libraryId 素材库 编号
-     * @return 共共享数据列表
+     * @return 共享数据列表
      */
     List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId);
 
     /**
+     * 获取共享数据列表
+     *
+     * @param libraryId 素材库 编号
+     * @return 共享数据列表
+     */
+    Long getSliceDataCountByLibraryId(Long libraryId);
+
+    /**
      * 根据素材库编号 删除素材库数据
+     *
      * @param libraryId 素材库编号
      */
     void deleteMaterialLibrarySliceByLibraryId(Long libraryId);

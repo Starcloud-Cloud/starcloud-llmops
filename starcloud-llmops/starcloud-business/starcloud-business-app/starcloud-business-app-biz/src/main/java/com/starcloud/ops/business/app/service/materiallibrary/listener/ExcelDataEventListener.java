@@ -91,6 +91,8 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         for (MaterialLibraryTableColumnRespVO tableColumnRespVO : importConfigDTO.getColumnConfig()) {
             MaterialLibrarySliceSaveReqVO.TableContent tableContent = new MaterialLibrarySliceSaveReqVO.TableContent();
             tableContent.setColumnId(tableColumnRespVO.getId());
+            tableContent.setColumnCode(tableColumnRespVO.getColumnCode());
+            tableContent.setColumnName(tableColumnRespVO.getColumnName());
             tableContent.setValue(data.get(tableColumnRespVO.getSequence().intValue() - 1));
             if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType())) {
 
@@ -141,7 +143,6 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
      *
      * @param exception
      * @param context
-     * @throws Exception
      */
     @Override
     public void onException(Exception exception, AnalysisContext context) {

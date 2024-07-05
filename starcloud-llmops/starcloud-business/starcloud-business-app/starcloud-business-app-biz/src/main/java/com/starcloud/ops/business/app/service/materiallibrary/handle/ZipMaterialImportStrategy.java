@@ -96,7 +96,7 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
 
         ExcelDataImportConfigDTO importConfigDTO = new ExcelDataImportConfigDTO();
         importConfigDTO.setUserId(getLoginUserId());
-        importConfigDTO.setLibraryId(getLoginUserId());
+        importConfigDTO.setLibraryId(importReqVO.getLibraryId());
 
 
         importConfigDTO.setColumnConfig(BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnRespVO.class));

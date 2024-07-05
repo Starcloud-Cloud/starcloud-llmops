@@ -47,14 +47,26 @@ public class MaterialLibrarySliceSaveReqVO {
     @AllArgsConstructor
     public static class TableContent {
         /**
-         * 列名
+         * 列ID
          */
-        @Schema(description = " 列 ID", example = " 1")
+        @Schema(description = "列 ID", example = " 1")
         private Long columnId;
+
         /**
-         * 描述
+         * 列ID
          */
-        @Schema(description = "值", example = "具体的值")
+        @Schema(description = "列Code", example = " 1")
+        private String columnCode;
+
+        /**
+         * 列ID
+         */
+        @Schema(description = "列名称", example = " 1")
+        private String columnName;
+        /**
+         * 值
+         */
+        @Schema(description = "列值", example = " 1")
         private String value;
     }
 

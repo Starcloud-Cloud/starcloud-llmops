@@ -39,25 +39,20 @@ public class MaterialLibraryPageRespVO {
     @ExcelProperty("素材库大小")
     private Long allFileSize;
 
-    @Schema(description = "分享范围", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty(value = "分享范围", converter = DictConvert.class)
-    @DictFormat("material_share_range")
-    private String shareRange;
-
-    @Schema(description = "总使用次数", requiredMode = Schema.RequiredMode.REQUIRED, example = "6606")
-    @ExcelProperty("总使用次数")
-    private Long totalUsedCount;
-
-    @Schema(description = "插件配置")
-    @ExcelProperty("插件配置")
-    private String pluginConfig;
+    @Schema(description = "文件数量", example = "2")
+    private Long fileCount;
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @ExcelProperty("状态")
-    private Boolean status;
+    private Integer status;
+
+    @Schema(description = "创建人", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @ExcelProperty("创建人")
+    private String createName;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
+
 
 }
