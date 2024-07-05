@@ -23,6 +23,10 @@ public class MaterialLibraryTableColumnSaveReqVO {
     @Size(max = 20, message = "列名不能超过20个字符")
     private String columnName;
 
+    @Schema(description = "列宽", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    // @NotEmpty(message = "列宽不能为空")
+    private Integer columnWidth;
+
     @Schema(description = "列Code", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private String columnCode;
 

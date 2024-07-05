@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.dal.databoject.materiallibrary;
 
-import lombok.*;
-import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 
 /**
  * 素材知识库表格信息 DO
@@ -10,7 +12,8 @@ import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
  * @author starcloudadmin
  */
 @TableName("llm_material_library_table_column")
-@KeySequence("llm_material_library_table_column_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@KeySequence("llm_material_library_table_column_seq")
+// 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -32,6 +35,11 @@ public class MaterialLibraryTableColumnDO extends BaseDO {
      * 列名
      */
     private String columnName;
+
+    /**
+     * 列宽
+     */
+    private Integer columnWidth;
 
     /**
      * 列名

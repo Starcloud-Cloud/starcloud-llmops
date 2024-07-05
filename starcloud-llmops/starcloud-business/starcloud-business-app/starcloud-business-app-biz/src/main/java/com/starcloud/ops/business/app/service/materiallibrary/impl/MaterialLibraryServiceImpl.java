@@ -10,6 +10,8 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
@@ -33,6 +35,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -191,6 +194,18 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         }
 
 
+    }
+
+    /**
+     * 获取应用执行的素材
+     *
+     * @param appReqVO 素材库编号
+     */
+    @Override
+    public List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO) {
+
+
+        return Collections.emptyList();
     }
 
 

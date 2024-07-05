@@ -6,7 +6,11 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
+
+import java.util.List;
 
 /**
  * 素材知识库 Service 接口
@@ -67,4 +71,12 @@ public interface MaterialLibraryService{
     void importMaterialData(MaterialLibraryImportReqVO importRespVO);
 
     void exportTemplate(Long id, HttpServletResponse response);
+
+
+    /**
+     * 获取应用执行的素材
+     *
+     * @param appReqVO 素材库编号
+     */
+    List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO);
 }

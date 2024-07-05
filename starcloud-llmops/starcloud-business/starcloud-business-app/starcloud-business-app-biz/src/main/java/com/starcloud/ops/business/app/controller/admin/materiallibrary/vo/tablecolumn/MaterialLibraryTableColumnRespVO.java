@@ -5,6 +5,7 @@ import com.alibaba.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 
 @Schema(description = "管理后台 - 素材知识库表格信息 Response VO")
@@ -24,6 +25,9 @@ public class MaterialLibraryTableColumnRespVO {
     @ExcelProperty("列名")
     private String columnName;
 
+    @Schema(description = "列宽", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    @ExcelProperty("列宽")
+    private Integer columnWidth;
 
     @Schema(description = "列Code", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     @ExcelProperty("列Code")
