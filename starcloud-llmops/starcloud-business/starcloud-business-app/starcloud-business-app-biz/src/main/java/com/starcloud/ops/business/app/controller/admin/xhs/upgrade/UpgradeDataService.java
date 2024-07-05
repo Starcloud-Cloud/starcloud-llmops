@@ -39,6 +39,7 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -229,21 +230,25 @@ public class UpgradeDataService {
 
         List<VariableItemRespVO> variableList = new ArrayList<>();
         for (VariableItemRespVO variable : variables) {
-            if ("_SYS_内容生成_PROMPT".equals(variable.getField())) {
+            if ("_SYS_内容生成_PROMPT".equalsIgnoreCase(variable.getField())) {
                 continue;
             }
-            if ("STEP_SYSTEM_PROMPT".equals(variable.getField())) {
+            if ("STEP_SYSTEM_PROMPT".equalsIgnoreCase(variable.getField())) {
                 continue;
             }
-            if ("STEP_RESP_JSON_PARSER_PROMPT".equals(variable.getField())) {
+            if ("STEP_RESP_JSON_PARSER_PROMPT".equalsIgnoreCase(variable.getField())) {
                 continue;
             }
-            if (CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT.equals(variable.getField())) {
+            if (CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT.equalsIgnoreCase(variable.getField())) {
                 continue;
             }
-            if (CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT.equals(variable.getField())) {
+            if (CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT.equalsIgnoreCase(variable.getField())) {
                 continue;
             }
+            if ("MATERIAL_TYPE".equalsIgnoreCase(variable.getField())) {
+                variable.setOptions(MaterialTypeEnum.referOptions());
+            }
+
             variableList.add(variable);
         }
 
