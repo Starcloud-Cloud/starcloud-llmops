@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
@@ -60,6 +59,7 @@ import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +70,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * @author nacoyer
@@ -81,14 +84,26 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHT
 @Slf4j
 public class CreativeExecuteManager {
 
+    /**
+     * 快速失败的错误码
+     * 1. 快速失败，
+     * 2. 任务不再进行重试
+     * 3. 失败后直接发送告警信息
+     */
+    public static final List<Integer> FAILURE_FAST_CODE_LIST = Arrays.asList(
+            USER_RIGHTS_BEAN_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_IMAGE_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH.getCode(),
+            // JSON 解析失败
+            ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR.getCode()
+    );
+
     @Resource
     private RedissonClient redissonClient;
 
     @Resource
     private CreativeContentMapper creativeContentMapper;
-
-    @Resource
-    private DictDataService dictDataService;
 
     @Resource
     private CreativeThreadPoolHolder creativeThreadPoolHolder;
@@ -190,11 +205,12 @@ public class CreativeExecuteManager {
                 updateContentSuccess(latestContent, executeResult, start);
                 // 返回结果
                 return executeResponse;
-            } catch (Throwable exception) {
+            } catch (Throwable throwable) {
                 // 后置处理步骤缓存状态更新
-                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", exception.getMessage());
-                updateContentFailure(latestContent, start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
-                throw exception;
+                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", throwable.getMessage());
+                // 根据异常更新创作内容状态
+                updateContentFailureByThrowable(latestContent, start, maxRetry, throwable);
+                throw throwable;
             }
         } catch (ServiceException exception) {
             log.error("创作中心：创作内容任务执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
@@ -379,6 +395,43 @@ public class CreativeExecuteManager {
         content.setUpdateTime(end);
         content.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(content);
+    }
+
+    /**
+     * 根据异常更新创作内容状态
+     *
+     * @param latestContent 创作内容
+     * @param start         开始时间
+     * @param throwable     异常
+     * @param maxRetry      最大重试次数
+     */
+    private void updateContentFailureByThrowable(CreativeContentDO latestContent, LocalDateTime start, Integer maxRetry, Throwable throwable) {
+        // 如果是 Error，说明是系统异常，直接更新为最终失败即可。
+        if (throwable instanceof Error) {
+            updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
+            return;
+        }
+
+        // 如果是 ServiceException，且在快速失败名单内，直接更新为最终失败即可。
+        if (throwable instanceof ServiceException) {
+            ServiceException serviceException = (ServiceException) throwable;
+            if (FAILURE_FAST_CODE_LIST.contains(serviceException.getCode())) {
+                updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
+                return;
+            }
+        }
+
+        // 如果是 ServiceException 的 cause 是 ServiceException，且在快速失败名单内，直接更新为最终失败即可。
+        if (Objects.nonNull(throwable.getCause()) && throwable.getCause() instanceof ServiceException) {
+            ServiceException serviceException = (ServiceException) throwable.getCause();
+            if (FAILURE_FAST_CODE_LIST.contains(serviceException.getCode())) {
+                updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
+                return;
+            }
+        }
+
+        // 其他情况，更新为失败
+        updateContentFailure(latestContent, start, throwable.getMessage(), latestContent.getRetryCount(), maxRetry);
     }
 
     /**
