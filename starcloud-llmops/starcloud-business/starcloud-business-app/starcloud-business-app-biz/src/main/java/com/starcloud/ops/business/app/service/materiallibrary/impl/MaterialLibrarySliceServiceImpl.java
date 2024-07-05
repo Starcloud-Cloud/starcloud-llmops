@@ -4,7 +4,9 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -139,7 +140,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
         materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
     }
-
 
 
     /**

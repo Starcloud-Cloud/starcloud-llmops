@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
@@ -10,6 +8,8 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @author starcloudadmin
  */
-public interface MaterialLibraryService{
+public interface MaterialLibraryService {
 
     /**
      * 创建素材知识库
@@ -60,16 +60,24 @@ public interface MaterialLibraryService{
 
     /**
      * 素材库验证-仅验证 不返回数据
+     *
      * @param id 素材库编号
      */
     MaterialLibraryDO validateMaterialLibraryExists(Long id);
 
     /**
      * 导入素材库数据
+     *
      * @param importRespVO 导入数据的 VO
      */
     void importMaterialData(MaterialLibraryImportReqVO importRespVO);
 
+    /**
+     * 导出模板
+     *
+     * @param id       素材库编号
+     * @param response response
+     */
     void exportTemplate(Long id, HttpServletResponse response);
 
 
