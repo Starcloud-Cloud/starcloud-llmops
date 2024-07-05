@@ -29,6 +29,8 @@ public class AliyunOcrManager {
         RecognizeAllTextRequest recognizeAllTextRequest = new RecognizeAllTextRequest();
         recognizeAllTextRequest.setType("Advanced");
         recognizeAllTextRequest.setUrl(url);
+        recognizeAllTextRequest.setOutputCoordinate("points");
+        recognizeAllTextRequest.setOutputOricoord(true);
 
         RuntimeOptions runtime = new RuntimeOptions();
         try {
