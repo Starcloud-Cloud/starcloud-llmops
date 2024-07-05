@@ -102,6 +102,25 @@ public class RecommendVariableFactory {
     }
 
     /**
+     * 小红书ocr变量
+     *
+     * @return
+     */
+    public static VariableRespVO defXhsOcrVariable() {
+
+
+        VariableItemRespVO xhsUrlVariable = RecommendVariableItemFactory.defXhsUrlVariable();
+        xhsUrlVariable.setOrder(1);
+        xhsUrlVariable.setIsShow(Boolean.TRUE);
+
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                xhsUrlVariable
+        ));
+        return variable;
+    }
+
+    /**
      * 生成文章全局变量
      *
      * @return VariableRespVO
@@ -188,22 +207,27 @@ public class RecommendVariableFactory {
 
         // 生成要求
         VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
-        requirement.setOrder(6);
+        requirement.setOrder(5);
         requirement.setIsShow(Boolean.TRUE);
 
         // JSON Schema
         VariableItemRespVO jsonSchema = RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema();
-        jsonSchema.setOrder(7);
+        jsonSchema.setOrder(6);
         jsonSchema.setIsShow(Boolean.FALSE);
 
         // 响应JSON Schema
         VariableItemRespVO respJsonSchema = RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema();
-        respJsonSchema.setOrder(8);
+        respJsonSchema.setOrder(7);
         respJsonSchema.setIsShow(Boolean.FALSE);
 
-        VariableItemRespVO sysPrompt = RecommendVariableItemFactory.defSysPromptRequirement();
-        sysPrompt.setOrder(9);
-        sysPrompt.setIsShow(Boolean.FALSE);
+        // 系统提示
+        VariableItemRespVO defaultContentStepPromp = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
+        defaultContentStepPromp.setOrder(8);
+        defaultContentStepPromp.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO defaultResponseJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
+        defaultResponseJsonParserPrompt.setOrder(9);
+        defaultResponseJsonParserPrompt.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 generateVariable,
@@ -213,7 +237,8 @@ public class RecommendVariableFactory {
                 requirement,
                 jsonSchema,
                 respJsonSchema,
-                sysPrompt
+                defaultContentStepPromp,
+                defaultResponseJsonParserPrompt
         ));
         return variable;
     }

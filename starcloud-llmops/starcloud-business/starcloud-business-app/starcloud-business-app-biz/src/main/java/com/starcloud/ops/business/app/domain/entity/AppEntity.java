@@ -6,6 +6,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
@@ -13,7 +14,6 @@ import cn.kstry.framework.core.engine.facade.ReqBuilder;
 import cn.kstry.framework.core.engine.facade.StoryRequest;
 import cn.kstry.framework.core.engine.facade.TaskResponse;
 import cn.kstry.framework.core.enums.TrackingTypeEnum;
-import cn.kstry.framework.core.exception.KstryException;
 import cn.kstry.framework.core.monitor.FieldTracking;
 import cn.kstry.framework.core.monitor.MonitorTracking;
 import cn.kstry.framework.core.monitor.NodeTracking;
@@ -23,11 +23,9 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.CaseFormat;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.constant.WorkflowConstants;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -40,11 +38,14 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterAction
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
+import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -111,6 +112,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
 
     /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppDefaultConfigManager appDefaultConfigManager = SpringUtil.getBean(AppDefaultConfigManager.class);
+
+    /**
      * 模版方法：基础校验
      *
      * @param request 请求参数
@@ -128,47 +136,39 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             // name 不能重复
             if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
+                throw invalidParamException("应用步骤【{}】名称重复，请检查后重试", stepWrapper.getName());
             }
             stepWrapper.validate();
         }
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
             if (stepWrappers.size() < 3) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】"));
+                throw invalidParamException("媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】");
             }
             // 第一个步骤必须是：上传素材步骤，有且只有一个
-            boolean materialCount = stepWrappers.stream()
-                    .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
+            boolean materialCount = stepWrappers.stream().filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
+                throw invalidParamException("媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！");
             }
             // 倒数第二个必须包含笔记生成步骤, 有且只有一个
-            boolean assembleMatch = stepWrappers.stream()
-                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
+            boolean assembleMatch = stepWrappers.stream().filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!AssembleActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 2).getFlowStep().getHandler()) && !assembleMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
+                throw invalidParamException("媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！");
             }
             // 最后一个步骤必须是图片生成步骤, 有且只有一个
-            boolean posterMatch = stepWrappers.stream()
-                    .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
+            boolean posterMatch = stepWrappers.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！"));
+                throw invalidParamException("媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！");
             }
             // 如果存在变量步骤，变量不能为空
-            List<WorkflowStepWrapper> variableStepList = stepWrappers.stream()
-                    .filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .collect(Collectors.toList());
+            List<WorkflowStepWrapper> variableStepList = stepWrappers.stream().filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).collect(Collectors.toList());
             if (variableStepList.size() > 1) {
-                throw exception(new ErrorCode(300100140, "媒体矩阵类型应用最多只能有一个【全局变量】步骤！"));
+                throw invalidParamException("媒体矩阵类型应用最多只能有一个【全局变量】步骤！");
             }
             for (WorkflowStepWrapper variableStep : variableStepList) {
                 VariableEntity variable = variableStep.getVariable();
                 if (variable == null || CollectionUtil.isEmpty(variable.getVariables())) {
-                    throw exception(new ErrorCode(300100140, "媒体矩阵类型应用变量步骤【" + variableStep.getName() + "】最少需要配置一个变量！"));
+                    throw invalidParamException("媒体矩阵类型应用变量步骤【{}】最少需要配置一个变量！", variableStep.getName());
                 }
             }
             // 获取图片配置变量
@@ -220,11 +220,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO doExecute(AppExecuteReqVO request) {
-        log.info("应用工作流执行开始...");
         AppContext appContext;
         try {
+            log.info("应用执行【开始执行】: 应用UID: {}, 执行场景: {}, 会话UID: {}",
+                    this.getUid(), request.getScene(), request.getConversationUid());
+
             // 权益检测
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_BEAN, request.getUserId());
+
             // 构建应用上下文
             appContext = new AppContext(this, AppSceneEnum.valueOf(request.getScene()));
             appContext.setUserId(request.getUserId());
@@ -232,10 +235,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setConversationUid(request.getConversationUid());
             appContext.setSseEmitter(request.getSseEmitter());
             appContext.setMediumUid(request.getMediumUid());
-            appContext.setAiModel(this.obtainLlmAiModelType(request));
+            appContext.setLlmModelType(request.getAiModel());
             appContext.setN(request.getN());
             appContext.setContinuous(request.getContinuous());
-
             if (StringUtils.isNotBlank(request.getStepId())) {
                 appContext.setStepId(request.getStepId());
             } else {
@@ -243,21 +245,34 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 //不传入节点，默认从头开始执行到最后节点
                 appContext.setContinuous(true);
             }
+
         } catch (ServiceException exception) {
-            log.error("应用工作流执行异常(ServerException): 错误信息: {}", exception.getMessage());
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), request.getScene(), request.getConversationUid(), exception.getCode(), exception.getMessage());
+            // 创建应用消息日志
             String messageUid = this.createAppMessageLog(request, exception);
-            // ServiceException 时候将消息UID传入exception中
-            exception.setScene(request.getScene());
             exception.setBizUid(messageUid);
+            exception.setScene(request.getScene());
             throw exception;
+
         } catch (Exception exception) {
-            log.error("应用工作流执行异常(exception): 错误信息: {}", exception.getMessage());
-            this.createAppMessageLog(request, exception);
-            throw exception;
+            ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_FAILURE;
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), request.getScene(), request.getConversationUid(), errorCode.getCode(), exception.getMessage());
+            // 创建应用消息日志
+            String messageUid = this.createAppMessageLog(request, exception);
+            ServiceException serviceException = ServiceExceptionUtil.exceptionWithCause(errorCode, exception);
+            serviceException.setBizUid(messageUid);
+            serviceException.setScene(request.getScene());
+            throw serviceException;
         }
 
         // 执行工作流应用
-        return this.fire(appContext);
+        AppExecuteRespVO response = fire(appContext);
+
+        log.info("应用执行【执行成功】: 应用UID: {}, 执行场景: {}, 会话UID: {}",
+                this.getUid(), request.getScene(), request.getConversationUid());
+        return response;
     }
 
     /**
@@ -280,6 +295,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected void beforeExecute(AppExecuteReqVO request) {
+        this.handlerLlmModelType(request);
         appStepStatusCache.init(request.getConversationUid(), this);
     }
 
@@ -354,16 +370,67 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     }
 
     /**
-     * 模版方法：获取应用的 AI 模型类型
+     * 模版方法：获取应用的 AI 模型类型。
+     * 处理之后的 AI 模型，同步到应用的 AI 模型变量中。方面节点执行时候，直接获取。
      *
      * @param request 请求参数
      */
     @Override
-    protected String obtainLlmAiModelType(AppExecuteReqVO request) {
+    protected String handlerLlmModelType(AppExecuteReqVO request) {
+        // 引用类别
+        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
+        // 获取默认配置
+        Map<String, String> configuration = appDefaultConfigManager.configuration();
+
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
-            return request.getAiModel();
+            // 获取到模型类型
+            String defaultModel = appDefaultConfigManager.defaultLlmModelType(request.getAiModel(), appTypeEnum, configuration);
+            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
+
+            // 更新步骤中的模型变量
+            List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
+            for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+                if (stepWrapper == null) {
+                    continue;
+                }
+                VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+                if (modeVariableItem == null) {
+                    continue;
+                }
+                // 更新变量
+                stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
+            }
+            // 更新配置
+            this.getWorkflowConfig().setSteps(stepWrappers);
+            // 更新请求
+            request.setAiModel(modelType.getName());
+            // 返回模型类型
+            return modelType.getName();
         }
+
+        // 首先更新应用配置信息
+        List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
+        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+            if (stepWrapper == null) {
+                continue;
+            }
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+            if (modeVariableItem == null) {
+                continue;
+            }
+            // 获取模型类型
+            String model = Optional.ofNullable(modeVariableItem.getValue())
+                    .map(String::valueOf)
+                    .orElse(null);
+            String defaultModel = appDefaultConfigManager.defaultLlmModelType(model, appTypeEnum, configuration);
+            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
+
+            // 更新变量值
+            stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
+        }
+        // 更新配置
+        this.getWorkflowConfig().setSteps(stepWrappers);
 
         // 如果没有传入步骤 ID，使用第一步参数信息
         if (StringUtils.isBlank(request.getStepId())) {
@@ -376,17 +443,13 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             return null;
         }
 
-        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem("MODEL");
+        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem(AppConstants.MODEL);
         if (modelVariable == null) {
             return null;
         }
 
         if (Objects.nonNull(modelVariable.getValue())) {
             return String.valueOf(modelVariable.getValue());
-        }
-
-        if (modelVariable.getDefaultValue() != null) {
-            return String.valueOf(modelVariable.getDefaultValue());
         }
 
         // 如果没有找到模型变量
@@ -435,68 +498,47 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected AppExecuteRespVO fire(@Valid AppContext appContext) {
-        // 组装请信息
-        StoryRequest<ActionResponse> fireRequest = ReqBuilder.returnType(ActionResponse.class)
-                .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
-                .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
-                .startId(appContext.getConversationUid())
-                .request(appContext)
-                .recallStoryHook(this.recallStoryHook(appContext))
-                .build();
+        try {
+            // 组装请求信息
+            StoryRequest<ActionResponse> fireRequest = ReqBuilder.returnType(ActionResponse.class)
+                    .trackingType(TrackingTypeEnum.SERVICE_DETAIL)
+                    .timeout(WorkflowConstants.WORKFLOW_TASK_TIMEOUT)
+                    .startId(appContext.getConversationUid())
+                    .request(appContext)
+                    .recallStoryHook(this.recallStoryHook(appContext))
+                    .build();
 
-        // 执行工作流
-        TaskResponse<ActionResponse> fire = storyEngine.fire(fireRequest);
+            // 执行工作流
+            TaskResponse<ActionResponse> taskResponse = storyEngine.fire(fireRequest);
 
-        // 如果异常，抛出异常
-        if (Objects.nonNull(fire.getResultException())) {
-            Throwable resultException = fire.getResultException();
-            log.error("应用工作流执行异常: 步骤 ID: {}, 错误信息: {}", appContext.getStepId(), resultException.getMessage());
-            if (resultException instanceof ServiceException) {
-                throw (ServiceException) resultException;
-            }
-            // 工作流框架可能会包装 ServiceException，所以尝试从 cause 中获取
-            if (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException) {
-                throw (ServiceException) resultException.getCause();
-            }
-            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage());
+            // 校验并且处理结果
+            ActionResponse result = validateAndHandlerResponse(taskResponse, appContext);
+
+            // 组装并且返回结果
+            AppExecuteRespVO appExecuteResponse = new AppExecuteRespVO();
+            appExecuteResponse.setSuccess(Boolean.TRUE);
+            appExecuteResponse.setResultCode(taskResponse.getResultCode());
+            appExecuteResponse.setResultDesc(taskResponse.getResultDesc());
+            appExecuteResponse.setResult(result.getOutput().getData());
+            appExecuteResponse.setConversationUid(appContext.getConversationUid());
+            appExecuteResponse.setIsSendSseAll(result.getIsSendSseAll());
+            return appExecuteResponse;
+
+        } catch (ServiceException exception) {
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), appContext.getScene().name(), appContext.getConversationUid(), exception.getCode(), exception.getMessage());
+            exception.setScene(appContext.getScene().name());
+            throw exception;
+
+        } catch (Exception exception) {
+            ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_FAILURE;
+            log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
+                    this.getUid(), appContext.getScene().name(), appContext.getConversationUid(), errorCode.getCode(), exception.getMessage());
+
+            ServiceException serviceException = ServiceExceptionUtil.exceptionWithCause(errorCode, exception);
+            serviceException.setScene(appContext.getScene().name());
+            throw serviceException;
         }
-
-        // 如果执行失败，抛出异常
-        if (!fire.isSuccess()) {
-            log.error("应用工作流执行异常: 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, fire.getResultDesc());
-        }
-
-        /**
-         * 因为执行到最后 stepId 就是最后的节点
-         */
-        ActionResponse result = appContext.getStepResponse(appContext.getStepId());
-
-        if (Objects.isNull(result)) {
-            log.error("应用工作流执行异常(ActionResponse 结果为空): 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT);
-        }
-
-        if (!result.getSuccess()) {
-            log.error("应用工作流执行异常(ActionResponse success 为 false): 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, StringUtils.isBlank(result.getErrorMsg()) ? "执行失败" : result.getErrorMsg());
-        }
-
-        String answer = result.getAnswer();
-        if (StringUtils.isBlank(answer)) {
-            log.error("应用工作流执行异常(ActionResponse answer 为空): 步骤 ID: {}", appContext.getStepId());
-            throw exception(ErrorCodeConstants.EXECUTE_APP_ANSWER_NOT_EXIST, appContext.getStepId());
-        }
-        result.setAnswer(answer.trim());
-
-        log.info("应用工作流执行成功: 步骤 ID: {}", appContext.getStepId());
-
-        AppExecuteRespVO appExecuteRespVO = AppExecuteRespVO.success(fire.getResultCode(), fire.getResultDesc(), result.getOutput().getData(), appContext.getConversationUid());
-        appExecuteRespVO.setIsSendSseAll(result.getIsSendSseAll());
-
-        //只返回内容
-        return appExecuteRespVO;
-
     }
 
     /**
@@ -509,16 +551,20 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     public Consumer<RecallStory> recallStoryHook(AppContext appContext) {
         return (story) -> {
-            log.info("应用执行回调开始...");
-            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking()).map(MonitorTracking::getStoryTracking).orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
+            log.info("应用执行【工作流回调开始】");
+            List<NodeTracking> nodeTrackingList = Optional.ofNullable(story.getMonitorTracking())
+                    .map(MonitorTracking::getStoryTracking)
+                    .orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
+
             for (NodeTracking nodeTracking : nodeTrackingList) {
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
                     //把业务的异常传入进来
                     this.createAppMessageLog(appContext, nodeTracking, story.getException());
                 }
             }
-            log.info("应用执行回调结束...");
+            log.info("应用执行【工作流回调结束】");
         };
+
     }
 
     /**
@@ -530,37 +576,35 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking, Optional<Throwable> storyException) {
-
         this.createAppMessage((messageCreateRequest) -> {
-
-            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
-            appContext.setActionResponse(nodeTracking.getNodeName(), actionResponse);
 
             //此时 appContext.getStepId(); 是最后一个执行成功的step
             String stepId = nodeTracking.getNodeName();
+            ActionResponse actionResponse = this.getTracking(nodeTracking.getNoticeTracking(), ActionResponse.class);
+            // 将执行结果设置到上下文中
+            appContext.setActionResponse(stepId, actionResponse);
+            // 获取step变量信息
+            Map<String, Object> variables = appContext.getContextVariablesValues(stepId);
 
+            // 基础信息填充
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
             messageCreateRequest.setAppStep(stepId);
             messageCreateRequest.setEndUser(appContext.getEndUser());
             messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
+            messageCreateRequest.setFromScene(appContext.getScene().name());
+            messageCreateRequest.setMediumUid(appContext.getMediumUid());
+            messageCreateRequest.setAiModel(appContext.getLlmModelType());
             messageCreateRequest.setCreateTime(nodeTracking.getStartTime());
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
-            messageCreateRequest.setFromScene(appContext.getScene().name());
-            messageCreateRequest.setMediumUid(appContext.getMediumUid());
             messageCreateRequest.setCurrency("USD");
-            messageCreateRequest.setAiModel(appContext.getAiModel());
-
-            AppRespVO appRespVO = AppConvert.INSTANCE.convertResponse(appContext.getApp());
-            // 获取step变量
-            Map<String, Object> variables = appContext.getContextVariablesValues(nodeTracking.getNodeName());
+            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
             messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
                 messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
-                messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
                 messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
                 messageCreateRequest.setMessageTokens(actionResponse.getMessageTokens().intValue());
@@ -574,24 +618,63 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 return;
             }
 
-            // 说明执行handler时异常
+            // 说明步骤执行异常
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(appRespVO));
-            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
             messageCreateRequest.setCostPoints(0);
+            messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
+            WorkflowStepWrapper stepWrapper = appContext.getStepWrapper(stepId);
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
 
+            String llmModel = Optional.ofNullable(modeVariableItem)
+                    .map(VariableItemEntity::getValue)
+                    .map(String::valueOf)
+                    .orElse(null);
+
+            messageCreateRequest.setAiModel(llmModel);
+            // 处理异常
             if (storyException.isPresent()) {
+
                 Throwable throwable = storyException.get();
                 messageCreateRequest.setErrorMsg(ExceptionUtil.stackTraceToString(throwable));
-                messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
-                if (throwable instanceof KstryException) {
-                    messageCreateRequest.setErrorCode(((KstryException) throwable).getErrorCode());
+
+                // ActionResponseException
+                if (throwable instanceof ActionResponseException ||
+                        (Objects.nonNull(throwable.getCause()) && throwable.getCause() instanceof ActionResponseException)) {
+                    // 转为具体的异常
+                    ActionResponseException actionResponseException = (throwable instanceof ActionResponseException) ?
+                            (ActionResponseException) throwable : (ActionResponseException) throwable.getCause();
+
+                    // 设置错误码
+                    messageCreateRequest.setErrorCode(String.valueOf(actionResponseException.getCode()));
+
+                    // 获取结果信息，填充到日志中
+                    ActionResponse failureResponse = actionResponseException.getResponse();
+                    if (failureResponse == null) {
+                        return;
+                    }
+                    messageCreateRequest.setVariables(JsonUtils.toJsonString(failureResponse.getStepConfig()));
+                    messageCreateRequest.setMessage(Optional.ofNullable(failureResponse.getMessage()).orElse(StringUtils.EMPTY));
+                    messageCreateRequest.setMessageTokens(Optional.ofNullable(failureResponse.getMessageTokens()).map(Long::intValue).orElse(0));
+                    messageCreateRequest.setMessageUnitPrice(Optional.ofNullable(failureResponse.getMessageUnitPrice()).orElse(BigDecimal.ZERO));
+                    messageCreateRequest.setAnswer(Optional.ofNullable(failureResponse.getAnswer()).orElse(StringUtils.EMPTY));
+                    messageCreateRequest.setAnswerTokens(Optional.ofNullable(failureResponse.getAnswerTokens()).map(Long::intValue).orElse(0));
+                    messageCreateRequest.setAnswerUnitPrice(Optional.ofNullable(failureResponse.getAnswerUnitPrice()).orElse(BigDecimal.ZERO));
+                    messageCreateRequest.setTotalPrice(Optional.ofNullable(failureResponse.getTotalPrice()).orElse(BigDecimal.ZERO));
+                    messageCreateRequest.setCostPoints(Optional.ofNullable(failureResponse.getCostPoints()).orElse(0));
+                    messageCreateRequest.setAiModel(TokenCalculator.fromName(failureResponse.getAiModel()).name());
+                    return;
                 }
-                if (throwable instanceof ServiceException) {
-                    messageCreateRequest.setErrorCode(String.valueOf(((ServiceException) throwable).getCode()));
+
+                // ServiceException
+                if (throwable instanceof ServiceException ||
+                        (Objects.nonNull(throwable.getCause()) && throwable.getCause() instanceof ServiceException)) {
+                    // 转为具体的异常
+                    ServiceException serviceException = (throwable instanceof ServiceException) ?
+                            (ServiceException) throwable : (ServiceException) throwable.getCause();
+                    // 错误码填充到日志中
+                    messageCreateRequest.setErrorCode(String.valueOf(serviceException.getCode()));
                 }
             } else {
-                messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
                 messageCreateRequest.setErrorMsg(ErrorCodeConstants.EXECUTE_APP_FAILURE.getMsg());
             }
         });
@@ -614,35 +697,48 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             } else {
                 request.setStepId(appContext.getStepId());
             }
+
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
-            String aiModel = this.obtainLlmAiModelType(request);
-            ModelTypeEnum modelType = Objects.isNull(aiModel) ? null : TokenCalculator.fromName(aiModel);
-            BigDecimal messageUnitPrice = Objects.isNull(aiModel) ? new BigDecimal("0.0") : TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
-            BigDecimal answerUnitPrice = Objects.isNull(aiModel) ? new BigDecimal("0.0") : TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+
+            WorkflowStepWrapper stepWrapper = appContext.getStepWrapper(appContext.getStepId());
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+
+            String llmModel = Optional.ofNullable(modeVariableItem)
+                    .map(VariableItemEntity::getValue)
+                    .map(String::valueOf)
+                    .orElse(null);
+
+            BigDecimal messageUnitPrice = BigDecimal.ZERO;
+            BigDecimal answerUnitPrice = BigDecimal.ZERO;
+            if (StringUtils.isNotBlank(llmModel)) {
+                ModelTypeEnum modelType = TokenCalculator.fromName(llmModel);
+                messageUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.TRUE);
+                answerUnitPrice = TokenCalculator.getUnitPrice(modelType, Boolean.FALSE);
+            }
 
             messageCreateRequest.setAppConversationUid(request.getConversationUid());
             messageCreateRequest.setAppStep(appContext.getStepId());
-            messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setFromScene(request.getScene());
-            messageCreateRequest.setAiModel(aiModel);
+            messageCreateRequest.setAiModel(llmModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
-            messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
             messageCreateRequest.setVariables(JsonUtils.toJsonString(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
-            messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault("PROMPT", "")));
+            messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault(AppConstants.PROMPT, "")));
             messageCreateRequest.setMessageTokens(0);
             messageCreateRequest.setMessageUnitPrice(messageUnitPrice);
             messageCreateRequest.setAnswer("");
             messageCreateRequest.setAnswerTokens(0);
             messageCreateRequest.setAnswerUnitPrice(answerUnitPrice);
-            messageCreateRequest.setTotalPrice(new BigDecimal("0"));
+            messageCreateRequest.setTotalPrice(BigDecimal.ZERO);
+            messageCreateRequest.setCurrency("USD");
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
+            messageCreateRequest.setEndUser(request.getEndUser());
             messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
             messageCreateRequest.setUpdater(String.valueOf(request.getUserId()));
             messageCreateRequest.setCreateTime(LocalDateTime.now());
             messageCreateRequest.setUpdateTime(LocalDateTime.now());
-            messageCreateRequest.setEndUser(request.getEndUser());
+            messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setCostPoints(0);
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
@@ -672,5 +768,75 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 .map(noticeTracking -> JSON.parseObject(noticeTracking.getValue(), clazz))
                 .findFirst().orElse(null);
     }
-    
+
+    /**
+     * 校验工作流执行结果
+     *
+     * @param taskResponse 工作流执行结果
+     * @return 执行结果
+     */
+    private ActionResponse validateAndHandlerResponse(TaskResponse<ActionResponse> taskResponse, AppContext appContext) {
+
+        // 如果异常存在异常，则处理后抛出该异常。
+        Throwable resultException = taskResponse.getResultException();
+        if (Objects.nonNull(resultException)) {
+            // 如果是 ActionResponseException 异常，包装成 ServiceException 异常，外不需要感知该异常
+            if (resultException instanceof ActionResponseException ||
+                    (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ActionResponseException)) {
+                // 转为具体的异常
+                ActionResponseException actionResponseException = (resultException instanceof ActionResponseException) ?
+                        (ActionResponseException) resultException : (ActionResponseException) resultException.getCause();
+                ErrorCode errorCode = new ErrorCode(actionResponseException.getCode(), actionResponseException.getMessage());
+                // 转为 ServiceException 异常并且抛出
+                throw exceptionWithCause(errorCode, resultException);
+            }
+
+            // 如果是 ServiceException 异常，直接抛出
+            if (resultException instanceof ServiceException ||
+                    (Objects.nonNull(resultException.getCause()) && resultException.getCause() instanceof ServiceException)) {
+
+                throw (resultException instanceof ServiceException) ? (ServiceException) resultException : (ServiceException) resultException.getCause();
+            }
+
+            // 其他异常: 转为 ServiceException 异常并且抛出
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_APP_FAILURE, resultException.getMessage(), resultException);
+        }
+
+        // 如果执行失败，抛出异常
+        if (!taskResponse.isSuccess()) {
+            throw exception(ErrorCodeConstants.EXECUTE_APP_FAILURE, taskResponse.getResultDesc());
+        }
+
+        /*
+         * 因为执行到最后 stepId 就是最后的节点
+         */
+        ActionResponse response = appContext.getStepResponse(appContext.getStepId());
+
+        // 如果执行结果不存在，抛出异常
+        if (Objects.isNull(response)) {
+            throw exceptionWithMessage(ErrorCodeConstants.EXECUTE_APP_FAILURE, "应用执行失败，执行结果不存在！");
+        }
+
+        // 如果执行结果失败，抛出异常
+        if (!response.getSuccess()) {
+            int errorCode = response.transformErrorCode();
+            String errorMessage = response.transformErrorMessage(appContext.getStepId());
+            throw exception(new ErrorCode(errorCode, errorMessage));
+        }
+
+        // 如果执行结果为空，抛出异常
+        String answer = response.getAnswer();
+        if (StringUtils.isBlank(answer)) {
+            throw exceptionWithMessage(ErrorCodeConstants.EXECUTE_APP_FAILURE, "应用执行失败，执行结果为空！");
+        }
+
+        // 如果执行结果为空，抛出异常
+        if (Objects.isNull(response.getOutput()) || Objects.isNull(response.getOutput().getData())) {
+            throw exceptionWithMessage(ErrorCodeConstants.EXECUTE_APP_FAILURE, "应用执行失败，执行结果为空！");
+        }
+
+        response.setAnswer(answer.trim());
+        return response;
+    }
+
 }

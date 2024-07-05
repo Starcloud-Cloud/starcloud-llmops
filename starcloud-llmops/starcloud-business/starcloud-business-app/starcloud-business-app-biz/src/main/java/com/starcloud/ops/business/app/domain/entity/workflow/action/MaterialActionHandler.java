@@ -2,7 +2,11 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -59,48 +63,11 @@ public class MaterialActionHandler extends BaseActionHandler {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
-    /**
-     * 执行OpenApi生成的步骤
-     *
-     * @param request 请求参数
-     * @param context
-     * @return 执行结果
-     */
-    @Override
-    @SuppressWarnings("all")
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected ActionResponse doExecute(AppContext context) {
-        // 获取所有上游信息
-        final Map<String, Object> params = context.getContextVariablesValues();
-        // 获取到资料库类型
-        String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
-        // 转换响应结果
-        ActionResponse response = convert(context, businessType);
-
-        // 获取到处理好的上传素材
-        String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
-        List<Map<String,Object>> materialList = MaterialDefineUtil.parseData(materialListString);
-
-        JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
-        jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));
-
-        //保持跟返回结果一样的JsonSchema
-        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
-
-        response.setAnswer(JsonUtils.toJsonPrettyString(response.getAnswer()));
-        response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
-
-        log.info("MaterialActionHandler 执行结束: 响应结果：\n {}", JsonUtils.toJsonPrettyString(response));
-        return response;
-    }
-
     @Override
     public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
         //不用返回入参
         return null;
     }
-
 
     /**
      * 只根据配置的 素材类型，直接获取对应的 素材类型 对象的结构
@@ -109,7 +76,6 @@ public class MaterialActionHandler extends BaseActionHandler {
      */
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         //构造一层 array schema
         ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
         docSchema.setTitle(workflowStepWrapper.getStepCode());
@@ -126,6 +92,48 @@ public class MaterialActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 执行OpenApi生成的步骤
+     *
+     * @param request 请求参数
+     * @param context
+     * @return 执行结果
+     */
+    @Override
+    @SuppressWarnings("all")
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected ActionResponse doExecute(AppContext context) {
+        // 开始日志打印
+        loggerBegin(context, "素材上传步骤");
+
+        // 获取所有上游信息
+        Map<String, Object> params = context.getContextVariablesValues();
+        //保持跟返回结果一样的JsonSchema
+        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
+
+        // 获取到资料库类型
+        String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
+
+        // 获取到处理好的上传素材
+        String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
+        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
+
+        // 构造结构
+        JsonDocsDefSchema jsonDocsDefSchema = new JsonDocsDefSchema();
+        jsonDocsDefSchema.setDocs(CollectionUtil.emptyIfNull(materialList));
+
+        // 转换响应结果
+        ActionResponse response = convert(params, businessType);
+        response.setAnswer(JsonUtils.toJsonPrettyString(response.getAnswer()));
+        response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
+
+        // 结束日志打印
+        loggerSuccess(context, response, "素材上传步骤");
+
+        return response;
+    }
+
+    /**
      * 转换响应结果
      *
      * @param handlerResponse 响应结果
@@ -134,23 +142,21 @@ public class MaterialActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(AppContext context, String answer) {
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(Boolean.TRUE);
-        actionResponse.setIsShow(Boolean.FALSE);
-        actionResponse.setAnswer(answer);
-        actionResponse.setOutput(JsonData.of(answer));
-        actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
-        actionResponse.setStepConfig(context.getContextVariablesValues());
-        actionResponse.setMessageTokens(0L);
-        actionResponse.setMessageUnitPrice(new BigDecimal("0"));
-        actionResponse.setAnswerTokens(0L);
-        actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
-        actionResponse.setTotalTokens(0L);
-        actionResponse.setTotalPrice(new BigDecimal("0"));
-        actionResponse.setAiModel(null);
-        // 组装消耗为 0
-        actionResponse.setCostPoints(0);
-        return actionResponse;
+    private ActionResponse convert(Map<String, Object> params, String answer) {
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(Boolean.TRUE);
+        response.setIsShow(Boolean.FALSE);
+        response.setAnswer(answer);
+        response.setOutput(JsonData.of(answer));
+        response.setMessage(JsonUtils.toJsonString(params));
+        response.setStepConfig(params);
+        response.setMessageTokens(0L);
+        response.setMessageUnitPrice(BigDecimal.ZERO);
+        response.setAnswerTokens(0L);
+        response.setAnswerUnitPrice(BigDecimal.ZERO);
+        response.setTotalTokens(0L);
+        response.setTotalPrice(BigDecimal.ZERO);
+        response.setCostPoints(0);
+        return response;
     }
 }

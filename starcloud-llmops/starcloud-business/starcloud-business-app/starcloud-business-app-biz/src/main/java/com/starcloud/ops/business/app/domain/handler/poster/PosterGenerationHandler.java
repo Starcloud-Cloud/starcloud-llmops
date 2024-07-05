@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.domain.handler.poster;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
@@ -51,32 +53,28 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
      */
     @Override
     protected HandlerResponse<Response> _execute(HandlerContext<Request> context) {
-        HandlerResponse<Response> handlerResponse = new HandlerResponse<>();
-        handlerResponse.setSuccess(Boolean.FALSE);
         try {
+            log.info("海报图片生成【开始执行】");
             Request request = context.getRequest();
-            if (Objects.isNull(request)) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
-            }
-            handlerResponse.setMessage(JSONUtil.toJsonStr(request));
-            handlerResponse.setStepConfig(JSONUtil.toJsonStr(request));
-
             // 执行生成图片
             Response response = this.poster(request);
-            if (Objects.isNull(response)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "海报生成结果不存在！"));
-            }
             // 处理响应结果
+            HandlerResponse<Response> handlerResponse = new HandlerResponse<>();
             handlerResponse.setSuccess(Boolean.TRUE);
+            handlerResponse.setMessage(JSONUtil.toJsonStr(request));
+            handlerResponse.setStepConfig(JSONUtil.toJsonStr(request));
             handlerResponse.setAnswer(JSONUtil.toJsonStr(response));
             handlerResponse.setOutput(response);
+            log.info("海报图片生成【执行成功】: 生成结果: \n{}", JsonUtils.toJsonPrettyString(request));
             return handlerResponse;
         } catch (ServiceException exception) {
-            log.info("海报图片生成: 生成图片失败(ServiceException): 错误码：{}，错误信息：{}", exception.getCode(), exception.getMessage());
+            log.info("海报图片生成:【执行失败】: 模板名称: {} 模板ID: {}, \n\t错误码：{}，错误信息：{}",
+                    context.getRequest().getName(), context.getRequest().getCode(), exception.getCode(), exception.getMessage());
             throw exception;
         } catch (Exception exception) {
-            log.info("海报图片生成: 生成图片失败(Exception): 错误码：{}，错误信息：{}", 350400200, exception.getMessage());
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, exception.getMessage()));
+            log.info("海报图片生成:【执行失败】: 模板名称: {} 模板ID: {}, \n\t，错误信息：{}",
+                    context.getRequest().getName(), context.getRequest().getCode(), exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -87,43 +85,28 @@ public class PosterGenerationHandler extends BaseToolHandler<PosterGenerationHan
      * @return 响应
      */
     public Response poster(Request request) {
-        log.info("海报图片生成：执行生成图片【开始】");
-        try {
-
-            // 校验模版ID
-            if (StringUtils.isBlank(request.getCode())) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_ID_REQUIRED);
-            }
-
-            // 校验参数
-            Map<String, Object> params = request.getParams();
-            if (CollectionUtil.isEmpty(params)) {
-                throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.POSTER_PARAMS_REQUIRED);
-            }
-
-            // 组装参数
-            PosterRequest posterRequest = new PosterRequest();
-            posterRequest.setId(request.getCode());
-            posterRequest.setParams(params);
-
-            log.info("海报图片生成：执行生成图片【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
-
-            // 调用海报生成服务
-            List<PosterImage> posterImageList = POSTER_SERVICE.poster(posterRequest);
-
-            Response response = new Response();
-            response.setCode(request.getCode());
-            response.setName(request.getName());
-            response.setIsMain(request.getIsMain());
-            response.setIndex(request.getIndex());
-            response.setUrlList(posterImageList);
-            log.info("海报图片生成: 执行生成图片【成功】，执行结果：\n{}", JSONUtil.parse(response).toStringPretty());
-            return response;
-        } catch (ServiceException exception) {
-            throw exception;
-        } catch (Exception exception) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(350400200, exception.getMessage()));
+        // 校验模版ID
+        if (StringUtils.isBlank(request.getCode())) {
+            throw ServiceExceptionUtil.invalidParamException("图片模板ID不能为空！");
         }
+
+        // 组装参数
+        PosterRequest posterRequest = new PosterRequest();
+        posterRequest.setId(request.getCode());
+        posterRequest.setParams(MapUtil.emptyIfNull(request.getParams()));
+
+        log.info("海报图片生成:【执行参数】：\n {}", JsonUtils.toJsonPrettyString(posterRequest));
+
+        // 调用海报生成服务
+        List<PosterImage> posterImageList = POSTER_SERVICE.poster(posterRequest);
+
+        Response response = new Response();
+        response.setCode(request.getCode());
+        response.setName(request.getName());
+        response.setIsMain(request.getIsMain());
+        response.setIndex(request.getIndex());
+        response.setUrlList(posterImageList);
+        return response;
     }
 
     /**

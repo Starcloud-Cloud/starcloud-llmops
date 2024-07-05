@@ -71,7 +71,7 @@ public class JsonSchemaParser implements OutputParser<JSON> {
     public JSON parse(String text) {
         //兼容处理，针对多返回的内容
         try {
-            log.info("生成结果格式化处理开始({}) 原始值: {}", this.getClass().getSimpleName(), text);
+            log.info("大模型生成结果格式化处理开始 原始值: {}", text);
             text = StrUtil.replaceFirst(text, "```json", "", true);
             text = StrUtil.replaceFirst(text, "```json", "", true);
             text = StrUtil.replaceLast(text, "```", "", true);
@@ -79,21 +79,21 @@ public class JsonSchemaParser implements OutputParser<JSON> {
             // 先进行正常的 JSON 格式化处理
             JSON json = JSONUtil.parse(text);
             json = handlerJSONValue2Str(json);
-            log.info("生成结果格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), json);
+            log.info("生成结果格式化处理结束 处理之后的值: {}", json);
             return json;
         } catch (Exception e) {
             try {
-                log.error("生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), e.getClass(), e.getMessage());
+                log.error("生成结果格式化处理异常: {}", e.getMessage());
                 text = StrUtil.replace(text, "\r", "");
                 text = StrUtil.replace(text, "\\\n", "\n");
                 // 使用较为宽松的方式解析 JSON 字符串
                 JSON result = parseJSON(text);
                 result = handlerJSONValue2Str(result);
-                log.info("生成结果二次格式化处理结束({}) 处理之后的值: {}", this.getClass().getSimpleName(), result);
+                log.info("生成结果二次格式化处理结束: 处理之后的值: {}", result);
                 return result;
             } catch (Exception exception) {
-                log.error("二次处理 生成结果格式化处理异常({})：{}: {}", this.getClass().getSimpleName(), text, e.getMessage(), e);
-                throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR, e);
+                log.error("二次处理 生成结果格式化处理异常: {}, {}", exception.getMessage(), text);
+                throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR, exception);
             }
         }
     }

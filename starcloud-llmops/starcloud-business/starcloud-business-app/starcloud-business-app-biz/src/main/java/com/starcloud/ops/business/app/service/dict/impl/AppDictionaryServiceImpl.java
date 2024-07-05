@@ -228,14 +228,15 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
-     * 获取应用动作默认配置
+     * 获取应用默认配置
      *
-     * @return 应用动作默认配置
+     * @return 应用默认配置
      */
     @Override
-    public Map<String, String> actionDefaultConfig() {
-        List<DictDataDO> dictDataList = getDictionaryList("prompt_template");
-        return CollectionUtil.emptyIfNull(dictDataList).stream().collect(Collectors.toMap(DictDataDO::getLabel, DictDataDO::getRemark));
+    public Map<String, String> defaultAppConfiguration() {
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.DEFAULT_APP_CONFIGURATION);
+        return CollectionUtil.emptyIfNull(dictDataList).stream()
+                .collect(Collectors.toMap(DictDataDO::getValue, DictDataDO::getRemark));
     }
 
     /**

@@ -81,9 +81,10 @@ public interface AppDictionaryService {
     List<String> appTemplateAppNameList();
 
     /**
-     * 获取应用action默认值
+     * 获取应用默认配置
      *
-     * @return 获取应用action默认值
+     * @return 获取应用默认配置
      */
-    Map<String, String> actionDefaultConfig();
+    Map<String, String> defaultAppConfiguration();
+
 }

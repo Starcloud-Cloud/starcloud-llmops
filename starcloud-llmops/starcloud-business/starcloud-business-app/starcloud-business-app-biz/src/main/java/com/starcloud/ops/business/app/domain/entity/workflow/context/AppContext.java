@@ -94,10 +94,10 @@ public class AppContext {
     private AppSceneEnum scene;
 
     /**
-     * AI模型
+     * 大模型类型
      */
-    @Schema(description = "AI模型")
-    private String aiModel;
+    @Schema(description = "大模型类型")
+    private String llmModelType;
 
     /**
      * AI模型返回的条数
@@ -148,7 +148,6 @@ public class AppContext {
     @JsonIgnore
     @JSONField(serialize = false)
     private SseEmitter sseEmitter;
-
 
     public Long getEndUserId() {
         return StrUtil.isNotBlank(this.endUser) ? Long.valueOf(this.endUser) : null;

@@ -10,6 +10,35 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 @SuppressWarnings("all")
 public interface ErrorCodeConstants {
 
+    // ============ 节点处理器执行异常错误码 =========================
+
+    ErrorCode EXECUTE_APP_FAILURE = new ErrorCode(300_100_500, "应用执行异常！请检查您的配置或请稍候重试！");
+
+    /**
+     * 步骤处理器顶级错误码。
+     */
+    ErrorCode EXECUTE_APP_ACTION_FAILURE = new ErrorCode(300_100_510, "【{}】步骤执行异常！请稍候重试！");
+
+    /**
+     * 步骤结果处理异常
+     */
+    ErrorCode EXECUTE_APP_ACTION_PARSE_RESULT_FAILURE = new ErrorCode(300_100_511, "【{}】步骤结果处理异常，请稍候重试！");
+
+    /**
+     * 节点处理器顶级错误码。
+     */
+    ErrorCode EXECUTE_STEP_HANDLER_FAILURE = new ErrorCode(300_100_530, "处理器执行异常！请稍候重试！");
+
+    /**
+     * 大模型执行异常
+     */
+    ErrorCode EXECUTE_LLM_FAILURE = new ErrorCode(300_100_550, "大模型执行异常！请稍候重试！");
+
+    /**
+     * 大模型执行异常
+     */
+    ErrorCode EXECUTE_POSTER_FAILURE = new ErrorCode(300_100_551, "海报执行异常！请稍候重试！");
+
     // 1.========== 通用错误 300 000 xxx ==========
 
     /**
@@ -299,11 +328,6 @@ public interface ErrorCodeConstants {
     // ========== 应用执行错误码 310 100 xxx ==========
 
     /**
-     * 应用执行通用错误码
-     */
-    ErrorCode EXECUTE_APP_FAILURE = new ErrorCode(310100000, "应用执行失败，请稍后重试或者联系管理员（{}）！");
-
-    /**
      * 应用执行应用信息不能为空
      */
     ErrorCode APP_EXECUTE_APP_IS_NULL = new ErrorCode(310100310, "应用执行应用信息不能为空！");
@@ -585,7 +609,6 @@ public interface ErrorCodeConstants {
     ErrorCode MEDIA_STRATEGY_NOT_EXISTS = new ErrorCode(300700301, "回复策略不存在");
 
     ErrorCode MEDIA_STRATEGY_SAME_EXISTS = new ErrorCode(300700302, "存在相同的策略，请核对后重新提交");
-
 
 
     // ==========图片搜索 错误码 ==========

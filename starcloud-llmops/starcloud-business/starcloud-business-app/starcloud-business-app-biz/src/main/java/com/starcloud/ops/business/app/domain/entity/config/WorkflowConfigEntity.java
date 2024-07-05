@@ -53,6 +53,25 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     }
 
     /**
+     * 获取所有的步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<WorkflowStepWrapper> getStepWrappers() {
+        return CollectionUtil.emptyIfNull(steps);
+    }
+
+    /**
+     * 获取所有的步骤，如果步骤为空，抛出异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<WorkflowStepWrapper> getStepWrappersOrThrow() {
+        AppValidate.notEmpty(this.steps, ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED);
+        return CollectionUtil.emptyIfNull(steps);
+    }
+
+    /**
      * 模版步骤
      */
     @JsonIgnore
@@ -160,8 +179,8 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
      * 将变量放入步骤变量中
      *
      * @param stepId 步骤ID
-     * @param key   key
-     * @param value value
+     * @param key    key
+     * @param value  value
      */
     @JsonIgnore
     @JSONField(serialize = false)

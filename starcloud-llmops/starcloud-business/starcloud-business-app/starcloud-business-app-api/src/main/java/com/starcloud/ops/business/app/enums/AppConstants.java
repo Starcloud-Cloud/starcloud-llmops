@@ -25,6 +25,46 @@ public interface AppConstants {
     Long JUZHEN_TENANT_ID = 3L;
 
     /**
+     * Prompt 变量表示
+     */
+    String PROMPT = "PROMPT";
+
+    /**
+     * Model 变量表示
+     */
+    String MODEL = "MODEL";
+
+    /**
+     * MAX_TOKENS 变量表示
+     */
+    String MAX_TOKENS = "MAX_TOKENS";
+
+    /**
+     * TEMPERATURE 变量表示
+     */
+    String TEMPERATURE = "TEMPERATURE";
+
+    /**
+     * 默认模式类型标识
+     */
+    String DEFAULT_MODEL_TYPE = "DEFAULT_MODEL_TYPE";
+
+    /**
+     * 默认生成模式类型标识
+     */
+    String DEFAULT_COMPLETION_MODEL_TYPE = "DEFAULT_COMPLETION_MODEL_TYPE";
+
+    /**
+     * 默认聊天模式类型标识
+     */
+    String DEFAULT_CHAT_MODEL_TYPE = "DEFAULT_CHAT_MODEL_TYPE";
+
+    /**
+     * 默认媒体矩阵模式类型标识
+     */
+    String DEFAULT_MEDIA_MATRIX_MODEL_TYPE = "DEFAULT_MEDIA_MATRIX_MODEL_TYPE";
+
+    /**
      * 应用分类字典类型
      */
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";
@@ -78,6 +118,11 @@ public interface AppConstants {
      * 创作方案字典类型
      */
     String CREATIVE_SCHEME_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_CREATIVE_SCHEME_CATEGORY_TYPE";
+
+    /**
+     * 默认应用配置
+     */
+    String DEFAULT_APP_CONFIGURATION = "DEFAULT_APP_CONFIGURATION";
 
     /**
      * 应用市场应用默认图片

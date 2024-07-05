@@ -97,7 +97,7 @@ public class SketchToImageHandler extends BaseImageHandler<SketchToImageRequest,
         ImageDTO image = ImageConvert.INSTANCE.convert(clipDropImage);
         response.setImages(Collections.singletonList(image));
 
-        log.info("草图生成图片结束：{}", JsonUtils.toJsonString(response));
+        log.info("草图生成图片结束: 生成结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

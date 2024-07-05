@@ -1,7 +1,8 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.vo.request.GenerateImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.GenerateImageResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
@@ -10,13 +11,12 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
-import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.dto.VSearchImage;
+import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -62,8 +62,6 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
      */
     @Override
     public void handleRequest(GenerateImageRequest request) {
-        log.info("处理生成图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
-
         // 初始化图片
         if (StringUtils.isNotBlank(request.getInitImage())) {
             if (Objects.isNull(request.getImageStrength())) {
@@ -98,7 +96,6 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         if (Objects.isNull(request.getSamples())) {
             request.setSamples(1);
         }
-        log.info("处理生成图片请求结束：处理后数据：{}", JSONUtil.toJsonStr(request));
     }
 
     /**
@@ -111,7 +108,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
     public GenerateImageResponse handleImage(GenerateImageRequest request) {
         log.info("生成图片开始...");
         VSearchImageRequest vSearchImageRequest = VSearchConvert.INSTANCE.convert(request);
-        if(StringUtils.isNotBlank(request.getInitImage())) {
+        if (StringUtils.isNotBlank(request.getInitImage())) {
             vSearchImageRequest.setInitImage(ImageUploadUtils.handleImageToBase64(request.getInitImage()));
         }
 
@@ -129,7 +126,7 @@ public class GenerateImageHandler extends BaseImageHandler<GenerateImageRequest,
         if (StringUtils.isNotBlank(request.getInitImage())) {
             response.setOriginalUrl(request.getInitImage());
         }
-        log.info("生成图片结束：响应结果：{}", JSONUtil.toJsonStr(response));
+        log.info("生成图片结束: 响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

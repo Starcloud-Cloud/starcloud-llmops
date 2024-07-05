@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
@@ -15,7 +14,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteResult;
@@ -39,8 +37,10 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
+import com.starcloud.ops.business.app.util.MarkdownUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
@@ -50,6 +50,7 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -58,16 +59,21 @@ import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
 
 /**
  * @author nacoyer
@@ -78,14 +84,26 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHT
 @Slf4j
 public class CreativeExecuteManager {
 
+    /**
+     * 快速失败的错误码
+     * 1. 快速失败，
+     * 2. 任务不再进行重试
+     * 3. 失败后直接发送告警信息
+     */
+    public static final List<Integer> FAILURE_FAST_CODE_LIST = Arrays.asList(
+            USER_RIGHTS_BEAN_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_IMAGE_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_NOT_ENOUGH.getCode(),
+            USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH.getCode(),
+            // JSON 解析失败
+            ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR.getCode()
+    );
+
     @Resource
     private RedissonClient redissonClient;
 
     @Resource
     private CreativeContentMapper creativeContentMapper;
-
-    @Resource
-    private DictDataService dictDataService;
 
     @Resource
     private CreativeThreadPoolHolder creativeThreadPoolHolder;
@@ -187,18 +205,19 @@ public class CreativeExecuteManager {
                 updateContentSuccess(latestContent, executeResult, start);
                 // 返回结果
                 return executeResponse;
-            } catch (Exception exception) {
+            } catch (Throwable throwable) {
                 // 后置处理步骤缓存状态更新
-                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", exception.getMessage());
-                updateContentFailure(latestContent, start, exception.getMessage(), latestContent.getRetryCount(), maxRetry);
-                throw exception;
+                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", throwable.getMessage());
+                // 根据异常更新创作内容状态
+                updateContentFailureByThrowable(latestContent, start, maxRetry, throwable);
+                throw throwable;
             }
         } catch (ServiceException exception) {
             log.error("创作中心：创作内容任务执行失败：错误码: {}, 错误信息: {}", exception.getCode(), exception.getMessage(), exception);
             // 报警
             creativeAlarmManager.executeAlarm(request.getUid(), request.getForce(), getMaxRetry(request), exception);
             return CreativeContentExecuteRespVO.failure(request.getUid(), request.getPlanUid(), request.getBatchUid(), exception.getMessage());
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             log.error("创作中心：创作内容任务执行失败： 错误信息: {}", exception.getMessage(), exception);
             // 报警
             creativeAlarmManager.executeAlarm(request.getUid(), request.getForce(), getMaxRetry(request), exception);
@@ -286,7 +305,6 @@ public class CreativeExecuteManager {
         extended.put("contentMaxRetry", maxRetry);
         extended.put("contentStatus", latestContent.getStatus());
         extended.put("contentSource", latestContent.getSource());
-        // 如果重试次数 + 1 大于等于最大重试次数，则本次应用执行失败，需要发送告警
         extended.put("isSendAlarm", false);
 
         // 构建应用执行参数
@@ -308,9 +326,6 @@ public class CreativeExecuteManager {
         } else {
             AppMarketEntity entity = AppFactory.factoryMarket(appExecuteRequest);
             response = entity.execute(appExecuteRequest);
-        }
-        if (Objects.isNull(response) || !response.getSuccess()) {
-            throw exception(350600110, "创作内容执行失败，错误码：" + response.getResultCode() + ",错误信息：" + response.getResultDesc());
         }
 
         return response;
@@ -380,6 +395,43 @@ public class CreativeExecuteManager {
         content.setUpdateTime(end);
         content.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(content);
+    }
+
+    /**
+     * 根据异常更新创作内容状态
+     *
+     * @param latestContent 创作内容
+     * @param start         开始时间
+     * @param throwable     异常
+     * @param maxRetry      最大重试次数
+     */
+    private void updateContentFailureByThrowable(CreativeContentDO latestContent, LocalDateTime start, Integer maxRetry, Throwable throwable) {
+        // 如果是 Error，说明是系统异常，直接更新为最终失败即可。
+        if (throwable instanceof Error) {
+            updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
+            return;
+        }
+
+        // 如果是 ServiceException，且在快速失败名单内，直接更新为最终失败即可。
+        if (throwable instanceof ServiceException) {
+            ServiceException serviceException = (ServiceException) throwable;
+            if (FAILURE_FAST_CODE_LIST.contains(serviceException.getCode())) {
+                updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
+                return;
+            }
+        }
+
+        // 如果是 ServiceException 的 cause 是 ServiceException，且在快速失败名单内，直接更新为最终失败即可。
+        if (Objects.nonNull(throwable.getCause()) && throwable.getCause() instanceof ServiceException) {
+            ServiceException serviceException = (ServiceException) throwable.getCause();
+            if (FAILURE_FAST_CODE_LIST.contains(serviceException.getCode())) {
+                updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
+                return;
+            }
+        }
+
+        // 其他情况，更新为失败
+        updateContentFailure(latestContent, start, throwable.getMessage(), latestContent.getRetryCount(), maxRetry);
     }
 
     /**
@@ -514,6 +566,22 @@ public class CreativeExecuteManager {
 
         // 文案生成结果
         CopyWritingContent copyWriting = JsonUtils.parseObject(String.valueOf(assembleOutput.getData()), CopyWritingContent.class);
+        copyWriting = Optional.ofNullable(copyWriting).orElseThrow(() -> exception(ErrorCodeConstants.PARAMETER_EXCEPTION.getCode(), "文案生成结果异常！请联系管理员！"));
+        // 处理文案标题
+        String title = copyWriting.getTitle();
+        if (StringUtils.isNotBlank(title)) {
+            title = MarkdownUtils.clean(title);
+        }
+        copyWriting.setTitle(title);
+
+        // 处理文案内容
+        String content = copyWriting.getContent();
+        if (StringUtils.isNotBlank(content)) {
+            // 清除html标签
+            content = MarkdownUtils.clean(content);
+        }
+        copyWriting.setContent(content);
+
         // 图片生成结果
         List<PosterGenerationHandler.Response> posterList = JsonUtils.parseArray(posterResponse.getAnswer(), PosterGenerationHandler.Response.class);
 

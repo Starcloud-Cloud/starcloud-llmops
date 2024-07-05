@@ -240,7 +240,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract R doExecute(Q request);
+    protected abstract R
+    doExecute(Q request);
 
     /**
      * 模版方法：异步执行应用
@@ -298,7 +299,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract String obtainLlmAiModelType(Q request);
+    protected abstract String handlerLlmModelType(Q request);
 
     /**
      * 模版方法：新增应用
@@ -376,7 +377,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            throw exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage());
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -578,7 +579,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         createRequest.setUpdater(String.valueOf(request.getUserId()));
         createRequest.setTenantId(this.getTenantId());
         createRequest.setFromScene(request.getScene());
-        createRequest.setAiModel(this.obtainLlmAiModelType(request));
+        createRequest.setAiModel(this.handlerLlmModelType(request));
         this.buildAppConversationLog(request, createRequest);
         logAppConversationService.createAppLogConversation(createRequest);
         return createRequest.getUid();
@@ -593,10 +594,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void successAppConversationLog(String conversationUid, Q request) {
-        log.info("应用执行成功：更新会话记录开始 会话 UID：{}...", conversationUid);
+        log.info("应用执行成功：更新会话记录开始: 应用UID: {}, 会话 UID：{}...", this.getUid(), conversationUid);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
         updateRequest.setUid(conversationUid);
-        updateRequest.setAiModel(this.obtainLlmAiModelType(request));
         updateRequest.setStatus(LogStatusEnum.SUCCESS.name());
         updateRequest.setErrorCode(null);
         updateRequest.setErrorMsg(null);
@@ -615,10 +615,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg, Q request) {
-        log.info("应用执行失败：更新会话记录开始 会话 UID：{}, errorCode：{}，errorMsg：{} ...", conversationUid, errorCode, errorMsg);
+        log.info("应用执行失败：更新会话记录开始: 应用ID: {}, 会话 UID：{}, 错误码：{}", this.getUid(), conversationUid, errorCode);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
         updateRequest.setUid(conversationUid);
-        updateRequest.setAiModel(this.obtainLlmAiModelType(request));
         updateRequest.setStatus(LogStatusEnum.ERROR.name());
         updateRequest.setErrorCode(errorCode);
         updateRequest.setErrorMsg(errorMsg);
@@ -762,6 +761,62 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
+    }
+
+    /**
+     * 异常
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException exceptionWithMessage(ErrorCode errorCode, String message, Object... params) {
+        return ServiceExceptionUtil.exception0(errorCode.getCode(), message, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, String message, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exception1(errorCode.getCode(), message, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exceptionWithCause(errorCode, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param message 错误消息模板
+     * @param params  参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException invalidParamException(String message, Object... params) {
+        return ServiceExceptionUtil.invalidParamException(message, params);
     }
 
     /**

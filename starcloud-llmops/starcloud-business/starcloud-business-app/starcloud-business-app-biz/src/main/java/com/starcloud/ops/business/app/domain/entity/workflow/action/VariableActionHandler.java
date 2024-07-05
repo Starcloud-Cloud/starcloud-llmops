@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -56,70 +57,64 @@ public class VariableActionHandler extends BaseActionHandler {
     }
 
     /**
-     * 执行具体的步骤
-     *
-     * @return 执行结果
-     * @param context
-     */
-    @Override
-    protected ActionResponse doExecute(AppContext context) {
-        log.info("VariableActionHandler doExecute");
-
-        Map<String, Object> params = context.getContextVariablesValues();
-
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(Boolean.TRUE);
-        actionResponse.setType(AppStepResponseTypeEnum.TEXT.name());
-        actionResponse.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
-        actionResponse.setIsShow(Boolean.FALSE);
-        actionResponse.setMessage("variable");
-
-
-        actionResponse.setAnswer(JsonUtils.toJsonPrettyString(params));
-        JsonSchema jsonSchema = this.getInVariableJsonSchema(context.getStepWrapper());
-        actionResponse.setOutput(JsonData.of(params, jsonSchema));
-
-        actionResponse.setMessageTokens(0L);
-        actionResponse.setMessageUnitPrice(new BigDecimal("0"));
-        actionResponse.setAnswerTokens(0L);
-        actionResponse.setAnswerUnitPrice(new BigDecimal("0"));
-        actionResponse.setTotalTokens(0L);
-        actionResponse.setTotalPrice(new BigDecimal("0"));
-        actionResponse.setStepConfig("{}");
-        actionResponse.setAiModel(null);
-        actionResponse.setCostPoints(0);
-
-        log.info("VariableActionHandler doExecute end");
-        return actionResponse;
-    }
-
-    /**
      * 具体handler的入参定义
      *
-     * @return
+     * @return 步骤信息
      */
     @Override
     public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         ObjectSchema objectSchema = workflowStepWrapper.getVariable().getJsonSchema();
-
         objectSchema.setTitle(workflowStepWrapper.getStepCode());
         objectSchema.setDescription(workflowStepWrapper.getDescription());
         objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
-
         return objectSchema;
     }
 
     /**
      * 具体handler的出参定义
      *
-     * @return
+     * @return 步骤信息
      */
     @Override
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-
         return null;
+    }
 
+    /**
+     * 执行具体的步骤
+     *
+     * @param context 上下文
+     * @return 执行结果
+     */
+    @Override
+    protected ActionResponse doExecute(AppContext context) {
+        // 开始日志打印
+        loggerBegin(context, "全局变量步骤");
+
+        Map<String, Object> params = MapUtils.emptyIfNull(context.getContextVariablesValues());
+        JsonSchema jsonSchema = this.getInVariableJsonSchema(context.getStepWrapper());
+
+        // 返回结果
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(Boolean.TRUE);
+        response.setType(AppStepResponseTypeEnum.TEXT.name());
+        response.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
+        response.setIsShow(Boolean.FALSE);
+        response.setMessage("variable");
+        response.setAnswer(JsonUtils.toJsonPrettyString(params));
+        response.setOutput(JsonData.of(params, jsonSchema));
+        response.setMessageTokens(0L);
+        response.setMessageUnitPrice(BigDecimal.ZERO);
+        response.setAnswerTokens(0L);
+        response.setAnswerUnitPrice(BigDecimal.ZERO);
+        response.setTotalTokens(0L);
+        response.setTotalPrice(BigDecimal.ZERO);
+        response.setStepConfig("{}");
+        response.setCostPoints(0);
+
+        // 结束日志打印
+        loggerSuccess(context, response, "全局变量步骤");
+        return response;
     }
 
 }

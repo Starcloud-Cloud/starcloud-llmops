@@ -144,7 +144,7 @@ public class TitleActionHandler extends BaseActionHandler {
         actionResponse.setAnswerTokens((long) actionResponse.getAnswer().length());
         actionResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(ModelTypeEnum.GPT_3_5_TURBO, false));
         actionResponse.setTotalTokens(actionResponse.getMessageTokens() + actionResponse.getAnswerTokens());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         BigDecimal messagePrice = new BigDecimal(String.valueOf(actionResponse.getMessageTokens())).multiply(actionResponse.getMessageUnitPrice());
         BigDecimal answerPrice = new BigDecimal(String.valueOf(actionResponse.getAnswerTokens())).multiply(actionResponse.getAnswerUnitPrice());
         actionResponse.setTotalPrice(messagePrice.add(answerPrice));
@@ -152,7 +152,7 @@ public class TitleActionHandler extends BaseActionHandler {
 
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getLlmModelType(context), tokens);
         actionResponse.setCostPoints(costPoints);
 
         log.info("标题生成[{}]：执行成功。生成模式: [{}], : 结果：\n{}", this.getClass().getSimpleName(),
@@ -205,7 +205,7 @@ public class TitleActionHandler extends BaseActionHandler {
         log.info("标题生成[{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
         // 获取到 maxTokens
@@ -257,7 +257,7 @@ public class TitleActionHandler extends BaseActionHandler {
         }
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
         // 获取到 maxTokens
@@ -294,7 +294,7 @@ public class TitleActionHandler extends BaseActionHandler {
     private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest) {
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
-                this.getAppUid(context),
+                context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
                 context.getEndUserId(),
@@ -336,12 +336,12 @@ public class TitleActionHandler extends BaseActionHandler {
         actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
 
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getLlmModelType(context), tokens);
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
 
         return actionResponse;

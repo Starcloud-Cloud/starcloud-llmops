@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -129,7 +128,6 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
             throw exception(ErrorCodeConstants.EXECUTE_IMAGE_HANDLER_NOT_FOUND);
         }
         try {
-
             // 检测权益
             this.allowExpendBenefits(AdminUserRightsTypeEnum.MAGIC_IMAGE, request.getUserId());
 
@@ -208,7 +206,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
                 imageHandler.handleLogMessage(messageRequest, request.getImageRequest(), null);
             });
 
-            throw exception(new ErrorCode(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE.getCode(), exception.getMessage()));
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_IMAGE_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -276,7 +274,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
      * @param request 请求参数
      */
     @Override
-    protected String obtainLlmAiModelType(ImageReqVO request) {
+    protected String handlerLlmModelType(ImageReqVO request) {
         return request.getImageHandler().obtainEngine(request.getImageRequest());
     }
 
@@ -325,15 +323,15 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setAppMode(StringUtils.isBlank(request.getMode()) ? AppModelEnum.IMAGE.name() : request.getMode());
         messageRequest.setAppStep(request.getScene());
         messageRequest.setFromScene(request.getScene());
-        messageRequest.setAiModel(this.obtainLlmAiModelType(request));
+        messageRequest.setAiModel(this.handlerLlmModelType(request));
         messageRequest.setAppConfig(JsonUtils.toJsonString(this));
         messageRequest.setVariables(JsonUtils.toJsonString(request.getImageRequest()));
         messageRequest.setMessage("");
         messageRequest.setMessageTokens(0);
-        messageRequest.setMessageUnitPrice(new BigDecimal("0.0000"));
+        messageRequest.setMessageUnitPrice(BigDecimal.ZERO);
         messageRequest.setAnswerTokens(0);
         messageRequest.setAnswerUnitPrice(ImageUtils.SD_PRICE);
-        messageRequest.setTotalPrice(new BigDecimal("0.0000"));
+        messageRequest.setTotalPrice(BigDecimal.ZERO);
         messageRequest.setCurrency("USD");
         messageRequest.setCostPoints(0);
         messageRequest.setImagePoints(0);

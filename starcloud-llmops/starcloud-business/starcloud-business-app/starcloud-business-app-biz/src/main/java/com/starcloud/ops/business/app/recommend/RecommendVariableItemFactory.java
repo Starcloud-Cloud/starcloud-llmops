@@ -49,7 +49,7 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.MODEL.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
-        variableItem.setOptions(AppUtils.aiModelList());
+        variableItem.setOptions(AppUtils.llmModelTypeList());
         return variableItem;
     }
 
@@ -375,7 +375,7 @@ public class RecommendVariableItemFactory {
     /**
      * 图片搜索习惯
      *
-     * @return
+     * @return 资料库类型
      */
     public static VariableItemRespVO defSearchHabitsVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -409,6 +409,47 @@ public class RecommendVariableItemFactory {
         variableItem.setIsShow(Boolean.TRUE);
         return variableItem;
     }
+
+    /**
+     * xhs字段映射
+     *
+     * @return xhs字段映射
+     */
+    public static VariableItemRespVO defFieldMapVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.FIELD_MAP);
+        variableItem.setDefaultValue(StrUtil.EMPTY_JSON);
+        variableItem.setLabel("字段映射");
+        variableItem.setDescription("字段映射");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * 小红书笔记地址
+     *
+     * @return 小红书笔记地址
+     */
+    public static VariableItemRespVO defXhsUrlVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.XHS_NOTE_URL);
+        variableItem.setLabel("小红书笔记地址");
+        variableItem.setDefaultValue(StrUtil.EMPTY);
+        variableItem.setDescription("小红书笔记地址");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
 
     /**
      * 素材列表
@@ -723,16 +764,37 @@ public class RecommendVariableItemFactory {
     /**
      * 系统默认prompt
      *
-     * @return
+     * @return 系统默认prompt
      */
-    public static VariableItemRespVO defSysPromptRequirement() {
+    public static VariableItemRespVO defDefaultContentStepPromptVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.SYS_PROMPT);
-        variableItem.setLabel("系统默认prompt");
-        variableItem.setDescription("系统默认prompt");
+        variableItem.setField(CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT);
+        variableItem.setLabel("内容生成默认prompt");
+        variableItem.setDescription("内容生成默认prompt");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(103);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
+     * 系统 json parser prompt
+     *
+     * @return 系统默认prompt
+     */
+    public static VariableItemRespVO defDefaultResponseJsonParserPromptVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT);
+        variableItem.setLabel("生成数据JSON格式化默认Prompt");
+        variableItem.setDescription("生成数据JSON格式化默认Prompt，返回结果-响应类型选择为 JSON 时才会生效");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(104);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());

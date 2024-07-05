@@ -109,7 +109,7 @@ public class ImitateActionHandler extends BaseActionHandler {
         log.info("自定义内容生成[{}][{}]：正在执行：处理之后请求参数：\n{}", this.getClass().getSimpleName(), context.getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到大模型 model
-        String model = Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String model = Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
         // 获取到生成数量 n
         Integer n = Optional.ofNullable(context.getN()).orElse(1);
 
@@ -154,7 +154,7 @@ public class ImitateActionHandler extends BaseActionHandler {
     private ActionResponse doGenerateExecute(AppContext context, OpenAIChatHandler.Request handlerRequest) {
         // 构建请求上下文
         HandlerContext<OpenAIChatHandler.Request> handlerContext = HandlerContext.createContext(
-                this.getAppUid(context),
+                context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
                 context.getEndUserId(),
@@ -195,11 +195,11 @@ public class ImitateActionHandler extends BaseActionHandler {
         actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
         actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
         actionResponse.setStepConfig(handlerResponse.getStepConfig());
-        actionResponse.setAiModel(Optional.ofNullable(this.getAiModel(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
+        actionResponse.setAiModel(Optional.ofNullable(this.getLlmModelType(context)).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName()));
 
         // 计算权益点数
         Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(context), tokens);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getLlmModelType(context), tokens);
         actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
 
         //如果配置了 JsonSchema
