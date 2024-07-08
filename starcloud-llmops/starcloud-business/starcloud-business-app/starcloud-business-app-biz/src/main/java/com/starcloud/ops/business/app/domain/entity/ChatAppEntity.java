@@ -37,6 +37,7 @@ import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
@@ -241,8 +242,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         } else {
             // 获取到模型类型，从字典中获取
             Option modelTypeOption = appDefaultConfigManager.getLlmModelTypeOption(request.getModelType());
+            AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
             // 获取到执行的模型
-            llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), modelTypeOption);
+            llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), appTypeEnum, modelTypeOption);
         }
 
         // 设置模型到配置中
