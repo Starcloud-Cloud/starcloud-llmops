@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.recommend;
 
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
@@ -13,7 +14,6 @@ import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -41,8 +41,8 @@ public class RecommendVariableItemFactory {
         variableItem.setField("model");
         variableItem.setLabel(MessageUtil.getMessage("OPEN_AI_MODEL_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("OPEN_AI_MODEL_DESCRIPTION"));
-        variableItem.setDefaultValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
-        variableItem.setValue(ModelTypeEnum.GPT_3_5_TURBO.getName());
+        variableItem.setDefaultValue(ModelProviderEnum.GPT35.name());
+        variableItem.setValue(ModelProviderEnum.GPT35.name());
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());

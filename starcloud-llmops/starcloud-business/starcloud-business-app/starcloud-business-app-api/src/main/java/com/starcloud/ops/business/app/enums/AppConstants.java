@@ -65,6 +65,11 @@ public interface AppConstants {
     String DEFAULT_MEDIA_MATRIX_MODEL_TYPE = "DEFAULT_MEDIA_MATRIX_MODEL_TYPE";
 
     /**
+     * 默认大模型映射关系
+     */
+    String DEFAULT_LLM_MODEL_TYPE_MAP = "DEFAULT_LLM_MODEL_TYPE_MAP";
+
+    /**
      * 应用分类字典类型
      */
     String APP_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_APP_CATEGORY_TYPE";

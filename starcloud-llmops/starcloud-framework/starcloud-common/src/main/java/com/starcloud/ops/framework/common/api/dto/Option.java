@@ -41,6 +41,12 @@ public class Option implements Serializable {
     private String description;
 
     /**
+     * 权限
+     */
+    @Schema(description = "权限")
+    private String permissions;
+
+    /**
      * 创建一个选项
      *
      * @param label label

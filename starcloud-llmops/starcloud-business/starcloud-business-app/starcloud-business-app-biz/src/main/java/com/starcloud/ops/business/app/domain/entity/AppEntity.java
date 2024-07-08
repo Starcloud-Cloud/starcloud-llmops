@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -52,6 +53,7 @@ import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import com.starcloud.ops.framework.common.api.util.SseEmitterUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -103,6 +105,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
+
+    /**
+     * 权限 API
+     */
+    private PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
 
     /**
      * 应用报警管理
@@ -377,17 +384,17 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected String handlerLlmModelType(AppExecuteReqVO request) {
-        // 引用类别
-        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
-        // 获取默认配置
-        Map<String, String> configuration = appDefaultConfigManager.configuration();
 
+        List<Option> options = appDefaultConfigManager.defaultLlmModelTypeMap();
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
-            // 获取到模型类型
-            String defaultModel = appDefaultConfigManager.defaultLlmModelType(request.getAiModel(), appTypeEnum, configuration);
-            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
-
+            ModelTypeEnum modelType;
+            if (ModelTypeEnum.fromName(request.getAiModel()).isPresent()) {
+                modelType = TokenCalculator.fromName(request.getAiModel());
+            } else {
+                // 从配置中获取
+                modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), options);
+            }
             // 更新步骤中的模型变量
             List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
             for (WorkflowStepWrapper stepWrapper : stepWrappers) {
@@ -415,17 +422,24 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             if (stepWrapper == null) {
                 continue;
             }
+
             VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
             if (modeVariableItem == null) {
                 continue;
             }
+
             // 获取模型类型
             String model = Optional.ofNullable(modeVariableItem.getValue())
                     .map(String::valueOf)
                     .orElse(null);
-            String defaultModel = appDefaultConfigManager.defaultLlmModelType(model, appTypeEnum, configuration);
-            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
 
+            ModelTypeEnum modelType;
+            if (ModelTypeEnum.fromName(model).isPresent()) {
+                modelType = TokenCalculator.fromName(model);
+            } else {
+                // 从配置中获取
+                modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), options);
+            }
             // 更新变量值
             stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
         }
