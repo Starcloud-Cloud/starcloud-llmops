@@ -1,8 +1,15 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * llm标识
@@ -56,17 +63,42 @@ public enum ModelProviderEnum implements IEnumable<Integer> {
     }
 
     /**
-     * 通过枚举名称获取枚举，找不到返回 GPT35
+     * 获取枚举的定义和大模型的映射关系
      *
-     * @param name 枚举名称
      * @return 枚举
      */
-    public static ModelProviderEnum fromName(String name) {
-        for (ModelProviderEnum value : ModelProviderEnum.values()) {
-            if (value.name().equalsIgnoreCase(name)) {
-                return value;
-            }
-        }
-        return GPT35;
+    public static List<Option> options() {
+        return Arrays.stream(ModelProviderEnum.values())
+                .sorted(Comparator.comparingInt(ModelProviderEnum::ordinal))
+                .map(ModelProviderEnum::option)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取枚举的定义和大模型的映射关系
+     *
+     * @param model 模型
+     * @return 枚举
+     */
+    public static Option option(ModelProviderEnum model) {
+        Option option = new Option();
+        option.setLabel(model.name());
+        option.setValue(model.getModelType().getName());
+        option.setPermissions(model.getPermissions());
+        return option;
+    }
+
+    /**
+     * 根据模型获取到权限信息
+     *
+     * @param model 模型
+     * @return 权限信息
+     */
+    public static String getPermissions(String model) {
+        return Arrays.stream(ModelProviderEnum.values())
+                .filter(modelProviderEnum -> modelProviderEnum.name().equals(model))
+                .findFirst()
+                .map(ModelProviderEnum::getPermissions)
+                .orElse(StringUtils.EMPTY);
     }
 }

@@ -34,13 +34,16 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.batch.CreativePlanBatchMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
+import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
@@ -50,6 +53,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -78,7 +82,7 @@ public class UpgradeDataService {
     public void upgradeDataApp() {
         LambdaQueryWrapper<AppDO> appQuery = Wrappers.lambdaQuery(AppDO.class);
         // appQuery.eq(AppDO::getId, 839);
-        appQuery.eq(AppDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
+        // appQuery.eq(AppDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
         appQuery.eq(AppDO::getDeleted, Boolean.FALSE);
         List<AppDO> appList = appMapper.selectList(appQuery);
 
@@ -102,7 +106,7 @@ public class UpgradeDataService {
     public void upgradeDataAppMarket() {
         LambdaQueryWrapper<AppMarketDO> appQuery = Wrappers.lambdaQuery(AppMarketDO.class);
         // appQuery.eq(AppMarketDO::getId, 432);
-        appQuery.eq(AppMarketDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
+        // appQuery.eq(AppMarketDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
         appQuery.eq(AppMarketDO::getDeleted, Boolean.FALSE);
         List<AppMarketDO> appList = appMarketMapper.selectList(appQuery);
 
@@ -212,12 +216,81 @@ public class UpgradeDataService {
             if (stepWrapper == null) {
                 continue;
             }
-            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
-                handlerCustomStep(stepWrapper);
+
+//            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+//                handlerCustomStep(stepWrapper);
+//            }
+
+            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())
+                    || OpenAIChatActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())
+                    || PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                handlerStep(stepWrapper);
             }
         }
 
         workflowConfig.setSteps(stepList);
+    }
+
+    private void handlerStep(WorkflowStepWrapperRespVO customHandler) {
+        // 响应结果
+        WorkflowStepRespVO flowStep = customHandler.getFlowStep();
+
+        // 模型参数
+        VariableRespVO modelVariableResponse = flowStep.getVariable();
+        List<VariableItemRespVO> modelVariables = CollectionUtil.emptyIfNull(modelVariableResponse.getVariables());
+
+        List<VariableItemRespVO> modelVariableList = new ArrayList<>();
+
+        // 模型参数 prompt 修改
+        for (VariableItemRespVO variable : modelVariables) {
+            if ("model".equalsIgnoreCase(variable.getField())) {
+                variable.setOptions(AppUtils.llmModelTypeList());
+
+                if (ModelTypeEnum.GPT_3_5_TURBO.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.GPT35.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT35.name());
+                } else if (ModelTypeEnum.GPT_3_5_TURBO_16K.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.GPT35.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT35.name());
+                } else if (ModelTypeEnum.GPT_4.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.GPT4.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT4.name());
+                } else if (ModelTypeEnum.GPT_4_TURBO.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.GPT4.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT4.name());
+                } else if (ModelTypeEnum.GPT_4_32K.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.GPT4.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT4.name());
+                } else if (ModelTypeEnum.GPT_4_O.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.GPT4.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT4.name());
+                } else if (ModelTypeEnum.QWEN.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.QWEN.name());
+                    variable.setDefaultValue(ModelProviderEnum.QWEN.name());
+                } else if (ModelTypeEnum.QWEN_MAX.getName().equals(String.valueOf(variable.getValue()))) {
+                    variable.setValue(ModelProviderEnum.QWEN_MAX.name());
+                    variable.setDefaultValue(ModelProviderEnum.QWEN_MAX.name());
+                } else {
+                    variable.setValue(ModelProviderEnum.GPT35.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT35.name());
+                }
+            }
+            modelVariableList.add(variable);
+        }
+
+        List<VariableItemRespVO> collect = modelVariableList.stream()
+                .filter(item -> "model".equalsIgnoreCase(item.getField()))
+                .collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(collect)) {
+            VariableItemRespVO variableItemRespVO = RecommendVariableItemFactory.defModelVariable();
+            modelVariableList.add(variableItemRespVO);
+        }
+
+        modelVariableResponse.setVariables(modelVariableList);
+        flowStep.setVariable(modelVariableResponse);
+
+        customHandler.setFlowStep(flowStep);
     }
 
     private void handlerCustomStep(WorkflowStepWrapperRespVO customHandler) {
@@ -247,7 +320,7 @@ public class UpgradeDataService {
             }
             if ("MATERIAL_TYPE".equalsIgnoreCase(variable.getField())) {
                 variable.setOptions(MaterialTypeEnum.referOptions());
-                if("note".equalsIgnoreCase(String.valueOf(variable.getValue()))) {
+                if ("note".equalsIgnoreCase(String.valueOf(variable.getValue()))) {
                     variable.setValue(null);
                     variable.setDefaultValue(null);
                 }
