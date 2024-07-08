@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -68,9 +69,9 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public ModelTypeEnum getLlmModelType(String model, Long userId, List<Option> options) {
+    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType, List<Option> options) {
         Option modelOption = this.getLlmModelTypeOption(model, options);
-        return getLlmModelType(model, userId, modelOption);
+        return getLlmModelType(model, userId, appType, modelOption);
     }
 
     /**
@@ -78,7 +79,7 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public ModelTypeEnum getLlmModelType(String model, Long userId, Option option) {
+    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType, Option option) {
         if (Objects.isNull(option)) {
             throw ServiceExceptionUtil.invalidParamException("不支持的大模型类型【" + model + "】！");
         }
@@ -88,7 +89,7 @@ public class AppDefaultConfigManager {
             throw ServiceExceptionUtil.invalidParamException("不支持的大模型类型【" + model + "】！");
         }
         // 获取大模型
-        if (2 == TenantContextHolder.getTenantId()) {
+        if (!AppTypeEnum.MEDIA_MATRIX.equals(appType)) {
             // 权限相关
             if (StringUtils.isNotBlank(option.getPermissions())) {
                 String permissions = option.getPermissions();

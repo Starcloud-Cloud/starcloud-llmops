@@ -386,6 +386,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     protected String handlerLlmModelType(AppExecuteReqVO request) {
 
         List<Option> options = appDefaultConfigManager.defaultLlmModelTypeMap();
+        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
             ModelTypeEnum modelType;
@@ -393,7 +394,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 modelType = TokenCalculator.fromName(request.getAiModel());
             } else {
                 // 从配置中获取
-                modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), options);
+                modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), appTypeEnum, options);
             }
             // 更新步骤中的模型变量
             List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
@@ -438,7 +439,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 modelType = TokenCalculator.fromName(model);
             } else {
                 // 从配置中获取
-                modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), options);
+                modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), appTypeEnum, options);
             }
             // 更新变量值
             stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
