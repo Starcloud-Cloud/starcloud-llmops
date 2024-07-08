@@ -38,8 +38,6 @@ import java.io.File;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -205,20 +203,19 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     /**
      * 应用发布，直接复制一份新的素材库出来（版本管理）
      *
-     * @param materials 应用中素材库绑定关系
+     * @param appReqVO 应用中素材库绑定关系
      * @return 素材库 UID
      */
     @Override
-    public Set<String> materialLibraryCopy(List<Map<String, List<Long>>> materials) {
+    public List<String> materialLibraryCopy(List<MaterialLibrarySliceAppReqVO> appReqVO) {
         // 检查输入参数是否为空
-        if (materials == null || materials.isEmpty()) {
-            return Collections.emptySet();
+        if (appReqVO == null || appReqVO.isEmpty()) {
+            return Collections.emptyList();
         }
         // 使用Java 8 Stream API进行并行处理以提高性能
-        return materials.parallelStream()
+        return appReqVO.stream()
                 .map(this::processMaterialLibrary)
-                .flatMap(Set::stream) // 将所有Set合并为一个流
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
 
@@ -238,9 +235,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 // ========================================私有方法区 ========================================
 
 
-    private Set<String> processMaterialLibrary(Map<String, List<Long>> material) {
+    private String processMaterialLibrary(MaterialLibrarySliceAppReqVO appReqVO) {
         // 假设uid为素材库的唯一标识
-        String uid = material.keySet().iterator().next();
+        String uid = appReqVO.getLibraryUid();
 
         // 查询素材库的详细信息，根据实际情况处理可能的异常和空结果
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(uid);
@@ -248,12 +245,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             throw exception(111);
         }
 
-        // 创建新的素材库和素材的逻辑...
-        // 假设newUid为新创建的素材库的UID
-        String newUid = createNewMaterialLibrary(materialLibraryDO, material.values().iterator().next());
 
-        // 返回新创建的素材库的UID
-        return Collections.singleton(newUid);
+        // 创建并返回新的素材库的UID
+        return createNewMaterialLibrary(materialLibraryDO, appReqVO.getSliceIdList());
     }
 
     /**
@@ -275,12 +269,14 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryDO newMaterialLibraryDO = this.validateMaterialLibraryExists(materialLibrary);
 
-        if (MaterialFormatTypeEnum.isExcel(newMaterialLibraryDO.getFormatType())) {
-            // 复制表头
+        if (!MaterialFormatTypeEnum.isExcel(newMaterialLibraryDO.getFormatType())) {
+
 
             // 复制数据
+            return newMaterialLibraryDO.getUid();
 
         }
+        // 复制表头
 
         // 复制数据
 

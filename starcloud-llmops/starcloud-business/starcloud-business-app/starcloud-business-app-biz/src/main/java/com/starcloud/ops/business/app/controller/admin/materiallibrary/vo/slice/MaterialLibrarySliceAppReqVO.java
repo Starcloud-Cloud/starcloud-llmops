@@ -13,18 +13,17 @@ public class MaterialLibrarySliceAppReqVO {
 
     @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
     @NotNull(message = "素材库ID不能为空")
-    private Long libraryId;
+    private String libraryUid;
 
     @Schema(description = "素材编号列表", requiredMode = Schema.RequiredMode.REQUIRED, example = "19427")
-    private List<Long> ids;
+    private List<Long> sliceIdList;
 
     @Schema(description = "移除的素材编号列表", requiredMode = Schema.RequiredMode.REQUIRED, example = "19427")
-    private List<Long> removeIds;
+    private List<Long> removesliceIdList;
 
     @Schema(description = "排序字段")
     private String sortField;
 
     @Schema(description = "正序")
     private Boolean asc;
-
 }

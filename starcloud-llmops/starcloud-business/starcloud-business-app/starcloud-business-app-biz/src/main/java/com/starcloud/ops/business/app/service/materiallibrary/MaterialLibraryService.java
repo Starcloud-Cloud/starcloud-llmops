@@ -11,8 +11,6 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * 素材知识库 Service 接口
@@ -93,9 +91,9 @@ public interface MaterialLibraryService {
     /**
      * 应用发布，直接复制一份新的素材库出来（版本管理）
      *
-     * @param material 应用中绑定的数据
+     * @param appReqVO 应用中绑定的数据
      * @return 素材库 UID
      */
-    Set<String> materialLibraryCopy(List<Map<String, List<Long>>> material);
+    List<String> materialLibraryCopy(List<MaterialLibrarySliceAppReqVO> appReqVO);
 
 }
