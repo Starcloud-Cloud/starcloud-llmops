@@ -83,6 +83,7 @@ public class UpgradeDataService {
         LambdaQueryWrapper<AppDO> appQuery = Wrappers.lambdaQuery(AppDO.class);
         // appQuery.eq(AppDO::getId, 839);
         // appQuery.eq(AppDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
+        //appQuery.eq(AppDO::getUid, "05371147545a4648929e28e01c28d043");
         appQuery.eq(AppDO::getDeleted, Boolean.FALSE);
         List<AppDO> appList = appMapper.selectList(appQuery);
 
@@ -245,34 +246,46 @@ public class UpgradeDataService {
         for (VariableItemRespVO variable : modelVariables) {
             if ("model".equalsIgnoreCase(variable.getField())) {
                 variable.setOptions(AppUtils.llmModelTypeList());
+                String model = String.valueOf(variable.getValue());
+                if (ModelTypeEnum.GPT_3_5_TURBO.getName().equals(model) || ModelProviderEnum.GPT35.name().equals(model)) {
+                    variable.setValue(ModelProviderEnum.GPT35.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT35.name());
 
-                if (ModelTypeEnum.GPT_3_5_TURBO.getName().equals(String.valueOf(variable.getValue()))) {
+                } else if (ModelTypeEnum.GPT_3_5_TURBO_16K.getName().equals(model) || ModelProviderEnum.GPT35.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.GPT35.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT35.name());
-                } else if (ModelTypeEnum.GPT_3_5_TURBO_16K.getName().equals(String.valueOf(variable.getValue()))) {
-                    variable.setValue(ModelProviderEnum.GPT35.name());
-                    variable.setDefaultValue(ModelProviderEnum.GPT35.name());
-                } else if (ModelTypeEnum.GPT_4.getName().equals(String.valueOf(variable.getValue()))) {
+
+                } else if (ModelTypeEnum.GPT_4.getName().equals(model) || ModelProviderEnum.GPT4.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.GPT4.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT4.name());
-                } else if (ModelTypeEnum.GPT_4_TURBO.getName().equals(String.valueOf(variable.getValue()))) {
+
+                } else if (ModelTypeEnum.GPT_4_TURBO.getName().equals(model) || ModelProviderEnum.GPT4.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.GPT4.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT4.name());
-                } else if (ModelTypeEnum.GPT_4_32K.getName().equals(String.valueOf(variable.getValue()))) {
+
+                } else if (ModelTypeEnum.GPT_4_32K.getName().equals(model) || ModelProviderEnum.GPT4.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.GPT4.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT4.name());
-                } else if (ModelTypeEnum.GPT_4_O.getName().equals(String.valueOf(variable.getValue()))) {
+
+                } else if (ModelTypeEnum.GPT_4_O.getName().equals(model) || ModelProviderEnum.GPT4.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.GPT4.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT4.name());
-                } else if (ModelTypeEnum.QWEN.getName().equals(String.valueOf(variable.getValue()))) {
+
+                } else if (ModelTypeEnum.QWEN.getName().equals(model) || ModelProviderEnum.QWEN.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.QWEN.name());
                     variable.setDefaultValue(ModelProviderEnum.QWEN.name());
-                } else if (ModelTypeEnum.QWEN_MAX.getName().equals(String.valueOf(variable.getValue()))) {
+
+                } else if (ModelTypeEnum.QWEN_MAX.getName().equals(model) || ModelProviderEnum.QWEN_MAX.name().equals(model)) {
                     variable.setValue(ModelProviderEnum.QWEN_MAX.name());
                     variable.setDefaultValue(ModelProviderEnum.QWEN_MAX.name());
+
                 } else {
                     variable.setValue(ModelProviderEnum.GPT35.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT35.name());
+                }
+                if (CustomActionHandler.class.getSimpleName().equals(customHandler.getFlowStep().getHandler())) {
+                    variable.setValue(ModelProviderEnum.QWEN.name());
+                    variable.setDefaultValue(ModelProviderEnum.QWEN.name());
                 }
             }
             modelVariableList.add(variable);
@@ -284,6 +297,7 @@ public class UpgradeDataService {
 
         if (CollectionUtil.isEmpty(collect)) {
             VariableItemRespVO variableItemRespVO = RecommendVariableItemFactory.defModelVariable();
+            variableItemRespVO.setOrder(1);
             modelVariableList.add(variableItemRespVO);
         }
 

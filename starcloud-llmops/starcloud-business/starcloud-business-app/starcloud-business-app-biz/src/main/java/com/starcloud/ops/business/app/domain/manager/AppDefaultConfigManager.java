@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.manager;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -81,19 +82,23 @@ public class AppDefaultConfigManager {
         if (Objects.isNull(option)) {
             throw ServiceExceptionUtil.invalidParamException("不支持的大模型类型【" + model + "】！");
         }
-        // 获取大模型
+
         ModelTypeEnum modelType = TokenCalculator.fromName(String.valueOf(option.getValue()));
         if (Objects.isNull(modelType)) {
             throw ServiceExceptionUtil.invalidParamException("不支持的大模型类型【" + model + "】！");
         }
-        // 权限相关
-        if (StringUtils.isNotBlank(option.getPermissions())) {
-            String permissions = option.getPermissions();
-            if (!permissionApi.hasAnyPermissions(userId, permissions)) {
-                //没权限抛异常
-                throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, model);
+        // 获取大模型
+        if (2 == TenantContextHolder.getTenantId()) {
+            // 权限相关
+            if (StringUtils.isNotBlank(option.getPermissions())) {
+                String permissions = option.getPermissions();
+                if (!permissionApi.hasAnyPermissions(userId, permissions)) {
+                    //没权限抛异常
+                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, model);
+                }
             }
         }
+
         return modelType;
     }
 
