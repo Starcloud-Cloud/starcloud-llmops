@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -26,18 +25,18 @@ public class MaterialLibrarySliceSaveReqVO {
     private List<TableContent> content;
 
     @Schema(description = " 链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
-    @URL(message = "上传数据的格式必须是 URL")
+    // @URL(message = "上传数据的格式必须是 URL")
     private String url;
 
     @Schema(description = "是否开启数据共享", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "状态不能为空")
+    // @NotNull(message = "状态不能为空")
     private Boolean isShare;
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "状态不能为空")
+    // @NotNull(message = "状态不能为空")
     private Boolean status;
 
-    @Schema(description = "字符数", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
+    @Schema(description = "字符数", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "30132")
     private Long charCount;
 
 

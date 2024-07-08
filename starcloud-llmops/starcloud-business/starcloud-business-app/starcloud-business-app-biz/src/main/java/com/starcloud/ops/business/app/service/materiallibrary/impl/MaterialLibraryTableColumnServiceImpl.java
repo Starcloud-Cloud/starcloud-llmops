@@ -57,7 +57,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         if (!MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
             throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL);
         }
-        validateMaterialLibraryTableColumnName(createReqVO.getLibraryId(), Collections.singletonList(createReqVO.getColumnName()));
+        validateMaterialLibraryTableColumnName(createReqVO.getLibraryId(), null, Collections.singletonList(createReqVO.getColumnName()));
 
         // 填充ColumnCode
         generateColumnCode(Collections.singletonList(createReqVO));
@@ -80,7 +80,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 校验存在
         validateMaterialLibraryTableColumnExists(updateReqVO.getId());
         // 校验名称
-        validateMaterialLibraryTableColumnName(updateReqVO.getLibraryId(), Collections.singletonList(updateReqVO.getColumnName()));
+        validateMaterialLibraryTableColumnName(updateReqVO.getLibraryId(), updateReqVO.getId(), Collections.singletonList(updateReqVO.getColumnName()));
         // 填充ColumnCode
         generateColumnCode(Collections.singletonList(updateReqVO));
 
@@ -186,7 +186,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         }
         List<Long> collect = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getLibraryId).collect(Collectors.toList());
         List<String> columnNames = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getColumnName).collect(Collectors.toList());
-        validateMaterialLibraryTableColumnName(collect.get(0), columnNames);
+        validateMaterialLibraryTableColumnName(collect.get(0),null, columnNames);
 
         // 填充ColumnCode
         generateColumnCode(saveReqVOS);
@@ -247,8 +247,8 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
      *
      * @param libraryId 素材库编号
      */
-    private void validateMaterialLibraryTableColumnName(Long libraryId, List<String> columnNames) {
-        if (materialLibraryTableColumnMapper.selectCountByName(libraryId, columnNames) > 0) {
+    private void validateMaterialLibraryTableColumnName(Long libraryId, Long ignoreId, List<String> columnNames) {
+        if (materialLibraryTableColumnMapper.selectCountByName(libraryId, ignoreId, columnNames) > 0) {
             throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN, columnNames);
         }
     }

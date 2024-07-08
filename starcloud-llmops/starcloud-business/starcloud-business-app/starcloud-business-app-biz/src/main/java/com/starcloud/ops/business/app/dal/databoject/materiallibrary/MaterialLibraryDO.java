@@ -26,6 +26,8 @@ public class MaterialLibraryDO extends BaseDO {
      */
     @TableId
     private Long id;
+
+    private String uid;
     /**
      * 名称
      */

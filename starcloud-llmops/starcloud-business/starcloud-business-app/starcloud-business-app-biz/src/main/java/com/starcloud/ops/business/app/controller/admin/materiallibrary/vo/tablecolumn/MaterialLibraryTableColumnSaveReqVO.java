@@ -27,11 +27,11 @@ public class MaterialLibraryTableColumnSaveReqVO {
     // @NotEmpty(message = "列宽不能为空")
     private Integer columnWidth;
 
-    @Schema(description = "列Code", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    @Schema(description = "列Code", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "芋艿")
     private String columnCode;
 
     @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @NotEmpty(message = "类型不能为空")
+    @NotNull(message = "自定义字段类型不能为空")
     private Integer columnType;
 
     @Schema(description = "描述")
@@ -43,7 +43,7 @@ public class MaterialLibraryTableColumnSaveReqVO {
     private Boolean isRequired;
 
     @Schema(description = "序号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "序号不能为空")
+    @NotNull(message = "序号不能为空")
     private Long sequence;
 
 }

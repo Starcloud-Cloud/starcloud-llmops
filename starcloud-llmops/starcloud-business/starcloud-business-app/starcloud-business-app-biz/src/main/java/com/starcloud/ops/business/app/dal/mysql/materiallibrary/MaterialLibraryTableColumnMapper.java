@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 素材知识库表格信息 Mapper
@@ -45,11 +46,12 @@ public interface MaterialLibraryTableColumnMapper extends BaseMapperX<MaterialLi
         delete(wrapper);
     }
 
-    default int selectCountByName(Long libraryId, List<String> columnName) {
+    default int selectCountByName(Long libraryId, Long ignoreId, List<String> columnName) {
 
 
         return Math.toIntExact(selectCount(new LambdaQueryWrapper<>(MaterialLibraryTableColumnDO.class)
                 .eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId)
+                .notIn(Objects.nonNull(ignoreId), MaterialLibraryTableColumnDO::getId, ignoreId)
                 .in(MaterialLibraryTableColumnDO::getColumnName, columnName)));
     }
 }

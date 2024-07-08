@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.file.Paths;
 import java.util.List;
@@ -35,7 +36,7 @@ public class OperateImportUtil {
      *
      * @param file          文件
      * @param limitColSize  从第几行读取数据
-     * @param headRowNumber 表头得行数
+     * @param headRowNumber 表头行数
      */
     public static Set<String> readExcelHead(File file, Integer limitColSize, Integer headRowNumber) {
 
@@ -53,6 +54,48 @@ public class OperateImportUtil {
         return excelHeadEventListener.getHeads();
     }
 
+
+    /**
+     * 读取 Excel表头 【将数据都读取到内存中】
+     * 【注意】事务好控制，但是数据量太大绝对会出现内存溢出
+     *
+     * @param inputStream   文件
+     * @param limitColSize  从第几行读取数据
+     * @param headRowNumber 表头行数
+     */
+    public static Set<String> readExcelHead(InputStream inputStream, Integer limitColSize, Integer headRowNumber) {
+
+
+        // 初始化一个表头监听器
+        ExcelHeadEventListener excelHeadEventListener = new ExcelHeadEventListener(limitColSize);
+
+        // 读取表头并验证
+
+        EasyExcel.read(inputStream, excelHeadEventListener)
+                .headRowNumber(headRowNumber)
+                .sheet()
+                .doReadSync();
+
+        return excelHeadEventListener.getHeads();
+    }
+
+
+    /**
+     * 这种是 内存溢出出现的情况非常低，但是事务不好控制（主要是出错全部回滚）
+     *
+     * @param file          文件
+     * @param commonService 将数据存储到某张表的service【需要在业务service上实现这个接口，并重写saveBatchData方法】
+     * @param <T>           泛型类型
+     */
+    public static <T> void readExcel(InputStream inputStream, File[] files, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber) {
+        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files);
+
+        EasyExcel.read(inputStream, readExcelDataListener)
+                .customObject(configDTO)
+                .sheet()
+                .headRowNumber(headRowNumber)
+                .doRead();
+    }
 
     /**
      * 这种是 内存溢出出现的情况非常低，但是事务不好控制（主要是出错全部回滚）
