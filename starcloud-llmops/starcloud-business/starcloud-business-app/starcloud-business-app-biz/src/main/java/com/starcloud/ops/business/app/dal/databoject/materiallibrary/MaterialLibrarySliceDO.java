@@ -52,10 +52,7 @@ public class MaterialLibrarySliceDO extends BaseDO {
      * 序列
      */
     private Long sequence;
-    /**
-     * 链接
-     */
-    private String url;
+
     /**
      * 状态
      * <p>
@@ -83,29 +80,25 @@ public class MaterialLibrarySliceDO extends BaseDO {
         private String columnCode;
 
         /**
-         * 列ID
+         * 列名
          */
         private String columnName;
         /**
          * 值
          */
         private String value;
-
         /**
          * 描述
          */
         private String description;
-
         /**
          * 标签
          */
         private List<String> tags;
-
         /**
          * 扩展数据
          */
-        private String extend;
-
+        private Object extend;
 
     }
 

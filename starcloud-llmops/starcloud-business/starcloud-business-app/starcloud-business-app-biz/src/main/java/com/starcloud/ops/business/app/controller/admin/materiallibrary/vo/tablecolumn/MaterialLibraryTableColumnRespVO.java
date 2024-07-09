@@ -56,4 +56,9 @@ public class MaterialLibraryTableColumnRespVO {
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
 
+    @Schema(description = "字段是否为分组字段")
+    private Boolean isGroupColumn = false;
+
+
+
 }

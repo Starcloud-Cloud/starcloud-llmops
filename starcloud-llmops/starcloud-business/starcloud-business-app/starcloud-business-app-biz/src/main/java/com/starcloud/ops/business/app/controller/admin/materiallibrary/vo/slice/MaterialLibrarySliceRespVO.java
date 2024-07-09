@@ -41,10 +41,6 @@ public class MaterialLibrarySliceRespVO {
     @ExcelProperty("序列")
     private Long sequence;
 
-    @Schema(description = " 链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
-    @ExcelProperty(" 链接")
-    private String url;
-
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @ExcelProperty(value = "状态", converter = DictConvert.class)
     @DictFormat("common_status") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中

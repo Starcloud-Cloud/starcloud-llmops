@@ -46,4 +46,7 @@ public class MaterialLibraryTableColumnSaveReqVO {
     @NotNull(message = "序号不能为空")
     private Long sequence;
 
+    @Schema(description = "字段是否为分组字段")
+    private Boolean isGroupColumn = false;
+
 }

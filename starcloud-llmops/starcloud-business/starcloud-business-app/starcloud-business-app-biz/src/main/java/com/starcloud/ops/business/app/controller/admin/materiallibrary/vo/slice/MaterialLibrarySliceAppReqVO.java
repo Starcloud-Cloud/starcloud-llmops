@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice;
 
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -9,6 +10,11 @@ import java.util.List;
 @Schema(description = "管理后台 - 素材知识库数据新增/修改 Request VO")
 @Data
 public class MaterialLibrarySliceAppReqVO {
+
+
+    public static final String SORT_FIELD_USER_COUNT = "used_count";
+    public static final String SORT_FIELD_ORDER_COUNT = "create_time";
+    public static final String SORT_FIELD_PRICE = "update_time";
 
 
     @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
@@ -22,8 +28,6 @@ public class MaterialLibrarySliceAppReqVO {
     private List<Long> removesliceIdList;
 
     @Schema(description = "排序字段")
-    private String sortField;
+    private SortingField sortingField;
 
-    @Schema(description = "正序")
-    private Boolean asc;
 }

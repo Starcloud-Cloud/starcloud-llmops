@@ -35,12 +35,10 @@ public class MaterialLibraryTableColumnDO extends BaseDO {
      * 列名
      */
     private String columnName;
-
     /**
      * 列宽
      */
     private Integer columnWidth;
-
     /**
      * 列名
      */
@@ -61,5 +59,9 @@ public class MaterialLibraryTableColumnDO extends BaseDO {
      * 序号
      */
     private Long sequence;
+    /**
+     * 是否是分组字段
+     */
+    private Boolean isGroupColumn;
 
 }

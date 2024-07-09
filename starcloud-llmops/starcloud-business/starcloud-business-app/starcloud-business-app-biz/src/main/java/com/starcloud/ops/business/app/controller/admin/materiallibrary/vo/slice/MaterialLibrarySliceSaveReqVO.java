@@ -24,10 +24,6 @@ public class MaterialLibrarySliceSaveReqVO {
     @NotEmpty(message = "描述不能为空")
     private List<TableContent> content;
 
-    @Schema(description = " 链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
-    // @URL(message = "上传数据的格式必须是 URL")
-    private String url;
-
     @Schema(description = "是否开启数据共享", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     // @NotNull(message = "状态不能为空")
     private Boolean isShare;
@@ -67,6 +63,24 @@ public class MaterialLibrarySliceSaveReqVO {
          */
         @Schema(description = "列值", example = " 1")
         private String value;
+
+        /**
+         * 描述
+         */
+        @Schema(description = "描述", example = " 1")
+        private String description;
+
+        /**
+         * 标签
+         */
+        @Schema(description = "标签", example = " 1")
+        private List<String> tags;
+
+        /**
+         * 扩展数据
+         */
+        @Schema(description = "扩展数据", example = " 1")
+        private String extend;
     }
 
 }

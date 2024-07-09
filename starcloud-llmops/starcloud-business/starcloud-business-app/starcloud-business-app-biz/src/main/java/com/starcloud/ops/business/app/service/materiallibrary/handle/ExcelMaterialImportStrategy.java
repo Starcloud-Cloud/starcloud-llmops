@@ -20,9 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_EXPORT_FAIL_EXCEL_NO_SUPPRT;
 import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.TEMPLATE_FILE_TABLE_HEAD_CELL;
 
 /**
@@ -30,13 +28,15 @@ import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibra
  */
 @Slf4j
 @Component
-public class ExcelMaterialImportStrategy implements MaterialImportStrategy{
+public class ExcelMaterialImportStrategy implements MaterialImportStrategy {
 
+    @Resource
+    private MaterialLibrarySliceService materialLibrarySliceService;
 
     @Resource
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
-    @Resource
-    private MaterialLibrarySliceService materialLibrarySliceService;
+
+
     /**
      * @param importReqVO
      */
@@ -72,7 +72,5 @@ public class ExcelMaterialImportStrategy implements MaterialImportStrategy{
         // 异步存储数据
         OperateImportUtil.readExcel(excel.getInputStream(), null, importConfigDTO, materialLibrarySliceService, 2);
 
-
-        throw exception(MATERIAL_LIBRARY_EXPORT_FAIL_EXCEL_NO_SUPPRT);
     }
 }

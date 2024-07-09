@@ -1,10 +1,12 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
@@ -161,6 +163,18 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public void deleteBatch(List<Long> ids) {
         materialLibrarySliceMapper.deleteBatchIds(ids);
+    }
+
+    /**
+     * @param libraryId         素材库编号
+     * @param sliceIdList       选定的素材编号
+     * @param removeSliceIdList 需要移除的素材列表
+     * @param sortingField      排序字段
+     */
+    @Override
+    public List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removeSliceIdList, SortingField sortingField) {
+        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectSliceListByUserLibraryId(libraryId,sliceIdList,removeSliceIdList,sortingField);
+        return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
     }
 
 

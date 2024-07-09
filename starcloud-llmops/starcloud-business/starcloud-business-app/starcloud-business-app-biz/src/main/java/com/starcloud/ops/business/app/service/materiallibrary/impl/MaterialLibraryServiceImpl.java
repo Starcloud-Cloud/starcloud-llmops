@@ -15,10 +15,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.librar
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
@@ -69,18 +66,16 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
 
     @Resource
-    private MaterialLibrarySliceService materialLibrarySliceService;
+    private ApplicationContext applicationContext;
 
+    @Resource
+    private MaterialLibrarySliceService materialLibrarySliceService;
 
     @Resource
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
     private MaterialLibraryMapper materialLibraryMapper;
-
-
-    @Resource
-    private ApplicationContext applicationContext;
 
 
     @Override
@@ -103,6 +98,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public String createMaterialLibraryByApp(String appName) {
+        Assert.notBlank(appName, "应用名称不可以为空,创建素材库失败");
+
         MaterialLibrarySaveReqVO saveReqVO = new MaterialLibrarySaveReqVO();
         saveReqVO.setName(appName + "的初始素材库");
         saveReqVO.setIconUrl("AreaChartOutlined");
@@ -347,18 +344,28 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
 // ========================================私有方法区 ========================================
 
+    /**
+     * 查询指定素材库下的指定数据
+     *
+     * @param appReqVO 查询 VO
+     * @return MaterialLibrarySliceUseRespVO
+     */
     private MaterialLibrarySliceUseRespVO selectMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO) {
+        MaterialLibrarySliceUseRespVO sliceUseRespVO = new MaterialLibrarySliceUseRespVO();
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(appReqVO.getLibraryUid());
         if (materialLibraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
 
         if (MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
-
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
+            sliceUseRespVO.setTableMeta(BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnRespVO.class));
         }
 
+        List<MaterialLibrarySliceRespVO> sliceRespVOS = materialLibrarySliceService.selectSliceBySortingField(materialLibraryDO.getId(), appReqVO.getSliceIdList(), appReqVO.getRemovesliceIdList(), appReqVO.getSortingField());
 
-        return null;
+        sliceUseRespVO.setSliceRespVOS(sliceRespVOS);
+        return sliceUseRespVO;
     }
 
 

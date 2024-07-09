@@ -35,6 +35,9 @@ public class MaterialLibraryTableColumnPageReqVO extends PageParam {
     @Schema(description = "序号")
     private String sequence;
 
+    @Schema(description = "字段是否为分组字段")
+    private Boolean isGroupColumn = false;
+
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime[] createTime;

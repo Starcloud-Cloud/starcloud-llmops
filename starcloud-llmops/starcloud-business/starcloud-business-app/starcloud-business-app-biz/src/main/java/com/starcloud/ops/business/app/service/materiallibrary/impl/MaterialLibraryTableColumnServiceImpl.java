@@ -62,12 +62,16 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 填充ColumnCode
         generateColumnCode(Collections.singletonList(createReqVO));
 
+        validateMaterialLibraryTableColumnType(createReqVO);
+
         // 插入
         MaterialLibraryTableColumnDO materialLibraryTableColumn = BeanUtils.toBean(createReqVO, MaterialLibraryTableColumnDO.class);
         materialLibraryTableColumnMapper.insert(materialLibraryTableColumn);
         // 返回
         return materialLibraryTableColumn.getId();
     }
+
+
 
     @Override
     public void updateMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO updateReqVO) {
@@ -201,7 +205,13 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         return list.size();
     }
 
-//
+    private void validateMaterialLibraryTableColumnType(MaterialLibraryTableColumnSaveReqVO createReqVO) {
+
+        // if ()
+        // if (materialLibraryTableColumnMapper.selectCountByName(libraryId, ignoreId, columnNames) > 0) {
+        //     throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN, columnNames);
+        // }
+    }
 
     /**
      * 生成 列code

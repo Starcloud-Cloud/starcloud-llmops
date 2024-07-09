@@ -2,14 +2,19 @@ package com.starcloud.ops.business.app.dal.mysql.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,7 +32,6 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                 .eqIfPresent(MaterialLibrarySliceDO::getUsedCount, reqVO.getUsedCount())
                 .eqIfPresent(MaterialLibrarySliceDO::getContent, reqVO.getContent())
                 .eqIfPresent(MaterialLibrarySliceDO::getSequence, reqVO.getSequence())
-                .eqIfPresent(MaterialLibrarySliceDO::getUrl, reqVO.getUrl())
                 .eqIfPresent(MaterialLibrarySliceDO::getStatus, reqVO.getStatus())
                 .betweenIfPresent(MaterialLibrarySliceDO::getCreateTime, reqVO.getCreateTime())
                 .orderByDesc(MaterialLibrarySliceDO::getId));
@@ -71,13 +75,14 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         return selectList(wrapper);
     }
 
-
-
-
-
    default void deleteSliceByLibraryId(Long libraryId){
        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
        delete(wrapper);
    }
+
+    List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(@Param("libraryId") Long libraryId,
+                                                                       @Param("sliceIdList") Collection<Long> sliceIdList,
+                                                                       @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
+                                                                       @Param("sortingField") SortingField sortingField);
 }

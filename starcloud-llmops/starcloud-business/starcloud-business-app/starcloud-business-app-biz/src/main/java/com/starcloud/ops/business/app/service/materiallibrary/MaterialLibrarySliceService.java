@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
@@ -106,7 +108,16 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
 
     /**
      * 批量删除
+     *
      * @param ids
      */
     void deleteBatch(List<Long> ids);
+
+    /**
+     * @param libraryId         素材库编号
+     * @param sliceIdList       选定的素材编号
+     * @param removesliceIdList 需要移除的素材列表
+     * @param sortingField      排序字段
+     */
+    List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removesliceIdList, SortingField sortingField);
 }

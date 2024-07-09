@@ -30,9 +30,6 @@ public class MaterialLibrarySlicePageReqVO extends PageParam {
     @Schema(description = "序列")
     private Long sequence;
 
-    @Schema(description = " 链接", example = "https://www.iocoder.cn")
-    private String url;
-
     @Schema(description = "状态", example = "2")
     private Boolean status;
 

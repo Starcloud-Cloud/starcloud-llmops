@@ -6,6 +6,8 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -115,12 +117,19 @@ public class MaterialLibraryController {
     }
 
 
-
     @PostMapping("/test")
     @Operation(summary = "测试")
     @OperateLog(enable = false)
     public void exportTemplate(@Valid @RequestBody MaterialLibraryTestReqVO testReqVO) {
-        materialLibraryService.materialLibraryDataMigration(testReqVO.getName(), testReqVO.getSaveReqVOS(),testReqVO.getMaterialList());
+        materialLibraryService.materialLibraryDataMigration(testReqVO.getName(), testReqVO.getSaveReqVOS(), testReqVO.getMaterialList());
+    }
+
+
+    @PostMapping("/test2")
+    @Operation(summary = "测试")
+    @OperateLog(enable = false)
+    public CommonResult<List<MaterialLibrarySliceUseRespVO>> exportTemplate2(@Valid @RequestBody List<MaterialLibrarySliceAppReqVO> appReqVO) {
+        return success(materialLibraryService.getMaterialLibrarySliceList(appReqVO));
     }
 
 
