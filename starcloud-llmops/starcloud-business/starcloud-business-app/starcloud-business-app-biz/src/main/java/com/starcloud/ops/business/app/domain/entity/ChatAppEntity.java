@@ -365,7 +365,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
         // 获取模型类型
-        String llmModelType = request.getModelType();
+        String llmModelType = this.getChatConfig().getModelConfig().getProvider();
         //千问调用
         if (ModelTypeEnum.QWEN.getName().equals(llmModelType) || ModelTypeEnum.QWEN_MAX.getName().equals(llmModelType)) {
 
