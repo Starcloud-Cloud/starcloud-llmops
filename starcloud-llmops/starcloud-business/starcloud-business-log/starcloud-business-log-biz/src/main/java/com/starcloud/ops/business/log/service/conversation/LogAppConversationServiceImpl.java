@@ -83,7 +83,7 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
     public void updateAppLogConversationStatus(LogAppConversationStatusReqVO request) {
         appConversationMapper.update(null, Wrappers.lambdaUpdate(LogAppConversationDO.class)
                 .eq(LogAppConversationDO::getUid, request.getUid())
-                .set(LogAppConversationDO::getAiModel, request.getAiModel())
+                .set(StringUtils.isNotBlank(request.getAiModel()), LogAppConversationDO::getAiModel, request.getAiModel())
                 .set(LogAppConversationDO::getStatus, request.getStatus())
                 .set(LogAppConversationDO::getErrorCode, request.getErrorCode())
                 .set(LogAppConversationDO::getErrorMsg, request.getErrorMsg())

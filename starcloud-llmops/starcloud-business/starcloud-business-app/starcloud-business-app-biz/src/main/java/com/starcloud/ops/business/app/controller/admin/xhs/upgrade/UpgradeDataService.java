@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -243,7 +244,8 @@ public class UpgradeDataService {
         String handler = customHandler.getFlowStep().getHandler();
         if (MaterialActionHandler.class.getSimpleName().equals(handler)
                 || VariableActionHandler.class.getSimpleName().equals(handler)
-                || AssembleActionHandler.class.getSimpleName().equals(handler)) {
+                || AssembleActionHandler.class.getSimpleName().equals(handler)
+                || "XhsParseActionHandler".equals(handler)) {
             flowStep.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
             customHandler.setFlowStep(flowStep);
             return;
@@ -252,6 +254,7 @@ public class UpgradeDataService {
         // 模型参数 prompt 修改
         for (VariableItemRespVO variable : modelVariables) {
             if ("model".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(1);
                 variable.setOptions(AppUtils.llmModelTypeList());
                 String model = String.valueOf(variable.getValue());
                 if (ModelTypeEnum.GPT_3_5_TURBO.getName().equals(model) || ModelProviderEnum.GPT35.name().equals(model)) {
@@ -301,6 +304,15 @@ public class UpgradeDataService {
                     variable.setDefaultValue(ModelProviderEnum.QWEN.name());
                 }
             }
+            if ("max_tokens".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(2);
+            }
+            if ("temperature".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(3);
+            }
+            if ("prompt".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(4);
+            }
             modelVariableList.add(variable);
         }
 
@@ -313,7 +325,7 @@ public class UpgradeDataService {
             variableItemRespVO.setOrder(1);
             modelVariableList.add(variableItemRespVO);
         }
-
+        modelVariableList = modelVariableList.stream().sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
         modelVariableResponse.setVariables(modelVariableList);
         flowStep.setVariable(modelVariableResponse);
 
