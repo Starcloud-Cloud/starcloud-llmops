@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.DatesetEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.domain.entity.chat.WebSearchConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrePrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.ChatPrompt;
@@ -302,9 +303,9 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         // 设置模型到配置中
         Optional.ofNullable(this.getChatConfig())
                 .map(ChatConfigEntity::getModelConfig)
-                .ifPresent(modelConfig -> modelConfig.setProvider(llmModelType.getName()));
+                .ifPresent(modelConfig -> modelConfig.setProvider(request.getModelType()));
 
-        // 设置模型到配置中
+        // 设置模型到配置中`
         Optional.ofNullable(this.getChatConfig())
                 .map(ChatConfigEntity::getModelConfig)
                 .map(ModelConfigEntity::getCompletionParams)
@@ -367,7 +368,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         // 获取模型类型
         String llmModelType = this.getChatConfig().getModelConfig().getProvider();
         //千问调用
-        if (ModelTypeEnum.QWEN.getName().equals(llmModelType) || ModelTypeEnum.QWEN_MAX.getName().equals(llmModelType)) {
+        if (ModelProviderEnum.QWEN.name().equals(llmModelType) ||
+                ModelProviderEnum.QWEN_MAX.name().equals(llmModelType)) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
