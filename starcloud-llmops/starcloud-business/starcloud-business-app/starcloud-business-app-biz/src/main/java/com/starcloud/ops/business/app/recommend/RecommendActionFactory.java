@@ -254,7 +254,7 @@ public class RecommendActionFactory {
         step.setIcon("assemble");
         step.setTags(Collections.singletonList("Assemble"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
-        step.setVariable(RecommendVariableFactory.defOpenAiVariable(defaultPrompt, Boolean.FALSE));
+        step.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
         return step;
     }
 

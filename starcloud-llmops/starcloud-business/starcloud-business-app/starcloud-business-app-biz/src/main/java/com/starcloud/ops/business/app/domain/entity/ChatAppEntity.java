@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -37,6 +36,7 @@ import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
@@ -47,7 +47,6 @@ import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversa
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
@@ -62,6 +61,7 @@ import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -112,6 +112,10 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JsonIgnore
     @JSONField(serialize = false)
     private AppDefaultConfigManager appDefaultConfigManager = SpringUtil.getBean(AppDefaultConfigManager.class);
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
 
     @JsonIgnore
     @JSONField(serialize = false)
@@ -216,21 +220,21 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     /**
-     * 模版方法：获取应用的 AI 模型类型
+     * 模版方法：获取应用的 AI 模型类型 <br>
+     * 1. 只在创建会话记录时候使用
      *
      * @param request 请求参数
      */
     @Override
-    protected String handlerLlmModelType(ChatRequestVO request) {
-        String llmModelType = appDefaultConfigManager.defaultChatLlmModelType(request.getModelType());
-        // 获取模型
-        ModelProviderEnum modelType = IEnumable.nameOf(llmModelType, ModelProviderEnum.class);
-        if (modelType == null) {
-            //不合法参数
-            throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, llmModelType);
+    protected String getLlmModelType(ChatRequestVO request) {
+        if (StringUtils.isBlank(request.getModelType())) {
+            throw ServiceExceptionUtil.invalidParamException("请选择大模型类型！");
         }
-        request.setModelType(modelType.name());
-        return modelType.name();
+        // 获取到模型类型，从字典中获取
+        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
+        // 获取到执行的模型
+        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), appTypeEnum);
+        return llmModelType.getName();
     }
 
     @Override
@@ -264,8 +268,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     protected void beforeExecute(ChatRequestVO chatRequestVO) {
-        this.handlerLlmModelType(chatRequestVO);
-        this.updateChatAppConfig(chatRequestVO, this);
+        this.updateChatAppConfig(chatRequestVO);
     }
 
     /**
@@ -276,55 +279,37 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 1，查看当前应用配置，参数不能降级
      * 2，判断是否有升级后的权限
      */
-    private void updateChatAppConfig(ChatRequestVO chatRequest, ChatAppEntity appEntity) {
-
-        //用户已登录，判断是否有升级的权限
-        if (chatRequest.getUserId() != null) {
-
-            PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
-
-            if (StrUtil.isNotBlank(chatRequest.getModelType())) {
-                // 获取模型
-                ModelProviderEnum providerEnum = IEnumable.nameOf(chatRequest.getModelType(), ModelProviderEnum.class);
-                if (providerEnum == null) {
-                    //不合法参数
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
-                }
-
-                // 权限过滤，无权限不允许使用
-                if (StrUtil.isNotBlank(providerEnum.getPermissions())) {
-
-                    if (!permissionApi.hasAnyPermissions(chatRequest.getUserId(), providerEnum.getPermissions())) {
-                        //没权限抛异常
-                        throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
-                    }
-                }
-
-                // 设置模型到配置中
-                Optional.ofNullable(appEntity.getChatConfig())
-                        .map(ChatConfigEntity::getModelConfig)
-                        .ifPresent(modelConfig -> modelConfig.setProvider(providerEnum.name()));
-
-                // 设置模型到配置中
-                Optional.ofNullable(appEntity.getChatConfig())
-                        .map(ChatConfigEntity::getModelConfig)
-                        .map(ModelConfigEntity::getCompletionParams)
-                        .ifPresent(params -> params.setModel(providerEnum.getModelType().getName()));
+    private void updateChatAppConfig(ChatRequestVO request) {
+        // 搜索权限校验
+        if (Objects.nonNull(request.getWebSearch())) {
+            // 权限校验，没有权限，抛出异常
+            if (request.getWebSearch() && !permissionApi.hasAnyPermissions(request.getUserId(), "chat:config:websearch")) {
+                throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
             }
-
-
-            if (chatRequest.getWebSearch() != null) {
-                //设置开启，但是没权限
-                if (chatRequest.getWebSearch() && !permissionApi.hasAnyPermissions(chatRequest.getUserId(), "chat:config:websearch")) {
-                    //没权限抛异常
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
-                }
-
-                //设置开启 或 关闭了
-                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getWebSearchConfig).ifPresent(webSearchConfig -> webSearchConfig.setEnabled(chatRequest.getWebSearch()));
-            }
+            //设置开启 或 关闭了
+            Optional.ofNullable(this.getChatConfig())
+                    .map(ChatConfigEntity::getWebSearchConfig)
+                    .ifPresent(webSearchConfig -> webSearchConfig.setEnabled(request.getWebSearch()));
         }
 
+        if (StringUtils.isBlank(request.getModelType())) {
+            throw ServiceExceptionUtil.invalidParamException("请选择大模型类型！");
+        }
+        // 获取到模型类型，从字典中获取
+        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
+        // 获取到执行的模型
+        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), appTypeEnum);
+
+        // 设置模型到配置中
+        Optional.ofNullable(this.getChatConfig())
+                .map(ChatConfigEntity::getModelConfig)
+                .ifPresent(modelConfig -> modelConfig.setProvider(request.getModelType()));
+
+        // 设置模型到配置中`
+        Optional.ofNullable(this.getChatConfig())
+                .map(ChatConfigEntity::getModelConfig)
+                .map(ModelConfigEntity::getCompletionParams)
+                .ifPresent(params -> params.setModel(llmModelType.getName()));
     }
 
     /**
@@ -381,9 +366,10 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
         // 获取模型类型
-        String llmModelType = request.getModelType();
+        String llmModelType = this.getChatConfig().getModelConfig().getProvider();
         //千问调用
-        if (ModelProviderEnum.QWEN.name().equals(llmModelType) || ModelProviderEnum.QWEN_MAX.name().equals(llmModelType)) {
+        if (ModelProviderEnum.QWEN.name().equals(llmModelType) ||
+                ModelProviderEnum.QWEN_MAX.name().equals(llmModelType)) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 

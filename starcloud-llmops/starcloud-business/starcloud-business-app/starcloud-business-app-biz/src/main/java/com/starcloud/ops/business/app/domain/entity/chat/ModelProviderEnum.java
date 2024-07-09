@@ -3,6 +3,9 @@ package com.starcloud.ops.business.app.domain.entity.chat;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 /**
  * llm标识
@@ -56,17 +59,15 @@ public enum ModelProviderEnum implements IEnumable<Integer> {
     }
 
     /**
-     * 通过枚举名称获取枚举，找不到返回 GPT35
+     * 通过编码，获得枚举
      *
-     * @param name 枚举名称
+     * @param name 编码
      * @return 枚举
      */
     public static ModelProviderEnum fromName(String name) {
-        for (ModelProviderEnum value : ModelProviderEnum.values()) {
-            if (value.name().equalsIgnoreCase(name)) {
-                return value;
-            }
-        }
-        return GPT35;
+        return Arrays.stream(values())
+                .filter(e -> StringUtils.equals(e.name(), name))
+                .findFirst()
+                .orElse(GPT35);
     }
 }

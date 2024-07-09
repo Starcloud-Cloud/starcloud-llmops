@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,8 +74,8 @@ public class RecommendVariableFactory {
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
         modelVariable.setIsShow(Boolean.FALSE);
-        modelVariable.setDefaultValue(ModelTypeEnum.QWEN.getName());
-        modelVariable.setValue(ModelTypeEnum.QWEN.getName());
+        modelVariable.setDefaultValue(ModelProviderEnum.QWEN.name());
+        modelVariable.setValue(ModelProviderEnum.QWEN.name());
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
@@ -114,7 +114,7 @@ public class RecommendVariableFactory {
         xhsUrlVariable.setIsShow(Boolean.TRUE);
 
         VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Arrays.asList(
+        variable.setVariables(Collections.singletonList(
                 xhsUrlVariable
         ));
         return variable;

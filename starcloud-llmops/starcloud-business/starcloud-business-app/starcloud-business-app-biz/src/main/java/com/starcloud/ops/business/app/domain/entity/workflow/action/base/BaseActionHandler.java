@@ -35,7 +35,6 @@ import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Optional;
 
@@ -250,11 +249,6 @@ public abstract class BaseActionHandler extends Object {
     @JsonIgnore
     @JSONField(serialize = false)
     protected String getLlmModelType(AppContext context) {
-
-        String llmModelType = context.getLlmModelType();
-        if (StringUtils.isNotBlank(llmModelType)) {
-            return llmModelType;
-        }
 
         Optional<WorkflowStepWrapper> stepWrapperOptional = Optional.ofNullable(context)
                 .map(AppContext::getApp)

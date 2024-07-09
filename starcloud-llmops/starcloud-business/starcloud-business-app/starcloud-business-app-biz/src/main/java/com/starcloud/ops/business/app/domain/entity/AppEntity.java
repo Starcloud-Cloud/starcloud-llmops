@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
 import cn.kstry.framework.core.engine.facade.ReqBuilder;
@@ -103,6 +104,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private StoryEngine storyEngine = SpringUtil.getBean(StoryEngine.class);
+
+    /**
+     * 权限 API
+     */
+    private PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
 
     /**
      * 应用报警管理
@@ -235,7 +241,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             appContext.setConversationUid(request.getConversationUid());
             appContext.setSseEmitter(request.getSseEmitter());
             appContext.setMediumUid(request.getMediumUid());
-            appContext.setLlmModelType(request.getAiModel());
             appContext.setN(request.getN());
             appContext.setContinuous(request.getContinuous());
             if (StringUtils.isNotBlank(request.getStepId())) {
@@ -295,7 +300,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @Override
     protected void beforeExecute(AppExecuteReqVO request) {
-        this.handlerLlmModelType(request);
+        this.updateAppConfig(request);
         appStepStatusCache.init(request.getConversationUid(), this);
     }
 
@@ -371,66 +376,23 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
     /**
      * 模版方法：获取应用的 AI 模型类型。
-     * 处理之后的 AI 模型，同步到应用的 AI 模型变量中。方面节点执行时候，直接获取。
+     * 1. 只在创建会话记录时使用
      *
      * @param request 请求参数
      */
     @Override
-    protected String handlerLlmModelType(AppExecuteReqVO request) {
-        // 引用类别
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected String getLlmModelType(AppExecuteReqVO request) {
         AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
-        // 获取默认配置
-        Map<String, String> configuration = appDefaultConfigManager.configuration();
-
+        Map<String, String> modelMapping = appDefaultConfigManager.defaultLlmModelTypeMap();
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
-            // 获取到模型类型
-            String defaultModel = appDefaultConfigManager.defaultLlmModelType(request.getAiModel(), appTypeEnum, configuration);
-            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
-
-            // 更新步骤中的模型变量
-            List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
-            for (WorkflowStepWrapper stepWrapper : stepWrappers) {
-                if (stepWrapper == null) {
-                    continue;
-                }
-                VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
-                if (modeVariableItem == null) {
-                    continue;
-                }
-                // 更新变量
-                stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
-            }
-            // 更新配置
-            this.getWorkflowConfig().setSteps(stepWrappers);
-            // 更新请求
-            request.setAiModel(modelType.getName());
+            // 从配置中获取
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), appTypeEnum, modelMapping);
             // 返回模型类型
             return modelType.getName();
         }
-
-        // 首先更新应用配置信息
-        List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
-        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
-            if (stepWrapper == null) {
-                continue;
-            }
-            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
-            if (modeVariableItem == null) {
-                continue;
-            }
-            // 获取模型类型
-            String model = Optional.ofNullable(modeVariableItem.getValue())
-                    .map(String::valueOf)
-                    .orElse(null);
-            String defaultModel = appDefaultConfigManager.defaultLlmModelType(model, appTypeEnum, configuration);
-            ModelTypeEnum modelType = TokenCalculator.fromName(defaultModel);
-
-            // 更新变量值
-            stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
-        }
-        // 更新配置
-        this.getWorkflowConfig().setSteps(stepWrappers);
 
         // 如果没有传入步骤 ID，使用第一步参数信息
         if (StringUtils.isBlank(request.getStepId())) {
@@ -449,11 +411,73 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         }
 
         if (Objects.nonNull(modelVariable.getValue())) {
-            return String.valueOf(modelVariable.getValue());
+            String model = String.valueOf(modelVariable.getValue());
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), appTypeEnum, modelMapping);
+            return modelType.getName();
         }
 
         // 如果没有找到模型变量
         return null;
+    }
+
+    /**
+     * 更新应用配置
+     *
+     * @param request 请求参数
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected void updateAppConfig(AppExecuteReqVO request) {
+
+        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
+        Map<String, String> modelMapping = appDefaultConfigManager.defaultLlmModelTypeMap();
+        // 如果传入了 AI 模型类型，使用传入的
+        if (StringUtils.isNotBlank(request.getAiModel())) {
+            // 从配置中获取
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), appTypeEnum, modelMapping);
+            // 更新步骤中的模型变量
+            List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
+            for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+                if (stepWrapper == null) {
+                    continue;
+                }
+                VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+                if (modeVariableItem == null) {
+                    continue;
+                }
+                // 更新变量
+                stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
+            }
+            // 更新配置
+            this.getWorkflowConfig().setSteps(stepWrappers);
+            return;
+        }
+
+        // 更新应用配置信息
+        List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
+
+        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
+            if (stepWrapper == null) {
+                continue;
+            }
+
+            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+            if (modeVariableItem == null) {
+                continue;
+            }
+
+            // 获取模型类型
+            String model = Optional.ofNullable(modeVariableItem.getValue())
+                    .map(String::valueOf)
+                    .orElse(null);
+
+            // 从配置中获取
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), appTypeEnum, modelMapping);
+            // 更新变量值
+            stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
+        }
+        // 更新配置
+        this.getWorkflowConfig().setSteps(stepWrappers);
     }
 
     /**
@@ -594,7 +618,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setFromScene(appContext.getScene().name());
             messageCreateRequest.setMediumUid(appContext.getMediumUid());
-            messageCreateRequest.setAiModel(appContext.getLlmModelType());
             messageCreateRequest.setCreateTime(nodeTracking.getStartTime());
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
