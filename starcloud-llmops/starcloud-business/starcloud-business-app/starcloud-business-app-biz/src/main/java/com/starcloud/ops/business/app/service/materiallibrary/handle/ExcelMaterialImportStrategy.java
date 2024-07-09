@@ -26,17 +26,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_L
 import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.TEMPLATE_FILE_TABLE_HEAD_CELL;
 
 /**
- * Filename:     starcloud-llmops
- * Description:  com.starcloud.ops.business.app.service.materiallibrary.handle
- * Company:      mdc.ai Inc.
- *
- * @Author: djl
- * @version: 1.0
- * Create at:    2024/06/27  11:18
- * Modification History:
- * Date          Author      Version     Description
- * ------------------------------------------------------------------
- * 2024/06/27   AlanCusack    1.0         1.0 Version
+ * Excel 文件导入策略
  */
 @Slf4j
 @Component
@@ -62,7 +52,7 @@ public class ExcelMaterialImportStrategy implements MaterialImportStrategy{
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS;
         if (CollUtil.isEmpty(materialConfigList)) {
             // 新增表头数据
-            saveReqVOS = addMaterialTableColumn(newHeads, importReqVO.getLibraryId());
+            saveReqVOS = buildMaterialTableColumn(newHeads, importReqVO.getLibraryId());
         } else {
             // 获取初始表头数据
             Set<String> heads = materialConfigList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toSet());

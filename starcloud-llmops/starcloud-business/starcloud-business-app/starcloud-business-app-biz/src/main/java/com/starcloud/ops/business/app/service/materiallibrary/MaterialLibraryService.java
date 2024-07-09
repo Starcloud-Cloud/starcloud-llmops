@@ -3,14 +3,17 @@ package com.starcloud.ops.business.app.service.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 素材知识库 Service 接口
@@ -26,6 +29,16 @@ public interface MaterialLibraryService {
      * @return 编号
      */
     Long createMaterialLibrary(@Valid MaterialLibrarySaveReqVO createReqVO);
+
+
+    /**
+     * 通过应用名称创建素材知识库
+     *
+     * @param appName 应用名称
+     * @return 编号
+     */
+    String createMaterialLibraryByApp(String appName);
+
 
     /**
      * 更新素材知识库
@@ -48,6 +61,15 @@ public interface MaterialLibraryService {
      * @return 素材知识库
      */
     MaterialLibraryDO getMaterialLibrary(Long id);
+
+    /**
+     * 通过素材库UID 获取 素材库详情
+     *
+     * @param uid 素材库UID
+     * @return 素材库详情
+     */
+    MaterialLibraryRespVO getMaterialLibraryByUid(String uid);
+
 
     /**
      * 获得素材知识库分页
@@ -95,5 +117,16 @@ public interface MaterialLibraryService {
      * @return 素材库 UID
      */
     List<String> materialLibraryCopy(List<MaterialLibrarySliceAppReqVO> appReqVO);
+
+
+    /**
+     * 素材数据迁移
+     *
+     * @param appName               应用名称
+     * @param tableColumnSaveReqVOS 表头存储 VO
+     * @param materialList          素材数据
+     * @return 素材库 UID
+     */
+    String materialLibraryDataMigration(String appName, List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS, List<Map<String, Object>> materialList);
 
 }

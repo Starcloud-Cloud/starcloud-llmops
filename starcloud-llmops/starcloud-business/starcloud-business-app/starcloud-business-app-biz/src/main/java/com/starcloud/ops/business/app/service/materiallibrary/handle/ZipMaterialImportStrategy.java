@@ -82,8 +82,10 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS;
         if (CollUtil.isEmpty(materialConfigList)) {
             // 新增表头数据
-            saveReqVOS = addMaterialTableColumn(newHeads, importReqVO.getLibraryId());
+            saveReqVOS = buildMaterialTableColumn(newHeads, importReqVO.getLibraryId());
             materialLibraryTableColumnService.saveBatchData(saveReqVOS);
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(importReqVO.getLibraryId());
+            saveReqVOS= BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnSaveReqVO.class);
         } else {
             // 获取初始表头数据
             Set<String> heads = materialConfigList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toSet());
@@ -114,48 +116,5 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         // 检查文件名是否匹配
         return TEMPLATE_FILE_NAME.equalsIgnoreCase(FileNameUtil.getName(file));
     }
-
-
-    // /**
-    //  * @param materialTableColumn 素材库存在的表头
-    //  * @param importTableColumn   导入数据的表头
-    //  */
-    // private void validateMaterialTableColumn(Set<String> materialTableColumn, Set<String> importTableColumn) {
-    //     if (CollUtil.isEmpty(materialTableColumn)) {
-    //         return;
-    //     }
-    //     if (!CollUtil.isEqualList(materialTableColumn, importTableColumn)) {
-    //         throw new RuntimeException("表头与当前表结构不一致,列名称及顺序需保持一致\n" +
-    //                 "\n" +
-    //                 "表头需要与现有表格结构保持一致。");
-    //         // throw exception(EXCEL_HEADER_REQUIRED_FILED, subtract);
-    //     }
-    // }
-    //
-    // /**
-    //  * @param importTableColumn 导入数据的表头
-    //  */
-    // private List<MaterialLibraryTableColumnSaveReqVO> addMaterialTableColumn(Set<String> importTableColumn, Long libraryId) {
-    //     int sequence = 1;
-    //
-    //
-    //     List<MaterialLibraryTableColumnSaveReqVO> tableColumnDOS = new ArrayList<>();
-    //
-    //     for (String headName : importTableColumn) {
-    //
-    //         MaterialLibraryTableColumnSaveReqVO saveReqVO = new MaterialLibraryTableColumnSaveReqVO();
-    //
-    //         saveReqVO.setLibraryId(libraryId);
-    //         saveReqVO.setColumnName(headName);
-    //         saveReqVO.setColumnCode(null);
-    //         saveReqVO.setColumnType(ColumnTypeEnum.STRING.getCode());
-    //         saveReqVO.setDescription(null);
-    //         saveReqVO.setIsRequired(false);
-    //         saveReqVO.setSequence((long) sequence++);
-    //         tableColumnDOS.add(saveReqVO);
-    //     }
-    //     materialLibraryTableColumnService.saveBatchData(tableColumnDOS);
-    //     return tableColumnDOS;
-    // }
 
 }

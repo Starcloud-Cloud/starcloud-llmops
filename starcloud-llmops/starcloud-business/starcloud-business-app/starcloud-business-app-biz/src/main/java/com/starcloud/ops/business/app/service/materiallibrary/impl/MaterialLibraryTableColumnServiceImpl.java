@@ -178,9 +178,13 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
      */
     @Override
     public <T> Integer saveBatchData(List<T> list) {
+
+        List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(list, MaterialLibraryTableColumnDO.class);
+
+
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS;
         try {
-            saveReqVOS = BeanUtils.toBean(list, MaterialLibraryTableColumnSaveReqVO.class);
+            saveReqVOS = BeanUtils.toBean(bean, MaterialLibraryTableColumnSaveReqVO.class);
         } catch (RuntimeException e) {
             throw exception(MATERIAL_LIBRARY_TABLE_COULMN_BATCH_ADD_FAIL);
         }
@@ -191,7 +195,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 填充ColumnCode
         generateColumnCode(saveReqVOS);
 
-        List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
+        bean = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
 
         materialLibraryTableColumnMapper.insertBatch(bean);
         return list.size();

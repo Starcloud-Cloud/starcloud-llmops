@@ -20,6 +20,10 @@ public class MaterialLibraryTableColumnRespVO {
     @ExcelProperty("素材库ID")
     private Long libraryId;
 
+    @Schema(description = "列ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    @ExcelProperty("列ID")
+    private Integer columnId;
+
     @Schema(description = "列名", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     @ExcelProperty("列名")
     private String columnName;

@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 
 import javax.validation.Valid;
@@ -54,6 +56,15 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     List<MaterialLibrarySliceDO> getMaterialLibrarySliceByLibraryId(Long libraryId);
 
     /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @param slices    素材编号
+     * @return 素材知识库数据
+     */
+    List<MaterialLibrarySliceDO> getMaterialLibrarySlice(Long libraryId, List<Long> slices);
+
+    /**
      * 获得素材知识库数据分页
      *
      * @param pageReqVO 分页查询
@@ -93,5 +104,9 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     void deleteMaterialLibrarySliceByLibraryId(Long libraryId);
 
 
-
+    /**
+     * 批量删除
+     * @param ids
+     */
+    void deleteBatch(List<Long> ids);
 }

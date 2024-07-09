@@ -84,6 +84,18 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         return materialLibrarySliceMapper.selectListByLibraryId(libraryId);
     }
 
+    /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @param slices    素材编号
+     * @return 素材知识库数据
+     */
+    @Override
+    public List<MaterialLibrarySliceDO> getMaterialLibrarySlice(Long libraryId, List<Long> slices) {
+        return materialLibrarySliceMapper.selectList(libraryId, slices);
+    }
+
     @Override
     public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO) {
         return materialLibrarySliceMapper.selectPage(pageReqVO);
@@ -139,6 +151,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
         materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids 素材编列表
+     */
+    @Override
+    public void deleteBatch(List<Long> ids) {
+        materialLibrarySliceMapper.deleteBatchIds(ids);
     }
 
 

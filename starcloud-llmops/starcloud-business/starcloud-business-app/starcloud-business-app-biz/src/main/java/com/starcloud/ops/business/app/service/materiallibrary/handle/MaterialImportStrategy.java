@@ -36,7 +36,7 @@ public interface MaterialImportStrategy {
     /**
      * @param importTableColumn 导入数据的表头
      */
-    default List<MaterialLibraryTableColumnSaveReqVO>addMaterialTableColumn(Set<String> importTableColumn, Long libraryId) {
+    default List<MaterialLibraryTableColumnSaveReqVO> buildMaterialTableColumn(Set<String> importTableColumn, Long libraryId) {
         int sequence = 1;
 
 

@@ -81,6 +81,26 @@ public class MaterialLibrarySliceRespVO {
          */
         @Schema(description = "列值", example = " 1")
         private String value;
+
+        /**
+         * 描述
+         */
+        @Schema(description = "描述", example = " 1")
+        private String description;
+
+        /**
+         * 标签
+         */
+        @Schema(description = "标签", example = " 1")
+        private List<String> tags;
+
+        /**
+         * 扩展数据
+         */
+        @Schema(description = "扩展数据", example = " 1")
+        private String extend;
+
+
     }
 
 }

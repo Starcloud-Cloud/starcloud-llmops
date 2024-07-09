@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -78,6 +77,11 @@ public class MaterialLibrarySliceController {
     }
 
 
-
+    @PostMapping("/delete-batch")
+    @Operation(summary = "批量删除素材", description = "批量删除素材")
+    public CommonResult<Boolean> delete(@RequestBody List<Long> ids) {
+        materialLibrarySliceService.deleteBatch(ids);
+        return CommonResult.success(true);
+    }
 
 }

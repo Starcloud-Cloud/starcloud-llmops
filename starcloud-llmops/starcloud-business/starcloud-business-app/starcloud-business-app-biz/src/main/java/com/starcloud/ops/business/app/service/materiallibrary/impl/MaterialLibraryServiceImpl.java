@@ -3,17 +3,27 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
@@ -36,8 +46,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -83,6 +95,25 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         return materialLibrary.getId();
     }
 
+    /**
+     * 通过应用名称创建素材知识库
+     *
+     * @param appName 应用名称
+     * @return 编号
+     */
+    @Override
+    public String createMaterialLibraryByApp(String appName) {
+        MaterialLibrarySaveReqVO saveReqVO = new MaterialLibrarySaveReqVO();
+        saveReqVO.setName(appName + "的初始素材库");
+        saveReqVO.setIconUrl("AreaChartOutlined");
+        saveReqVO.setDescription(appName + "的初始素材库");
+        saveReqVO.setFormatType(MaterialFormatTypeEnum.EXCEL.getCode());
+        saveReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+
+        Long materialLibrary = this.createMaterialLibrary(saveReqVO);
+        return this.validateMaterialLibraryExists(materialLibrary).getUid();
+    }
+
     @Override
     public void updateMaterialLibrary(MaterialLibrarySaveReqVO updateReqVO) {
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(updateReqVO.getId());
@@ -121,6 +152,27 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public MaterialLibraryDO getMaterialLibrary(Long id) {
         return materialLibraryMapper.selectById(id);
+    }
+
+    /**
+     * 通过素材库UID 获取 素材库详情
+     *
+     * @param uid 素材库UID
+     * @return 素材库详情
+     */
+    @Override
+    public MaterialLibraryRespVO getMaterialLibraryByUid(String uid) {
+        Assert.notBlank(uid, "素材库 UID 不可以为空,获取素材详情失败");
+
+        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectById(uid);
+        // 数据转换
+        MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
+
+        if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
+            bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+        }
+        return bean;
     }
 
     @Override
@@ -200,6 +252,20 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     }
 
+
+    /**
+     * 获取应用执行的素材
+     *
+     * @param appReqVO 素材库编号
+     */
+    @Override
+    public List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(List<MaterialLibrarySliceAppReqVO> appReqVO) {
+        return appReqVO.stream()
+                .map(this::selectMaterialLibrarySliceList)
+                .collect(Collectors.toList());
+    }
+
+
     /**
      * 应用发布，直接复制一份新的素材库出来（版本管理）
      *
@@ -218,21 +284,82 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
                 .collect(Collectors.toList());
     }
 
-
     /**
-     * 获取应用执行的素材
+     * 素材数据迁移
      *
-     * @param appReqVO 素材库编号
+     * @param appName               应用名称
+     * @param tableColumnSaveReqVOS 表头存储 VO
+     * @param materialList          素材数据
+     * @return 素材库 UID
      */
     @Override
-    public List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(List<MaterialLibrarySliceAppReqVO> appReqVO) {
+    public String materialLibraryDataMigration(String appName, List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS, List<Map<String, Object>> materialList) {
 
+        MaterialLibrarySaveReqVO saveReqVO = new MaterialLibrarySaveReqVO();
 
-        return Collections.emptyList();
+        saveReqVO.setName(appName + "的初始素材库");
+        saveReqVO.setIconUrl("AreaChartOutlined");
+        saveReqVO.setDescription(appName + "的初始素材库");
+        saveReqVO.setFormatType(MaterialFormatTypeEnum.EXCEL.getCode());
+        saveReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+
+        Long materialLibrary = this.createMaterialLibrary(saveReqVO);
+        MaterialLibraryDO materialLibraryDO = this.validateMaterialLibraryExists(materialLibrary);
+
+        tableColumnSaveReqVOS.forEach(data -> data.setLibraryId(materialLibraryDO.getId()));
+        materialLibraryTableColumnService.saveBatchData(tableColumnSaveReqVOS);
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
+
+        if (materialList != null && !materialList.isEmpty()) {
+
+            List<MaterialLibrarySliceSaveReqVO> sliceDOList = new ArrayList<>();
+
+            materialList.forEach(material -> {
+                MaterialLibrarySliceSaveReqVO sliceSaveReqVO = new MaterialLibrarySliceSaveReqVO();
+                sliceSaveReqVO.setLibraryId(materialLibraryDO.getId());
+                sliceSaveReqVO.setStatus(true);
+                sliceSaveReqVO.setIsShare(false);
+
+                List<MaterialLibrarySliceSaveReqVO.TableContent> contents = new ArrayList<>();
+
+                material.forEach((key, value) -> {
+                    MaterialLibrarySliceSaveReqVO.TableContent tableContent = new MaterialLibrarySliceSaveReqVO.TableContent();
+
+                    MaterialLibraryTableColumnDO columnDO = findColumnDOByCode(tableColumnDOList, key);
+                    if (columnDO != null) {
+                        tableContent.setValue(ObjectUtil.toString(value));
+                        tableContent.setColumnCode(columnDO.getColumnCode());
+                        tableContent.setColumnName(columnDO.getColumnName());
+                        tableContent.setColumnId(columnDO.getId());
+                        contents.add(tableContent);
+                    }
+                });
+                sliceSaveReqVO.setContent(contents);
+                sliceDOList.add(sliceSaveReqVO);
+
+            });
+            materialLibrarySliceService.saveBatchData(sliceDOList);
+        }
+        return materialLibraryDO.getUid();
     }
 
 
 // ========================================私有方法区 ========================================
+
+    private MaterialLibrarySliceUseRespVO selectMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(appReqVO.getLibraryUid());
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+
+        if (MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
+
+        }
+
+
+        return null;
+    }
 
 
     private String processMaterialLibrary(MaterialLibrarySliceAppReqVO appReqVO) {
@@ -242,10 +369,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         // 查询素材库的详细信息，根据实际情况处理可能的异常和空结果
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(uid);
         if (materialLibraryDO == null) {
-            throw exception(111);
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
-
-
         // 创建并返回新的素材库的UID
         return createNewMaterialLibrary(materialLibraryDO, appReqVO.getSliceIdList());
     }
@@ -263,25 +388,72 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         saveReqVO.setIconUrl(materialLibraryDO.getIconUrl());
         saveReqVO.setDescription(materialLibraryDO.getDescription());
         saveReqVO.setFormatType(materialLibraryDO.getFormatType());
-        saveReqVO.setStatus(materialLibraryDO.getFormatType());
+        saveReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
 
         Long materialLibrary = this.createMaterialLibrary(saveReqVO);
-
         MaterialLibraryDO newMaterialLibraryDO = this.validateMaterialLibraryExists(materialLibrary);
 
+        // 获取原始素材数据
+        List<MaterialLibrarySliceDO> sliceOldDOList;
+        if (CollUtil.isEmpty(slices)) {
+            MaterialLibrarySlicePageReqVO pageReqVO = new MaterialLibrarySlicePageReqVO();
+            pageReqVO.setPageNo(1);
+            pageReqVO.setPageSize(100);
+            sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO).getList();
+        } else {
+            sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlice(newMaterialLibraryDO.getId(), slices);
+        }
+
+        // 非 excel 处理
         if (!MaterialFormatTypeEnum.isExcel(newMaterialLibraryDO.getFormatType())) {
-
-
-            // 复制数据
+            if (CollUtil.isNotEmpty(sliceOldDOList)) {
+                materialLibrarySliceService.saveBatchData(BeanUtils.toBean(sliceOldDOList, MaterialLibrarySliceSaveReqVO.class));
+            }
             return newMaterialLibraryDO.getUid();
-
         }
         // 复制表头
+        List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
+        // 复制表头数据
+        List<MaterialLibraryTableColumnBatchSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(oldTableColumnDOList, MaterialLibraryTableColumnBatchSaveReqVO.class);
+        newTableColumnSaveList.forEach(data -> data.setLibraryId(newMaterialLibraryDO.getId()));
+        materialLibraryTableColumnService.saveBatchData(newTableColumnSaveList);
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(newMaterialLibraryDO.getId());
 
         // 复制数据
+        sliceOldDOList.forEach(sliceData -> {
+            // 增加对getContent()返回值的空检查
+            List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
+            if (datasList != null) {
+                datasList.forEach(datas -> {
+                    // 增加对datas的空检查
+                    if (datas != null && datas.getColumnCode() != null) {
+                        // 假设newTableColumnDOList是已经定义好的，且通过getColumnCode()可以找到对应的ColumnDO
+                        // 这里需要一个机制来查找并获取对应的ColumnDO，例如通过getColumnCode()的值进行搜索
+                        MaterialLibraryTableColumnDO newColumnDO = findColumnDOByCode(tableColumnDOList, datas.getColumnCode());
+                        if (newColumnDO != null) {
+                            datas.setColumnId(newColumnDO.getId());
+                        }
+                    }
+                });
+            }
+        });
 
+        materialLibrarySliceService.saveBatchData(sliceOldDOList);
 
         return newMaterialLibraryDO.getUid();
+
+    }
+
+    private MaterialLibraryTableColumnDO findColumnDOByCode(List<MaterialLibraryTableColumnDO> tableColumnDOList, String columnCode) {
+        // 为了优化性能，这里可以考虑使用更高效的数据结构进行搜索，比如HashMap
+        // 由于示例中没有给出具体的ColumnDO实现，这里简单地使用循环遍历列表进行查找
+        for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
+            if (tableColumnDO.getColumnCode().equals(columnCode)) {
+                return tableColumnDO; // 找到匹配的ColumnDO，返回之
+            }
+        }
+        return null; // 如果没有找到匹配的ColumnDO，返回null
     }
 
 
