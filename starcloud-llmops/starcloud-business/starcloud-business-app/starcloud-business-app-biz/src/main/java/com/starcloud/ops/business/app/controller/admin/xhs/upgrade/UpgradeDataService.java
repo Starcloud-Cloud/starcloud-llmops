@@ -35,13 +35,15 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.batch.CreativePlanBatchMappe
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.OpenAIChatActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.recommend.RecommendVariableFactory;
 import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -51,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -221,12 +224,8 @@ public class UpgradeDataService {
 //            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
 //                handlerCustomStep(stepWrapper);
 //            }
-
-            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())
-                    || OpenAIChatActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())
-                    || PosterActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
-                handlerStep(stepWrapper);
-            }
+            String handler = stepWrapper.getFlowStep().getHandler();
+            handlerStep(stepWrapper);
         }
 
         workflowConfig.setSteps(stepList);
@@ -242,9 +241,20 @@ public class UpgradeDataService {
 
         List<VariableItemRespVO> modelVariableList = new ArrayList<>();
 
+        String handler = customHandler.getFlowStep().getHandler();
+        if (MaterialActionHandler.class.getSimpleName().equals(handler)
+                || VariableActionHandler.class.getSimpleName().equals(handler)
+                || AssembleActionHandler.class.getSimpleName().equals(handler)
+                || "XhsParseActionHandler".equals(handler)) {
+            flowStep.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
+            customHandler.setFlowStep(flowStep);
+            return;
+        }
+
         // 模型参数 prompt 修改
         for (VariableItemRespVO variable : modelVariables) {
             if ("model".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(1);
                 variable.setOptions(AppUtils.llmModelTypeList());
                 String model = String.valueOf(variable.getValue());
                 if (ModelTypeEnum.GPT_3_5_TURBO.getName().equals(model) || ModelProviderEnum.GPT35.name().equals(model)) {
@@ -279,6 +289,12 @@ public class UpgradeDataService {
                     variable.setValue(ModelProviderEnum.QWEN_MAX.name());
                     variable.setDefaultValue(ModelProviderEnum.QWEN_MAX.name());
 
+                } else if ("gpt-3.5-turbo-1106".equals(model)) {
+                    variable.setValue(ModelProviderEnum.GPT35.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT35.name());
+                } else if ("gpt-4-1106-preview".equals(model)) {
+                    variable.setValue(ModelProviderEnum.GPT4.name());
+                    variable.setDefaultValue(ModelProviderEnum.GPT4.name());
                 } else {
                     variable.setValue(ModelProviderEnum.GPT35.name());
                     variable.setDefaultValue(ModelProviderEnum.GPT35.name());
@@ -287,6 +303,15 @@ public class UpgradeDataService {
                     variable.setValue(ModelProviderEnum.QWEN.name());
                     variable.setDefaultValue(ModelProviderEnum.QWEN.name());
                 }
+            }
+            if ("max_tokens".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(2);
+            }
+            if ("temperature".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(3);
+            }
+            if ("prompt".equalsIgnoreCase(variable.getField())) {
+                variable.setOrder(4);
             }
             modelVariableList.add(variable);
         }
@@ -300,7 +325,7 @@ public class UpgradeDataService {
             variableItemRespVO.setOrder(1);
             modelVariableList.add(variableItemRespVO);
         }
-
+        modelVariableList = modelVariableList.stream().sorted(Comparator.comparingInt(VariableItemRespVO::getOrder)).collect(Collectors.toList());
         modelVariableResponse.setVariables(modelVariableList);
         flowStep.setVariable(modelVariableResponse);
 

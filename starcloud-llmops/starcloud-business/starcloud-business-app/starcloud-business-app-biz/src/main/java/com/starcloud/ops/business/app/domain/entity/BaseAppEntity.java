@@ -299,7 +299,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract String handlerLlmModelType(Q request);
+    protected abstract String getLlmModelType(Q request);
 
     /**
      * 模版方法：新增应用
@@ -579,7 +579,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         createRequest.setUpdater(String.valueOf(request.getUserId()));
         createRequest.setTenantId(this.getTenantId());
         createRequest.setFromScene(request.getScene());
-        createRequest.setAiModel(this.handlerLlmModelType(request));
+        createRequest.setAiModel(this.getLlmModelType(request));
         this.buildAppConversationLog(request, createRequest);
         logAppConversationService.createAppLogConversation(createRequest);
         return createRequest.getUid();
@@ -600,6 +600,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         updateRequest.setStatus(LogStatusEnum.SUCCESS.name());
         updateRequest.setErrorCode(null);
         updateRequest.setErrorMsg(null);
+        updateRequest.setAiModel(this.getLlmModelType(request));
         this.updateAppLogConversationStatus(updateRequest);
         log.info("应用执行成功：更新会话记录结束, 更新会话成功");
     }
@@ -621,6 +622,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         updateRequest.setStatus(LogStatusEnum.ERROR.name());
         updateRequest.setErrorCode(errorCode);
         updateRequest.setErrorMsg(errorMsg);
+        updateRequest.setAiModel(this.getLlmModelType(request));
         this.updateAppLogConversationStatus(updateRequest);
         log.info("应用执行失败：更新会话记录结束, 更新会话成功");
     }

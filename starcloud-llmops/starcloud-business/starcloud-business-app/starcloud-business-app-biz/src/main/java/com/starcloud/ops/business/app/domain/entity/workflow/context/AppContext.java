@@ -94,12 +94,6 @@ public class AppContext {
     private AppSceneEnum scene;
 
     /**
-     * 大模型类型
-     */
-    @Schema(description = "大模型类型")
-    private String llmModelType;
-
-    /**
      * AI模型返回的条数
      */
     @Schema(description = "AI模型返回的条数")

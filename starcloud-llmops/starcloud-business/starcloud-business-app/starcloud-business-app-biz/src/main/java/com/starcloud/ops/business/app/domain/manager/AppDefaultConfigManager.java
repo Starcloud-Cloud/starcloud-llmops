@@ -1,9 +1,7 @@
 package com.starcloud.ops.business.app.domain.manager;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -11,7 +9,6 @@ import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
-import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import dm.jdbc.util.StringUtil;
@@ -21,10 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 应用默认配置管理器
@@ -69,9 +63,9 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType, List<Option> options) {
-        Option modelOption = this.getLlmModelTypeOption(model, options);
-        return getLlmModelType(model, userId, appType, modelOption);
+    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType) {
+        Map<String, String> map = this.defaultLlmModelTypeMap();
+        return getLlmModelType(model, userId, appType, map);
     }
 
     /**
@@ -79,28 +73,23 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType, Option option) {
-        if (Objects.isNull(option)) {
-            throw ServiceExceptionUtil.invalidParamException("不支持的大模型类型【" + model + "】！");
-        }
+    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType, Map<String, String> map) {
 
-        ModelTypeEnum modelType = TokenCalculator.fromName(String.valueOf(option.getValue()));
-        if (Objects.isNull(modelType)) {
-            throw ServiceExceptionUtil.invalidParamException("不支持的大模型类型【" + model + "】！");
-        }
+        ModelProviderEnum modelProvider = ModelProviderEnum.fromName(model);
         // 获取大模型
         if (!AppTypeEnum.MEDIA_MATRIX.equals(appType)) {
             // 权限相关
-            if (StringUtils.isNotBlank(option.getPermissions())) {
-                String permissions = option.getPermissions();
+            if (StringUtils.isNotBlank(modelProvider.getPermissions())) {
+                String permissions = modelProvider.getPermissions();
                 if (!permissionApi.hasAnyPermissions(userId, permissions)) {
                     //没权限抛异常
                     throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, model);
                 }
             }
         }
-
-        return modelType;
+        String defaultModel = map.getOrDefault("DEFAULT", ModelTypeEnum.GPT_3_5_TURBO.getName());
+        String llmModelType = map.getOrDefault(modelProvider.name(), defaultModel);
+        return TokenCalculator.fromName(llmModelType);
     }
 
     /**
@@ -108,29 +97,7 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public Option getLlmModelTypeOption(String model) {
-        List<Option> options = defaultLlmModelTypeMap(configuration());
-        return getLlmModelTypeOption(model, options);
-    }
-
-    /**
-     * 获取默认模型类型映射关系
-     *
-     * @return 默认模型类型
-     */
-    public Option getLlmModelTypeOption(String model, List<Option> options) {
-        return options.stream()
-                .filter(option -> option.getLabel().equals(model))
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * 获取默认模型类型映射关系
-     *
-     * @return 默认模型类型
-     */
-    public List<Option> defaultLlmModelTypeMap() {
+    public Map<String, String> defaultLlmModelTypeMap() {
         return defaultLlmModelTypeMap(configuration());
     }
 
@@ -140,25 +107,11 @@ public class AppDefaultConfigManager {
      * @param configuration 配置
      * @return 默认模型类型
      */
-    public List<Option> defaultLlmModelTypeMap(Map<String, String> configuration) {
+    public Map<String, String> defaultLlmModelTypeMap(Map<String, String> configuration) {
         String modelMap = MapUtils.emptyIfNull(configuration)
                 .get(AppConstants.DEFAULT_LLM_MODEL_TYPE_MAP);
 
-        if (StringUtils.isBlank(modelMap)) {
-            return ModelProviderEnum.options();
-        }
-
-        try {
-            List<Option> options = JsonUtils.parseArray(modelMap, Option.class);
-            if (CollectionUtil.isEmpty(options)) {
-                return ModelProviderEnum.options();
-            }
-            return options.stream()
-                    .peek(option -> option.setPermissions(ModelProviderEnum.getPermissions(option.getLabel())))
-                    .collect(Collectors.toList());
-        } catch (Exception exception) {
-            return ModelProviderEnum.options();
-        }
+        return JsonUtils.parseMap(modelMap, String.class, String.class);
     }
 
     /**
@@ -198,5 +151,4 @@ public class AppDefaultConfigManager {
         return MapUtils.emptyIfNull(configuration)
                 .getOrDefault(CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT, RESPONSE_JSON_PARSER_PROMPT);
     }
-
 }
