@@ -19,6 +19,8 @@ public enum ColumnTypeEnum implements IntArrayValuable {
     NUMBER(3, "数字"),
     BOOLEAN(4, "布尔值"),
     IMAGE(5, "图片"),
+    DOCUMENT(6,"文档路径"),
+
     ;
 
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(ColumnTypeEnum::getCode).toArray();
