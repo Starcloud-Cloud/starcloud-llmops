@@ -6,9 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import org.apache.ibatis.annotations.Mapper;
@@ -56,33 +54,33 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         return selectList(wrapper);
     }
 
-    default Long selectSliceDataCountByLibraryId(Long libraryId){
+    default Long selectSliceDataCountByLibraryId(Long libraryId) {
         LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
         return selectCount(wrapper);
     }
 
-   default List<MaterialLibrarySliceDO> selectListByLibraryId(Long libraryId){
-       LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
-       wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
-       return selectList(wrapper);
-   }
+    default List<MaterialLibrarySliceDO> selectListByLibraryId(Long libraryId) {
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
+        return selectList(wrapper);
+    }
 
-    default List<MaterialLibrarySliceDO> selectList(Long libraryId,List<Long> ids){
+    default List<MaterialLibrarySliceDO> selectList(Long libraryId, List<Long> ids) {
         LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
         wrapper.in(MaterialLibrarySliceDO::getId, ids);
         return selectList(wrapper);
     }
 
-   default void deleteSliceByLibraryId(Long libraryId){
-       LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
-       wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
-       delete(wrapper);
-   }
+    default void deleteSliceByLibraryId(Long libraryId) {
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
+        delete(wrapper);
+    }
 
     List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(@Param("libraryId") Long libraryId,
-                                                                       @Param("sliceIdList") Collection<Long> sliceIdList,
-                                                                       @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
-                                                                       @Param("sortingField") SortingField sortingField);
+                                                                @Param("sliceIdList") Collection<Long> sliceIdList,
+                                                                @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
+                                                                @Param("sortingField") SortingField sortingField);
 }
