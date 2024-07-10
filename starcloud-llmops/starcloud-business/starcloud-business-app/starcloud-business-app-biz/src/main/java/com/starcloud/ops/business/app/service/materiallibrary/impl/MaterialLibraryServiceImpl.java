@@ -16,7 +16,6 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.librar
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -43,10 +42,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -386,6 +382,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
 
     private String processMaterialLibrary(MaterialLibrarySliceAppReqVO appReqVO) {
+        if (Objects.isNull(appReqVO.getLibraryUid())) {
+            throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+        }
         // 假设uid为素材库的唯一标识
         String uid = appReqVO.getLibraryUid();
 
@@ -422,9 +421,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             MaterialLibrarySlicePageReqVO pageReqVO = new MaterialLibrarySlicePageReqVO();
             pageReqVO.setPageNo(1);
             pageReqVO.setPageSize(100);
+            pageReqVO.setLibraryId(materialLibraryDO.getId());
             sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO).getList();
         } else {
-            sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlice(newMaterialLibraryDO.getId(), slices);
+            sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlice(materialLibraryDO.getId(), slices);
         }
 
         // 非 excel 处理
@@ -437,14 +437,19 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         // 复制表头
         List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
         // 复制表头数据
-        List<MaterialLibraryTableColumnBatchSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(oldTableColumnDOList, MaterialLibraryTableColumnBatchSaveReqVO.class);
-        newTableColumnSaveList.forEach(data -> data.setLibraryId(newMaterialLibraryDO.getId()));
+        List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(oldTableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+        newTableColumnSaveList.forEach(data -> {
+            data.setLibraryId(newMaterialLibraryDO.getId());
+            data.setId(null);
+        });
         materialLibraryTableColumnService.saveBatchData(newTableColumnSaveList);
 
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(newMaterialLibraryDO.getId());
 
         // 复制数据
         sliceOldDOList.forEach(sliceData -> {
+            sliceData.setId(null);
+            sliceData.setLibraryId(newMaterialLibraryDO.getId());
             // 增加对getContent()返回值的空检查
             List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
             if (datasList != null) {

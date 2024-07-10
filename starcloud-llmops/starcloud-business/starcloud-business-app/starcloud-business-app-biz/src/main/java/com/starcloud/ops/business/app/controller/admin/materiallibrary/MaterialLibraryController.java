@@ -146,4 +146,11 @@ public class MaterialLibraryController {
     }
 
 
+    @PostMapping("/test3")
+    @Operation(summary = "测试")
+    @OperateLog(enable = false)
+    public CommonResult<List<String>> materialLibraryCopy(@Valid @RequestBody List<MaterialLibrarySliceAppReqVO> appReqVO) {
+        return success(materialLibraryService.materialLibraryCopy(appReqVO));
+    }
+
 }
