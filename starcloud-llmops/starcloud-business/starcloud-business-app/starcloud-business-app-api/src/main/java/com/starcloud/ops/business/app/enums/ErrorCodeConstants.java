@@ -621,7 +621,7 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_IMPORT_FAIL_IMAGE_NO_SUPPRT = new ErrorCode(300702210, "暂不支持图片素材库导入");
     ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_EXCEL_NO_SUPPRT = new ErrorCode(300702211, "暂不支持Excel素材库导入");
 
-    ErrorCode MATERIAL_LIBRARY_CODE_EMPTY = new ErrorCode(300702212, "素材库编号为空，请核对后再试");
+    ErrorCode MATERIAL_LIBRARY_ID_EMPTY = new ErrorCode(300702212, "素材库编号为空，请核对后再试");
 
 
 }

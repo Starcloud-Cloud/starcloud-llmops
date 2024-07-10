@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_CODE_EMPTY;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_ID_EMPTY;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_SLICE_NOT_EXISTS;
 
 /**
@@ -111,7 +111,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO) {
         if (Objects.isNull(pageReqVO.getLibraryId())) {
-            throw exception(MATERIAL_LIBRARY_CODE_EMPTY);
+            throw exception(MATERIAL_LIBRARY_ID_EMPTY);
         }
         materialLibraryService.validateMaterialLibraryExists(pageReqVO.getLibraryId());
 
@@ -202,7 +202,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO) {
 
         if (StrUtil.isBlank(pageReqVO.getLibraryUid())) {
-            throw exception(MATERIAL_LIBRARY_CODE_EMPTY);
+            throw exception(MATERIAL_LIBRARY_ID_EMPTY);
         }
         MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(pageReqVO.getLibraryUid());
 

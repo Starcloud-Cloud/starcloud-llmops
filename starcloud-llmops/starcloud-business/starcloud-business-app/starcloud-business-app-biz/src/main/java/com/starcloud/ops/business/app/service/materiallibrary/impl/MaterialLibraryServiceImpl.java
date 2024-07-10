@@ -159,7 +159,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     public MaterialLibraryRespVO getMaterialLibraryByUid(String uid) {
         Assert.notBlank(uid, "素材库 UID 不可以为空,获取素材详情失败");
 
-        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectById(uid);
+        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(uid);
         // 数据转换
         MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
 
@@ -370,7 +370,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (materialLibraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
-
+        sliceUseRespVO.setLibraryId(sliceUseRespVO.getLibraryId());
         if (MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
             List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
             sliceUseRespVO.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
