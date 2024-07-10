@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.crawler.impl;
 
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -67,6 +68,8 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
                     .getJSONObject(XhsDetailConstants.NOTE_DETAIL_MAP)
                     .getJSONObject(noteId)
                     .getObject(XhsDetailConstants.NOTE, NoteDetail.class);
+
+            noteDetail.setDesc(ReUtil.replaceAll(noteDetail.getDesc(), XhsDetailConstants.TAGS, StringUtils.EMPTY));
             requestInfo.setNoteDetail(noteDetail);
             long end = System.currentTimeMillis();
             log.info("query note detail , rt = {} ms", end - start);
@@ -81,11 +84,9 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
             return requestDetail0(noteId, retry + 1);
         } catch (ServiceException e) {
             log.warn("处理小红书数据异常, {}", e.getMessage());
-            sendMessage(e.getMessage());
             throw exception(XHS_REMOTE_ERROR, e.getMessage());
         } catch (Exception e) {
             log.warn("处理小红书数据异常, {}", html, e);
-            sendMessage(e.getMessage());
             throw exception(XHS_REMOTE_ERROR, e.getMessage());
         }
     }
