@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.materiallibrary;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
@@ -7,13 +8,14 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 素材知识库数据 Mapper
@@ -79,8 +81,61 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         delete(wrapper);
     }
 
-    List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(@Param("libraryId") Long libraryId,
-                                                                @Param("sliceIdList") Collection<Long> sliceIdList,
-                                                                @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
-                                                                @Param("sortingField") SortingField sortingField);
+    default List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(Long libraryId,
+                                                                        Collection<Long> sliceIdList,
+                                                                        Collection<Long> removeSliceIdList,
+                                                                        SortingField sortingField) {
+
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
+        wrapper.in(Objects.nonNull(sliceIdList) && CollUtil.isNotEmpty(sliceIdList), MaterialLibrarySliceDO::getLibraryId, sliceIdList);
+        wrapper.notIn(Objects.nonNull(removeSliceIdList) && CollUtil.isNotEmpty(removeSliceIdList), MaterialLibrarySliceDO::getLibraryId, removeSliceIdList);
+
+        if (Objects.nonNull(sortingField)) {
+
+            switch (sortingField.getField()) {
+                case MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT:
+                    if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
+                        wrapper.orderByAsc(MaterialLibrarySliceDO::getUsedCount);
+                    } else {
+                        wrapper.orderByDesc(MaterialLibrarySliceDO::getUsedCount);
+                    }
+                    break;
+                case MaterialLibrarySliceAppReqVO.SORT_FIELD_CREATE_TIME:
+
+                    if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
+                        wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
+                    } else {
+                        wrapper.orderByDesc(MaterialLibrarySliceDO::getCreateTime);
+                    }
+                    break;
+                case MaterialLibrarySliceAppReqVO.SORT_FIELD_UPDATE_TIME:
+
+                    if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
+                        wrapper.orderByAsc(MaterialLibrarySliceDO::getUpdateTime);
+                    } else {
+                        wrapper.orderByDesc(MaterialLibrarySliceDO::getUpdateTime);
+                    }
+                    break;
+                default:
+                    wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
+                    break;
+            }
+        } else {
+            wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
+        }
+
+        return selectList(wrapper);
+    }
+
+
+    // List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(@Param("libraryId") Long libraryId,
+    //                                                             @Param("sliceIdList") Collection<Long> sliceIdList,
+    //                                                             @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
+    //                                                             @Param("sortingField") SortingField sortingField);
+    //
+    // List<Long> selectSliceIdsByUserLibraryId(@Param("libraryId") Long libraryId,
+    //                                          @Param("sliceIdList") Collection<Long> sliceIdList,
+    //                                          @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
+    //                                          @Param("sortingField") SortingField sortingField);
 }

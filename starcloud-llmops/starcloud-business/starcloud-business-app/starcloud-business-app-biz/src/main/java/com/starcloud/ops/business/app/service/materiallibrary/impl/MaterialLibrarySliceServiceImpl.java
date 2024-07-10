@@ -189,6 +189,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removeSliceIdList, SortingField sortingField) {
         List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectSliceListByUserLibraryId(libraryId, sliceIdList, removeSliceIdList, sortingField);
+
         return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
     }
 
