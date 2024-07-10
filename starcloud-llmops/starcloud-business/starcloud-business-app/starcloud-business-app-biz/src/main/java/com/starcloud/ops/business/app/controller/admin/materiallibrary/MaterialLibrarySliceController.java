@@ -37,6 +37,7 @@ public class MaterialLibrarySliceController {
         return success(materialLibrarySliceService.createMaterialLibrarySlice(createReqVO));
     }
 
+
     @PutMapping("/update")
     @Operation(summary = "更新素材知识库数据")
     public CommonResult<Boolean> updateMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceSaveReqVO updateReqVO) {
@@ -67,6 +68,15 @@ public class MaterialLibrarySliceController {
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
     }
+
+
+    @GetMapping("/page-uid")
+    @Operation(summary = "获得素材库 UID 素材知识库数据分页")
+    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePageByLibraryUid(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
+        PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePageByLibraryUid(pageReqVO);
+        return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
+    }
+
 
     @GetMapping("/list")
     @Operation(summary = "获得素材知识库数据列表")

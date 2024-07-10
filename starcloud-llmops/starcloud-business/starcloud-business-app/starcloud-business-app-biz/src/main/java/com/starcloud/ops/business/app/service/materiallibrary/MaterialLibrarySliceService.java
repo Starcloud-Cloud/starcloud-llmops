@@ -120,4 +120,12 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      * @param sortingField      排序字段
      */
     List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removesliceIdList, SortingField sortingField);
+
+    /**
+     * 通过素材库 UID 获取素材数据
+     *
+     * @param pageReqVO
+     * @return
+     */
+    PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO);
 }

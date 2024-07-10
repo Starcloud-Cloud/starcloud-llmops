@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
@@ -43,10 +44,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -191,6 +189,22 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         }
         return materialLibraryDO;
     }
+
+    /**
+     * 素材库验证
+     *
+     * @param uid 素材库编号
+     */
+    @Override
+    public MaterialLibraryDO validateMaterialLibraryExists(String uid) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(uid);
+
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+        return materialLibraryDO;
+    }
+
 
     /**
      * 导入素材库数据
@@ -359,7 +373,11 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         if (MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
             List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
-            sliceUseRespVO.setTableMeta(BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnRespVO.class));
+            sliceUseRespVO.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+        }
+
+        if (Objects.isNull(appReqVO.getSortingField())) {
+            appReqVO.setSortingField(new SortingField());
         }
 
         List<MaterialLibrarySliceRespVO> sliceRespVOS = materialLibrarySliceService.selectSliceBySortingField(materialLibraryDO.getId(), appReqVO.getSliceIdList(), appReqVO.getRemovesliceIdList(), appReqVO.getSortingField());

@@ -98,6 +98,13 @@ public class MaterialLibraryController {
         return success(bean);
     }
 
+    @GetMapping("/get-uid")
+    @Operation(summary = "通过 UID获得素材知识库")
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<MaterialLibraryRespVO> getMaterialLibraryByUid(@RequestParam("uid") String uid) {
+        return success(materialLibraryService.getMaterialLibraryByUid(uid));
+    }
+
 
     @PostMapping("/import")
     @Operation(summary = "导入数据")

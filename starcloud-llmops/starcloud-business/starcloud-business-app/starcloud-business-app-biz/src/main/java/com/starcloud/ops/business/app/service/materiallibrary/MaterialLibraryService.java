@@ -81,11 +81,19 @@ public interface MaterialLibraryService {
 
 
     /**
-     * 素材库验证-仅验证 不返回数据
+     * 素材库验证
      *
      * @param id 素材库编号
      */
     MaterialLibraryDO validateMaterialLibraryExists(Long id);
+
+
+    /**
+     * 素材库验证-仅验证 不返回数据
+     *
+     * @param uid 素材库编号
+     */
+    MaterialLibraryDO validateMaterialLibraryExists(String uid);
 
     /**
      * 导入素材库数据

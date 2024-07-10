@@ -20,6 +20,9 @@ public class MaterialLibrarySlicePageReqVO extends PageParam {
     @Schema(description = "素材库ID", example = "30132")
     private Long libraryId;
 
+    @Schema(description = "素材库ID", example = "30132")
+    private String libraryUid;
+
     @Schema(description = "字符数", example = "21593")
     private Long charCount;
 
