@@ -33,6 +33,10 @@ public class XhsNoteDTO {
     @Schema(description = "标签 多标签逗号分割")
     private String tags;
 
+    @JsonPropertyDescription("所有图片ocr内容 换行分割")
+    @Schema(description = "所有图片ocr内容")
+    private String allOcrContent;
+
     @JsonPropertyDescription("图片1")
     @Schema(description = "图片1")
     private OcrGeneralDTO image1;
