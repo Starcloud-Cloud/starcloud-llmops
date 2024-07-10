@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper">
+
+
+<!--    List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(@Param("libraryId") Long libraryId,-->
+<!--    @Param("sliceIdList") Collection<Long> sliceIdList,-->
+<!--    @Param("removeSliceIdList") Collection<Long> removeSliceIdList,-->
+<!--    @Param("sortingField") SortingField sortingField);-->
+    <select id="selectSliceListByUserLibraryId"
+
+            resultType="com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO">
+        SELECT s.id, s.library_id, s.char_count, s.used_count, s.content, s.sequence, s.status, s.is_share, s.create_time, s.update_time, s.creator, s.updater, s.deleted
+        FROM llm_material_library_slice as s
+
+        <where>
+            s.deleted = false
+            <if test="sliceIdList != null and sliceIdList.size() > 0">
+                and s.id in
+                <foreach collection="sliceIdList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+
+            <if test="removeSliceIdList != null and removeSliceIdList.size() > 0">
+                and s.id not in
+                <foreach collection="removeSliceIdList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+
+        <choose>
+            <when test="sortingField.field == 'used_count'">
+                ORDER BY used_count ${sortingField.order}
+            </when>
+            <when test="sortingField.field == 'create_time'">
+                ORDER BY create_time ${sortingField.order}
+            </when>
+            <when test="sortingField.field == 'update_time'">
+                ORDER BY update_time ${sortingField.order}
+            </when>
+            <otherwise>
+                ORDER BY s.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

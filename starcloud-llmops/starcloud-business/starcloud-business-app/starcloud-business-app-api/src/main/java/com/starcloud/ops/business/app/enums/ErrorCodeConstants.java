@@ -619,12 +619,31 @@ public interface ErrorCodeConstants {
     ErrorCode PIXABAY_API_KEYS_NETWORK_ERROR = new ErrorCode(300701203, "网络出小差了，请稍候再试");
 
 
-
     ErrorCode XHS_OCR_PARAM_REQUIRED = new ErrorCode(300701301, "缺少必填字段");
 
     ErrorCode IMAGE_OCR_ERROR = new ErrorCode(300701302, "ocr 异常：{}");
 
 
+    // ==========素材库 错误码 ==========
+    ErrorCode MATERIAL_LIBRARY_NOT_EXISTS = new ErrorCode(300702201, "素材库不存在，请刷新后再试");
+
+    ErrorCode MATERIAL_LIBRARY_FORAMT_NO_MODIFY = new ErrorCode(300702202, "素材库类型创建后不支持修改");
+
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS = new ErrorCode(300703203, "素材表列信息不存在");
+
+    ErrorCode MATERIAL_LIBRARY_SLICE_NOT_EXISTS = new ErrorCode(300704204, "素材数据不存在");
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL = new ErrorCode(300704205, "当前素材库非表格类型，无法自定义字段");
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN = new ErrorCode(300704206, "设置素材库列名失败，存在重复的字段名称:{}");
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_BATCH_ADD_FAIL = new ErrorCode(300704207, "批量设置素材列失败，类型转换异常");
+
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE = new ErrorCode(300702208, "导入素材库模板失败，非表格类型的素材库不支持导出模板");
+
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_COULMN_EMPTY = new ErrorCode(300702209, "导入素材库模板失败，不存在自定义字段");
+    ErrorCode MATERIAL_LIBRARY_IMPORT_FAIL_IMAGE_NO_SUPPRT = new ErrorCode(300702210, "暂不支持图片素材库导入");
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_EXCEL_NO_SUPPRT = new ErrorCode(300702211, "暂不支持Excel素材库导入");
 
 
 }

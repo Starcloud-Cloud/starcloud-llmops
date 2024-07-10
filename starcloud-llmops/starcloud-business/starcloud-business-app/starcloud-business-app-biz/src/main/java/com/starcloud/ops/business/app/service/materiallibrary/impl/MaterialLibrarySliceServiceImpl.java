@@ -1,0 +1,218 @@
+package com.starcloud.ops.business.app.service.materiallibrary.impl;
+
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
+import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_SLICE_NOT_EXISTS;
+
+/**
+ * 素材知识库数据 Service 实现类
+ *
+ * @author starcloudadmin
+ */
+@Service
+@Validated
+public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceService {
+
+    @Resource
+    private MaterialLibrarySliceMapper materialLibrarySliceMapper;
+
+    @Override
+    public Long createMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO createReqVO) {
+        // 插入
+        MaterialLibrarySliceDO materialLibrarySlice = BeanUtils.toBean(createReqVO, MaterialLibrarySliceDO.class);
+
+        long nextSequence = 1L;
+        // 设置数据最新的序号
+        MaterialLibrarySliceDO lastSequenceSliceDO = materialLibrarySliceMapper.selectLastSequence(materialLibrarySlice.getLibraryId());
+
+        if (lastSequenceSliceDO != null) {
+            nextSequence = nextSequence + 1;
+        }
+        materialLibrarySlice.setSequence(nextSequence);
+
+        materialLibrarySliceMapper.insert(materialLibrarySlice);
+        // 返回
+        return materialLibrarySlice.getId();
+    }
+
+    @Override
+    public void updateMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO updateReqVO) {
+        // 校验存在
+        validateMaterialLibrarySliceExists(updateReqVO.getId());
+        // 更新
+        MaterialLibrarySliceDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibrarySliceDO.class);
+        materialLibrarySliceMapper.updateById(updateObj);
+    }
+
+    @Override
+    public void deleteMaterialLibrarySlice(Long id) {
+        // 校验存在
+        validateMaterialLibrarySliceExists(id);
+        // 删除
+        materialLibrarySliceMapper.deleteById(id);
+    }
+
+
+    @Override
+    public MaterialLibrarySliceDO getMaterialLibrarySlice(Long id) {
+        return materialLibrarySliceMapper.selectById(id);
+    }
+
+    /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @return 素材知识库数据
+     */
+    @Override
+    public List<MaterialLibrarySliceDO> getMaterialLibrarySliceByLibraryId(Long libraryId) {
+        return materialLibrarySliceMapper.selectListByLibraryId(libraryId);
+    }
+
+    /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @param slices    素材编号
+     * @return 素材知识库数据
+     */
+    @Override
+    public List<MaterialLibrarySliceDO> getMaterialLibrarySlice(Long libraryId, List<Long> slices) {
+        return materialLibrarySliceMapper.selectList(libraryId, slices);
+    }
+
+    @Override
+    public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO) {
+        return materialLibrarySliceMapper.selectPage(pageReqVO);
+    }
+
+    /**
+     * 批量设置数据为共享数据
+     *
+     * @param shareReqVO 设置数据分享状态
+     */
+    @Override
+    public void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO) {
+        // 校验数据是否存在
+        shareReqVO.getId().forEach(this::validateMaterialLibrarySliceExists);
+        // 校验数据共享状态
+        shareReqVO.getId().forEach(slice -> validateSliceShareStatus(slice, shareReqVO.getIsShare()));
+        // 更新数据
+        LambdaUpdateWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, shareReqVO.getLibraryId());
+        wrapper.in(MaterialLibrarySliceDO::getLibraryId, shareReqVO.getId());
+        wrapper.set(MaterialLibrarySliceDO::getIsShare, shareReqVO.getIsShare());
+
+        materialLibrarySliceMapper.update(wrapper);
+    }
+
+    /**
+     * 获取素材库下共享数据列表
+     *
+     * @param libraryId 素材库 编号
+     * @return 共享数据列表
+     */
+    @Override
+    public List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId) {
+        return materialLibrarySliceMapper.selectSliceShareData(libraryId);
+    }
+
+    /**
+     * 获取共享数据列表
+     *
+     * @param libraryId 素材库 编号
+     * @return 共享数据列表
+     */
+    @Override
+    public Long getSliceDataCountByLibraryId(Long libraryId) {
+        return materialLibrarySliceMapper.selectSliceDataCountByLibraryId(libraryId);
+    }
+
+    /**
+     * 根据素材库编号 删除素材库数据
+     *
+     * @param libraryId 素材库编号
+     */
+    @Override
+    public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
+        materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids 素材编列表
+     */
+    @Override
+    public void deleteBatch(List<Long> ids) {
+        materialLibrarySliceMapper.deleteBatchIds(ids);
+    }
+
+    /**
+     * @param libraryId         素材库编号
+     * @param sliceIdList       选定的素材编号
+     * @param removeSliceIdList 需要移除的素材列表
+     * @param sortingField      排序字段
+     */
+    @Override
+    public List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removeSliceIdList, SortingField sortingField) {
+        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectSliceListByUserLibraryId(libraryId,sliceIdList,removeSliceIdList,sortingField);
+        return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
+    }
+
+
+    /**
+     * 校验数据是否存在
+     *
+     * @param id 数据编号
+     */
+    private void validateMaterialLibrarySliceExists(Long id) {
+        if (materialLibrarySliceMapper.selectById(id) == null) {
+            throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
+        }
+    }
+
+    /**
+     * 校验数据共享状态
+     *
+     * @param id          数据编号
+     * @param shareStatus 数据共享状态
+     */
+    private void validateSliceShareStatus(Long id, Boolean shareStatus) {
+
+        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
+        if (sliceDO.getIsShare() && shareStatus) {
+            throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
+        }
+    }
+
+    /**
+     * 批量保存数据
+     *
+     * @param list 要保存的数据
+     * @return Integer 保存成功的条数
+     */
+    @Override
+    public <T> Integer saveBatchData(List<T> list) {
+        materialLibrarySliceMapper.insertBatch(BeanUtils.toBean(list, MaterialLibrarySliceDO.class));
+        return list.size();
+
+    }
+}
