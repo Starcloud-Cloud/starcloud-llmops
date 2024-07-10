@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.IMAGE_OCR_ERROR;
@@ -67,13 +68,13 @@ public class XhsParseActionHandler extends BaseActionHandler {
         String noteId = XhsDetailConstants.parsingNoteId(xhsNoteUrl);
         // 小红书爬取
         ServerRequestInfo noteDetail = XHS_DUMP_SERVICE.requestDetail(noteId);
-
+        // 最多转换10张图片 其他丢弃
         XhsNoteDTO xhsNoteDTO = XhsNoteConvert.INSTANCE.convert(noteDetail.getNoteDetail());
         List<OcrGeneralDTO> ocrDTOList = xhsNoteDTO.listOcrDTO();
         long start = System.currentTimeMillis();
-        // 笔记中有大量图片ocr需改成并行 限制取10张图片
-        for (int i = 0; i < ocrDTOList.size() && i < 10; i++) {
-            OcrGeneralDTO ocrGeneralDTO = ocrDTOList.get(i);
+        // 笔记中有大量图片ocr需改成并行
+        StringJoiner sj = new StringJoiner("\n\n");
+        for (OcrGeneralDTO ocrGeneralDTO : ocrDTOList) {
             OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(ocrGeneralDTO.getUrl());
             // 转存 & ocr
             if (!ocrResult.isSuccess()) {
@@ -82,8 +83,9 @@ public class XhsParseActionHandler extends BaseActionHandler {
             BeanUtils.copyProperties(ocrResult.getOcrGeneralDTO(), ocrGeneralDTO, "url");
             String ossUrl = ImageUploadUtils.dumpToOss(ocrGeneralDTO.getUrl(), IdUtil.fastSimpleUUID(), "material" + File.separator + "xhsOcr");
             ocrGeneralDTO.setUrl(ossUrl);
+            sj.add(ocrGeneralDTO.getContent());
         }
-
+        xhsNoteDTO.setAllOcrContent(sj.toString());
         long end = System.currentTimeMillis();
         log.info("ocr and dump time {}", end - start);
         SseEmitter sseEmitter = context.getSseEmitter();
