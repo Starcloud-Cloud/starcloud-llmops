@@ -72,7 +72,6 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     }
 
 
-
     @Override
     public void updateMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO updateReqVO) {
 
@@ -141,6 +140,9 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     public List<MaterialLibraryTableColumnDO> getMaterialLibraryTableColumnByLibrary(Long libraryId) {
         // 明确校验一下
         Assert.notNull(libraryId, "获取素材库表头数据失败，素材库编号为空");
+
+        materialLibraryService.validateMaterialLibraryExists(libraryId);
+
         return materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(libraryId);
     }
 
@@ -194,7 +196,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         }
         List<Long> collect = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getLibraryId).collect(Collectors.toList());
         List<String> columnNames = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getColumnName).collect(Collectors.toList());
-        validateMaterialLibraryTableColumnName(collect.get(0),null, columnNames);
+        validateMaterialLibraryTableColumnName(collect.get(0), null, columnNames);
 
         // 填充ColumnCode
         generateColumnCode(saveReqVOS);
@@ -205,6 +207,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         return list.size();
     }
 
+    //  TODO 验证 文档类型的字段只有一个
     private void validateMaterialLibraryTableColumnType(MaterialLibraryTableColumnSaveReqVO createReqVO) {
 
         // if ()

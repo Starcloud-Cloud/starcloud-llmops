@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 
@@ -57,6 +59,12 @@ public class MaterialLibraryTableColumnController {
         return success(BeanUtils.toBean(materialLibraryTableColumn, MaterialLibraryTableColumnRespVO.class));
     }
 
+    @GetMapping("/list")
+    @Operation(summary = "获取表头数据列表")
+    public CommonResult<List<MaterialLibraryTableColumnRespVO>> updateBatch(@RequestParam("libraryId") Long libraryId) {
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
+        return success(BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnRespVO.class));
+    }
 
     @GetMapping("/update-batch")
     @Operation(summary = "批量更新表头数据")
@@ -64,18 +72,5 @@ public class MaterialLibraryTableColumnController {
         materialLibraryTableColumnService.updateBatchByLibraryId(batchSaveReqVO);
         return success(true);
     }
-
-
-    // @GetMapping("/export-excel")
-    // @Operation(summary = "导出素材知识库表格信息 Excel")
-    // @OperateLog(type = EXPORT)
-    // public void exportMaterialLibraryTableColumnExcel(@Valid MaterialLibraryTableColumnPageReqVO pageReqVO,
-    //           HttpServletResponse response) throws IOException {
-    //     pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-    //     List<MaterialLibraryTableColumnDO> list = materialLibraryTableColumnService.getMaterialLibraryTableColumnPage(pageReqVO).getList();
-    //     // 导出 Excel
-    //     ExcelUtils.write(response, "素材知识库表格信息.xls", "数据", MaterialLibraryTableColumnRespVO.class,
-    //                     BeanUtils.toBean(list, MaterialLibraryTableColumnRespVO.class));
-    // }
 
 }
