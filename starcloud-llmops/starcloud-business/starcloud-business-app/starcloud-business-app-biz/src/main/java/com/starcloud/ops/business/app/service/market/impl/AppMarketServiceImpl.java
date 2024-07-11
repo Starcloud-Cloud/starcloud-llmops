@@ -169,6 +169,8 @@ public class AppMarketServiceImpl implements AppMarketService {
                 if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
                     String libraryJson = creativeMaterialManager.createEmptyLibrary(appMarket.getName());
                     stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                    appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
+                    appMarketMapper.updateById(appMarket);
                 }
             }
         }

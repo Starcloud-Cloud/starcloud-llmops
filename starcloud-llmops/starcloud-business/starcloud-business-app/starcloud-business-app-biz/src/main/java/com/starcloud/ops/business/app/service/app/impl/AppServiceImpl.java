@@ -244,6 +244,8 @@ public class AppServiceImpl implements AppService {
                 if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
                     String libraryJson = creativeMaterialManager.createEmptyLibrary(app.getName());
                     stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                    app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
+                    appMapper.updateById(app);
                 }
             }
 

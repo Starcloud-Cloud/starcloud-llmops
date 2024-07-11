@@ -275,6 +275,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     if (StringUtils.isBlank(stepVariableValue)) {
                         String libraryJson = creativeMaterialManager.createEmptyLibrary(appInformation.getName());
                         stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                        planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                        creativePlanMaterialMapper.updateById(planMaterialDO);
                     }
                 }
             }
