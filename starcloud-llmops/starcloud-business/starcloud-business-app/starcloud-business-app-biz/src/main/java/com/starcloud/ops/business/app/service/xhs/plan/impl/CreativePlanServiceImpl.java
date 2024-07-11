@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfiguration
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
@@ -255,14 +256,28 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
                 if (Objects.nonNull(stepByHandler)) {
                     if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+                        planMaterialDO.setMaterialList(Collections.emptyList());
                         creativeMaterialManager.migrate(appInformation.getName(), stepByHandler, planMaterialDO.getMaterialList());
                     } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
                         // 我的应用 执行计划使用同一个素材库
                         WorkflowStepWrapperRespVO appMaterialStep = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
                         stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, appMaterialStep.getStepVariableValue(CreativeConstants.LIBRARY_QUERY));
+                        planMaterialDO.setMaterialList(Collections.emptyList());
                     }
                     planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
                     creativePlanMaterialMapper.updateById(planMaterialDO);
+                }
+            } else if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType()) &&
+                    CollectionUtil.isEmpty(planMaterialDO.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    String stepVariableValue = stepByHandler.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+                    if (StringUtils.isBlank(stepVariableValue)) {
+                        String libraryJson = creativeMaterialManager.createEmptyLibrary(appInformation.getName());
+                        stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                        planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                        creativePlanMaterialMapper.updateById(planMaterialDO);
+                    }
                 }
             }
 
