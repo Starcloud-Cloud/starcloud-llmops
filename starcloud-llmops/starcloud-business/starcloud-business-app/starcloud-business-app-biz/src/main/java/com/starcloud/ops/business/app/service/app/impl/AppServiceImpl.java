@@ -240,8 +240,11 @@ public class AppServiceImpl implements AppService {
                 app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
                 appMapper.updateById(app);
             } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                String libraryJson = creativeMaterialManager.createEmptyLibrary(app.getName());
-                stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                String stepVariableValue = stepByHandler.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+                if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
+                    String libraryJson = creativeMaterialManager.createEmptyLibrary(app.getName());
+                    stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                }
             }
 
 
