@@ -66,9 +66,9 @@ public class MaterialLibraryTableColumnController {
         return success(BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnRespVO.class));
     }
 
-    @GetMapping("/update-batch")
+    @PostMapping("/update-batch")
     @Operation(summary = "批量更新表头数据")
-    public CommonResult<Boolean> updateBatch(@Valid MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
+    public CommonResult<Boolean> updateBatch(@Valid @RequestBody  MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
         materialLibraryTableColumnService.updateBatchByLibraryId(batchSaveReqVO);
         return success(true);
     }

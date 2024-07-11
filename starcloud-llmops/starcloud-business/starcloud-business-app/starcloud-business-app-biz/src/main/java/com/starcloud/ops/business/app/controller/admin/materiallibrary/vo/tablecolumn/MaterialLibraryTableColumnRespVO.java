@@ -20,10 +20,6 @@ public class MaterialLibraryTableColumnRespVO {
     @ExcelProperty("素材库ID")
     private Long libraryId;
 
-    @Schema(description = "列ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
-    @ExcelProperty("列ID")
-    private Integer columnId;
-
     @Schema(description = "列名", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     @ExcelProperty("列名")
     private String columnName;
@@ -46,7 +42,7 @@ public class MaterialLibraryTableColumnRespVO {
 
     @Schema(description = "是否必须", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("是否必须")
-    private Integer isRequired;
+    private Boolean isRequired;
 
     @Schema(description = "序号", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("序号")
@@ -57,8 +53,7 @@ public class MaterialLibraryTableColumnRespVO {
     private LocalDateTime createTime;
 
     @Schema(description = "字段是否为分组字段")
-    private Boolean isGroupColumn = false;
-
+    private Integer isGroupColumn;
 
 
 }

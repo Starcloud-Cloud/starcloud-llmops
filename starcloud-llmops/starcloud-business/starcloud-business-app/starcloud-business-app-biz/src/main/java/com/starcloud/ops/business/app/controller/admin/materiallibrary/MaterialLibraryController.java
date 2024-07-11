@@ -54,7 +54,7 @@ public class MaterialLibraryController {
     @GetMapping("/page")
     @Operation(summary = "获得素材知识库分页")
     public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid MaterialLibraryPageReqVO pageReqVO) {
-        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
+        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(getLoginUserId(), pageReqVO);
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
         String nickname = adminUserApi.getUser(getLoginUserId()).getNickname();
         bean.getList().forEach(reqVO -> {
@@ -82,7 +82,7 @@ public class MaterialLibraryController {
     @Operation(summary = "删除素材知识库")
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<Boolean> deleteMaterialLibrary(@RequestParam("id") Long id) {
-        materialLibraryService.deleteMaterialLibrary(id);
+        materialLibraryService.deleteMaterialLibrary(getLoginUserId(), id);
         return success(true);
     }
 
@@ -90,7 +90,7 @@ public class MaterialLibraryController {
     @Operation(summary = "获得素材知识库")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     public CommonResult<MaterialLibraryRespVO> getMaterialLibrary(@RequestParam("id") Long id) {
-        MaterialLibraryDO materialLibrary = materialLibraryService.getMaterialLibrary(id);
+        MaterialLibraryDO materialLibrary = materialLibraryService.getMaterialLibrary(getLoginUserId(), id);
         // 数据转换
         MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
 
@@ -127,6 +127,14 @@ public class MaterialLibraryController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     public void exportTemplate(@RequestParam("id") Long id, HttpServletResponse response) {
         materialLibraryService.exportTemplate(id, response);
+    }
+
+
+    @PostMapping("/update-plugin-Config")
+    @Operation(summary = "通过 UID获得素材知识库")
+    public CommonResult<Boolean> updatePluginConfig(@Valid @RequestBody MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO) {
+        materialLibraryService.updatePluginConfig(getLoginUserId(), plugInConfigReqVO);
+        return success(true);
     }
 
 

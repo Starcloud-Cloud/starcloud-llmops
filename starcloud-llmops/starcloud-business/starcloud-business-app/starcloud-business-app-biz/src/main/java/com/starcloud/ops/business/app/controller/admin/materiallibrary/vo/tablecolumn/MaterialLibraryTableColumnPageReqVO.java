@@ -30,13 +30,13 @@ public class MaterialLibraryTableColumnPageReqVO extends PageParam {
     private String description;
 
     @Schema(description = "是否必须")
-    private Integer isRequired;
+    private Boolean isRequired;
 
     @Schema(description = "序号")
     private String sequence;
 
     @Schema(description = "字段是否为分组字段")
-    private Boolean isGroupColumn = false;
+    private Boolean isGroupColumn ;
 
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

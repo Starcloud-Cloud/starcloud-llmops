@@ -16,8 +16,8 @@ public class MaterialLibraryTableColumnBatchSaveReqVO {
     @NotNull(message = "素材库ID不能为空")
     private Long libraryId;
 
-    @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty
+    @Schema(description = "表头数据不能为空", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "表头数据不能为空")
     private List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOList;
 
 
