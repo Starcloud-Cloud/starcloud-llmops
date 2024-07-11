@@ -3,7 +3,7 @@ package com.starcloud.ops.business.app.service.app.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
@@ -43,6 +44,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
@@ -91,6 +93,10 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppMarketMapper appMarketMapper;
+
+    @Resource
+    private CreativeMaterialManager creativeMaterialManager;
+
 
     /**
      * 查询应用语言列表
@@ -207,7 +213,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO get(String uid) {
-        AppDO app = appMapper.getWithoutMaterial(uid);
+        AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
@@ -218,6 +224,18 @@ public class AppServiceImpl implements AppService {
                 // 替换原有的海报系统配置的变量
                 appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
             }
+            // 迁移旧素材数据
+            if (CollectionUtil.isNotEmpty(app.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    creativeMaterialManager.migrate(app.getName(), stepByHandler, app.getMaterialList());
+                    app.setMaterialList(Collections.emptyList());
+                    app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
+                    appMapper.updateById(app);
+                }
+            }
+
+
         }
         return appResponse;
     }

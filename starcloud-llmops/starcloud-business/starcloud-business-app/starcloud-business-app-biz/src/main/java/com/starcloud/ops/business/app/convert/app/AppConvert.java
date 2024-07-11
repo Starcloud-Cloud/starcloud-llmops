@@ -83,7 +83,6 @@ public interface AppConvert {
      */
     default AppDO convert(BaseAppEntity appEntity) {
         AppDO app = new AppDO();
-        app.setMaterialList(appEntity.getMaterialList());
         app.setUid(appEntity.getUid());
         app.setName(appEntity.getName());
         app.setModel(appEntity.getModel());
