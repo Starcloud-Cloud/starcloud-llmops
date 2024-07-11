@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -261,6 +262,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         } else if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
             // copy素材库 并绑定
             creativeMaterialManager.upgradeMaterialLibrary(app);
+            appPublish.setAppInfo(JsonUtils.toJsonString(app));
         }
 
         appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
