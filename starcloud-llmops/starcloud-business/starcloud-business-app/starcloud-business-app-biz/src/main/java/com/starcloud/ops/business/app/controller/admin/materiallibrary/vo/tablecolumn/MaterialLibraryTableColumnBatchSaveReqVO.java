@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.table
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
