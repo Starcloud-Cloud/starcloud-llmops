@@ -33,10 +33,12 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +62,8 @@ import java.util.stream.Collectors;
 public class CreativeUtils {
 
     private static final CreativeImageManager CREATIVE_IMAGE_MANAGER = SpringUtil.getBean(CreativeImageManager.class);
+
+    private static final CreativeMaterialManager CREATIVE_MATERIAL_MANAGER = SpringUtil.getBean(CreativeMaterialManager.class);
 
     /**
      * 获取段落方案步骤, 如果没有则返回null
@@ -428,7 +432,7 @@ public class CreativeUtils {
      * @param appMarketResponse 应用信息
      * @return 计划配置
      */
-    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse) {
+    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse, String source) {
         // 补充步骤默认变量
         appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
 
@@ -437,16 +441,16 @@ public class CreativeUtils {
         configuration.setMaterialList(Collections.emptyList());
         // 默认海报风格列表为空
         configuration.setImageStyleList(Collections.emptyList());
+
+        // 素材库 应用市场新建计划需要copy
+        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.nonNull(materialStepWrapper) && CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(source)) {
+            // copy 素材库
+            CREATIVE_MATERIAL_MANAGER.upgradeMaterialLibrary(appMarketResponse);
+        }
+
         // 默认应用信息为传入的应用信息
         configuration.setAppInformation(appMarketResponse);
-
-        // 素材列表配置
-        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-        if (Objects.nonNull(materialStepWrapper)) {
-            // 获取到素材库列表
-            List<Map<String, Object>> materialList = getMaterialListByStepWrapper(materialStepWrapper);
-            configuration.setMaterialList(materialList);
-        }
 
         // 海报风格配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());

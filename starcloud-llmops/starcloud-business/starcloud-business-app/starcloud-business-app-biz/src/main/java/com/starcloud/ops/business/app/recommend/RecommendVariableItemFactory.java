@@ -411,6 +411,23 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 素材库
+     * @return
+     */
+    public static VariableItemRespVO defMaterialLibraryVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.LIBRARY_QUERY);
+        variableItem.setLabel("素材库定义");
+        variableItem.setDescription("素材库定义");
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
      * xhs字段映射
      *
      * @return

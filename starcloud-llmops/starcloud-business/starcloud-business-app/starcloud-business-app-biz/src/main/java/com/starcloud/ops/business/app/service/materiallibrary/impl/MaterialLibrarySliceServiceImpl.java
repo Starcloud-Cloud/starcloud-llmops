@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -9,16 +10,21 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_ID_EMPTY;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_SLICE_NOT_EXISTS;
 
 /**
@@ -29,6 +35,10 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_L
 @Service
 @Validated
 public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceService {
+
+    @Resource
+    @Lazy
+    private MaterialLibraryService materialLibraryService;
 
     @Resource
     private MaterialLibrarySliceMapper materialLibrarySliceMapper;
@@ -100,6 +110,11 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     @Override
     public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO) {
+        if (Objects.isNull(pageReqVO.getLibraryId())) {
+            throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+        }
+        materialLibraryService.validateMaterialLibraryExists(pageReqVO.getLibraryId());
+
         return materialLibrarySliceMapper.selectPage(pageReqVO);
     }
 
@@ -173,8 +188,27 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removeSliceIdList, SortingField sortingField) {
-        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectSliceListByUserLibraryId(libraryId,sliceIdList,removeSliceIdList,sortingField);
+        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectSliceListByUserLibraryId(libraryId, sliceIdList, removeSliceIdList, sortingField);
+
         return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
+    }
+
+    /**
+     * 通过素材库 UID 获取素材数据
+     *
+     * @param pageReqVO
+     * @return
+     */
+    @Override
+    public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO) {
+
+        if (StrUtil.isBlank(pageReqVO.getLibraryUid())) {
+            throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+        }
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(pageReqVO.getLibraryUid());
+
+        return materialLibrarySliceMapper.selectPage(pageReqVO.setLibraryId(materialLibraryDO.getId()));
+
     }
 
 

@@ -25,9 +25,12 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_ID_EMPTY;
 
 
 @Tag(name = "管理后台 - 素材知识库")
@@ -98,6 +101,16 @@ public class MaterialLibraryController {
         return success(bean);
     }
 
+    @GetMapping("/get-uid")
+    @Operation(summary = "通过 UID获得素材知识库")
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<MaterialLibraryRespVO> getMaterialLibraryByUid(@RequestParam("uid") String uid) {
+        if (Objects.isNull(uid)) {
+            throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+        }
+
+        return success(materialLibraryService.getMaterialLibraryByUid(uid));
+    }
 
     @PostMapping("/import")
     @Operation(summary = "导入数据")
@@ -132,5 +145,12 @@ public class MaterialLibraryController {
         return success(materialLibraryService.getMaterialLibrarySliceList(appReqVO));
     }
 
+
+    @PostMapping("/test3")
+    @Operation(summary = "测试")
+    @OperateLog(enable = false)
+    public CommonResult<List<String>> materialLibraryCopy(@Valid @RequestBody List<MaterialLibrarySliceAppReqVO> appReqVO) {
+        return success(materialLibraryService.materialLibraryCopy(appReqVO));
+    }
 
 }

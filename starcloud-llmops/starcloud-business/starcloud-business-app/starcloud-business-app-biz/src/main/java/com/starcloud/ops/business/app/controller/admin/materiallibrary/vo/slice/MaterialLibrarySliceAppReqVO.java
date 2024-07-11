@@ -12,9 +12,9 @@ import java.util.List;
 public class MaterialLibrarySliceAppReqVO {
 
 
-    public static final String SORT_FIELD_USER_COUNT = "used_count";
-    public static final String SORT_FIELD_ORDER_COUNT = "create_time";
-    public static final String SORT_FIELD_PRICE = "update_time";
+    public static final String SORT_FIELD_USED_COUNT = "used_count";
+    public static final String SORT_FIELD_CREATE_TIME = "create_time";
+    public static final String SORT_FIELD_UPDATE_TIME = "update_time";
 
 
     @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")

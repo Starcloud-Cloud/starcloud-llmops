@@ -149,6 +149,11 @@ public interface CreativeConstants {
     String CUSTOM_MATERIAL_GENERATE_CONFIG = "CUSTOM_MATERIAL_GENERATE_CONFIG";
 
     /**
+     * 素材库配置
+     */
+    String LIBRARY_QUERY = "LIBRARY_QUERY";
+
+    /**
      * 参考素材JsonSchema
      */
     String MATERIAL_JSONSCHEMA = "MATERIAL_JSONSCHEMA";

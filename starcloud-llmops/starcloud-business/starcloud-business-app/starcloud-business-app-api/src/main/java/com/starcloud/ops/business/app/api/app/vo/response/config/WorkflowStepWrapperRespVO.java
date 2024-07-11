@@ -146,7 +146,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
      * @param key
      * @param value
      */
-    public void updateStepVariableValue(String key, String value) {
+    public void updateStepVariableValue(String key, Object value) {
         List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
         for (VariableItemRespVO variableItemRespVO : variables) {
             if (Objects.equals(variableItemRespVO.getField(), key)) {

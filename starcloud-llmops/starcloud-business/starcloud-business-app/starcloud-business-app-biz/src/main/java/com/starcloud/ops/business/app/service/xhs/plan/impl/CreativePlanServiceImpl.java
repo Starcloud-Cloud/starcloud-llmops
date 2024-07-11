@@ -24,13 +24,7 @@ import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContent
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.api.xhs.plan.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
@@ -45,6 +39,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
@@ -78,12 +73,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -258,6 +248,23 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
             appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
             configuration.setAppInformation(appInformation);
+            // 迁移旧素材数据
+            CreativePlanMaterialDO planMaterialDO = creativePlanMaterialMapper.getMaterial(plan.getUid());
+            if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType()) &&
+                    CollectionUtil.isNotEmpty(planMaterialDO.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+                        creativeMaterialManager.migrate(appInformation.getName(), stepByHandler, planMaterialDO.getMaterialList());
+                    } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
+                        // 我的应用 执行计划使用同一个素材库
+                        WorkflowStepWrapperRespVO appMaterialStep = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                        stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, appMaterialStep.getStepVariableValue(CreativeConstants.LIBRARY_QUERY));
+                    }
+                    planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                    creativePlanMaterialMapper.updateById(planMaterialDO);
+                }
+            }
 
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
             List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
@@ -268,7 +275,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 新的创作计划配置
-        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse);
+        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse, query.getSource());
 
         // 创建一个计划
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
@@ -282,7 +289,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
         creativePlan.setUpdateTime(LocalDateTime.now());
-        creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(query.getAppUid(), query.getSource()));
         creativePlanMaterialMapper.insert(creativePlan);
         return get(creativePlan.getUid());
     }
@@ -528,13 +534,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
         // 如果全量覆盖，否则直接使用最新应用配置
         if (isFullCover) {
-            // 把最新的素材库步骤填充到配置中
             configuration.setMaterialList(Collections.emptyList());
-            creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(request.getAppUid(), plan.getSource()));
             // 把最新的海报步骤填充到配置中
             WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
             List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListByStepWrapper(posterStepWrapper);
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
+            // copy素材库
+            creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket);
+
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
@@ -664,7 +671,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate();
         // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getPlanMaterialList(creativePlan.getUid());
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation());
 
         /*
          * 获取计划应用信息

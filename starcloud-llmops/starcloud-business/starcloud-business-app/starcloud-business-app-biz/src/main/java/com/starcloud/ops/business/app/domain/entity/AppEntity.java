@@ -46,7 +46,8 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.exception.ActionResponseException;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -97,6 +98,10 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppStepStatusCache appStepStatusCache = SpringUtil.getBean(AppStepStatusCache.class);
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static CreativeMaterialManager creativeMaterialManager = SpringUtil.getBean(CreativeMaterialManager.class);
 
     /**
      * 工作流引擎
@@ -501,6 +506,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected void doInsert() {
+        // 绑定空素材库
+        WorkflowStepWrapper materialStep = this.getWorkflowConfig().getStepWrapperWithoutError(MaterialActionHandler.class);
+        if (Objects.nonNull(materialStep)) {
+            String emptyLibrary = creativeMaterialManager.createEmptyLibrary(this.getName());
+            materialStep.putVariable(CreativeConstants.LIBRARY_QUERY, emptyLibrary);
+        }
         appRepository.insert(this);
     }
 

@@ -43,7 +43,6 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
@@ -82,10 +81,6 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
     private AppLogService appLogService;
-
-
-    @Resource
-    private CreativeMaterialManager creativeMaterialManager;
 
     @Override
     public Map<String, Object> metadata() {
@@ -354,11 +349,6 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
             // 默认返回 false 显示列表
             return false;
         }
-    }
-
-    @Override
-    public List<Map<String, Object>> listMaterial(String uid) {
-        return creativeMaterialManager.getPlanMaterialList(uid);
     }
 
     /**
