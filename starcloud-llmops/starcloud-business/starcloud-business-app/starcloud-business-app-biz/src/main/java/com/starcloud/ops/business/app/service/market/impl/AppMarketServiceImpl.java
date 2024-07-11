@@ -42,6 +42,7 @@ import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -156,14 +157,16 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppMarketRespVO response = AppMarketConvert.INSTANCE.convertResponse(appMarket);
 
         // 迁移旧素材数据
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType()) &&
-                CollectionUtil.isNotEmpty(appMarket.getMaterialList())) {
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType())) {
             WorkflowStepWrapperRespVO stepByHandler = response.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-            if (Objects.nonNull(stepByHandler)) {
+            if (CollectionUtil.isNotEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
                 creativeMaterialManager.migrate(appMarket.getName(), stepByHandler, appMarket.getMaterialList());
                 appMarket.setMaterialList(Collections.emptyList());
                 appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
                 appMarketMapper.updateById(appMarket);
+            } else if (CollectionUtil.isEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                String libraryJson = creativeMaterialManager.createEmptyLibrary(appMarket.getName());
+                stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
             }
         }
 

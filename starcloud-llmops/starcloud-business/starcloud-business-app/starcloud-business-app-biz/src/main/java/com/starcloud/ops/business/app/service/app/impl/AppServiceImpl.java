@@ -37,14 +37,8 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.app.*;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
@@ -239,14 +233,15 @@ public class AppServiceImpl implements AppService {
                 appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
             }
             // 迁移旧素材数据
-            if (CollectionUtil.isNotEmpty(app.getMaterialList())) {
-                WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-                if (Objects.nonNull(stepByHandler)) {
-                    creativeMaterialManager.migrate(app.getName(), stepByHandler, app.getMaterialList());
-                    app.setMaterialList(Collections.emptyList());
-                    app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
-                    appMapper.updateById(app);
-                }
+            WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+            if (CollectionUtil.isNotEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                creativeMaterialManager.migrate(app.getName(), stepByHandler, app.getMaterialList());
+                app.setMaterialList(Collections.emptyList());
+                app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
+                appMapper.updateById(app);
+            } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                String libraryJson = creativeMaterialManager.createEmptyLibrary(app.getName());
+                stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
             }
 
 
