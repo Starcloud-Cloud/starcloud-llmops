@@ -18,11 +18,11 @@ public class MaterialLibrarySaveReqVO {
     private String name;
 
     @Schema(description = "图标链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
-    @NotEmpty(message = "图标链接不能为空")
+    // @NotEmpty(message = "图标链接不能为空")
     private String iconUrl;
 
     @Schema(description = "描述", requiredMode = Schema.RequiredMode.REQUIRED, example = "你猜")
-    @NotEmpty(message = "描述不能为空")
+    // @NotEmpty(message = "描述不能为空")
     private String description;
 
     @Schema(description = "素材类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
