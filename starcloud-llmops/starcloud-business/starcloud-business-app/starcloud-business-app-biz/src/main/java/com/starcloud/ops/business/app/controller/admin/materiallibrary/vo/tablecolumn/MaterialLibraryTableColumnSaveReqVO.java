@@ -15,7 +15,7 @@ public class MaterialLibraryTableColumnSaveReqVO {
     private Long id;
 
     @Schema(description = "素材库ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30175")
-    @NotNull(message = "素材库ID不能为空")
+    // @NotNull(message = "素材库ID不能为空")
     private Long libraryId;
 
     @Schema(description = "列名", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
@@ -47,6 +47,6 @@ public class MaterialLibraryTableColumnSaveReqVO {
     private Long sequence;
 
     @Schema(description = "字段是否为分组字段")
-    private Boolean isGroupColumn = false;
+    private Boolean isGroupColumn;
 
 }

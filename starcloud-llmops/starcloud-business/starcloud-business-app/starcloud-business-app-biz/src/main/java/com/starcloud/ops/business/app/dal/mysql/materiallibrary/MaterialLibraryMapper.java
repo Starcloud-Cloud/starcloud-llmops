@@ -15,8 +15,9 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface MaterialLibraryMapper extends BaseMapperX<MaterialLibraryDO> {
 
-    default PageResult<MaterialLibraryDO> selectPage(MaterialLibraryPageReqVO reqVO) {
+    default PageResult<MaterialLibraryDO> selectPage(Long userId,MaterialLibraryPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<MaterialLibraryDO>()
+                .eqIfPresent(MaterialLibraryDO::getCreator, userId)
                 .likeIfPresent(MaterialLibraryDO::getName, reqVO.getName())
                 .eqIfPresent(MaterialLibraryDO::getIconUrl, reqVO.getIconUrl())
                 .eqIfPresent(MaterialLibraryDO::getDescription, reqVO.getDescription())
@@ -29,5 +30,13 @@ public interface MaterialLibraryMapper extends BaseMapperX<MaterialLibraryDO> {
     default MaterialLibraryDO selectByUid(String uid) {
         return selectOne(new LambdaQueryWrapperX<MaterialLibraryDO>()
                 .eq(MaterialLibraryDO::getUid, uid));
+    }
+
+
+    default MaterialLibraryDO selectByIdAndUser(Long userId, Long Id) {
+        return selectOne(new LambdaQueryWrapperX<MaterialLibraryDO>()
+                .eq(MaterialLibraryDO::getId, Id)
+                .eq(MaterialLibraryDO::getCreator, userId)
+        );
     }
 }

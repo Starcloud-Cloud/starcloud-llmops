@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -24,7 +25,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
@@ -154,13 +154,14 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public void updateBatchByLibraryId(MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS = batchSaveReqVO.getTableColumnSaveReqVOList();
+        generateColumnCode(saveReqVOS);
         List<MaterialLibraryTableColumnDO> newList = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
         // 第一步，对比新老数据，获得添加、修改、删除的列表
         List<MaterialLibraryTableColumnDO> oldList = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(batchSaveReqVO.getLibraryId());
 
         List<List<MaterialLibraryTableColumnDO>> diffList =
                 diffList(oldList, newList, // id 不同，就认为是不同的记录
-                        (oldVal, newVal) -> Objects.nonNull(newVal.getId()));
+                        (oldVal, newVal) -> ObjectUtil.equal(oldVal.getId(), newVal.getId()));
 
         // 第二步，批量添加、修改、删除
         if (CollUtil.isNotEmpty(diffList.get(0))) {

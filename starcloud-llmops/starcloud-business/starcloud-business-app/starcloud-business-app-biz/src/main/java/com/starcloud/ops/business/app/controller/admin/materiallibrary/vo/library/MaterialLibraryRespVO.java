@@ -56,7 +56,7 @@ public class MaterialLibraryRespVO {
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @ExcelProperty("状态")
-    private Integer status;
+    private Boolean status;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")

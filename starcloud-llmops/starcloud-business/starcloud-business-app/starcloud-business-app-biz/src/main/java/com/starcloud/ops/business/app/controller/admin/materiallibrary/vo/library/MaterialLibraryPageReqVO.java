@@ -29,8 +29,11 @@ public class MaterialLibraryPageReqVO extends PageParam {
     @Schema(description = "素材类型", example = "2")
     private Integer formatType;
 
+    @Schema(description = "素材库类型", example = "2")
+    private Integer libraryType;
+
     @Schema(description = "状态", example = "2")
-    private Integer status;
+    private Boolean status;
 
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

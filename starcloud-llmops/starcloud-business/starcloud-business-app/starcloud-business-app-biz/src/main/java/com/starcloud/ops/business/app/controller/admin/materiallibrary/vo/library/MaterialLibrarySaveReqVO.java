@@ -31,6 +31,6 @@ public class MaterialLibrarySaveReqVO {
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @NotNull(message = "状态不能为空")
-    private Integer status;
+    private Boolean status;
 
 }
