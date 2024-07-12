@@ -14,6 +14,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.SimpleTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
@@ -632,7 +633,15 @@ public class JsonSchemaUtils {
             schema.setDescription("" + "-" + columnRespVO.getColumnType());
             properties.put(columnRespVO.getColumnCode(), schema);
             if (ColumnTypeEnum.IMAGE.getCode().equals(columnRespVO.getColumnType())) {
-                JsonSchema ocrSchema = generateJsonSchema(OcrGeneralDTO.class);
+                ObjectSchema ocrSchema = (ObjectSchema) generateJsonSchema(OcrGeneralDTO.class);
+                Map<String, JsonSchema> ocrSchemaProperties = ocrSchema.getProperties();
+                for (String key : ocrSchemaProperties.keySet()) {
+                    JsonSchema jsonSchema = ocrSchemaProperties.get(key);
+                    if (jsonSchema instanceof SimpleTypeSchema) {
+                        SimpleTypeSchema simpleTypeSchema = (SimpleTypeSchema) jsonSchema;
+                        simpleTypeSchema.setTitle(simpleTypeSchema.getDescription());
+                    }
+                }
                 ocrSchema.setDescription(columnRespVO.getColumnName() + "_ext");
                 properties.put(columnRespVO.getColumnCode() + "_ext", ocrSchema);
             }
