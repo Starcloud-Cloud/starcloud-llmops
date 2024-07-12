@@ -1,17 +1,14 @@
 package com.starcloud.ops.business.app.service.materiallibrary.listener;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ConcurrentHashSet;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson.JSON;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, String>> {
@@ -23,10 +20,9 @@ public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, S
      * -- GETTER --
      * 获取excel的所有数据，数据量太大会出现内存溢出
      *
-     * @return list
      */
     @Getter
-    private Set<String> heads = new ConcurrentHashSet<>();
+    private List<String> heads = new CopyOnWriteArrayList<>();
 
 
     // 带参构造函数，直接赋值限制行列
@@ -37,8 +33,8 @@ public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, S
     /**
      * When analysis one row trigger invoke function.
      *
-     * @param integerStringMap    one row value. It is same as {@link AnalysisContext#readRowHolder()}
-     * @param analysisContext analysis context
+     * @param integerStringMap one row value. It is same as {@link AnalysisContext#readRowHolder()}
+     * @param analysisContext  analysis context
      */
     @Override
     public void invoke(Map<Integer, String> integerStringMap, AnalysisContext analysisContext) {

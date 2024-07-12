@@ -18,9 +18,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -75,7 +75,7 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         }
 
 
-        Set<String> newHeads = OperateImportUtil.readExcelHead(excel, 1, TEMPLATE_FILE_TABLE_HEAD_CELL + 1);
+        List<String> newHeads = OperateImportUtil.readExcelHead(excel, 1, TEMPLATE_FILE_TABLE_HEAD_CELL + 1);
         // 获取素材库表头信息
         List<MaterialLibraryTableColumnDO> materialConfigList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(importReqVO.getLibraryId());
 
@@ -85,10 +85,14 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
             saveReqVOS = buildMaterialTableColumn(newHeads, importReqVO.getLibraryId());
             materialLibraryTableColumnService.saveBatchData(saveReqVOS);
             List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(importReqVO.getLibraryId());
-            saveReqVOS= BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnSaveReqVO.class);
+            saveReqVOS = BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
         } else {
             // 获取初始表头数据
-            Set<String> heads = materialConfigList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toSet());
+            // 排序返回数据 如果顺序相等 则按照 ID 排序 正序
+            List<String> heads = materialConfigList.stream()
+                    .sorted(Comparator.comparing(MaterialLibraryTableColumnDO::getSequence).thenComparing(MaterialLibraryTableColumnDO::getId))
+                    .map(MaterialLibraryTableColumnDO::getColumnName)
+                    .collect(Collectors.toList());
             // 表头验证
             validateMaterialTableColumn(heads, newHeads);
             saveReqVOS = BeanUtils.toBean(materialConfigList, MaterialLibraryTableColumnSaveReqVO.class);
