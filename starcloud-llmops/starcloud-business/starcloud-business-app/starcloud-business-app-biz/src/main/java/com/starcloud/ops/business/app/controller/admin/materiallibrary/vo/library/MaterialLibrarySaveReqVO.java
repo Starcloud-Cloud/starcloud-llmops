@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library;
 
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -26,8 +27,8 @@ public class MaterialLibrarySaveReqVO {
     private String description;
 
     @Schema(description = "素材类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "素材类型不能为空")
-    private Integer formatType;
+    // @NotNull(message = "素材类型不能为空")
+    private Integer formatType = MaterialFormatTypeEnum.EXCEL.getCode();
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @NotNull(message = "状态不能为空")
