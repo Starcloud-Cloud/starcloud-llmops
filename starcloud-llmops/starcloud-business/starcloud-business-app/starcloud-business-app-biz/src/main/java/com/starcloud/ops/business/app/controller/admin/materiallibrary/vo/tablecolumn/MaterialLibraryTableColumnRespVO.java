@@ -53,7 +53,7 @@ public class MaterialLibraryTableColumnRespVO {
     private LocalDateTime createTime;
 
     @Schema(description = "字段是否为分组字段")
-    private Integer isGroupColumn;
+    private Boolean isGroupColumn;
 
 
 }
