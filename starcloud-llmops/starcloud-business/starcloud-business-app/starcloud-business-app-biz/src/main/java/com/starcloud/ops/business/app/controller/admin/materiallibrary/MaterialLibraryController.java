@@ -121,7 +121,7 @@ public class MaterialLibraryController {
     }
 
 
-    @PostMapping("/export-template")
+    @GetMapping("/export-template")
     @Operation(summary = "导出模板")
     @OperateLog(enable = false)
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
