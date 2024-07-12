@@ -137,20 +137,17 @@ public interface MaterialLibraryService {
     /**
      * 更新素材库插件配置
      *
-     * @param loginUserId
-     * @param plugInConfigReqVO
+     * @param loginUserId       用户编号
+     * @param plugInConfigReqVO 插件配置
      */
     void updatePluginConfig(Long loginUserId, MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO);
 
-    // /**
-    //  * 素材数据使用计数
-    //  *
-    //  * @param tableColumnSaveReqVOS 表头存储 VO
-    //  * @param materialList          素材数据
-    //  * @return 素材库 UID
-    //  */
-    // String materialLibrarySliceUsageCount(List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS, List<Map<String, Object>> materialList);
-    //
+    /**
+     * 素材数据使用计数
+     *
+     * @param sliceUsageCountReqVO 素材计算 VO
+     */
+    void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO);
 
 
 }

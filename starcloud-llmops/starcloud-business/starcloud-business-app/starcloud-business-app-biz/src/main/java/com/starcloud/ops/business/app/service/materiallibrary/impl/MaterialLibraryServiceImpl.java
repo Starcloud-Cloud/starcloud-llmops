@@ -367,6 +367,16 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     }
 
+    /**
+     * 素材数据使用计数
+     *
+     * @param sliceUsageCountReqVO 表头计数 VO
+     */
+    @Override
+    public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
+        // 素材库校验
+    }
+
 
     // ========================================私有方法区 ========================================
     private MaterialLibraryDO saveMaterialLibrary(MaterialLibrarySaveReqVO createReqVO) {
