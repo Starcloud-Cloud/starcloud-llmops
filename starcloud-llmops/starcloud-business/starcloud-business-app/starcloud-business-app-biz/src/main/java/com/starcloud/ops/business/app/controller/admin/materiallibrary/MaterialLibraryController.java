@@ -131,7 +131,7 @@ public class MaterialLibraryController {
 
 
     @PostMapping("/update-plugin-Config")
-    @Operation(summary = "通过 UID获得素材知识库")
+    @Operation(summary = "更新素材库插件配置")
     public CommonResult<Boolean> updatePluginConfig(@Valid @RequestBody MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO) {
         materialLibraryService.updatePluginConfig(getLoginUserId(), plugInConfigReqVO);
         return success(true);
