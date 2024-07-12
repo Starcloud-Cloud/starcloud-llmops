@@ -568,23 +568,11 @@ public class CreativeUtils {
      * @param materialWrapper 应用步骤
      * @return 素材库列表
      */
-    public static List<Map<String, Object>> getMaterialListByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
-        // 素材列表配置
-        if (Objects.isNull(materialWrapper)) {
-            return Collections.emptyList();
-        }
-
-        // 获取到素材库列表
-        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
-        if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
-            return Collections.emptyList();
-        }
-
-        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
+    public static List<Map<String, Object>> getMaterialListByStepWrapper(AppMarketRespVO appInformation) {
+        List<Map<String, Object>> materialList = CREATIVE_MATERIAL_MANAGER.getMaterialList(appInformation);
         if (CollectionUtil.isEmpty(materialList)) {
             return Collections.emptyList();
         }
-
         return materialList;
     }
     

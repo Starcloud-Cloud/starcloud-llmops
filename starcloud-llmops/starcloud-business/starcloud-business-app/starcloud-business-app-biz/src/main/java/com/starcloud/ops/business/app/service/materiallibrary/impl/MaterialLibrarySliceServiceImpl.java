@@ -232,9 +232,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     private void validateSliceShareStatus(Long id, Boolean shareStatus) {
 
         MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
-        if (sliceDO.getIsShare() && shareStatus) {
-            throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
-        }
+        // if (sliceDO.getIsShare() && shareStatus) {
+        //     throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
+        // }
     }
 
     /**

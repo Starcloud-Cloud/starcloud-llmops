@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
@@ -52,7 +49,7 @@ public interface MaterialLibraryService {
      *
      * @param id 编号
      */
-    void deleteMaterialLibrary(Long id);
+    void deleteMaterialLibrary(Long userId, Long id);
 
     /**
      * 获得素材知识库
@@ -60,7 +57,7 @@ public interface MaterialLibraryService {
      * @param id 编号
      * @return 素材知识库
      */
-    MaterialLibraryDO getMaterialLibrary(Long id);
+    MaterialLibraryDO getMaterialLibrary(Long userId, Long id);
 
     /**
      * 通过素材库UID 获取 素材库详情
@@ -77,7 +74,7 @@ public interface MaterialLibraryService {
      * @param pageReqVO 分页查询
      * @return 素材知识库分页
      */
-    PageResult<MaterialLibraryDO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO);
+    PageResult<MaterialLibraryDO> getMaterialLibraryPage(Long userId, MaterialLibraryPageReqVO pageReqVO);
 
 
     /**
@@ -136,5 +133,21 @@ public interface MaterialLibraryService {
      * @return 素材库 UID
      */
     String materialLibraryDataMigration(String appName, List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS, List<Map<String, Object>> materialList);
+
+    /**
+     * 更新素材库插件配置
+     *
+     * @param loginUserId       用户编号
+     * @param plugInConfigReqVO 插件配置
+     */
+    void updatePluginConfig(Long loginUserId, MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO);
+
+    /**
+     * 素材数据使用计数
+     *
+     * @param sliceUsageCountReqVO 素材计算 VO
+     */
+    void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO);
+
 
 }

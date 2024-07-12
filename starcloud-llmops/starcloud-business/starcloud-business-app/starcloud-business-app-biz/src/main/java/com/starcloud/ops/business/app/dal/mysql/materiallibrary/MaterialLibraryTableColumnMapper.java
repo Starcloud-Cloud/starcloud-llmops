@@ -36,7 +36,7 @@ public interface MaterialLibraryTableColumnMapper extends BaseMapperX<MaterialLi
     default List<MaterialLibraryTableColumnDO> selectMaterialLibraryTableColumnByLibrary(Long libraryId) {
         LambdaQueryWrapper<MaterialLibraryTableColumnDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryTableColumnDO.class);
         wrapper.eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId);
-        wrapper.orderByDesc(MaterialLibraryTableColumnDO::getSequence);
+        wrapper.orderByAsc(MaterialLibraryTableColumnDO::getSequence);
         return selectList(wrapper);
     }
 

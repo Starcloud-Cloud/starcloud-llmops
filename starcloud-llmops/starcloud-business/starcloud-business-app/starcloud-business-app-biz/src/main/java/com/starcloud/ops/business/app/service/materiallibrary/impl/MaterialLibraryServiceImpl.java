@@ -8,13 +8,9 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
-import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibrarySaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
@@ -101,7 +97,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         saveReqVO.setIconUrl("AreaChartOutlined");
         saveReqVO.setDescription(appName + "的初始素材库");
         saveReqVO.setFormatType(MaterialFormatTypeEnum.EXCEL.getCode());
-        saveReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        saveReqVO.setStatus(true);
 
         Long materialLibrary = this.createMaterialLibrary(saveReqVO);
         return this.validateMaterialLibraryExists(materialLibrary).getUid();
@@ -124,9 +120,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public void deleteMaterialLibrary(Long id) {
+    public void deleteMaterialLibrary(Long userId, Long id) {
 
-        MaterialLibraryDO libraryDO = materialLibraryMapper.selectById(id);
+        MaterialLibraryDO libraryDO = materialLibraryMapper.selectByIdAndUser(userId, id);
 
         if (libraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
@@ -143,8 +139,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public MaterialLibraryDO getMaterialLibrary(Long id) {
-        return materialLibraryMapper.selectById(id);
+    public MaterialLibraryDO getMaterialLibrary(Long userId, Long id) {
+        return materialLibraryMapper.selectByIdAndUser(userId, id);
     }
 
     /**
@@ -169,8 +165,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public PageResult<MaterialLibraryDO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO) {
-        return materialLibraryMapper.selectPage(pageReqVO);
+    public PageResult<MaterialLibraryDO> getMaterialLibraryPage(Long userId, MaterialLibraryPageReqVO pageReqVO) {
+        return materialLibraryMapper.selectPage(userId, pageReqVO);
     }
 
     /**
@@ -310,7 +306,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         saveReqVO.setIconUrl("AreaChartOutlined");
         saveReqVO.setDescription(appName + "的初始素材库");
         saveReqVO.setFormatType(MaterialFormatTypeEnum.EXCEL.getCode());
-        saveReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        saveReqVO.setStatus(true);
 
         Long materialLibrary = this.createMaterialLibrary(saveReqVO);
         MaterialLibraryDO materialLibraryDO = this.validateMaterialLibraryExists(materialLibrary);
@@ -353,8 +349,48 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         return materialLibraryDO.getUid();
     }
 
+    /**
+     * 更新素材库插件配置
+     *
+     * @param loginUserId       用户编号
+     * @param plugInConfigReqVO 插件配置 VO
+     */
+    @Override
+    public void updatePluginConfig(Long loginUserId, MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByIdAndUser(loginUserId, plugInConfigReqVO.getId());
 
-// ========================================私有方法区 ========================================
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+
+        materialLibraryMapper.updateById(new MaterialLibraryDO().setId(plugInConfigReqVO.getId()).setPluginConfig(plugInConfigReqVO.getPluginConfig()));
+
+    }
+
+    /**
+     * 素材数据使用计数
+     *
+     * @param sliceUsageCountReqVO 表头计数 VO
+     */
+    @Override
+    public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
+        // 素材库校验
+    }
+
+
+    // ========================================私有方法区 ========================================
+    private MaterialLibraryDO saveMaterialLibrary(MaterialLibrarySaveReqVO createReqVO) {
+        // 插入
+        MaterialLibraryDO materialLibrary = BeanUtils.toBean(createReqVO, MaterialLibraryDO.class);
+        materialLibrary.setUid(IdUtil.fastSimpleUUID());
+        materialLibrary.setAllFileSize(0L);
+        materialLibrary.setTotalUsedCount(0L);
+        materialLibraryMapper.insert(materialLibrary);
+
+        // 返回
+        return materialLibrary;
+    }
+
 
     /**
      * 查询指定素材库下的指定数据
@@ -410,7 +446,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         saveReqVO.setIconUrl(materialLibraryDO.getIconUrl());
         saveReqVO.setDescription(materialLibraryDO.getDescription());
         saveReqVO.setFormatType(materialLibraryDO.getFormatType());
-        saveReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        saveReqVO.setStatus(true);
 
         Long materialLibrary = this.createMaterialLibrary(saveReqVO);
         MaterialLibraryDO newMaterialLibraryDO = this.validateMaterialLibraryExists(materialLibrary);

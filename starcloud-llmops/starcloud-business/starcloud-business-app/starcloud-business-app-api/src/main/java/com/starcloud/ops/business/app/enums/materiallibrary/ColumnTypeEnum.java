@@ -13,11 +13,7 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum ColumnTypeEnum implements IntArrayValuable {
 
-    STRING(0, "字符串"),
-    INTEGER(1, "数字"),
-    TIME(2, "时间"),
-    NUMBER(3, "数字"),
-    BOOLEAN(4, "布尔值"),
+    STRING(0, "文本"),
     IMAGE(5, "图片"),
     DOCUMENT(6,"文档路径"),
 

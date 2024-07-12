@@ -648,4 +648,8 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_ID_EMPTY = new ErrorCode(300702212, "素材库编号为空，请核对后再试");
 
 
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ERROR = new ErrorCode(300702213, "表头与当前表结构不一致,列名称及顺序需保持一致\\n\" +\n" +
+            "                    \"表头需要与现有表格结构保持一致。");
+
+
 }

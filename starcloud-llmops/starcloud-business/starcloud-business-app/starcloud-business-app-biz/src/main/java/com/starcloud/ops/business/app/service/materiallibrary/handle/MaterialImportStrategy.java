@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_TABLE_COULMN_ERROR;
+
 /**
  * 素材导入策略
  */
@@ -26,10 +29,7 @@ public interface MaterialImportStrategy {
             return;
         }
         if (!CollUtil.isEqualList(materialTableColumn, importTableColumn)) {
-            throw new RuntimeException("表头与当前表结构不一致,列名称及顺序需保持一致\n" +
-                    "\n" +
-                    "表头需要与现有表格结构保持一致。");
-            // throw exception(EXCEL_HEADER_REQUIRED_FILED, subtract);
+            throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ERROR);
         }
     }
 
