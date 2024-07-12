@@ -633,8 +633,8 @@ public class JsonSchemaUtils {
             properties.put(columnRespVO.getColumnCode(), schema);
             if (ColumnTypeEnum.IMAGE.getCode().equals(columnRespVO.getColumnType())) {
                 JsonSchema ocrSchema = generateJsonSchema(OcrGeneralDTO.class);
-                ocrSchema.setDescription(columnRespVO.getColumnName() + "_ocr");
-                properties.put("_ocr_" + columnRespVO.getColumnCode(), ocrSchema);
+                ocrSchema.setDescription(columnRespVO.getColumnName() + "_ext");
+                properties.put(columnRespVO.getColumnCode() + "_ext", ocrSchema);
             }
         }
         obj.setProperties(properties);

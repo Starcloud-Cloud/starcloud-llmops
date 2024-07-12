@@ -8,6 +8,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
@@ -36,6 +37,58 @@ public class CreativeMaterialManager {
 
     @Resource
     private MaterialLibraryService materialLibraryService;
+
+    /**
+     * 查询表头 分组配置
+     *
+     * @param materialLibraryJsonVariable 变量 LIBRARY_QUERY 配置
+     */
+    public List<MaterialFieldConfigDTO> getHeader(String materialLibraryJsonVariable) {
+
+        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
+            return Collections.emptyList();
+        }
+        List<MaterialLibrarySliceAppReqVO> queryParam = JSONUtil.parseArray(materialLibraryJsonVariable).toList(MaterialLibrarySliceAppReqVO.class);
+        if (CollectionUtil.isEmpty(queryParam)) {
+            return Collections.emptyList();
+        }
+        MaterialLibraryRespVO materialLibraryByUid = materialLibraryService.getMaterialLibraryByUid(queryParam.get(0).getLibraryUid());
+        if (Objects.isNull(materialLibraryByUid) || CollectionUtil.isEmpty(materialLibraryByUid.getTableMeta())) {
+            return Collections.emptyList();
+        }
+        List<MaterialFieldConfigDTO> result = new ArrayList<>();
+        for (MaterialLibraryTableColumnRespVO tableColumnRespVO : materialLibraryByUid.getTableMeta()) {
+            MaterialFieldConfigDTO fieldConfigDTO = new MaterialFieldConfigDTO();
+            fieldConfigDTO.setFieldName(tableColumnRespVO.getColumnCode());
+            fieldConfigDTO.setDesc(tableColumnRespVO.getColumnName());
+            fieldConfigDTO.setIsGroupField(tableColumnRespVO.getIsGroupColumn());
+            result.add(fieldConfigDTO);
+        }
+        return result;
+    }
+
+    /**
+     * 判断素材内容显示类型 true显示图片 false显示列表
+     */
+    public Boolean judgePicture(AppMarketRespVO appRespVO) {
+        WorkflowStepWrapperRespVO materialWrapper = appRespVO.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.isNull(materialWrapper)) {
+            return false;
+        }
+        String materialLibraryJsonVariable = materialWrapper.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
+            return false;
+        }
+        List<MaterialLibrarySliceAppReqVO> queryParam = JSONUtil.parseArray(materialLibraryJsonVariable).toList(MaterialLibrarySliceAppReqVO.class);
+        if (CollectionUtil.isEmpty(queryParam)) {
+            return false;
+        }
+        MaterialLibraryRespVO materialLibraryByUid = materialLibraryService.getMaterialLibraryByUid(queryParam.get(0).getLibraryUid());
+        return !Objects.isNull(materialLibraryByUid)
+                && !CollectionUtil.isEmpty(materialLibraryByUid.getTableMeta())
+                && materialLibraryByUid.getTableMeta().size() == 1
+                && ColumnTypeEnum.IMAGE.getCode().equals(materialLibraryByUid.getTableMeta().get(0).getColumnType());
+    }
 
 
     /**
@@ -228,7 +281,7 @@ public class CreativeMaterialManager {
                     if (ColumnTypeEnum.IMAGE.getCode().equals(typeCode) && StringUtils.isNotBlank(extend)) {
                         Type type = new TypeReference<Map<String, Object>>() {
                         }.getType();
-                        row.put("_ocr_" + tableContent.getColumnCode(), JSONObject.parseObject(extend, type));
+                        row.put(tableContent.getColumnCode() + "_ext", JSONObject.parseObject(extend, type));
                     }
                 }
                 result.add(row);

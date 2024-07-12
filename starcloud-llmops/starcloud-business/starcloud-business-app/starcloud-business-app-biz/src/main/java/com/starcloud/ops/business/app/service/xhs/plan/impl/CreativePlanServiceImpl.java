@@ -374,7 +374,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         if (Objects.isNull(request.getValidate()) || request.getValidate()) {
             // 校验配置
             validImage(appInformation, configuration);
-            MaterialDefineUtil.verifyStep(appInformation);
         }
         validPoster(configuration, request);
 
@@ -713,7 +712,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         String businessType = materialStepWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
 
         // 判断修改业务类型
-        Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
+        Boolean isPicture = CreativeUtils.judgePicture(appInformation);
         businessType = isPicture ? CreativeConstants.PICTURE : businessType;
         materialStepWrapper.updateStepVariableValue(CreativeConstants.BUSINESS_TYPE, businessType);
 
@@ -905,9 +904,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 图片风格
         validImage(appInformation, configuration);
-
-        // 校验素材配置
-        MaterialDefineUtil.verifyStep(appInformation);
 
         // 处理海报风格数据
         validPoster(configuration, request);

@@ -45,6 +45,7 @@ import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -344,7 +345,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     public Boolean judgePicture(String uid, String planSource) {
         AppMarketRespVO appRespVO = creativePlanService.getAppRespVO(uid, planSource);
         try {
-            return MaterialDefineUtil.judgePicture(appRespVO);
+            return CreativeUtils.judgePicture(appRespVO);
         } catch (Exception e) {
             // 默认返回 false 显示列表
             return false;
