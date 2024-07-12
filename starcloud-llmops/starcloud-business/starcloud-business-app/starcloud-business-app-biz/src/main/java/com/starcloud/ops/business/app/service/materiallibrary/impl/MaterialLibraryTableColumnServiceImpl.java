@@ -222,6 +222,10 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
      */
     private void generateColumnCode(List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS) {
 
+        if (CollUtil.isEmpty(saveReqVOS)) {
+            return;
+        }
+
         List<String> columnCodeExistList = new ArrayList<>();
 
         List<Long> collect = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getLibraryId).collect(Collectors.toList());

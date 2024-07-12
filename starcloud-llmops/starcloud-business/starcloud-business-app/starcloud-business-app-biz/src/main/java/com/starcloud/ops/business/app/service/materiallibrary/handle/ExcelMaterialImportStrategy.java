@@ -17,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
@@ -38,14 +37,14 @@ public class ExcelMaterialImportStrategy implements MaterialImportStrategy {
 
 
     /**
-     * @param importReqVO
+     * @param importReqVO 导入素材数据 VO
      */
     @SneakyThrows
     @Override
     public void importMaterial(MaterialLibraryImportReqVO importReqVO) {
 
         MultipartFile excel = importReqVO.getFile()[0];
-        Set<String> newHeads = OperateImportUtil.readExcelHead(excel.getInputStream(), 1, TEMPLATE_FILE_TABLE_HEAD_CELL + 1);
+        List<String> newHeads = OperateImportUtil.readExcelHead(excel.getInputStream(), 1, TEMPLATE_FILE_TABLE_HEAD_CELL + 1);
         // 获取素材库表头信息
         List<MaterialLibraryTableColumnDO> materialConfigList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(importReqVO.getLibraryId());
 
@@ -55,7 +54,7 @@ public class ExcelMaterialImportStrategy implements MaterialImportStrategy {
             saveReqVOS = buildMaterialTableColumn(newHeads, importReqVO.getLibraryId());
         } else {
             // 获取初始表头数据
-            Set<String> heads = materialConfigList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toSet());
+            List<String> heads = materialConfigList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toList());
             // 表头验证
             validateMaterialTableColumn(heads, newHeads);
             saveReqVOS = BeanUtils.toBean(materialConfigList, MaterialLibraryTableColumnSaveReqVO.class);

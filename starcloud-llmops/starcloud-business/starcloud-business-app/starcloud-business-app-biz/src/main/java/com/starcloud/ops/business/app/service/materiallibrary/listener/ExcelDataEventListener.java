@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -79,10 +80,12 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         materialLibrarySliceSaveReqVO.setStatus(true);
         materialLibrarySliceSaveReqVO.setIsShare(false);
 
-        long totalLength = 0;
-        for (Object value : data.values()) {
-            totalLength += value.toString().length();
-        }
+        // 用并行流处理大数据集
+        long totalLength = data != null ? data.values().parallelStream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .mapToInt(String::length)
+                .sum() : 0;
 
         materialLibrarySliceSaveReqVO.setCharCount(totalLength);
 

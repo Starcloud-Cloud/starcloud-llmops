@@ -34,7 +34,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                 .eqIfPresent(MaterialLibrarySliceDO::getSequence, reqVO.getSequence())
                 .eqIfPresent(MaterialLibrarySliceDO::getStatus, reqVO.getStatus())
                 .betweenIfPresent(MaterialLibrarySliceDO::getCreateTime, reqVO.getCreateTime())
-                .orderByDesc(MaterialLibrarySliceDO::getId));
+                .orderByAsc(MaterialLibrarySliceDO::getCreateTime));
     }
 
     default MaterialLibrarySliceDO selectLastSequence(Long libraryId) {

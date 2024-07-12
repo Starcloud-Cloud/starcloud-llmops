@@ -7,7 +7,6 @@ import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_TABLE_COULMN_ERROR;
@@ -24,7 +23,7 @@ public interface MaterialImportStrategy {
      * @param materialTableColumn 素材库存在的表头
      * @param importTableColumn   导入数据的表头
      */
-    default void validateMaterialTableColumn(Set<String> materialTableColumn, Set<String> importTableColumn) {
+    default void validateMaterialTableColumn(List<String> materialTableColumn, List<String> importTableColumn) {
         if (CollUtil.isEmpty(materialTableColumn)) {
             return;
         }
@@ -36,7 +35,7 @@ public interface MaterialImportStrategy {
     /**
      * @param importTableColumn 导入数据的表头
      */
-    default List<MaterialLibraryTableColumnSaveReqVO> buildMaterialTableColumn(Set<String> importTableColumn, Long libraryId) {
+    default List<MaterialLibraryTableColumnSaveReqVO> buildMaterialTableColumn(List<String> importTableColumn, Long libraryId) {
         int sequence = 1;
 
 
