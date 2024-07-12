@@ -334,7 +334,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             // 获取素材库类型
             String businessType = materialWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
             // 判断修改业务类型
-            Boolean isPicture = CreativeUtils.judgePicture(appInformation);
+            Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
             businessType = isPicture ? CreativeConstants.PICTURE : businessType;
             materialWrapper.updateStepVariableValue(CreativeConstants.BUSINESS_TYPE, businessType);
 
@@ -343,7 +343,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", businessType);
 
             // 素材库列表
-            List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(appInformation);
+            List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
             AppValidate.notEmpty(materialList, "素材库列表不能为空，请联系管理员！");
 
             // 素材字段配置列表
