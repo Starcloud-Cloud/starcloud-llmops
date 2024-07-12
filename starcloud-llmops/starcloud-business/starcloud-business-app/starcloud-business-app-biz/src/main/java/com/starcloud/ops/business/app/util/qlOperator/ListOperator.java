@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.util.qlOperator;
 
+import cn.hutool.core.bean.BeanPath;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.ql.util.express.ArraySwap;
@@ -48,7 +49,8 @@ public class ListOperator extends OperatorBase {
                 Object doc = fdocs.get(i);
                 StringJoiner sj = new StringJoiner("\n");
                 for (String fieldName : fieldList) {
-                    Object fieldValue = BeanUtil.getFieldValue(doc, fieldName);
+                    BeanPath beanPath = new BeanPath(fieldName);
+                    Object fieldValue = beanPath.get(doc);
                     String prefix = addPrefix ? prefix(doc, fieldName) : StringUtils.EMPTY;
                     if (Objects.nonNull(fieldValue)) {
                         sj.add(prefix + fieldValue.toString());
