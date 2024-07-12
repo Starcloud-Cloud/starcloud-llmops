@@ -30,6 +30,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
+@Deprecated
 public class MaterialDefineUtil {
 
     private static final String MATERIAL_ACTION_HANDLER = "MaterialActionHandler";

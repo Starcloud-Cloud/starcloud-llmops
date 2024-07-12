@@ -22,6 +22,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialS
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -567,24 +568,19 @@ public class CreativeUtils {
      * @param materialWrapper 应用步骤
      * @return 素材库列表
      */
-    public static List<Map<String, Object>> getMaterialListByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
-        // 素材列表配置
-        if (Objects.isNull(materialWrapper)) {
-            return Collections.emptyList();
-        }
-
-        // 获取到素材库列表
-        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
-        if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
-            return Collections.emptyList();
-        }
-
-        List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
+    public static List<Map<String, Object>> getMaterialListByStepWrapper(AppMarketRespVO appInformation) {
+        List<Map<String, Object>> materialList = CREATIVE_MATERIAL_MANAGER.getMaterialList(appInformation);
         if (CollectionUtil.isEmpty(materialList)) {
             return Collections.emptyList();
         }
-
         return materialList;
+    }
+    
+    /**
+     * 判断素材内容显示类型 true显示图片 false显示列表
+     */
+    public static boolean judgePicture(AppMarketRespVO appRespVO) {
+        return CREATIVE_MATERIAL_MANAGER.judgePicture(appRespVO);
     }
 
     /**
@@ -600,12 +596,12 @@ public class CreativeUtils {
         }
 
         // 获取到素材库列表
-        String materialConfigString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_DEFINE);
-        if (StringUtils.isBlank(materialConfigString) || "[]".equals(materialConfigString) || "null".equalsIgnoreCase(materialConfigString)) {
+        String materialLibraryJsonVariable = materialWrapper.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+        if (StringUtils.isBlank(materialLibraryJsonVariable) || "[]".equals(materialLibraryJsonVariable) || "null".equalsIgnoreCase(materialLibraryJsonVariable)) {
             return Collections.emptyList();
         }
 
-        List<MaterialFieldConfigDTO> materialFieldConfigList = MaterialDefineUtil.parseConfig(materialConfigString);
+        List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(materialLibraryJsonVariable);
         if (CollectionUtil.isEmpty(materialFieldConfigList)) {
             return Collections.emptyList();
         }

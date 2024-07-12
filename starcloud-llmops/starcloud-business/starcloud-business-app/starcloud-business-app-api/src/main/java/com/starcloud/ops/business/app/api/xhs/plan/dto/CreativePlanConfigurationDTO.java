@@ -55,10 +55,6 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
      */
     public void validate() {
         AppValidate.notNull(appInformation, "应用信息不能为空！");
-        // 校验素材
-        if (CollectionUtil.isNotEmpty(materialList)) {
-            MaterialDefineUtil.verifyMaterialData(appInformation, materialList);
-        }
         // 校验海报
         if (CollectionUtil.isNotEmpty(imageStyleList)) {
             imageStyleList.forEach(PosterStyleDTO::validate);

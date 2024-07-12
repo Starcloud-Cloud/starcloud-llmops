@@ -498,7 +498,6 @@ public class AppServiceImpl implements AppService {
             if (StringUtils.isBlank(request.getIcon())) {
                 request.setIcon(category.getIcon());
             }
-            MaterialDefineUtil.verifyAppConfig(request.getWorkflowConfig());
             // 图片默认为分类图片
             request.setImages(Collections.singletonList(category.getImage()));
         }
