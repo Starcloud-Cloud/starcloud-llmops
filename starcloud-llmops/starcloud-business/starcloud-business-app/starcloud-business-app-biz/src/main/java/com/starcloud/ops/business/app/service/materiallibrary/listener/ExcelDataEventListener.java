@@ -99,21 +99,23 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
             tableContent.setValue(data.get(tableColumnRespVO.getSequence().intValue() - 1));
             if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType())) {
 
+                if (ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())) {
 
-                String imgUrl = StrUtil.NULL;
-                try {
-                    List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
-                    if (!CollUtil.isEmpty(filesInImagesFolder)) {
-                        File images = FileUtil.file(filesInImagesFolder.get(0));
+                }else {
+                    String imgUrl = StrUtil.NULL;
+                    try {
+                        List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
+                        if (!CollUtil.isEmpty(filesInImagesFolder)) {
+                            File images = FileUtil.file(filesInImagesFolder.get(0));
 
-                        imgUrl = ImageUploadUtils.uploadImage(images.getName(), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
+                            imgUrl = ImageUploadUtils.uploadImage(images.getName(), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
+                        }
+
+                    } catch (IOException e) {
+                        throw new RuntimeException("图片解析异常");
                     }
-
-                } catch (IOException e) {
-                    throw new RuntimeException("图片解析异常");
+                    tableContent.setValue(imgUrl);
                 }
-                tableContent.setValue(imgUrl);
-
 
             }
             contents.add(tableContent);
