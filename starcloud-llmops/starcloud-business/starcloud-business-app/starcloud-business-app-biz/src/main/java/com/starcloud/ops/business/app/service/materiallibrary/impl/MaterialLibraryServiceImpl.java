@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
@@ -67,6 +68,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
+    private MaterialLibraryAppBindService materialLibraryAppBindService;
+
+
+    @Resource
     private MaterialLibraryMapper materialLibraryMapper;
 
 
@@ -101,6 +106,22 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         Long materialLibrary = this.createMaterialLibrary(saveReqVO);
         return this.validateMaterialLibraryExists(materialLibrary).getUid();
+    }
+
+    /**
+     * 通过应用获取绑定的素材知识库
+     *
+     * @param appReqVO@return 编号
+     */
+    @Override
+    public String getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
+        Assert.notBlank(appReqVO.getAppName(), "获取素材库失败，应用名称不能为空");
+        Assert.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
+        Assert.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
+
+
+        // materialLibraryAppBindService.getMaterialLibraryAppBind()
+        return "";
     }
 
     @Override

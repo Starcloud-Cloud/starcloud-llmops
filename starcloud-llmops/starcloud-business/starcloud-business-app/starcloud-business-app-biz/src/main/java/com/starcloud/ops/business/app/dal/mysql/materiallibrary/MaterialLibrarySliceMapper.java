@@ -128,14 +128,4 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         return selectList(wrapper);
     }
 
-
-    // List<MaterialLibrarySliceDO> selectSliceListByUserLibraryId(@Param("libraryId") Long libraryId,
-    //                                                             @Param("sliceIdList") Collection<Long> sliceIdList,
-    //                                                             @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
-    //                                                             @Param("sortingField") SortingField sortingField);
-    //
-    // List<Long> selectSliceIdsByUserLibraryId(@Param("libraryId") Long libraryId,
-    //                                          @Param("sliceIdList") Collection<Long> sliceIdList,
-    //                                          @Param("removeSliceIdList") Collection<Long> removeSliceIdList,
-    //                                          @Param("sortingField") SortingField sortingField);
 }
