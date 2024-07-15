@@ -165,10 +165,10 @@ public class AppMarketServiceImpl implements AppMarketService {
                 appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
                 appMarketMapper.updateById(appMarket);
             } else if (CollectionUtil.isEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                String stepVariableValue = stepByHandler.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+                String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
                 if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
                     String libraryJson = creativeMaterialManager.createEmptyLibrary(appMarket.getName());
-                    stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, libraryJson);
                     appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
                     appMarketMapper.updateById(appMarket);
                 }

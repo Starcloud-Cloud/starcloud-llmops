@@ -28,7 +28,13 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -75,7 +81,7 @@ public class CreativeMaterialManager {
         if (Objects.isNull(materialWrapper)) {
             return false;
         }
-        String materialLibraryJsonVariable = materialWrapper.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+        String materialLibraryJsonVariable = materialWrapper.getVariableToString(CreativeConstants.LIBRARY_QUERY);
         if (StringUtils.isBlank(materialLibraryJsonVariable)) {
             return false;
         }
@@ -115,7 +121,7 @@ public class CreativeMaterialManager {
      */
     public void migrate(String appName, WorkflowStepWrapperRespVO materialHandler, List<Map<String, Object>> materialList) {
         log.info("start migrate material, appName={}", appName);
-        String materialDefine = materialHandler.getStepVariableValue(CreativeConstants.MATERIAL_DEFINE);
+        String materialDefine = materialHandler.getVariableToString(CreativeConstants.MATERIAL_DEFINE);
         if (StringUtils.isBlank(materialDefine)) {
             return;
         }
@@ -137,7 +143,7 @@ public class CreativeMaterialManager {
         log.info("material library migrate, {}", end - start);
         MaterialLibrarySliceAppReqVO librarySlice = new MaterialLibrarySliceAppReqVO();
         librarySlice.setLibraryUid(libraryUid);
-        materialHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, JsonUtils.toJsonString(Collections.singletonList(librarySlice)));
+        materialHandler.putVariable(CreativeConstants.LIBRARY_QUERY, JsonUtils.toJsonString(Collections.singletonList(librarySlice)));
     }
 
     /**
@@ -173,9 +179,9 @@ public class CreativeMaterialManager {
         if (Objects.isNull(materialWrapper)) {
             return;
         }
-        String materialLibraryJsonVariable = materialWrapper.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+        String materialLibraryJsonVariable = materialWrapper.getVariableToString(CreativeConstants.LIBRARY_QUERY);
         List<MaterialLibrarySliceAppReqVO> queryParam = copyLibraray(materialLibraryJsonVariable);
-        materialWrapper.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, JsonUtils.toJsonString(queryParam));
+        materialWrapper.putVariable(CreativeConstants.LIBRARY_QUERY, JsonUtils.toJsonString(queryParam));
     }
 
     /**
@@ -206,7 +212,7 @@ public class CreativeMaterialManager {
      */
     public List<Map<String, Object>> getMaterialList(AppMarketRespVO appMarketVO) {
         String materialLibraryJsonVariable = Optional.ofNullable(appMarketVO.getStepByHandler(MaterialActionHandler.class.getSimpleName()))
-                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getStepVariableValue(CreativeConstants.LIBRARY_QUERY))
+                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
                 .orElse(StringUtils.EMPTY);
         List<MaterialLibrarySliceUseRespVO> materialLibrarySliceList = queryLibrary(materialLibraryJsonVariable);
         return convert(materialLibrarySliceList);

@@ -37,7 +37,14 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
-import com.starcloud.ops.business.app.enums.app.*;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
@@ -50,7 +57,6 @@ import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -240,10 +246,10 @@ public class AppServiceImpl implements AppService {
                 app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
                 appMapper.updateById(app);
             } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                String stepVariableValue = stepByHandler.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+                String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
                 if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
                     String libraryJson = creativeMaterialManager.createEmptyLibrary(app.getName());
-                    stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, libraryJson);
                     app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
                     appMapper.updateById(app);
                 }

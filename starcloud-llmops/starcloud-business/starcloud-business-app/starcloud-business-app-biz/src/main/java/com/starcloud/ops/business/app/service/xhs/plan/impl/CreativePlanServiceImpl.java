@@ -42,6 +42,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterAction
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
@@ -61,7 +62,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.Mat
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
-import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -270,7 +270,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
                         // 我的应用 执行计划使用同一个素材库
                         WorkflowStepWrapperRespVO appMaterialStep = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-                        stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, appMaterialStep.getStepVariableValue(CreativeConstants.LIBRARY_QUERY));
+                        stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, appMaterialStep.getVariableToString(CreativeConstants.LIBRARY_QUERY));
                         planMaterialDO.setMaterialList(Collections.emptyList());
                     }
                     planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
@@ -280,10 +280,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     CollectionUtil.isEmpty(planMaterialDO.getMaterialList())) {
                 WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
                 if (Objects.nonNull(stepByHandler)) {
-                    String stepVariableValue = stepByHandler.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+                    String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
                     if (StringUtils.isBlank(stepVariableValue)) {
                         String libraryJson = creativeMaterialManager.createEmptyLibrary(appInformation.getName());
-                        stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                        stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, libraryJson);
                         planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
                         creativePlanMaterialMapper.updateById(planMaterialDO);
                     }

@@ -11,13 +11,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -28,6 +23,10 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -590,7 +589,7 @@ public class CreativeUtils {
 
         return materialList;
     }
-    
+
     /**
      * 判断素材内容显示类型 true显示图片 false显示列表
      */
@@ -616,6 +615,7 @@ public class CreativeUtils {
             return Collections.emptyList();
         }
 
+        String materialLibraryJsonVariable = materialWrapper.getVariableToString(CreativeConstants.LIBRARY_QUERY);
         List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(materialLibraryJsonVariable);
         if (CollectionUtil.isEmpty(materialFieldConfigList)) {
             return Collections.emptyList();
