@@ -104,7 +104,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @param appReqVO@return 编号
      */
     @Override
-    public String getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
+    public MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
         Assert.notBlank(appReqVO.getAppName(), "获取素材库失败，应用名称不能为空");
         Assert.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
         Assert.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
@@ -112,16 +112,28 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         Long materialId = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid(), appReqVO.getAppType(), appReqVO.getUserId());
 
+        MaterialLibraryDO materialLibrary;
         if (Objects.isNull(materialId)) {
             // 创建系统素材库
-            MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(appReqVO.getAppName()).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+            materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(appReqVO.getAppName()).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
             // 添加绑定关系
             materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(appReqVO.getAppUid()).setAppType(appReqVO.getAppType()).setUserId(appReqVO.getUserId()));
 
-            return materialLibrary.getUid();
+            materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
+
         } else {
-            return validateMaterialLibraryExists(materialId).getUid();
+            materialLibrary = validateMaterialLibraryExists(materialId);
         }
+
+        // 数据转换
+        MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
+
+        if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
+            bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+        }
+        return bean;
+
 
     }
 
@@ -396,7 +408,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
-        // 素材库校验
+        MaterialLibraryRespVO materialLibrary = getMaterialLibraryByApp(sliceUsageCountReqVO);
+
+        sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
     }
 
     /**

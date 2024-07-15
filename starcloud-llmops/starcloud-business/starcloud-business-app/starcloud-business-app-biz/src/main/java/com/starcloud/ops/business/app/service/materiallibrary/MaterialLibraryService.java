@@ -42,7 +42,7 @@ public interface MaterialLibraryService {
      * @param appReqVO 应用查询 VO
      * @return 编号
      */
-    String getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
+    MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
 
 
     /**
