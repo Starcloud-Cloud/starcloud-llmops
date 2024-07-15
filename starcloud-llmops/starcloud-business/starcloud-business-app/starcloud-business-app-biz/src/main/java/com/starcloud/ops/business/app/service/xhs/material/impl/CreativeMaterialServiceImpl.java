@@ -23,15 +23,18 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMater
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespLogVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.material.CreativeMaterialConvert;
-import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.material.CreativeMaterialMapper;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
@@ -41,10 +44,12 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
@@ -94,6 +99,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
     @Resource
     private AppLogService appLogService;
+
+    @Resource
+    private MaterialLibraryService materialLibraryService;
 
     @Override
     public Map<String, Object> metadata() {
@@ -150,9 +158,23 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     @Override
     public JSON materialGenerate(CreativeMaterialGenerationDTO request) {
         AppValidate.notEmpty(request.getMaterialList(), "素材列表不能为空");
-        AppValidate.notEmpty(request.getFieldList(), "所有字段定义列表不能为空");
+        AppValidate.notBlank(request.getPlanUid(), "计划UID不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
+
+        CreativePlanRespVO plan = creativePlanService.get(request.getPlanUid());
+        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(plan.getSource());
+        AppValidate.notNull(planSource, "计划来源不存在不支持");
+
+        MaterialLibraryAppReqVO materialLibraryAppReqVO = new MaterialLibraryAppReqVO();
+        materialLibraryAppReqVO.setAppName(plan.getConfiguration().getAppInformation().getName());
+        materialLibraryAppReqVO.setAppUid(plan.getAppUid());
+        materialLibraryAppReqVO.setAppType(planSource.getCode());
+        materialLibraryAppReqVO.setUserId(SecurityFrameworkUtils.getLoginUserId());
+
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryAppReqVO);
+        AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
+        AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
 
         // 根据标签查询生成素材的应用信息
         AppMarketListQuery query = new AppMarketListQuery();
@@ -175,22 +197,22 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         MaterialDefineUtil.removeNull(materialList);
 
         // 所有字段定义列表
-        List<MaterialLibraryTableColumnDO> fieldList = request.getFieldList();
+        List<MaterialLibraryTableColumnRespVO> fieldList = materialLibrary.getTableMeta();
         // 选中的字段定义列表
         List<String> checkedFieldList = request.getCheckedFieldList();
         // 素材要求
         String requirement = request.getRequirement();
 
         // 合并字段列表，使选中的字段配置完整
-        List<MaterialLibraryTableColumnDO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
+        List<MaterialLibraryTableColumnRespVO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
         // 排序
         List<String> sortedField = fieldList.stream()
                 .filter(config -> !ColumnTypeEnum.IMAGE.getCode().equals(config.getColumnType()))
-                .sorted(Comparator.comparingLong(MaterialLibraryTableColumnDO::getSequence))
-                .map(MaterialLibraryTableColumnDO::getColumnCode)
+                .sorted(Comparator.comparingLong(MaterialLibraryTableColumnRespVO::getSequence))
+                .map(MaterialLibraryTableColumnRespVO::getColumnCode)
                 .collect(Collectors.toList());
 
         // MATERIAL_LIST 移除选中的字段 uuid,group 并排序
@@ -202,7 +224,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         appMarketResponse.putVariable(stepId, "MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
         appMarketResponse.putVariable(stepId, "FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
         appMarketResponse.putVariable(stepId, "CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
-                .map(MaterialLibraryTableColumnDO::getColumnCode)
+                .map(MaterialLibraryTableColumnRespVO::getColumnCode)
                 .collect(Collectors.toList())));
         appMarketResponse.putVariable(stepId, "REQUIREMENT", requirement);
         appMarketResponse.putVariable(stepId, "JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
@@ -237,10 +259,24 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     @SuppressWarnings("all")
     @Override
     public JSON customMaterialGenerate(CreativeMaterialGenerationDTO request) {
-        AppValidate.notEmpty(request.getFieldList(), "所有字段定义列表不能为空");
+        AppValidate.notBlank(request.getPlanUid(), "计划UID不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
         AppValidate.notNull(request.getGenerateCount(), "生成数量不能为空");
+
+        CreativePlanRespVO plan = creativePlanService.get(request.getPlanUid());
+        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(plan.getSource());
+        AppValidate.notNull(planSource, "计划来源不存在不支持");
+
+        MaterialLibraryAppReqVO materialLibraryAppReqVO = new MaterialLibraryAppReqVO();
+        materialLibraryAppReqVO.setAppName(plan.getConfiguration().getAppInformation().getName());
+        materialLibraryAppReqVO.setAppUid(plan.getAppUid());
+        materialLibraryAppReqVO.setAppType(planSource.getCode());
+        materialLibraryAppReqVO.setUserId(SecurityFrameworkUtils.getLoginUserId());
+
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryAppReqVO);
+        AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
+        AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
 
         // 根据标签查询生成素材的应用信息
         AppMarketListQuery query = new AppMarketListQuery();
@@ -258,7 +294,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
                 .orElseThrow(() -> new IllegalArgumentException("生成素材的应用信息配置异常！请联系管理员"));
 
         // 所有字段定义列表
-        List<MaterialLibraryTableColumnDO> fieldList = request.getFieldList();
+        List<MaterialLibraryTableColumnRespVO> fieldList = materialLibrary.getTableMeta();
         // 选中的字段定义列表
         List<String> checkedFieldList = request.getCheckedFieldList();
         // 素材生成要求
@@ -267,7 +303,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         Integer generateCount = request.getGenerateCount();
 
         // 合并字段列表，使选中的字段配置完整
-        List<MaterialLibraryTableColumnDO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
+        List<MaterialLibraryTableColumnRespVO> mergeCheckedFieldList = mergeCheckedFieldList(checkedFieldList, fieldList);
         // 素材字段配置转换为 JSON Schema
         JsonSchema jsonSchema = materialFieldToJsonSchema(mergeCheckedFieldList, Boolean.TRUE);
 
@@ -276,7 +312,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
 
         appMarketResponse.putVariable(stepId, "FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
         appMarketResponse.putVariable(stepId, "CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
-                .map(MaterialLibraryTableColumnDO::getColumnCode)
+                .map(MaterialLibraryTableColumnRespVO::getColumnCode)
                 .collect(Collectors.toList())));
         appMarketResponse.putVariable(stepId, "REQUIREMENT", requirement);
         appMarketResponse.putVariable(stepId, "GENERATE_COUNT", generateCount);
@@ -434,19 +470,19 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList        所有字段配置列表
      * @return 合并后的选中的字段配置列表
      */
-    private List<MaterialLibraryTableColumnDO> mergeCheckedFieldList(List<String> checkedFieldList, List<MaterialLibraryTableColumnDO> fieldList) {
-        Map<String, MaterialLibraryTableColumnDO> fieldMap = CollectionUtil.emptyIfNull(fieldList).stream()
-                .collect(Collectors.toMap(MaterialLibraryTableColumnDO::getColumnCode, Function.identity()));
+    private List<MaterialLibraryTableColumnRespVO> mergeCheckedFieldList(List<String> checkedFieldList, List<MaterialLibraryTableColumnRespVO> fieldList) {
+        Map<String, MaterialLibraryTableColumnRespVO> fieldMap = CollectionUtil.emptyIfNull(fieldList).stream()
+                .collect(Collectors.toMap(MaterialLibraryTableColumnRespVO::getColumnCode, Function.identity()));
 
-        List<MaterialLibraryTableColumnDO> mergeCheckedFieldList = new ArrayList<>();
+        List<MaterialLibraryTableColumnRespVO> mergeCheckedFieldList = new ArrayList<>();
         for (String fieldName : checkedFieldList) {
-            MaterialLibraryTableColumnDO field = fieldMap.get(fieldName);
+            MaterialLibraryTableColumnRespVO field = fieldMap.get(fieldName);
             if (Objects.isNull(field)) {
                 continue;
             }
             mergeCheckedFieldList.add(field);
         }
-        return mergeCheckedFieldList.stream().sorted(Comparator.comparingLong(MaterialLibraryTableColumnDO::getSequence)).collect(Collectors.toList());
+        return mergeCheckedFieldList.stream().sorted(Comparator.comparingLong(MaterialLibraryTableColumnRespVO::getSequence)).collect(Collectors.toList());
     }
 
     /**
@@ -457,7 +493,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @return JSON Schema 字符串
      */
     @SuppressWarnings("all")
-    private static JsonSchema materialFieldToJsonSchema(List<MaterialLibraryTableColumnDO> fieldList, Boolean isArray) {
+    private static JsonSchema materialFieldToJsonSchema(List<MaterialLibraryTableColumnRespVO> fieldList, Boolean isArray) {
         if (CollectionUtil.isEmpty(fieldList)) {
             throw new IllegalArgumentException("素材字段配置列表不能为空！");
         }
@@ -474,7 +510,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ArraySchema materialFieldToArraySchema(List<MaterialLibraryTableColumnDO> fieldList) {
+    private static ArraySchema materialFieldToArraySchema(List<MaterialLibraryTableColumnRespVO> fieldList) {
         ObjectSchema itemsSchema = materialFieldToObjectSchema(fieldList);
         itemsSchema.setId("urn:jsonschema:material:item:" + IdUtil.fastSimpleUUID());
 
@@ -492,7 +528,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
      * @param fieldList 素材字段配置列表
      * @return JSON Schema 字符串
      */
-    private static ObjectSchema materialFieldToObjectSchema(List<MaterialLibraryTableColumnDO> fieldList) {
+    private static ObjectSchema materialFieldToObjectSchema(List<MaterialLibraryTableColumnRespVO> fieldList) {
         // 创建 JSON Schema 对象
         ObjectSchema objectSchema = JsonSchemaUtils.generateJsonSchema(Object.class).asObjectSchema();
         objectSchema.setId("urn:jsonschema:material:object:" + IdUtil.fastSimpleUUID());
@@ -500,7 +536,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         objectSchema.setRequired(true);
 
         // 遍历字段配置，向 JSON Schema 对象中添加字段
-        for (MaterialLibraryTableColumnDO materialField : CollectionUtil.emptyIfNull(fieldList)) {
+        for (MaterialLibraryTableColumnRespVO materialField : CollectionUtil.emptyIfNull(fieldList)) {
             Integer type = materialField.getColumnType();
             if (ColumnTypeEnum.STRING.getCode().equals(type) ||
                     ColumnTypeEnum.IMAGE.getCode().equals(type) ||
@@ -522,9 +558,9 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     }
 
 
-    private List<Map<String, String>> cleanFieldConfig(List<MaterialLibraryTableColumnDO> fieldList) {
+    private List<Map<String, String>> cleanFieldConfig(List<MaterialLibraryTableColumnRespVO> fieldList) {
         List<Map<String, String>> fieldMapList = new ArrayList<>(fieldList.size());
-        for (MaterialLibraryTableColumnDO fieldConfigDTO : fieldList) {
+        for (MaterialLibraryTableColumnRespVO fieldConfigDTO : fieldList) {
             if (ColumnTypeEnum.IMAGE.getCode().equals(fieldConfigDTO.getColumnType())) {
                 continue;
             }
