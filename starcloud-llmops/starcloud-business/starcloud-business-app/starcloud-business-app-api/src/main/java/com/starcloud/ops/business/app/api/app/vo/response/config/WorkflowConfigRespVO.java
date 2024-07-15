@@ -12,6 +12,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -63,6 +64,9 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
                 return;
             }
             for (WorkflowStepWrapperRespVO step : steps) {
+                if (Objects.isNull(step)) {
+                    continue;
+                }
                 step.supplementStepVariable(variableRespVOMap);
             }
         } catch (Exception e) {
@@ -71,91 +75,16 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     }
 
     /**
-     * 向step 中添加变量
+     * 获取步骤列表
      *
-     * @param stepId   步骤ID
-     * @param variable 变量
+     * @return 步骤列表
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void putVariable(String stepId, Map<String, Object> variable) {
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (stepId.equals(step.getField())) {
-                step.putVariable(variable);
-                break;
-            }
-        }
-    }
-
-    /**
-     * 获取步骤中的变量
-     *
-     * @param stepId       步骤ID
-     * @param variableName 变量名称
-     * @return 变量
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public VariableItemRespVO getStepVariable(String stepId, String variableName) {
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (stepId.equals(step.getField())) {
-                return step.getVariable(variableName);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 获取步骤中的变量值
-     *
-     * @param stepId       步骤ID
-     * @param variableName 变量名称
-     * @return 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getStepVariableValue(String stepId, String variableName) {
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (stepId.equals(step.getField())) {
-                return step.getStepVariableValue(variableName);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 向step 中添加变量
-     *
-     * @param stepId   步骤ID
-     * @param variable 变量
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putStepModelVariable(String stepId, Map<String, Object> variable) {
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (stepId.equals(step.getField())) {
-                step.putStepModelVariable(variable);
-                break;
-            }
-        }
-    }
-
-    /**
-     * 获取步骤中的变量值
-     *
-     * @param stepId       步骤ID
-     * @param variableName 变量名称
-     * @return 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getStepModelVariableValue(String stepId, String variableName) {
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (stepId.equals(step.getField())) {
-                return step.getStepModelVariableValue(variableName);
-            }
-        }
-        return null;
+    public List<WorkflowStepWrapperRespVO> stepWrapperList() {
+        return CollectionUtil.emptyIfNull(this.getSteps()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -167,12 +96,264 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
     @JsonIgnore
     @JSONField(serialize = false)
     public WorkflowStepWrapperRespVO getStepByHandler(String handler) {
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (handler.equals(step.getFlowStep().getHandler())) {
+        if (StringUtils.isBlank(handler)) {
+            return null;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (handler.equalsIgnoreCase(step.getHandler())) {
                 return step;
             }
         }
         return null;
+    }
+
+    /**
+     * 根据 handler 获取步骤
+     *
+     * @param clazz 步骤handler类
+     * @return 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapperRespVO getStepByHandler(Class<?> clazz) {
+        if (Objects.isNull(clazz)) {
+            return null;
+        }
+        return getStepByHandler(clazz.getSimpleName());
+    }
+
+    /**
+     * 应用配置设置
+     *
+     * @param handler 处理去
+     * @param wrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setStepByHandler(String handler, WorkflowStepWrapperRespVO wrapper) {
+        if (StringUtils.isBlank(handler) || Objects.isNull(wrapper)) {
+            return;
+        }
+        List<WorkflowStepWrapperRespVO> stepList = new ArrayList<>();
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (wrapper.getStepCode().equalsIgnoreCase(step.getStepCode()) &&
+                    handler.equalsIgnoreCase(step.getHandler())) {
+                stepList.add(wrapper);
+            } else {
+                stepList.add(step);
+            }
+        }
+        this.steps = stepList;
+    }
+
+    /**
+     * 应用配置设置
+     *
+     * @param clazz   类名
+     * @param wrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setStepByHandler(Class<?> clazz, WorkflowStepWrapperRespVO wrapper) {
+        if (Objects.isNull(clazz) || Objects.isNull(wrapper)) {
+            return;
+        }
+        setStepByHandler(clazz.getSimpleName(), wrapper);
+    }
+
+    /**
+     * 获取步骤变量
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getVariableItem(String stepId, String field) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                return step.getVariableItem(field);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getVariableToString(String stepId, String field) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return StringUtils.EMPTY;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                return step.getVariableToString(field);
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String stepId, String field) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                return step.getVariable(field);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String stepId, String field, Object value) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                step.putVariable(field, value);
+                break;
+            }
+        }
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getModelVariableItem(String stepId, String field) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                return step.getModelVariableItem(field);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getModelVariableToString(String stepId, String field) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                return step.getModelVariableToString(field);
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(String stepId, String field) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                return step.getModelVariable(field);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String field, Object value) {
+        if (StringUtils.isBlank(stepId) || StringUtils.isBlank(field)) {
+            return;
+        }
+        for (WorkflowStepWrapperRespVO step : stepWrapperList()) {
+            if (Objects.isNull(step)) {
+                continue;
+            }
+            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+                step.putModelVariable(field, value);
+                break;
+            }
+        }
     }
 
     /**
@@ -191,21 +372,21 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         // 将配置信息转换为map
         Map<String, WorkflowStepWrapperRespVO> stepWrapperMap = workflowConfig.getSteps()
                 .stream()
-                .collect(Collectors.toMap(WorkflowStepWrapperRespVO::getField, Function.identity()));
+                .collect(Collectors.toMap(WorkflowStepWrapperRespVO::getStepCode, Function.identity()));
 
         List<WorkflowStepWrapperRespVO> mergeStepWrapperList = new ArrayList<>();
 
         // 循环处理
         for (WorkflowStepWrapperRespVO step : this.steps) {
             // 如果map中不存在，或者为空，则不进行合并处理，直接放到新的list中
-            if (!stepWrapperMap.containsKey(step.getField()) ||
-                    Objects.isNull(stepWrapperMap.get(step.getField()))) {
+            if (!stepWrapperMap.containsKey(step.getStepCode()) ||
+                    Objects.isNull(stepWrapperMap.get(step.getStepCode()))) {
                 mergeStepWrapperList.add(step);
                 continue;
             }
 
             // 进行合并处理
-            WorkflowStepWrapperRespVO stepWrapper = stepWrapperMap.get(step.getField());
+            WorkflowStepWrapperRespVO stepWrapper = stepWrapperMap.get(step.getStepCode());
             step.merge(stepWrapper);
 
             // 将合并后的数据放到新的list中
@@ -215,23 +396,5 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         this.steps = mergeStepWrapperList;
     }
 
-    /**
-     * 应用配置设置
-     *
-     * @param simpleName         类名
-     * @param handlerStepWrapper 步骤
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void setStepByHandler(String simpleName, WorkflowStepWrapperRespVO handlerStepWrapper) {
-        List<WorkflowStepWrapperRespVO> stepList = new ArrayList<>();
-        for (WorkflowStepWrapperRespVO step : steps) {
-            if (handlerStepWrapper.getField().equals(step.getField()) && simpleName.equals(step.getFlowStep().getHandler())) {
-                stepList.add(handlerStepWrapper);
-            } else {
-                stepList.add(step);
-            }
-        }
-        this.steps = stepList;
-    }
+
 }

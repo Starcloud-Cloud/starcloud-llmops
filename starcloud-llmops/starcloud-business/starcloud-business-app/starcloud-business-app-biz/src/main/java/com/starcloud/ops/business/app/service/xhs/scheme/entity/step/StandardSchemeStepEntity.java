@@ -1,24 +1,15 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -70,12 +61,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.REFERS, JsonUtils.toJsonString(this.materialList));
-        variableMap.put(CreativeConstants.MATERIAL_TYPE, materialType);
-        variableMap.put(CreativeConstants.GENERATE_MODE, this.model);
-        variableMap.put(CreativeConstants.REQUIREMENT, this.requirement);
-        stepWrapper.putVariable(variableMap);
+
     }
 
     /**
@@ -85,22 +71,7 @@ public abstract class StandardSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        VariableRespVO variable = stepWrapper.getVariable();
-        List<VariableItemRespVO> variables = variable.getVariables();
 
-        for (VariableItemRespVO variableItem : variables) {
-            if (CreativeConstants.GENERATE_MODE.equals(variableItem.getField())) {
-                this.model = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
-            } else if (CreativeConstants.REFERS.equals(variableItem.getField())) {
-                String refers = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse("[]"));
-                refers = StringUtils.isBlank(refers) ? "[]" : refers;
-                this.materialList = JsonUtils.parseArray(refers, AbstractCreativeMaterialDTO.class);
-            } else if (CreativeConstants.REQUIREMENT.equals(variableItem.getField())) {
-                this.requirement = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
-            } else if (CreativeConstants.MATERIAL_TYPE.equals(variableItem.getField())) {
-                this.materialType = String.valueOf(Optional.ofNullable(variableItem.getValue()).orElse(StringUtils.EMPTY));
-            }
-        }
     }
 
 }

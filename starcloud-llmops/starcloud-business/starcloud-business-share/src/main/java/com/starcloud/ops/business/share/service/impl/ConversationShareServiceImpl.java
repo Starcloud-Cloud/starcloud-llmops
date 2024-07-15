@@ -148,7 +148,7 @@ public class ConversationShareServiceImpl implements ConversationShareService {
 
     @Override
     public void deleteShare(String appUid) {
-        Assert.notBlank(appUid,"删除数据失败，appUid为空");
+        Assert.notBlank(appUid, "删除数据失败，appUid为空");
         shareConversationMapper.delete(appUid);
     }
 

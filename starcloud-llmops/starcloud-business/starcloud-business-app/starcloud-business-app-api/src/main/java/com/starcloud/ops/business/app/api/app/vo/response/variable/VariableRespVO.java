@@ -8,13 +8,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,8 +44,10 @@ public class VariableRespVO implements Serializable {
      * 补充默认变量
      * 如果变量已存在则跳过
      *
-     * @param variableItemRespVO
+     * @param variableItemRespVO 变量
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public void supplementStepVariable(List<VariableItemRespVO> variableItemRespVO) {
         if (CollectionUtil.isEmpty(variableItemRespVO)) {
             return;
@@ -65,16 +67,83 @@ public class VariableRespVO implements Serializable {
     }
 
     /**
-     * 放入变量值
+     * 获取变量列表
      *
-     * @param variable 变量
+     * @return 变量列表
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void putVariable(Map<String, Object> variable) {
-        for (VariableItemRespVO item : variables) {
-            if (variable.containsKey(item.getField())) {
-                item.setValue(Optional.ofNullable(variable.get(item.getField())).orElse(""));
+    public List<VariableItemRespVO> variableList() {
+        return CollectionUtil.emptyIfNull(this.getVariables()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getItem(String field) {
+        if (StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (VariableItemRespVO item : variableList()) {
+            if (field.equalsIgnoreCase(item.getField())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getVariableToString(String field) {
+        Object value = getVariable(field);
+        if (Objects.isNull(value)) {
+            return StringUtils.EMPTY;
+        }
+        return String.valueOf(value);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String field) {
+        VariableItemRespVO variable = getItem(field);
+        if (Objects.isNull(variable)) {
+            return null;
+        }
+        return variable.getValue();
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String field, Object value) {
+        if (StringUtils.isBlank(field)) {
+            return;
+        }
+        for (VariableItemRespVO item : variableList()) {
+            if (field.equalsIgnoreCase(item.getField())) {
+                item.setValue(value);
+                return;
             }
         }
     }
@@ -116,4 +185,6 @@ public class VariableRespVO implements Serializable {
 
         this.variables = mergeVariableList;
     }
+
+
 }

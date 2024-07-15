@@ -11,9 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author nacoyer
@@ -47,10 +45,7 @@ public class MaterialSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.MATERIAL_TYPE, this.materialType);
-        variableMap.put(CreativeConstants.MATERIAL_LIST, "[]");
-        stepWrapper.putVariable(variableMap);
+
     }
 
     /**
@@ -60,10 +55,6 @@ public class MaterialSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        VariableItemRespVO materialTypeVariable = stepWrapper.getVariable(CreativeConstants.MATERIAL_TYPE);
-        if (materialTypeVariable != null) {
-            this.materialType = String.valueOf(materialTypeVariable.getValue());
-        }
-        this.materialList = new ArrayList<>();
+
     }
 }

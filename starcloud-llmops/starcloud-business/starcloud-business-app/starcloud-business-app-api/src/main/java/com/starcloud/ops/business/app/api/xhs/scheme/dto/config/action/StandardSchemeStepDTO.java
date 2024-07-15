@@ -7,7 +7,7 @@ import com.alibaba.excel.util.StringUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -70,7 +70,7 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
     public void validate() {
         AppValidate.notBlank(model, "缺少必填项：创作方案生成模式！");
         // 非自定义模式，参考文案不能为空
-        if (!CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
+        if (!CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(model)) {
 //            if (CollectionUtil.isEmpty(referList)) {
 //                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
 //            }
@@ -86,7 +86,7 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
 
         }
         // 自定义模式下，要求不能为空
-        if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
+        if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(model)) {
             AppValidate.notBlank(requirement, "缺少必填项：生成要求！");
         }
     }

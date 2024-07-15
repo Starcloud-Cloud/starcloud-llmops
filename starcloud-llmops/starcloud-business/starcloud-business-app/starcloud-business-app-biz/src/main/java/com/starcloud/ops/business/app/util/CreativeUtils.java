@@ -4,37 +4,28 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.ParagraphActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
-import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -62,45 +53,69 @@ public class CreativeUtils {
     private static final CreativeImageManager CREATIVE_IMAGE_MANAGER = SpringUtil.getBean(CreativeImageManager.class);
 
     /**
-     * 获取段落方案步骤, 如果没有则返回null
+     * 获取应用的素材步骤
      *
-     * @param schemeStepList 方案步骤列表
-     * @return 段落方案步骤
+     * @param app 应用
+     * @return 素材步骤
      */
-    public static VariableSchemeStepDTO getVariableSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (VariableSchemeStepDTO) schemeStepList.stream().filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
+    public static WorkflowStepWrapperRespVO getMaterialStepWrapper(AppMarketRespVO app) {
+        return Optional.ofNullable(app.getStepByHandler(MaterialActionHandler.class.getSimpleName()))
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
     }
 
     /**
-     * 获取段落方案步骤, 如果没有则返回null
+     * 获取应用的笔记生成步骤
      *
-     * @param schemeStepList 方案步骤列表
-     * @return 段落方案步骤
+     * @param app 应用
+     * @return 笔记生成步骤
      */
-    public static MaterialSchemeStepDTO getMaterialSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (MaterialSchemeStepDTO) schemeStepList.stream().filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
+    public static WorkflowStepWrapperRespVO getAssembleStepWrapper(AppMarketRespVO app) {
+        return Optional.ofNullable(app.getStepByHandler(AssembleActionHandler.class.getSimpleName()))
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
     }
 
     /**
-     * 获取海报方案步骤, 如果没有则返回null
+     * 获取应用的海报生成步骤
      *
-     * @param schemeStepList 方案步骤列表
-     * @return 海报方案步骤
+     * @param app 应用
+     * @return 海报生成步骤
      */
-    public static PosterSchemeStepDTO getPosterSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (PosterSchemeStepDTO) schemeStepList.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
+    public static WorkflowStepWrapperRespVO getPosterStepWrapper(AppMarketRespVO app) {
+        return Optional.ofNullable(app.getStepByHandler(PosterActionHandler.class.getSimpleName()))
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】最后一个步骤必须是【图片生成】步骤！且有且只能有一个！"));
     }
 
     /**
-     * 获取段落方案步骤, 如果没有则返回null
+     * 获取应用的变量步骤列表
      *
-     * @param schemeStepList 方案步骤列表
-     * @return 段落方案步骤
+     * @param app 应用
+     * @return 变量步骤列表
      */
-    public static ParagraphSchemeStepDTO getParagraphSchemeStep(List<BaseSchemeStepDTO> schemeStepList) {
-        return (ParagraphSchemeStepDTO) schemeStepList.stream().filter(item -> ParagraphActionHandler.class.getSimpleName().equals(item.getCode())).findFirst().orElse(null);
+    public static List<WorkflowStepWrapperRespVO> getVariableStepWrapperList(AppMarketRespVO app) {
+        return Optional.ofNullable(app)
+                .map(AppMarketRespVO::getWorkflowConfig)
+                .map(WorkflowConfigRespVO::stepWrapperList)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(step -> VariableActionHandler.class.getSimpleName().equals(step.getHandler()))
+                .collect(Collectors.toList());
     }
 
+    /**
+     * 获取应用的内容生成步骤列表
+     *
+     * @param app 应用
+     * @return 内容生成步骤列表
+     */
+    public static List<WorkflowStepWrapperRespVO> getContentStepWrapperList(AppMarketRespVO app) {
+        return Optional.ofNullable(app)
+                .map(AppMarketRespVO::getWorkflowConfig)
+                .map(WorkflowConfigRespVO::stepWrapperList)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(step -> CustomActionHandler.class.getSimpleName().equals(step.getHandler()))
+                .collect(Collectors.toList());
+    }
 
     /**
      * 将变量合并到方案全局变量步骤中
@@ -165,7 +180,7 @@ public class CreativeUtils {
      * @return 图片类型的变量
      */
     public static List<PosterVariableDTO> getImageVariableList(PosterTemplateDTO posterTemplate) {
-        return posterTemplate.getPosterVariableList().stream()
+        return posterTemplate.posterVariableList().stream()
                 .filter(CreativeUtils::isImageVariable)
                 .collect(Collectors.toList());
     }
@@ -293,6 +308,7 @@ public class CreativeUtils {
      * @return 应用
      */
     public static AppMarketRespVO mergeAppInformation(AppMarketRespVO appMarket, AppMarketRespVO latestAppMarket) {
+
         // 获取最新应用海报步骤
         WorkflowStepWrapperRespVO latestWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
         // 如果最新海报步骤不为空，则将系统海报配置设置到计划应用中, 保证最新的系统海报配置。
@@ -303,14 +319,9 @@ public class CreativeUtils {
             WorkflowStepWrapperRespVO wrapper = appMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
             if (Objects.nonNull(wrapper)) {
                 // 放入到应用中
-                Map<String, Object> modelVariableMap = Collections.singletonMap(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestSystemPosterList));
-                appMarket.putStepModelVariable(wrapper.getField(), modelVariableMap);
-
-                // 应用参数变为空
-                Map<String, Object> variableMap = new HashMap<>();
-                variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-                variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
-                appMarket.putStepVariable(wrapper.getField(), variableMap);
+                appMarket.putModelVariable(wrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestSystemPosterList));
+                appMarket.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+                appMarket.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
             }
         }
 
@@ -460,16 +471,11 @@ public class CreativeUtils {
             // 应用参数处理
             List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(stepWrapper);
             // 重新放入应用
-            Map<String, Object> modelVariableMap = new HashMap<>();
-            modelVariableMap.put(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
-            appMarketResponse.putStepModelVariable(stepWrapper.getField(), modelVariableMap);
-
+            appMarketResponse.putModelVariable(stepWrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
             // 应用参数变为空
-            Map<String, Object> variableMap = new HashMap<>();
-            variableMap.put(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-            variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-            variableMap.put(CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
-            appMarketResponse.putStepVariable(stepWrapper.getField(), variableMap);
+            appMarketResponse.putVariable(stepWrapper.getField(), CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+            appMarketResponse.putVariable(stepWrapper.getField(), CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+            appMarketResponse.putVariable(stepWrapper.getField(), CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
         }
 
         return configuration;
@@ -521,12 +527,9 @@ public class CreativeUtils {
         posterStyleList = mergePosterStyleList(posterStyleList, latestPosterTemplateMap);
 
         // 重新放入海报步骤
-        posterStepWrapper.putStepModelVariable(Collections.singletonMap(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList)));
-
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
-        variableMap.put(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
-        posterStepWrapper.putVariable(variableMap);
+        posterStepWrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
+        posterStepWrapper.putVariable(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
+        posterStepWrapper.putVariable(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
         return posterStepWrapper;
     }
 
@@ -570,7 +573,7 @@ public class CreativeUtils {
         }
 
         // 获取到素材库列表
-        String materialListString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_LIST);
+        String materialListString = materialWrapper.getVariableToString(CreativeConstants.MATERIAL_LIST);
         if (StringUtils.isBlank(materialListString) || "[]".equals(materialListString) || "null".equalsIgnoreCase(materialListString)) {
             return Collections.emptyList();
         }
@@ -596,7 +599,7 @@ public class CreativeUtils {
         }
 
         // 获取到素材库列表
-        String materialConfigString = materialWrapper.getStepVariableValue(CreativeConstants.MATERIAL_DEFINE);
+        String materialConfigString = materialWrapper.getVariableToString(CreativeConstants.MATERIAL_DEFINE);
         if (StringUtils.isBlank(materialConfigString) || "[]".equals(materialConfigString) || "null".equalsIgnoreCase(materialConfigString)) {
             return Collections.emptyList();
         }
@@ -620,7 +623,7 @@ public class CreativeUtils {
             return null;
         }
 
-        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE);
+        String posterStyleString = posterWrapper.getVariableToString(CreativeConstants.POSTER_STYLE);
         if (StringUtils.isBlank(posterStyleString) || "{}".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
             return null;
         }
@@ -645,7 +648,7 @@ public class CreativeUtils {
             return Collections.emptyList();
         }
 
-        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.POSTER_STYLE_CONFIG);
+        String posterStyleString = posterWrapper.getVariableToString(CreativeConstants.POSTER_STYLE_CONFIG);
         if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
             return Collections.emptyList();
         }
@@ -670,7 +673,7 @@ public class CreativeUtils {
             return Collections.emptyList();
         }
 
-        String posterStyleString = posterWrapper.getStepVariableValue(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
+        String posterStyleString = posterWrapper.getVariableToString(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
         if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
             return Collections.emptyList();
         }
@@ -698,7 +701,7 @@ public class CreativeUtils {
             return Collections.emptyList();
         }
 
-        String posterStyleString = posterWrapper.getStepModelVariableValue(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        String posterStyleString = posterWrapper.getModelVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
         if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
             return Collections.emptyList();
         }
@@ -713,93 +716,6 @@ public class CreativeUtils {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 处理并且校验应用
-     *
-     * @param appInformation 应用信息
-     */
-    public static void validAppInformation(AppMarketRespVO appInformation) {
-
-        List<WorkflowStepWrapperRespVO> stepWrappers = appInformation.getWorkflowConfig().getSteps();
-        AppValidate.notEmpty(stepWrappers, "应用最少需要一个步骤！");
-        for (WorkflowStepWrapperRespVO stepWrapper : stepWrappers) {
-            // name 不能重复
-            if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_STEP_NAME_DUPLICATE, stepWrapper.getName());
-            }
-        }
-        // 如果类型为媒体素材
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType())) {
-            if (stepWrappers.size() < 3) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】"));
-            }
-            // 第一个步骤必须是：上传素材步骤，有且只有一个
-            boolean materialCount = stepWrappers.stream()
-                    .filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
-            if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
-            }
-            // 倒数第二个必须包含笔记生成步骤, 有且只有一个
-            boolean assembleMatch = stepWrappers.stream()
-                    .filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
-            if (!AssembleActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 2).getFlowStep().getHandler()) && !assembleMatch) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
-            }
-            // 最后一个步骤必须是图片生成步骤, 有且只有一个
-            boolean posterMatch = stepWrappers.stream()
-                    .filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                    .count() == 1;
-            if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300100140, "媒体矩阵类型步骤最后一个应用必须是【图片生成】步骤！且有且只能有一个！"));
-            }
-
-        }
-
-        List<WorkflowStepWrapperRespVO> customStepWrapperList = Optional.ofNullable(appInformation)
-                .map(AppMarketRespVO::getWorkflowConfig)
-                .map(WorkflowConfigRespVO::getSteps)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE))
-                .stream()
-                .filter(item -> CustomActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler()))
-                .collect(Collectors.toList());
-        for (WorkflowStepWrapperRespVO stepWrapper : customStepWrapperList) {
-            String stepName = stepWrapper.getName();
-            VariableItemRespVO generateModeVariable = stepWrapper.getVariable(CreativeConstants.GENERATE_MODE);
-            if (Objects.isNull(generateModeVariable) || Objects.isNull(generateModeVariable.getValue())) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，生成模式为必选项！"));
-            }
-            // 参考素材变量
-            VariableItemRespVO refersVariable = stepWrapper.getVariable(CreativeConstants.REFERS);
-            // 文案生成要求变量
-            VariableItemRespVO requirementVariable = stepWrapper.getVariable(CreativeConstants.REQUIREMENT);
-            // 生成模式
-            String generateMode = String.valueOf(generateModeVariable.getValue());
-            // 生成模式校验, 随机生成和AI模仿生成需要参考素材
-            if (CreativeSchemeGenerateModeEnum.RANDOM.name().equals(generateMode) ||
-                    CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
-                if (Objects.isNull(refersVariable) || Objects.isNull(refersVariable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，参考素材不能为空！"));
-                }
-                String refers = String.valueOf(refersVariable.getValue());
-                if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，参考素材不能为空！"));
-                }
-            }
-            // AI自定义校验，文案生成要求不能为空
-            else {
-                if (Objects.isNull(requirementVariable) || Objects.isNull(requirementVariable.getValue())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，文案生成要求不能为空！"));
-                }
-                String requirement = String.valueOf(requirementVariable.getValue());
-                if (StringUtils.isBlank(requirement)) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(300000407, "笔记生成步骤的【" + stepName + "】参数错误，文案生成要求不能为空！"));
-                }
-            }
-        }
-
-    }
 }
 
 

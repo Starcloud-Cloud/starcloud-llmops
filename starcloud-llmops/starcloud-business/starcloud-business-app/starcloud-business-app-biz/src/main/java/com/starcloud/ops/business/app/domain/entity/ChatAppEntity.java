@@ -34,6 +34,7 @@ import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -149,7 +150,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(ChatRequestVO request) {
+    protected void doValidate(ChatRequestVO request, ValidateTypeEnum validateType) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
@@ -159,7 +160,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
-        getChatConfig().validate();
+        getChatConfig().validate(validateType);
     }
 
     @Override

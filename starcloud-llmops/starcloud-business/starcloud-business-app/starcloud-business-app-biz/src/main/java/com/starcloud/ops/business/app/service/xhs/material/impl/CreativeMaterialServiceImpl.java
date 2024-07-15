@@ -16,7 +16,7 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
@@ -55,14 +55,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.FILED_DESC_IS_BLANK;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.FILED_DESC_LENGTH;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MATERIAL_NOT_EXIST;
 
 @Slf4j
 @Service
@@ -191,17 +201,13 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         // FIELD_LIST 只保留fieldName,desc两个字段
         List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
 
-        Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
+        appMarketResponse.putVariable(stepId, "MATERIAL_LIST", JsonUtils.toJsonPrettyString(cleanMaterialList));
+        appMarketResponse.putVariable(stepId, "FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
+        appMarketResponse.putVariable(stepId, "CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
-        materialMap.put("REQUIREMENT", requirement);
-        materialMap.put("JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
-
-        // 将处理后的数据放入到应用变量中
-        appMarketResponse.putStepVariable(stepId, materialMap);
+        appMarketResponse.putVariable(stepId, "REQUIREMENT", requirement);
+        appMarketResponse.putVariable(stepId, "JSON_SCHEMA", JsonUtils.toJsonPrettyString(jsonSchema));
 
         // 构造请求
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
@@ -270,17 +276,13 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         // FIELD_LIST 只保留fieldName,desc两个字段
         List<Map<String, String>> fieldMapList = cleanFieldConfig(fieldList);
 
-        Map<String, Object> materialMap = new HashMap<>();
-        materialMap.put("FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
-        materialMap.put("CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
+        appMarketResponse.putVariable(stepId, "FIELD_LIST", JsonUtils.toJsonPrettyString(fieldMapList));
+        appMarketResponse.putVariable(stepId, "CHECKED_FIELD_LIST", JSONUtil.toJsonPrettyStr(mergeCheckedFieldList.stream()
                 .map(MaterialFieldConfigDTO::getFieldName)
                 .collect(Collectors.toList())));
-        materialMap.put("REQUIREMENT", requirement);
-        materialMap.put("GENERATE_COUNT", generateCount);
-        materialMap.put("JSON_SCHEMA", JsonSchemaUtils.jsonSchema2Str(jsonSchema));
-
-        // 将处理后的数据放入到应用变量中
-        appMarketResponse.putStepVariable(stepId, materialMap);
+        appMarketResponse.putVariable(stepId, "REQUIREMENT", requirement);
+        appMarketResponse.putVariable(stepId, "GENERATE_COUNT", generateCount);
+        appMarketResponse.putVariable(stepId, "JSON_SCHEMA", JsonSchemaUtils.jsonSchema2Str(jsonSchema));
 
         // 构造请求
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();

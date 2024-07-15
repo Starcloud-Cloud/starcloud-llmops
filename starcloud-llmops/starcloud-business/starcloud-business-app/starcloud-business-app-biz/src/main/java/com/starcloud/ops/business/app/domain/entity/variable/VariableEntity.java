@@ -10,16 +10,19 @@ import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ValueTypeSchema;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,6 +47,118 @@ public class VariableEntity {
      */
     private List<VariableItemEntity> variables;
 
+    /**
+     * 变量 校验
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(ValidateTypeEnum validateType) {
+        if (CollectionUtil.isNotEmpty(this.variables)) {
+            this.variables.forEach(VariableItemEntity::validate);
+        }
+    }
+
+    /**
+     * 获取变量列表
+     *
+     * @return 变量列表
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<VariableItemEntity> variableList() {
+        return CollectionUtil.emptyIfNull(this.getVariables()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getItem(String field) {
+        if (StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (VariableItemEntity item : variableList()) {
+            if (field.equalsIgnoreCase(item.getField())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getVariableToString(String field) {
+        Object value = getVariable(field);
+        if (Objects.isNull(value)) {
+            return StringUtils.EMPTY;
+        }
+        return String.valueOf(value);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String field) {
+        VariableItemEntity variable = getItem(field);
+        if (Objects.isNull(variable)) {
+            return null;
+        }
+        return variable.getValue();
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String field, Object value) {
+        if (StringUtils.isBlank(field)) {
+            return;
+        }
+        for (VariableItemEntity item : variableList()) {
+            if (field.equalsIgnoreCase(item.getField())) {
+                item.setValue(value);
+                return;
+            }
+        }
+    }
+
+    /**
+     * 放入一个变量
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void addVariable(String field, Object value) {
+        VariableItemEntity variableItemEntity = new VariableItemEntity();
+        variableItemEntity.setField(field);
+        variableItemEntity.setLabel(field);
+        variableItemEntity.setDefaultValue(value);
+        variableItemEntity.setValue(value);
+        variableItemEntity.setGroup(AppVariableGroupEnum.PARAMS.name());
+        this.variables.add(variableItemEntity);
+    }
 
     /**
      * 获取 JsonSchema 格式的参数对象
@@ -139,44 +254,4 @@ public class VariableEntity {
         return Arrays.stream(Optional.ofNullable(keys).orElse(new String[]{})).filter(StrUtil::isNotEmpty).map(String::toUpperCase).collect(Collectors.joining("."));
     }
 
-    /**
-     * 变量 校验
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void validate() {
-        if (CollectionUtil.isNotEmpty(this.variables)) {
-            this.variables.forEach(VariableItemEntity::validate);
-        }
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putVariable(String key, Object value) {
-        for (VariableItemEntity variable : this.variables) {
-            if (variable.getField().toUpperCase().equalsIgnoreCase(key)) {
-                variable.setValue(value);
-            }
-        }
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public VariableItemEntity getVariableItem(String key) {
-        return this.variables.stream()
-                .filter(item -> item.getField().equalsIgnoreCase(key))
-                .findFirst().orElse(null);
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putVariableForce(String key, Object value) {
-        VariableItemEntity variableItemEntity = new VariableItemEntity();
-        variableItemEntity.setField(key);
-        variableItemEntity.setLabel(key);
-        variableItemEntity.setDefaultValue(value);
-        variableItemEntity.setValue(value);
-        variableItemEntity.setGroup(AppVariableGroupEnum.PARAMS.name());
-        this.variables.add(variableItemEntity);
-    }
 }

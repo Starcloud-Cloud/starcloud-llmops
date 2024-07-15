@@ -16,6 +16,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -25,7 +26,8 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -54,6 +56,17 @@ public class ImitateActionHandler extends BaseActionHandler {
         return super.execute(context, scopeDataOperator);
     }
 
+    /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+
+    }
+
     @Override
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
@@ -66,11 +79,11 @@ public class ImitateActionHandler extends BaseActionHandler {
         log.info("自定义内容生成[{}][{}]：正在执行：请求参数：\n{}", this.getClass().getSimpleName(), context.getStepId(), JsonUtils.toJsonPrettyString(params));
 
         // 获取到生成模式
-        String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
+        String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeContentGenerateModelEnum.AI_PARODY.name()));
 
 
         // AI仿写模式
-        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
+        if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
             return this.doAiParodyExecute(context, params);
         }
 
@@ -89,7 +102,7 @@ public class ImitateActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private ActionResponse doAiParodyExecute(AppContext context, Map<String, Object> params) {
-        String generateMode = CreativeSchemeGenerateModeEnum.AI_PARODY.name();
+        String generateMode = CreativeContentGenerateModelEnum.AI_PARODY.name();
         log.info("自定义内容生成[{}]：生成模式：[{}]......", this.getClass().getSimpleName(), generateMode);
 
         // 获取到参考内容

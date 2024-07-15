@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.domain.entity.chat.PrePromptConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.pre.PreMaxReturnPrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.pre.PreReplyLangPrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.pre.PreTonePrompt;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import io.vavr.collection.Array;
@@ -55,7 +56,7 @@ public class ChatPrePrompt extends BasePromptConfig {
 
 
     @Override
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
 
     }
 

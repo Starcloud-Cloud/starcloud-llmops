@@ -1,20 +1,14 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author nacoyer
@@ -42,7 +36,6 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-        stepWrapper.putVariable(Collections.singletonMap(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(this.styleList)));
     }
 
     /**
@@ -52,13 +45,6 @@ public class PosterSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        VariableItemRespVO styleVariable = stepWrapper.getVariable(CreativeConstants.POSTER_STYLE_CONFIG);
-        String posterStyleConfig = String.valueOf(Optional.ofNullable(styleVariable).map(VariableItemRespVO::getValue).orElse(StringUtils.EMPTY));
-        if (StringUtils.isBlank(posterStyleConfig) || "[]".equals(posterStyleConfig) || "null".equals(posterStyleConfig)) {
-            this.styleList = Collections.singletonList(PosterStyleDTO.ofOne());
-        } else {
-            this.styleList = JsonUtils.parseArray(posterStyleConfig, PosterStyleDTO.class);
-        }
 
     }
 }

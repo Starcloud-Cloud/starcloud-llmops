@@ -7,7 +7,7 @@ import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelR
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitQuery;
 import com.starcloud.ops.business.app.api.limit.vo.response.AppPublishLimitRespVO;
-import com.starcloud.ops.business.app.api.log.vo.request.AppLogMessageQuery;
+import com.starcloud.ops.business.app.controller.admin.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.limit.AppLimitByEnum;

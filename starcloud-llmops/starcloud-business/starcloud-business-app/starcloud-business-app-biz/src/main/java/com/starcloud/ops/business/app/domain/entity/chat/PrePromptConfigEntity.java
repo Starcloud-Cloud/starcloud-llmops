@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.domain.entity.skill.GptPluginSkill;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -52,7 +53,7 @@ public class PrePromptConfigEntity extends BaseConfigEntity {
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现
      */
     @Override
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
 
     }
 }

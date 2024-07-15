@@ -1,10 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.convert.xhs.scheme.CreativeSchemeStepConvert;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -40,10 +36,7 @@ public class VariableSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-        List<VariableItemRespVO> variables = CreativeSchemeStepConvert.INSTANCE.convertToResponse(this.variableList);
-        VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(variables);
-        stepWrapper.setVariable(variable);
+
     }
 
     /**
@@ -53,7 +46,5 @@ public class VariableSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        VariableRespVO variable = stepWrapper.getVariable();
-        this.variableList = CreativeSchemeStepConvert.INSTANCE.convertToEntity(CollectionUtil.emptyIfNull(variable.getVariables()));
     }
 }

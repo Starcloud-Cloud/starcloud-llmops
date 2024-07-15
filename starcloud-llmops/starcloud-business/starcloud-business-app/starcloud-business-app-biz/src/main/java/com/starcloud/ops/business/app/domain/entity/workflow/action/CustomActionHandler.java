@@ -21,6 +21,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -33,19 +34,22 @@ import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHa
 import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.parser.JsonSchemaParser;
 import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -95,35 +99,88 @@ public class CustomActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        String stepName = wrapper.getName();
+        // 生成模式
+        Object generateModel = wrapper.getVariable(CreativeConstants.GENERATE_MODE);
+        AppValidate.notNull(generateModel, "【{}】步骤参数错误，生成模式为必选项！", stepName);
+        // 生成模式
+        String generate = String.valueOf(generateModel);
+        if (!IEnumable.contains(generate, CreativeContentGenerateModelEnum.class)) {
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，生成模式不合法！", stepName);
+        }
+
+        // 生成模式校验, 随机生成和AI模仿生成需要参考素材
+        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generate) || CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
+            // 参考素材类型变量
+            Object materialTypeValue = wrapper.getVariable(CreativeConstants.MATERIAL_TYPE);
+            AppValidate.notNull(materialTypeValue, "【{}】步骤参数错误，参考素材类型不能为空！", stepName);
+            String materialType = String.valueOf(materialTypeValue);
+            if (!MaterialTypeEnum.NOTE_TITLE.name().equals(materialType) || !MaterialTypeEnum.NOTE_CONTENT.name().equals(materialType)) {
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，参考素材类型不合法！", stepName);
+            }
+
+            // 参考素材变量
+            Object refersValue = wrapper.getVariable(CreativeConstants.REFERS);
+            AppValidate.notNull(refersValue, "【{}】步骤参数错误，参考素材不能为空！", stepName);
+            String refers = String.valueOf(refersValue);
+            if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，参考素材不能为空！", stepName);
+            }
+        }
+        // AI自定义校验，文案生成要求不能为空
+        else {
+            // 文案生成要求变量
+            Object requirementValue = wrapper.getVariable(CreativeConstants.REQUIREMENT);
+            AppValidate.notNull(requirementValue, "【{}】步骤参数错误，文案生成要求不能为空！", stepName);
+            String requirement = String.valueOf(requirementValue);
+            AppValidate.notBlank(requirement, "【{}】步骤参数错误，文案生成要求不能为空！", stepName);
+        }
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
     /**
-     * 具体handler的出参定义
+     * 获取输出变量的 JSON Schema
      *
-     * @return
+     * @param stepWrapper 步骤包装器
+     * @return 输出变量的 JSON Schema
      */
     @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         //优先返回 素材类型的结构
 //        String refers = (String) params.get(CreativeConstants.MATERIAL_TYPE);
 //        if (StrUtil.isNotBlank(refers)) {
 //            //获取参考素材的结构
 //            return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
 //        }
-        return super.getOutVariableJsonSchema(workflowStepWrapper);
+        return super.getOutVariableJsonSchema(stepWrapper);
     }
 
     /**
-     * 执行OpenApi生成的步骤
+     * 执行内容生成
      *
-     * @param context
+     * @param context 应用上下文
      * @return 执行结果
      */
     @Override
@@ -132,16 +189,16 @@ public class CustomActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
         // 获取到生成模式
-        String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeSchemeGenerateModeEnum.AI_PARODY.name()));
+        String generateMode = String.valueOf(params.getOrDefault(CreativeConstants.GENERATE_MODE, CreativeContentGenerateModelEnum.AI_PARODY.name()));
 
         // 随机模式
-        if (CreativeSchemeGenerateModeEnum.RANDOM.name().equals(generateMode)) {
+        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generateMode)) {
             return this.doRandomExecute(context, params);
         }
 
         // AI仿写模式/ AI自定义模式
-        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)
-                || CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(generateMode)) {
+        if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)
+                || CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
             return this.doAiExecute(context, params, generateMode);
         }
 
@@ -159,16 +216,16 @@ public class CustomActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private ActionResponse doRandomExecute(AppContext context, Map<String, Object> params) {
         // 开始日志打印
-        loggerBegin(context, CreativeSchemeGenerateModeEnum.RANDOM.name(), "生成步骤");
+        loggerBegin(context, CreativeContentGenerateModelEnum.RANDOM.name(), "生成步骤");
 
         // 获取到参考文案
-        List<AbstractCreativeMaterialDTO> referList = this.getReferList(context, params, CreativeSchemeGenerateModeEnum.RANDOM.name());
+        List<AbstractCreativeMaterialDTO> referList = this.getReferList(context, params, CreativeContentGenerateModelEnum.RANDOM.name());
         // 随机获取一条参考文案，作为生成结果
         AbstractCreativeMaterialDTO reference = referList.get(RandomUtil.randomInt(referList.size()));
 
         // 计算价格相关结果
         ModelTypeEnum llmModel = ModelTypeEnum.GPT_3_5_TURBO;
-        String message = CreativeSchemeGenerateModeEnum.RANDOM.name();
+        String message = CreativeContentGenerateModelEnum.RANDOM.name();
         String answer = reference.generateContent();
         long messageTokens = message.length();
         long answerTokens = answer.length();
@@ -200,7 +257,7 @@ public class CustomActionHandler extends BaseActionHandler {
         response.setIsSendSseAll(false);
 
         // 结束日志打印
-        loggerSuccess(context, response, CreativeSchemeGenerateModeEnum.RANDOM.name(), "生成步骤");
+        loggerSuccess(context, response, CreativeContentGenerateModelEnum.RANDOM.name(), "生成步骤");
 
         return response;
     }
@@ -231,9 +288,11 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param context      上下文
      * @param generateMode 生成模式
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private void handlerContext(AppContext context, Map<String, Object> params, String generateMode) {
         // 处理参考内容
-        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
+        if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
             // 获取到参考内容
             List<AbstractCreativeMaterialDTO> referList = getReferList(context, params, generateMode);
             // 需要交给 ChatGPT 的参考内容数量
@@ -267,6 +326,8 @@ public class CustomActionHandler extends BaseActionHandler {
      * @return 应用执行模型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected String getLlmModelType(AppContext context) {
         String llmModelType = super.getLlmModelType(context);
         return TokenCalculator.fromName(llmModelType).getName();
@@ -290,9 +351,9 @@ public class CustomActionHandler extends BaseActionHandler {
          * AI自定义为第二个 prompt
          */
         boolean isCustom;
-        if (CreativeSchemeGenerateModeEnum.AI_PARODY.name().equals(generateMode)) {
+        if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
             isCustom = false;
-        } else if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(generateMode)) {
+        } else if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
             isCustom = true;
         } else {
             throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 不支持的生成模式！", context.getStepId());
@@ -437,6 +498,8 @@ public class CustomActionHandler extends BaseActionHandler {
      *
      * @return prompt
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private String defaultContentStepPrompt(Map<String, String> defaultAppConfiguration) {
         return appDefaultConfigManager.defaultContentStepPrompt(defaultAppConfiguration);
     }
@@ -510,6 +573,8 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param generateMode 生成模式
      * @return
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private List<AbstractCreativeMaterialDTO> getReferList(AppContext context, Map<String, Object> params, String generateMode) {
         // 获取到参考内容
         String refers = String.valueOf(params.getOrDefault(CreativeConstants.REFERS, "[]"));
@@ -526,6 +591,8 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param referList 参考内容
      * @return 处理后的参考内容
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private String generateRefers(List<AbstractCreativeMaterialDTO> referList) {
         try {
             StringJoiner sj = new StringJoiner("\n");
@@ -553,6 +620,8 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param refersCount 参考内容数量
      * @return 处理后的参考内容
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private List<AbstractCreativeMaterialDTO> handlerReferList(List<AbstractCreativeMaterialDTO> refersList, Integer refersCount) {
         // 随机选取
         Collections.shuffle(refersList);
@@ -575,6 +644,8 @@ public class CustomActionHandler extends BaseActionHandler {
      *
      * @param context 上下文
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private void loggerBegin(AppContext context, String model, String title) {
         log.info("\n{}【开始执行】: " +
                         "\n\t执行步骤: {}, " +
@@ -601,6 +672,8 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param context 上下文
      * @param param   参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private void loggerParamter(AppContext context, Object param, String model, String title) {
         log.info("\n{}【准备调用模型】: " +
                         "\n\t执行步骤: {}, " +
@@ -629,6 +702,8 @@ public class CustomActionHandler extends BaseActionHandler {
      * @param context  上下文
      * @param response 执行结果
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private void loggerSuccess(AppContext context, ActionResponse response, String model, String title) {
         log.info("\n{}【执行成功】: " +
                         "\n\t执行步骤: {}, " +

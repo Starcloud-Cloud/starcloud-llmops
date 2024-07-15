@@ -5,13 +5,12 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,13 +78,6 @@ public class CreativePlanController {
     @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<List<CreativePlanRespVO>> list(@RequestParam(value = "limit", defaultValue = "100") Integer limit) {
         return CommonResult.success(creativePlanService.list(limit));
-    }
-
-    @PostMapping("/create")
-    @Operation(summary = "创建创作计划", description = "创建创作计划")
-    @ApiOperationSupport(order = 60, author = "nacoyer")
-    public CommonResult<String> create(@Validated @RequestBody CreativePlanCreateReqVO request) {
-        return CommonResult.success(creativePlanService.create(request));
     }
 
     @PostMapping("/createSameApp")

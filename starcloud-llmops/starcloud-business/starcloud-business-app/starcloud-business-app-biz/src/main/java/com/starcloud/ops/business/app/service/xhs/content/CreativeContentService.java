@@ -1,15 +1,15 @@
 package com.starcloud.ops.business.app.service.xhs.content;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentRegenerateReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 
 import java.util.List;
 

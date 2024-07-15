@@ -15,18 +15,18 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentRegenerateReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentTaskReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentExecuteRespVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -325,18 +325,17 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             request.validate();
             CreativeContentExecuteParam executeParam = request.getExecuteParam();
             AppMarketRespVO appInformation = executeParam.getAppInformation();
-            CreativeUtils.validAppInformation(appInformation);
 
             // 素材步骤
             WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
             AppValidate.notNull(materialWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
 
             // 获取素材库类型
-            String businessType = materialWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
+            String businessType = materialWrapper.getVariableToString(CreativeConstants.BUSINESS_TYPE);
             // 判断修改业务类型
             Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
             businessType = isPicture ? CreativeConstants.PICTURE : businessType;
-            materialWrapper.updateStepVariableValue(CreativeConstants.BUSINESS_TYPE, businessType);
+            materialWrapper.putVariable(CreativeConstants.BUSINESS_TYPE, businessType);
 
             // 获取资料库的具体处理器
             AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
@@ -390,12 +389,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, materialMetadata);
 
             // 将处理后的海报风格填充到执行参数中
-            Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
-            appInformation.putStepVariable(posterStepId, variableMap);
-
+            appInformation.putVariable(posterStepId, CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
             // 将素材库的素材列表填充上传素材步骤变量中
-            Map<String, Object> handleMaterialMap = Collections.singletonMap(CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
-            appInformation.putStepVariable(materialStepId, handleMaterialMap);
+            appInformation.putVariable(materialStepId, CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
 
             executeParam.setAppInformation(appInformation);
 
