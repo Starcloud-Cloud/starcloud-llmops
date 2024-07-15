@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.librar
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -110,10 +111,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         Assert.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
         Assert.notNull(appReqVO.getUserId(), "获取素材库失败，用户编号不能为空");
 
-        Long materialId = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid(), appReqVO.getAppType(), appReqVO.getUserId());
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid(), appReqVO.getAppType(), appReqVO.getUserId());
 
         MaterialLibraryDO materialLibrary;
-        if (Objects.isNull(materialId)) {
+        if (Objects.isNull(bind)) {
             // 创建系统素材库
             materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(appReqVO.getAppName()).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
             // 添加绑定关系
@@ -122,7 +123,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
 
         } else {
-            materialLibrary = validateMaterialLibraryExists(materialId);
+            materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
         }
 
         // 数据转换
@@ -200,7 +201,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Override
     public PageResult<MaterialLibraryDO> getMaterialLibraryPage(Long userId, MaterialLibraryPageReqVO pageReqVO) {
-        return materialLibraryMapper.selectPage(userId, pageReqVO);
+        return materialLibraryMapper.selectPage2(userId, pageReqVO);
     }
 
     /**
@@ -409,7 +410,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
         MaterialLibraryRespVO materialLibrary = getMaterialLibraryByApp(sliceUsageCountReqVO);
-
         sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
     }
 

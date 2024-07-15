@@ -44,6 +44,8 @@ public class MaterialLibraryDO extends BaseDO {
      * 素材类型
      */
     private Integer formatType;
+
+    private Integer libraryType;
     /**
      * 素材库大小
      */
@@ -62,6 +64,7 @@ public class MaterialLibraryDO extends BaseDO {
      * 总使用次数
      */
     private Long totalUsedCount;
+
 
     /**
      * 插件配置

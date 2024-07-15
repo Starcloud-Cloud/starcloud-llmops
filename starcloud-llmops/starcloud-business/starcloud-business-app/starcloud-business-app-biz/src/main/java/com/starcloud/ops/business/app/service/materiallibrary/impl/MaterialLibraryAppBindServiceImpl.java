@@ -28,6 +28,12 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
 
     @Override
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
+
+        MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid(), createReqVO.getAppType(), createReqVO.getUserId());
+        if (bind == null){
+
+        }
+
         // 插入
         MaterialLibraryAppBindDO materialLibraryAppBind = BeanUtils.toBean(createReqVO, MaterialLibraryAppBindDO.class);
         materialLibraryAppBindMapper.insert(materialLibraryAppBind);
@@ -71,8 +77,9 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      * @return 应用素材绑定
      */
     @Override
-    public Long getMaterialLibraryAppBind(String appUid, Integer appType, Long userId) {
-        return 0L;
+    public MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid, Integer appType, Long userId) {
+
+        return materialLibraryAppBindMapper.selectOneByApp(appUid, appType, userId);
     }
 
     @Override
