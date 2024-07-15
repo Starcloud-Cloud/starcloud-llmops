@@ -71,7 +71,7 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      * @return 应用素材绑定
      */
     @Override
-    public Long getMaterialLibraryAppBind(String appUid) {
+    public Long getMaterialLibraryAppBind(String appUid, Integer appType, Long userId) {
         return 0L;
     }
 

@@ -50,6 +50,11 @@ public class MaterialLibraryDO extends BaseDO {
     private Long allFileSize;
 
     /**
+     * 素材库大小
+     */
+    private Long fileCount;
+
+    /**
      * 分享范围
      */
     private String shareRange;

@@ -46,20 +46,22 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public Long createMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO createReqVO) {
         // 插入
-        MaterialLibrarySliceDO materialLibrarySlice = BeanUtils.toBean(createReqVO, MaterialLibrarySliceDO.class);
+        MaterialLibrarySliceDO sliceDO = BeanUtils.toBean(createReqVO, MaterialLibrarySliceDO.class);
 
         long nextSequence = 1L;
         // 设置数据最新的序号
-        MaterialLibrarySliceDO lastSequenceSliceDO = materialLibrarySliceMapper.selectLastSequence(materialLibrarySlice.getLibraryId());
+        MaterialLibrarySliceDO lastSequenceSliceDO = materialLibrarySliceMapper.selectLastSequence(sliceDO.getLibraryId());
 
         if (lastSequenceSliceDO != null) {
             nextSequence = nextSequence + 1;
         }
-        materialLibrarySlice.setSequence(nextSequence);
+        sliceDO.setSequence(nextSequence);
 
-        materialLibrarySliceMapper.insert(materialLibrarySlice);
+        materialLibrarySliceMapper.insert(sliceDO);
+
+        materialLibraryService.updateMaterialLibraryFileCount(sliceDO.getLibraryId());
         // 返回
-        return materialLibrarySlice.getId();
+        return sliceDO.getId();
     }
 
     @Override
@@ -75,8 +77,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public void deleteMaterialLibrarySlice(Long id) {
         // 校验存在
         validateMaterialLibrarySliceExists(id);
+
+        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
+        if (sliceDO == null) {
+            throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
+        }
         // 删除
         materialLibrarySliceMapper.deleteById(id);
+
+        materialLibraryService.updateMaterialLibraryFileCount(sliceDO.getLibraryId());
+
     }
 
 
@@ -168,6 +178,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
         materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
+        materialLibraryService.updateMaterialLibraryFileCount(libraryId);
     }
 
     /**
@@ -245,7 +256,10 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public <T> Integer saveBatchData(List<T> list) {
-        materialLibrarySliceMapper.insertBatch(BeanUtils.toBean(list, MaterialLibrarySliceDO.class));
+
+        List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(list, MaterialLibrarySliceDO.class);
+        materialLibrarySliceMapper.insertBatch(bean);
+        bean.stream().map(MaterialLibrarySliceDO::getLibraryId).distinct().forEach(materialLibraryService::updateMaterialLibraryFileCount);
         return list.size();
 
     }
