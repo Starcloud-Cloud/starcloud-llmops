@@ -1,6 +1,10 @@
 package com.starcloud.ops.business.app.model.content;
 
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,4 +37,10 @@ public class CreativeContentExecuteParam implements java.io.Serializable {
     @Schema(description = "执行扩展参数")
     private CreativeContentExecuteExtend extend;
 
+    public void validate(ValidateTypeEnum validateType) {
+        AppValidate.notNull(appInformation, "执行参数不能为空！");
+        AppMarketEntity entity = AppMarketConvert.INSTANCE.convertEntity(appInformation);
+        entity.validate(null, validateType);
+        appInformation = AppMarketConvert.INSTANCE.convertResponse(entity);
+    }
 }

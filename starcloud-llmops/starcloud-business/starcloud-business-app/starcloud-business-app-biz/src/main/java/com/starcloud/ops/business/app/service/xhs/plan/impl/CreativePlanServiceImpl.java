@@ -587,6 +587,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
     }
 
+    /**
+     * 获取应用配置
+     *
+     * @param uid        应用UID
+     * @param planSource 创作计划来源
+     * @return 应用配置
+     */
     @Override
     public AppMarketRespVO getAppRespVO(String uid, String planSource) {
         if (CreativePlanSourceEnum.isApp(planSource)) {

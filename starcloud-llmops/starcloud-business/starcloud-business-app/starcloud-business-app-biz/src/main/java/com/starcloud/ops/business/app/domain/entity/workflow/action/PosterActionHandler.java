@@ -135,13 +135,23 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
-        String systemPosterStyleConfig = wrapper.getModelVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
+        Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (Objects.isNull(systemPosterConfig)) {
             throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
         }
-        List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
-        AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
-
+        if (systemPosterConfig instanceof String) {
+            String systemPosterStyleConfig = String.valueOf(systemPosterConfig);
+            if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            }
+            List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
+            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+        }
+        if (systemPosterConfig instanceof List) {
+            List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
+            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
+        }
     }
 
     /**
