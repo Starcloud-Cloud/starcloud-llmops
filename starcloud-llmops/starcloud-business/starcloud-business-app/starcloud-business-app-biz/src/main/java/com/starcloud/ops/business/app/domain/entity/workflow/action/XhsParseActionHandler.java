@@ -11,10 +11,12 @@ import com.starcloud.ops.business.app.api.ocr.OcrResult;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.api.xhs.note.ServerRequestInfo;
 import com.starcloud.ops.business.app.convert.xhs.material.XhsNoteConvert;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
@@ -45,6 +47,17 @@ public class XhsParseActionHandler extends BaseActionHandler {
 
     private static final AliyunOcrManager ALIYUN_OCR_MANAGER = SpringUtil.getBean(AliyunOcrManager.class);
 
+
+    /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+
+    }
 
     @Override
     protected AdminUserRightsTypeEnum getUserRightsType() {

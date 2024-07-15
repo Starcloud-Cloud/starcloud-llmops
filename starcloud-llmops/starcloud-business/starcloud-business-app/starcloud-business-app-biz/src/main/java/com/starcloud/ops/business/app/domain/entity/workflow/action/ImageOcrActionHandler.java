@@ -3,16 +3,20 @@ package com.starcloud.ops.business.app.domain.entity.workflow.action;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.kstry.framework.core.annotation.*;
+import cn.kstry.framework.core.annotation.Invoke;
+import cn.kstry.framework.core.annotation.NoticeVar;
+import cn.kstry.framework.core.annotation.ReqTaskParam;
+import cn.kstry.framework.core.annotation.TaskComponent;
+import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
-import com.starcloud.ops.business.app.api.ocr.ImageOcrDTO;
 import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.ocr.OcrResult;
-import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.ocr.AliyunOcrManager;
@@ -22,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -42,6 +45,17 @@ public class ImageOcrActionHandler extends BaseActionHandler {
         return super.execute(context, scopeDataOperator);
     }
 
+
+    /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+
+    }
 
     @Override
     protected AdminUserRightsTypeEnum getUserRightsType() {

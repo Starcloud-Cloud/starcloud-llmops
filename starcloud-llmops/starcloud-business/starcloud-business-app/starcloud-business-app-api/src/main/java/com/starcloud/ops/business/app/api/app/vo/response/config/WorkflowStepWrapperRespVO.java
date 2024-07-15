@@ -81,7 +81,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
         }
 
         String handler = flowStep.getHandler();
-        VariableRespVO defaultVariables = variableRespVOMap.get(handler);
+        VariableRespVO defaultVariables = variableRespMap.get(handler);
         if (Objects.isNull(defaultVariables)) {
             return;
         }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -29,10 +30,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_EXECUTE_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.URL_IS_NOT_IMAGES;
 
 @Slf4j
 @Service
@@ -78,7 +86,9 @@ public class PluginsServiceImpl implements PluginsService {
                 .map(WorkflowStepWrapperRespVO::getField)
                 .orElseThrow(() -> exception(PLUGIN_CONFIG_ERROR));
 
-        app.putStepVariable(stepId, variableMap);
+        MapUtil.emptyIfNull(variableMap).forEach((key, value) -> {
+            app.putVariable(stepId, key, value);
+        });
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
         appExecuteRequest.setAppUid(app.getUid());
         appExecuteRequest.setContinuous(Boolean.FALSE);
