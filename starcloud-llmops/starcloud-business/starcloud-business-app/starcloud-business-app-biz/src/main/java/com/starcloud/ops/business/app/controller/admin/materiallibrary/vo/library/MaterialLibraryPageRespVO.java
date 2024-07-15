@@ -46,6 +46,10 @@ public class MaterialLibraryPageRespVO {
     @ExcelProperty("状态")
     private Boolean status;
 
+    @Schema(description = "创建人编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @ExcelProperty("创建人编号")
+    private Long creator;
+
     @Schema(description = "创建人", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @ExcelProperty("创建人")
     private String createName;

@@ -97,12 +97,17 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
 
         List<MaterialLibrarySliceSaveReqVO.TableContent> contents = new ArrayList<>();
 
-        for (MaterialLibraryTableColumnRespVO tableColumnRespVO : importConfigDTO.getColumnConfig()) {
+        List<MaterialLibraryTableColumnRespVO> columnConfig = importConfigDTO.getColumnConfig();
+
+        for (int i = 0; i < columnConfig.size(); i++) {
+            MaterialLibraryTableColumnRespVO tableColumnRespVO = columnConfig.get(i);
+
             MaterialLibrarySliceSaveReqVO.TableContent tableContent = new MaterialLibrarySliceSaveReqVO.TableContent();
             tableContent.setColumnId(tableColumnRespVO.getId());
             tableContent.setColumnCode(tableColumnRespVO.getColumnCode());
             tableContent.setColumnName(tableColumnRespVO.getColumnName());
-            tableContent.setValue(data.get(tableColumnRespVO.getSequence().intValue() - 1));
+            tableContent.setValue(data.get(i));
+
             if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType())) {
 
                 if (ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())) {
@@ -119,7 +124,8 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
                         }
 
                     } catch (IOException e) {
-                        throw new RuntimeException("图片解析异常");
+                        log.error("图片解析异常");
+                        // throw new RuntimeException("图片解析异常");
                     }
                     tableContent.setValue(imgUrl);
                 }
@@ -127,6 +133,7 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
             }
             contents.add(tableContent);
         }
+
         materialLibrarySliceSaveReqVO.setContent(contents);
 
         cachedDataList.add(materialLibrarySliceSaveReqVO);

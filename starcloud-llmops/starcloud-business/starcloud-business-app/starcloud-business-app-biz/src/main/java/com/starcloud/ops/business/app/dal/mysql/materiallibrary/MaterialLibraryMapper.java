@@ -27,6 +27,11 @@ public interface MaterialLibraryMapper extends BaseMapperX<MaterialLibraryDO> {
                 .orderByDesc(MaterialLibraryDO::getId));
     }
 
+
+    // default PageResult<MaterialLibraryDO> selectPage2(Long userId,MaterialLibraryPageReqVO reqVO) {
+    //     // return selectPage()
+    // }
+
     default MaterialLibraryDO selectByUid(String uid) {
         return selectOne(new LambdaQueryWrapperX<MaterialLibraryDO>()
                 .eq(MaterialLibraryDO::getUid, uid));

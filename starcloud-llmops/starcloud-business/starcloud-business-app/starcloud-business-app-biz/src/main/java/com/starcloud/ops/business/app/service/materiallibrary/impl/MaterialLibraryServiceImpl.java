@@ -436,6 +436,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         MaterialLibraryDO materialLibrary = BeanUtils.toBean(createReqVO, MaterialLibraryDO.class);
         materialLibrary.setUid(IdUtil.fastSimpleUUID());
         materialLibrary.setAllFileSize(0L);
+        materialLibrary.setStatus(true);
         materialLibrary.setTotalUsedCount(0L);
         materialLibraryMapper.insert(materialLibrary);
 
