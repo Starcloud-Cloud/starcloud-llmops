@@ -25,4 +25,8 @@ public class MaterialLibraryAppReqVO {
     @InEnum(CreativePlanSourceEnum.class)
     private Integer appType;
 
+    @Schema(description = "用户名称）", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
+    @NotNull(message = "应用名称不能为空")
+    private Long userId;
+
 }

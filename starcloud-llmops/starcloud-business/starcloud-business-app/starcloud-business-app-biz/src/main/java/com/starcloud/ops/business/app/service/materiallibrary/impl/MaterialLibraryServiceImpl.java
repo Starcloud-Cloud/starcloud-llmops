@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
@@ -19,6 +20,7 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
@@ -78,11 +80,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public Long createMaterialLibrary(MaterialLibrarySaveReqVO createReqVO) {
         // 插入
-        MaterialLibraryDO materialLibrary = BeanUtils.toBean(createReqVO, MaterialLibraryDO.class);
-        materialLibrary.setUid(IdUtil.fastSimpleUUID());
-        materialLibrary.setAllFileSize(0L);
-        materialLibrary.setTotalUsedCount(0L);
-        materialLibraryMapper.insert(materialLibrary);
+        MaterialLibraryDO materialLibrary = saveMaterialLibrary(createReqVO);
         // 返回
         return materialLibrary.getId();
     }
@@ -96,16 +94,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public String createMaterialLibraryByApp(String appName) {
         Assert.notBlank(appName, "应用名称不可以为空,创建素材库失败");
-
-        MaterialLibrarySaveReqVO saveReqVO = new MaterialLibrarySaveReqVO();
-        saveReqVO.setName(appName + "的初始素材库");
-        saveReqVO.setIconUrl("AreaChartOutlined");
-        saveReqVO.setDescription(appName + "的初始素材库");
-        saveReqVO.setFormatType(MaterialFormatTypeEnum.EXCEL.getCode());
-        saveReqVO.setStatus(true);
-
-        Long materialLibrary = this.createMaterialLibrary(saveReqVO);
-        return this.validateMaterialLibraryExists(materialLibrary).getUid();
+        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}的初始素材库", appName)).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+        return materialLibrary.getUid();
     }
 
     /**
@@ -118,10 +108,21 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         Assert.notBlank(appReqVO.getAppName(), "获取素材库失败，应用名称不能为空");
         Assert.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
         Assert.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
+        Assert.notNull(appReqVO.getUserId(), "获取素材库失败，用户编号不能为空");
 
+        Long materialId = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid(), appReqVO.getAppType(), appReqVO.getUserId());
 
-        // materialLibraryAppBindService.getMaterialLibraryAppBind()
-        return "";
+        if (Objects.isNull(materialId)) {
+            // 创建系统素材库
+            MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(appReqVO.getAppName()).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+            // 添加绑定关系
+            materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(appReqVO.getAppUid()).setAppType(appReqVO.getAppType()).setUserId(appReqVO.getUserId()));
+
+            return materialLibrary.getUid();
+        } else {
+            return validateMaterialLibraryExists(materialId).getUid();
+        }
+
     }
 
     @Override
@@ -396,6 +397,22 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
         // 素材库校验
+    }
+
+    /**
+     * 更新素材库文件数量
+     *
+     * @param libraryId 素材库编号
+     */
+    @Override
+    public void updateMaterialLibraryFileCount(Long libraryId) {
+        try {
+            long size = materialLibrarySliceService.getMaterialLibrarySliceByLibraryId(libraryId).size();
+            materialLibraryMapper.updateById(new MaterialLibraryDO().setFileCount(size).setId(libraryId));
+        } catch (RuntimeException e) {
+            log.error("素材库文件数更新失败，素材库编号为:({})", libraryId);
+        }
+
     }
 
 
