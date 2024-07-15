@@ -83,7 +83,7 @@ public class PluginsServiceImpl implements PluginsService {
         String stepId = Optional.ofNullable(app.getWorkflowConfig())
                 .map(WorkflowConfigRespVO::getSteps)
                 .map(stepList -> stepList.get(0))
-                .map(WorkflowStepWrapperRespVO::getField)
+                .map(WorkflowStepWrapperRespVO::getStepCode)
                 .orElseThrow(() -> exception(PLUGIN_CONFIG_ERROR));
 
         MapUtil.emptyIfNull(variableMap).forEach((key, value) -> {
