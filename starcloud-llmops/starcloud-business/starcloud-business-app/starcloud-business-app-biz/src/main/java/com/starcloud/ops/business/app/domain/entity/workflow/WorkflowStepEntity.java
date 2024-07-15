@@ -2,14 +2,18 @@ package com.starcloud.ops.business.app.domain.entity.workflow;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 工作流步骤实体
@@ -23,6 +27,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class WorkflowStepEntity extends ActionEntity {
+
+    private static final long serialVersionUID = -6835618372581251185L;
 
     /**
      * 步骤版本，默认版本 1
@@ -62,35 +68,73 @@ public class WorkflowStepEntity extends ActionEntity {
     /**
      * Action 校验
      */
+    @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate() {
-        if (this.variable != null) {
-            this.variable.validate();
+    public void validate(ValidateTypeEnum validateType) {
+        AppValidate.notBlank(this.getHandler(), "应用步骤处理器不能为空!");
+        AppValidate.notNull(this.getVariable(), "应用步骤模型变量不存在！");
+        this.variable.validate(validateType);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量，找不到时返回{@code null}
+     *
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getModelVariableItem(String field) {
+        if (StringUtils.isBlank(field) || Objects.isNull(variable)) {
+            return null;
         }
+        return variable.getItem(field);
     }
 
     /**
-     * 获取步骤变量
+     * 根据模型变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
      *
-     * @param key key
-     * @return VariableItemEntity
+     * @param field 变量的{@code field}
+     * @return 变量值
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public VariableItemEntity getModeVariableItem(String key) {
-        return this.variable.getVariableItem(key);
+    public String getModelVariableToString(String field) {
+        if (Objects.isNull(this.variable)) {
+            return StringUtils.EMPTY;
+        }
+        return this.variable.getVariableToString(field);
     }
 
     /**
-     * 将变量放入步骤变量中
+     * 根据变量的{@code field}获取模型变量的值，找不到时返回null
      *
-     * @param key   key
-     * @param value value
+     * @param field 变量的{@code field}
+     * @return 变量值
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void putModelVariable(String key, Object value) {
-        this.variable.putVariable(key, value);
+    public Object getModelVariable(String field) {
+        if (StringUtils.isBlank(field) || Objects.isNull(variable)) {
+            return null;
+        }
+        return variable.getVariable(field);
     }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String field, Object value) {
+        if (StringUtils.isBlank(field) || Objects.isNull(variable)) {
+            return;
+        }
+        variable.putVariable(field, value);
+    }
+
 }

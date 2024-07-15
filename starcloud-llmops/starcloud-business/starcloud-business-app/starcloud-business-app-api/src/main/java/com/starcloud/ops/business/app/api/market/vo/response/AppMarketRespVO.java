@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -236,7 +237,7 @@ public class AppMarketRespVO implements Serializable {
     @Schema(description = "是否收藏")
     private Boolean isFavorite;
 
-    /*
+    /**
      * 补充步骤默认变量
      */
     @JsonIgnore
@@ -249,82 +250,6 @@ public class AppMarketRespVO implements Serializable {
     }
 
     /**
-     * 设置应用变量值
-     *
-     * @param stepId      步骤ID
-     * @param variableMap 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putStepVariable(String stepId, Map<String, Object> variableMap) {
-        if (workflowConfig != null) {
-            workflowConfig.putVariable(stepId, variableMap);
-        }
-    }
-
-    /**
-     * 获取应用变量值
-     *
-     * @param stepId       步骤ID
-     * @param variableName 变量名称
-     * @return 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public VariableItemRespVO getStepVariable(String stepId, String variableName) {
-        if (workflowConfig != null) {
-            return workflowConfig.getStepVariable(stepId, variableName);
-        }
-        return null;
-    }
-
-    /**
-     * 获取应用变量值
-     *
-     * @param stepId       步骤ID
-     * @param variableName 变量名称
-     * @return 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getStepVariableValue(String stepId, String variableName) {
-        if (workflowConfig != null) {
-            return workflowConfig.getStepVariableValue(stepId, variableName);
-        }
-        return null;
-    }
-
-    /**
-     * 设置应用变量值
-     *
-     * @param stepId      步骤ID
-     * @param variableMap 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putStepModelVariable(String stepId, Map<String, Object> variableMap) {
-        if (workflowConfig != null) {
-            workflowConfig.putStepModelVariable(stepId, variableMap);
-        }
-    }
-
-    /**
-     * 获取应用变量值
-     *
-     * @param stepId       步骤ID
-     * @param variableName 变量名称
-     * @return 变量值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public String getStepModelVariableValue(String stepId, String variableName) {
-        if (workflowConfig != null) {
-            return workflowConfig.getStepModelVariableValue(stepId, variableName);
-        }
-        return null;
-    }
-
-    /**
      * 获取步骤
      *
      * @param handler 步骤处理器
@@ -333,7 +258,184 @@ public class AppMarketRespVO implements Serializable {
     @JsonIgnore
     @JSONField(serialize = false)
     public WorkflowStepWrapperRespVO getStepByHandler(String handler) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
         return workflowConfig.getStepByHandler(handler);
+    }
+
+    /**
+     * 根据 handler 获取步骤
+     *
+     * @param clazz 步骤handler类
+     * @return 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public WorkflowStepWrapperRespVO getStepByHandler(Class<?> clazz) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getStepByHandler(clazz);
+    }
+
+    /**
+     * 应用配置设置
+     *
+     * @param handler 处理去
+     * @param wrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setStepByHandler(String handler, WorkflowStepWrapperRespVO wrapper) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.setStepByHandler(handler, wrapper);
+    }
+
+    /**
+     * 应用配置设置
+     *
+     * @param clazz   类名
+     * @param wrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void setStepByHandler(Class<?> clazz, WorkflowStepWrapperRespVO wrapper) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.setStepByHandler(clazz, wrapper);
+    }
+
+    /**
+     * 获取步骤变量
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getVariableItem(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariableItem(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariable(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getVariableToString(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return StringUtils.EMPTY;
+        }
+        return workflowConfig.getVariableToString(stepId, field);
+    }
+
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String stepId, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putVariable(stepId, field, value);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getModelVariableItem(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariableItem(stepId, field);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariable(stepId, field);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getModelVariableToString(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return StringUtils.EMPTY;
+        }
+        return workflowConfig.getModelVariableToString(stepId, field);
+    }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putModelVariable(stepId, field, value);
     }
 
     /**

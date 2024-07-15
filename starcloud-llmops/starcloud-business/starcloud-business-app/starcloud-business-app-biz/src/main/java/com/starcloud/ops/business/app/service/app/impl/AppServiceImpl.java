@@ -209,15 +209,15 @@ public class AppServiceImpl implements AppService {
         AppDO app = appMapper.getWithoutMaterial(uid);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
-            WorkflowStepWrapperRespVO posterStepWrapper = appResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
-            if (Objects.nonNull(posterStepWrapper)) {
-                // 获取到海报系统配置的变量
-                WorkflowStepWrapperRespVO handlerStepWrapper = CreativeUtils.handlerPosterStepWrapper(posterStepWrapper);
-                // 替换原有的海报系统配置的变量
-                appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
-            }
-        }
+//        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
+//            WorkflowStepWrapperRespVO posterStepWrapper = appResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+//            if (Objects.nonNull(posterStepWrapper)) {
+//                // 获取到海报系统配置的变量
+//                WorkflowStepWrapperRespVO handlerStepWrapper = CreativeUtils.handlerPosterStepWrapper(posterStepWrapper);
+//                // 替换原有的海报系统配置的变量
+//                appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
+//            }
+//        }
         return appResponse;
     }
 

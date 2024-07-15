@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -54,37 +55,63 @@ public class MaterialActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
+    /**
+     * 具体步骤执行器的入参定义的{@code JsonSchema}
+     *
+     * @param stepWrapper 当前步骤包装器
+     * @return 具体步骤执行器的入参定义的 {@code JsonSchema}
+     */
     @Override
-    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         //不用返回入参
         return null;
     }
 
     /**
-     * 只根据配置的 素材类型，直接获取对应的 素材类型 对象的结构
+     * 具体步骤执行器的出参定义的{@code JsonSchema}
      *
-     * @return 输出变量的jsonSchema
+     * @param stepWrapper 当前步骤包装器
+     * @return 具体步骤执行器的出参定义的 {@code JsonSchema}
      */
     @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         //构造一层 array schema
         ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
-        docSchema.setTitle(workflowStepWrapper.getStepCode());
-        docSchema.setDescription(workflowStepWrapper.getDescription());
+        docSchema.setTitle(stepWrapper.getStepCode());
+        docSchema.setDescription(stepWrapper.getDescription());
 
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
 
         // 素材自定义配置
-        String materialDefine = workflowStepWrapper.getVariablesValue(CreativeConstants.MATERIAL_DEFINE);
+        String materialDefine = stepWrapper.getVariablesValue(CreativeConstants.MATERIAL_DEFINE);
         ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(materialDefine);
         arraySchema.setItemsSchema(materialSchema);
 

@@ -3,14 +3,13 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanListQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,14 +69,6 @@ public interface CreativePlanService {
      * @return 创作计划详情
      */
     CreativePlanRespVO getOrCreate(CreativePlanGetQuery query);
-
-    /**
-     * 创建创作计划
-     *
-     * @param request 创作计划请求
-     * @return 创作计划UID
-     */
-    String create(CreativePlanCreateReqVO request);
 
     /**
      * 创建同款应用

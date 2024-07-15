@@ -465,6 +465,6 @@ public class AppContext {
     @JsonIgnore
     @JSONField(serialize = false)
     public void putVariableForce(String key, Object value) {
-        this.app.putVariableForce(this.stepId, key, value);
+        this.app.addVariable(this.stepId, key, value);
     }
 }

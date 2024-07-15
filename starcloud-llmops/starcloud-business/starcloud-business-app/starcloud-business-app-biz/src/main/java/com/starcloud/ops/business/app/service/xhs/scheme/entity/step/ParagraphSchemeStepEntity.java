@@ -9,9 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -39,9 +36,7 @@ public class ParagraphSchemeStepEntity extends StandardSchemeStepEntity {
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
         super.doTransformAppStep(stepWrapper);
-        Map<String, Object> params = new HashMap<>();
-        params.put(CreativeConstants.PARAGRAPH_COUNT, this.paragraphCount);
-        stepWrapper.putVariable(params);
+        stepWrapper.putVariable(CreativeConstants.PARAGRAPH_COUNT, this.paragraphCount);
     }
 
     /**
@@ -52,7 +47,7 @@ public class ParagraphSchemeStepEntity extends StandardSchemeStepEntity {
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
         super.doTransformSchemeStep(stepWrapper);
-        VariableItemRespVO variable = stepWrapper.getVariable(CreativeConstants.PARAGRAPH_COUNT);
+        VariableItemRespVO variable = stepWrapper.getVariableItem(CreativeConstants.PARAGRAPH_COUNT);
         if (variable == null) {
             this.paragraphCount = 4;
 

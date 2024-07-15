@@ -3,15 +3,17 @@ package com.starcloud.ops.business.app.api.app.vo.response.action;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * 工作流步骤实体
@@ -72,16 +74,64 @@ public class WorkflowStepRespVO extends ActionRespVO {
     @Schema(description = "步骤图标")
     private String icon;
 
-
     /**
-     * 添加步骤变量
+     * 根据模型变量的{@code field}获取变量
      *
-     * @param variable 变量
+     * @param field 变量的{@code field}
+     * @return VariableItemRespVO
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void putStepModelVariable(Map<String, Object> variable) {
-        this.variable.putVariable(variable);
+    public VariableItemRespVO getModelVariableItem(String field) {
+        if (Objects.isNull(this.variable)) {
+            return null;
+        }
+        return this.variable.getItem(field);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getModelVariableToString(String field) {
+        if (Objects.isNull(this.variable)) {
+            return StringUtils.EMPTY;
+        }
+        return this.variable.getVariableToString(field);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(String field) {
+        if (Objects.isNull(this.variable)) {
+            return null;
+        }
+        return this.variable.getVariable(field);
+    }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String field, Object value) {
+        if (Objects.isNull(this.variable)) {
+            return;
+        }
+        this.variable.putVariable(field, value);
     }
 
 }

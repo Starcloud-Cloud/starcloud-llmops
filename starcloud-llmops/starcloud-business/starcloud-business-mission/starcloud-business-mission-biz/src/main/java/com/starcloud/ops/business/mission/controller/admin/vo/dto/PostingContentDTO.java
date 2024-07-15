@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.dto;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

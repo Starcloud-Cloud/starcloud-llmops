@@ -43,6 +43,7 @@ import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
@@ -132,70 +133,48 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(AppExecuteReqVO request) {
+    protected void doValidate(AppExecuteReqVO request, ValidateTypeEnum validateType) {
+
         WorkflowConfigEntity config = this.getWorkflowConfig();
-        if (config == null) {
-            return;
-        }
-        List<WorkflowStepWrapper> stepWrappers = config.getSteps();
+        AppValidate.notNull(config, "应用配置信息不能为空！");
+
+        List<WorkflowStepWrapper> stepWrappers = config.stepWrapperList();
         AppValidate.notEmpty(stepWrappers, "应用最少需要一个步骤！");
-        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
-            // name 不能重复
-            if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
-                throw invalidParamException("应用步骤【{}】名称重复，请检查后重试", stepWrapper.getName());
-            }
-            stepWrapper.validate();
-        }
+
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
             if (stepWrappers.size() < 3) {
-                throw invalidParamException("媒体矩阵类型应用最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】");
+                throw invalidParamException("媒体矩阵类型应用【" + this.getName() + "】最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】");
             }
             // 第一个步骤必须是：上传素材步骤，有且只有一个
             boolean materialCount = stepWrappers.stream().filter(item -> MaterialActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!MaterialActionHandler.class.getSimpleName().equals(stepWrappers.get(0).getFlowStep().getHandler()) || !materialCount) {
-                throw invalidParamException("媒体矩阵类型应用第一个步骤必须是【上传素材】步骤！且有且只能有一个！");
+                throw invalidParamException("媒体矩阵类型应用【" + this.getName() + "】第一个步骤必须是【上传素材】步骤！且有且只能有一个！");
             }
             // 倒数第二个必须包含笔记生成步骤, 有且只有一个
             boolean assembleMatch = stepWrappers.stream().filter(item -> AssembleActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!AssembleActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 2).getFlowStep().getHandler()) && !assembleMatch) {
-                throw invalidParamException("媒体矩阵类型应用倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！");
+                throw invalidParamException("媒体矩阵类型应用【" + this.getName() + "】倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！");
             }
             // 最后一个步骤必须是图片生成步骤, 有且只有一个
             boolean posterMatch = stepWrappers.stream().filter(item -> PosterActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).count() == 1;
             if (!PosterActionHandler.class.getSimpleName().equals(stepWrappers.get(stepWrappers.size() - 1).getFlowStep().getHandler()) || !posterMatch) {
-                throw invalidParamException("媒体矩阵类型应用最后一个步骤必须是【图片生成】步骤！且有且只能有一个！");
+                throw invalidParamException("媒体矩阵类型应用【" + this.getName() + "】最后一个步骤必须是【图片生成】步骤！且有且只能有一个！");
             }
             // 如果存在变量步骤，变量不能为空
             List<WorkflowStepWrapper> variableStepList = stepWrappers.stream().filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).collect(Collectors.toList());
             if (variableStepList.size() > 1) {
-                throw invalidParamException("媒体矩阵类型应用最多只能有一个【全局变量】步骤！");
+                throw invalidParamException("媒体矩阵类型应用【" + this.getName() + "】最多只能有一个【全局变量】步骤！");
             }
             for (WorkflowStepWrapper variableStep : variableStepList) {
                 VariableEntity variable = variableStep.getVariable();
                 if (variable == null || CollectionUtil.isEmpty(variable.getVariables())) {
-                    throw invalidParamException("媒体矩阵类型应用变量步骤【{}】最少需要配置一个变量！", variableStep.getName());
+                    throw invalidParamException("媒体矩阵类型应用【" + this.getName() + "】变量步骤【{}】最少需要配置一个变量！", variableStep.getName());
                 }
             }
-            // 获取图片配置变量
-//            WorkflowStepWrapper posterWorkStepWrapper = stepWrappers.get(stepWrappers.size() - 1);
-//            VariableItemEntity posterStyleConfigItem = posterWorkStepWrapper.getVariable().getVariableItem(CreativeConstants.POSTER_STYLE_CONFIG);
-//            if (posterStyleConfigItem == null || posterStyleConfigItem.getValue() == null) {
-//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
-//            }
-//            String posterStyleString = String.valueOf(posterStyleConfigItem.getValue());
-//            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
-//            }
-//
-//            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
-//            if (CollectionUtil.isEmpty(posterStyleList)) {
-//                throw exception(new ErrorCode(300100140, "图片生成步骤【" + posterWorkStepWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！"));
-//            }
-
         }
-        config.setSteps(stepWrappers);
-        this.setWorkflowConfig(config);
+
+        config.validate(validateType);
     }
 
     /**
@@ -405,7 +384,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             return null;
         }
 
-        VariableItemEntity modelVariable = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+        VariableItemEntity modelVariable = stepWrapper.getModelVariableItem(AppConstants.MODEL);
         if (modelVariable == null) {
             return null;
         }
@@ -441,7 +420,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 if (stepWrapper == null) {
                     continue;
                 }
-                VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+                VariableItemEntity modeVariableItem = stepWrapper.getModelVariableItem(AppConstants.MODEL);
                 if (modeVariableItem == null) {
                     continue;
                 }
@@ -461,7 +440,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                 continue;
             }
 
-            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+            VariableItemEntity modeVariableItem = stepWrapper.getModelVariableItem(AppConstants.MODEL);
             if (modeVariableItem == null) {
                 continue;
             }
@@ -646,7 +625,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setCostPoints(0);
             messageCreateRequest.setErrorCode(String.valueOf(ErrorCodeConstants.EXECUTE_APP_FAILURE.getCode()));
             WorkflowStepWrapper stepWrapper = appContext.getStepWrapper(stepId);
-            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+            VariableItemEntity modeVariableItem = stepWrapper.getModelVariableItem(AppConstants.MODEL);
 
             String llmModel = Optional.ofNullable(modeVariableItem)
                     .map(VariableItemEntity::getValue)
@@ -724,7 +703,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             Map<String, Object> variablesValues = appContext.getContextVariablesValues();
 
             WorkflowStepWrapper stepWrapper = appContext.getStepWrapper(appContext.getStepId());
-            VariableItemEntity modeVariableItem = stepWrapper.getModeVariableItem(AppConstants.MODEL);
+            VariableItemEntity modeVariableItem = stepWrapper.getModelVariableItem(AppConstants.MODEL);
 
             String llmModel = Optional.ofNullable(modeVariableItem)
                     .map(VariableItemEntity::getValue)

@@ -19,9 +19,12 @@ import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
@@ -230,7 +233,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void doValidate(Q request);
+    protected abstract void doValidate(Q request, ValidateTypeEnum validateType);
 
     /**
      * 模版方法：执行应用
@@ -353,7 +356,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         try {
             log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
-            this.validate(request);
+            this.validate(request, ValidateTypeEnum.EXECUTE);
 
             // 执行应用
             this.beforeExecute(request);
@@ -401,7 +404,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         try {
             log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
-            this.validate(request);
+            this.validate(request, ValidateTypeEnum.EXECUTE);
 
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
@@ -451,9 +454,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(Q request) {
+    public void validate(Q request, ValidateTypeEnum validateType) {
         log.info("应用执行：基础校验开始 ...");
-        this.doValidate(request);
+        this.doValidate(request, validateType);
         log.info("应用执行：基础校验结束 ...");
     }
 
@@ -467,7 +470,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (StrUtil.isBlank(this.getUid())) {
             this.setUid(IdUtil.fastSimpleUUID());
         }
-        this.validate(null);
+        this.validate(null, ValidateTypeEnum.CREATE);
         this.doInsert();
     }
 
@@ -477,7 +480,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void update() {
-        this.validate(null);
+        this.validate(null, ValidateTypeEnum.UPDATE);
         disposeMaterial();
         this.doUpdate();
     }
@@ -696,9 +699,202 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
-        if (response != null) {
-            workflowConfig.setActionResponse(stepId, response);
+        if (Objects.isNull(workflowConfig)) {
+            return;
         }
+        workflowConfig.setActionResponse(stepId, response);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getVariableItem(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariableItem(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @param clazz 节点执行器
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getVariableItem(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariableItem(clazz, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariable(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariable(clazz, field);
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String stepId, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putVariable(stepId, field, value);
+    }
+
+    /**
+     * 将{@code Map}中的变量值设置到变量中
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(Class<? extends BaseActionHandler> clazz, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putVariable(clazz, field, value);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量，找不到时返回{@code null}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getModelVariableItem(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariableItem(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量，找不到时返回{@code null}
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getModelVariableItem(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariableItem(clazz, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariable(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量的值，找不到时返回null
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariable(clazz, field);
+    }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putModelVariable(stepId, field, value);
+    }
+
+    /**
+     * 将{@code Map}中的变量值设置到模型变量中
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(Class<? extends BaseActionHandler> clazz, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putModelVariable(clazz, field, value);
     }
 
     /**
@@ -710,34 +906,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void putVariable(String stepId, String key, Object value) {
-        this.workflowConfig.putVariable(stepId, key, value);
-    }
-
-    /**
-     * 放入到模型变量中
-     *
-     * @param stepId 步骤ID
-     * @param key    键
-     * @param value  值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putModelVariable(String stepId, String key, Object value) {
-        this.workflowConfig.putModelVariable(stepId, key, value);
-    }
-
-    /**
-     * 获取步骤状态
-     *
-     * @param stepId 步骤ID
-     * @param key    键
-     * @param value  值
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putVariableForce(String stepId, String key, Object value) {
-        this.workflowConfig.putVariableForce(stepId, key, value);
+    public void addVariable(String stepId, String key, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        this.workflowConfig.addVariable(stepId, key, value);
     }
 
     /**

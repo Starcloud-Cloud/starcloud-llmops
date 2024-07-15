@@ -1,16 +1,11 @@
 package com.starcloud.ops.business.app.service.xhs.scheme.entity.step;
 
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author nacoyer
@@ -45,10 +40,7 @@ public class AssembleSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformAppStep(WorkflowStepWrapperRespVO stepWrapper) {
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.TITLE, this.title);
-        variableMap.put(CreativeConstants.CONTENT, this.content);
-        stepWrapper.putVariable(variableMap);
+
     }
 
     /**
@@ -58,14 +50,7 @@ public class AssembleSchemeStepEntity extends BaseSchemeStepEntity {
      */
     @Override
     protected void doTransformSchemeStep(WorkflowStepWrapperRespVO stepWrapper) {
-        VariableItemRespVO titleVariable = stepWrapper.getVariable(CreativeConstants.TITLE);
-        if (titleVariable != null) {
-            this.title = String.valueOf(titleVariable.getValue());
-        }
-        VariableItemRespVO contentVariable = stepWrapper.getVariable(CreativeConstants.CONTENT);
-        if (contentVariable != null) {
-            this.content = String.valueOf(contentVariable.getValue());
-        }
+
 
     }
 }

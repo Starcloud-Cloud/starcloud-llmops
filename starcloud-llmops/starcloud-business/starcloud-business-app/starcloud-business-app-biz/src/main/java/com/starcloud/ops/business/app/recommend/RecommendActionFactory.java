@@ -2,8 +2,8 @@ package com.starcloud.ops.business.app.recommend;
 
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.CopyWritingContent;
-import com.starcloud.ops.business.app.api.xhs.content.dto.ImageContent;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImitateActionHandler;

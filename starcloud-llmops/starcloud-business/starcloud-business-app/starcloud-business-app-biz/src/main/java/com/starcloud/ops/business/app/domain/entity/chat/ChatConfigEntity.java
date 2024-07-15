@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.config.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
@@ -133,7 +134,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现
      */
     @Override
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
 
     }
 }
