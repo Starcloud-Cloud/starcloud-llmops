@@ -5,6 +5,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.exception.ExcelDataConvertException;
@@ -24,10 +26,10 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.nio.file.Paths;
+import java.util.*;
+
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.WORD_PARSE;
 
 @Slf4j
 @Component
@@ -72,6 +74,10 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
     public void invoke(Map<Integer, String> data, AnalysisContext context) {
         log.info("解析到一条数据:{}", JSON.toJSONString(data));
 
+        if (data.isEmpty()) {
+            return;
+        }
+
         ExcelDataImportConfigDTO importConfigDTO = BeanUtil.toBean(context.getCustom(), ExcelDataImportConfigDTO.class);
 
 
@@ -81,11 +87,11 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         materialLibrarySliceSaveReqVO.setIsShare(false);
 
         // 用并行流处理大数据集
-        long totalLength = data != null ? data.values().parallelStream()
+        long totalLength = data.values().parallelStream()
                 .filter(Objects::nonNull)
                 .map(Object::toString)
                 .mapToInt(String::length)
-                .sum() : 0;
+                .sum();
 
         materialLibrarySliceSaveReqVO.setCharCount(totalLength);
 
@@ -101,7 +107,8 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
 
                 if (ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())) {
 
-                }else {
+
+                } else {
                     String imgUrl = StrUtil.NULL;
                     try {
                         List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
@@ -172,8 +179,14 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
     }
 
 
-    // 修改方法名称以更准确地反映其行为，调整返回类型为List<File>
-    // 增加对文件夹名称的考虑，实现查找特定文件夹下的特定文件
+    /**
+     * 查找特定文件夹下的特定文件
+     *
+     * @param directoriesToSearch 文件列表
+     * @param targetFolderName    目标文件夹名称
+     * @param targetedFileName    目标文件名称
+     * @return 查询到的文件
+     */
     public List<File> findFilesInTargetFolder(File[] directoriesToSearch, String targetFolderName, String targetedFileName) {
         List<File> foundFiles = new ArrayList<>();
         for (File directory : directoriesToSearch) {
@@ -198,5 +211,22 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
             }
         }
         return foundFiles;
+    }
+
+
+    private List<String> documentScreenshot(String parseUid, String documentPath, String unzipDir) {
+        HashMap<String, Object> paramMap = new HashMap<>();
+        File document = Paths.get(unzipDir, documentPath).toFile();
+        if (!document.exists()) {
+            return Collections.emptyList();
+        }
+        paramMap.put("file", document);
+        paramMap.put("parseUid", parseUid);
+        String result = HttpUtil.post(WORD_PARSE, paramMap, 1_0000);
+        List<String> documentScreenshot = JSONUtil.parseArray(result).toList(String.class);
+        if (documentScreenshot == null) {
+            documentScreenshot = Collections.emptyList();
+        }
+        return documentScreenshot;
     }
 }

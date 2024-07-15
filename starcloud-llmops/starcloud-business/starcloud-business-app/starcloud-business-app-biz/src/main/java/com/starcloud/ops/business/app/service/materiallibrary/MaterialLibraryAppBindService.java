@@ -46,6 +46,14 @@ public interface MaterialLibraryAppBindService {
     MaterialLibraryAppBindDO getMaterialLibraryAppBind(Long id);
 
     /**
+     * 获得应用素材绑定
+     *
+     * @param id 编号
+     * @return 应用素材绑定
+     */
+    Long getMaterialLibraryAppBind(String appUid);
+
+    /**
      * 获得应用素材绑定分页
      *
      * @param pageReqVO 分页查询

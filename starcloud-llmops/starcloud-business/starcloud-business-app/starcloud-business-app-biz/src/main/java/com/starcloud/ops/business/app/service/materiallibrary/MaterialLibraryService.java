@@ -36,6 +36,14 @@ public interface MaterialLibraryService {
      */
     String createMaterialLibraryByApp(String appName);
 
+    /**
+     * 通过应用获取绑定的素材知识库
+     *
+     * @param appName 应用名称
+     * @return 编号
+     */
+    String getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
+
 
     /**
      * 更新素材知识库
