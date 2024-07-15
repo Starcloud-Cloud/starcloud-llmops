@@ -1,12 +1,11 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
-import java.util.*;
-import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
+
+import javax.validation.Valid;
 
 /**
  * 应用素材绑定 Service 接口
@@ -48,7 +47,7 @@ public interface MaterialLibraryAppBindService {
     /**
      * 获得应用素材绑定
      *
-     * @param id 编号
+     * @param appUid 编号
      * @return 应用素材绑定
      */
     Long getMaterialLibraryAppBind(String appUid);

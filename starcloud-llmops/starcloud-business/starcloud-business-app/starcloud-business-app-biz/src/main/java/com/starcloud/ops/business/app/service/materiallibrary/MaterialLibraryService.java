@@ -39,7 +39,7 @@ public interface MaterialLibraryService {
     /**
      * 通过应用获取绑定的素材知识库
      *
-     * @param appName 应用名称
+     * @param appReqVO 应用查询 VO
      * @return 编号
      */
     String getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);

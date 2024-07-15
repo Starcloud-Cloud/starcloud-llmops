@@ -64,6 +64,17 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         return materialLibraryAppBindMapper.selectById(id);
     }
 
+    /**
+     * 获得应用素材绑定
+     *
+     * @param appUid 编号
+     * @return 应用素材绑定
+     */
+    @Override
+    public Long getMaterialLibraryAppBind(String appUid) {
+        return 0L;
+    }
+
     @Override
     public PageResult<MaterialLibraryAppBindDO> getMaterialLibraryAppBindPage(MaterialLibraryAppBindPageReqVO pageReqVO) {
         return materialLibraryAppBindMapper.selectPage(pageReqVO);

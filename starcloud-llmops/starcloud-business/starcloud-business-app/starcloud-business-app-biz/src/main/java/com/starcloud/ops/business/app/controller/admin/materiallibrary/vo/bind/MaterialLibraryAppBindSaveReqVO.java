@@ -1,10 +1,10 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import javax.validation.constraints.*;
-import java.util.*;
+import lombok.Data;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 应用素材绑定新增/修改 Request VO")
 @Data
