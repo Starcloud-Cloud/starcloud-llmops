@@ -4,9 +4,13 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.exception.ExcelDataConvertException;
@@ -20,6 +24,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySli
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.MaterialLibrary.dto.ExcelDataImportConfigDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -28,11 +33,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.WORD_PARSE;
 
 @Slf4j
-@Component
 public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, String>> {
 
     /**
@@ -52,14 +57,20 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
     private File[] files;
 
     /**
+     * 解压后的绝对路径
+     */
+    private String unzipDirPath;
+
+    /**
      * 如果使用了spring,请使用这个构造方法。每次创建Listener的时候需要把spring管理的类传进来
      *
      * @param service 公共 service
      */
-    public ExcelDataEventListener(@Qualifier("materialLibrarySliceServiceImpl") MaterialLibrarySliceService service,
-                                  File[] files) {
+    public ExcelDataEventListener(MaterialLibrarySliceService service,
+                                  File[] files, String unzipDirPath) {
         this.service = service;
         this.files = files;
+        this.unzipDirPath = unzipDirPath;
 
     }
 
@@ -98,7 +109,7 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         List<MaterialLibrarySliceSaveReqVO.TableContent> contents = new ArrayList<>();
 
         List<MaterialLibraryTableColumnRespVO> columnConfig = importConfigDTO.getColumnConfig();
-
+        List<String> screenShot = new ArrayList<>();
         for (int i = 0; i < columnConfig.size(); i++) {
             MaterialLibraryTableColumnRespVO tableColumnRespVO = columnConfig.get(i);
 
@@ -109,29 +120,40 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
             tableContent.setValue(data.get(i));
 
             if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType())) {
+                String imgUrl = StrUtil.NULL;
+                try {
+                    List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
+                    if (!CollUtil.isEmpty(filesInImagesFolder)) {
+                        File images = FileUtil.file(filesInImagesFolder.get(0));
 
-                if (ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())) {
-
-
-                } else {
-                    String imgUrl = StrUtil.NULL;
-                    try {
-                        List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
-                        if (!CollUtil.isEmpty(filesInImagesFolder)) {
-                            File images = FileUtil.file(filesInImagesFolder.get(0));
-
-                            imgUrl = ImageUploadUtils.uploadImage(images.getName(), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
-                        }
-
-                    } catch (IOException e) {
-                        log.error("图片解析异常");
-                        // throw new RuntimeException("图片解析异常");
+                        imgUrl = ImageUploadUtils.uploadImage(images.getName(), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
                     }
-                    tableContent.setValue(imgUrl);
+                } catch (IOException e) {
+                    log.error("图片解析异常");
+                    // throw new RuntimeException("图片解析异常");
                 }
+                tableContent.setValue(imgUrl);
 
+            } else if (ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())
+                    && StringUtils.isNotBlank(unzipDirPath)) {
+                // 文档相对路径  文字文稿.docx
+                String documentPath = tableContent.getValue();
+                List<String> urls = documentScreenshot(IdUtil.fastSimpleUUID(), documentPath, unzipDirPath);
+                screenShot.addAll(urls);
             }
             contents.add(tableContent);
+        }
+
+        Map<String, Integer> codeType = importConfigDTO.getColumnConfig().stream().collect(Collectors.toMap(MaterialLibraryTableColumnRespVO::getColumnCode, MaterialLibraryTableColumnRespVO::getColumnType));
+        Iterator<String> iterator = screenShot.iterator();
+        for (MaterialLibrarySliceSaveReqVO.TableContent content : contents) {
+            Integer type = codeType.get(content.getColumnCode());
+            String value = content.getValue();
+            if (ColumnTypeEnum.IMAGE.getCode().equals(type)
+                    && (StringUtils.isBlank(value) || StrUtil.NULL.equalsIgnoreCase(value))
+                    && iterator.hasNext()) {
+                content.setValue(iterator.next());
+            }
         }
 
         materialLibrarySliceSaveReqVO.setContent(contents);
@@ -229,11 +251,17 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         }
         paramMap.put("file", document);
         paramMap.put("parseUid", parseUid);
-        String result = HttpUtil.post(WORD_PARSE, paramMap, 1_0000);
+        String result = HttpUtil.post(getUrl(), paramMap, 1_0000);
         List<String> documentScreenshot = JSONUtil.parseArray(result).toList(String.class);
         if (documentScreenshot == null) {
             documentScreenshot = Collections.emptyList();
         }
         return documentScreenshot;
+    }
+
+    private String getUrl() {
+        DictDataService bean = SpringUtil.getBean(DictDataService.class);
+        DictDataDO dictData = bean.parseDictData("playwright", "material_parse");
+        return dictData.getValue();
     }
 }

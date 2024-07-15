@@ -107,7 +107,7 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         importConfigDTO.setColumnConfig(BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnRespVO.class));
 
         // 异步存储数据
-        OperateImportUtil.readExcel(excel, childrenDirs, importConfigDTO, materialLibrarySliceService, 2);
+        OperateImportUtil.readExcel(excel, childrenDirs, importConfigDTO, materialLibrarySliceService, 2, unzipDir.getAbsolutePath());
     }
 
 
