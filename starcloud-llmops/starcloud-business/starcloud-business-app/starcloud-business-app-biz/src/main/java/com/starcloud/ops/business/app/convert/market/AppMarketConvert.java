@@ -76,7 +76,6 @@ public interface AppMarketConvert {
      */
     default AppMarketDO convert(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = new AppMarketDO();
-        appMarket.setMaterialList(appMarketEntity.getMaterialList());
         appMarket.setUid(appMarketEntity.getUid());
         appMarket.setName(appMarketEntity.getName());
         appMarket.setType(appMarketEntity.getType());
@@ -159,7 +158,6 @@ public interface AppMarketConvert {
         appMarketEntity.setDescription(app.getDescription());
         appMarketEntity.setExample(app.getExample());
         appMarketEntity.setDemo(app.getDemo());
-        appMarketEntity.setMaterialList(app.getMaterialList());
         // 处理配置信息
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {

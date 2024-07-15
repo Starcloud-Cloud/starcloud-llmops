@@ -258,6 +258,37 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
             appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
             configuration.setAppInformation(appInformation);
+            // 迁移旧素材数据
+            CreativePlanMaterialDO planMaterialDO = creativePlanMaterialMapper.getMaterial(plan.getUid());
+            if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType()) &&
+                    CollectionUtil.isNotEmpty(planMaterialDO.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+                        planMaterialDO.setMaterialList(Collections.emptyList());
+                        creativeMaterialManager.migrate(appInformation.getName(), stepByHandler, planMaterialDO.getMaterialList());
+                    } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
+                        // 我的应用 执行计划使用同一个素材库
+                        WorkflowStepWrapperRespVO appMaterialStep = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                        stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, appMaterialStep.getStepVariableValue(CreativeConstants.LIBRARY_QUERY));
+                        planMaterialDO.setMaterialList(Collections.emptyList());
+                    }
+                    planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                    creativePlanMaterialMapper.updateById(planMaterialDO);
+                }
+            } else if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType()) &&
+                    CollectionUtil.isEmpty(planMaterialDO.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    String stepVariableValue = stepByHandler.getStepVariableValue(CreativeConstants.LIBRARY_QUERY);
+                    if (StringUtils.isBlank(stepVariableValue)) {
+                        String libraryJson = creativeMaterialManager.createEmptyLibrary(appInformation.getName());
+                        stepByHandler.updateStepVariableValue(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                        planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                        creativePlanMaterialMapper.updateById(planMaterialDO);
+                    }
+                }
+            }
 
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
             List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
@@ -268,7 +299,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 新的创作计划配置
-        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse);
+        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse, query.getSource());
 
         // 创建一个计划
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
@@ -282,7 +313,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
         creativePlan.setUpdateTime(LocalDateTime.now());
-        creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(query.getAppUid(), query.getSource()));
         creativePlanMaterialMapper.insert(creativePlan);
         return get(creativePlan.getUid());
     }
@@ -509,13 +539,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
         // 如果全量覆盖，否则直接使用最新应用配置
         if (isFullCover) {
-            // 把最新的素材库步骤填充到配置中
             configuration.setMaterialList(Collections.emptyList());
-            creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(request.getAppUid(), plan.getSource()));
             // 把最新的海报步骤填充到配置中
             WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
             List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListByStepWrapper(posterStepWrapper);
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
+            // copy素材库
+            creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket);
+
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
@@ -645,7 +676,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate(ValidateTypeEnum.EXECUTE);
         // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getPlanMaterialList(creativePlan.getUid());
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation());
 
         /*
          * 获取计划应用信息
@@ -672,7 +703,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         String businessType = materialStepWrapper.getVariableToString(CreativeConstants.BUSINESS_TYPE);
 
         // 判断修改业务类型
-        Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
+        Boolean isPicture = CreativeUtils.judgePicture(appInformation);
         businessType = isPicture ? CreativeConstants.PICTURE : businessType;
         materialStepWrapper.putVariable(CreativeConstants.BUSINESS_TYPE, businessType);
 

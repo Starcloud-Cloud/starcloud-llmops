@@ -54,7 +54,6 @@ public interface CreativePlanConvert {
         creativePlanMaterial.setAppUid(appInformation.getUid());
         creativePlanMaterial.setVersion(appInformation.getVersion());
         creativePlanMaterial.setSource(request.getSource());
-        creativePlanMaterial.setMaterialList(request.getConfiguration().getMaterialList());
 
         WorkflowStepWrapperRespVO materialStep = request.getConfiguration().getAppInformation()
                 .getStepByHandler(MaterialActionHandler.class.getSimpleName());

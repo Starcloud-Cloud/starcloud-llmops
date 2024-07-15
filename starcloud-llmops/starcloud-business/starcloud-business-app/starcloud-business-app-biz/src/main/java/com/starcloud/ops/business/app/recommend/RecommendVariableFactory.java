@@ -466,22 +466,27 @@ public class RecommendVariableFactory {
         materialListVariable.setOrder(3);
         materialListVariable.setIsShow(Boolean.FALSE);
 
+        VariableItemRespVO materialLibraryVariable = RecommendVariableItemFactory.defMaterialLibraryVariable();
+        materialLibraryVariable.setOrder(4);
+        materialLibraryVariable.setIsShow(true);
+
         VariableItemRespVO materialGenerateConfigVariable = RecommendVariableItemFactory.defMaterialGenerateConfigVariable();
-        materialGenerateConfigVariable.setOrder(4);
+        materialGenerateConfigVariable.setOrder(5);
         materialGenerateConfigVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO customMaterialGenerateConfigVariable = RecommendVariableItemFactory.defCustomMaterialGenerateConfigVariable();
-        customMaterialGenerateConfigVariable.setOrder(5);
+        customMaterialGenerateConfigVariable.setOrder(6);
         customMaterialGenerateConfigVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO searchHabitsVariable = RecommendVariableItemFactory.defSearchHabitsVariable();
-        searchHabitsVariable.setOrder(6);
+        searchHabitsVariable.setOrder(7);
         searchHabitsVariable.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 materialTypeVariable,
                 materialDefineVariable,
                 materialListVariable,
+                materialLibraryVariable,
                 materialGenerateConfigVariable,
                 customMaterialGenerateConfigVariable,
                 searchHabitsVariable

@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -25,9 +26,11 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActi
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +54,8 @@ import java.util.stream.Collectors;
 public class CreativeUtils {
 
     private static final CreativeImageManager CREATIVE_IMAGE_MANAGER = SpringUtil.getBean(CreativeImageManager.class);
+
+    private static final CreativeMaterialManager CREATIVE_MATERIAL_MANAGER = SpringUtil.getBean(CreativeMaterialManager.class);
 
     /**
      * 获取应用的素材步骤
@@ -439,7 +444,7 @@ public class CreativeUtils {
      * @param appMarketResponse 应用信息
      * @return 计划配置
      */
-    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse) {
+    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse, String source) {
         // 补充步骤默认变量
         appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
 
@@ -448,16 +453,16 @@ public class CreativeUtils {
         configuration.setMaterialList(Collections.emptyList());
         // 默认海报风格列表为空
         configuration.setImageStyleList(Collections.emptyList());
+
+        // 素材库 应用市场新建计划需要copy
+        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        if (Objects.nonNull(materialStepWrapper) && CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(source)) {
+            // copy 素材库
+            CREATIVE_MATERIAL_MANAGER.upgradeMaterialLibrary(appMarketResponse);
+        }
+
         // 默认应用信息为传入的应用信息
         configuration.setAppInformation(appMarketResponse);
-
-        // 素材列表配置
-        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-        if (Objects.nonNull(materialStepWrapper)) {
-            // 获取到素材库列表
-            List<Map<String, Object>> materialList = getMaterialListByStepWrapper(materialStepWrapper);
-            configuration.setMaterialList(materialList);
-        }
 
         // 海报风格配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
@@ -585,6 +590,13 @@ public class CreativeUtils {
 
         return materialList;
     }
+    
+    /**
+     * 判断素材内容显示类型 true显示图片 false显示列表
+     */
+    public static boolean judgePicture(AppMarketRespVO appRespVO) {
+        return CREATIVE_MATERIAL_MANAGER.judgePicture(appRespVO);
+    }
 
     /**
      * 根据应用步骤获取素材库列表
@@ -604,7 +616,7 @@ public class CreativeUtils {
             return Collections.emptyList();
         }
 
-        List<MaterialFieldConfigDTO> materialFieldConfigList = MaterialDefineUtil.parseConfig(materialConfigString);
+        List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(materialLibraryJsonVariable);
         if (CollectionUtil.isEmpty(materialFieldConfigList)) {
             return Collections.emptyList();
         }

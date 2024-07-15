@@ -1,7 +1,10 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -15,6 +18,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.SimpleTypeSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
@@ -25,8 +29,15 @@ import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.experimental.UtilityClass;
@@ -614,26 +625,42 @@ public class JsonSchemaUtils {
 
     /**
      * 素材自定义配置生成 jsonschema
+     * 暂时只使用第一个素材库的标题
      *
-     * @param materialDefineJson
+     * @param libraryQuery
      * @return
      */
-    public static JsonSchema expendGenerateJsonSchema(String materialDefineJson) {
+    public static JsonSchema expendGenerateJsonSchema(String libraryQuery) {
         ObjectSchema obj = new ObjectSchema();
-        if (StringUtils.isBlank(materialDefineJson)) {
+        if (StringUtils.isBlank(libraryQuery)) {
             return obj;
         }
-        List<MaterialFieldConfigDTO> configList = MaterialDefineUtil.parseConfig(materialDefineJson);
-        Map<String, JsonSchema> properties = new LinkedHashMap<>(configList.size());
-        for (MaterialFieldConfigDTO materialFieldConfigDTO : configList) {
+        List<MaterialLibrarySliceAppReqVO> request = JSONUtil.parseArray(libraryQuery).toList(MaterialLibrarySliceAppReqVO.class);
+        if (CollectionUtil.isEmpty(request)) {
+            return obj;
+        }
+
+        MaterialLibraryService materialLibraryService = SpringUtil.getBean(MaterialLibraryService.class);
+        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByUid(request.get(0).getLibraryUid());
+        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.getTableMeta();
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(tableMeta.size());
+        for (MaterialLibraryTableColumnRespVO columnRespVO : tableMeta) {
             StringSchema schema = new StringSchema();
-            schema.setTitle(materialFieldConfigDTO.getDesc());
-            schema.setDescription("" + "-" + materialFieldConfigDTO.getType());
-            properties.put(materialFieldConfigDTO.getFieldName(), schema);
-            if (MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(materialFieldConfigDTO.getType())) {
-                JsonSchema ocrSchema = generateJsonSchema(OcrGeneralDTO.class);
-                ocrSchema.setDescription(materialFieldConfigDTO.getDesc() + "_ocr");
-                properties.put("_ocr_" + materialFieldConfigDTO.getFieldName(), ocrSchema);
+            schema.setTitle(columnRespVO.getColumnName());
+            schema.setDescription("" + "-" + columnRespVO.getColumnType());
+            properties.put(columnRespVO.getColumnCode(), schema);
+            if (ColumnTypeEnum.IMAGE.getCode().equals(columnRespVO.getColumnType())) {
+                ObjectSchema ocrSchema = (ObjectSchema) generateJsonSchema(OcrGeneralDTO.class);
+                Map<String, JsonSchema> ocrSchemaProperties = ocrSchema.getProperties();
+                for (String key : ocrSchemaProperties.keySet()) {
+                    JsonSchema jsonSchema = ocrSchemaProperties.get(key);
+                    if (jsonSchema instanceof SimpleTypeSchema) {
+                        SimpleTypeSchema simpleTypeSchema = (SimpleTypeSchema) jsonSchema;
+                        simpleTypeSchema.setTitle(simpleTypeSchema.getDescription());
+                    }
+                }
+                ocrSchema.setDescription(columnRespVO.getColumnName() + "_ext");
+                properties.put(columnRespVO.getColumnCode() + "_ext", ocrSchema);
             }
         }
         obj.setProperties(properties);

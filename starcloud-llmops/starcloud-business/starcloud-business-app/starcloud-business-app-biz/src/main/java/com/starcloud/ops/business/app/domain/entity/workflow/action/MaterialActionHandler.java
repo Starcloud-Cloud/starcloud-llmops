@@ -111,8 +111,8 @@ public class MaterialActionHandler extends BaseActionHandler {
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
 
         // 素材自定义配置
-        String materialDefine = stepWrapper.getVariablesValue(CreativeConstants.MATERIAL_DEFINE);
-        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(materialDefine);
+        String libraryQuery = workflowStepWrapper.getVariablesValue(CreativeConstants.LIBRARY_QUERY);
+        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(libraryQuery);
         arraySchema.setItemsSchema(materialSchema);
 
         return docSchema;

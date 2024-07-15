@@ -95,12 +95,6 @@ public class CreativeMaterialController {
         return CommonResult.success(creativeMaterialService.customMaterialGenerate(request));
     }
 
-    @GetMapping("/list")
-    @Operation(summary = "素材列表", description = "素材列表")
-    public CommonResult<List<Map<String, Object>>> listMaterial(@RequestParam("uid") String uid) {
-        return CommonResult.success(creativeMaterialService.listMaterial(uid));
-    }
-
     @PostMapping(value = "/infoPageByMarketUid")
     @Operation(summary = "获得素材应用执行日志信息分页")
     public CommonResult<PageResult<MaterialRespLogVO>> infoPageByMarketUid(@RequestBody AppLogConversationInfoPageUidReqVO query) {

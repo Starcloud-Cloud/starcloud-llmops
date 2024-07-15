@@ -96,13 +96,6 @@ public interface CreativeMaterialService {
     Boolean judgePicture(String uid, String planSource);
 
     /**
-     * 查询素材集合
-     * @param uid 执行计划uid
-     * @return
-     */
-    List<Map<String, Object>> listMaterial(String uid);
-
-    /**
      *
      * @return
      */
