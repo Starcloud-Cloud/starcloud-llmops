@@ -11,10 +11,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
@@ -26,6 +22,10 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -91,14 +91,15 @@ public class CreativeUtils {
      * @param app 应用
      * @return 变量步骤列表
      */
-    public static List<WorkflowStepWrapperRespVO> getVariableStepWrapperList(AppMarketRespVO app) {
+    public static WorkflowStepWrapperRespVO getVariableStepWrapperList(AppMarketRespVO app) {
         return Optional.ofNullable(app)
                 .map(AppMarketRespVO::getWorkflowConfig)
                 .map(WorkflowConfigRespVO::stepWrapperList)
-                .orElse(Collections.emptyList())
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"))
                 .stream()
                 .filter(step -> VariableActionHandler.class.getSimpleName().equals(step.getHandler()))
-                .collect(Collectors.toList());
+                .findFirst()
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"));
     }
 
     /**

@@ -15,7 +15,7 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
@@ -25,8 +25,6 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -39,9 +37,12 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
@@ -322,7 +323,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             }
 
             // 基础校验
-            request.validate();
+            request.validate(ValidateTypeEnum.EXECUTE);
             CreativeContentExecuteParam executeParam = request.getExecuteParam();
             AppMarketRespVO appInformation = executeParam.getAppInformation();
 

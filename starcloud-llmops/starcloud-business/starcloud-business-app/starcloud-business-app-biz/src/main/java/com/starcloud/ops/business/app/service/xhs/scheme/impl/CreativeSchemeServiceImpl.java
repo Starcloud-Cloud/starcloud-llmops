@@ -14,7 +14,6 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
@@ -38,10 +37,9 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
+import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
-import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
@@ -79,12 +77,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 
     @Resource
     private AppMarketService appMarketService;
-
-    @Resource
-    private MaterialHandlerHolder materialHandlerHolder;
-
-    @Resource
-    private CreativeImageManager creativeImageManager;
 
     /**
      * 获取创作方案元数据

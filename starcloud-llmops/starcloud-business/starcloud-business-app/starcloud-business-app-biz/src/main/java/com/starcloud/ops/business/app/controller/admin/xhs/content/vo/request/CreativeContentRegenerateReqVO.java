@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request;
 
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -40,9 +41,9 @@ public class CreativeContentRegenerateReqVO implements java.io.Serializable {
     /**
      * 基础校验
      */
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
         AppValidate.notBlank(uid, "创作内容UID不能为空！");
         AppValidate.notNull(executeParam, "执行参数不能为空！");
-        AppValidate.notNull(executeParam.getAppInformation(), "执行参数不能为空！");
+        executeParam.validate(validateType);
     }
 }

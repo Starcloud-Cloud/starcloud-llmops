@@ -67,6 +67,7 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
         // 进行校验应用
         appMarketEntity.validate(null, validateType);
 
+        appInformation = AppMarketConvert.INSTANCE.convertResponse(appMarketEntity);
     }
 
 }
