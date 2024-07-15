@@ -33,7 +33,7 @@ public class MaterialLibrarySaveReqVO {
 
     @Schema(description = "素材库类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     // @NotNull(message = "素材类型不能为空")
-    private Integer LibraryType = MaterialLibraryTypeEnum.COMMON.getCode();
+    private Integer libraryType = MaterialLibraryTypeEnum.COMMON.getCode();
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @NotNull(message = "状态不能为空")

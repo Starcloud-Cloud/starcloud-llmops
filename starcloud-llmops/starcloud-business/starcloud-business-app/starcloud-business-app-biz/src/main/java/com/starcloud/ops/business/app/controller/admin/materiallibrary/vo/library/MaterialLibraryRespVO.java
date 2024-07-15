@@ -37,6 +37,9 @@ public class MaterialLibraryRespVO {
     @DictFormat("material_format_type") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中
     private Integer formatType;
 
+    @Schema(description = "素材库类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    private Integer libraryType;
+
     @Schema(description = "素材库大小", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("素材库大小")
     private Long allFileSize;
