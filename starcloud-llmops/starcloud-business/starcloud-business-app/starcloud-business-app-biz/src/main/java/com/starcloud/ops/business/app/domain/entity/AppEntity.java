@@ -369,12 +369,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JsonIgnore
     @JSONField(serialize = false)
     protected String getLlmModelType(AppExecuteReqVO request) {
-        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
         Map<String, String> modelMapping = appDefaultConfigManager.defaultLlmModelTypeMap();
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
             // 从配置中获取
-            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), appTypeEnum, modelMapping);
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), Boolean.FALSE, modelMapping);
             // 返回模型类型
             return modelType.getName();
         }
@@ -397,7 +396,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
         if (Objects.nonNull(modelVariable.getValue())) {
             String model = String.valueOf(modelVariable.getValue());
-            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), appTypeEnum, modelMapping);
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), Boolean.FALSE, modelMapping);
             return modelType.getName();
         }
 
@@ -414,12 +413,11 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
     @JSONField(serialize = false)
     protected void updateAppConfig(AppExecuteReqVO request) {
 
-        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
         Map<String, String> modelMapping = appDefaultConfigManager.defaultLlmModelTypeMap();
         // 如果传入了 AI 模型类型，使用传入的
         if (StringUtils.isNotBlank(request.getAiModel())) {
             // 从配置中获取
-            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), appTypeEnum, modelMapping);
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(request.getAiModel(), request.getUserId(), Boolean.FALSE, modelMapping);
             // 更新步骤中的模型变量
             List<WorkflowStepWrapper> stepWrappers = this.getWorkflowConfig().getStepWrappersOrThrow();
             for (WorkflowStepWrapper stepWrapper : stepWrappers) {
@@ -457,7 +455,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     .orElse(null);
 
             // 从配置中获取
-            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), appTypeEnum, modelMapping);
+            ModelTypeEnum modelType = appDefaultConfigManager.getLlmModelType(model, request.getUserId(), Boolean.FALSE, modelMapping);
             // 更新变量值
             stepWrapper.putModelVariable(AppConstants.MODEL, modelType.getName());
         }
