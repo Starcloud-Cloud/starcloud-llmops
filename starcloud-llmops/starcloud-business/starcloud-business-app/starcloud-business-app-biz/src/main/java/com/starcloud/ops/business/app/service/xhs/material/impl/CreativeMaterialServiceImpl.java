@@ -23,7 +23,6 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMater
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
@@ -32,7 +31,6 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.G
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ModifyMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespLogVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.xhs.material.CreativeMaterialConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.material.CreativeMaterialDO;
@@ -44,7 +42,6 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
@@ -158,21 +155,11 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     @Override
     public JSON materialGenerate(CreativeMaterialGenerationDTO request) {
         AppValidate.notEmpty(request.getMaterialList(), "素材列表不能为空");
-        AppValidate.notBlank(request.getPlanUid(), "计划UID不能为空");
+        AppValidate.notBlank(request.getLibraryUid(), "计划UID不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
 
-        CreativePlanRespVO plan = creativePlanService.get(request.getPlanUid());
-        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(plan.getSource());
-        AppValidate.notNull(planSource, "计划来源不存在不支持");
-
-        MaterialLibraryAppReqVO materialLibraryAppReqVO = new MaterialLibraryAppReqVO();
-        materialLibraryAppReqVO.setAppName(plan.getConfiguration().getAppInformation().getName());
-        materialLibraryAppReqVO.setAppUid(plan.getAppUid());
-        materialLibraryAppReqVO.setAppType(planSource.getCode());
-        materialLibraryAppReqVO.setUserId(SecurityFrameworkUtils.getLoginUserId());
-
-        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryAppReqVO);
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getLibraryUid());
         AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
         AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
 
@@ -259,22 +246,12 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     @SuppressWarnings("all")
     @Override
     public JSON customMaterialGenerate(CreativeMaterialGenerationDTO request) {
-        AppValidate.notBlank(request.getPlanUid(), "计划UID不能为空");
+        AppValidate.notBlank(request.getLibraryUid(), "素材库UID不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
         AppValidate.notNull(request.getGenerateCount(), "生成数量不能为空");
 
-        CreativePlanRespVO plan = creativePlanService.get(request.getPlanUid());
-        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(plan.getSource());
-        AppValidate.notNull(planSource, "计划来源不存在不支持");
-
-        MaterialLibraryAppReqVO materialLibraryAppReqVO = new MaterialLibraryAppReqVO();
-        materialLibraryAppReqVO.setAppName(plan.getConfiguration().getAppInformation().getName());
-        materialLibraryAppReqVO.setAppUid(plan.getAppUid());
-        materialLibraryAppReqVO.setAppType(planSource.getCode());
-        materialLibraryAppReqVO.setUserId(SecurityFrameworkUtils.getLoginUserId());
-
-        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryAppReqVO);
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getLibraryUid());
         AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
         AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
 

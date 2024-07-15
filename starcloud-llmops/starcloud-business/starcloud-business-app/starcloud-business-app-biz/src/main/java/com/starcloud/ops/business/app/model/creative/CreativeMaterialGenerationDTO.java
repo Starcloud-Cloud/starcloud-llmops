@@ -29,8 +29,8 @@ public class CreativeMaterialGenerationDTO implements Serializable {
     /**
      * 所有字段定义列表
      */
-    @Schema(description = "所有字段定义列表")
-    private String planUid;
+    @Schema(description = "素材库UID")
+    private String libraryUid;
 
     /**
      * 选中的字段定义列表
