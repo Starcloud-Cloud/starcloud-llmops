@@ -1,7 +1,6 @@
-package com.starcloud.ops.business.app.api.xhs.material.dto;
+package com.starcloud.ops.business.app.model.creative;
 
-import com.starcloud.ops.business.app.api.xhs.material.FieldDefinitionDTO;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -30,7 +29,7 @@ public class CreativeMaterialGenerationDTO implements Serializable {
      * 所有字段定义列表
      */
     @Schema(description = "所有字段定义列表")
-    private List<MaterialFieldConfigDTO> fieldList;
+    private List<MaterialLibraryTableColumnDO> fieldList;
 
     /**
      * 选中的字段定义列表
