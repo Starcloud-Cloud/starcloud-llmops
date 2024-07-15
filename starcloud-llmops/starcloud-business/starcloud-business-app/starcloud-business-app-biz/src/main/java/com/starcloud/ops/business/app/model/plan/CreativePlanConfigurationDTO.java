@@ -57,7 +57,7 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     public void validate(ValidateTypeEnum validateType) {
         // 非配置校验的话，会校验 素材列表和海报列表
         if (!ValidateTypeEnum.CONFIG.equals(validateType)) {
-            AppValidate.notEmpty(materialList, "创作计划素材列表不能为空！");
+            //AppValidate.notEmpty(materialList, "创作计划素材列表不能为空！");
             AppValidate.notEmpty(imageStyleList, "创作计划海报风格列表不能为空！");
         }
         // 应用信息始终校验
