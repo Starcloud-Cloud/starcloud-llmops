@@ -56,11 +56,7 @@ public class MaterialLibraryController {
     public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid MaterialLibraryPageReqVO pageReqVO) {
         PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(getLoginUserId(), pageReqVO);
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
-        String nickname = adminUserApi.getUser(getLoginUserId()).getNickname();
-        bean.getList().forEach(reqVO -> {
-            reqVO.setFileCount(materialLibrarySliceService.getSliceDataCountByLibraryId(reqVO.getId()));
-            reqVO.setCreateName(nickname);
-        });
+        bean.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
 
         return success(bean);
     }
