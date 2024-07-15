@@ -81,7 +81,6 @@ public class CreativePlanModifyReqVO implements Serializable {
             throw ServiceExceptionUtil.invalidParamException("创作计划更新失败！校验类型不支持！");
         }
         ValidateTypeEnum validateTypeEnum = ValidateTypeEnum.valueOf(validateType);
-
         AppValidate.notBlank(source, "创作计划更新失败！创作计划来源不能为空！");
         AppValidate.notNull(configuration, "创作计划更新失败！创作计划配置信息不能为空！");
         AppValidate.notNull(totalCount, "创作计划更新失败！创作计划生成数量不能为空！");

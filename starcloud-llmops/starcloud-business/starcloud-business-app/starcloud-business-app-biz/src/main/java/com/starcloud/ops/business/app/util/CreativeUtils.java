@@ -96,13 +96,7 @@ public class CreativeUtils {
      * @return 变量步骤列表
      */
     public static WorkflowStepWrapperRespVO getVariableStepWrapperList(AppMarketRespVO app) {
-        return Optional.ofNullable(app)
-                .map(AppMarketRespVO::getWorkflowConfig)
-                .map(WorkflowConfigRespVO::stepWrapperList)
-                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"))
-                .stream()
-                .filter(step -> VariableActionHandler.class.getSimpleName().equals(step.getHandler()))
-                .findFirst()
+        return Optional.ofNullable(app.getStepByHandler(VariableActionHandler.class.getSimpleName()))
                 .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"));
     }
 
@@ -358,7 +352,7 @@ public class CreativeUtils {
         // 获取海报步骤
         WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
         if (Objects.isNull(posterStepWrapper)) {
-            return posterStyle;
+            throw ServiceExceptionUtil.invalidParamException("海报步骤为空！请检查您的配置！");
         }
         // 获取系统海报风格配置
         List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
@@ -396,13 +390,10 @@ public class CreativeUtils {
     public static List<PosterStyleDTO> mergeImagePosterStyleList(List<PosterStyleDTO> posterStyleList, AppMarketRespVO appMarketResponse) {
         // 如果海报风格列表为空，则直接返回
         if (CollectionUtil.isEmpty(posterStyleList)) {
-            return posterStyleList;
+            throw ServiceExceptionUtil.invalidParamException("海报风格列表为空！请检查您的配置！");
         }
         // 获取海报步骤，如果没有则直接返回
-        WorkflowStepWrapperRespVO posterStepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.isNull(posterStepWrapper)) {
-            return posterStyleList;
-        }
+        WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appMarketResponse);
 
         // 获取海报系统风格配置
         List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);

@@ -714,8 +714,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         businessType = isPicture ? CreativeConstants.PICTURE : businessType;
         materialStepWrapper.putVariable(CreativeConstants.BUSINESS_TYPE, businessType);
 
-//        AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
-
         // 获取资料库的具体处理器
         AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
         AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", businessType);
@@ -729,11 +727,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         WorkflowStepWrapperRespVO posterStepWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
         // 获取到海报配置
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-        // 如果没有海报步骤或者海报风格配置不存在，直接创建一个执行参数
+        // 如果没有海报步骤或者海报风格配置不存在，抛出异常
         if (Objects.isNull(posterStepWrapper) || CollectionUtil.isEmpty(posterStyleList)) {
-            CreativeContentExecuteParam planExecute = new CreativeContentExecuteParam();
-            planExecute.setAppInformation(handlerExecuteApp(appInformation));
-            creativeContentExecuteList.add(planExecute);
+            throw ServiceExceptionUtil.invalidParamException("海报步骤或者海报风格配置不存在，请检查您的配置！");
         }
 
         // 素材步骤的步骤ID
@@ -894,24 +890,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     private void handlerAndValidate(CreativePlanModifyReqVO request) {
-
         request.validate();
-
-    }
-
-
-    /**
-     * 处理海报风格数据
-     *
-     * @param configuration
-     * @param request
-     */
-    private void validPoster(CreativePlanConfigurationDTO configuration, CreativePlanModifyReqVO request) {
-        List<PosterStyleDTO> imageStyleList = CollectionUtil.emptyIfNull(configuration.getImageStyleList());
-        List<PosterStyleDTO> styleList = CreativeUtils.preHandlerPosterStyleList(imageStyleList);
-
-        configuration.setImageStyleList(styleList);
-        request.setConfiguration(configuration);
     }
 
 }
