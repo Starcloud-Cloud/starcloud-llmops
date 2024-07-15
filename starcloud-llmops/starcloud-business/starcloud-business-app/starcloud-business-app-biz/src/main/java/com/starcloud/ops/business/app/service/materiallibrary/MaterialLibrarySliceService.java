@@ -2,10 +2,7 @@ package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 
 import javax.validation.Valid;
@@ -27,11 +24,20 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     Long createMaterialLibrarySlice(@Valid MaterialLibrarySliceSaveReqVO createReqVO);
 
     /**
+     * 创建素材知识库数据
+     *
+     * @param createReqVO 创建信息
+     */
+    void createBatchMaterialLibrarySlice(@Valid MaterialLibrarySliceBatchSaveReqVO createReqVO);
+
+    /**
      * 更新素材知识库数据
      *
      * @param updateReqVO 更新信息
      */
     void updateMaterialLibrarySlice(@Valid MaterialLibrarySliceSaveReqVO updateReqVO);
+
+    void updateBatchMaterialLibrarySlice(@Valid MaterialLibrarySliceBatchSaveReqVO updateReqVO);
 
     /**
      * 删除素材知识库数据
@@ -109,7 +115,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     /**
      * 批量删除
      *
-     * @param ids
+     * @param ids 编号列表
      */
     void deleteBatch(List<Long> ids);
 
@@ -124,8 +130,18 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     /**
      * 通过素材库 UID 获取素材数据
      *
-     * @param pageReqVO
-     * @return
+     * @param pageReqVO  pageVO
+     * @return Page
      */
     PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO);
+
+
+    /**
+     * 更新素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @param sliceId   素材编号
+     * @param usedCount 使用次数
+     */
+    void updateSliceUsedCount(Long libraryId, Long sliceId, Integer usedCount);
 }

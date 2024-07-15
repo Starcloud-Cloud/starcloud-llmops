@@ -3,10 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,10 +35,25 @@ public class MaterialLibrarySliceController {
     }
 
 
+    @PostMapping("/create-batch")
+    @Operation(summary = "批量-创建素材知识库数据")
+    public CommonResult<Boolean> createBatchMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceBatchSaveReqVO batchSaveReqVO) {
+        materialLibrarySliceService.createBatchMaterialLibrarySlice(batchSaveReqVO);
+        return success(true);
+    }
+
+
     @PutMapping("/update")
     @Operation(summary = "更新素材知识库数据")
     public CommonResult<Boolean> updateMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceSaveReqVO updateReqVO) {
         materialLibrarySliceService.updateMaterialLibrarySlice(updateReqVO);
+        return success(true);
+    }
+
+    @PutMapping("/update-batch")
+    @Operation(summary = "批量-更新素材知识库数据")
+    public CommonResult<Boolean> updateBatchMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceBatchSaveReqVO batchUpdateReqVO) {
+        materialLibrarySliceService.updateBatchMaterialLibrarySlice(batchUpdateReqVO);
         return success(true);
     }
 

@@ -6,10 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceShareReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
@@ -64,6 +61,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         return sliceDO.getId();
     }
 
+    /**
+     * 批量创建素材知识库数据
+     *
+     * @param createReqVO 批量创建VO
+     */
+    @Override
+    public void createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
+        this.saveBatchData(BeanUtils.toBean(createReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
+    }
+
     @Override
     public void updateMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO updateReqVO) {
         // 校验存在
@@ -71,6 +78,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         // 更新
         MaterialLibrarySliceDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.updateById(updateObj);
+    }
+
+    /**
+     * 批量更新素材知识库数据
+     *
+     * @param updateReqVO 批量更新 VO
+     */
+    @Override
+    public void updateBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO updateReqVO) {
+        materialLibrarySliceMapper.updateBatch(BeanUtils.toBean(updateReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
 
     @Override
@@ -207,8 +224,8 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     /**
      * 通过素材库 UID 获取素材数据
      *
-     * @param pageReqVO
-     * @return
+     * @param pageReqVO 分页 VO
+     * @return page
      */
     @Override
     public PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO) {
@@ -220,6 +237,18 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         return materialLibrarySliceMapper.selectPage(pageReqVO.setLibraryId(materialLibraryDO.getId()));
 
+    }
+
+    /**
+     * 更新素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @param sliceId   素材编号
+     * @param usedCount 使用次数
+     */
+    @Override
+    public void updateSliceUsedCount(Long libraryId, Long sliceId, Integer usedCount) {
+        // TODO 待实现
     }
 
 
