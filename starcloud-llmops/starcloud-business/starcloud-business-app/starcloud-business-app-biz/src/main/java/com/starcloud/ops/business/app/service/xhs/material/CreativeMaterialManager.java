@@ -138,7 +138,9 @@ public class CreativeMaterialManager {
         }
 
         long start = System.currentTimeMillis();
-        String libraryUid = materialLibraryService.materialLibraryDataMigration(appName, tableColumnConfigList, materialList);
+        // TODO 接口参数改了
+        String libraryUid = null;
+                // materialLibraryService.materialLibraryDataMigration(appName, tableColumnConfigList, materialList);
         long end = System.currentTimeMillis();
         log.info("material library migrate, {}", end - start);
         MaterialLibrarySliceAppReqVO librarySlice = new MaterialLibrarySliceAppReqVO();
