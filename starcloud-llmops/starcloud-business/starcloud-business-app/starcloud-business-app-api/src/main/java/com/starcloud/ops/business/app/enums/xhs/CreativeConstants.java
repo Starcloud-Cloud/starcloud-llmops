@@ -139,6 +139,11 @@ public interface CreativeConstants {
     String MATERIAL_LIST = "MATERIAL_LIST";
 
     /**
+     * 素材节点 素材列表
+     */
+    String MATERIAL_USAGE_MODEL = "MATERIAL_USAGE_MODEL";
+
+    /**
      * 素材节点 素材生成配置
      */
     String MATERIAL_GENERATE_CONFIG = "MATERIAL_GENERATE_CONFIG";

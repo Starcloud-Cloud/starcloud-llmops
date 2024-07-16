@@ -3,10 +3,10 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -80,6 +80,7 @@ public abstract class AbstractMaterialHandler {
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
         }
+
         return this.doHandleMaterialMap(materialList, needMaterialSizeList, metadata);
     }
 

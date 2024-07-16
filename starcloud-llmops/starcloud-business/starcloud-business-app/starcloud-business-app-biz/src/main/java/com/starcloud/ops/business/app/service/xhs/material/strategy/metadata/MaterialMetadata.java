@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.metadata;
 
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -24,9 +25,24 @@ public class MaterialMetadata implements java.io.Serializable {
     private static final long serialVersionUID = 6640844962671452679L;
 
     /**
+     * 应用UID
+     */
+    private String appUid;
+
+    /**
+     * 用户ID
+     */
+    private Long userId;
+
+    /**
      * 素材类型
      */
     private String materialType;
+
+    /**
+     * 素材使用模型
+     */
+    private MaterialUsageModel materialUsageModel;
 
     /**
      * 素材步骤名称

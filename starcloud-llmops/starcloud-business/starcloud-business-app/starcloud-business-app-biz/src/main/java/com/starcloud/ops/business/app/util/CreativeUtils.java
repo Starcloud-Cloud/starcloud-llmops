@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActi
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
@@ -614,6 +615,23 @@ public class CreativeUtils {
         }
 
         return materialFieldConfigList;
+    }
+
+    /**
+     * 根据应用步骤获取素材使用模式
+     *
+     * @param materialWrapper 应用步骤
+     * @return 素材库列表
+     */
+    public static MaterialUsageModel getMaterialUsageModelByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+        // 素材列表配置
+        if (Objects.isNull(materialWrapper)) {
+            throw ServiceExceptionUtil.invalidParamException(materialWrapper.getName() + "步骤不存在！请检查您的配置！");
+        }
+
+        // 获取到素材库列表
+        String materialUsageModel = materialWrapper.getVariableToString(CreativeConstants.MATERIAL_USAGE_MODEL);
+        return MaterialUsageModel.fromName(materialUsageModel);
     }
 
     /**

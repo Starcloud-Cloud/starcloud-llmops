@@ -790,9 +790,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 素材处理器进行素材处理
         // 不同的处理器处理海报风格
         MaterialMetadata materialMetadata = new MaterialMetadata();
+        materialMetadata.setAppUid(appInformation.getUid());
+        materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
         materialMetadata.setMaterialType(businessType);
         materialMetadata.setMaterialStepId(materialStepId);
         materialMetadata.setMaterialFieldList(fieldList);
+
         Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList, materialMetadata);
         boolean isAllEmptyMaterial = materialMap.values().stream().anyMatch(CollectionUtil::isNotEmpty);
         if (!isAllEmptyMaterial) {

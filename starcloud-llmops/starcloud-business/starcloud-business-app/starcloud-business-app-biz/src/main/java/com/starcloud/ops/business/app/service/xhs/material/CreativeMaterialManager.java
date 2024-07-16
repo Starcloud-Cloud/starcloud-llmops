@@ -2,13 +2,18 @@ package com.starcloud.ops.business.app.service.xhs.material;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
@@ -20,7 +25,9 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -211,10 +218,67 @@ public class CreativeMaterialManager {
      * 根据素材库配置查询素材列表
      */
     public List<Map<String, Object>> getMaterialList(AppMarketRespVO appMarketVO) {
-        String materialLibraryJsonVariable = Optional.ofNullable(appMarketVO.getStepByHandler(MaterialActionHandler.class.getSimpleName()))
+
+        WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(appMarketVO);
+        // 查询素材库数据
+        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
                 .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
                 .orElse(StringUtils.EMPTY);
-        List<MaterialLibrarySliceUseRespVO> materialLibrarySliceList = queryLibrary(materialLibraryJsonVariable);
+
+        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
+            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材列表失败：查询条件为空！");
+        }
+
+        // 获取查询条件
+        List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
+        if (CollectionUtil.isEmpty(queryParam)) {
+            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材列表失败：查询条件为空！");
+        }
+
+        // 获取到素材使用模式
+        MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
+
+        List<MaterialLibrarySliceUseRespVO> materialLibrarySliceList;
+        // 使用模式为过滤使用，按照使用次数升序排除
+        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
+            queryParam = queryParam.stream()
+                    .peek(item -> {
+                        SortingField sortingField = new SortingField();
+                        sortingField.setOrder(SortingField.ORDER_ASC);
+                        sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
+                        item.setSortingField(sortingField);
+                    }).collect(Collectors.toList());
+        }
+        // 查询素材库数据
+        materialLibrarySliceList = queryLibrary(queryParam);
+        if (CollectionUtil.isEmpty(materialLibrarySliceList)) {
+            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材列表失败：素材列表数据为空！");
+        }
+
+        // 使用模式为过滤使用，素材使用次数+1
+        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
+            // 使用模式为过滤使用
+            for (MaterialLibrarySliceUseRespVO materialLibrary : materialLibrarySliceList) {
+                List<MaterialLibrarySliceRespVO> sliceResponseList = materialLibrary.getSliceRespVOS();
+                List<SliceCountReqVO> collect = sliceResponseList.stream()
+                        .map(sliceResponse -> {
+                            SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
+                            sliceCountRequest.setSliceId(sliceResponse.getId());
+                            sliceCountRequest.setNums(sliceResponse.getUsedCount().intValue() + 1);
+                            return sliceCountRequest;
+                        })
+                        .collect(Collectors.toList());
+
+                SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
+                sliceUsageCountRequest.setAppUid(appMarketVO.getUid());
+                sliceUsageCountRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+//            sliceUsageCountRequest.setAppType();
+                //sliceUsageCountRequest.setLibraryUid(materialLibrary.getLibraryId());
+                sliceUsageCountRequest.setSliceCountReqVOS(collect);
+                materialLibraryService.materialLibrarySliceUsageCount(sliceUsageCountRequest);
+            }
+        }
+
         return convert(materialLibrarySliceList);
     }
 
@@ -241,12 +305,8 @@ public class CreativeMaterialManager {
      * 查询素材库数据
      * 暂时只取第一个素材库数据 jsonschema只生成第一个素材库表头
      */
-    private List<MaterialLibrarySliceUseRespVO> queryLibrary(String materialLibraryJsonVariable) {
-        log.info("start material library query, params={}", materialLibraryJsonVariable);
-        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
-            return Collections.emptyList();
-        }
-        List<MaterialLibrarySliceAppReqVO> queryParam = JSONUtil.parseArray(materialLibraryJsonVariable).toList(MaterialLibrarySliceAppReqVO.class);
+    private List<MaterialLibrarySliceUseRespVO> queryLibrary(List<MaterialLibrarySliceAppReqVO> queryParam) {
+        log.info("start material library query, params={}", JsonUtils.toJsonString(queryParam));
         if (CollectionUtil.isEmpty(queryParam)) {
             return Collections.emptyList();
         }

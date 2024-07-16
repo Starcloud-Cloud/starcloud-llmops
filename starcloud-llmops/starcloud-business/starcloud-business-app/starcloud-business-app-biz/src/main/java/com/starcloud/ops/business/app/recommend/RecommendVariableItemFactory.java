@@ -412,6 +412,7 @@ public class RecommendVariableItemFactory {
 
     /**
      * 素材库
+     *
      * @return
      */
     public static VariableItemRespVO defMaterialLibraryVariable() {
@@ -421,6 +422,24 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription("素材库定义");
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
+     * 素材使用模式
+     *
+     * @return 素材使用模式
+     */
+    public static VariableItemRespVO defMaterialUsageModelVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_USAGE_MODEL);
+        variableItem.setLabel("素材使用模式");
+        variableItem.setDescription("素材使用模式");
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);

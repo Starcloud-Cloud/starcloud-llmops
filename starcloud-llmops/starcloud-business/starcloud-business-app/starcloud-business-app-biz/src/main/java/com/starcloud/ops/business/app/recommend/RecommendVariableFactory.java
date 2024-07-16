@@ -482,6 +482,10 @@ public class RecommendVariableFactory {
         searchHabitsVariable.setOrder(7);
         searchHabitsVariable.setIsShow(Boolean.FALSE);
 
+        VariableItemRespVO materialUsageModel = RecommendVariableItemFactory.defMaterialUsageModelVariable();
+        materialUsageModel.setOrder(8);
+        materialUsageModel.setIsShow(Boolean.FALSE);
+
         variable.setVariables(Arrays.asList(
                 materialTypeVariable,
                 materialDefineVariable,
@@ -489,7 +493,8 @@ public class RecommendVariableFactory {
                 materialLibraryVariable,
                 materialGenerateConfigVariable,
                 customMaterialGenerateConfigVariable,
-                searchHabitsVariable
+                searchHabitsVariable,
+                materialUsageModel
         ));
         return variable;
     }
