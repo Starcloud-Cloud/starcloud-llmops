@@ -38,6 +38,15 @@ public interface MaterialLibraryAppBindService {
      */
     void updateMaterialLibraryAppBind(@Valid MaterialLibraryAppBindSaveReqVO updateReqVO);
 
+
+    /**
+     * 更新应用素材绑定
+     *
+     * @param newAppUid 更新信息
+     * @param oldAppUid 更新信息
+     */
+    void updateMaterialLibraryAppBind(String newAppUid, String oldAppUid);
+
     /**
      * 删除应用素材绑定
      *

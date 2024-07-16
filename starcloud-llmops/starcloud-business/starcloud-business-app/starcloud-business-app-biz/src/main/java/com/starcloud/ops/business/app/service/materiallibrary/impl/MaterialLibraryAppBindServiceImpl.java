@@ -93,6 +93,30 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
 
     }
 
+    /**
+     * 更新应用素材绑定
+     *
+     * @param newAppUid 更新信息
+     * @param oldAppUid 更新信息
+     */
+    @Override
+    public void updateMaterialLibraryAppBind(String newAppUid, String oldAppUid) {
+
+        MaterialLibraryAppBindDO newBind = this.getMaterialLibraryAppBind(newAppUid);
+
+        if (newBind == null) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+
+        MaterialLibraryAppBindDO oldBind = this.getMaterialLibraryAppBind(oldAppUid);
+
+        if (oldBind == null) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+        this.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newBind.getLibraryId()).setAppUid(oldBind.getAppUid()).setAppType(oldBind.getAppType()).setUserId(oldBind.getUserId()));
+
+    }
+
     @Override
     public void deleteMaterialLibraryAppBind(Long id) {
         // 校验存在

@@ -92,9 +92,9 @@ public class MaterialLibraryAppBindController {
     }
 
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "获得应用素材绑定分页")
-    public CommonResult<PageResult<MaterialLibraryRespVO>> getMaterialLibraryAppBindPage(@Valid MaterialLibraryAppBindPageReqVO pageReqVO) {
+    public CommonResult<PageResult<MaterialLibraryRespVO>> getMaterialLibraryAppBindPage(@Valid @RequestBody MaterialLibraryAppBindPageReqVO pageReqVO) {
         PageResult<MaterialLibraryAppBindDO> pageResult = materialLibraryAppBindService.getMaterialLibraryAppBindPage(pageReqVO);
 
         if (CollUtil.isEmpty(pageResult.getList())) {
