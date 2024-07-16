@@ -40,10 +40,15 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     private MaterialLibraryAppBindMapper materialLibraryAppBindMapper;
 
     @Override
+    @Transactional
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
 
         MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid());
 
+        List<MaterialLibraryAppBindDO> binds = this.getBindList(createReqVO.getAppUid());
+
+
+        // handleBindSatus(binds);
 
         if (bind != null) {
             materialLibraryAppBindMapper.deleteById(bind.getId());
