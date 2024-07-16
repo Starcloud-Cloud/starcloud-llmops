@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.model.creative;
 
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
-import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -27,10 +25,22 @@ public class CreativeMaterialGenerationDTO implements Serializable {
     private List<Map<String, Object>> materialList;
 
     /**
-     * 所有字段定义列表
+     * 素材库字段列表
      */
-    @Schema(description = "素材库UID")
-    private String libraryUid;
+    @Schema(description = "类型")
+    private String type;
+
+    /**
+     * 素材来源
+     */
+    @Schema(description = "素材来源")
+    private String planSource;
+
+    /**
+     * UID
+     */
+    @Schema(description = "UID")
+    private String bizUid;
 
     /**
      * 选中的字段定义列表
