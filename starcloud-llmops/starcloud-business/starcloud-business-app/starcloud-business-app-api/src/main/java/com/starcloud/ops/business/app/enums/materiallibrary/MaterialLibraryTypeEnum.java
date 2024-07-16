@@ -18,6 +18,8 @@ public enum MaterialLibraryTypeEnum implements IntArrayValuable {
 
     COMMON(1, "普通素材库"),
 
+    PUBLISH(9, "发布素材库"),
+
     ;
 
 

@@ -343,9 +343,53 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Override
     public void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibraryAppReqVO oldApp) {
 
-        MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(oldApp);
+        MaterialLibraryRespVO oldMaterialLibrary = this.getMaterialLibraryByApp(oldApp);
 
-        // return this.processMaterialLibrary;
+        MaterialLibraryDO newMaterialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}_发布版本", oldMaterialLibrary.getName())).setLibraryType(MaterialLibraryTypeEnum.PUBLISH.getCode()));
+
+
+        // 复制表头
+        List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(oldMaterialLibrary.getId());
+        List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(oldTableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+        newTableColumnSaveList.forEach(data -> {
+            data.setLibraryId(newMaterialLibrary.getId());
+            data.setId(null);
+        });
+        materialLibraryTableColumnService.saveBatchData(newTableColumnSaveList);
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(newMaterialLibrary.getId());
+
+        // 查询数据复制到新的素材库
+        // 获取原始素材数据
+        List<MaterialLibrarySliceDO> sliceOldDOList;
+
+        MaterialLibrarySlicePageReqVO pageReqVO = new MaterialLibrarySlicePageReqVO();
+        pageReqVO.setPageNo(1);
+        pageReqVO.setPageSize(100);
+        pageReqVO.setLibraryId(oldMaterialLibrary.getId());
+        sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO).getList();
+
+        sliceOldDOList.forEach(sliceData -> {
+            sliceData.setId(null);
+            sliceData.setLibraryId(newMaterialLibrary.getId());
+            // 增加对getContent()返回值的空检查
+            List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
+            if (datasList != null) {
+                datasList.forEach(datas -> {
+                    // 增加对datas的空检查
+                    if (datas != null && datas.getColumnCode() != null) {
+                        // 假设newTableColumnDOList是已经定义好的，且通过getColumnCode()可以找到对应的ColumnDO
+                        // 这里需要一个机制来查找并获取对应的ColumnDO，例如通过getColumnCode()的值进行搜索
+                        MaterialLibraryTableColumnDO newColumnDO = findColumnDOByCode(tableColumnDOList, datas.getColumnCode());
+                        if (newColumnDO != null) {
+                            datas.setColumnId(newColumnDO.getId());
+                        }
+                    }
+                });
+            }
+        });
+
+        materialLibrarySliceService.saveBatchData(sliceOldDOList);
     }
 
     /**
