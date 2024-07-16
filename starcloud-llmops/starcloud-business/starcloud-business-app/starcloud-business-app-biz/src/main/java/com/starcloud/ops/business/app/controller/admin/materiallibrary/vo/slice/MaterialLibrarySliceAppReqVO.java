@@ -16,6 +16,10 @@ public class MaterialLibrarySliceAppReqVO extends MaterialLibraryAppReqVO {
     public static final String SORT_FIELD_CREATE_TIME = "create_time";
     public static final String SORT_FIELD_UPDATE_TIME = "update_time";
 
+
+    @Schema(description = "素材编号列表", requiredMode = Schema.RequiredMode.REQUIRED, example = "19427")
+    private String libraryUid;
+
     @Schema(description = "素材编号列表", requiredMode = Schema.RequiredMode.REQUIRED, example = "19427")
     private List<Long> sliceIdList;
 

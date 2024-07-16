@@ -49,7 +49,11 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "poster_element",
             "poster_elementtype",
             "poster_template",
-            "poster_templatetype"
+            "poster_templatetype",
+            "llm_material_library",
+            "llm_material_library_slice",
+            "llm_material_library_table_column",
+            "llm_material_library_app_bind"
     );
 
     @Resource
