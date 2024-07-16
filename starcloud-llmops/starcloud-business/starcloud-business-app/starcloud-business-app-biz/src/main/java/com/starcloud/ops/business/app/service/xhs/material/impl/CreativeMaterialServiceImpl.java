@@ -161,8 +161,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
 
         MaterialLibraryRespVO materialLibrary;
-        String type = StringUtils.defaultIfBlank(request.getType(), "LIBRAARY");
-        if ("LIBRAARY".equalsIgnoreCase(type)) {
+        if (StringUtils.isBlank(request.getPlanSource())) {
             AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
             materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
         } else {
@@ -269,8 +268,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notNull(request.getGenerateCount(), "生成数量不能为空");
 
         MaterialLibraryRespVO materialLibrary;
-        String type = StringUtils.defaultIfBlank(request.getType(), "LIBRAARY");
-        if ("LIBRAARY".equalsIgnoreCase(type)) {
+        if (StringUtils.isBlank(request.getPlanSource())) {
             AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
             materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
         } else {
