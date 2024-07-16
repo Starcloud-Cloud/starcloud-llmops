@@ -143,8 +143,8 @@ public class MaterialLibraryController {
     @PostMapping("/test")
     @Operation(summary = "测试")
     @OperateLog(enable = false)
-    public void exportTemplate(@Valid @RequestBody MaterialLibraryTestReqVO testReqVO) {
-        materialLibraryService.materialLibraryDataMigration(testReqVO.getName(), testReqVO.getSaveReqVOS(), testReqVO.getMaterialList());
+    public void exportTemplate(@Valid @RequestBody SliceMigrationReqVO migrationReqVO) {
+        materialLibraryService.materialLibraryDataMigration(migrationReqVO);
     }
 
 

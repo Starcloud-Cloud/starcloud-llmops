@@ -42,7 +42,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -327,37 +330,27 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     /**
      * 素材数据迁移
      *
-     * @param appName               应用名称
-     * @param tableColumnSaveReqVOS 表头存储 VO
-     * @param materialList          素材数据
+     * @param migrationReqVO 迁移 VO
      * @return 素材库 UID
      */
     @Override
-    public String materialLibraryDataMigration(String appName, List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS, List<Map<String, Object>> materialList) {
+    public String materialLibraryDataMigration(SliceMigrationReqVO migrationReqVO) {
+        MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(migrationReqVO);
 
-        MaterialLibrarySaveReqVO saveReqVO = new MaterialLibrarySaveReqVO();
+        List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS = migrationReqVO.getTableColumnSaveReqVOS();
 
-        saveReqVO.setName(appName + "的初始素材库");
-        saveReqVO.setIconUrl("AreaChartOutlined");
-        saveReqVO.setDescription(appName + "的初始素材库");
-        saveReqVO.setFormatType(MaterialFormatTypeEnum.EXCEL.getCode());
-        saveReqVO.setStatus(true);
-
-        Long materialLibrary = this.createMaterialLibrary(saveReqVO);
-        MaterialLibraryDO materialLibraryDO = this.validateMaterialLibraryExists(materialLibrary);
-
-        tableColumnSaveReqVOS.forEach(data -> data.setLibraryId(materialLibraryDO.getId()));
+        tableColumnSaveReqVOS.forEach(data -> data.setLibraryId(materialLibrary.getId()));
         materialLibraryTableColumnService.saveBatchData(tableColumnSaveReqVOS);
 
-        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
 
-        if (materialList != null && !materialList.isEmpty()) {
+        if (migrationReqVO.getMaterialList() != null && !migrationReqVO.getMaterialList().isEmpty()) {
 
             List<MaterialLibrarySliceSaveReqVO> sliceDOList = new ArrayList<>();
 
-            materialList.forEach(material -> {
+            migrationReqVO.getMaterialList().forEach(material -> {
                 MaterialLibrarySliceSaveReqVO sliceSaveReqVO = new MaterialLibrarySliceSaveReqVO();
-                sliceSaveReqVO.setLibraryId(materialLibraryDO.getId());
+                sliceSaveReqVO.setLibraryId(materialLibrary.getId());
                 sliceSaveReqVO.setStatus(true);
                 sliceSaveReqVO.setIsShare(false);
 
@@ -381,7 +374,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             });
             materialLibrarySliceService.saveBatchData(sliceDOList);
         }
-        return materialLibraryDO.getUid();
+        return materialLibrary.getUid();
     }
 
     /**

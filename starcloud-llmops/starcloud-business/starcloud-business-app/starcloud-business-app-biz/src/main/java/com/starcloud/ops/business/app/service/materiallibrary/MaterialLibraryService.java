@@ -4,13 +4,11 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 素材知识库 Service 接口
@@ -135,12 +133,10 @@ public interface MaterialLibraryService {
     /**
      * 素材数据迁移
      *
-     * @param appName               应用名称
-     * @param tableColumnSaveReqVOS 表头存储 VO
-     * @param materialList          素材数据
+     * @param sliceMigrationReqVO     迁移 VO
      * @return 素材库 UID
      */
-    String materialLibraryDataMigration(String appName, List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS, List<Map<String, Object>> materialList);
+    String materialLibraryDataMigration(SliceMigrationReqVO sliceMigrationReqVO);
 
     /**
      * 更新素材库插件配置
