@@ -138,7 +138,7 @@ public interface MaterialLibraryService {
     List<String> materialLibraryCopy(List<MaterialLibrarySliceAppReqVO> appReqVO);
 
 
-    List<String> materialLibraryCopy(MaterialLibraryAppReqVO newApp,MaterialLibrarySliceAppReqVO appReqVO);
+    void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibrarySliceAppReqVO appReqVO);
 
 
     /**
