@@ -24,6 +24,10 @@ public class MaterialLibraryRespVO {
     @ExcelProperty("名称")
     private String name;
 
+    @Schema(description = "UID", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    @ExcelProperty("UID")
+    private String uid;
+
     @Schema(description = "图标链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
     @ExcelProperty("图标链接")
     private String iconUrl;

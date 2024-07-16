@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.BindMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
@@ -21,6 +22,13 @@ public interface MaterialLibraryAppBindService {
      * @return 编号
      */
     Long createMaterialLibraryAppBind(@Valid MaterialLibraryAppBindSaveReqVO createReqVO);
+
+    /**
+     * 绑定关系迁移
+     *
+     * @param bindMigrationReqVO 迁移的 VO
+     */
+    void createMaterialLibraryAppBind(@Valid BindMigrationReqVO bindMigrationReqVO);
 
     /**
      * 更新应用素材绑定
@@ -50,7 +58,7 @@ public interface MaterialLibraryAppBindService {
      * @param appUid 编号
      * @return 应用素材绑定
      */
-    MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid, Integer appType,Long userId);
+    MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid, Integer appType, Long userId);
 
     /**
      * 获得应用素材绑定分页

@@ -2,11 +2,15 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.BindMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -23,6 +27,11 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 @Validated
 public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBindService {
 
+
+    @Resource
+    @Lazy
+    private MaterialLibraryService materialLibraryService;
+
     @Resource
     private MaterialLibraryAppBindMapper materialLibraryAppBindMapper;
 
@@ -30,8 +39,8 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
 
         MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid(), createReqVO.getAppType(), createReqVO.getUserId());
-        if (bind == null){
-
+        if (bind != null){
+            materialLibraryAppBindMapper.deleteById(bind.getId());
         }
 
         // 插入
@@ -39,6 +48,17 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         materialLibraryAppBindMapper.insert(materialLibraryAppBind);
         // 返回
         return materialLibraryAppBind.getId();
+    }
+
+    /**
+     * 绑定关系迁移
+     *
+     * @param bindMigrationReqVO 迁移的 VO
+     */
+    @Override
+    public void createMaterialLibraryAppBind(BindMigrationReqVO bindMigrationReqVO) {
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(bindMigrationReqVO.getLibraryUid());
+        this.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(bindMigrationReqVO.getAppUid()).setAppType(bindMigrationReqVO.getAppType()).setUserId(bindMigrationReqVO.getUserId()));
     }
 
     @Override
