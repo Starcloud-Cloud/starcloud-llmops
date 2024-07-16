@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -96,7 +97,9 @@ public class XhsParseActionHandler extends BaseActionHandler {
             BeanUtils.copyProperties(ocrResult.getOcrGeneralDTO(), ocrGeneralDTO, "url");
             String ossUrl = ImageUploadUtils.dumpToOss(ocrGeneralDTO.getUrl(), IdUtil.fastSimpleUUID(), "material" + File.separator + "xhsOcr");
             ocrGeneralDTO.setUrl(ossUrl);
-            sj.add(ocrGeneralDTO.getContent());
+            if (StringUtils.isNoneBlank(ocrGeneralDTO.getContent())) {
+                sj.add(ocrGeneralDTO.getContent());
+            }
         }
         xhsNoteDTO.setAllOcrContent(sj.toString());
         long end = System.currentTimeMillis();
