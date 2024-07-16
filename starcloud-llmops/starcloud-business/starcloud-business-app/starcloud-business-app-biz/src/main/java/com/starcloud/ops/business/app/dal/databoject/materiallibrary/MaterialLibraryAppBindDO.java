@@ -22,6 +22,11 @@ import lombok.*;
 public class MaterialLibraryAppBindDO extends BaseDO {
 
     /**
+     * 状态
+     */
+    private static int ENABLE_STATUS_NUM = 1;
+
+    /**
      * 主键(自增策略)
      */
     @TableId
@@ -42,5 +47,9 @@ public class MaterialLibraryAppBindDO extends BaseDO {
      * 用户编号
      */
     private Long userId;
+    // /**
+    //  * 状态
+    //  */
+    // private Boolean status;
 
 }

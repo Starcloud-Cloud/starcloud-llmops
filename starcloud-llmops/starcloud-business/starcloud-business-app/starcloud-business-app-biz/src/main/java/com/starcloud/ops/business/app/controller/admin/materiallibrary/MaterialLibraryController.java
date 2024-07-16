@@ -15,7 +15,6 @@ import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEn
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
-import com.starcloud.ops.business.app.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,12 +54,7 @@ public class MaterialLibraryController {
     @PostMapping("/page")
     @Operation(summary = "获得素材知识库分页")
     public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid @RequestBody MaterialLibraryPageReqVO pageReqVO) {
-
-        Long loginUserId = getLoginUserId();
-        if (UserUtils.isAdmin()) {
-            loginUserId = null;
-        }
-        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(loginUserId, pageReqVO);
+        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
         bean.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
 
@@ -84,7 +78,7 @@ public class MaterialLibraryController {
     @Operation(summary = "删除素材知识库")
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<Boolean> deleteMaterialLibrary(@RequestParam("id") Long id) {
-        materialLibraryService.deleteMaterialLibrary(getLoginUserId(), id);
+        materialLibraryService.deleteMaterialLibrary(id);
         return success(true);
     }
 
@@ -92,7 +86,7 @@ public class MaterialLibraryController {
     @Operation(summary = "获得素材知识库")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     public CommonResult<MaterialLibraryRespVO> getMaterialLibrary(@RequestParam("id") Long id) {
-        MaterialLibraryDO materialLibrary = materialLibraryService.getMaterialLibrary(getLoginUserId(), id);
+        MaterialLibraryDO materialLibrary = materialLibraryService.getMaterialLibrary(id);
         // 数据转换
         MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
 

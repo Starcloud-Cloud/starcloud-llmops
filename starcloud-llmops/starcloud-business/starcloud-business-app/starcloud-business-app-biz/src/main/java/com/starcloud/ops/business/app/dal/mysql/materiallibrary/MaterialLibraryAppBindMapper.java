@@ -9,6 +9,8 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.M
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 /**
  * 应用素材绑定 Mapper
  *
@@ -32,5 +34,11 @@ public interface MaterialLibraryAppBindMapper extends BaseMapperX<MaterialLibrar
                 .eq(MaterialLibraryAppBindDO::getAppUid, appUid)
                 .last(" limit 1");
         return selectOne(wrapper);
+    }
+
+    default List<MaterialLibraryAppBindDO> selectListByApp(String appUid) {
+        LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class)
+                .eq(MaterialLibraryAppBindDO::getAppUid, appUid);
+        return selectList(wrapper);
     }
 }

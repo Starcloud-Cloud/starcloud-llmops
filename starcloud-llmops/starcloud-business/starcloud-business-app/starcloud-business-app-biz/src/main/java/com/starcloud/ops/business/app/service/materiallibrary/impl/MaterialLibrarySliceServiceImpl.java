@@ -7,9 +7,11 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import org.springframework.context.annotation.Lazy;
@@ -21,8 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_ID_EMPTY;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_SLICE_NOT_EXISTS;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
 
 /**
  * 素材知识库数据 Service 实现类
@@ -36,6 +37,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Resource
     @Lazy
     private MaterialLibraryService materialLibraryService;
+
+    @Resource
+    private MaterialLibraryAppBindService materialLibraryAppBindService;
 
     @Resource
     private MaterialLibrarySliceMapper materialLibrarySliceMapper;
@@ -240,6 +244,27 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     }
 
     /**
+     * 通过素材库 UID 获取素材数据
+     *
+     * @param appUid 应用 编号
+     * @return Page
+     */
+    @Override
+    public List<MaterialLibrarySliceRespVO> getMaterialLibrarySliceListByAppUid(String appUid) {
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appUid);
+
+        if (Objects.isNull(bind)) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+        materialLibraryService.validateMaterialLibraryExists(bind.getId());
+
+
+        List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(bind.getLibraryId());
+
+        return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
+    }
+
+    /**
      * 更新素材知识库数据
      *
      * @param libraryId 素材库编号
@@ -277,9 +302,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     private void validateSliceShareStatus(Long id, Boolean shareStatus) {
 
         MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
-        // if (sliceDO.getIsShare() && shareStatus) {
-        //     throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
-        // }
+
     }
 
     /**
