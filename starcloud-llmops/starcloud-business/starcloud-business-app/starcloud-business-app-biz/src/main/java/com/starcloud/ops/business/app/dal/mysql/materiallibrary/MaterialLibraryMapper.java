@@ -28,9 +28,8 @@ public interface MaterialLibraryMapper extends BaseMapperX<MaterialLibraryDO> {
     }
 
 
-    default PageResult<MaterialLibraryDO> selectPage2(Long userId,MaterialLibraryPageReqVO reqVO) {
+    default PageResult<MaterialLibraryDO> selectPage2(MaterialLibraryPageReqVO reqVO) {
         return selectPage(reqVO,  new LambdaQueryWrapperX<MaterialLibraryDO>()
-                .eqIfPresent(MaterialLibraryDO::getCreator, userId)
                 .likeIfPresent(MaterialLibraryDO::getName, reqVO.getName())
                 .eqIfPresent(MaterialLibraryDO::getIconUrl, reqVO.getIconUrl())
                 .eqIfPresent(MaterialLibraryDO::getDescription, reqVO.getDescription())

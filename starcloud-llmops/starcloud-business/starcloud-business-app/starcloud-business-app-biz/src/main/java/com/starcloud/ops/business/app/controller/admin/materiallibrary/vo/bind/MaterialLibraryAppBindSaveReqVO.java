@@ -18,7 +18,6 @@ public class MaterialLibraryAppBindSaveReqVO {
     private Long libraryId;
 
     @Schema(description = "应用类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "应用类型不能为空")
     private Integer appType;
 
     @Schema(description = "应用编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "7090")
@@ -26,7 +25,6 @@ public class MaterialLibraryAppBindSaveReqVO {
     private String appUid;
 
     @Schema(description = "用户编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "23875")
-    @NotNull(message = "用户编号不能为空")
     private Long userId;
 
 }

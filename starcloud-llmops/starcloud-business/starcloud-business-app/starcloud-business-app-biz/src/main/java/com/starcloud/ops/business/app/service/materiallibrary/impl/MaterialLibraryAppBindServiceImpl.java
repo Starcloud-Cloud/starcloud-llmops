@@ -12,12 +12,15 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryApp
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NO_BIND_APP;
 
 /**
  * 应用素材绑定 Service 实现类
@@ -40,6 +43,8 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
 
         MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid());
+
+
         if (bind != null) {
             materialLibraryAppBindMapper.deleteById(bind.getId());
         }
@@ -63,12 +68,29 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     }
 
     @Override
+    @Transactional
     public void updateMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO updateReqVO) {
-        // 校验存在
-        validateMaterialLibraryAppBindExists(updateReqVO.getId());
-        // 更新
-        MaterialLibraryAppBindDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibraryAppBindDO.class);
-        materialLibraryAppBindMapper.updateById(updateObj);
+
+
+        MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(updateReqVO.getAppUid());
+
+        if (bind == null) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+
+        if (updateReqVO.getAppType() == null) {
+            updateReqVO.setAppType(bind.getAppType());
+        }
+
+        if (updateReqVO.getUserId() == null) {
+            updateReqVO.setUserId(bind.getUserId());
+        }
+
+        materialLibraryAppBindMapper.deleteById(bind.getId());
+
+        MaterialLibraryAppBindDO materialLibraryAppBind = BeanUtils.toBean(updateReqVO, MaterialLibraryAppBindDO.class);
+        materialLibraryAppBindMapper.insert(materialLibraryAppBind);
+
     }
 
     @Override
@@ -100,6 +122,17 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     public MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid) {
 
         return materialLibraryAppBindMapper.selectOneByApp(appUid);
+    }
+
+    /**
+     * 获得应用素材绑定
+     *
+     * @param appUid 编号
+     * @return 应用素材绑定
+     */
+    @Override
+    public List<MaterialLibraryAppBindDO> getBindList(String appUid) {
+        return materialLibraryAppBindMapper.selectListByApp(appUid);
     }
 
     @Override

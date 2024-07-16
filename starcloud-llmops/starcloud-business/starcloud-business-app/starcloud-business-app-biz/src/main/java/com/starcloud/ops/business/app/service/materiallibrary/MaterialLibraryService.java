@@ -63,7 +63,7 @@ public interface MaterialLibraryService {
      *
      * @param id 编号
      */
-    void deleteMaterialLibrary(Long userId, Long id);
+    void deleteMaterialLibrary(Long id);
 
     /**
      * 获得素材知识库
@@ -71,7 +71,7 @@ public interface MaterialLibraryService {
      * @param id 编号
      * @return 素材知识库
      */
-    MaterialLibraryDO getMaterialLibrary(Long userId, Long id);
+    MaterialLibraryDO getMaterialLibrary(Long id);
 
     /**
      * 通过素材库UID 获取 素材库详情
@@ -88,7 +88,7 @@ public interface MaterialLibraryService {
      * @param pageReqVO 分页查询
      * @return 素材知识库分页
      */
-    PageResult<MaterialLibraryDO> getMaterialLibraryPage(Long userId, MaterialLibraryPageReqVO pageReqVO);
+    PageResult<MaterialLibraryDO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO);
 
 
     /**

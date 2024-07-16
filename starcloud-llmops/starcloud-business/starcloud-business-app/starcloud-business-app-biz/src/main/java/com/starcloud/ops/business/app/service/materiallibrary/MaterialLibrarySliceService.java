@@ -137,6 +137,15 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
 
 
     /**
+     * 通过素材库 UID 获取素材数据
+     *
+     * @param appUid  应用 编号
+     * @return Page
+     */
+    List<MaterialLibrarySliceRespVO> getMaterialLibrarySliceListByAppUid(String appUid);
+
+
+    /**
      * 更新素材知识库数据
      *
      * @param libraryId 素材库编号

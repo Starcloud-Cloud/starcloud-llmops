@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.M
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 应用素材绑定 Service 接口
@@ -59,6 +60,15 @@ public interface MaterialLibraryAppBindService {
      * @return 应用素材绑定
      */
     MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid);
+
+
+    /**
+     * 获得应用素材绑定
+     *
+     * @param appUid 编号
+     * @return 应用素材绑定
+     */
+    List<MaterialLibraryAppBindDO> getBindList(String appUid);
 
     /**
      * 获得应用素材绑定分页

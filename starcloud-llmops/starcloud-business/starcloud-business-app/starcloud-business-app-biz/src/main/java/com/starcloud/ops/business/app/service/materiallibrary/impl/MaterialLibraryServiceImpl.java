@@ -166,9 +166,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public void deleteMaterialLibrary(Long userId, Long id) {
+    public void deleteMaterialLibrary(Long id) {
 
-        MaterialLibraryDO libraryDO = materialLibraryMapper.selectByIdAndUser(userId, id);
+        MaterialLibraryDO libraryDO = materialLibraryMapper.selectById(id);
 
         if (libraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
@@ -185,8 +185,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public MaterialLibraryDO getMaterialLibrary(Long userId, Long id) {
-        return materialLibraryMapper.selectByIdAndUser(userId, id);
+    public MaterialLibraryDO getMaterialLibrary(Long id) {
+        return materialLibraryMapper.selectById(id);
     }
 
     /**
@@ -211,8 +211,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public PageResult<MaterialLibraryDO> getMaterialLibraryPage(Long userId, MaterialLibraryPageReqVO pageReqVO) {
-        return materialLibraryMapper.selectPage2(userId, pageReqVO);
+    public PageResult<MaterialLibraryDO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO) {
+        return materialLibraryMapper.selectPage2(pageReqVO);
     }
 
     /**
@@ -336,9 +336,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     /**
-     * @param newApp
-     * @param oldApp
-     * @return
+     * @param newApp 新应用
+     * @param oldApp 旧应用
      */
     @Override
     public void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibraryAppReqVO oldApp) {
