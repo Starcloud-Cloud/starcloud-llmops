@@ -265,8 +265,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
                 if (Objects.nonNull(stepByHandler)) {
                     if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
-                        planMaterialDO.setMaterialList(Collections.emptyList());
                         creativeMaterialManager.migrate(appInformation.getName(), stepByHandler, planMaterialDO.getMaterialList());
+                        planMaterialDO.setMaterialList(Collections.emptyList());
                     } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
                         // 我的应用 执行计划使用同一个素材库
                         WorkflowStepWrapperRespVO appMaterialStep = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
