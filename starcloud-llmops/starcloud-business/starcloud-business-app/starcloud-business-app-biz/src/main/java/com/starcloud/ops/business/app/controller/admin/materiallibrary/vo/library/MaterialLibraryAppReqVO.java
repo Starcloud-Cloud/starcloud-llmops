@@ -18,7 +18,6 @@ public class MaterialLibraryAppReqVO {
     private String appUid;
 
     @Schema(description = "应用名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
-    @NotNull(message = "应用名称不能为空")
     private String appName;
 
     @Schema(description = "区分应用的不同渠道（）", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")

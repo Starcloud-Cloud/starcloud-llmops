@@ -34,6 +34,14 @@ public interface MaterialLibraryService {
      */
     String createMaterialLibraryByApp(String appName);
 
+
+    /**
+     * 通过应用创建素材知识库
+     *
+     * @param appReqVO 应用名称
+     */
+    void createMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
+
     /**
      * 通过应用获取绑定的素材知识库
      *
@@ -130,10 +138,13 @@ public interface MaterialLibraryService {
     List<String> materialLibraryCopy(List<MaterialLibrarySliceAppReqVO> appReqVO);
 
 
+    List<String> materialLibraryCopy(MaterialLibraryAppReqVO newApp,MaterialLibrarySliceAppReqVO appReqVO);
+
+
     /**
      * 素材数据迁移
      *
-     * @param sliceMigrationReqVO     迁移 VO
+     * @param sliceMigrationReqVO 迁移 VO
      * @return 素材库 UID
      */
     String materialLibraryDataMigration(SliceMigrationReqVO sliceMigrationReqVO);
