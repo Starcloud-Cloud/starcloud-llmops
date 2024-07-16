@@ -128,7 +128,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
-        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid(), appReqVO.getAppType());
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
 
         MaterialLibraryDO materialLibrary;
         if (Objects.isNull(bind)) {
@@ -336,13 +336,14 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     /**
-     * @param appReqVO
+     * @param newApp
+     * @param oldApp
      * @return
      */
     @Override
-    public void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibrarySliceAppReqVO appReqVO) {
+    public void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibraryAppReqVO oldApp) {
 
-        MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(appReqVO);
+        MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(oldApp);
 
         // return this.processMaterialLibrary;
     }

@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS;
 
 /**
  * 应用素材绑定 Service 实现类
@@ -38,8 +39,8 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Override
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
 
-        MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid(), createReqVO.getAppType());
-        if (bind != null){
+        MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid());
+        if (bind != null) {
             materialLibraryAppBindMapper.deleteById(bind.getId());
         }
 
@@ -80,8 +81,7 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
 
     private void validateMaterialLibraryAppBindExists(Long id) {
         if (materialLibraryAppBindMapper.selectById(id) == null) {
-            // throw exception(MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS);
-            throw exception(11);
+            throw exception(MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS);
         }
     }
 
@@ -97,9 +97,9 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      * @return 应用素材绑定
      */
     @Override
-    public MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid, Integer appType) {
+    public MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid) {
 
-        return materialLibraryAppBindMapper.selectOneByApp(appUid, appType);
+        return materialLibraryAppBindMapper.selectOneByApp(appUid);
     }
 
     @Override

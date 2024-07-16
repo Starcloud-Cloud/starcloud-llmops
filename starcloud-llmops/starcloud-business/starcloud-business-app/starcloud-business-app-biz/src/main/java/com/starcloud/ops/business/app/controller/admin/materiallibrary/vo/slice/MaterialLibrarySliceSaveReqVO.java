@@ -80,7 +80,7 @@ public class MaterialLibrarySliceSaveReqVO {
          * 扩展数据
          */
         @Schema(description = "扩展数据", example = " 1")
-        private Object extend;
+        private String extend;
     }
 
 }

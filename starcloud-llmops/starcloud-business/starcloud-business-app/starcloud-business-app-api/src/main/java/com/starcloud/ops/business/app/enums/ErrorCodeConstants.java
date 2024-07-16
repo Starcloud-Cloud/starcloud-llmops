@@ -652,5 +652,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode MATERIAL_LIBRARY_NO_BIND_APP = new ErrorCode(300702214, "当前应用未绑定素材库");
 
+    ErrorCode MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS = new ErrorCode(300702215, "素材与应用不存在绑定关系");
+
 
 }
