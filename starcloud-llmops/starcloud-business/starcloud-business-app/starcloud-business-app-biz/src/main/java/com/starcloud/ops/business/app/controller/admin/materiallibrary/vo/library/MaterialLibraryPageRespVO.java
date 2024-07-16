@@ -35,6 +35,9 @@ public class MaterialLibraryPageRespVO {
     @DictFormat("material_format_type")
     private Integer formatType;
 
+    @Schema(description = "素材库类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    private Integer libraryType;
+
     @Schema(description = "素材库大小", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("素材库大小")
     private Long allFileSize;
@@ -45,6 +48,10 @@ public class MaterialLibraryPageRespVO {
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @ExcelProperty("状态")
     private Boolean status;
+
+    @Schema(description = "创建人编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @ExcelProperty("创建人编号")
+    private Long creator;
 
     @Schema(description = "创建人", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @ExcelProperty("创建人")

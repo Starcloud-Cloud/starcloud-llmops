@@ -87,7 +87,7 @@ public class OperateImportUtil {
      * @param <T>           泛型类型
      */
     public static <T> void readExcel(InputStream inputStream, File[] files, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber) {
-        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files);
+        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files, "");
 
         EasyExcel.read(inputStream, readExcelDataListener)
                 .customObject(configDTO)
@@ -103,8 +103,8 @@ public class OperateImportUtil {
      * @param commonService 将数据存储到某张表的service【需要在业务service上实现这个接口，并重写saveBatchData方法】
      * @param <T>           泛型类型
      */
-    public static <T> void readExcel(File file, File[] files, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber) {
-        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files);
+    public static <T> void readExcel(File file, File[] files, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber, String unzipDir) {
+        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files, unzipDir);
 
         EasyExcel.read(file, readExcelDataListener)
                 .customObject(configDTO)

@@ -248,7 +248,12 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void updateSliceUsedCount(Long libraryId, Long sliceId, Integer usedCount) {
-        // TODO 待实现
+        MaterialLibrarySliceDO slice = materialLibrarySliceMapper.selectById(sliceId);
+
+        if (slice == null) {
+            return;
+        }
+        materialLibrarySliceMapper.updateById(new MaterialLibrarySliceDO().setId(slice.getId()).setUsedCount(slice.getUsedCount() + usedCount));
     }
 
 

@@ -27,6 +27,19 @@ public interface MaterialLibraryMapper extends BaseMapperX<MaterialLibraryDO> {
                 .orderByDesc(MaterialLibraryDO::getId));
     }
 
+
+    default PageResult<MaterialLibraryDO> selectPage2(Long userId,MaterialLibraryPageReqVO reqVO) {
+        return selectPage(reqVO,  new LambdaQueryWrapperX<MaterialLibraryDO>()
+                .eqIfPresent(MaterialLibraryDO::getCreator, userId)
+                .likeIfPresent(MaterialLibraryDO::getName, reqVO.getName())
+                .eqIfPresent(MaterialLibraryDO::getIconUrl, reqVO.getIconUrl())
+                .eqIfPresent(MaterialLibraryDO::getDescription, reqVO.getDescription())
+                .eqIfPresent(MaterialLibraryDO::getFormatType, reqVO.getFormatType())
+                .eqIfPresent(MaterialLibraryDO::getStatus, reqVO.getStatus())
+                .eqIfPresent(MaterialLibraryDO::getLibraryType, reqVO.getLibraryType())
+                .betweenIfPresent(MaterialLibraryDO::getCreateTime, reqVO.getCreateTime()));
+    }
+
     default MaterialLibraryDO selectByUid(String uid) {
         return selectOne(new LambdaQueryWrapperX<MaterialLibraryDO>()
                 .eq(MaterialLibraryDO::getUid, uid));

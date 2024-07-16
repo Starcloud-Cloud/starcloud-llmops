@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.dal.mysql.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import org.apache.ibatis.annotations.Mapper;
@@ -25,4 +27,10 @@ public interface MaterialLibraryAppBindMapper extends BaseMapperX<MaterialLibrar
                 .orderByDesc(MaterialLibraryAppBindDO::getId));
     }
 
+    default MaterialLibraryAppBindDO selectOneByApp(String appUid) {
+        LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class)
+                .eq(MaterialLibraryAppBindDO::getAppUid, appUid)
+                .last(" limit 1");
+        return selectOne(wrapper);
+    }
 }

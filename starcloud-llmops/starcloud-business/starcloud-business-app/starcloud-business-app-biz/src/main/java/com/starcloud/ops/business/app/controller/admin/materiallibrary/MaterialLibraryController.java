@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEn
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import com.starcloud.ops.business.app.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,16 +52,17 @@ public class MaterialLibraryController {
     @Resource
     private AdminUserApi adminUserApi;
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "获得素材知识库分页")
-    public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid MaterialLibraryPageReqVO pageReqVO) {
-        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(getLoginUserId(), pageReqVO);
+    public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid @RequestBody MaterialLibraryPageReqVO pageReqVO) {
+
+        Long loginUserId = getLoginUserId();
+        if (UserUtils.isAdmin()) {
+            loginUserId = null;
+        }
+        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(loginUserId, pageReqVO);
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
-        String nickname = adminUserApi.getUser(getLoginUserId()).getNickname();
-        bean.getList().forEach(reqVO -> {
-            reqVO.setFileCount(materialLibrarySliceService.getSliceDataCountByLibraryId(reqVO.getId()));
-            reqVO.setCreateName(nickname);
-        });
+        bean.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
 
         return success(bean);
     }
@@ -141,8 +143,8 @@ public class MaterialLibraryController {
     @PostMapping("/test")
     @Operation(summary = "测试")
     @OperateLog(enable = false)
-    public void exportTemplate(@Valid @RequestBody MaterialLibraryTestReqVO testReqVO) {
-        materialLibraryService.materialLibraryDataMigration(testReqVO.getName(), testReqVO.getSaveReqVOS(), testReqVO.getMaterialList());
+    public void exportTemplate(@Valid @RequestBody SliceMigrationReqVO migrationReqVO) {
+        materialLibraryService.materialLibraryDataMigration(migrationReqVO);
     }
 
 

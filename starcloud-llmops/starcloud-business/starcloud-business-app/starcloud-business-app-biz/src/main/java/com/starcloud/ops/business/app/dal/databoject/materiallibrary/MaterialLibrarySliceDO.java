@@ -95,10 +95,11 @@ public class MaterialLibrarySliceDO extends BaseDO {
          * 标签
          */
         private List<String> tags;
+        
         /**
          * 扩展数据
          */
-        private Object extend;
+        private String extend;
 
     }
 

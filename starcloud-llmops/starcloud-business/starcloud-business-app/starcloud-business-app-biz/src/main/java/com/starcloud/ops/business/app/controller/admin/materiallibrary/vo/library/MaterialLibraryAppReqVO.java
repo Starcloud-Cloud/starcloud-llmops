@@ -1,8 +1,8 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library;
 
+import cn.iocoder.yudao.framework.common.validation.InEnum;
 import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
-import com.starcloud.ops.framework.common.api.validation.InEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -18,15 +18,13 @@ public class MaterialLibraryAppReqVO {
     private String appUid;
 
     @Schema(description = "应用名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
-    @NotNull(message = "应用名称不能为空")
     private String appName;
 
-    @Schema(description = "区分应用的不同渠道（）", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
-    @InEnum(CreativePlanSourceEnum.class)
+    @Schema(description = "区分应用的不同应用（）", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
+    @InEnum(MaterialBindTypeEnum.class)
     private Integer appType;
 
     @Schema(description = "用户名称）", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
-    @NotNull(message = "应用名称不能为空")
     private Long userId;
 
 }

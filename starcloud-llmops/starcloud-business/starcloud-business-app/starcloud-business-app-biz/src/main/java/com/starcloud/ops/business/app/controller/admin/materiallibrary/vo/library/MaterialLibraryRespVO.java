@@ -24,6 +24,10 @@ public class MaterialLibraryRespVO {
     @ExcelProperty("名称")
     private String name;
 
+    @Schema(description = "UID", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    @ExcelProperty("UID")
+    private String uid;
+
     @Schema(description = "图标链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
     @ExcelProperty("图标链接")
     private String iconUrl;
@@ -36,6 +40,9 @@ public class MaterialLibraryRespVO {
     @ExcelProperty(value = "素材类型", converter = DictConvert.class)
     @DictFormat("material_format_type") // TODO 代码优化：建议设置到对应的 DictTypeConstants 枚举类中
     private Integer formatType;
+
+    @Schema(description = "素材库类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    private Integer libraryType;
 
     @Schema(description = "素材库大小", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("素材库大小")
