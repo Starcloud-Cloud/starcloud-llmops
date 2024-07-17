@@ -124,7 +124,7 @@ public class CustomActionHandler extends BaseActionHandler {
             Object materialTypeValue = wrapper.getVariable(CreativeConstants.MATERIAL_TYPE);
             AppValidate.notNull(materialTypeValue, "【{}】步骤参数错误，参考素材类型不能为空！", stepName);
             String materialType = String.valueOf(materialTypeValue);
-            if (!MaterialTypeEnum.NOTE_TITLE.name().equals(materialType) || !MaterialTypeEnum.NOTE_CONTENT.name().equals(materialType)) {
+            if (!MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) || !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType)) {
                 throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，参考素材类型不合法！", stepName);
             }
 
