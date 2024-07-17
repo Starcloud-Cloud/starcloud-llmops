@@ -348,6 +348,10 @@ public class CreativeMaterialManager {
                 }
                 Map<String, Object> row = new HashMap<>();
                 for (MaterialLibrarySliceRespVO.TableContent tableContent : tableContentList) {
+                    if (Objects.isNull(tableContent)) {
+                        continue;
+                    }
+
                     row.put(tableContent.getColumnCode(), tableContent.getValue());
                     Integer typeCode = columnCodeType.get(tableContent.getColumnCode());
                     String extend = tableContent.getExtend();
