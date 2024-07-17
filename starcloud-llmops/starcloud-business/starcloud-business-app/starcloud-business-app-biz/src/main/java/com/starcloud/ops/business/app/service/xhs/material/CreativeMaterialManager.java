@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
@@ -19,6 +20,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -26,6 +28,7 @@ import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -219,7 +222,7 @@ public class CreativeMaterialManager {
     /**
      * 根据素材库配置查询素材列表
      */
-    public List<Map<String, Object>> getMaterialList(AppMarketRespVO appMarketVO) {
+    public List<Map<String, Object>> getMaterialList(AppMarketRespVO appMarketVO, CreativePlanRespVO creativePlan) {
 
         WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(appMarketVO);
         // 查询素材库数据
@@ -257,6 +260,8 @@ public class CreativeMaterialManager {
             throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材列表失败：素材列表数据为空！");
         }
 
+        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
+        AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
         // 使用模式为过滤使用，素材使用次数+1
         if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
             // 使用模式为过滤使用
@@ -274,8 +279,8 @@ public class CreativeMaterialManager {
                 SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
                 sliceUsageCountRequest.setAppUid(appMarketVO.getUid());
                 sliceUsageCountRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
-//            sliceUsageCountRequest.setAppType();
-                //sliceUsageCountRequest.setLibraryUid(materialLibrary.getLibraryId());
+                sliceUsageCountRequest.setAppType(planSource.getCode());
+                sliceUsageCountRequest.setLibraryUid(queryParam.get(0).getLibraryUid());
                 sliceUsageCountRequest.setSliceCountReqVOS(collect);
                 materialLibraryService.materialLibrarySliceUsageCount(sliceUsageCountRequest);
             }

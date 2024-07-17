@@ -683,7 +683,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate(ValidateTypeEnum.EXECUTE);
         // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation());
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation(), creativePlan);
 
         /*
          * 获取计划应用信息
