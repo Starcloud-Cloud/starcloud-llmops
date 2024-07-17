@@ -355,10 +355,15 @@ public class CreativeMaterialManager {
                     row.put(tableContent.getColumnCode(), tableContent.getValue());
                     Integer typeCode = columnCodeType.get(tableContent.getColumnCode());
                     String extend = tableContent.getExtend();
+
                     if (ColumnTypeEnum.IMAGE.getCode().equals(typeCode) && StringUtils.isNotBlank(extend)) {
-                        Type type = new TypeReference<Map<String, Object>>() {
-                        }.getType();
-                        row.put(tableContent.getColumnCode() + "_ext", JSONObject.parseObject(extend, type));
+                        Map<String, Object> map = JSONObject.parseObject(extend, new TypeReference<Map<String, Object>>() {
+                        });
+                        map.put("content", tableContent.getDescription());
+                        if (CollectionUtil.isNotEmpty(tableContent.getTags())) {
+                            map.put("tag", tableContent.getTags().stream().collect(Collectors.joining(",")));
+                        }
+                        row.put(tableContent.getColumnCode() + "_ext", map);
                     }
                 }
                 result.add(row);
