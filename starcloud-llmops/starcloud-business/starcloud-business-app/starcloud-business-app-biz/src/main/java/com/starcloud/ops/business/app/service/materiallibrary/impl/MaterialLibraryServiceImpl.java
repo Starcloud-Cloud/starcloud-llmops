@@ -150,6 +150,29 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     }
 
+    /**
+     * @param libraryUid  素材库编号
+     * @return
+     */
+    @Override
+    public MaterialLibraryRespVO getMaterialLibraryByAppUid(String libraryUid) {
+        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(libraryUid);
+        if (materialLibrary==null){
+            return null;
+        }
+
+
+        // 数据转换
+        MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
+
+        if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
+            bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+        }
+
+        return null;
+    }
+
     @Override
     public void updateMaterialLibrary(MaterialLibrarySaveReqVO updateReqVO) {
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(updateReqVO.getId());
@@ -315,6 +338,16 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         return appReqVO.stream()
                 .map(this::selectMaterialLibrarySliceList)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取应用执行的素材
+     *
+     * @param appReqVO 素材库查询
+     */
+    @Override
+    public MaterialLibrarySliceUseRespVO getMaterialLibrarySlice(MaterialLibrarySliceAppReqVO appReqVO) {
+        return this.selectMaterialLibrarySliceList(appReqVO);
     }
 
 

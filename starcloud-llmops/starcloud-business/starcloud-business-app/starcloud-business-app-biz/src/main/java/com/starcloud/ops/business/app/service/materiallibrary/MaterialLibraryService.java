@@ -51,6 +51,9 @@ public interface MaterialLibraryService {
     MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
 
 
+    MaterialLibraryRespVO getMaterialLibraryByAppUid(String uid);
+
+
     /**
      * 更新素材知识库
      *
@@ -128,6 +131,14 @@ public interface MaterialLibraryService {
      * @param appReqVO 素材库查询
      */
     List<MaterialLibrarySliceUseRespVO> getMaterialLibrarySliceList(List<MaterialLibrarySliceAppReqVO> appReqVO);
+
+
+    /**
+     * 获取应用执行的素材
+     *
+     * @param appReqVO 素材库查询
+     */
+    MaterialLibrarySliceUseRespVO getMaterialLibrarySlice(MaterialLibrarySliceAppReqVO appReqVO);
 
     /**
      * 应用发布，直接复制一份新的素材库出来（版本管理）

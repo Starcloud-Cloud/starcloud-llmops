@@ -10,10 +10,12 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
@@ -37,6 +40,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Resource
     @Lazy
     private MaterialLibraryService materialLibraryService;
+
+    @Resource
+    private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
     private MaterialLibraryAppBindService materialLibraryAppBindService;
@@ -72,6 +78,37 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
+
+        if (createReqVO.getSaveReqVOS().isEmpty()) {
+            return;
+        }
+        List<Long> libraryIds = createReqVO.getSaveReqVOS().stream()
+                .map(MaterialLibrarySliceSaveReqVO::getLibraryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryIds.get(0));
+
+        // 批量添加时 对空数据做填充
+        List<MaterialLibrarySliceSaveReqVO> saveReqVOS = createReqVO.getSaveReqVOS();
+
+        // 防止Content()中存在 null 值
+        saveReqVOS.forEach(saveReq -> {
+            if (saveReq.getContent().size() == tableColumnDOList.size()) {
+                throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+            }
+
+        });
+
+
+        saveReqVOS.forEach(saveReq -> {
+            if (saveReq.getContent() != null && saveReq.getContent().size() == tableColumnDOList.size()) {
+                // 如果你的异常处理能够接受 String 类型的 message，这里可以优化为直接使用异常信息
+                // throw exception("Content size matches table columns size but library ID might be empty.");
+                throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+            }
+        });
+
+
         this.saveBatchData(BeanUtils.toBean(createReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
 
