@@ -467,6 +467,12 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
+        if (Objects.nonNull(sliceUsageCountReqVO.getLibraryUid())) {
+            MaterialLibraryDO materialLibrary = this.validateMaterialLibraryExists(sliceUsageCountReqVO.getLibraryUid());
+
+            sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
+            return;
+        }
         MaterialLibraryRespVO materialLibrary = getMaterialLibraryByApp(sliceUsageCountReqVO);
         sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
     }
@@ -510,7 +516,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @return MaterialLibrarySliceUseRespVO
      */
     private MaterialLibrarySliceUseRespVO selectMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO) {
-        if (Objects.nonNull(appReqVO.getLibraryUid())){
+        if (Objects.nonNull(appReqVO.getLibraryUid())) {
 
             MaterialLibrarySliceUseRespVO sliceUseRespVO = new MaterialLibrarySliceUseRespVO();
             MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(appReqVO.getLibraryUid());
