@@ -128,6 +128,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
+
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
 
         MaterialLibraryDO materialLibrary;
@@ -509,6 +510,24 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @return MaterialLibrarySliceUseRespVO
      */
     private MaterialLibrarySliceUseRespVO selectMaterialLibrarySliceList(MaterialLibrarySliceAppReqVO appReqVO) {
+        if (Objects.nonNull(appReqVO.getLibraryUid())){
+
+            MaterialLibrarySliceUseRespVO sliceUseRespVO = new MaterialLibrarySliceUseRespVO();
+            MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(appReqVO.getLibraryUid());
+            if (materialLibraryDO == null) {
+                throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+            }
+            sliceUseRespVO.setLibraryId(sliceUseRespVO.getLibraryId());
+            if (MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
+                List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibraryDO.getId());
+                sliceUseRespVO.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+            }
+
+            List<MaterialLibrarySliceRespVO> sliceRespVOS = materialLibrarySliceService.selectSliceBySortingField(materialLibraryDO.getId(), appReqVO.getSliceIdList(), appReqVO.getRemovesliceIdList(), appReqVO.getSortingField());
+
+            sliceUseRespVO.setSliceRespVOS(sliceRespVOS);
+            return sliceUseRespVO;
+        }
         MaterialLibrarySliceUseRespVO sliceUseRespVO = new MaterialLibrarySliceUseRespVO();
 
         MaterialLibraryRespVO materialLibrary;
