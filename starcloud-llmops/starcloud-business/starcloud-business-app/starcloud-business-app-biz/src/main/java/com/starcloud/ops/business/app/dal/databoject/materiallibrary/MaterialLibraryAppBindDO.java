@@ -47,9 +47,9 @@ public class MaterialLibraryAppBindDO extends BaseDO {
      * 用户编号
      */
     private Long userId;
-    // /**
-    //  * 状态
-    //  */
-    // private Boolean status;
+    /**
+     * 状态
+     */
+    private Boolean status;
 
 }

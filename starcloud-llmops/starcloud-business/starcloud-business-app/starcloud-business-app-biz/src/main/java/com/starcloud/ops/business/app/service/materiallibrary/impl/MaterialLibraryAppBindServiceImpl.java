@@ -48,7 +48,7 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         List<MaterialLibraryAppBindDO> binds = this.getBindList(createReqVO.getAppUid());
 
 
-        // handleBindSatus(binds);
+        // handleBindStatus(binds);
 
         if (bind != null) {
             materialLibraryAppBindMapper.deleteById(bind.getId());
