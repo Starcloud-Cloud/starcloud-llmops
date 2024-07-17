@@ -797,10 +797,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         materialMetadata.setMaterialFieldList(fieldList);
 
         Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList, materialMetadata);
-        boolean isAllEmptyMaterial = materialMap.values().stream().anyMatch(CollectionUtil::isNotEmpty);
-        if (!isAllEmptyMaterial) {
-            throw ServiceExceptionUtil.invalidParamException("素材分配失败，请检查您的图片配置或者海报配置是否正确");
-        }
+//        boolean isAllEmptyMaterial = materialMap.values().stream().anyMatch(CollectionUtil::isNotEmpty);
+//        if (!isAllEmptyMaterial) {
+//            throw ServiceExceptionUtil.invalidParamException("素材分配失败，请检查您的图片配置或者海报配置是否正确");
+//        }
         // 二次处理批量内容任务
         List<CreativeContentCreateReqVO> handleContentCreateRequestList = Lists.newArrayList();
         for (int index = 0; index < contentCreateRequestList.size(); index++) {
