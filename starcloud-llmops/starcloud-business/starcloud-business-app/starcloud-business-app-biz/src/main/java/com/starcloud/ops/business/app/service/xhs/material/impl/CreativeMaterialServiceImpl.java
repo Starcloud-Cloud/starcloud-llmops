@@ -23,7 +23,6 @@ import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMater
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
@@ -43,7 +42,6 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
@@ -160,22 +158,21 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
 
-        MaterialLibraryRespVO materialLibrary;
-        if (StringUtils.isBlank(request.getPlanSource())) {
-            AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
-            materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
-        } else {
-            AppValidate.notBlank(request.getBizUid(), "应用UID不能为空！");
-            AppValidate.notBlank(request.getPlanSource(), "应用来源不能为空！");
-            CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(request.getPlanSource());
-            AppValidate.notNull(planSource, "应用来源不支持！");
-
-            MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
-            materialLibraryRequest.setAppUid(request.getBizUid());
-            materialLibraryRequest.setAppType(planSource.getCode());
-            materialLibraryRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
-            materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
-        }
+        AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
+//        if (StringUtils.isBlank(request.getPlanSource())) {
+//        } else {
+//            AppValidate.notBlank(request.getBizUid(), "应用UID不能为空！");
+//            AppValidate.notBlank(request.getPlanSource(), "应用来源不能为空！");
+//            CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(request.getPlanSource());
+//            AppValidate.notNull(planSource, "应用来源不支持！");
+//
+//            MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
+//            materialLibraryRequest.setAppUid(request.getBizUid());
+//            materialLibraryRequest.setAppType(planSource.getCode());
+//            materialLibraryRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+//            materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
+//        }
 
         AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
         AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
@@ -267,22 +264,22 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
         AppValidate.notNull(request.getGenerateCount(), "生成数量不能为空");
 
-        MaterialLibraryRespVO materialLibrary;
-        if (StringUtils.isBlank(request.getPlanSource())) {
-            AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
-            materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
-        } else {
-            AppValidate.notBlank(request.getBizUid(), "应用UID不能为空！");
-            AppValidate.notBlank(request.getPlanSource(), "应用来源不能为空！");
-            CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(request.getPlanSource());
-            AppValidate.notNull(planSource, "应用来源不支持！");
-
-            MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
-            materialLibraryRequest.setAppUid(request.getBizUid());
-            materialLibraryRequest.setAppType(planSource.getCode());
-            materialLibraryRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
-            materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
-        }
+        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
+//        if (StringUtils.isBlank(request.getPlanSource())) {
+//            AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
+//            materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
+//        } else {
+//            AppValidate.notBlank(request.getBizUid(), "应用UID不能为空！");
+//            AppValidate.notBlank(request.getPlanSource(), "应用来源不能为空！");
+//            CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(request.getPlanSource());
+//            AppValidate.notNull(planSource, "应用来源不支持！");
+//
+//            MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
+//            materialLibraryRequest.setAppUid(request.getBizUid());
+//            materialLibraryRequest.setAppType(planSource.getCode());
+//            materialLibraryRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+//            materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
+//        }
 
         AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
         AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
