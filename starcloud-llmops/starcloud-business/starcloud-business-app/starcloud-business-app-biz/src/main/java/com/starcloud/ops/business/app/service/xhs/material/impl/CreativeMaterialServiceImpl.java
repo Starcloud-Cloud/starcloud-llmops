@@ -264,6 +264,7 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
         AppValidate.notNull(request.getGenerateCount(), "生成数量不能为空");
 
+        AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
         MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
 //        if (StringUtils.isBlank(request.getPlanSource())) {
 //            AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
