@@ -603,12 +603,11 @@ public class CreativeUtils {
         }
 
         // 获取到素材库列表
-        String materialConfigString = materialWrapper.getVariableToString(CreativeConstants.MATERIAL_DEFINE);
-        if (StringUtils.isBlank(materialConfigString) || "[]".equals(materialConfigString) || "null".equalsIgnoreCase(materialConfigString)) {
+        String materialLibraryJsonVariable = materialWrapper.getVariableToString(CreativeConstants.LIBRARY_QUERY);
+        if (StringUtils.isBlank(materialLibraryJsonVariable) || "[]".equals(materialLibraryJsonVariable) || "null".equalsIgnoreCase(materialLibraryJsonVariable)) {
             return Collections.emptyList();
         }
 
-        String materialLibraryJsonVariable = materialWrapper.getVariableToString(CreativeConstants.LIBRARY_QUERY);
         List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(materialLibraryJsonVariable);
         if (CollectionUtil.isEmpty(materialFieldConfigList)) {
             return Collections.emptyList();
