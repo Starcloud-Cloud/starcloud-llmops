@@ -818,10 +818,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 // 获取到该风格下的素材列表
                 List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
                 // 如果没有素材列表，直接跳过，不创建任务
-                if (handleMaterialList.isEmpty()) {
-                    // 如果没有素材列表，直接跳过，不创建任务
-                    continue;
-                }
+//                if (handleMaterialList.isEmpty()) {
+//                    // 如果没有素材列表，直接跳过，不创建任务
+//                    continue;
+//                }
 
                 // 不同的处理器处理海报风格
                 PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList, materialMetadata);
