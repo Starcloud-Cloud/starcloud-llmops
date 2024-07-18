@@ -222,7 +222,7 @@ public class CreativeMaterialManager {
     /**
      * 根据素材库配置查询素材列表
      */
-    public List<Map<String, Object>> getMaterialList(AppMarketRespVO appMarketVO, CreativePlanRespVO creativePlan) {
+    public List<Map<String, Object>> getMaterialList(AppMarketRespVO appMarketVO) {
 
         WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(appMarketVO);
         // 查询素材库数据
@@ -258,32 +258,6 @@ public class CreativeMaterialManager {
         materialLibrarySliceList = queryLibrary(queryParam);
         if (CollectionUtil.isEmpty(materialLibrarySliceList)) {
             throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材列表失败：素材列表数据为空！");
-        }
-
-        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
-        AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
-        // 使用模式为过滤使用，素材使用次数+1
-        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
-            // 使用模式为过滤使用
-            for (MaterialLibrarySliceUseRespVO materialLibrary : materialLibrarySliceList) {
-                List<MaterialLibrarySliceRespVO> sliceResponseList = materialLibrary.getSliceRespVOS();
-                List<SliceCountReqVO> collect = sliceResponseList.stream()
-                        .map(sliceResponse -> {
-                            SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
-                            sliceCountRequest.setSliceId(sliceResponse.getId());
-                            sliceCountRequest.setNums(sliceResponse.getUsedCount().intValue() + 1);
-                            return sliceCountRequest;
-                        })
-                        .collect(Collectors.toList());
-
-                SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
-                sliceUsageCountRequest.setAppUid(appMarketVO.getUid());
-                sliceUsageCountRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
-                sliceUsageCountRequest.setAppType(planSource.getCode());
-                sliceUsageCountRequest.setLibraryUid(queryParam.get(0).getLibraryUid());
-                sliceUsageCountRequest.setSliceCountReqVOS(collect);
-                materialLibraryService.materialLibrarySliceUsageCount(sliceUsageCountRequest);
-            }
         }
 
         return convert(materialLibrarySliceList);
@@ -352,6 +326,8 @@ public class CreativeMaterialManager {
                         continue;
                     }
 
+                    row.put("__id__", sliceRespVO.getId());
+                    row.put("__usageCount__", sliceRespVO.getUsedCount());
                     row.put(tableContent.getColumnCode(), tableContent.getValue());
                     Integer typeCode = columnCodeType.get(tableContent.getColumnCode());
                     String extend = tableContent.getExtend();

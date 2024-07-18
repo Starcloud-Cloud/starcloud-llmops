@@ -1,12 +1,18 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -34,6 +40,11 @@ import java.util.stream.Collectors;
  */
 @Component
 public abstract class AbstractMaterialHandler {
+
+    /**
+     * 素材库服务
+     */
+    private static final MaterialLibraryService MATERIAL_LIBRARY_SERVICE = SpringUtil.getBean(MaterialLibraryService.class);
 
     /**
      * 提取素材索引正则
@@ -80,8 +91,37 @@ public abstract class AbstractMaterialHandler {
         if (CollectionUtil.isEmpty(needMaterialSizeList)) {
             return Collections.emptyMap();
         }
+        Map<Integer, List<Map<String, Object>>> map = this.doHandleMaterialMap(materialList, needMaterialSizeList, metadata);
 
-        return this.doHandleMaterialMap(materialList, needMaterialSizeList, metadata);
+        // 使用模式为过滤使用，素材使用次数+1
+        if (MaterialUsageModel.FILTER_USAGE.equals(metadata.getMaterialUsageModel())) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            map.values().forEach(list::addAll);
+            // 去重
+            list = new ArrayList<>(list.stream()
+                    .collect(
+                            Collectors.toMap(
+                                    m -> m.get("__id__"),
+                                    m -> m, (existing, replacement) -> existing)
+                    )
+                    .values());
+
+            List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
+            for (Map<String, Object> mapItem : list) {
+                SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
+                sliceCountRequest.setSliceId((Long) mapItem.get("__id__"));
+                sliceCountRequest.setNums(((Long) mapItem.get("__usageCount__")).intValue() + 1);
+                sliceCountRequestList.add(sliceCountRequest);
+            }
+            SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
+            sliceUsageCountRequest.setAppUid(metadata.getAppUid());
+            sliceUsageCountRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+            sliceUsageCountRequest.setAppType(metadata.getPlanSource().getCode());
+            sliceUsageCountRequest.setLibraryUid(metadata.getMaterialLibraryUid());
+            sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
+            MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
+        }
+        return map;
     }
 
     /**

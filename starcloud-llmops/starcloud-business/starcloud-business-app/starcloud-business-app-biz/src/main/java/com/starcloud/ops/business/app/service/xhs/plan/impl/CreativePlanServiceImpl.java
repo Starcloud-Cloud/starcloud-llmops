@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
@@ -45,6 +46,7 @@ import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
@@ -682,8 +684,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate(ValidateTypeEnum.EXECUTE);
+        // 计划来源
+        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
+        AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
+
         // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation(), creativePlan);
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation());
 
         /*
          * 获取计划应用信息
@@ -717,6 +723,22 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 获取资料库的具体处理器
         AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
         AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", businessType);
+
+        // 获取到素材使用模式
+        MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
+        // 获取到素材库UID
+        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
+                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
+                .orElse(StringUtils.EMPTY);
+        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
+            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
+        }
+        // 获取查询条件
+        List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
+        if (CollectionUtil.isEmpty(queryParam)) {
+            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
+        }
+        String libraryUid = queryParam.get(0).getLibraryUid();
 
         /*
          * 将配置信息平铺为，进行平铺，生成执行参数，方便后续进行随机。
@@ -792,6 +814,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         MaterialMetadata materialMetadata = new MaterialMetadata();
         materialMetadata.setAppUid(appInformation.getUid());
         materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        materialMetadata.setPlanSource(planSource);
+        materialMetadata.setMaterialLibraryUid(libraryUid);
+        materialMetadata.setMaterialUsageModel(materialUsageModel);
         materialMetadata.setMaterialType(businessType);
         materialMetadata.setMaterialStepId(materialStepId);
         materialMetadata.setMaterialFieldList(fieldList);
