@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice;
 
 import cn.iocoder.yudao.framework.common.pojo.SortablePageParam;
-import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,8 +22,5 @@ public class MaterialLibrarySliceAppPageReqVO extends SortablePageParam {
     @Schema(description = "应用 UID", requiredMode = Schema.RequiredMode.REQUIRED, example = "30132")
     @NotNull(message = "应用 UID不能为空")
     private String appUid;
-
-    @Schema(description = "排序字段")
-    private SortingField sortingField;
 
 }

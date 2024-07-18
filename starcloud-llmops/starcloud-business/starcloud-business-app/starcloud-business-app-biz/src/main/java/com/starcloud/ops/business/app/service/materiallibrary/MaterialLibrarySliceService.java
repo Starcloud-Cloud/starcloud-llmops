@@ -80,21 +80,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      */
     PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO);
 
-    /**
-     * 批量设置数据为共享数据
-     *
-     * @param shareReqVO 数据共享请求 VO
-     */
-    void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO);
 
-
-    /**
-     * 获取共享数据列表
-     *
-     * @param libraryId 素材库 编号
-     * @return 共享数据列表
-     */
-    List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId);
 
     /**
      * 获取共享数据列表

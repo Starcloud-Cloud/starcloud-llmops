@@ -152,7 +152,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     /**
      * @param libraryUid  素材库编号
-     * @return
+     * @return MaterialLibraryRespVO
      */
     @Override
     public MaterialLibraryRespVO getMaterialLibraryByAppUid(String libraryUid) {
@@ -170,7 +170,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
         }
 
-        return null;
+        return bean;
     }
 
     @Override
@@ -380,6 +380,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryDO newMaterialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}_发布版本", oldMaterialLibrary.getName())).setLibraryType(MaterialLibraryTypeEnum.PUBLISH.getCode()));
 
+        materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newMaterialLibrary.getId()).setAppUid(newApp.getAppUid()).setAppType(newApp.getAppType()).setUserId(newApp.getUserId()));
 
         // 复制表头
         List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(oldMaterialLibrary.getId());

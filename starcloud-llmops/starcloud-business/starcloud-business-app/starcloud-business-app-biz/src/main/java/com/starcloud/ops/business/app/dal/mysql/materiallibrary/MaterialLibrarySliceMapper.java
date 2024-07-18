@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySlicePageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
@@ -128,4 +129,8 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         return selectList(wrapper);
     }
 
+    default PageResult<MaterialLibrarySliceDO> selectPage2(Long libraryId, MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+        return selectPage(appPageReqVO, new LambdaQueryWrapperX<MaterialLibrarySliceDO>()
+                .eq(MaterialLibrarySliceDO::getLibraryId, libraryId));
+    }
 }

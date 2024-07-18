@@ -4,8 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -186,39 +184,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         return materialLibrarySliceMapper.selectPage(pageReqVO);
     }
 
-    /**
-     * 批量设置数据为共享数据
-     *
-     * @param shareReqVO 设置数据分享状态
-     */
-    @Override
-    public void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO) {
-        // 校验数据是否存在
-        shareReqVO.getId().forEach(this::validateMaterialLibrarySliceExists);
-        // 校验数据共享状态
-        shareReqVO.getId().forEach(slice -> validateSliceShareStatus(slice, shareReqVO.getIsShare()));
-        // 更新数据
-        LambdaUpdateWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, shareReqVO.getLibraryId());
-        wrapper.in(MaterialLibrarySliceDO::getLibraryId, shareReqVO.getId());
-        wrapper.set(MaterialLibrarySliceDO::getIsShare, shareReqVO.getIsShare());
-
-        materialLibrarySliceMapper.update(wrapper);
-    }
 
     /**
-     * 获取素材库下共享数据列表
-     *
-     * @param libraryId 素材库 编号
-     * @return 共享数据列表
-     */
-    @Override
-    public List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId) {
-        return materialLibrarySliceMapper.selectSliceShareData(libraryId);
-    }
-
-    /**
-     * 获取共享数据列表
+     * 根据素材库 ID 获取素材数量
      *
      * @param libraryId 素材库 编号
      * @return 共享数据列表
@@ -310,8 +278,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public PageResult<MaterialLibrarySliceRespVO> getMaterialLibrarySlicePageByApp(MaterialLibrarySliceAppPageReqVO appPageReqVO) {
 
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
 
-        return null;
+        if (Objects.isNull(bind)) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+        materialLibraryService.validateMaterialLibraryExists(bind.getId());
+
+        PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceMapper.selectPage2(bind.getLibraryId(), appPageReqVO);
+
+        return BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class);
     }
 
     /**
@@ -343,17 +319,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
     }
 
-    /**
-     * 校验数据共享状态
-     *
-     * @param id          数据编号
-     * @param shareStatus 数据共享状态
-     */
-    private void validateSliceShareStatus(Long id, Boolean shareStatus) {
-
-        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
-
-    }
 
     /**
      * 批量保存数据

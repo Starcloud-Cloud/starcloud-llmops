@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
@@ -76,14 +75,6 @@ public class MaterialLibrarySliceController {
     }
 
 
-    @DeleteMapping("/share")
-    @Operation(summary = "设置可以分享的的素材")
-    public CommonResult<Boolean> deleteMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceShareReqVO shareReqVO) {
-        materialLibrarySliceService.updateSliceShareStatus(shareReqVO);
-        return success(true);
-    }
-
-
     @GetMapping("/page")
     @Operation(summary = "获得素材知识库数据分页")
     public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePage(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
@@ -101,18 +92,9 @@ public class MaterialLibrarySliceController {
 
     @PostMapping("/page-app-uid")
     @Operation(summary = "通过应用UID获得素材知识库数据分页")
-    public CommonResult<MaterialLibraryRespVO> getMaterialLibraryByAppUid(@Valid @RequestBody MaterialLibrarySliceAppPageReqVO appPageReqVO) {
-        // MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
-        //
-        // MaterialLibraryDO materialLibrary = materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
-        //
-        // MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
-        // if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
-        //     List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
-        //     bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
-        // }
-        // return success(bean);
-        return null;
+    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibraryByAppUid(@Valid @RequestBody MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+
+        return success(materialLibrarySliceService.getMaterialLibrarySlicePageByApp(appPageReqVO));
     }
 
 
