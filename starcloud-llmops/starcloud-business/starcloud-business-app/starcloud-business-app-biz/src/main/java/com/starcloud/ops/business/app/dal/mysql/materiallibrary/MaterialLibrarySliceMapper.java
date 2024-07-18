@@ -88,8 +88,8 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
 
         LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
-        wrapper.in(Objects.nonNull(sliceIdList) && CollUtil.isNotEmpty(sliceIdList), MaterialLibrarySliceDO::getLibraryId, sliceIdList);
-        wrapper.notIn(Objects.nonNull(removeSliceIdList) && CollUtil.isNotEmpty(removeSliceIdList), MaterialLibrarySliceDO::getLibraryId, removeSliceIdList);
+        wrapper.in(Objects.nonNull(sliceIdList) && CollUtil.isNotEmpty(sliceIdList), MaterialLibrarySliceDO::getId, sliceIdList);
+        wrapper.notIn(Objects.nonNull(removeSliceIdList) && CollUtil.isNotEmpty(removeSliceIdList), MaterialLibrarySliceDO::getId, removeSliceIdList);
 
         if (Objects.nonNull(sortingField)) {
 

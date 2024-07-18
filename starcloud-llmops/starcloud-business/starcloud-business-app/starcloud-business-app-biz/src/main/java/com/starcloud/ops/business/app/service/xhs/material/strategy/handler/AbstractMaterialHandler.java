@@ -2,19 +2,16 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
-import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -114,9 +111,6 @@ public abstract class AbstractMaterialHandler {
                 sliceCountRequestList.add(sliceCountRequest);
             }
             SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
-            sliceUsageCountRequest.setAppUid(metadata.getAppUid());
-            sliceUsageCountRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
-            sliceUsageCountRequest.setAppType(metadata.getPlanSource().getCode());
             sliceUsageCountRequest.setLibraryUid(metadata.getMaterialLibraryUid());
             sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
             MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
@@ -322,7 +316,7 @@ public abstract class AbstractMaterialHandler {
                         .filter(Objects::nonNull)
                         //.filter(CreativeUtils::isImageVariable)
                         .map(item -> {
-                            Integer matcher = matcherFirstInt(String.valueOf(item.getValue()));
+                            Integer matcher = matcherMax(String.valueOf(item.getValue()));
                             if (matcher == -1) {
                                 return -1;
                             }
@@ -397,42 +391,30 @@ public abstract class AbstractMaterialHandler {
     }
 
     /**
-     * 变量替换
-     *
-     * @param posterStyle  变量列表
-     * @param materialList 值列表
-     * @param metadata     素材元数据
-     * @return 变量替换后的值
-     */
-    protected Map<String, Object> replaceVariable(PosterStyleDTO posterStyle, List<Map<String, Object>> materialList, MaterialMetadata metadata, Boolean defEmpty) {
-        // 获取变量uuid和value的集合
-        Map<String, Object> variableMap = CreativeUtils.getPosterStyleVariableMap(posterStyle);
-
-        // 处理素材。变为可以替换的结构化数据
-        JsonDocsDefSchema<Map<String, Object>> jsonDocsDefSchema = new JsonDocsDefSchema<>();
-        jsonDocsDefSchema.setDocs(materialList);
-        Map<String, Object> materialMap = Collections.singletonMap(metadata.getMaterialStepId(), jsonDocsDefSchema);
-        return CreativeUtils.replaceVariable(variableMap, materialMap, defEmpty);
-    }
-
-    /**
-     * 获取到 [n] 中的数字，如果包含多个 [n],只返回第一个匹配到的。
+     * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
      *
      * @param input 输入
      * @return 返回的数字，没有匹配到，返回 -1
      */
-    protected static Integer matcherFirstInt(String input) {
+    protected static Integer matcherMax(String input) {
         if (StringUtils.isBlank(input)) {
             return -1;
         }
         // 定义正则表达式匹配方括号中的数字
         Matcher matcher = PATTERN.matcher(input);
-        // 使用正则表达式匹配，只返回匹配到的第一个。
-        if (!matcher.find()) {
-            // 没有匹配到，返回 -1
+        // 如果匹配到，则返回最大的数字。
+        int max = -1;
+        try {
+            while (matcher.find()) {
+                int number = Integer.parseInt(matcher.group(1));
+                if (number > max) {
+                    max = number;
+                }
+            }
+        } catch (Exception exception) {
             return -1;
         }
-        return Integer.valueOf(matcher.group(1));
+        return max;
     }
 
 }

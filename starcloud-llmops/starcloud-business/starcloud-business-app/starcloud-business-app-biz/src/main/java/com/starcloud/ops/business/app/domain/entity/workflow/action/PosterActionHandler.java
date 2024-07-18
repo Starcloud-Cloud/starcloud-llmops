@@ -1008,7 +1008,7 @@ public class PosterActionHandler extends BaseActionHandler {
         int max = -1;
         try {
             while (matcher.find()) {
-                int number = Integer.valueOf(matcher.group(1));
+                int number = Integer.parseInt(matcher.group(1));
                 if (number > max) {
                     max = number;
                 }

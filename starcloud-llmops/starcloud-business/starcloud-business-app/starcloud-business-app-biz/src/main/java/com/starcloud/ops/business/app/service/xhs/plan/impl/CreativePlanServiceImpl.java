@@ -688,9 +688,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
         AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
 
-        // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation());
-
         /*
          * 获取计划应用信息
          */
@@ -700,14 +697,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO latestAppMarket = this.getAppInformation(creativePlan.getAppUid(), creativePlan.getSource());
         // 合并应用市场配置，某一些配置项需要保持最新
         appInformation = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
+
+        // 获取创作计划的素材列表
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(appInformation);
+        // 素材库步骤不为空的话，上传素材不能为空
+        AppValidate.notEmpty(materialList, "素材列表不能为空，请上传或选择素材后重试！");
+
         /*
          * 获取到素材库步骤，素材库类型，素材库处理器
          */
         // 素材库步骤校验
         WorkflowStepWrapperRespVO materialStepWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
         AppValidate.notNull(materialStepWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
-        // 素材库步骤不为空的话，上传素材不能为空
-        AppValidate.notEmpty(materialList, "素材列表不能为空，请上传素材后重试！");
+
         // 素材字段配置列表
         List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(materialStepWrapper);
         AppValidate.notEmpty(fieldList, "素材字段配置不能为空，请联系管理员！");
