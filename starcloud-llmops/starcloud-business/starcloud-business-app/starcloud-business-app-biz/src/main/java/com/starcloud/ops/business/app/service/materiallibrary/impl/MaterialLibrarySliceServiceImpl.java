@@ -261,7 +261,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         if (Objects.isNull(bind)) {
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
-        materialLibraryService.validateMaterialLibraryExists(bind.getId());
+        materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
 
 
         List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(bind.getLibraryId());
@@ -283,7 +283,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         if (Objects.isNull(bind)) {
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
-        materialLibraryService.validateMaterialLibraryExists(bind.getId());
+        materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
 
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceMapper.selectPage2(bind.getLibraryId(), appPageReqVO);
 
