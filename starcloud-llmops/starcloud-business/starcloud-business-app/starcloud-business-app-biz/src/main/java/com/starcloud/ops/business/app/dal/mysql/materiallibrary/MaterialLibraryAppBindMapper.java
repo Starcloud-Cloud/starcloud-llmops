@@ -37,13 +37,6 @@ public interface MaterialLibraryAppBindMapper extends BaseMapperX<MaterialLibrar
         return selectOne(wrapper);
     }
 
-    default MaterialLibraryAppBindDO selectEnableBindByApp(String appUid) {
-        LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class)
-                .eq(MaterialLibraryAppBindDO::getAppUid, appUid)
-                .eq(MaterialLibraryAppBindDO::getStatus, true)
-                .last(" limit 1");
-        return selectOne(wrapper);
-    }
 
     default List<MaterialLibraryAppBindDO> selectListByApp(String appUid) {
         LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class)

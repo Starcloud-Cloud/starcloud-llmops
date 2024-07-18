@@ -224,6 +224,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         Assert.notBlank(uid, "素材库 UID 不可以为空,获取素材详情失败");
 
         MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(uid);
+
+        if (materialLibrary == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
         // 数据转换
         MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
 
