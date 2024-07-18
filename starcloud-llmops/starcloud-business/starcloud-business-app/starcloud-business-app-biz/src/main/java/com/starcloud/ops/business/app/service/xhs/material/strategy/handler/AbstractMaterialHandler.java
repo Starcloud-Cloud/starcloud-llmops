@@ -105,9 +105,10 @@ public abstract class AbstractMaterialHandler {
 
             List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
             for (Map<String, Object> mapItem : list) {
+                Long id = (Long) mapItem.get("__id__");
                 SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
-                sliceCountRequest.setSliceId((Long) mapItem.get("__id__"));
-                sliceCountRequest.setNums(((Long) mapItem.get("__usageCount__")).intValue() + 1);
+                sliceCountRequest.setSliceId(id);
+                sliceCountRequest.setNums(1);
                 sliceCountRequestList.add(sliceCountRequest);
             }
             SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
