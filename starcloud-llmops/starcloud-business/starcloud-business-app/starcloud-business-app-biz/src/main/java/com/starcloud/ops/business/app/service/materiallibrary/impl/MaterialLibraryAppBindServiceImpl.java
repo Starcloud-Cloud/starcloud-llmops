@@ -47,15 +47,16 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
 
         List<MaterialLibraryAppBindDO> binds = this.getBindList(createReqVO.getAppUid());
 
-
         // handleBindStatus(binds);
 
         if (bind != null) {
-            materialLibraryAppBindMapper.deleteById(bind.getId());
+            materialLibraryAppBindMapper.updateById(new MaterialLibraryAppBindDO().setId(bind.getId()).setStatus(false));
+            // materialLibraryAppBindMapper.deleteById(bind.getId());
         }
 
         // 插入
         MaterialLibraryAppBindDO materialLibraryAppBind = BeanUtils.toBean(createReqVO, MaterialLibraryAppBindDO.class);
+        materialLibraryAppBind.setStatus(true);
         materialLibraryAppBindMapper.insert(materialLibraryAppBind);
         // 返回
         return materialLibraryAppBind.getId();
@@ -149,9 +150,10 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      */
     @Override
     public MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid) {
-
         return materialLibraryAppBindMapper.selectOneByApp(appUid);
     }
+
+
 
     /**
      * 获得应用素材绑定

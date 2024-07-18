@@ -70,7 +70,6 @@ public interface MaterialLibraryAppBindService {
      */
     MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid);
 
-
     /**
      * 获得应用素材绑定
      *

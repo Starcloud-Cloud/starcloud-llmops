@@ -130,7 +130,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     /**
      * 通过素材库 UID 获取素材数据
      *
-     * @param pageReqVO  pageVO
+     * @param pageReqVO pageVO
      * @return Page
      */
     PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO);
@@ -139,10 +139,18 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     /**
      * 通过素材库 UID 获取素材数据
      *
-     * @param appUid  应用 编号
+     * @param appUid 应用 编号
      * @return Page
      */
     List<MaterialLibrarySliceRespVO> getMaterialLibrarySliceListByAppUid(String appUid);
+
+    /**
+     * 通过应用 UID 获取素材数据
+     *
+     * @param appPageReqVO 应用
+     * @return Page
+     */
+    PageResult<MaterialLibrarySliceRespVO> getMaterialLibrarySlicePageByApp(MaterialLibrarySliceAppPageReqVO appPageReqVO);
 
 
     /**

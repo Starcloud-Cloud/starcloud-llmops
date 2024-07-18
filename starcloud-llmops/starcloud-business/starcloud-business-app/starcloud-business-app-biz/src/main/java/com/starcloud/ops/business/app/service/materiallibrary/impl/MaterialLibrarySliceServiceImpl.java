@@ -302,6 +302,19 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     }
 
     /**
+     * 通过应用 UID 获取素材数据
+     *
+     * @param appPageReqVO 应用
+     * @return Page
+     */
+    @Override
+    public PageResult<MaterialLibrarySliceRespVO> getMaterialLibrarySlicePageByApp(MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+
+
+        return null;
+    }
+
+    /**
      * 更新素材知识库数据
      *
      * @param libraryId 素材库编号

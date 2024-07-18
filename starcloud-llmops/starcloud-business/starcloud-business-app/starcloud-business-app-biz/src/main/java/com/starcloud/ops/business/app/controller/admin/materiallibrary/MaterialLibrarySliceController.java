@@ -3,8 +3,11 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,8 +28,15 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @Validated
 public class MaterialLibrarySliceController {
 
+
+    @Resource
+    private MaterialLibraryService materialLibraryService;
+
     @Resource
     private MaterialLibrarySliceService materialLibrarySliceService;
+
+    @Resource
+    private MaterialLibraryAppBindService materialLibraryAppBindService;
 
     @PostMapping("/create")
     @Operation(summary = "创建素材知识库数据")
@@ -87,6 +97,22 @@ public class MaterialLibrarySliceController {
     public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePageByLibraryUid(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePageByLibraryUid(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
+    }
+
+    @PostMapping("/page-app-uid")
+    @Operation(summary = "通过应用UID获得素材知识库数据分页")
+    public CommonResult<MaterialLibraryRespVO> getMaterialLibraryByAppUid(@Valid @RequestBody MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+        // MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
+        //
+        // MaterialLibraryDO materialLibrary = materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
+        //
+        // MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
+        // if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
+        //     List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
+        //     bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+        // }
+        // return success(bean);
+        return null;
     }
 
 

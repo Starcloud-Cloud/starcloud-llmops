@@ -405,14 +405,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         sliceOldDOList.forEach(sliceData -> {
             sliceData.setId(null);
             sliceData.setLibraryId(newMaterialLibrary.getId());
-            // 增加对getContent()返回值的空检查
             List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
             if (datasList != null) {
                 datasList.forEach(datas -> {
-                    // 增加对datas的空检查
                     if (datas != null && datas.getColumnCode() != null) {
-                        // 假设newTableColumnDOList是已经定义好的，且通过getColumnCode()可以找到对应的ColumnDO
-                        // 这里需要一个机制来查找并获取对应的ColumnDO，例如通过getColumnCode()的值进行搜索
                         MaterialLibraryTableColumnDO newColumnDO = findColumnDOByCode(tableColumnDOList, datas.getColumnCode());
                         if (newColumnDO != null) {
                             datas.setColumnId(newColumnDO.getId());
@@ -433,6 +429,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public String materialLibraryDataMigration(SliceMigrationReqVO migrationReqVO) {
+        this.createMaterialLibraryByApp(migrationReqVO);
+
         MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(migrationReqVO);
 
         List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS = migrationReqVO.getTableColumnSaveReqVOS();
