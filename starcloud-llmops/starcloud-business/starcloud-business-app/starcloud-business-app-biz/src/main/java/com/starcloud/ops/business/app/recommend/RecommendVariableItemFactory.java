@@ -579,8 +579,8 @@ public class RecommendVariableItemFactory {
         variableItem.setField(CreativeConstants.GENERATE_MODE);
         variableItem.setLabel("生成模式");
         variableItem.setDescription("生成模式");
-        variableItem.setDefaultValue(CreativeContentGenerateModelEnum.AI_PARODY.name());
-        variableItem.setValue(CreativeContentGenerateModelEnum.AI_PARODY.name());
+        variableItem.setDefaultValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
+        variableItem.setValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
         variableItem.setOrder(1000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.RADIO.name());
