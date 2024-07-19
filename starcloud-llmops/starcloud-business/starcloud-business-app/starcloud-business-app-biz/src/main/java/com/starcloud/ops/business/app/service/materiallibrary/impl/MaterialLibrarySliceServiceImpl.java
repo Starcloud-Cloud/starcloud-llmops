@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
@@ -328,6 +329,10 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public <T> Integer saveBatchData(List<T> list) {
+
+        if (CollUtil.isEmpty(list)) {
+            return 0;
+        }
 
         List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(list, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.insertBatch(bean);

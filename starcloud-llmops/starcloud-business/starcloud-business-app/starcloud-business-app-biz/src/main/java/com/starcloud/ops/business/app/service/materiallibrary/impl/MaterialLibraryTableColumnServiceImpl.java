@@ -186,8 +186,11 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public <T> Integer saveBatchData(List<T> list) {
 
-        List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(list, MaterialLibraryTableColumnDO.class);
+        if (CollUtil.isEmpty(list)){
+            return 0;
+        }
 
+        List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(list, MaterialLibraryTableColumnDO.class);
 
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS;
         try {
