@@ -840,6 +840,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         materialMetadata.setMaterialType(businessType);
         materialMetadata.setMaterialStepId(materialStepId);
         materialMetadata.setMaterialFieldList(fieldList);
+        materialMetadata.setPlanUid(creativePlan.getUid());
 
         Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList, materialMetadata);
 //        boolean isAllEmptyMaterial = materialMap.values().stream().anyMatch(CollectionUtil::isNotEmpty);

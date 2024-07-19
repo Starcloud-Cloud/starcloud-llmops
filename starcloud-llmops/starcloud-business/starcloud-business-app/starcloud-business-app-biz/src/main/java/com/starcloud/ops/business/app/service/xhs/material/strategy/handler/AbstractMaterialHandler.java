@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
@@ -112,7 +113,13 @@ public abstract class AbstractMaterialHandler {
                 sliceCountRequestList.add(sliceCountRequest);
             }
             SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
-            sliceUsageCountRequest.setLibraryUid(metadata.getMaterialLibraryUid());
+
+            if (CreativePlanSourceEnum.isApp(metadata.getPlanSource().name())) {
+                sliceUsageCountRequest.setAppUid(metadata.getAppUid());
+            } else {
+                sliceUsageCountRequest.setAppUid(metadata.getPlanUid());
+            }
+
             sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
             MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
         }
