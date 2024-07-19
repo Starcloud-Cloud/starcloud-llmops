@@ -6,6 +6,7 @@ import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.ImageOcrReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.TextExtractionReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.XhsOcrReqVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 
 public interface PluginsService {
 
@@ -23,7 +24,7 @@ public interface PluginsService {
      * @param reqVO
      * @return
      */
-    OcrGeneralDTO imageOcr(ImageOcrReqVO reqVO);
+    ImageOcrActionHandler.HandlerResponse imageOcr(ImageOcrReqVO reqVO);
 
     /**
      * 文本智能提取

@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.ImageOcrReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.TextExtractionReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.XhsOcrReqVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,7 +36,7 @@ public class PluginsController {
 
     @PostMapping(value = "/imageOcr")
     @Operation(summary = "图片ocr")
-    public CommonResult<OcrGeneralDTO> imageOcr(@Valid @RequestBody ImageOcrReqVO reqVO) {
+    public CommonResult<ImageOcrActionHandler.HandlerResponse> imageOcr(@Valid @RequestBody ImageOcrReqVO reqVO) {
         return CommonResult.success(pluginsService.imageOcr(reqVO));
     }
 

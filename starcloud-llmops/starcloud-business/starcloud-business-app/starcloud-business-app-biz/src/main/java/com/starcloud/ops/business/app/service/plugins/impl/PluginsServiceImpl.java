@@ -61,14 +61,14 @@ public class PluginsServiceImpl implements PluginsService {
     }
 
     @Override
-    public OcrGeneralDTO imageOcr(ImageOcrReqVO reqVO) {
+    public ImageOcrActionHandler.HandlerResponse imageOcr(ImageOcrReqVO reqVO) {
         if (!ImageUploadUtils.isImage(reqVO.getImageUrl())) {
             throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrl());
         }
         Map<String, Object> variableMap = new HashMap<>();
         variableMap.put(CreativeConstants.IMAGE_OCR_URL, reqVO.getImageUrl());
 
-        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(OcrGeneralDTO.class);
+        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(ImageOcrActionHandler.HandlerResponse.class);
     }
 
     @Override
