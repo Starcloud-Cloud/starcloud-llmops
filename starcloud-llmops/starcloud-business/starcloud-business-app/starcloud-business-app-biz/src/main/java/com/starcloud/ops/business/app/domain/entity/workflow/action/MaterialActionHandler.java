@@ -11,6 +11,7 @@ import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
@@ -44,6 +45,8 @@ import java.util.Map;
 @Slf4j
 @TaskComponent
 public class MaterialActionHandler extends BaseActionHandler {
+
+    private static final ThreadLocal<JsonSchema> JSON_SCHEMA = new TransmittableThreadLocal<>();
 
     /**
      * 流程执行器，action 执行入口
@@ -108,19 +111,7 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
-        //构造一层 array schema
-        ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
-        docSchema.setTitle(stepWrapper.getStepCode());
-        docSchema.setDescription(stepWrapper.getDescription());
-
-        ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
-
-        // 素材自定义配置
-        String libraryQuery = stepWrapper.getVariablesValue(CreativeConstants.LIBRARY_QUERY);
-        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(libraryQuery);
-        arraySchema.setItemsSchema(materialSchema);
-
-        return docSchema;
+        return JSON_SCHEMA.get();
     }
 
     /**
@@ -138,8 +129,6 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 开始日志打印
         loggerBegin(context, "素材上传步骤");
 
-        // 获取所有上游信息
-        Map<String, Object> params = context.getContextVariablesValues();
         //保持跟返回结果一样的JsonSchema
         JsonSchema outJsonSchema;
         CreativePlanMapper creativePlanMapper = SpringUtil.getBean(CreativePlanMapper.class);
@@ -149,6 +138,11 @@ public class MaterialActionHandler extends BaseActionHandler {
         } else {
             outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getUid());
         }
+
+        JSON_SCHEMA.set(outJsonSchema);
+
+        // 获取所有上游信息
+        Map<String, Object> params = context.getContextVariablesValues();
 
         // 获取到资料库类型
         String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
@@ -168,7 +162,7 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         // 结束日志打印
         loggerSuccess(context, response, "素材上传步骤");
-
+        JSON_SCHEMA.remove();
         return response;
     }
 
