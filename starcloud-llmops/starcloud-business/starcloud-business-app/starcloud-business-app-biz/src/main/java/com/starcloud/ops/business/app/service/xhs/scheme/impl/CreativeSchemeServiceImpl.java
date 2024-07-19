@@ -31,10 +31,12 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
@@ -430,7 +432,50 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public List<CreativeOptionDTO> newOptions(GenerateOptionReqVO reqVO) {
         AppMarketEntity marketEntity = AppMarketConvert.INSTANCE.convert(reqVO.getAppReqVO());
-        return workflowStepOptions(marketEntity, reqVO.getStepCode());
+
+        List<WorkflowStepWrapper> workflowStepWrappers = Optional.ofNullable(marketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>());
+
+        List<CreativeOptionDTO> result = new ArrayList<>(workflowStepWrappers.size());
+        for (WorkflowStepWrapper stepWrapper : workflowStepWrappers) {
+            String stepCode = stepWrapper.getStepCode();
+            String desc = stepWrapper.getDescription();
+
+            CreativeOptionDTO stepOption = new CreativeOptionDTO();
+            stepOption.setName(stepCode);
+            stepOption.setDescription(desc);
+            stepOption.setCode(stepCode);
+
+            JsonSchema intJsonNode = stepWrapper.getInVariableJsonSchema();
+            stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
+
+            if (stepCode.equals(reqVO.getStepCode())) {
+                if (PosterActionHandler.class.getSimpleName().equalsIgnoreCase(stepWrapper.getFlowStep().getHandler())) {
+                    JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
+                    stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                    stepOption.setCurrentStep(true);
+                    result.add(stepOption);
+                }
+                return result;
+            }
+
+            if (MaterialActionHandler.class.getSimpleName().equalsIgnoreCase(stepWrapper.getFlowStep().getHandler())) {
+                // 素材表头jsonschema 从素材库单独计算
+                String uid;
+                if (CreativePlanSourceEnum.isApp(reqVO.getSource())) {
+                    uid = marketEntity.getUid();
+                } else {
+                    uid = reqVO.getPlanUid();
+                }
+                JsonSchema outJsonNode = JsonSchemaUtils.getOutVariableJsonSchema(uid);
+                stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                result.add(stepOption);
+            } else {
+                JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
+                stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                result.add(stepOption);
+            }
+        }
+        return result;
     }
 
     /**

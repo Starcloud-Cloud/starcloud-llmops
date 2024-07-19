@@ -41,8 +41,10 @@ import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -160,15 +162,23 @@ public class AppMarketServiceImpl implements AppMarketService {
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType())) {
             WorkflowStepWrapperRespVO stepByHandler = response.getStepByHandler(MaterialActionHandler.class.getSimpleName());
             if (CollectionUtil.isNotEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                creativeMaterialManager.migrate(appMarket.getName(), stepByHandler, appMarket.getMaterialList());
+                // 从数据库迁移
+                creativeMaterialManager.migrateFromData(appMarket.getName(), appMarket.getUid(),
+                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, appMarket.getMaterialList(), Long.valueOf(appMarket.getCreator()));
                 appMarket.setMaterialList(Collections.emptyList());
-                appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
                 appMarketMapper.updateById(appMarket);
+
             } else if (CollectionUtil.isEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
                 String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
-                if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
-                    String libraryJson = creativeMaterialManager.createEmptyLibrary(appMarket.getName());
-                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                if (com.baomidou.mybatisplus.core.toolkit.StringUtils.isBlank(stepVariableValue)) {
+                    // 新建
+                    creativeMaterialManager.createEmptyLibrary(appMarket.getName(), appMarket.getUid(),
+                            MaterialBindTypeEnum.APP_MARKET.getCode(), Long.valueOf(appMarket.getCreator()));
+                } else {
+                    // 从变量迁移
+                    creativeMaterialManager.migrateFromConfig(appMarket.getName(), appMarket.getUid(),
+                            MaterialBindTypeEnum.APP_MARKET.getCode(), stepVariableValue, Long.valueOf(appMarket.getCreator()));
+                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
                     appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
                     appMarketMapper.updateById(appMarket);
                 }

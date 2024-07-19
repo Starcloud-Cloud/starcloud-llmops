@@ -38,6 +38,12 @@ public class CreativeContentRegenerateReqVO implements java.io.Serializable {
     @NotNull(message = "执行参数不能为空！")
     private CreativeContentExecuteParam executeParam;
 
+    @Schema(description = "来源 APP/MARKET")
+    private String source;
+
+    @Schema(description = "执行计划uid")
+    private String planUid;
+
     /**
      * 基础校验
      */
