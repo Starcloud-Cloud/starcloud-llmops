@@ -460,7 +460,7 @@ public class AppPublishServiceImpl implements AppPublishService {
                 return appMarketEntity;
             }
         }
-
+        appMarketEntity.setUid(marketUid);
         creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
         // 如果应用市场不存在该应用，说明是第一次发布/或者已经删除，需要新增应用市场记录
         appMarketEntity.insert();
