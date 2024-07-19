@@ -114,7 +114,7 @@ public class MaterialLibraryController {
 
 
     @PostMapping("/get-app-uid")
-    @Operation(summary = "通过 UID获得素材知识库")
+    @Operation(summary = "通过应用UID获得素材知识库")
     @Parameter(name = "appUid", description = "应用编号", required = true, example = "1024")
     public CommonResult<MaterialLibraryRespVO> getMaterialLibraryByAppUid(@RequestParam("appUid") String appUid) {
         return success(materialLibraryService.getMaterialLibraryByApp(new MaterialLibraryAppReqVO().setAppUid(appUid)));
