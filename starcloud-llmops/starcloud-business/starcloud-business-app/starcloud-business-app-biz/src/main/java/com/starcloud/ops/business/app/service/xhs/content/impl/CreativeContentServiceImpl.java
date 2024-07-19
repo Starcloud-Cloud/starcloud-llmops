@@ -40,6 +40,7 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
@@ -382,6 +383,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             materialMetadata.setMaterialType(businessType);
             materialMetadata.setMaterialStepId(materialStepId);
             materialMetadata.setMaterialFieldList(fieldList);
+            materialMetadata.setPlanSource(CreativePlanSourceEnum.of(request.getSource()));
+            materialMetadata.setPlanUid(request.getPlanUid());
+            materialMetadata.setAppUid(appInformation.getUid());
             Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle), materialMetadata);
 
             // 获取该风格下，处理之后的素材列表

@@ -31,6 +31,11 @@ public class MaterialMetadata implements java.io.Serializable {
     private String appUid;
 
     /**
+     * 计划UID
+     */
+    private String planUid;
+
+    /**
      * 用户ID
      */
     private Long userId;
