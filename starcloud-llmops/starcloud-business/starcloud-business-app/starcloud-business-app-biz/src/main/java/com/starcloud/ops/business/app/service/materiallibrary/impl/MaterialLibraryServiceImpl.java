@@ -389,6 +389,11 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         // 复制表头
         List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(oldMaterialLibrary.getId());
         List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(oldTableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+        if (CollUtil.isEmpty(oldTableColumnDOList)){
+            log.info("materialLibraryCopy:Skip replication if table header is empty");
+            return;
+        }
+
         newTableColumnSaveList.forEach(data -> {
             data.setLibraryId(newMaterialLibrary.getId());
             data.setId(null);
@@ -439,6 +444,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(migrationReqVO);
 
         List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS = migrationReqVO.getTableColumnSaveReqVOS();
+        if (CollUtil.isEmpty(tableColumnSaveReqVOS)){
+            log.info("materialLibraryCopy:Skip migration if table header is empty");
+            return null;
+        }
 
         tableColumnSaveReqVOS.forEach(data -> data.setLibraryId(materialLibrary.getId()));
         materialLibraryTableColumnService.saveBatchData(tableColumnSaveReqVOS);
