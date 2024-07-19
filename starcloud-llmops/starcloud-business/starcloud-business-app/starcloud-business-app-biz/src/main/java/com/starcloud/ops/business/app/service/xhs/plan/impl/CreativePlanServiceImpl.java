@@ -330,7 +330,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
             // 应用市场新建执行计划 copy 素材库
-            creativeMaterialManager.upgradeMaterialLibrary(creativePlan.getUid(), creativePlan, appMarketResponse.getName());
+            creativeMaterialManager.upgradeMaterialLibrary(appMarketResponse.getUid(), creativePlan, appMarketResponse.getName());
         }
 
         creativePlanMaterialMapper.insert(creativePlan);
