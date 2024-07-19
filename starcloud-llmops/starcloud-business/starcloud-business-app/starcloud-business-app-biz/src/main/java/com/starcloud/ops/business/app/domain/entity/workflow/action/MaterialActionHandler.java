@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -9,10 +11,13 @@ import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -21,6 +26,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -39,6 +45,8 @@ import java.util.Map;
 @Slf4j
 @TaskComponent
 public class MaterialActionHandler extends BaseActionHandler {
+
+    private static final ThreadLocal<JsonSchema> JSON_SCHEMA = new TransmittableThreadLocal<>();
 
     /**
      * 流程执行器，action 执行入口
@@ -103,19 +111,7 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
-        //构造一层 array schema
-        ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
-        docSchema.setTitle(stepWrapper.getStepCode());
-        docSchema.setDescription(stepWrapper.getDescription());
-
-        ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
-
-        // 素材自定义配置
-        String libraryQuery = stepWrapper.getVariablesValue(CreativeConstants.LIBRARY_QUERY);
-        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(libraryQuery);
-        arraySchema.setItemsSchema(materialSchema);
-
-        return docSchema;
+        return JSON_SCHEMA.get();
     }
 
     /**
@@ -133,10 +129,20 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 开始日志打印
         loggerBegin(context, "素材上传步骤");
 
+        //保持跟返回结果一样的JsonSchema
+        JsonSchema outJsonSchema;
+        CreativePlanMapper creativePlanMapper = SpringUtil.getBean(CreativePlanMapper.class);
+        CreativePlanDO planDO = creativePlanMapper.getByAppUid(context.getUid(), context.getUserId());
+        if (CreativePlanSourceEnum.isApp(planDO.getSource())) {
+            outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getAppUid());
+        } else {
+            outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getUid());
+        }
+
+        JSON_SCHEMA.set(outJsonSchema);
+
         // 获取所有上游信息
         Map<String, Object> params = context.getContextVariablesValues();
-        //保持跟返回结果一样的JsonSchema
-        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
 
         // 获取到资料库类型
         String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
@@ -156,7 +162,7 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         // 结束日志打印
         loggerSuccess(context, response, "素材上传步骤");
-
+        JSON_SCHEMA.remove();
         return response;
     }
 

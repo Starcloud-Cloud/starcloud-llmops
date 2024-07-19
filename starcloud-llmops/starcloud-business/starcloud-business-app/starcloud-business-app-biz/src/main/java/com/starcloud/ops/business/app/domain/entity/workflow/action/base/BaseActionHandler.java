@@ -357,14 +357,17 @@ public abstract class BaseActionHandler extends Object {
                         "\n\t应用UID: {}, " +
                         "\n\t会话UID: {}, " +
                         "\n\t权益用户: {}, " +
-                        "\n\t权益租户: {}, ",
+                        "\n\t权益租户: {}, " +
+                        "\n\t 来源：{}",
                 title,
                 context.getStepId(),
                 this.getClass().getSimpleName(),
                 context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
-                TenantContextHolder.getTenantId()
+                TenantContextHolder.getTenantId(),
+                context.getApp().getSource()
+
         );
     }
 

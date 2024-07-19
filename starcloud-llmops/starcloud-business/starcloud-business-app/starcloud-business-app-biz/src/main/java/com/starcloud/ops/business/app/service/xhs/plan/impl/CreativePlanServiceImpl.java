@@ -330,7 +330,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
             // 应用市场新建执行计划 copy 素材库
-            creativeMaterialManager.upgradeMaterialLibrary(creativePlan.getUid(), creativePlan, appMarketResponse.getName());
+            creativeMaterialManager.upgradeMaterialLibrary(appMarketResponse.getUid(), creativePlan, appMarketResponse.getName());
         }
 
         creativePlanMaterialMapper.insert(creativePlan);
@@ -746,19 +746,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取到素材使用模式
         MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
-        // 获取到素材库UID
-        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
-                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
-                .orElse(StringUtils.EMPTY);
-        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
-            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
-        }
+        // 获取到素材库UID 废除
+//        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
+//                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
+//                .orElse(StringUtils.EMPTY);
+//        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
+//            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
+//        }
         // 获取查询条件
-        List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
-        if (CollectionUtil.isEmpty(queryParam)) {
-            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
-        }
-        String libraryUid = queryParam.get(0).getLibraryUid();
+//        List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
+//        if (CollectionUtil.isEmpty(queryParam)) {
+//            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
+//        }
+//        String libraryUid = queryParam.get(0).getLibraryUid();
 
         /*
          * 将配置信息平铺为，进行平铺，生成执行参数，方便后续进行随机。
@@ -835,7 +835,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         materialMetadata.setAppUid(appInformation.getUid());
         materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
         materialMetadata.setPlanSource(planSource);
-        materialMetadata.setMaterialLibraryUid(libraryUid);
+//        materialMetadata.setMaterialLibraryUid(libraryUid);
         materialMetadata.setMaterialUsageModel(materialUsageModel);
         materialMetadata.setMaterialType(businessType);
         materialMetadata.setMaterialStepId(materialStepId);

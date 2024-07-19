@@ -90,20 +90,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         // 批量添加时 对空数据做填充
         List<MaterialLibrarySliceSaveReqVO> saveReqVOS = createReqVO.getSaveReqVOS();
 
-        // 防止Content()中存在 null 值
         saveReqVOS.forEach(saveReq -> {
-            if (saveReq.getContent().size() == tableColumnDOList.size()) {
-                throw exception(MATERIAL_LIBRARY_ID_EMPTY);
-            }
-
-        });
-
-
-        saveReqVOS.forEach(saveReq -> {
-            if (saveReq.getContent() != null && saveReq.getContent().size() == tableColumnDOList.size()) {
-                // 如果你的异常处理能够接受 String 类型的 message，这里可以优化为直接使用异常信息
-                // throw exception("Content size matches table columns size but library ID might be empty.");
-                throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+            if (saveReq.getContent() == null || saveReq.getContent().size() != tableColumnDOList.size()) {
+                throw exception(MATERIAL_LIBRARY_SLICE_DATA_MISSING);
             }
         });
 
