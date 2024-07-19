@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.materiallibrary.listener;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
@@ -25,8 +26,6 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.MaterialLibrary.dto.ExcelDataImportConfigDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +34,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.WORD_PARSE;
+import static cn.hutool.core.date.DatePattern.PURE_DATETIME_PATTERN;
 
 @Slf4j
 public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, String>> {
@@ -126,7 +125,7 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
                     if (!CollUtil.isEmpty(filesInImagesFolder)) {
                         File images = FileUtil.file(filesInImagesFolder.get(0));
 
-                        imgUrl = ImageUploadUtils.uploadImage(images.getName(), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
+                        imgUrl = ImageUploadUtils.uploadImage(images.getName() + "_" + LocalDateTimeUtil.format(LocalDateTimeUtil.now(),PURE_DATETIME_PATTERN), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
                     }
                 } catch (IOException e) {
                     log.error("图片解析异常");
