@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
@@ -226,6 +227,9 @@ public interface AppMarketConvert {
      * @return entity
      */
     AppMarketEntity convert(AppReqVO appRequest);
+
+
+    AppMarketEntity convert(AppUpdateReqVO appRequest);
 
     /**
      * 响应转为entity

@@ -16,10 +16,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
-import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
-import com.fasterxml.jackson.module.jsonSchema.types.SimpleTypeSchema;
-import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.*;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
@@ -28,10 +25,14 @@ import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
@@ -622,22 +623,26 @@ public class JsonSchemaUtils {
      * 素材自定义配置生成 jsonschema
      * 暂时只使用第一个素材库的标题
      *
-     * @param libraryQuery
+     * @param uid
      * @return
      */
-    public static JsonSchema expendGenerateJsonSchema(String libraryQuery) {
+    public static JsonSchema expendGenerateJsonSchema(String uid) {
         ObjectSchema obj = new ObjectSchema();
-        if (StringUtils.isBlank(libraryQuery)) {
+
+
+        MaterialLibraryService materialLibraryService = SpringUtil.getBean(MaterialLibraryService.class);
+
+        MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
+        appReqVO.setAppUid(uid);
+        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+        if (Objects.isNull(libraryRespVO)) {
             return obj;
         }
-        List<MaterialLibrarySliceAppReqVO> request = JSONUtil.parseArray(libraryQuery).toList(MaterialLibrarySliceAppReqVO.class);
-        if (CollectionUtil.isEmpty(request)) {
+        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.getTableMeta();
+        if (CollectionUtil.isEmpty(tableMeta)) {
             return obj;
         }
 
-        MaterialLibraryService materialLibraryService = SpringUtil.getBean(MaterialLibraryService.class);
-        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByUid(request.get(0).getLibraryUid());
-        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.getTableMeta();
         Map<String, JsonSchema> properties = new LinkedHashMap<>(tableMeta.size());
         for (MaterialLibraryTableColumnRespVO columnRespVO : tableMeta) {
             StringSchema schema = new StringSchema();
@@ -654,12 +659,26 @@ public class JsonSchemaUtils {
                         simpleTypeSchema.setTitle(simpleTypeSchema.getDescription());
                     }
                 }
+                ocrSchemaProperties.remove("url");
+                ocrSchemaProperties.remove("data");
                 ocrSchema.setDescription(columnRespVO.getColumnName() + "_ext");
                 properties.put(columnRespVO.getColumnCode() + "_ext", ocrSchema);
             }
         }
         obj.setProperties(properties);
         return obj;
+    }
+
+    public JsonSchema getOutVariableJsonSchema(String uid) {
+        //构造一层 array schema
+        ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
+        docSchema.setTitle("上传素材");
+        docSchema.setDescription("上传素材步骤。应用中可以存在一个此步骤。");
+        ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
+        // 素材自定义配置
+        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(uid);
+        arraySchema.setItemsSchema(materialSchema);
+        return docSchema;
     }
 
 }

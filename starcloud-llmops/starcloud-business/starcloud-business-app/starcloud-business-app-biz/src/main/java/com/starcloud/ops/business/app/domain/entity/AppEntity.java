@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.kstry.framework.core.bpmn.enums.BpmnTypeEnum;
 import cn.kstry.framework.core.engine.StoryEngine;
@@ -47,7 +48,9 @@ import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
@@ -487,8 +490,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         // 绑定空素材库
         WorkflowStepWrapper materialStep = this.getWorkflowConfig().getStepWrapperWithoutError(MaterialActionHandler.class);
         if (Objects.nonNull(materialStep)) {
-            String emptyLibrary = creativeMaterialManager.createEmptyLibrary(this.getName());
-            materialStep.putVariable(CreativeConstants.LIBRARY_QUERY, emptyLibrary);
+            creativeMaterialManager.createEmptyLibrary(this.getName(), this.getUid(), MaterialBindTypeEnum.APP_MAY.getCode(), WebFrameworkUtils.getLoginUserId());
+            materialStep.putVariable(CreativeConstants.LIBRARY_QUERY, "");
         }
         appRepository.insert(this);
     }

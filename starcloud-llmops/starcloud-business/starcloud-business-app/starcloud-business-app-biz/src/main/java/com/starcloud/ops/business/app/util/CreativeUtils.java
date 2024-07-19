@@ -13,6 +13,8 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -446,13 +448,6 @@ public class CreativeUtils {
         // 默认海报风格列表为空
         configuration.setImageStyleList(Collections.emptyList());
 
-        // 素材库 应用市场新建计划需要copy
-        WorkflowStepWrapperRespVO materialStepWrapper = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-        if (Objects.nonNull(materialStepWrapper) && CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(source)) {
-            // copy 素材库
-            CREATIVE_MATERIAL_MANAGER.upgradeMaterialLibrary(appMarketResponse);
-        }
-
         // 默认应用信息为传入的应用信息
         configuration.setAppInformation(appMarketResponse);
 
@@ -596,23 +591,34 @@ public class CreativeUtils {
      * @param materialWrapper 应用步骤
      * @return 素材库列表
      */
-    public static List<MaterialFieldConfigDTO> getMaterialFieldByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
-        // 素材列表配置
-        if (Objects.isNull(materialWrapper)) {
-            return Collections.emptyList();
+    public static List<MaterialFieldConfigDTO> getMaterialFieldByStepWrapper(CreativeContentRegenerateReqVO request) {
+        String uid;
+        if (CreativePlanSourceEnum.isApp(request.getSource())) {
+            // 调用处已判空
+            uid = request.getExecuteParam().getAppInformation().getUid();
+        } else {
+            uid = request.getPlanUid();
         }
 
-        // 获取到素材库列表
-        String materialLibraryJsonVariable = materialWrapper.getVariableToString(CreativeConstants.LIBRARY_QUERY);
-        if (StringUtils.isBlank(materialLibraryJsonVariable) || "[]".equals(materialLibraryJsonVariable) || "null".equalsIgnoreCase(materialLibraryJsonVariable)) {
-            return Collections.emptyList();
+        List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(uid);
+        return materialFieldConfigList;
+    }
+
+    /**
+     * 获取素材库列表
+     */
+    public static List<MaterialFieldConfigDTO> getMaterialFieldByStepWrapper(CreativePlanRespVO creativePlan) {
+        String uid;
+        String source = creativePlan.getSource();
+        if (CreativePlanSourceEnum.isApp(source)) {
+            CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
+            AppMarketRespVO appInformation = configuration.getAppInformation();
+            uid = appInformation.getUid();
+        } else {
+            uid = creativePlan.getUid();
         }
 
-        List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(materialLibraryJsonVariable);
-        if (CollectionUtil.isEmpty(materialFieldConfigList)) {
-            return Collections.emptyList();
-        }
-
+        List<MaterialFieldConfigDTO> materialFieldConfigList = CREATIVE_MATERIAL_MANAGER.getHeader(uid);
         return materialFieldConfigList;
     }
 

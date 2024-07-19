@@ -45,8 +45,10 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -241,15 +243,23 @@ public class AppServiceImpl implements AppService {
             // 迁移旧素材数据
             WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
             if (CollectionUtil.isNotEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                creativeMaterialManager.migrate(app.getName(), stepByHandler, app.getMaterialList());
+                // 从数据库迁移
+                creativeMaterialManager.migrateFromData(app.getName(), app.getUid(),
+                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, app.getMaterialList(), Long.valueOf(app.getCreator()));
                 app.setMaterialList(Collections.emptyList());
-                app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
                 appMapper.updateById(app);
             } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
                 String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
-                if (org.apache.commons.lang3.StringUtils.isBlank(stepVariableValue)) {
-                    String libraryJson = creativeMaterialManager.createEmptyLibrary(app.getName());
-                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, libraryJson);
+
+                if (StringUtils.isBlank(stepVariableValue)) {
+                    // 新建
+                    creativeMaterialManager.createEmptyLibrary(app.getName(), app.getUid(),
+                            MaterialBindTypeEnum.APP_MAY.getCode(), Long.valueOf(app.getCreator()));
+                } else {
+                    // 从变量迁移
+                    creativeMaterialManager.migrateFromConfig(app.getName(), app.getUid(),
+                            MaterialBindTypeEnum.APP_MAY.getCode(), stepVariableValue, Long.valueOf(app.getCreator()));
+                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
                     app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
                     appMapper.updateById(app);
                 }
