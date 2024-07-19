@@ -37,6 +37,8 @@ public class AliyunOcrManager {
 
             RecognizeAllTextResponse recognizeAllTextResponse = ocrClient.recognizeAllTextWithOptions(recognizeAllTextRequest, runtime);
             OcrResult ocrResult = new OcrResult();
+            ocrResult.setUrl(url);
+
             if (recognizeAllTextResponse.getStatusCode() != 200) {
                 throw exception(IMAGE_OCR_ERROR, recognizeAllTextResponse.getStatusCode());
             }

@@ -139,7 +139,7 @@ public class RecommendActionFactory {
         step.setDescription("图片ocr");
         step.setType(AppStepTypeEnum.WORKFLOW.name());
         step.setHandler(ImageOcrActionHandler.class.getSimpleName());
-        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(OcrGeneralDTO.class);
+        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(ImageOcrActionHandler.HandlerResponse.class);
         step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);

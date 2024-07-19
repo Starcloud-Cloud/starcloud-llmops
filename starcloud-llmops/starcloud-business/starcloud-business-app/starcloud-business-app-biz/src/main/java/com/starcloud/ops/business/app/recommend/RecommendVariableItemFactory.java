@@ -499,7 +499,7 @@ public class RecommendVariableItemFactory {
         variableItem.setDescription("图片oss地址");
         variableItem.setOrder(1);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
-        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);

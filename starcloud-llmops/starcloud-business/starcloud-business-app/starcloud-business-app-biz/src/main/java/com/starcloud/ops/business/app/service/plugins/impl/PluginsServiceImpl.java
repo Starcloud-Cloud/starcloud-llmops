@@ -67,6 +67,7 @@ public class PluginsServiceImpl implements PluginsService {
         }
         Map<String, Object> variableMap = new HashMap<>();
         variableMap.put(CreativeConstants.IMAGE_OCR_URL, reqVO.getImageUrl());
+
         return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(OcrGeneralDTO.class);
     }
 

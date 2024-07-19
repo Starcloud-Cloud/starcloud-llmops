@@ -9,6 +9,8 @@ public class OcrResult {
 
     private String message;
 
+    private String url;
+
     private OcrGeneralDTO ocrGeneralDTO;
 
     private String requestId;

@@ -40,15 +40,10 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.IMAGE_OCR_
 public class ImageOcrActionHandler extends BaseActionHandler {
 
     @Data
-    static class InputParams implements Serializable {
+    static public class HandlerResponse implements Serializable {
 
-        String url;
+        private List<OcrResult> list;
 
-        String key;
-
-        String data;
-
-        String error;
     }
 
     private static final AliyunOcrManager ALIYUN_OCR_MANAGER = SpringUtil.getBean(AliyunOcrManager.class);
@@ -82,53 +77,43 @@ public class ImageOcrActionHandler extends BaseActionHandler {
         Map<String, Object> params = context.getContextVariablesValues();
         String imageUrlStr = params.get(CreativeConstants.IMAGE_OCR_URL).toString();
 
-        List<InputParams> inputParams = JsonUtils.parseArray(imageUrlStr, InputParams.class);
+        List<String> urls = JsonUtils.parseArray(imageUrlStr, String.class);
 
-        List<InputParams> loadInputParams =  Optional.ofNullable(inputParams).orElse(new ArrayList<>()).stream().map((input) -> {
+        List<OcrResult> result =  Optional.ofNullable(urls).orElse(new ArrayList<>()).stream().map((url) -> {
 
             long start = System.currentTimeMillis();
 
-            try {
-
-                OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(input.getUrl());
-                if (!ocrResult.isSuccess()) {
-                    log.warn(IMAGE_OCR_ERROR.getMsg(), ocrResult.getMessage());
-                    input.setError(ocrResult.getMessage());
-                } else {
-                    input.setData(JsonUtils.toJsonString(ocrResult));
-                }
-
-            } catch (Exception exc) {
-
-                log.error(IMAGE_OCR_ERROR.getMsg(), exc.getMessage());
-
-                input.setError(exc.getMessage());
-            }
+            OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(url);
 
             long end = System.currentTimeMillis();
 
-            log.info("image ocr [{}], {} ms",input. getUrl(), end - start);
+            log.info("image ocr [{}], {} ms",url, end - start);
 
-            return input;
+            return ocrResult;
 
         }).collect(Collectors.toList());
+
+        HandlerResponse response = new HandlerResponse();
+        response.setList(result);
 
         SseEmitter sseEmitter = context.getSseEmitter();
         if (Objects.nonNull(sseEmitter)) {
             StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
-            callBackHandler.onLLMNewToken(JSONUtil.toJsonStr(loadInputParams));
+            callBackHandler.onLLMNewToken(JSONUtil.toJsonStr(response));
         }
 
-        return response(loadInputParams, context, ArrayUtil.length(loadInputParams));
+        return response(response, context, ArrayUtil.length(result));
     }
 
-    private ActionResponse response(List<InputParams> inputParams, AppContext context, int cost) {
+    private ActionResponse response(HandlerResponse response, AppContext context, int cost) {
         ActionResponse actionResponse = new ActionResponse();
         actionResponse.setSuccess(Boolean.TRUE);
         actionResponse.setIsShow(Boolean.FALSE);
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
-        actionResponse.setAnswer(JsonUtils.toJsonString(inputParams));
-        actionResponse.setOutput(JsonData.of(inputParams));
+
+        actionResponse.setAnswer(JsonUtils.toJsonString(response));
+        actionResponse.setOutput(JsonData.of(response, HandlerResponse.class));
+
         actionResponse.setMessage(JsonUtils.toJsonString(context.getContextVariablesValues()));
         actionResponse.setStepConfig(context.getContextVariablesValues());
         actionResponse.setMessageTokens(0L);

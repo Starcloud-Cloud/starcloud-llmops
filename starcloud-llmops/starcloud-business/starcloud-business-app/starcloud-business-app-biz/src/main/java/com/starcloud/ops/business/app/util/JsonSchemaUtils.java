@@ -2,9 +2,14 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.classmate.ResolvedType;
+import com.fasterxml.classmate.TypeResolver;
+import com.fasterxml.classmate.types.ResolvedArrayType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -13,6 +18,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
@@ -40,6 +47,7 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,6 +173,7 @@ public class JsonSchemaUtils {
     }
 
 
+
     /**
      * 根据给定的 Java 类生成对应的 JSON Schema。
      *
@@ -188,6 +197,29 @@ public class JsonSchemaUtils {
         }
     }
 
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param clazz 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    @Deprecated
+    public static JsonSchema generateJsonArraySchema(Class<?> clazz) {
+        try {
+
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
+
+            TypeResolver typeResolver = new TypeResolver();
+            ResolvedArrayType listType = typeResolver.arrayType(clazz);
+
+            return jsonSchemaGenerator.generateSchema(listType.getClass());
+
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateSchema for " + clazz, e);
+        }
+    }
 
     /**
      * 根据给定的 Java 类生成对应的 JSON Schema。
@@ -261,72 +293,6 @@ public class JsonSchemaUtils {
         }
     }
 
-    /**
-     * 将具体的类转换为 Option。
-     *
-     * @param clazz JSON Schema
-     * @param code  编码
-     * @param model 模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(Class<?> clazz, String code, String model) {
-        String jsonSchema = generateJsonSchemaStr(clazz);
-        return jsonSchemaToOptions(jsonSchema, code, code, StringUtils.EMPTY, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将具体的类转换为 Option。
-     *
-     * @param clazz JSON Schema
-     * @param code  编码
-     * @param name  名称
-     * @param model 模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(Class<?> clazz, String code, String name, String model) {
-        String jsonSchema = generateJsonSchemaStr(clazz);
-        return jsonSchemaToOptions(jsonSchema, code, name, StringUtils.EMPTY, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema JSON Schema
-     * @param code       编码
-     * @param model      模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String model) {
-        return jsonSchemaToOptions(jsonSchema, code, code, StringUtils.EMPTY, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema JSON Schema
-     * @param code       编码
-     * @param name       名称
-     * @param model      模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String name, String model) {
-        return jsonSchemaToOptions(jsonSchema, code, name, name, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema  JSON Schema
-     * @param code        编码
-     * @param name        名称
-     * @param description 描述
-     * @param model       模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String name, String description, String model) {
-        return jsonSchemaToOptions(jsonSchema, code, name, description, model, Boolean.FALSE);
-    }
-
 
     public static JsonNode str2JsonNode(String jsonSchema) {
 
@@ -365,54 +331,6 @@ public class JsonSchemaUtils {
             throw new RuntimeException("Could not str2JsonSchema for " + jsonSchema, e);
         }
 
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema   JSON Schema
-     * @param code         编码
-     * @param name         名称
-     * @param description  描述
-     * @param model        模型
-     * @param isSplitArray 是否拆分数组
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String name, String description, String model, Boolean isSplitArray) {
-        try {
-
-            Assert.notBlank(jsonSchema, "JSON Schema must not be blank");
-            Assert.notBlank(code, "Code must not be blank");
-            Assert.notBlank(name, "Name must not be blank");
-            Assert.notBlank(model, "Model must not be blank");
-
-            // 获取下拉框类型的枚举值
-            CreativeOptionModelEnum optionModel = CreativeOptionModelEnum.of(model);
-            Assert.notNull(optionModel, "Model must be a valid enum value");
-
-            JsonNode jsonNode = str2JsonNode(jsonSchema);
-
-            if (jsonNode.has(ALL_OF)) {
-                jsonNode = jsonNode.get(ALL_OF).get(0);
-            }
-
-            // 获取类型
-            String type = getJsonSchemaFieldType(jsonNode);
-            String filedCode = getCode(code, optionModel.getPrefix());
-
-            // 构建根节点
-            CreativeOptionDTO option = new CreativeOptionDTO();
-            option.setParentCode(optionModel.getPrefix());
-            option.setCode(filedCode);
-            option.setName(name);
-            option.setType(type);
-            option.setModel(model);
-            option.setDescription(StringUtils.isBlank(description) ? name : description);
-            option.setChildren(getChildren(filedCode, jsonNode, model, isSplitArray));
-            return option;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not convert JSON Schema to options", e);
-        }
     }
 
     /**
