@@ -259,6 +259,22 @@ public class CreativeMaterialManager {
         // 上游已判null
         WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(creativePlan.getConfiguration().getAppInformation());
 
+        // 查询素材库数据
+        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
+                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
+                .orElse(StringUtils.EMPTY);
+
+        MaterialLibrarySliceAppReqVO appReqVO = new MaterialLibrarySliceAppReqVO();
+        // 获取查询条件
+        if (StringUtils.isNotBlank(materialLibraryJsonVariable)) {
+            List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
+            if (CollectionUtil.isNotEmpty(queryParam)) {
+                appReqVO = queryParam.get(0);
+                appReqVO.setLibraryUid(null);
+                materialStepWrapper.putVariable(CreativeConstants.LIBRARY_QUERY, JSONUtil.toJsonStr(queryParam));
+            }
+        }
+
         // 获取到素材使用模式
         MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
 
@@ -272,7 +288,6 @@ public class CreativeMaterialManager {
             uid = creativePlan.getUid();
         }
 
-        MaterialLibrarySliceAppReqVO appReqVO = new MaterialLibrarySliceAppReqVO();
         appReqVO.setAppUid(uid);
         if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
             SortingField sortingField = new SortingField();
