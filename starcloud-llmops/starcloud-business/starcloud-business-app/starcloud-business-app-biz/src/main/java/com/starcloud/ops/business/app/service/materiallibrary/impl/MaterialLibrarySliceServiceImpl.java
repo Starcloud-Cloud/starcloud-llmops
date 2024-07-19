@@ -91,7 +91,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         List<MaterialLibrarySliceSaveReqVO> saveReqVOS = createReqVO.getSaveReqVOS();
 
         saveReqVOS.forEach(saveReq -> {
-            if (saveReq.getContent() != null && saveReq.getContent().size() == tableColumnDOList.size()) {
+            if (saveReq.getContent() == null || saveReq.getContent().size() != tableColumnDOList.size()) {
                 throw exception(MATERIAL_LIBRARY_SLICE_DATA_MISSING);
             }
         });
