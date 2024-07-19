@@ -657,4 +657,6 @@ public interface ErrorCodeConstants {
 
     ErrorCode MATERIAL_LIBRARY_APPUID_EMPTY = new ErrorCode(300702216, "应用编号为空，查询素材数据失败");
 
+    ErrorCode MATERIAL_LIBRARY_SLICE_DATA_MISSING = new ErrorCode(300702217, "部分数据缺失，请核对后再试");
+
 }
