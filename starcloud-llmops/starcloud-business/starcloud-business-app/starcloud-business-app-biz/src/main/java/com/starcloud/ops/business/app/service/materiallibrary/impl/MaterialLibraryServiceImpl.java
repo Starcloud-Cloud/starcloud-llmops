@@ -150,6 +150,29 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     }
 
+    /**
+     * @param libraryUid  素材库编号
+     * @return MaterialLibraryRespVO
+     */
+    @Override
+    public MaterialLibraryRespVO getMaterialLibraryByAppUid(String libraryUid) {
+        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(libraryUid);
+        if (materialLibrary==null){
+            return null;
+        }
+
+
+        // 数据转换
+        MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
+
+        if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
+            bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+        }
+
+        return bean;
+    }
+
     @Override
     public void updateMaterialLibrary(MaterialLibrarySaveReqVO updateReqVO) {
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(updateReqVO.getId());
@@ -201,6 +224,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         Assert.notBlank(uid, "素材库 UID 不可以为空,获取素材详情失败");
 
         MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(uid);
+
+        if (materialLibrary == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
         // 数据转换
         MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
 
@@ -317,6 +344,16 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 获取应用执行的素材
+     *
+     * @param appReqVO 素材库查询
+     */
+    @Override
+    public MaterialLibrarySliceUseRespVO getMaterialLibrarySlice(MaterialLibrarySliceAppReqVO appReqVO) {
+        return this.selectMaterialLibrarySliceList(appReqVO);
+    }
+
 
     /**
      * 应用发布，直接复制一份新的素材库出来（版本管理）
@@ -347,6 +384,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryDO newMaterialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}_发布版本", oldMaterialLibrary.getName())).setLibraryType(MaterialLibraryTypeEnum.PUBLISH.getCode()));
 
+        materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newMaterialLibrary.getId()).setAppUid(newApp.getAppUid()).setAppType(newApp.getAppType()).setUserId(newApp.getUserId()));
 
         // 复制表头
         List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(oldMaterialLibrary.getId());
@@ -372,14 +410,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         sliceOldDOList.forEach(sliceData -> {
             sliceData.setId(null);
             sliceData.setLibraryId(newMaterialLibrary.getId());
-            // 增加对getContent()返回值的空检查
             List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
             if (datasList != null) {
                 datasList.forEach(datas -> {
-                    // 增加对datas的空检查
                     if (datas != null && datas.getColumnCode() != null) {
-                        // 假设newTableColumnDOList是已经定义好的，且通过getColumnCode()可以找到对应的ColumnDO
-                        // 这里需要一个机制来查找并获取对应的ColumnDO，例如通过getColumnCode()的值进行搜索
                         MaterialLibraryTableColumnDO newColumnDO = findColumnDOByCode(tableColumnDOList, datas.getColumnCode());
                         if (newColumnDO != null) {
                             datas.setColumnId(newColumnDO.getId());
@@ -400,6 +434,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public String materialLibraryDataMigration(SliceMigrationReqVO migrationReqVO) {
+        this.createMaterialLibraryByApp(migrationReqVO);
+
         MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(migrationReqVO);
 
         List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS = migrationReqVO.getTableColumnSaveReqVOS();

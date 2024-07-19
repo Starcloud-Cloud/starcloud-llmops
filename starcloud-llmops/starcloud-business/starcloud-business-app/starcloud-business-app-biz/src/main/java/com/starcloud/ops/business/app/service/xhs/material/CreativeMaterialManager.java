@@ -39,6 +39,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -259,11 +260,6 @@ public class CreativeMaterialManager {
         } else {
             uid = creativePlan.getUid();
         }
-
-        SortingField sortingField = new SortingField();
-        sortingField.setOrder(SortingField.ORDER_ASC);
-        sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
-
         List<MaterialLibrarySliceRespVO> library = queryLibrary(uid);
         List<MaterialLibraryTableColumnRespVO> headers = queryHeader(uid);
         return convert(library, headers);

@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS;
@@ -43,23 +45,17 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Transactional
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
 
-        MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(createReqVO.getAppUid());
-
-        List<MaterialLibraryAppBindDO> binds = this.getBindList(createReqVO.getAppUid());
-
-
-        // handleBindStatus(binds);
-
-        if (bind != null) {
-            materialLibraryAppBindMapper.deleteById(bind.getId());
-        }
+        // 处理之前的绑定
+        handleBindStatus(createReqVO);
 
         // 插入
         MaterialLibraryAppBindDO materialLibraryAppBind = BeanUtils.toBean(createReqVO, MaterialLibraryAppBindDO.class);
+        materialLibraryAppBind.setStatus(true);
         materialLibraryAppBindMapper.insert(materialLibraryAppBind);
         // 返回
         return materialLibraryAppBind.getId();
     }
+
 
     /**
      * 绑定关系迁移
@@ -67,9 +63,10 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      * @param bindMigrationReqVO 迁移的 VO
      */
     @Override
+    @Transactional
     public void createMaterialLibraryAppBind(BindMigrationReqVO bindMigrationReqVO) {
         MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(bindMigrationReqVO.getLibraryUid());
-        this.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(bindMigrationReqVO.getAppUid()).setAppType(bindMigrationReqVO.getAppType()).setUserId(bindMigrationReqVO.getUserId()));
+        createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(bindMigrationReqVO.getAppUid()).setAppType(bindMigrationReqVO.getAppType()).setUserId(bindMigrationReqVO.getUserId()));
     }
 
     @Override
@@ -105,6 +102,7 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      * @param oldAppUid 更新信息
      */
     @Override
+    @Transactional
     public void updateMaterialLibraryAppBind(String newAppUid, String oldAppUid) {
 
         MaterialLibraryAppBindDO newBind = this.getMaterialLibraryAppBind(newAppUid);
@@ -118,7 +116,7 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         if (oldBind == null) {
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
-        this.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newBind.getLibraryId()).setAppUid(oldBind.getAppUid()).setAppType(oldBind.getAppType()).setUserId(oldBind.getUserId()));
+        createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newBind.getLibraryId()).setAppUid(oldBind.getAppUid()).setAppType(oldBind.getAppType()).setUserId(oldBind.getUserId()));
 
     }
 
@@ -149,8 +147,34 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
      */
     @Override
     public MaterialLibraryAppBindDO getMaterialLibraryAppBind(String appUid) {
-
         return materialLibraryAppBindMapper.selectOneByApp(appUid);
+    }
+
+
+    private void handleBindStatus(MaterialLibraryAppBindSaveReqVO createReqVO) {
+        // 获取当前应用下的所有绑定记录
+        List<MaterialLibraryAppBindDO> binds = this.getBindList(createReqVO.getAppUid());
+
+        if (binds == null || binds.isEmpty()) {
+            return;
+        }
+
+        List<Long> bindIdList = binds.stream()
+                .filter(MaterialLibraryAppBindDO::getStatus)
+                .map(MaterialLibraryAppBindDO::getId)
+                .collect(Collectors.toList());
+
+        if (bindIdList.isEmpty()) {
+            return;
+        }
+
+        // 处理后需要更新的 sku
+        List<MaterialLibraryAppBindDO> bindDOS = new ArrayList<>();
+
+        bindIdList.forEach(id -> bindDOS.add(new MaterialLibraryAppBindDO().setId(id).setStatus(false)));
+
+        materialLibraryAppBindMapper.updateBatch(bindDOS);
+
     }
 
     /**

@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablec
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
@@ -41,6 +42,9 @@ public class MaterialLibraryController {
 
     @Resource
     private MaterialLibraryService materialLibraryService;
+
+    @Resource
+    private MaterialLibraryAppBindService materialLibraryAppBindService;
 
     @Resource
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
@@ -106,6 +110,14 @@ public class MaterialLibraryController {
         }
 
         return success(materialLibraryService.getMaterialLibraryByUid(uid));
+    }
+
+
+    @PostMapping("/get-app-uid")
+    @Operation(summary = "通过 UID获得素材知识库")
+    @Parameter(name = "appUid", description = "应用编号", required = true, example = "1024")
+    public CommonResult<MaterialLibraryRespVO> getMaterialLibraryByAppUid(@RequestParam("appUid") String appUid) {
+        return success(materialLibraryService.getMaterialLibraryByApp(new MaterialLibraryAppReqVO().setAppUid(appUid)));
     }
 
     @PostMapping("/import")

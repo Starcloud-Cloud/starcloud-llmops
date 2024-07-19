@@ -3,8 +3,16 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,8 +33,15 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @Validated
 public class MaterialLibrarySliceController {
 
+
+    @Resource
+    private MaterialLibraryService materialLibraryService;
+
     @Resource
     private MaterialLibrarySliceService materialLibrarySliceService;
+
+    @Resource
+    private MaterialLibraryAppBindService materialLibraryAppBindService;
 
     @PostMapping("/create")
     @Operation(summary = "创建素材知识库数据")
@@ -66,14 +81,6 @@ public class MaterialLibrarySliceController {
     }
 
 
-    @DeleteMapping("/share")
-    @Operation(summary = "设置可以分享的的素材")
-    public CommonResult<Boolean> deleteMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceShareReqVO shareReqVO) {
-        materialLibrarySliceService.updateSliceShareStatus(shareReqVO);
-        return success(true);
-    }
-
-
     @GetMapping("/page")
     @Operation(summary = "获得素材知识库数据分页")
     public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePage(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
@@ -87,6 +94,13 @@ public class MaterialLibrarySliceController {
     public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePageByLibraryUid(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePageByLibraryUid(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
+    }
+
+    @PostMapping("/page-app-uid")
+    @Operation(summary = "通过应用UID获得素材知识库数据分页")
+    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibraryByAppUid(@Valid @RequestBody MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+
+        return success(materialLibrarySliceService.getMaterialLibrarySlicePageByApp(appPageReqVO));
     }
 
 
@@ -106,4 +120,11 @@ public class MaterialLibrarySliceController {
         return CommonResult.success(true);
     }
 
+
+    @PostMapping("/test1")
+    @Operation(summary = "测试通过素材库 UID 获取素材数据")
+    @OperateLog(enable = false)
+    public CommonResult<List<MaterialLibrarySliceRespVO>> materialLibraryCopy(@RequestParam("uid") String uid) {
+        return success(materialLibrarySliceService.getMaterialLibrarySliceListByAppUid(uid));
+    }
 }

@@ -80,21 +80,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      */
     PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO);
 
-    /**
-     * 批量设置数据为共享数据
-     *
-     * @param shareReqVO 数据共享请求 VO
-     */
-    void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO);
 
-
-    /**
-     * 获取共享数据列表
-     *
-     * @param libraryId 素材库 编号
-     * @return 共享数据列表
-     */
-    List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId);
 
     /**
      * 获取共享数据列表
@@ -130,7 +116,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     /**
      * 通过素材库 UID 获取素材数据
      *
-     * @param pageReqVO  pageVO
+     * @param pageReqVO pageVO
      * @return Page
      */
     PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePageByLibraryUid(MaterialLibrarySlicePageReqVO pageReqVO);
@@ -139,10 +125,18 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     /**
      * 通过素材库 UID 获取素材数据
      *
-     * @param appUid  应用 编号
+     * @param appUid 应用 编号
      * @return Page
      */
     List<MaterialLibrarySliceRespVO> getMaterialLibrarySliceListByAppUid(String appUid);
+
+    /**
+     * 通过应用 UID 获取素材数据
+     *
+     * @param appPageReqVO 应用
+     * @return Page
+     */
+    PageResult<MaterialLibrarySliceRespVO> getMaterialLibrarySlicePageByApp(MaterialLibrarySliceAppPageReqVO appPageReqVO);
 
 
     /**

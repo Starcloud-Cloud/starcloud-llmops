@@ -4,16 +4,16 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
@@ -37,6 +38,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Resource
     @Lazy
     private MaterialLibraryService materialLibraryService;
+
+    @Resource
+    private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
     private MaterialLibraryAppBindService materialLibraryAppBindService;
@@ -72,6 +76,37 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
+
+        if (createReqVO.getSaveReqVOS().isEmpty()) {
+            return;
+        }
+        List<Long> libraryIds = createReqVO.getSaveReqVOS().stream()
+                .map(MaterialLibrarySliceSaveReqVO::getLibraryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryIds.get(0));
+
+        // 批量添加时 对空数据做填充
+        List<MaterialLibrarySliceSaveReqVO> saveReqVOS = createReqVO.getSaveReqVOS();
+
+        // 防止Content()中存在 null 值
+        saveReqVOS.forEach(saveReq -> {
+            if (saveReq.getContent().size() == tableColumnDOList.size()) {
+                throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+            }
+
+        });
+
+
+        saveReqVOS.forEach(saveReq -> {
+            if (saveReq.getContent() != null && saveReq.getContent().size() == tableColumnDOList.size()) {
+                // 如果你的异常处理能够接受 String 类型的 message，这里可以优化为直接使用异常信息
+                // throw exception("Content size matches table columns size but library ID might be empty.");
+                throw exception(MATERIAL_LIBRARY_ID_EMPTY);
+            }
+        });
+
+
         this.saveBatchData(BeanUtils.toBean(createReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
 
@@ -149,39 +184,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         return materialLibrarySliceMapper.selectPage(pageReqVO);
     }
 
-    /**
-     * 批量设置数据为共享数据
-     *
-     * @param shareReqVO 设置数据分享状态
-     */
-    @Override
-    public void updateSliceShareStatus(MaterialLibrarySliceShareReqVO shareReqVO) {
-        // 校验数据是否存在
-        shareReqVO.getId().forEach(this::validateMaterialLibrarySliceExists);
-        // 校验数据共享状态
-        shareReqVO.getId().forEach(slice -> validateSliceShareStatus(slice, shareReqVO.getIsShare()));
-        // 更新数据
-        LambdaUpdateWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, shareReqVO.getLibraryId());
-        wrapper.in(MaterialLibrarySliceDO::getLibraryId, shareReqVO.getId());
-        wrapper.set(MaterialLibrarySliceDO::getIsShare, shareReqVO.getIsShare());
-
-        materialLibrarySliceMapper.update(wrapper);
-    }
 
     /**
-     * 获取素材库下共享数据列表
-     *
-     * @param libraryId 素材库 编号
-     * @return 共享数据列表
-     */
-    @Override
-    public List<MaterialLibrarySliceDO> getSliceShareData(Long libraryId) {
-        return materialLibrarySliceMapper.selectSliceShareData(libraryId);
-    }
-
-    /**
-     * 获取共享数据列表
+     * 根据素材库 ID 获取素材数量
      *
      * @param libraryId 素材库 编号
      * @return 共享数据列表
@@ -256,12 +261,33 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         if (Objects.isNull(bind)) {
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
-        materialLibraryService.validateMaterialLibraryExists(bind.getId());
+        materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
 
 
         List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(bind.getLibraryId());
 
         return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
+    }
+
+    /**
+     * 通过应用 UID 获取素材数据
+     *
+     * @param appPageReqVO 应用
+     * @return Page
+     */
+    @Override
+    public PageResult<MaterialLibrarySliceRespVO> getMaterialLibrarySlicePageByApp(MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
+
+        if (Objects.isNull(bind)) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+        materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
+
+        PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceMapper.selectPage2(bind.getLibraryId(), appPageReqVO);
+
+        return BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class);
     }
 
     /**
@@ -293,17 +319,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
     }
 
-    /**
-     * 校验数据共享状态
-     *
-     * @param id          数据编号
-     * @param shareStatus 数据共享状态
-     */
-    private void validateSliceShareStatus(Long id, Boolean shareStatus) {
-
-        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
-
-    }
 
     /**
      * 批量保存数据
