@@ -3,7 +3,9 @@ package com.starcloud.ops.business.app.service.xhs.material;
 import cn.hutool.core.bean.BeanPath;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -16,6 +18,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.librar
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
@@ -26,11 +29,13 @@ import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -251,6 +256,12 @@ public class CreativeMaterialManager {
      * 根据素材库配置查询素材列表
      */
     public List<Map<String, Object>> getMaterialList(CreativePlanRespVO creativePlan) {
+        // 上游已判null
+        WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(creativePlan.getConfiguration().getAppInformation());
+
+        // 获取到素材使用模式
+        MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
+
         String uid;
         String source = creativePlan.getSource();
         if (CreativePlanSourceEnum.isApp(source)) {
@@ -260,9 +271,21 @@ public class CreativeMaterialManager {
         } else {
             uid = creativePlan.getUid();
         }
-        List<MaterialLibrarySliceRespVO> library = queryLibrary(uid);
-        List<MaterialLibraryTableColumnRespVO> headers = queryHeader(uid);
-        return convert(library, headers);
+
+        MaterialLibrarySliceAppReqVO appReqVO = new MaterialLibrarySliceAppReqVO();
+        appReqVO.setAppUid(uid);
+        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
+            SortingField sortingField = new SortingField();
+            sortingField.setOrder(SortingField.ORDER_ASC);
+            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
+            appReqVO.setSortingField(sortingField);
+        }
+
+        long start = System.currentTimeMillis();
+        MaterialLibrarySliceUseRespVO materialLibrarySlice = materialLibraryService.getMaterialLibrarySlice(appReqVO);
+        long end = System.currentTimeMillis();
+        log.info("material library query, {}", end - start);
+        return convert(materialLibrarySlice);
     }
 
     /**
@@ -282,8 +305,6 @@ public class CreativeMaterialManager {
      */
     private List<MaterialLibrarySliceRespVO> queryLibrary(String uid) {
         log.info("start material library query, uid={}", uid);
-        MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
-        appReqVO.setAppUid(uid);
         long start = System.currentTimeMillis();
         List<MaterialLibrarySliceRespVO> librarySliceResp = sliceService.getMaterialLibrarySliceListByAppUid(uid);
         long end = System.currentTimeMillis();
@@ -313,34 +334,36 @@ public class CreativeMaterialManager {
     /**
      * 素材库数据转成 Map
      */
-    private List<Map<String, Object>> convert(List<MaterialLibrarySliceRespVO> librarySliceList, List<MaterialLibraryTableColumnRespVO> headers) {
-        if (CollectionUtil.isEmpty(librarySliceList)) {
+    private List<Map<String, Object>> convert(MaterialLibrarySliceUseRespVO librarySlice) {
+        if (Objects.isNull(librarySlice)) {
             return Collections.emptyList();
         }
         List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, Integer> columnCodeType = headers.stream().collect(Collectors.toMap(MaterialLibraryTableColumnRespVO::getColumnCode, MaterialLibraryTableColumnRespVO::getColumnType, (a, b) -> a));
-        for (MaterialLibrarySliceRespVO librarySlice : librarySliceList) {
-            List<MaterialLibrarySliceRespVO.TableContent> tableContentList = librarySlice.getContent();
+        List<MaterialLibrarySliceRespVO> sliceRespList = librarySlice.getSliceRespVOS();
+        List<MaterialLibraryTableColumnRespVO> tableMeta = librarySlice.getTableMeta();
+        Map<String, Integer> columnCodeType = tableMeta.stream().collect(Collectors.toMap(MaterialLibraryTableColumnRespVO::getColumnCode, MaterialLibraryTableColumnRespVO::getColumnType, (a, b) -> a));
+        for (MaterialLibrarySliceRespVO sliceRespVO : sliceRespList) {
+            List<MaterialLibrarySliceRespVO.TableContent> tableContentList = sliceRespVO.getContent();
             if (CollectionUtil.isEmpty(tableContentList)) {
                 continue;
             }
             Map<String, Object> row = new HashMap<>();
-            row.put("__id__", librarySlice.getId());
-            row.put("__usageCount__", librarySlice.getUsedCount());
+            row.put("__id__", sliceRespVO.getId());
+            row.put("__usageCount__", sliceRespVO.getUsedCount());
             for (MaterialLibrarySliceRespVO.TableContent tableContent : tableContentList) {
                 if (Objects.isNull(tableContent)) {
                     continue;
                 }
-
                 row.put(tableContent.getColumnCode(), tableContent.getValue());
                 Integer typeCode = columnCodeType.get(tableContent.getColumnCode());
                 String extend = tableContent.getExtend();
+
                 if (ColumnTypeEnum.IMAGE.getCode().equals(typeCode) && StringUtils.isNotBlank(extend)) {
                     Map<String, Object> map = JSONObject.parseObject(extend, new TypeReference<Map<String, Object>>() {
                     });
                     map.put("content", tableContent.getDescription());
                     if (CollectionUtil.isNotEmpty(tableContent.getTags())) {
-                        map.put("tag", String.join(",", tableContent.getTags()));
+                        map.put("tag", tableContent.getTags().stream().collect(Collectors.joining(",")));
                     }
                     row.put(tableContent.getColumnCode() + "_ext", map);
                 }
