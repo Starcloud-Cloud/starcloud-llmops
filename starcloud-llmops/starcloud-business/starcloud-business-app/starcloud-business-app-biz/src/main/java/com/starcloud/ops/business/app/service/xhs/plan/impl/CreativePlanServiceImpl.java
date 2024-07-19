@@ -43,6 +43,7 @@ import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
@@ -265,12 +266,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
                 if (Objects.nonNull(stepByHandler)) {
                     if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+                        // 应用市场从数据库迁移素材库
+                        creativeMaterialManager.migrateFromData(appInformation.getName(), plan.getUid(),
+                                MaterialBindTypeEnum.CREATION_PLAN.getCode(), stepByHandler, planMaterialDO.getMaterialList(), Long.valueOf(plan.getCreator()));
                         planMaterialDO.setMaterialList(Collections.emptyList());
-                        creativeMaterialManager.migrate(appInformation.getName(), stepByHandler, planMaterialDO.getMaterialList());
                     } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
-                        // 我的应用 执行计划使用同一个素材库
-                        WorkflowStepWrapperRespVO appMaterialStep = appMarketResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-                        stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, appMaterialStep.getVariableToString(CreativeConstants.LIBRARY_QUERY));
+                        // 我的应用 执行计划使用同一个素材库 不需要单独copy
                         planMaterialDO.setMaterialList(Collections.emptyList());
                     }
                     planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
@@ -281,11 +282,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
                 if (Objects.nonNull(stepByHandler)) {
                     String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
-                    if (StringUtils.isBlank(stepVariableValue)) {
-                        String libraryJson = creativeMaterialManager.createEmptyLibrary(appInformation.getName());
-                        stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, libraryJson);
+                    if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
+                        // 我的应用 执行计划使用同一个素材库 不需要单独copy
+                        planMaterialDO.setMaterialList(Collections.emptyList());
+                        creativePlanMaterialMapper.updateById(planMaterialDO);
+                    } else if (StringUtils.isNotBlank(stepVariableValue)) {
+                        // 从变量配置中迁移
+                        creativeMaterialManager.migrateFromConfig(appInformation.getName(), plan.getUid(),
+                                MaterialBindTypeEnum.CREATION_PLAN.getCode(), stepVariableValue, Long.valueOf(plan.getCreator()));
+                        stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
                         planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
                         creativePlanMaterialMapper.updateById(planMaterialDO);
+                    } else {
+                        // 没有数据库配置和变量配置 新建一个空素材库
+                        creativeMaterialManager.createEmptyLibrary(appInformation.getName(), plan.getUid(),
+                                MaterialBindTypeEnum.CREATION_PLAN.getCode(), Long.valueOf(plan.getCreator()));
                     }
                 }
             }
@@ -313,6 +324,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
         creativePlan.setUpdateTime(LocalDateTime.now());
+
+        if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+            // 应用市场新建执行计划 copy 素材库
+            creativeMaterialManager.upgradeMaterialLibrary(creativePlan.getUid(), creativePlan, appMarketResponse.getName());
+        }
+
         creativePlanMaterialMapper.insert(creativePlan);
         return get(creativePlan.getUid());
     }
@@ -545,7 +562,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListByStepWrapper(posterStepWrapper);
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
             // copy素材库
-            creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket);
+            creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket.getUid(), plan.getUid());
 
         }
         // 如果不是全量覆盖，只更新应用配置
@@ -683,7 +700,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
         configuration.validate(ValidateTypeEnum.EXECUTE);
         // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(configuration.getAppInformation());
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(creativePlan);
 
         /*
          * 获取计划应用信息
@@ -703,7 +720,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 素材库步骤不为空的话，上传素材不能为空
         AppValidate.notEmpty(materialList, "素材列表不能为空，请上传素材后重试！");
         // 素材字段配置列表
-        List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(materialStepWrapper);
+        List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(creativePlan);
         AppValidate.notEmpty(fieldList, "素材字段配置不能为空，请联系管理员！");
 
         // 获取素材库类型

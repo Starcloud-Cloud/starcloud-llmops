@@ -260,8 +260,6 @@ public class AppPublishServiceImpl implements AppPublishService {
             // 插入 chat配置
             chatExpandConfigService.copyConfig(app.getUid(), uid);
         } else if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
-            // copy素材库 并绑定
-            creativeMaterialManager.upgradeMaterialLibrary(app);
             appPublish.setAppInfo(JsonUtils.toJsonString(app));
         }
 
@@ -435,6 +433,7 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
+        AppDO app = JsonUtils.parseObject(appPublish.getAppInfo(), AppDO.class);
 
         String marketUid = IdUtil.fastSimpleUUID();
         if (AppModelEnum.CHAT.name().equals(appMarketEntity.getModel())) {
@@ -457,9 +456,12 @@ public class AppPublishServiceImpl implements AppPublishService {
                 appMarketEntity.setViewCount(appMarket.getViewCount());
                 appMarketEntity.setInstallCount(appMarket.getInstallCount());
                 appMarketEntity.update();
+                creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
                 return appMarketEntity;
             }
         }
+
+        creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
         // 如果应用市场不存在该应用，说明是第一次发布/或者已经删除，需要新增应用市场记录
         appMarketEntity.insert();
         return appMarketEntity;

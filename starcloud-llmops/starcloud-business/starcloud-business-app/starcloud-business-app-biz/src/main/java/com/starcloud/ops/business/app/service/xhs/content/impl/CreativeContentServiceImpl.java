@@ -347,7 +347,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             AppValidate.notEmpty(materialList, "素材库列表不能为空，请联系管理员！");
 
             // 素材字段配置列表
-            List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(materialWrapper);
+            List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(request);
             AppValidate.notEmpty(fieldList, "素材字段配置不能为空，请联系管理员！");
 
             // 海报步骤

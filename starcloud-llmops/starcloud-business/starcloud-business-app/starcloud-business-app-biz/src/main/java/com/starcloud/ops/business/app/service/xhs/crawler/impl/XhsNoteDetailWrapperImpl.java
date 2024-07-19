@@ -55,10 +55,10 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
             Document doc = Jsoup.parse(html);
             String jsonStr = doc.getElementsByTag(XhsDetailConstants.SCRIPT).last().html().replace(XhsDetailConstants.INITIAL_STATE, StringUtils.EMPTY);
             JSONObject jsonObject = JSON.parseObject(jsonStr);
-            Boolean loggedIn = jsonObject.getJSONObject(XhsDetailConstants.USER).getBoolean(XhsDetailConstants.LOGGED_IN);
-            if (BooleanUtils.isNotTrue(loggedIn)) {
-                throw exception(new ErrorCode(500, "xhs登录过期"));
-            }
+//            Boolean loggedIn = jsonObject.getJSONObject(XhsDetailConstants.USER).getBoolean(XhsDetailConstants.LOGGED_IN);
+//            if (BooleanUtils.isNotTrue(loggedIn)) {
+//                throw exception(new ErrorCode(500, "xhs登录过期"));
+//            }
             ServerRequestInfo requestInfo = jsonObject.getJSONObject(XhsDetailConstants.NOTE)
                     .getObject(XhsDetailConstants.SERVER_REQUEST_INFO, ServerRequestInfo.class);
             if (!"success".equalsIgnoreCase(requestInfo.getState())) {
