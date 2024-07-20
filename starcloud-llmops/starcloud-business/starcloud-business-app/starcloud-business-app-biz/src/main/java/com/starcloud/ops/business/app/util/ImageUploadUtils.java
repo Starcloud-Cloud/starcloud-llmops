@@ -371,6 +371,18 @@ public class ImageUploadUtils {
         }
     }
 
+
+    /**
+     * 校验url是不是图片
+     *
+     * @param imageUrl
+     * @return
+     */
+    public static boolean isImage(List<String> imageUrls) {
+
+        return !imageUrls.stream().map(ImageUploadUtils::isImage).anyMatch(Boolean.FALSE::equals);
+    }
+
     /**
      * 处理图片为 64 的倍数
      *

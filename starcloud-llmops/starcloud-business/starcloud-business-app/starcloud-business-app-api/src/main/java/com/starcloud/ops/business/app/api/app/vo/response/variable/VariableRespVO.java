@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +40,10 @@ public class VariableRespVO implements Serializable {
      */
     @Schema(description = "应用变量")
     private List<VariableItemRespVO> variables;
+
+
+    @Schema(description = "应用变量V2")
+    private JsonDataVO variable;
 
     /**
      * 补充默认变量

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.api.app.vo.params;
 
+import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,4 +25,19 @@ public class JsonDataVO extends BaseDataVO {
      */
     private String jsonSchema;
 
+
+    public static JsonDataVO of(String jsonSchema, Object data)  {
+
+        JsonDataVO vo = new JsonDataVO();
+        vo.setData(data);
+        vo.setJsonSchema(jsonSchema);
+        return vo;
+    }
+
+    public static JsonDataVO of(String jsonSchema)  {
+
+        JsonDataVO vo = new JsonDataVO();
+        vo.setJsonSchema(jsonSchema);
+        return vo;
+    }
 }

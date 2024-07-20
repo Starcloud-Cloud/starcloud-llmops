@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.recommend;
 
+import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
@@ -16,6 +18,8 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterAction
 import com.starcloud.ops.business.app.domain.entity.workflow.action.TitleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.VariableDefInterface;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
 import com.starcloud.ops.business.app.model.content.CopyWritingContent;
@@ -134,22 +138,12 @@ public class RecommendActionFactory {
      * @return
      */
     public static WorkflowStepRespVO defImageOcrStep() {
-        WorkflowStepRespVO step = new WorkflowStepRespVO();
-        step.setName("图片ocr");
-        step.setDescription("图片ocr");
-        step.setType(AppStepTypeEnum.WORKFLOW.name());
-        step.setHandler(ImageOcrActionHandler.class.getSimpleName());
-        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(ImageOcrActionHandler.HandlerResponse.class);
-        step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonSchema));
-        step.setIsAuto(Boolean.TRUE);
-        step.setIsCanEditStep(Boolean.TRUE);
-        step.setVersion(AppConstants.DEFAULT_VERSION);
-        step.setIcon("image-ocr");
-        step.setTags(Arrays.asList("image", "ocr"));
-        step.setScenes(AppUtils.DEFAULT_SCENES);
-        VariableRespVO variable = new VariableRespVO();
-        variable.setVariables(Collections.emptyList());
-        step.setVariable(variable);
+
+        VariableDefInterface handler = (VariableDefInterface) BaseActionHandler.of(ImageOcrActionHandler.class.getSimpleName());
+
+        assert handler != null;
+        WorkflowStepRespVO step = handler.defWorkflowStepResp();
+
         return step;
     }
 

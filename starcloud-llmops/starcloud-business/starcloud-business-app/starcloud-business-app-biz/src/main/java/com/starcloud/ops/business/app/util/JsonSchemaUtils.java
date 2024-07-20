@@ -158,6 +158,21 @@ public class JsonSchemaUtils {
         try {
 
             JsonSchema jsonSchema = generateJsonSchema(clazz);
+            return generateJsonSchemaStr(jsonSchema);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not pretty print json schema for " + clazz);
+        }
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @return 生成的 JSON Schema
+     */
+    public static String generateJsonSchemaStr(JsonSchema jsonSchema) {
+        try {
+
             DefaultIndenter defaultIndenter = new DefaultIndenter()
                     .withLinefeed("\n");
             DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
@@ -168,10 +183,28 @@ public class JsonSchemaUtils {
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Could not pretty print json schema for " + clazz, e);
+            throw new RuntimeException("Could not pretty print json schema", e);
+
         }
     }
 
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param clazz 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static JsonSchema generateJsonSchema(Class<?> clazz) {
+        try {
+
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
+
+            return jsonSchemaGenerator.generateSchema(clazz);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateSchema for " + clazz, e);
+        }
+    }
 
 
     /**
@@ -198,46 +231,6 @@ public class JsonSchemaUtils {
     }
 
 
-    /**
-     * 根据给定的 Java 类生成对应的 JSON Schema。
-     *
-     * @param clazz 给定的 Java 类
-     * @return 生成的 JSON Schema
-     */
-    @Deprecated
-    public static JsonSchema generateJsonArraySchema(Class<?> clazz) {
-        try {
-
-            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
-
-            TypeResolver typeResolver = new TypeResolver();
-            ResolvedArrayType listType = typeResolver.arrayType(clazz);
-
-            return jsonSchemaGenerator.generateSchema(listType.getClass());
-
-
-        } catch (Exception e) {
-            throw new RuntimeException("Could not generateSchema for " + clazz, e);
-        }
-    }
-
-    /**
-     * 根据给定的 Java 类生成对应的 JSON Schema。
-     *
-     * @param clazz 给定的 Java 类
-     * @return 生成的 JSON Schema
-     */
-    public static JsonSchema generateJsonSchema(Class<?> clazz) {
-        try {
-
-            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
-
-            return jsonSchemaGenerator.generateSchema(clazz);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Could not generateSchema for " + clazz, e);
-        }
-    }
 
     /**
      * 根据给定的 Java 类生成对应的 JSON Schema。

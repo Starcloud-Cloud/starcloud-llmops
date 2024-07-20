@@ -4,6 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
@@ -61,14 +62,17 @@ public class PluginsServiceImpl implements PluginsService {
     }
 
     @Override
-    public ImageOcrActionHandler.HandlerResponse imageOcr(ImageOcrReqVO reqVO) {
-        if (!ImageUploadUtils.isImage(reqVO.getImageUrl())) {
-            throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrl());
+    public HandlerResponse imageOcr(ImageOcrReqVO reqVO) {
+        if (!ImageUploadUtils.isImage(reqVO.getImageUrls())) {
+            throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrls());
         }
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.IMAGE_OCR_URL, reqVO.getImageUrl());
 
-        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(ImageOcrActionHandler.HandlerResponse.class);
+
+        Map<String, Object> variableMap =  toParamsMap(reqVO);
+
+        log.info("imageOcr variableMap", variableMap);
+
+        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(HandlerResponse.class);
     }
 
     @Override
