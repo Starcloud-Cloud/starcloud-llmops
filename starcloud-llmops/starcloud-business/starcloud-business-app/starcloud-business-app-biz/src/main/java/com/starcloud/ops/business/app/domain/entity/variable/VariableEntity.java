@@ -48,6 +48,18 @@ public class VariableEntity {
     private List<VariableItemEntity> variables;
 
     /**
+     * 配置的数据
+     * v2
+     */
+    private Object data;
+
+    /**
+     * jsonSchema定义
+     * v2
+     */
+    private String jsonSchema;
+
+    /**
      * 变量 校验
      */
     @JsonIgnore
