@@ -177,7 +177,7 @@ public class VariableEntity {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public ObjectSchema getJsonSchema() {
+    public ObjectSchema getSchema() {
 
         JsonSchemaFactory jsonSchemaFactory = new JsonSchemaFactory();
 

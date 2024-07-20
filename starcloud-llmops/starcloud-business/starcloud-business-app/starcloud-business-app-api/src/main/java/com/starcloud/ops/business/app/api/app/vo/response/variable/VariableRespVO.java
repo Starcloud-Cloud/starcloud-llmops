@@ -43,15 +43,17 @@ public class VariableRespVO implements Serializable {
 
 
     /**
-     * 返回的数据
+     * 配置的数据
      * v2
      */
+    @Schema(description = "配置的数据")
     private Object data;
 
     /**
-     * jsonSchema 数据
+     * jsonSchema
      * v2
      */
+    @Schema(description = "JsonSchema配置")
     private String jsonSchema;
 
     /**

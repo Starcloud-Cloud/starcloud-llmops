@@ -86,7 +86,7 @@ public class VariableActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
-        ObjectSchema objectSchema = stepWrapper.getVariable().getJsonSchema();
+        ObjectSchema objectSchema = stepWrapper.getVariable().getSchema();
         objectSchema.setTitle(stepWrapper.getStepCode());
         objectSchema.setDescription(stepWrapper.getDescription());
         objectSchema.setId(stepWrapper.getFlowStep().getHandler());
