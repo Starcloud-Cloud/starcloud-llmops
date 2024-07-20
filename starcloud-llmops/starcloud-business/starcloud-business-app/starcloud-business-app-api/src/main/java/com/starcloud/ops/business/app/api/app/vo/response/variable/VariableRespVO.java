@@ -42,8 +42,17 @@ public class VariableRespVO implements Serializable {
     private List<VariableItemRespVO> variables;
 
 
-    @Schema(description = "应用变量V2")
-    private JsonDataVO variable;
+    /**
+     * 返回的数据
+     * v2
+     */
+    private Object data;
+
+    /**
+     * jsonSchema 数据
+     * v2
+     */
+    private String jsonSchema;
 
     /**
      * 补充默认变量

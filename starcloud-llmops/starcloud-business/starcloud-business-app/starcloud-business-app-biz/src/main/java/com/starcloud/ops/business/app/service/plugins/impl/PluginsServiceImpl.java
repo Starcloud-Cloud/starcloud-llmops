@@ -67,12 +67,7 @@ public class PluginsServiceImpl implements PluginsService {
             throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrls());
         }
 
-
-        Map<String, Object> variableMap =  toParamsMap(reqVO);
-
-        log.info("imageOcr variableMap", variableMap);
-
-        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(HandlerResponse.class);
+        return execute(ImageOcrActionHandler.class.getSimpleName(), reqVO).toJavaObject(HandlerResponse.class);
     }
 
     @Override
@@ -81,6 +76,45 @@ public class PluginsServiceImpl implements PluginsService {
         variableMap.put("DEFINE", JSONUtil.toJsonPrettyStr(reqVO.getDefine()));
         variableMap.put("PARSE_TEXT", reqVO.getParseText());
         return execute("IntelligentTextExtraction", variableMap);
+    }
+
+
+    /**
+     * 不考虑前端传入的类型，因为开始节点参数都是定义出来的
+     *
+     * @todo 下游要获取，需要实现占位符解析获取
+     * @param tag
+     * @param data
+     * @return
+     */
+    private JSONObject execute(String tag, Object data) {
+
+
+        AppMarketRespVO app = getApp(tag);
+        String stepId = Optional.ofNullable(app.getWorkflowConfig())
+                .map(WorkflowConfigRespVO::getSteps)
+                .map(stepList -> stepList.get(0))
+                .map(WorkflowStepWrapperRespVO::getStepCode)
+                .orElseThrow(() -> exception(PLUGIN_CONFIG_ERROR));
+
+
+        app.putStartVariable(data);
+
+        AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
+        appExecuteRequest.setAppUid(app.getUid());
+        appExecuteRequest.setContinuous(Boolean.FALSE);
+        appExecuteRequest.setStepId(stepId);
+        appExecuteRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(app));
+        // 执行应用
+        AppExecuteRespVO executeResponse = appService.execute(appExecuteRequest);
+        if (!executeResponse.getSuccess() || executeResponse.getResult() == null) {
+            throw exception(PLUGIN_EXECUTE_ERROR);
+        }
+
+        return JSONObject.parseObject(String.valueOf(executeResponse.getResult()));
+
     }
 
     private JSONObject execute(String tag, Map<String, Object> variableMap) {

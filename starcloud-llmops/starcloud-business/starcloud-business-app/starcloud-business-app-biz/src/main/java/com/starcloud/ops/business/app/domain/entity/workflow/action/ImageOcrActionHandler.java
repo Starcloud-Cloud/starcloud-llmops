@@ -209,14 +209,14 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
         step.setResponse(RecommendResponseFactory.defJsonResponse(Boolean.TRUE, Boolean.TRUE, jsonData));
         step.setIsAuto(Boolean.TRUE);
         step.setIsCanEditStep(Boolean.TRUE);
-        step.setVersion(AppConstants.DEFAULT_VERSION);
+        step.setVersion(AppConstants.STEP_VERSION_V2);
         step.setIcon("image-ocr");
         step.setTags(Arrays.asList("image", "ocr"));
         step.setScenes(AppUtils.DEFAULT_SCENES);
 
         VariableRespVO variable = new VariableRespVO();
 
-        variable.setVariable(JsonDataVO.of(JsonSchemaUtils.generateJsonSchemaStr(this.inVariableJsonSchema())));
+        variable.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(this.inVariableJsonSchema()));
 
         step.setVariable(variable);
         return step;

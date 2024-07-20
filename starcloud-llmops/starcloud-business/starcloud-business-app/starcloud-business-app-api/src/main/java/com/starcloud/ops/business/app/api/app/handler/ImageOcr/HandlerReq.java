@@ -15,12 +15,12 @@ import java.util.List;
 public class HandlerReq implements Serializable {
 
     @NotEmpty(message = "图片url必填")
-    @Schema(name = "图片url", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(name = "图片url", title = "图片url", requiredMode = Schema.RequiredMode.REQUIRED)
     @VariableItem
     private List<String> imageUrls;
 
     @NotBlank(message = "是否清洗OCR内容")
-    @Schema(name = "是否清洗OCR内容", defaultValue = "false")
+    @Schema(name = "是否清洗OCR内容", title = "是否清洗OCR内容", description = "是否清洗OCR内容", defaultValue = "false")
     @VariableItem
     private Boolean  cleansing;
 

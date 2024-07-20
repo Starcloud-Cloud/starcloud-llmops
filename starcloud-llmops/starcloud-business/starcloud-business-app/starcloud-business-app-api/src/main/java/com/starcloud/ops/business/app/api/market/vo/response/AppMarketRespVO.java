@@ -359,6 +359,28 @@ public class AppMarketRespVO implements Serializable {
 
 
     /**
+     * 设置开始节点的参数
+     * "模拟开始节点"
+     * @todo 需要把传入的参数和已保存的默认值 做合并处理
+     * @param value
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putStartVariable(Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+
+        //配置的jsonSchema还在
+        workflowConfig.getVariable().setData(value);
+        /**
+         * 下游获取参数逻辑
+         * 1，下游节点获取字段，优先从已配置的字段中获取。也需要处理 占位符替换问题 （这时候就要支持 开始节点.XXX 结构了）
+         * 2，如果找不到，就从 开始节点获取，这么做是为了兼容（因为现在我们也不好直接真加个 "开始节点"）。 从头开始执行就等于 coze执行 （coze 节点调试执行，等于手动填入节点参数去执行）, 后续的节点参数必须是有绑定的（最少要绑定到开始节点的入参KEY，所以本来是不会支持主动解析 开始节点参数到节点字段的映射关系的）
+         */
+    }
+
+    /**
      * 将变量为{@code field}的值设置为{@code value}
      *
      * @param stepId 步骤ID
