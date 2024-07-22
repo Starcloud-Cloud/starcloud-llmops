@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.app.recommend;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 
 /**
  * 推荐应用Variable Item 工厂类
@@ -84,6 +87,23 @@ public class RecommendResponseFactory {
         response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setStyle(AppStepResponseStyleEnum.JSON.name());
         response.setOutput(jsonData);
+        return response;
+    }
+
+
+    /**
+     * 只读JSON响应
+     *
+     * @return ActionResponseRespVO
+     */
+    public static ActionResponseRespVO defJsonResponse(Boolean isShow, Boolean readOnly, JsonDataVO jsonDataVO) {
+
+        ActionResponseRespVO response = new ActionResponseRespVO();
+        response.setIsShow(isShow);
+        response.setReadOnly(readOnly);
+        response.setType(AppStepResponseTypeEnum.JSON.name());
+        response.setStyle(AppStepResponseStyleEnum.JSON.name());
+        response.setOutput(jsonDataVO);
         return response;
     }
 }

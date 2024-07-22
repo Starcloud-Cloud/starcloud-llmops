@@ -4,6 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
@@ -28,6 +29,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
+import scala.util.parsing.json.JSON;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -61,14 +63,15 @@ public class PluginsServiceImpl implements PluginsService {
     }
 
     @Override
-    public ImageOcrActionHandler.HandlerResponse imageOcr(ImageOcrReqVO reqVO) {
-        if (!ImageUploadUtils.isImage(reqVO.getImageUrl())) {
-            throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrl());
+    public HandlerResponse imageOcr(ImageOcrReqVO reqVO) {
+        if (!ImageUploadUtils.isImage(reqVO.getImageUrls())) {
+            throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrls());
         }
-        Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.IMAGE_OCR_URL, reqVO.getImageUrl());
 
-        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(ImageOcrActionHandler.HandlerResponse.class);
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put(CreativeConstants.IMAGE_OCR_URL, JSONUtil.toJsonStr(reqVO));
+
+        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(HandlerResponse.class);
     }
 
     @Override
@@ -77,6 +80,45 @@ public class PluginsServiceImpl implements PluginsService {
         variableMap.put("DEFINE", JSONUtil.toJsonPrettyStr(reqVO.getDefine()));
         variableMap.put("PARSE_TEXT", reqVO.getParseText());
         return execute("IntelligentTextExtraction", variableMap);
+    }
+
+
+    /**
+     * 不考虑前端传入的类型，因为开始节点参数都是定义出来的
+     *
+     * @todo 下游要获取，需要实现占位符解析获取
+     * @param tag
+     * @param data
+     * @return
+     */
+    private JSONObject execute(String tag, Object data) {
+
+
+        AppMarketRespVO app = getApp(tag);
+        String stepId = Optional.ofNullable(app.getWorkflowConfig())
+                .map(WorkflowConfigRespVO::getSteps)
+                .map(stepList -> stepList.get(0))
+                .map(WorkflowStepWrapperRespVO::getStepCode)
+                .orElseThrow(() -> exception(PLUGIN_CONFIG_ERROR));
+
+
+        app.putStartVariable(data);
+
+        AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
+        appExecuteRequest.setAppUid(app.getUid());
+        appExecuteRequest.setContinuous(Boolean.FALSE);
+        appExecuteRequest.setStepId(stepId);
+        appExecuteRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
+        appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(app));
+        // 执行应用
+        AppExecuteRespVO executeResponse = appService.execute(appExecuteRequest);
+        if (!executeResponse.getSuccess() || executeResponse.getResult() == null) {
+            throw exception(PLUGIN_EXECUTE_ERROR);
+        }
+
+        return JSONObject.parseObject(String.valueOf(executeResponse.getResult()));
+
     }
 
     private JSONObject execute(String tag, Map<String, Object> variableMap) {

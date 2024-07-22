@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.plugins;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.alibaba.fastjson.JSONObject;
+import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.ImageOcrReqVO;
@@ -36,7 +37,7 @@ public class PluginsController {
 
     @PostMapping(value = "/imageOcr")
     @Operation(summary = "图片ocr")
-    public CommonResult<ImageOcrActionHandler.HandlerResponse> imageOcr(@Valid @RequestBody ImageOcrReqVO reqVO) {
+    public CommonResult<HandlerResponse> imageOcr(@Valid @RequestBody ImageOcrReqVO reqVO) {
         return CommonResult.success(pluginsService.imageOcr(reqVO));
     }
 

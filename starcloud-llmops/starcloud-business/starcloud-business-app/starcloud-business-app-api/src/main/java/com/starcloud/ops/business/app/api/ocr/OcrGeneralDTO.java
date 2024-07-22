@@ -22,6 +22,14 @@ public class OcrGeneralDTO {
     @JsonPropertyDescription("识别内容")
     private String content;
 
+
+    /**
+     * 清洗后的内容
+     */
+    @Schema(description = "清洗后的内容")
+    @JsonPropertyDescription("清洗后的内容")
+    private String cleansingContent;
+
     /**
      * json 返回数据
      */

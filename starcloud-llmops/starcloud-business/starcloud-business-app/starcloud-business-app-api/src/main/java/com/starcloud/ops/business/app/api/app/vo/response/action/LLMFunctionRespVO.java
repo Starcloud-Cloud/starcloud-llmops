@@ -26,10 +26,4 @@ public class LLMFunctionRespVO extends ActionRespVO {
 
     private static final long serialVersionUID = -5693842217036667952L;
 
-    /**
-     * 模版变量
-     */
-    @Schema(description = "应用变量")
-    private VariableRespVO variable;
-
 }

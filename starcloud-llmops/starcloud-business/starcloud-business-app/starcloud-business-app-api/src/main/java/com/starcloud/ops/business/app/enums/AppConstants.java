@@ -15,6 +15,11 @@ public interface AppConstants {
     Integer DEFAULT_VERSION = 1;
 
     /**
+     * 默认版本
+     */
+    Integer STEP_VERSION_V2 = 2;
+
+    /**
      * 魔法AI 租户ID
      */
     Long MOFAAI_TENANT_ID = 2L;

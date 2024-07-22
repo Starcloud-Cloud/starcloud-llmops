@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.VariableDefInterface;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
@@ -100,6 +101,13 @@ public class WorkflowStepWrapper {
     public JsonSchema getInVariableJsonSchema() {
         //只是拿到实例，并没有初始化相关上下文
         BaseActionHandler baseActionHandler = BaseActionHandler.of(this.getFlowStep().getHandler());
+
+        if (baseActionHandler instanceof VariableDefInterface) {
+            VariableDefInterface variableDefInterface = (VariableDefInterface) baseActionHandler;
+            JsonSchema jsonSchema = variableDefInterface.inVariableJsonSchema();
+            return jsonSchema;
+        }
+
         JsonSchema jsonSchema = baseActionHandler.getInVariableJsonSchema(this);
         return jsonSchema;
     }
@@ -112,7 +120,13 @@ public class WorkflowStepWrapper {
     public JsonSchema getOutVariableJsonSchema() {
         //只是拿到实例，并没有初始化相关上下文
         BaseActionHandler baseActionHandler = BaseActionHandler.of(this.getFlowStep().getHandler());
-        //区分类型，普通节点
+
+        if (baseActionHandler instanceof VariableDefInterface) {
+            VariableDefInterface variableDefInterface = (VariableDefInterface) baseActionHandler;
+            JsonSchema jsonSchema = variableDefInterface.outVariableJsonSchema();
+            return jsonSchema;
+        }
+
         JsonSchema jsonSchema = baseActionHandler.getOutVariableJsonSchema(this);
         return jsonSchema;
     }
