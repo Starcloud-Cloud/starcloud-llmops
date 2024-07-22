@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.DOWNLOAD_TEMPLATE_ERROR;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
-import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.TEMPLATE_FILE_SUFFIX;
+import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.*;
 
 /**
  * 素材知识库 Service 实现类
@@ -97,10 +97,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @return 编号
      */
     @Override
-    public String createMaterialLibraryByApp(String appName) {
+    public Long createMaterialLibraryByApp(String appName) {
         Assert.notBlank(appName, "应用名称不可以为空,创建素材库失败");
-        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}的初始素材库", appName)).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
-        return materialLibrary.getUid();
+        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, appName)).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+        return materialLibrary.getId();
     }
 
     /**
@@ -115,7 +115,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         Assert.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
         Assert.notNull(appReqVO.getUserId(), "获取素材库失败，用户编号不能为空");
         // 创建系统素材库
-        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}的初始素材库", appReqVO.getAppName())).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, appReqVO.getAppName())).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
         // 添加绑定关系
         materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(appReqVO.getAppUid()).setAppType(appReqVO.getAppType()).setUserId(appReqVO.getUserId()));
 
@@ -151,13 +151,13 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     /**
-     * @param libraryUid  素材库编号
+     * @param libraryUid 素材库编号
      * @return MaterialLibraryRespVO
      */
     @Override
     public MaterialLibraryRespVO getMaterialLibraryByAppUid(String libraryUid) {
         MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(libraryUid);
-        if (materialLibrary==null){
+        if (materialLibrary == null) {
             return null;
         }
 
@@ -379,56 +379,47 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibraryAppReqVO oldApp) {
+        MaterialLibraryAppBindDO templateBind = materialLibraryAppBindService.getMaterialLibraryAppBind(newApp.getAppUid());
 
-        MaterialLibraryRespVO oldMaterialLibrary = this.getMaterialLibraryByApp(oldApp);
+        if (templateBind == null) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+        validateMaterialLibraryExists(templateBind.getLibraryId());
 
-        MaterialLibraryDO newMaterialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format("{}_发布版本", oldMaterialLibrary.getName())).setLibraryType(MaterialLibraryTypeEnum.PUBLISH.getCode()));
+        // 复制素材库
+        Long newLibraryId = materialLibraryCopy(templateBind.getLibraryId());
+        // 复制表头数据
+        materialLibraryTableColumnService.materialLibraryCopy(templateBind.getLibraryId(), newLibraryId);
+        // 复制表数据
+        materialLibrarySliceService.materialLibrarySliceCopy(templateBind.getLibraryId(), newLibraryId);
+        // 添加绑定关系
+        materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newLibraryId).setAppUid(newApp.getAppUid()).setAppType(newApp.getAppType()).setUserId(newApp.getUserId()));
+    }
 
-        materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newMaterialLibrary.getId()).setAppUid(newApp.getAppUid()).setAppType(newApp.getAppType()).setUserId(newApp.getUserId()));
+    /**
+     * 仅仅复制一个新的素材库
+     *
+     * @param libraryId 素材库编号
+     */
+    @Override
+    public Long materialLibraryCopy(Long libraryId) {
+        MaterialLibraryDO materialLibraryDO = validateMaterialLibraryExists(libraryId);
 
-        // 复制表头
-        List<MaterialLibraryTableColumnDO> oldTableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(oldMaterialLibrary.getId());
-        List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(oldTableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
-        if (CollUtil.isEmpty(oldTableColumnDOList)){
-            log.info("materialLibraryCopy:Skip replication if table header is empty");
-            return;
+        String name = materialLibraryDO.getName();
+
+        String newName = "";
+        // 检查字符串是否包含下划线
+        int underscoreIndex = name.indexOf("_");
+        // 判断是否存在下划线 存在则取下划线前的字符 如果下划线前的字符为空 则不做处理
+        if (underscoreIndex != -1) {
+            // 如果存在下划线，截取下划线前的部分
+            newName = name.substring(0, underscoreIndex);
+        }
+        if (StrUtil.isBlank(newName)) {
+            newName = name;
         }
 
-        newTableColumnSaveList.forEach(data -> {
-            data.setLibraryId(newMaterialLibrary.getId());
-            data.setId(null);
-        });
-        materialLibraryTableColumnService.saveBatchData(newTableColumnSaveList);
-
-        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(newMaterialLibrary.getId());
-
-        // 查询数据复制到新的素材库
-        // 获取原始素材数据
-        List<MaterialLibrarySliceDO> sliceOldDOList;
-
-        MaterialLibrarySlicePageReqVO pageReqVO = new MaterialLibrarySlicePageReqVO();
-        pageReqVO.setPageNo(1);
-        pageReqVO.setPageSize(100);
-        pageReqVO.setLibraryId(oldMaterialLibrary.getId());
-        sliceOldDOList = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO).getList();
-
-        sliceOldDOList.forEach(sliceData -> {
-            sliceData.setId(null);
-            sliceData.setLibraryId(newMaterialLibrary.getId());
-            List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
-            if (datasList != null) {
-                datasList.forEach(datas -> {
-                    if (datas != null && datas.getColumnCode() != null) {
-                        MaterialLibraryTableColumnDO newColumnDO = findColumnDOByCode(tableColumnDOList, datas.getColumnCode());
-                        if (newColumnDO != null) {
-                            datas.setColumnId(newColumnDO.getId());
-                        }
-                    }
-                });
-            }
-        });
-
-        materialLibrarySliceService.saveBatchData(sliceOldDOList);
+        return createMaterialLibraryByApp(newName);
     }
 
     /**
@@ -444,7 +435,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         MaterialLibraryRespVO materialLibrary = this.getMaterialLibraryByApp(migrationReqVO);
 
         List<MaterialLibraryTableColumnSaveReqVO> tableColumnSaveReqVOS = migrationReqVO.getTableColumnSaveReqVOS();
-        if (CollUtil.isEmpty(tableColumnSaveReqVOS)){
+        if (CollUtil.isEmpty(tableColumnSaveReqVOS)) {
             log.info("materialLibraryCopy:Skip migration if table header is empty");
             return null;
         }
@@ -606,10 +597,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (Objects.isNull(materialLibrary.getUid())) {
             throw exception(MATERIAL_LIBRARY_ID_EMPTY);
         }
-        // 假设uid为素材库的唯一标识
         String uid = materialLibrary.getUid();
 
-        // 查询素材库的详细信息，根据实际情况处理可能的异常和空结果
+        // 查询素材库的详细信息
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByUid(uid);
         if (materialLibraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
@@ -627,7 +617,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     private String createNewMaterialLibrary(MaterialLibraryDO materialLibraryDO, List<Long> slices) {
         MaterialLibrarySaveReqVO saveReqVO = new MaterialLibrarySaveReqVO();
 
-        saveReqVO.setName(materialLibraryDO.getName() + "_发布版本");
+        saveReqVO.setName(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_PUBLISH, materialLibraryDO.getName()));
         saveReqVO.setIconUrl(materialLibraryDO.getIconUrl());
         saveReqVO.setDescription(materialLibraryDO.getDescription());
         saveReqVO.setFormatType(materialLibraryDO.getFormatType());

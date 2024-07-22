@@ -38,7 +38,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -227,7 +226,7 @@ public class CreativeMaterialManager {
      */
     public void upgradeMaterialLibrary(String sourceUid, String planUid) {
         long start = System.currentTimeMillis();
-        bindService.updateMaterialLibraryAppBind(planUid, sourceUid);
+        materialLibraryService.materialLibraryCopy(new MaterialLibraryAppReqVO().setAppUid(planUid), new MaterialLibraryAppReqVO().setAppUid(sourceUid));
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
     }

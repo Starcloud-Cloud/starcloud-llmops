@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryApp
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +33,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
  *
  * @author starcloudadmin
  */
+@Slf4j
 @Service
 @Validated
 public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceService {
@@ -289,6 +291,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void updateSliceUsedCount(Long libraryId, Long sliceId, Integer usedCount) {
+        log.info("updateSliceUsedCount : libraryId:{},sliceId:{},usedCount:{}",libraryId,sliceId,usedCount);
         MaterialLibrarySliceDO slice = materialLibrarySliceMapper.selectById(sliceId);
 
         if (slice == null) {
@@ -297,7 +300,63 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         materialLibrarySliceMapper.updateById(new MaterialLibrarySliceDO().setId(slice.getId()).setUsedCount(slice.getUsedCount() + usedCount));
     }
 
+    /**
+     * 仅仅复制一个新的素材库数据（不做数据操作）templateApp -> appReqVO
+     *
+     * @param templateLibraryId 新应用
+     * @param libraryId         老应用
+     */
+    @Override
+    public void materialLibrarySliceCopy(Long templateLibraryId, Long libraryId) {
 
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
+        if (tableColumnDOList.isEmpty()){
+            return;
+        }
+
+        MaterialLibrarySlicePageReqVO pageReqVO = new MaterialLibrarySlicePageReqVO();
+        pageReqVO.setPageNo(1);
+        pageReqVO.setPageSize(100);
+        pageReqVO.setLibraryId(templateLibraryId);
+        List<MaterialLibrarySliceDO> templateSliceDOList = getMaterialLibrarySlicePage(pageReqVO).getList();
+        if (templateSliceDOList.isEmpty()){
+            return;
+        }
+
+        templateSliceDOList.forEach(sliceData -> {
+            sliceData.setId(null);
+            sliceData.setLibraryId(libraryId);
+            List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
+            if (datasList != null) {
+                datasList.forEach(datas -> {
+                    if (datas != null && datas.getColumnCode() != null) {
+                        MaterialLibraryTableColumnDO newColumnDO = findColumnDOByCode(tableColumnDOList, datas.getColumnCode());
+                        if (newColumnDO != null) {
+                            datas.setColumnId(newColumnDO.getId());
+                        }
+                    }
+                });
+            }
+        });
+
+
+       saveBatchData(templateSliceDOList);
+
+    }
+
+
+
+    private MaterialLibraryTableColumnDO findColumnDOByCode(List<MaterialLibraryTableColumnDO> tableColumnDOList, String columnCode) {
+        // 为了优化性能，这里可以考虑使用更高效的数据结构进行搜索，比如HashMap
+        // 由于示例中没有给出具体的ColumnDO实现，这里简单地使用循环遍历列表进行查找
+        for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
+            if (tableColumnDO.getColumnCode().equals(columnCode)) {
+                return tableColumnDO; // 找到匹配的ColumnDO，返回之
+            }
+        }
+        return null; // 如果没有找到匹配的ColumnDO，返回null
+    }
     /**
      * 校验数据是否存在
      *

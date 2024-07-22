@@ -81,7 +81,6 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     PageResult<MaterialLibrarySliceDO> getMaterialLibrarySlicePage(MaterialLibrarySlicePageReqVO pageReqVO);
 
 
-
     /**
      * 获取共享数据列表
      *
@@ -147,4 +146,13 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      * @param usedCount 使用次数
      */
     void updateSliceUsedCount(Long libraryId, Long sliceId, Integer usedCount);
+
+
+    /**
+     * 仅仅复制一个新的素材库数据（不做数据操作）templateApp -> appReqVO
+     *
+     * @param templateLibraryId 新应用
+     * @param libraryId         老应用
+     */
+    void materialLibrarySliceCopy(Long templateLibraryId, Long libraryId);
 }

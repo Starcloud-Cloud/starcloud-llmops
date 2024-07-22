@@ -647,13 +647,11 @@ public interface ErrorCodeConstants {
 
     ErrorCode MATERIAL_LIBRARY_ID_EMPTY = new ErrorCode(300702212, "素材库编号为空，请核对后再试");
 
-
     ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ERROR = new ErrorCode(300702213, "表头与当前表结构不一致,列名称及顺序需保持一致，表头需要与现有表格结构保持一致。");
 
     ErrorCode MATERIAL_LIBRARY_NO_BIND_APP = new ErrorCode(300702214, "当前应用未绑定素材库");
 
     ErrorCode MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS = new ErrorCode(300702215, "素材与应用不存在绑定关系");
-
 
     ErrorCode MATERIAL_LIBRARY_APPUID_EMPTY = new ErrorCode(300702216, "应用编号为空，查询素材数据失败");
 

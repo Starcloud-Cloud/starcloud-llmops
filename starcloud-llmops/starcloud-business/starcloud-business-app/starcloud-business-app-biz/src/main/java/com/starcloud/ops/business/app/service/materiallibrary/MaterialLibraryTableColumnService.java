@@ -75,4 +75,13 @@ public interface MaterialLibraryTableColumnService extends CommonExcelReadServic
      * @param batchSaveReqVO 批量更新 VO
      */
     void updateBatchByLibraryId(MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO);
+
+
+    /**
+     * 仅仅复制一个新的素材库表头templateLibraryId -> libraryId
+     *
+     * @param templateLibraryId 模板素材库编号
+     * @param libraryId         素材库编号
+     */
+    void materialLibraryCopy(Long templateLibraryId, Long libraryId);
 }

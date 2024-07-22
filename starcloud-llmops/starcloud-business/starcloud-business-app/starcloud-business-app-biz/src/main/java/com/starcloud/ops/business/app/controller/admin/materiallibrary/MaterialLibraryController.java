@@ -6,8 +6,6 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -143,30 +141,6 @@ public class MaterialLibraryController {
     public CommonResult<Boolean> updatePluginConfig(@Valid @RequestBody MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO) {
         materialLibraryService.updatePluginConfig(getLoginUserId(), plugInConfigReqVO);
         return success(true);
-    }
-
-
-    @PostMapping("/test")
-    @Operation(summary = "测试")
-    @OperateLog(enable = false)
-    public void exportTemplate(@Valid @RequestBody SliceMigrationReqVO migrationReqVO) {
-        materialLibraryService.materialLibraryDataMigration(migrationReqVO);
-    }
-
-
-    @PostMapping("/test2")
-    @Operation(summary = "测试")
-    @OperateLog(enable = false)
-    public CommonResult<List<MaterialLibrarySliceUseRespVO>> exportTemplate2(@Valid @RequestBody List<MaterialLibrarySliceAppReqVO> appReqVO) {
-        return success(materialLibraryService.getMaterialLibrarySliceList(appReqVO));
-    }
-
-
-    @PostMapping("/test3")
-    @Operation(summary = "测试")
-    @OperateLog(enable = false)
-    public CommonResult<List<String>> materialLibraryCopy(@Valid @RequestBody List<MaterialLibrarySliceAppReqVO> appReqVO) {
-        return success(materialLibraryService.materialLibraryCopy(appReqVO));
     }
 
 }
