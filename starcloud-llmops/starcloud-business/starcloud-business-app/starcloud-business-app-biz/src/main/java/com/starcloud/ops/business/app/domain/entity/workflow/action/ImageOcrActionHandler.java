@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
@@ -89,6 +90,10 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
 
             OcrResult ocrResult = ALIYUN_OCR_MANAGER.recognizeGeneral(url);
 
+            if (Objects.nonNull(ocrResult) && Objects.nonNull(ocrResult.getOcrGeneralDTO())) {
+                ocrResult.getOcrGeneralDTO().setCleansingContent("");
+            }
+
             long end = System.currentTimeMillis();
 
             log.info("image ocr [{}], {} ms", url, end - start);
@@ -106,7 +111,7 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
             callBackHandler.onLLMNewToken(JSONUtil.toJsonStr(response));
         }
 
-        return response(response, context, ArrayUtil.length(result));
+        return response(response, context, CollectionUtil.size(result));
     }
 
     private ActionResponse response(HandlerResponse response, AppContext context, int cost) {
