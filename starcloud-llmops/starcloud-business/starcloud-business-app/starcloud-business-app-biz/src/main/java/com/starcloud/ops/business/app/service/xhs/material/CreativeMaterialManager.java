@@ -82,8 +82,8 @@ public class CreativeMaterialManager {
     /**
      * 判断素材内容显示类型 true显示图片 false显示列表
      */
-    public Boolean judgePicture(AppMarketRespVO appRespVO) {
-        List<MaterialFieldConfigDTO> header = getHeader(appRespVO.getUid());
+    public Boolean judgePicture(String uid) {
+        List<MaterialFieldConfigDTO> header = getHeader(uid);
         return !CollectionUtils.isEmpty(header)
                 && header.size() == 1
                 && MaterialFieldTypeEnum.image.getCode().equalsIgnoreCase(header.get(0).getType());

@@ -42,6 +42,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.FieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
@@ -392,7 +393,12 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
     public Boolean judgePicture(String uid, String planSource) {
         AppMarketRespVO appRespVO = creativePlanService.getAppRespVO(uid, planSource);
         try {
-            return CreativeUtils.judgePicture(appRespVO);
+            if (CreativePlanSourceEnum.isApp(planSource)) {
+                return CreativeUtils.judgePicture(appRespVO.getUid());
+
+            } else {
+                return CreativeUtils.judgePicture(uid);
+            }
         } catch (Exception e) {
             // 默认返回 false 显示列表
             return false;

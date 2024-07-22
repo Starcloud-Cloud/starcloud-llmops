@@ -581,8 +581,8 @@ public class CreativeUtils {
     /**
      * 判断素材内容显示类型 true显示图片 false显示列表
      */
-    public static boolean judgePicture(AppMarketRespVO appRespVO) {
-        return CREATIVE_MATERIAL_MANAGER.judgePicture(appRespVO);
+    public static boolean judgePicture(String uid) {
+        return CREATIVE_MATERIAL_MANAGER.judgePicture(uid);
     }
 
     /**

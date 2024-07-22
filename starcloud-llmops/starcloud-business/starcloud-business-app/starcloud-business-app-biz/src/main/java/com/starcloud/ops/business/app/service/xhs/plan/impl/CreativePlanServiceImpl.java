@@ -734,9 +734,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取素材库类型
         String businessType = materialStepWrapper.getVariableToString(CreativeConstants.BUSINESS_TYPE);
-
+        Boolean isPicture;
         // 判断修改业务类型
-        Boolean isPicture = CreativeUtils.judgePicture(appInformation);
+        if (CreativePlanSourceEnum.isApp(planSource.name())) {
+            isPicture = CreativeUtils.judgePicture(appInformation.getUid());
+        } else {
+            isPicture = CreativeUtils.judgePicture(creativePlan.getUid());
+        }
+
         businessType = isPicture ? CreativeConstants.PICTURE : businessType;
         materialStepWrapper.putVariable(CreativeConstants.BUSINESS_TYPE, businessType);
 
