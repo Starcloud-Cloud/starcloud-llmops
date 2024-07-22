@@ -123,7 +123,6 @@ public abstract class AbstractMaterialHandler {
             }
 
             sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
-            Log.info("FILTER_USAGE add count, {}", JSONUtil.toJsonPrettyStr(sliceUsageCountRequest));
             MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
         }
         return map;
