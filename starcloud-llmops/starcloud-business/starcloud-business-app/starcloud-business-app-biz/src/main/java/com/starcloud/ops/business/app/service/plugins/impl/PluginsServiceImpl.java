@@ -29,6 +29,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
+import scala.util.parsing.json.JSON;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -68,7 +69,7 @@ public class PluginsServiceImpl implements PluginsService {
         }
 
         Map<String, Object> variableMap = new HashMap<>();
-        variableMap.put(CreativeConstants.IMAGE_OCR_URL, reqVO);
+        variableMap.put(CreativeConstants.IMAGE_OCR_URL, JSONUtil.toJsonStr(reqVO));
 
         return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(HandlerResponse.class);
     }

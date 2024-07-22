@@ -79,7 +79,7 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
     @Override
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
-        HandlerReq handlerReq  = (HandlerReq) params.get(CreativeConstants.IMAGE_OCR_URL);
+        HandlerReq handlerReq  = JSONUtil.toBean((String) params.get(CreativeConstants.IMAGE_OCR_URL), HandlerReq.class);
 
         List<String> urls = handlerReq.getImageUrls();
 
