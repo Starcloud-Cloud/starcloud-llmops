@@ -396,7 +396,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             }
             templateBind.set(bind);
 
-
             validateMaterialLibraryExists(templateBind.get().getLibraryId());
 
         });

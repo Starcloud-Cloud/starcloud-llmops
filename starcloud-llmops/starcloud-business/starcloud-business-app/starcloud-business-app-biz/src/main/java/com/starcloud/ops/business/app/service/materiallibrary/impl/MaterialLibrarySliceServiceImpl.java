@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -23,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -319,12 +321,23 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         pageReqVO.setPageNo(1);
         pageReqVO.setPageSize(100);
         pageReqVO.setLibraryId(templateLibraryId);
-        List<MaterialLibrarySliceDO> templateSliceDOList = getMaterialLibrarySlicePage(pageReqVO).getList();
-        if (templateSliceDOList.isEmpty()){
+
+
+        AtomicReference<List<MaterialLibrarySliceDO> > templateSliceDOList  = new AtomicReference<>();
+
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        DataPermissionUtils.executeIgnore(() -> {
+
+            templateSliceDOList.set(getMaterialLibrarySlicePage(pageReqVO).getList());
+
+        });
+
+
+        if (templateSliceDOList.get().isEmpty()){
             return;
         }
 
-        templateSliceDOList.forEach(sliceData -> {
+        templateSliceDOList.get().forEach(sliceData -> {
             sliceData.setId(null);
             sliceData.setLibraryId(libraryId);
             List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
@@ -341,7 +354,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         });
 
 
-       saveBatchData(templateSliceDOList);
+       saveBatchData(templateSliceDOList.get());
 
     }
 

@@ -6,6 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
@@ -26,6 +27,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
@@ -188,13 +190,20 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public void materialLibraryCopy(Long templateLibraryId, Long libraryId) {
 
-        List<MaterialLibraryTableColumnDO> templateTableColumnDOList = getMaterialLibraryTableColumnByLibrary(templateLibraryId);
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        AtomicReference<List<MaterialLibraryTableColumnDO>> templateTableColumnDOList = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> {
 
-        if (CollUtil.isEmpty(templateTableColumnDOList)) {
+            templateTableColumnDOList.set(getMaterialLibraryTableColumnByLibrary(templateLibraryId));
+
+        });
+
+
+        if (CollUtil.isEmpty(templateTableColumnDOList.get())) {
             log.info("materialLibraryCopy:Skip replication if table header is empty");
             return;
         }
-        List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(templateTableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+        List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(templateTableColumnDOList.get(), MaterialLibraryTableColumnSaveReqVO.class);
         newTableColumnSaveList.forEach(data -> {
             data.setLibraryId(libraryId);
             data.setId(null);
