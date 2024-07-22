@@ -393,7 +393,7 @@ public class CreativeUtils {
     public static List<PosterStyleDTO> mergeImagePosterStyleList(List<PosterStyleDTO> posterStyleList, AppMarketRespVO appMarketResponse) {
         // 如果海报风格列表为空，则直接返回
         if (CollectionUtil.isEmpty(posterStyleList)) {
-            throw ServiceExceptionUtil.invalidParamException("海报风格列表为空！请检查您的配置！");
+            return Collections.emptyList();
         }
         // 获取海报步骤，如果没有则直接返回
         WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appMarketResponse);
