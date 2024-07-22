@@ -533,15 +533,11 @@ public class JsonSchemaUtils {
 
         MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
         appReqVO.setAppUid(uid);
-        AtomicReference<MaterialLibraryRespVO> libraryRespVO = null;
-        DataPermissionUtils.executeIgnore(() -> {
-            libraryRespVO.set(materialLibraryService.getMaterialLibraryByApp(appReqVO));
-
-        });
-        if (Objects.isNull(libraryRespVO) || Objects.isNull(libraryRespVO.get())) {
+        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+        if (Objects.isNull(libraryRespVO)) {
             return obj;
         }
-        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.get().getTableMeta();
+        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.getTableMeta();
         if (CollectionUtil.isEmpty(tableMeta)) {
             return obj;
         }
