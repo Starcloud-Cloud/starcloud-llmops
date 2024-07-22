@@ -232,7 +232,13 @@ public class CreativeMaterialManager {
      */
     public void upgradeMaterialLibrary(String sourceUid, String planUid) {
         long start = System.currentTimeMillis();
-        materialLibraryService.materialLibraryCopy(new MaterialLibraryAppReqVO().setAppUid(planUid), new MaterialLibraryAppReqVO().setAppUid(sourceUid));
+        MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
+        source.setAppUid(sourceUid);
+
+        MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
+        target.setAppUid(planUid);
+        target.setAppType(MaterialBindTypeEnum.CREATION_PLAN.getCode());
+        copyLibrary(source, target);
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
     }
