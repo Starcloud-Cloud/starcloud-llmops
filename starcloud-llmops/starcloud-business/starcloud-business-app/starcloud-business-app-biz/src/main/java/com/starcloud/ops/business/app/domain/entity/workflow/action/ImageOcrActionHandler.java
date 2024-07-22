@@ -79,9 +79,9 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
     @Override
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
-        String imageUrlStr = params.get(CreativeConstants.IMAGE_OCR_URL).toString();
+        HandlerReq handlerReq  = (HandlerReq) params.get(CreativeConstants.IMAGE_OCR_URL);
 
-        List<String> urls = JsonUtils.parseArray(imageUrlStr, String.class);
+        List<String> urls = handlerReq.getImageUrls();
 
         List<OcrResult> result = Optional.ofNullable(urls).orElse(new ArrayList<>()).stream().map((url) -> {
 

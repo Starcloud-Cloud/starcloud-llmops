@@ -67,7 +67,10 @@ public class PluginsServiceImpl implements PluginsService {
             throw exception(URL_IS_NOT_IMAGES, reqVO.getImageUrls());
         }
 
-        return execute(ImageOcrActionHandler.class.getSimpleName(), reqVO).toJavaObject(HandlerResponse.class);
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put(CreativeConstants.IMAGE_OCR_URL, reqVO);
+
+        return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(HandlerResponse.class);
     }
 
     @Override

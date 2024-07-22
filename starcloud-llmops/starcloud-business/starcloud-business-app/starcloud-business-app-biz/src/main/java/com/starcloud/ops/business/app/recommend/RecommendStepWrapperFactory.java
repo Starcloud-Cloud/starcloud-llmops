@@ -68,7 +68,7 @@ public class RecommendStepWrapperFactory {
         stepWrapper.setDescription("图片ocr");
         stepWrapper.setButtonLabel("图片ocr");
         stepWrapper.setFlowStep(RecommendActionFactory.defImageOcrStep());
-//        stepWrapper.setVariable(RecommendVariableFactory.defImageOcrVariable());
+        stepWrapper.setVariable(RecommendVariableFactory.defImageOcrVariable());
         return stepWrapper;
     }
 
