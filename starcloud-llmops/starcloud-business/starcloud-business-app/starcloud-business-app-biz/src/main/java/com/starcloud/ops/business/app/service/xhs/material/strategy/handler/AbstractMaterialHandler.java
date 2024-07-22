@@ -2,6 +2,8 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
+import com.esotericsoftware.kryo.kryo5.minlog.Log;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
@@ -121,6 +123,7 @@ public abstract class AbstractMaterialHandler {
             }
 
             sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
+            Log.info("FILTER_USAGE add count, {}", JSONUtil.toJsonPrettyStr(sliceUsageCountRequest));
             MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
         }
         return map;
