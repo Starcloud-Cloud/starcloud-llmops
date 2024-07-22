@@ -527,12 +527,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
-        if (Objects.nonNull(sliceUsageCountReqVO.getLibraryUid())) {
-            MaterialLibraryDO materialLibrary = this.validateMaterialLibraryExists(sliceUsageCountReqVO.getLibraryUid());
-
-            sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
-            return;
-        }
         MaterialLibraryRespVO materialLibrary = getMaterialLibraryByApp(sliceUsageCountReqVO);
         sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
     }
