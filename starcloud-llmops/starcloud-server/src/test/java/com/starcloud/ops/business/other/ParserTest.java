@@ -33,8 +33,8 @@ public class ParserTest {
 //        System.out.println("Hello World");
 
 
-        String sc = JsonSchemaUtils.generateJsonArraySchemaStr(OcrGeneralDTO.class);
-        System.out.println(sc);
+        // String sc = JsonSchemaUtils.generateJsonArraySchemaStr(OcrGeneralDTO.class);
+        // System.out.println(sc);
 
     }
 
