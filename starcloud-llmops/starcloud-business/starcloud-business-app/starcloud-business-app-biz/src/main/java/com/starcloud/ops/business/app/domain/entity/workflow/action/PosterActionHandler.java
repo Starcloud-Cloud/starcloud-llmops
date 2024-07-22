@@ -737,7 +737,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setIsShow(Boolean.TRUE);
         response.setStepConfig(JsonUtils.toJsonString(style));
-        response.setMessage(JsonUtils.toJsonString(style));
+        response.setMessage(" ");
         response.setAnswer(JsonUtils.toJsonPrettyString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());

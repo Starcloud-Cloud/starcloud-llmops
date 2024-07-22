@@ -150,7 +150,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         actionResponse.setSuccess(true);
         actionResponse.setAnswer(JsonUtils.toJsonPrettyString(copyWriting));
         actionResponse.setOutput(JsonData.of(copyWriting, CopyWritingContent.class));
-        actionResponse.setMessage(JsonUtils.toJsonString(params));
+        actionResponse.setMessage(" ");
         actionResponse.setStepConfig(params);
         actionResponse.setMessageTokens(0L);
         actionResponse.setMessageUnitPrice(BigDecimal.ZERO);

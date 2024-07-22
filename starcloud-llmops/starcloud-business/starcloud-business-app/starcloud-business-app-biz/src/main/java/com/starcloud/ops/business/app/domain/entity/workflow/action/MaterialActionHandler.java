@@ -181,7 +181,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         response.setIsShow(Boolean.FALSE);
         response.setAnswer(answer);
         response.setOutput(JsonData.of(answer));
-        response.setMessage(JsonUtils.toJsonString(params));
+        response.setMessage(" ");
         response.setStepConfig(params);
         response.setMessageTokens(0L);
         response.setMessageUnitPrice(BigDecimal.ZERO);
