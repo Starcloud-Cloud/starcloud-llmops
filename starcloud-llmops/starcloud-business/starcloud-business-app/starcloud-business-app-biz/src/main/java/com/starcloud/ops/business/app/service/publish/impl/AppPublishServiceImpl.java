@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
@@ -456,12 +457,16 @@ public class AppPublishServiceImpl implements AppPublishService {
                 appMarketEntity.setViewCount(appMarket.getViewCount());
                 appMarketEntity.setInstallCount(appMarket.getInstallCount());
                 appMarketEntity.update();
-                creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
+                if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarketEntity.getType())) {
+                    creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
+                }
                 return appMarketEntity;
             }
         }
         appMarketEntity.setUid(marketUid);
-        creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarketEntity.getType())) {
+            creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
+        }
         // 如果应用市场不存在该应用，说明是第一次发布/或者已经删除，需要新增应用市场记录
         appMarketEntity.insert();
         return appMarketEntity;
