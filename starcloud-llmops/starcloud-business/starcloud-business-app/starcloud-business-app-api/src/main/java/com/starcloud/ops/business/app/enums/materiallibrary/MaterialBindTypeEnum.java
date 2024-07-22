@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * 用户上传的素材类型枚举
@@ -33,6 +34,16 @@ public enum MaterialBindTypeEnum implements IntArrayValuable {
     @Override
     public int[] array() {
         return ARRAYS;
+    }
+
+    /**
+     * 判断是否是【应用市场】类型
+     *
+     * @param code 指定code
+     * @return 是否
+     */
+    public static boolean isAppMarket(Integer code) {
+        return Objects.equals(code, APP_MARKET.getCode());
     }
 
 
