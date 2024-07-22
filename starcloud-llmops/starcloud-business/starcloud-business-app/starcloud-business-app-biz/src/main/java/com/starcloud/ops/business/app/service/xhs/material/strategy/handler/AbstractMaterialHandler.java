@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import com.esotericsoftware.kryo.kryo5.minlog.Log;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
@@ -16,17 +15,12 @@ import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +32,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @since 2021-06-22
  */
+@Slf4j
 @Component
 public abstract class AbstractMaterialHandler {
 
@@ -124,7 +119,7 @@ public abstract class AbstractMaterialHandler {
 
             sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
 
-            Log.info("updateSliceUsedCount ===>>>{}",JSONUtil.toJsonStr(sliceUsageCountRequest));
+            log.info("updateSliceUsedCount ===>>>{}", JSONUtil.toJsonStr(sliceUsageCountRequest));
             MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
         }
         return map;
