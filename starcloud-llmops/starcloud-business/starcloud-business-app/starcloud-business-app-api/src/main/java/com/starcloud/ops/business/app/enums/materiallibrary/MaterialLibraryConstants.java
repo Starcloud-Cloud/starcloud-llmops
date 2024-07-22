@@ -36,7 +36,7 @@ public interface MaterialLibraryConstants {
 
     String MATERIAL_LIBRARY_TEMPLATE_COMMON = "{}";
 
-    String MATERIAL_LIBRARY_TEMPLATE_PUBLISH = "{}_初始素材库";
+    String MATERIAL_LIBRARY_TEMPLATE_PUBLISH = "{}_发布素材库";
 
 
 }

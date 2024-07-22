@@ -32,7 +32,7 @@ public interface MaterialLibraryService {
      * @param appName 应用名称
      * @return 编号
      */
-    Long createMaterialLibraryByApp(String appName);
+    Long createMaterialLibrary(String appName,Integer libraryType);
 
 
     /**
@@ -160,7 +160,7 @@ public interface MaterialLibraryService {
      * @param libraryId 素材库名称
      * @return
      */
-    Long materialLibraryCopy(Long libraryId);
+    Long materialLibraryCopy(Long libraryId,Integer appType);
 
 
     /**

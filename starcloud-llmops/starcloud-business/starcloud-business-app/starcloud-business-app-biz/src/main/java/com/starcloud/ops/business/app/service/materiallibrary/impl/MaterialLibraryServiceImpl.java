@@ -11,6 +11,7 @@ import cn.hutool.json.JSONException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
@@ -21,6 +22,7 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialTypeEnum;
@@ -47,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -97,9 +100,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @return 编号
      */
     @Override
-    public Long createMaterialLibraryByApp(String appName) {
-        Assert.notBlank(appName, "应用名称不可以为空,创建素材库失败");
-        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, appName)).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+    public Long createMaterialLibrary(String appName, Integer libraryType) {
+        Assert.notBlank(appName, "素材库名称不可以为空,创建素材库失败");
+        Assert.notNull(appName, "素材库类型不可以为空,创建素材库失败");
+        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(appName).setLibraryType(libraryType));
         return materialLibrary.getId();
     }
 
@@ -379,19 +383,30 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void materialLibraryCopy(MaterialLibraryAppReqVO newApp, MaterialLibraryAppReqVO oldApp) {
-        MaterialLibraryAppBindDO templateBind = materialLibraryAppBindService.getMaterialLibraryAppBind(newApp.getAppUid());
+        Assert.notNull(newApp.getAppType(), "素材库复制失败，新应用类型为空");
+        AtomicReference<MaterialLibraryAppBindDO> templateBind = new AtomicReference<>();
 
-        if (templateBind == null) {
-            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
-        }
-        validateMaterialLibraryExists(templateBind.getLibraryId());
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        DataPermissionUtils.executeIgnore(() -> {
+
+            MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(oldApp.getAppUid());
+
+            if (bind == null) {
+                throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+            }
+            templateBind.set(bind);
+
+
+            validateMaterialLibraryExists(templateBind.get().getLibraryId());
+
+        });
 
         // 复制素材库
-        Long newLibraryId = materialLibraryCopy(templateBind.getLibraryId());
+        Long newLibraryId = materialLibraryCopy(templateBind.get().getLibraryId(), newApp.getAppType());
         // 复制表头数据
-        materialLibraryTableColumnService.materialLibraryCopy(templateBind.getLibraryId(), newLibraryId);
+        materialLibraryTableColumnService.materialLibraryCopy(templateBind.get().getLibraryId(), newLibraryId);
         // 复制表数据
-        materialLibrarySliceService.materialLibrarySliceCopy(templateBind.getLibraryId(), newLibraryId);
+        materialLibrarySliceService.materialLibrarySliceCopy(templateBind.get().getLibraryId(), newLibraryId);
         // 添加绑定关系
         materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newLibraryId).setAppUid(newApp.getAppUid()).setAppType(newApp.getAppType()).setUserId(newApp.getUserId()));
     }
@@ -402,10 +417,17 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @param libraryId 素材库编号
      */
     @Override
-    public Long materialLibraryCopy(Long libraryId) {
-        MaterialLibraryDO materialLibraryDO = validateMaterialLibraryExists(libraryId);
+    public Long materialLibraryCopy(Long libraryId, Integer appType) {
 
-        String name = materialLibraryDO.getName();
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        AtomicReference<MaterialLibraryDO> materialLibraryDO = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> {
+
+            materialLibraryDO.set(validateMaterialLibraryExists(libraryId));
+
+        });
+
+        String name = materialLibraryDO.get().getName();
 
         String newName = "";
         // 检查字符串是否包含下划线
@@ -418,8 +440,11 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (StrUtil.isBlank(newName)) {
             newName = name;
         }
+        if (MaterialBindTypeEnum.isAppMarket(appType)) {
+            return createMaterialLibrary(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_PUBLISH, newName), MaterialLibraryTypeEnum.PUBLISH.getCode());
+        }
 
-        return createMaterialLibraryByApp(newName);
+        return createMaterialLibrary(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, newName), MaterialLibraryTypeEnum.SYSTEM.getCode());
     }
 
     /**
