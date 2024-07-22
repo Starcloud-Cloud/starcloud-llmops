@@ -20,6 +20,7 @@ public class MaterialLibraryPageReqVO extends SortablePageParam {
 
     public static final String SORT_FIELD_FILE_COUNT = "file_count";
     public static final String SORT_FIELD_CREATE_TIME = "create_time";
+    public static final String SORT_FIELD_UPDATE_TIME = "update_time";
 
     @Schema(description = "名称", example = "芋艿")
     private String name;
