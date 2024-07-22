@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEn
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.PinyinUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
  *
  * @author starcloudadmin
  */
+@Slf4j
 @Service
 @Validated
 public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTableColumnService {
@@ -174,6 +176,30 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
         }
 
+
+    }
+
+    /**
+     * 仅仅复制一个新的素材库表头templateLibraryId -> libraryId
+     *
+     * @param templateLibraryId 模板素材库编号
+     * @param libraryId         素材库编号
+     */
+    @Override
+    public void materialLibraryCopy(Long templateLibraryId, Long libraryId) {
+
+        List<MaterialLibraryTableColumnDO> templateTableColumnDOList = getMaterialLibraryTableColumnByLibrary(templateLibraryId);
+
+        if (CollUtil.isEmpty(templateTableColumnDOList)) {
+            log.info("materialLibraryCopy:Skip replication if table header is empty");
+            return;
+        }
+        List<MaterialLibraryTableColumnSaveReqVO> newTableColumnSaveList = BeanUtils.toBean(templateTableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+        newTableColumnSaveList.forEach(data -> {
+            data.setLibraryId(libraryId);
+            data.setId(null);
+        });
+       saveBatchData(newTableColumnSaveList);
 
     }
 

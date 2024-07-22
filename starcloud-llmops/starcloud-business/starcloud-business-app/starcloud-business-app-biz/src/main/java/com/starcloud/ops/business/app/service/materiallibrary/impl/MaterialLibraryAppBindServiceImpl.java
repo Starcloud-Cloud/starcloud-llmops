@@ -10,6 +10,8 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,15 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Resource
     @Lazy
     private MaterialLibraryService materialLibraryService;
+
+    @Resource
+    @Lazy
+    private MaterialLibraryTableColumnService materialLibraryTableColumnService;
+
+    @Resource
+    @Lazy
+    private MaterialLibrarySliceService materialLibrarySliceService;
+
 
     @Resource
     private MaterialLibraryAppBindMapper materialLibraryAppBindMapper;
@@ -116,8 +127,8 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         if (oldBind == null) {
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
+        // 创建绑定关键
         createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(newBind.getLibraryId()).setAppUid(oldBind.getAppUid()).setAppType(oldBind.getAppType()).setUserId(oldBind.getUserId()));
-
     }
 
     @Override
