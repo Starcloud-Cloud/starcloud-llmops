@@ -1,15 +1,9 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.TypeUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
-import com.fasterxml.classmate.ResolvedType;
-import com.fasterxml.classmate.TypeResolver;
-import com.fasterxml.classmate.types.ResolvedArrayType;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -18,8 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
@@ -34,20 +26,15 @@ import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
 import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -545,11 +533,15 @@ public class JsonSchemaUtils {
 
         MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
         appReqVO.setAppUid(uid);
-        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByApp(appReqVO);
-        if (Objects.isNull(libraryRespVO)) {
+        AtomicReference<MaterialLibraryRespVO> libraryRespVO = null;
+        DataPermissionUtils.executeIgnore(() -> {
+            libraryRespVO.set(materialLibraryService.getMaterialLibraryByApp(appReqVO));
+
+        });
+        if (Objects.isNull(libraryRespVO) || Objects.isNull(libraryRespVO.get())) {
             return obj;
         }
-        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.getTableMeta();
+        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.get().getTableMeta();
         if (CollectionUtil.isEmpty(tableMeta)) {
             return obj;
         }

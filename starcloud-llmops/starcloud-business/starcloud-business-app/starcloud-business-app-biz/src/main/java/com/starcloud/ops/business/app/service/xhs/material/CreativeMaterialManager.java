@@ -3,9 +3,9 @@ package com.starcloud.ops.business.app.service.xhs.material;
 import cn.hutool.core.bean.BeanPath;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -44,6 +44,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -93,9 +94,16 @@ public class CreativeMaterialManager {
      * appuid未绑定素材库  新建空素材库
      */
     public void createEmptyLibrary(String appName, String appUid, Integer appType, Long creator) {
-        MaterialLibraryAppBindDO appBind = bindService.getMaterialLibraryAppBind(appUid);
-        if (Objects.nonNull(appBind)) {
-            log.warn("material library exists,uid={},appType={}", appUid, appType);
+        AtomicBoolean exist = new AtomicBoolean(false);
+        DataPermissionUtils.executeIgnore(() -> {
+            MaterialLibraryAppBindDO appBind = bindService.getMaterialLibraryAppBind(appUid);
+            if (Objects.nonNull(appBind)) {
+                log.warn("material library exists,uid={},appType={}", appUid, appType);
+                exist.set(true);
+            }
+        });
+
+        if (exist.get()) {
             return;
         }
 
