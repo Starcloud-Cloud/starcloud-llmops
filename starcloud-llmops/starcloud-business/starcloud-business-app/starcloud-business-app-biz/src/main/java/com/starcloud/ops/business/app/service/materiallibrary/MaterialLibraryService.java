@@ -50,10 +50,6 @@ public interface MaterialLibraryService {
      */
     MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
 
-
-    MaterialLibraryRespVO getMaterialLibraryByAppUid(String uid);
-
-
     /**
      * 更新素材知识库
      *

@@ -119,7 +119,6 @@ public abstract class AbstractMaterialHandler {
 
             sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
 
-            log.info("updateSliceUsedCount ===>>>{}", JSONUtil.toJsonStr(sliceUsageCountRequest));
             MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
         }
         return map;

@@ -12,6 +12,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
@@ -80,7 +81,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     @Resource
     private MaterialLibraryAppBindService materialLibraryAppBindService;
 
-
     @Resource
     private MaterialLibraryMapper materialLibraryMapper;
 
@@ -114,10 +114,12 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void createMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
-        Assert.notBlank(appReqVO.getAppName(), "获取素材库失败，应用名称不能为空");
-        Assert.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
-        Assert.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
-        Assert.notNull(appReqVO.getUserId(), "获取素材库失败，用户编号不能为空");
+
+        AppValidate.notBlank(appReqVO.getAppName(), "获取素材库失败，应用名称不能为空");
+        AppValidate.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
+        AppValidate.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
+        AppValidate.notNull(appReqVO.getUserId(), "获取素材库失败，用户编号不能为空");
+
         // 创建系统素材库
         MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, appReqVO.getAppName())).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
         // 添加绑定关系
@@ -132,6 +134,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public MaterialLibraryRespVO getMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
+        AppValidate.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
 
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
 
@@ -154,28 +157,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     }
 
-    /**
-     * @param libraryUid 素材库编号
-     * @return MaterialLibraryRespVO
-     */
-    @Override
-    public MaterialLibraryRespVO getMaterialLibraryByAppUid(String libraryUid) {
-        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectByUid(libraryUid);
-        if (materialLibrary == null) {
-            return null;
-        }
 
-
-        // 数据转换
-        MaterialLibraryRespVO bean = BeanUtils.toBean(materialLibrary, MaterialLibraryRespVO.class);
-
-        if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
-            List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
-            bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
-        }
-
-        return bean;
-    }
 
     @Override
     public void updateMaterialLibrary(MaterialLibrarySaveReqVO updateReqVO) {
