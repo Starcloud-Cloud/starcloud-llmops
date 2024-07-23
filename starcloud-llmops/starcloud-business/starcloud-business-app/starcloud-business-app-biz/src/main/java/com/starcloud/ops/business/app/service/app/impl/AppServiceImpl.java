@@ -205,7 +205,7 @@ public class AppServiceImpl implements AppService {
             return RecommendStepWrapperFactory.defCommonStepWrapperList();
         }
         // 应用为媒体矩阵且为管理员
-        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(type) && UserUtils.isAdmin()) {
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(type)) {
             return RecommendStepWrapperFactory.defMediaMatrixStepWrapperList();
         }
         throw exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
