@@ -25,12 +25,6 @@ public class CreativeMaterialGenerationDTO implements Serializable {
     private List<Map<String, Object>> materialList;
 
     /**
-     * 素材来源
-     */
-    @Schema(description = "素材来源")
-    private String planSource;
-
-    /**
      * UID
      */
     @Schema(description = "UID")
