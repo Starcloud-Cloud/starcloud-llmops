@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.BindMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
@@ -20,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -76,7 +78,12 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Override
     @Transactional
     public void createMaterialLibraryAppBind(BindMigrationReqVO bindMigrationReqVO) {
-        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByUid(bindMigrationReqVO.getLibraryUid());
+        MaterialLibraryRespVO materialLibrary ;
+        if (Objects.nonNull(bindMigrationReqVO.getLibraryUid())){
+            materialLibrary=  materialLibraryService.getMaterialLibraryByUid(bindMigrationReqVO.getLibraryUid());
+        }else {
+            materialLibrary =  materialLibraryService.getMaterialLibraryByApp(new MaterialLibraryAppReqVO().setAppUid(bindMigrationReqVO.getAppUid()));
+        }
         createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(bindMigrationReqVO.getAppUid()).setAppType(bindMigrationReqVO.getAppType()).setUserId(bindMigrationReqVO.getUserId()));
     }
 
