@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -415,6 +417,18 @@ public class AppMarketServiceImpl implements AppMarketService {
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.insert();
+
+        // 为新的应用创建一个新的素材库
+        MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
+        source.setAppUid(appMarketUid);
+
+        MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
+        target.setAppUid(appEntity.getUid());
+        target.setAppName(appEntity.getName());
+        target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
+        target.setUserId(WebFrameworkUtils.getLoginUserId());
+
+        creativeMaterialManager.copyLibrary(source, target);
         return appEntity.getUid();
     }
 
