@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRes
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
@@ -182,6 +183,9 @@ public class CreativeExecuteManager {
             Integer maxRetry = getMaxRetry(request);
             // 获取最新的创作内容
             CreativeContentDO latestContent = getLatestContent(request, maxRetry, start);
+            CreativeContentExecuteParam executeParams = CreativeContentConvert.INSTANCE.toExecuteParam(latestContent.getExecuteParam());
+            AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convertEntity(executeParams.getAppInformation());
+
             // 用户权益检测，校验用户权益是否足够
             calculateUserRightsEnough(latestContent, start, maxRetry);
             try {
@@ -189,8 +193,9 @@ public class CreativeExecuteManager {
                 updateContentExecuting(latestContent, start);
                 // 执行应用，并且获取执行结果
                 AppExecuteRespVO response = appExecute(latestContent, maxRetry);
+
                 // 后置处理步骤缓存状态更新
-                appStepStatusCache.stepStart(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER);
+                appStepStatusCache.stepStart(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
                 // 查询日志信息
                 AppLogMessageRespVO logAppMessage = getAppLogMessageRespVO(response);
                 // 构造执行结果
@@ -200,14 +205,14 @@ public class CreativeExecuteManager {
                 // 权益扣除
                 reduceRights(latestContent);
                 // 后置处理步骤缓存状态更新
-                appStepStatusCache.stepSuccess(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER);
+                appStepStatusCache.stepSuccess(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
                 // 更新创作内容状态
                 updateContentSuccess(latestContent, executeResult, start);
                 // 返回结果
                 return executeResponse;
             } catch (Throwable throwable) {
                 // 后置处理步骤缓存状态更新
-                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, "CREATIVE_CONTENT_EXECUTE_FAILURE", throwable.getMessage());
+                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
                 // 根据异常更新创作内容状态
                 updateContentFailureByThrowable(latestContent, start, maxRetry, throwable);
                 throw throwable;

@@ -12,7 +12,6 @@ import com.starcloud.ops.business.app.api.app.dto.AppStepStatusDTO;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepStatusEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +20,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -28,6 +29,7 @@ import java.util.Optional;
  * @version 1.0.0
  * @since 2021-06-22
  */
+@SuppressWarnings("all")
 @Slf4j
 @Component
 public class AppStepStatusCache {
@@ -81,28 +83,30 @@ public class AppStepStatusCache {
     /**
      * 初始化步骤状态缓存
      *
-     * @param conversationUid 会话 UID
+     * @param conversation 会话 UID
      */
-    @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    public void init(String conversationUid, BaseAppEntity baseAppEntity) {
-        log.info("[init][conversationUid({}) 初始化步骤状态缓存]", conversationUid);
+    public void init(String conversation, BaseAppEntity appEntity) {
+        log.info("【应用执行步骤缓存】初始化步骤状态缓存【开始】，会话UID: {}, 应用UID: {}", conversation, appEntity.getUid());
         // 初始化步骤状态缓存
-        if (APP_STEP_STATUS_CACHE.containsKey(conversationUid)) {
-            APP_STEP_STATUS_CACHE.remove(conversationUid);
+        if (APP_STEP_STATUS_CACHE.containsKey(conversation)) {
+            APP_STEP_STATUS_CACHE.remove(conversation);
         }
+
         // 保证步骤顺序
         LinkedHashMap<String, AppStepStatusDTO> stepStatusMap = new LinkedHashMap<>();
-        Optional<List<WorkflowStepWrapper>> stepWrappersOptional = Optional.ofNullable(baseAppEntity.getWorkflowConfig()).map(WorkflowConfigEntity::getSteps);
-        if (!stepWrappersOptional.isPresent()) {
+        Optional<List<WorkflowStepWrapper>> stepWrappersOptional = Optional.ofNullable(appEntity.getWorkflowConfig())
+                .map(WorkflowConfigEntity::stepWrapperList);
+
+        if (!stepWrappersOptional.isPresent() || CollectionUtil.isEmpty(stepWrappersOptional.get())) {
             throw ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_STEP_NOT_EXIST);
         }
-        for (WorkflowStepWrapper stepWrapper : CollectionUtil.emptyIfNull(stepWrappersOptional.get())) {
+
+        for (WorkflowStepWrapper stepWrapper : stepWrappersOptional.get()) {
             String stepId = stepWrapper.getStepCode();
-            WorkflowStepEntity flowStep = stepWrapper.getFlowStep();
-            String handleCode = flowStep.getHandler();
-            stepStatusMap.put(stepWrapper.getStepCode(), AppStepStatusDTO.initOf(stepId, handleCode));
+            String handleCode = stepWrapper.getHandler();
+            stepStatusMap.put(stepId, AppStepStatusDTO.initOf(stepId, handleCode));
         }
 
         // 放入一个后置处理器步骤
@@ -110,8 +114,9 @@ public class AppStepStatusCache {
         stepStatusMap.put(POST_PROCESSOR_HANDLER, postProcessorStep);
 
         // 将步骤信息放入缓存
-        APP_STEP_STATUS_CACHE.put(conversationUid, stepStatusMap);
-        log.info("[init][conversationUid({}) 初始化步骤状态缓存 完成]", conversationUid);
+        APP_STEP_STATUS_CACHE.put(conversation, stepStatusMap);
+
+        log.info("【应用执行步骤缓存】初始化步骤状态缓存【结束】，会话UID: {}, 应用UID: {}", conversation, appEntity.getUid());
     }
 
     /**
@@ -123,125 +128,105 @@ public class AppStepStatusCache {
     @JsonIgnore
     @JSONField(serialize = false)
     public LinkedHashMap<String, AppStepStatusDTO> get(String conversationUid) {
-        if (APP_STEP_STATUS_CACHE.containsKey(conversationUid)) {
-            if (APP_STEP_STATUS_CACHE.get(conversationUid) != null) {
-                return APP_STEP_STATUS_CACHE.get(conversationUid);
-            }
-        }
-        return null;
+        return APP_STEP_STATUS_CACHE.get(conversationUid);
     }
 
     /**
      * 获取步骤状态
      *
-     * @param conversationUid 会话 UID
-     * @param stepId          步骤 ID
+     * @param conversation 会话 UID
+     * @param stepId       步骤 ID
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void stepStart(String conversationUid, String stepId) {
-        log.info("[appStepStart][conversationUid({}) stepId({}) 开始]", conversationUid, stepId);
-        if (APP_STEP_STATUS_CACHE.containsKey(conversationUid)) {
-            LinkedHashMap<String, AppStepStatusDTO> stepStatusMap = APP_STEP_STATUS_CACHE.get(conversationUid);
-            if (stepStatusMap == null) {
-                log.warn("[appStepStart][conversationUid({}) stepId({}) 不存在]", conversationUid, stepId);
-                return;
-            }
-            if (stepStatusMap.containsKey(stepId)) {
-                AppStepStatusDTO appStepStatus = stepStatusMap.get(stepId);
-                if (appStepStatus == null) {
-                    log.warn("[appStepStart][conversationUid({}) stepId({}) 不存在]", conversationUid, stepId);
-                    return;
-                }
-                if (!AppStepStatusEnum.WAITING.name().equals(appStepStatus.getStatus())) {
-                    log.warn("[appStepStart][conversationUid({}) stepId({}) 状态({}) 不是 WAITING，不允许开始]", conversationUid, stepId, appStepStatus.getStatus());
-                    return;
-                }
-                appStepStatus.setStartTime(LocalDateTime.now());
-                appStepStatus.setStatus(AppStepStatusEnum.RUNNING.name());
-
-                stepStatusMap.put(stepId, appStepStatus);
-                APP_STEP_STATUS_CACHE.put(conversationUid, stepStatusMap);
-            }
-        }
-        log.info("[appStepStart][conversationUid({}) stepId({}) 结束]", conversationUid, stepId);
+    public void stepStart(String conversation, String stepId, BaseAppEntity appEntity) {
+        log.info("【应用执行步骤缓存】【{}步骤】更新缓存为【执行中】开始: 会话UID: {}, 应用UID: {}", stepId, conversation, appEntity.getUid());
+        updateStepStatus(conversation, stepId, appEntity, AppStepStatusEnum.RUNNING);
+        log.info("【应用执行步骤缓存】【{}步骤】更新缓存为【执行中】结束: 会话UID: {}, 应用UID: {}", stepId, conversation, appEntity.getUid());
     }
 
     /**
      * 获取步骤状态
      *
-     * @param conversationUid 会话 UID
+     * @param conversation 会话 UID
      * @param stepId          步骤 ID
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void stepSuccess(String conversationUid, String stepId) {
-        log.info("[appStepSuccess][conversationUid({}) stepId({}) 开始]", conversationUid, stepId);
-        if (APP_STEP_STATUS_CACHE.containsKey(conversationUid)) {
-            LinkedHashMap<String, AppStepStatusDTO> stepStatusMap = APP_STEP_STATUS_CACHE.get(conversationUid);
-            if (stepStatusMap == null) {
-                log.warn("[appStepSuccess][conversationUid({}) stepId({}) 不存在]", conversationUid, stepId);
-                return;
-            }
-            if (stepStatusMap.containsKey(stepId)) {
-                AppStepStatusDTO appStepStatus = stepStatusMap.get(stepId);
-                if (appStepStatus == null) {
-                    log.warn("[appStepSuccess][conversationUid({}) stepId({}) 不存在]", conversationUid, stepId);
-                    return;
+    public void stepSuccess(String conversation, String stepId, BaseAppEntity appEntity) {
+        log.info("【应用执行步骤缓存】【{}步骤】更新缓存为【成功】开始: 会话UID: {}, 应用UID: {}", stepId, conversation, appEntity.getUid());
+        updateStepStatus(conversation, stepId, appEntity, AppStepStatusEnum.SUCCESS);
+        log.info("【应用执行步骤缓存】【{}步骤】更新缓存为【成功】结束: 会话UID: {}, 应用UID: {}", stepId, conversation, appEntity.getUid());
+    }
+
+    /**
+     * 获取步骤状态
+     *
+     * @param conversation 会话 UID
+     * @param stepId          步骤 ID
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void stepFailure(String conversation, String stepId, BaseAppEntity appEntity) {
+        log.info("【应用执行步骤缓存】【{}步骤】更新缓存为【失败】开始: 会话UID: {}, 应用UID: {}", stepId, conversation, appEntity.getUid());
+        updateStepStatus(conversation, stepId, appEntity, AppStepStatusEnum.FAILED);
+        log.info("【应用执行步骤缓存】【{}步骤】更新缓存为【失败】结束: 会话UID: {}, 应用UID: {}", stepId, conversation, appEntity.getUid());
+    }
+
+    /**
+     * 更新步骤状态
+     *
+     * @param conversation 会话 UID
+     * @param stepId       步骤 ID
+     * @param appEntity    应用实体
+     * @param status       状态
+     */
+    @SuppressWarnings("all")
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private void updateStepStatus(String conversation, String stepId, BaseAppEntity appEntity, AppStepStatusEnum status) {
+        // 如果不存在，则初始化一次
+        if (!APP_STEP_STATUS_CACHE.containsKey(conversation) || Objects.isNull(APP_STEP_STATUS_CACHE.get(conversation))
+                || Objects.isNull(APP_STEP_STATUS_CACHE.get(conversation).get(stepId))) {
+            init(conversation, appEntity);
+            LinkedHashMap<String, AppStepStatusDTO> stepStatusMap = get(conversation);
+            for (Map.Entry<String, AppStepStatusDTO> entry : stepStatusMap.entrySet()) {
+                String stepCode = entry.getKey();
+                AppStepStatusDTO appStepStatus = entry.getValue();
+                if (stepCode.equals(stepId)) {
+                    if (AppStepStatusEnum.RUNNING.equals(status)) {
+                        appStepStatus.setStartTime(LocalDateTime.now());
+                        appStepStatus.setStatus(AppStepStatusEnum.RUNNING.name());
+                    } else {
+                        appStepStatus.setEndTime(LocalDateTime.now());
+                        appStepStatus.setElapsed(LocalDateTimeUtil.toEpochMilli(appStepStatus.getEndTime()) - LocalDateTimeUtil.toEpochMilli(appStepStatus.getStartTime()));
+                        appStepStatus.setStatus(status.name());
+                    }
+                    stepStatusMap.put(stepId, appStepStatus);
+                    break;
                 }
-                if (!AppStepStatusEnum.RUNNING.name().equals(appStepStatus.getStatus())) {
-                    log.warn("[appStepSuccess][conversationUid({}) stepId({}) 状态({}) 不是 RUNNING，不允许结束]", conversationUid, stepId, appStepStatus.getStatus());
-                    return;
-                }
-                appStepStatus.setEndTime(LocalDateTime.now());
-                appStepStatus.setElapsed(LocalDateTimeUtil.toEpochMilli(appStepStatus.getEndTime()) - LocalDateTimeUtil.toEpochMilli(appStepStatus.getStartTime()));
                 appStepStatus.setStatus(AppStepStatusEnum.SUCCESS.name());
-                stepStatusMap.put(stepId, appStepStatus);
-                APP_STEP_STATUS_CACHE.put(conversationUid, stepStatusMap);
-            }
-        }
-        log.info("[appStepSuccess][conversationUid({}) stepId({}) 结束]", conversationUid, stepId);
-    }
-
-    /**
-     * 获取步骤状态
-     *
-     * @param conversationUid 会话 UID
-     * @param stepId          步骤 ID
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void stepFailure(String conversationUid, String stepId, String errorCode, String errorMessage) {
-        log.info("[appStepFailure][conversationUid({}) stepId({}) 开始]", conversationUid, stepId);
-        if (APP_STEP_STATUS_CACHE.containsKey(conversationUid)) {
-            LinkedHashMap<String, AppStepStatusDTO> stepStatusMap = APP_STEP_STATUS_CACHE.get(conversationUid);
-
-            if (stepStatusMap == null) {
-                log.warn("[appStepFailure][conversationUid({}) stepId({}) 不存在]", conversationUid, stepId);
-                return;
-            }
-
-            if (stepStatusMap.containsKey(stepId)) {
-                AppStepStatusDTO appStepStatus = stepStatusMap.get(stepId);
-                if (appStepStatus == null) {
-                    log.warn("[appStepFailure][conversationUid({}) stepId({}) 不存在]", conversationUid, stepId);
-                    return;
-                }
-                if (!AppStepStatusEnum.RUNNING.name().equals(appStepStatus.getStatus())) {
-                    log.warn("[appStepFailure][conversationUid({}) stepId({}) 状态({}) 不是 RUNNING，不允许结束]", conversationUid, stepId, appStepStatus.getStatus());
-                    return;
-                }
+                appStepStatus.setStartTime(LocalDateTime.now());
                 appStepStatus.setEndTime(LocalDateTime.now());
-                appStepStatus.setElapsed(LocalDateTimeUtil.toEpochMilli(appStepStatus.getEndTime()) - LocalDateTimeUtil.toEpochMilli(appStepStatus.getStartTime()));
-                appStepStatus.setStatus(AppStepStatusEnum.FAILED.name());
-                appStepStatus.setErrorCode(errorCode);
-                appStepStatus.setErrorMessage(errorMessage);
-
-                stepStatusMap.put(stepId, appStepStatus);
-                APP_STEP_STATUS_CACHE.put(conversationUid, stepStatusMap);
+                appStepStatus.setElapsed(0L);
+                stepStatusMap.put(stepCode, appStepStatus);
             }
+            APP_STEP_STATUS_CACHE.put(conversation, stepStatusMap);
+            return;
         }
-        log.info("[appStepFailure][conversationUid({}) stepId({}) 结束]", conversationUid, stepId);
-    }
 
+        LinkedHashMap<String, AppStepStatusDTO> stepStatusMap = APP_STEP_STATUS_CACHE.get(conversation);
+        AppStepStatusDTO appStepStatus = stepStatusMap.get(stepId);
+        if (AppStepStatusEnum.RUNNING.equals(status)) {
+            appStepStatus.setStartTime(LocalDateTime.now());
+            appStepStatus.setStatus(AppStepStatusEnum.RUNNING.name());
+        } else {
+            appStepStatus.setEndTime(LocalDateTime.now());
+            appStepStatus.setElapsed(LocalDateTimeUtil.toEpochMilli(appStepStatus.getEndTime()) - LocalDateTimeUtil.toEpochMilli(appStepStatus.getStartTime()));
+            appStepStatus.setStatus(status.name());
+        }
+
+        stepStatusMap.put(stepId, appStepStatus);
+        APP_STEP_STATUS_CACHE.put(conversation, stepStatusMap);
+    }
 }

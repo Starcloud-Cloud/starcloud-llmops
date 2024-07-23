@@ -205,11 +205,11 @@ public abstract class BaseActionHandler extends Object {
         AppValidate.notNull(scopeDataOperator, "应用步骤执行失败！无法获取应用执行元数据，请联系管理员或稍后重试！");
         String stepId = this.getStepId(scopeDataOperator);
         String conversationUid = context.getConversationUid();
-
+        AppEntity app = context.getApp();
         try {
 
             // 更新缓存为开始
-            appStepStatusCache.stepStart(conversationUid, stepId);
+            appStepStatusCache.stepStart(conversationUid, stepId, app);
 
             // 执行前的准备工作
             context.setStepId(stepId);
@@ -227,22 +227,22 @@ public abstract class BaseActionHandler extends Object {
             reduceRights(context, response);
 
             // 更新缓存为成功
-            appStepStatusCache.stepSuccess(conversationUid, stepId);
+            appStepStatusCache.stepSuccess(conversationUid, stepId, app);
 
             return response;
         } catch (ActionResponseException exception) {
-            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(exception.getCode()), exception.getMessage());
+            appStepStatusCache.stepFailure(conversationUid, stepId, app);
             loggerError(context, exception, "步骤");
             exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
             throw exception;
         } catch (ServiceException exception) {
-            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(exception.getCode()), exception.getMessage());
+            appStepStatusCache.stepFailure(conversationUid, stepId, app);
             loggerError(context, exception, "步骤");
             exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
             throw exception;
         } catch (Exception exception) {
             ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE;
-            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(errorCode.getCode()), exception.getMessage());
+            appStepStatusCache.stepFailure(conversationUid, stepId, app);
             loggerError(context, exception, "步骤");
             throw ServiceExceptionUtil.exceptionWithCause(errorCode, "【" + stepId + "】步骤执行失败: " + exception.getMessage(), exception);
         }
