@@ -159,11 +159,18 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notEmpty(request.getMaterialList(), "素材列表不能为空");
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
-        AppValidate.notBlank(request.getBizUid(), "应用UID不能为空");
-        
-        MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
-        materialLibraryRequest.setAppUid(request.getBizUid());
-        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
+        AppValidate.notBlank(request.getBizType(), "业务类型不能为空");
+
+        MaterialLibraryRespVO materialLibrary;
+        if ("MATERIAL_LIBRARY".equals(request.getBizType())) {
+            AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
+            materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
+        } else {
+            AppValidate.notBlank(request.getBizUid(), "应用UID不能为空");
+            MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
+            materialLibraryRequest.setAppUid(request.getBizUid());
+            materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
+        }
 
         AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
         AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
@@ -254,12 +261,18 @@ public class CreativeMaterialServiceImpl implements CreativeMaterialService {
         AppValidate.notEmpty(request.getCheckedFieldList(), "选中的字段定义列表不能为空");
         AppValidate.notBlank(request.getRequirement(), "素材生成要求不能为空");
         AppValidate.notNull(request.getGenerateCount(), "生成数量不能为空");
-        AppValidate.notBlank(request.getBizUid(), "应用UID不能为空");
+        AppValidate.notBlank(request.getBizType(), "业务类型不能为空");
 
-        MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
-        materialLibraryRequest.setAppUid(request.getBizUid());
-        MaterialLibraryRespVO materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
-
+        MaterialLibraryRespVO materialLibrary;
+        if ("MATERIAL_LIBRARY".equals(request.getBizType())) {
+            AppValidate.notBlank(request.getBizUid(), "素材库UID不能为空");
+            materialLibrary = materialLibraryService.getMaterialLibraryByUid(request.getBizUid());
+        } else {
+            AppValidate.notBlank(request.getBizUid(), "应用UID不能为空");
+            MaterialLibraryAppReqVO materialLibraryRequest = new MaterialLibraryAppReqVO();
+            materialLibraryRequest.setAppUid(request.getBizUid());
+            materialLibrary = materialLibraryService.getMaterialLibraryByApp(materialLibraryRequest);
+        }
 
         AppValidate.notNull(materialLibrary, "未找到素材库配置，请联系管理员！");
         AppValidate.notEmpty(materialLibrary.getTableMeta(), "素材库字段配置为空，请联系管理员！");
