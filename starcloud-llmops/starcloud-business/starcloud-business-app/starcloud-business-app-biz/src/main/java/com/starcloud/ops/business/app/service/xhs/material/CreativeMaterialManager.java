@@ -319,7 +319,7 @@ public class CreativeMaterialManager {
     /**
      * 复制素材库
      */
-    private void copyLibrary(MaterialLibrarySliceAppReqVO source, MaterialLibraryAppReqVO target) {
+    public void copyLibrary(MaterialLibrarySliceAppReqVO source, MaterialLibraryAppReqVO target) {
         log.info("start material library copy, sourceUid={}, targetUid={}", source.getAppUid(), target.getAppUid());
         long start = System.currentTimeMillis();
         materialLibraryService.materialLibraryCopy(target, source);
