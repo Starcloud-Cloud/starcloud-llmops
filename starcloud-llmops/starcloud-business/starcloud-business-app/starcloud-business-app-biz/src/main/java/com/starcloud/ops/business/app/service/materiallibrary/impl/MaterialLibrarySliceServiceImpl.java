@@ -198,7 +198,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Override
     public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
         materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
-        materialLibraryService.updateMaterialLibraryFileCount(libraryId);
+        // materialLibraryService.updateMaterialLibraryFileCount(libraryId);
     }
 
     /**
