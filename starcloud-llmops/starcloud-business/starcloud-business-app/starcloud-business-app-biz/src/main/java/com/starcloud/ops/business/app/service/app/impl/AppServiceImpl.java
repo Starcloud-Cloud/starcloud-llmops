@@ -304,7 +304,9 @@ public class AppServiceImpl implements AppService {
     @Transactional(rollbackFor = Exception.class)
     public AppRespVO create(AppUpdateReqVO request) {
         AppRespVO appRespVO = create((AppReqVO) request);
-        creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(request.getType())) {
+            creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
+        }
         return appRespVO;
     }
 
