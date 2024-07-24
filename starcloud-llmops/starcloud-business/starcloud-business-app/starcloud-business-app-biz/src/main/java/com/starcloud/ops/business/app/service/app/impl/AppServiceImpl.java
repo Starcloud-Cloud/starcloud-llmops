@@ -3,10 +3,10 @@ package com.starcloud.ops.business.app.service.app.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -34,7 +35,6 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -50,7 +50,6 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -58,7 +57,6 @@ import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
@@ -294,11 +292,29 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
+
+        appEntity.setUid(IdUtil.fastSimpleUUID());
         appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.insert();
+
+        // 矩阵应用复制素材库
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(request.getType())) {
+            // 素材资料库配置
+            MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
+            source.setAppUid(request.getUid());
+
+            MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
+            target.setAppUid(appEntity.getUid());
+            target.setAppName(appEntity.getName());
+            target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
+            target.setUserId(WebFrameworkUtils.getLoginUserId());
+
+            creativeMaterialManager.copyLibrary(source, target);
+        }
+
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
@@ -327,6 +343,22 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdateTime(LocalDateTime.now());
         // 插入数据库
         appEntity.insert();
+
+        // 矩阵应用复制素材库
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(app.getType())) {
+            // 素材资料库配置
+            MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
+            source.setAppUid(app.getUid());
+
+            MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
+            target.setAppUid(appEntity.getUid());
+            target.setAppName(appEntity.getName());
+            target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
+            target.setUserId(WebFrameworkUtils.getLoginUserId());
+
+            creativeMaterialManager.copyLibrary(source, target);
+        }
+
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 

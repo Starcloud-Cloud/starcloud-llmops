@@ -34,6 +34,13 @@ public class AppReqVO implements Serializable {
     private static final long serialVersionUID = 1578944445567574534L;
 
     /**
+     * 应用编号
+     */
+    @Schema(description = "应用编号", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "应用编号不能为空")
+    private String uid;
+
+    /**
      * 应用名称
      */
     @Schema(description = "应用名称", requiredMode = Schema.RequiredMode.REQUIRED)
