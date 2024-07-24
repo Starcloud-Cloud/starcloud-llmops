@@ -302,6 +302,14 @@ public class AppServiceImpl implements AppService {
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AppRespVO create(AppUpdateReqVO request) {
+        AppRespVO appRespVO = create((AppReqVO) request);
+        creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
+        return appRespVO;
+    }
+
     /**
      * 复制应用
      *
@@ -327,6 +335,8 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdateTime(LocalDateTime.now());
         // 插入数据库
         appEntity.insert();
+        creativeMaterialManager.copyAppMaterial(uid, appEntity.getName(), appEntity.getUid());
+
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
