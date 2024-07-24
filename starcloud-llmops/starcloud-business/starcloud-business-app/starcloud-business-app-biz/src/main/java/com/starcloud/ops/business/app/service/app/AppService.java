@@ -102,6 +102,13 @@ public interface AppService {
     AppRespVO create(AppReqVO request);
 
     /**
+     * 新建应用 复制素材库
+     * @param request
+     * @return
+     */
+    AppRespVO create(AppUpdateReqVO request);
+
+    /**
      * 复制应用
      *
      * @param request 应用请求信息

@@ -492,7 +492,6 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         // 绑定空素材库
         WorkflowStepWrapper materialStep = this.getWorkflowConfig().getStepWrapperWithoutError(MaterialActionHandler.class);
         if (Objects.nonNull(materialStep)) {
-            creativeMaterialManager.createEmptyLibrary(this.getName(), this.getUid(), MaterialBindTypeEnum.APP_MAY.getCode(), WebFrameworkUtils.getLoginUserId());
             materialStep.putVariable(CreativeConstants.LIBRARY_QUERY, "");
         }
         appRepository.insert(this);
