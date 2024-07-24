@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -56,6 +57,11 @@ public class MaterialLibraryController {
     @PostMapping("/page")
     @Operation(summary = "获得素材知识库分页")
     public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid @RequestBody MaterialLibraryPageReqVO pageReqVO) {
+        if (Objects.nonNull(pageReqVO.getCreateName())){
+            AdminUserRespDTO user = adminUserApi.getUserByUsername(pageReqVO.getCreateName());
+            pageReqVO.setCreator(user.getId());
+        }
+
         PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
         bean.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));

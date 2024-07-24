@@ -48,4 +48,13 @@ public enum MaterialLibraryTypeEnum implements IntArrayValuable {
     public static boolean isSystem(Integer status) {
         return Objects.equals(status, SYSTEM.getCode());
     }
+    /**
+     * 判断是否是【系统素材库】类型
+     *
+     * @param status 指定code
+     * @return 是否
+     */
+    public static boolean isCommon(Integer status) {
+        return Objects.equals(status, COMMON.getCode());
+    }
 }
