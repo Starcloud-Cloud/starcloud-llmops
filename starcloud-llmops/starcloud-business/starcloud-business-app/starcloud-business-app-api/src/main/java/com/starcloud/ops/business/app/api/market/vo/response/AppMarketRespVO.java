@@ -40,6 +40,11 @@ public class AppMarketRespVO implements Serializable {
     private static final long serialVersionUID = 4430780734779852216L;
 
     /**
+     * 主键ID
+     */
+    private Long id;
+
+    /**
      * 市场应用 UID
      */
     @Schema(description = "市场应用 UID")

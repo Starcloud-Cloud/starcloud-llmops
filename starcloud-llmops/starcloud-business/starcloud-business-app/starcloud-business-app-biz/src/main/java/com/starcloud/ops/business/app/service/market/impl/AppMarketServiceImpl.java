@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.market.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -48,7 +47,6 @@ import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -324,7 +322,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 按照类别分组
         Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).parallelStream()
                 .filter(item -> StringUtils.isNotBlank(item.getCategory()))
-                .map(AppMarketConvert.INSTANCE::convertResponse)
+                .map(AppMarketConvert.INSTANCE::convertResponseWithId)
                 .peek(item -> {
                     if (CollectionUtil.isNotEmpty(favoriteMap)) {
                         item.setIsFavorite(favoriteMap.containsKey(item.getUid()));
@@ -347,8 +345,10 @@ public class AppMarketServiceImpl implements AppMarketService {
 
             marketList = marketList.stream()
                     .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
-                            .thenComparing(AppMarketRespVO::getUpdateTime, Comparator.nullsLast(LocalDateTime::compareTo))
-                    ).collect(Collectors.toList());
+                            .thenComparingLong(AppMarketRespVO::getId)
+                    )
+                    .peek(item -> item.setId(null))
+                    .collect(Collectors.toList());
 
             // 转换数据
             AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
