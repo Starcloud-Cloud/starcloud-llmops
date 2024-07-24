@@ -194,6 +194,33 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         materialLibraryMapper.deleteById(id);
     }
 
+    /**
+     * 通过应用删除素材知识库
+     *
+     * @param appReqVO 编号
+     */
+    @Override
+    public void deleteMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
+        AppValidate.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
+
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
+        if (Objects.isNull(bind)) {
+            throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
+        }
+
+        MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
+        // 删除表头信息
+        if (MaterialFormatTypeEnum.isExcel(materialLibrary.getFormatType())) {
+            materialLibraryTableColumnService.deleteMaterialLibraryTableColumnByLibraryId(materialLibrary.getId());
+        }
+        // 具体素材库数据
+        materialLibrarySliceService.deleteMaterialLibrarySliceByLibraryId(materialLibrary.getId());
+        // 删除素材库
+        materialLibraryMapper.deleteById(materialLibrary.getId());
+
+
+    }
+
     @Override
     public MaterialLibraryDO getMaterialLibrary(Long id) {
         return materialLibraryMapper.selectById(id);

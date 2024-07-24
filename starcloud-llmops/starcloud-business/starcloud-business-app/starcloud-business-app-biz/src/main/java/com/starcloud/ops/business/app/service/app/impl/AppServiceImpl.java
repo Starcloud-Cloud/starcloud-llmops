@@ -292,30 +292,20 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-
-        appEntity.setUid(IdUtil.fastSimpleUUID());
+        appEntity.insert();
         appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
-        appEntity.insert();
-
-        // 矩阵应用复制素材库
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(request.getType())) {
-            // 素材资料库配置
-            MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
-            source.setAppUid(request.getUid());
-
-            MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
-            target.setAppUid(appEntity.getUid());
-            target.setAppName(appEntity.getName());
-            target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
-            target.setUserId(WebFrameworkUtils.getLoginUserId());
-
-            creativeMaterialManager.copyLibrary(source, target);
-        }
-
         return AppConvert.INSTANCE.convertResponse(appEntity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AppRespVO create(AppUpdateReqVO request) {
+        AppRespVO appRespVO = create((AppReqVO) request);
+        creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
+        return appRespVO;
     }
 
     /**
@@ -343,21 +333,7 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdateTime(LocalDateTime.now());
         // 插入数据库
         appEntity.insert();
-
-        // 矩阵应用复制素材库
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(app.getType())) {
-            // 素材资料库配置
-            MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
-            source.setAppUid(app.getUid());
-
-            MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
-            target.setAppUid(appEntity.getUid());
-            target.setAppName(appEntity.getName());
-            target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
-            target.setUserId(WebFrameworkUtils.getLoginUserId());
-
-            creativeMaterialManager.copyLibrary(source, target);
-        }
+        creativeMaterialManager.copyAppMaterial(uid, appEntity.getName(), appEntity.getUid());
 
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }

@@ -32,7 +32,7 @@ public interface MaterialLibraryService {
      * @param appName 应用名称
      * @return 编号
      */
-    Long createMaterialLibrary(String appName,Integer libraryType);
+    Long createMaterialLibrary(String appName, Integer libraryType);
 
 
     /**
@@ -63,6 +63,14 @@ public interface MaterialLibraryService {
      * @param id 编号
      */
     void deleteMaterialLibrary(Long id);
+
+
+    /**
+     * 通过应用删除素材知识库
+     *
+     * @param appReqVO 编号
+     */
+    void deleteMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO);
 
     /**
      * 获得素材知识库
@@ -153,10 +161,10 @@ public interface MaterialLibraryService {
     /**
      * 仅仅复制一个新的素材库（不做数据操作）将新应用的配置 复制到老的素材库上
      *
-     * @param libraryId 素材库名称
-     * @return
+     * @param libraryId 素材库编号
+     * @return 素材库编号
      */
-    Long materialLibraryCopy(Long libraryId,Integer appType);
+    Long materialLibraryCopy(Long libraryId, Integer appType);
 
 
     /**

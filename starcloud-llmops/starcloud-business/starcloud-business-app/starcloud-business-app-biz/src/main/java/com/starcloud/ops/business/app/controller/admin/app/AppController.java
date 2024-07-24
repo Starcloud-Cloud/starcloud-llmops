@@ -113,7 +113,7 @@ public class AppController {
     @DataPermission(enable = false)
     @Operation(summary = "创建应用", description = "创建一个新的应用")
     @ApiOperationSupport(order = 90, author = "nacoyer")
-    public CommonResult<AppRespVO> create(@Validated @RequestBody AppReqVO request) {
+    public CommonResult<AppRespVO> create(@Validated @RequestBody AppUpdateReqVO request) {
         return CommonResult.success(appService.create(request));
     }
 
