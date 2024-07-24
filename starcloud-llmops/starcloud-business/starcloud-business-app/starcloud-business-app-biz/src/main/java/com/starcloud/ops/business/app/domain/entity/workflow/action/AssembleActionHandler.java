@@ -76,7 +76,6 @@ public class AssembleActionHandler extends BaseActionHandler {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
-
     /**
      * 执行OpenApi生成的步骤
      *

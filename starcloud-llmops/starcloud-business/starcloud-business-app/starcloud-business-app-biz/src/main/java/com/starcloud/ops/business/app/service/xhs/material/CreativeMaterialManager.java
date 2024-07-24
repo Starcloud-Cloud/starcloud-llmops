@@ -65,9 +65,13 @@ public class CreativeMaterialManager {
      */
     public void deleteMaterial(String uid) {
         log.info("delete material library,uid={}", uid);
-        MaterialLibraryAppReqVO reqVO = new MaterialLibraryAppReqVO();
-        reqVO.setAppUid(uid);
-        materialLibraryService.deleteMaterialLibraryByApp(reqVO);
+        try {
+            MaterialLibraryAppReqVO reqVO = new MaterialLibraryAppReqVO();
+            reqVO.setAppUid(uid);
+            materialLibraryService.deleteMaterialLibraryByApp(reqVO);
+        } catch (Exception e) {
+            log.warn("delete material error,{}", e.getMessage());
+        }
     }
 
     /**
