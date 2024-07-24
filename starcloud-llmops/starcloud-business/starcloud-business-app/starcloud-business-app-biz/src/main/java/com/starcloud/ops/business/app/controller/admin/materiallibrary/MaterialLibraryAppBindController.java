@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.rometools.rome.feed.atom.Person;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
@@ -29,6 +30,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.EXPORT;
@@ -103,7 +109,11 @@ public class MaterialLibraryAppBindController {
 
         PageResult<MaterialLibraryRespVO>  libraryRespVOPageResult = new PageResult<>();
         ArrayList<MaterialLibraryDO> list = new ArrayList<>();
-        pageResult.getList().forEach(bind -> list.add(materialLibraryService.getMaterialLibrary(bind.getLibraryId())));
+
+        List<MaterialLibraryAppBindDO> uniqueBind = new ArrayList<>(        pageResult.getList().stream()
+                .collect(Collectors.toMap(MaterialLibraryAppBindDO::getLibraryId, Function.identity(), (existing, replacement) -> existing))
+                .values());
+        uniqueBind.forEach(bind -> list.add(materialLibraryService.getMaterialLibrary(bind.getLibraryId())));
 
         libraryRespVOPageResult.setList(BeanUtils.toBean(list, MaterialLibraryRespVO.class));
         libraryRespVOPageResult.setTotal( pageResult.getTotal() );
@@ -121,6 +131,13 @@ public class MaterialLibraryAppBindController {
         // 导出 Excel
         ExcelUtils.write(response, "应用素材绑定.xls", "数据", MaterialLibraryAppBindRespVO.class,
                 BeanUtils.toBean(list, MaterialLibraryAppBindRespVO.class));
+    }
+
+
+    // 自定义去重比较器
+    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
 }
