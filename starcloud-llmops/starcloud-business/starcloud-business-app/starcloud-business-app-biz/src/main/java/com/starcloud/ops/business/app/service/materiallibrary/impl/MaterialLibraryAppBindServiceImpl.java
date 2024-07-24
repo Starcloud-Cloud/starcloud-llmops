@@ -106,9 +106,13 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
             updateReqVO.setUserId(bind.getUserId());
         }
 
-        materialLibraryAppBindMapper.deleteById(bind.getId());
+        // 处理之前的绑定
+        handleBindStatus(updateReqVO);
+
+        // materialLibraryAppBindMapper.deleteById(bind.getId());
 
         MaterialLibraryAppBindDO materialLibraryAppBind = BeanUtils.toBean(updateReqVO, MaterialLibraryAppBindDO.class);
+        materialLibraryAppBind.setStatus(true);
         materialLibraryAppBindMapper.insert(materialLibraryAppBind);
 
     }
@@ -177,19 +181,19 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
             return;
         }
 
-        List<Long> bindIdList = binds.stream()
-                .filter(MaterialLibraryAppBindDO::getStatus)
-                .map(MaterialLibraryAppBindDO::getId)
-                .collect(Collectors.toList());
+        // List<Long> bindIdList = binds.stream()
+        //         .filter(MaterialLibraryAppBindDO::getStatus)
+        //         .map(MaterialLibraryAppBindDO::getId)
+        //         .collect(Collectors.toList());
 
-        if (bindIdList.isEmpty()) {
-            return;
-        }
+        // if (bindIdList.isEmpty()) {
+        //     return;
+        // }
 
         // 处理后需要更新的 sku
         List<MaterialLibraryAppBindDO> bindDOS = new ArrayList<>();
 
-        bindIdList.forEach(id -> bindDOS.add(new MaterialLibraryAppBindDO().setId(id).setStatus(false)));
+        binds.forEach(bind -> bindDOS.add(new MaterialLibraryAppBindDO().setId(bind.getId()).setStatus(false)));
 
         materialLibraryAppBindMapper.updateBatch(bindDOS);
 
