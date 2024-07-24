@@ -61,6 +61,16 @@ public class CreativeMaterialManager {
     private MaterialLibrarySliceService sliceService;
 
     /**
+     * 删除素材库
+     */
+    public void deleteMaterial(String uid) {
+        log.info("delete material library,uid={}", uid);
+        MaterialLibraryAppReqVO reqVO = new MaterialLibraryAppReqVO();
+        reqVO.setAppUid(uid);
+        materialLibraryService.deleteMaterialLibraryByApp(reqVO);
+    }
+
+    /**
      * 查询表头 分组配置
      */
     public List<MaterialFieldConfigDTO> getHeader(String appUid) {
@@ -216,6 +226,36 @@ public class CreativeMaterialManager {
         saveReqVO.setSequence((long) materialFieldConfigDTO.getOrder());
         saveReqVO.setIsGroupColumn(materialFieldConfigDTO.getIsGroupField());
         return saveReqVO;
+    }
+
+    /**
+     * 我的应用复制
+     */
+    public void copyAppMaterial(String sourceUid, String name, String targetUid) {
+        AtomicBoolean exist = new AtomicBoolean(false);
+        DataPermissionUtils.executeIgnore(() -> {
+            MaterialLibraryAppBindDO appBind = bindService.getMaterialLibraryAppBind(sourceUid);
+            if (Objects.nonNull(appBind)) {
+                log.warn("material library exists,uid={}", sourceUid);
+                exist.set(true);
+            }
+        });
+
+        if (!exist.get()) {
+            createEmptyLibrary(name, targetUid, MaterialBindTypeEnum.APP_MAY.getCode(), WebFrameworkUtils.getLoginUserId());
+            return;
+        }
+
+        MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
+        source.setAppUid(sourceUid);
+
+        MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
+        target.setAppUid(targetUid);
+        target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
+        target.setAppName(name);
+        target.setUserId(WebFrameworkUtils.getLoginUserId());
+
+        copyLibrary(source, target);
     }
 
     /**
