@@ -410,13 +410,16 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(newApp.getAppUid());
 
-        MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
+        if (bind!= null){
+            MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
 
-        if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())){
-            if (!MaterialLibraryTypeEnum.isCommon(materialLibrary.getLibraryType())){
-                deleteMaterialLibrary(materialLibrary.getId());
+            if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())){
+                if (!MaterialLibraryTypeEnum.isCommon(materialLibrary.getLibraryType())){
+                    deleteMaterialLibrary(materialLibrary.getId());
+                }
             }
         }
+
 
 
         // 复制素材库
