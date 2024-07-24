@@ -292,11 +292,11 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
         appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.insert();
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
