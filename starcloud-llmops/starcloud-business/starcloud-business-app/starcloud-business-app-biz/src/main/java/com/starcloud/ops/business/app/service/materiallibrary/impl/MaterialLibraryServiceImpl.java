@@ -158,7 +158,6 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
 
-
     @Override
     public void updateMaterialLibrary(MaterialLibrarySaveReqVO updateReqVO) {
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(updateReqVO.getId());
@@ -421,7 +420,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
 
         // 复制素材库
-        Long newLibraryId = materialLibraryCopy(templateBind.get().getLibraryId(), newApp.getAppType());
+        Long newLibraryId = materialLibraryCopy(templateBind.get().getLibraryId(), newApp);
         // 复制表头数据
         materialLibraryTableColumnService.materialLibraryCopy(templateBind.get().getLibraryId(), newLibraryId);
         // 复制表数据
@@ -436,7 +435,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      * @param libraryId 素材库编号
      */
     @Override
-    public Long materialLibraryCopy(Long libraryId, Integer appType) {
+    public Long materialLibraryCopy(Long libraryId, MaterialLibraryAppReqVO appReqVO) {
 
         // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
         AtomicReference<MaterialLibraryDO> materialLibraryDO = new AtomicReference<>();
@@ -446,7 +445,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         });
 
-        String name = materialLibraryDO.get().getName();
+        String name = Objects.isNull(appReqVO.getAppName()) ? materialLibraryDO.get().getName() : appReqVO.getAppName();
 
         String newName = "";
         // 检查字符串是否包含下划线
@@ -459,7 +458,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (StrUtil.isBlank(newName)) {
             newName = name;
         }
-        if (MaterialBindTypeEnum.isAppMarket(appType)) {
+        if (MaterialBindTypeEnum.isAppMarket(appReqVO.getAppType())) {
             return createMaterialLibrary(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_PUBLISH, newName), MaterialLibraryTypeEnum.PUBLISH.getCode());
         }
 
@@ -562,7 +561,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             long size = materialLibrarySliceService.getMaterialLibrarySliceByLibraryId(libraryId).size();
             materialLibraryMapper.updateById(new MaterialLibraryDO().setFileCount(size).setId(libraryId));
         } catch (RuntimeException e) {
-            log.error("素材库文件数更新失败，素材库编号为:({})", libraryId);
+            log.error("素材库文件数更新失败，素材库编号为:({})", libraryId, e);
         }
 
     }

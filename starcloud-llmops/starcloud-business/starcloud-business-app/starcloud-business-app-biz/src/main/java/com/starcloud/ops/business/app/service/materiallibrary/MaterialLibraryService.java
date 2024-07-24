@@ -164,7 +164,7 @@ public interface MaterialLibraryService {
      * @param libraryId 素材库编号
      * @return 素材库编号
      */
-    Long materialLibraryCopy(Long libraryId, Integer appType);
+    Long materialLibraryCopy(Long libraryId, MaterialLibraryAppReqVO appReqVO);
 
 
     /**
