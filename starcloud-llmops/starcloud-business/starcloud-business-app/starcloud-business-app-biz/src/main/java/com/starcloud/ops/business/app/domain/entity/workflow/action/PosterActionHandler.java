@@ -185,7 +185,7 @@ public class PosterActionHandler extends BaseActionHandler {
             if (i == 0) {
                 StringSchema schema = new StringSchema();
                 schema.setTitle(MAIN_IMAGE);
-                schema.setDescription(MAIN_IMAGE + "-" + MaterialFieldTypeEnum.image.getCode());
+                schema.setDescription(MAIN_IMAGE + "-" + MaterialFormatTypeEnum.IMAGE.getCode());
                 objectSchema.putProperty(MAIN_IMAGE, schema);
                 continue;
             }
