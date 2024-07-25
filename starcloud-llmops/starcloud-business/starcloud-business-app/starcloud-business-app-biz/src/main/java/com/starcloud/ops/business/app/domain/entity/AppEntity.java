@@ -834,7 +834,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         }
 
         // 如果执行结果失败，抛出异常
-        if (!response.getSuccess()) {
+        if (Objects.isNull(response.getSuccess()) || !response.getSuccess()) {
             int errorCode = response.transformErrorCode();
             String errorMessage = response.transformErrorMessage(appContext.getStepId());
             throw exception(new ErrorCode(errorCode, errorMessage));

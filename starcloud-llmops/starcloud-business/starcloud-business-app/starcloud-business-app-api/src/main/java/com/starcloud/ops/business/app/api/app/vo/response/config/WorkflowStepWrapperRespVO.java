@@ -94,7 +94,7 @@ public class WorkflowStepWrapperRespVO implements Serializable {
      * @return String
      */
     public String getStepCode() {
-        return this.name;
+        return this.field;
     }
 
     /**
