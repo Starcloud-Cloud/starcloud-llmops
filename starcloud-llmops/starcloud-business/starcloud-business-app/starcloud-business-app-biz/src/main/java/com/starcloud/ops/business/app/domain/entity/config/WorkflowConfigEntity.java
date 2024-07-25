@@ -109,7 +109,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> item.getStepCode().equals(stepId))
+                .filter(item -> item.getStepCode().equals(stepId) || item.getField().equals(stepId))
                 .findFirst()
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, stepId));
     }
@@ -124,7 +124,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapperByStepId(String stepId) {
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> item.getStepCode().equals(stepId))
+                .filter(item -> item.getStepCode().equals(stepId) || item.getField().equals(stepId))
                 .findFirst()
                 .orElse(null);
     }
@@ -141,7 +141,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         String handler = classz.getSimpleName();
 
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> item.getFlowStep().getHandler().equals(handler))
+                .filter(item -> item.getHandler().equals(handler))
                 .findFirst()
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, handler));
     }
@@ -158,7 +158,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         String handler = classz.getSimpleName();
 
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> item.getFlowStep().getHandler().equals(handler))
+                .filter(item -> item.getHandler().equals(handler))
                 .findFirst()
                 .orElse(null);
     }
@@ -201,7 +201,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 step.setActionResponse(response);
             }
         }
@@ -224,7 +224,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 return step.getVariableItem(field);
             }
         }
@@ -272,7 +272,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 return step.getVariable(field);
             }
         }
@@ -320,7 +320,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 step.putVariable(field, value);
             }
         }
@@ -366,7 +366,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 return step.getModelVariableItem(field);
             }
         }
@@ -414,7 +414,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 return step.getModelVariable(field);
             }
         }
@@ -462,7 +462,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getField())) {
                 step.putModelVariable(field, value);
             }
         }
@@ -502,7 +502,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public void addVariable(String stepId, String key, Object value) {
         for (WorkflowStepWrapper step : this.steps) {
-            if (step.getName().equals(stepId)) {
+            if (step.getStepCode().equals(stepId) || step.getField().equals(stepId)) {
                 step.addVariable(key, value);
             }
         }
