@@ -712,7 +712,7 @@ public class RecommendVariableItemFactory {
         variableItem.setLabel(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_LABEL"));
         variableItem.setDescription(MessageUtil.getMessage("MEDIA_MATRIX_MATERIAL_TYPE_DESCRIPTION"));
         variableItem.setDefaultValue(MaterialTypeEnum.NOTE_TITLE.getCode());
-        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setValue(MaterialTypeEnum.NOTE_TITLE.getCode());
         variableItem.setOrder(10000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.SELECT.name());
