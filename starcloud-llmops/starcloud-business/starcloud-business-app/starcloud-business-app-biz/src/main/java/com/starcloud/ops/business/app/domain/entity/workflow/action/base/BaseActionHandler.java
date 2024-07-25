@@ -25,6 +25,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
@@ -80,6 +81,17 @@ public abstract class BaseActionHandler extends Object {
         return null;
     }
 
+
+    /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public abstract void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType);
+
     /**
      * 获取用户权益类型
      *
@@ -100,25 +112,30 @@ public abstract class BaseActionHandler extends Object {
     protected abstract ActionResponse doExecute(AppContext context);
 
     /**
-     * 具体handler的入参定义
+     * 具体步骤执行器的入参定义的{@code JsonSchema}
      *
-     * @return
+     * @param stepWrapper 当前步骤包装器
+     * @return 具体步骤执行器的入参定义的 {@code JsonSchema}
      */
-    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         //默认所有节点的入参都不返回支持
         return null;
     }
 
-
     /**
-     * 具体handler的出参定义
+     * 具体步骤执行器的出参定义的{@code JsonSchema}
      *
-     * @return
+     * @param stepWrapper 当前步骤包装器
+     * @return 具体步骤执行器的出参定义的 {@code JsonSchema}
      */
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         //如果配置了返回结构定义就获取，不然就创建一个默认的
-        if (hasResponseJsonSchema(workflowStepWrapper)) {
-            String json = Optional.of(workflowStepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
+        if (hasResponseJsonSchema(stepWrapper)) {
+            String json = Optional.of(stepWrapper.getFlowStep()).map(WorkflowStepEntity::getResponse).map(ActionResponse::getOutput).map(JsonData::getJsonSchema).orElse("");
             //有配置，直接返回
             JsonSchema jsonSchema = JsonSchemaUtils.str2JsonSchema(json);
             return jsonSchema;
@@ -129,35 +146,42 @@ public abstract class BaseActionHandler extends Object {
     }
 
     /**
-     * 具体当前handler的出参定义
+     * 具体步骤执行器的出参定义的{@code JsonSchema}
      *
-     * @return
+     * @param context 当前应用上下文
+     * @return 具体步骤执行器的出参定义的 {@code JsonSchema}
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public JsonSchema getOutVariableJsonSchema(AppContext context) {
         WorkflowStepWrapper workflowStepWrapper = context.getStepWrapper(context.getStepId());
         return this.getOutVariableJsonSchema(workflowStepWrapper);
     }
 
     /**
-     * 判断师傅配置了返回结果为JsonSchema
+     * 判断师傅配置了返回结果为{@code JsonSchema}
      *
-     * @param workflowStepWrapper
-     * @return
+     * @param stepWrapper 当前步骤包装器
+     * @return 是否配置了返回结果为 {@code JsonSchema}
      */
-    public Boolean hasResponseJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Boolean hasResponseJsonSchema(WorkflowStepWrapper stepWrapper) {
         //如果配置了返回结构定义就获取，不然就创建一个默认的
-        ActionResponse actionResponse = workflowStepWrapper.getActionResponse();
+        ActionResponse actionResponse = stepWrapper.getActionResponse();
         String jsonSchema = actionResponse.getJsonSchema();
         String type = actionResponse.getType();
         return AppStepResponseTypeEnum.JSON.name().equalsIgnoreCase(type) && StrUtil.isNotBlank(jsonSchema);
     }
 
     /**
-     * 判断师傅配置了返回结果为JsonSchema
+     * 判断师傅配置了返回结果为{@code JsonSchema}
      *
-     * @param workflowStepWrapper
-     * @return
+     * @param workflowStepWrapper 当前步骤包装器
+     * @return 是否配置了返回结果为 {@code JsonSchema}
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public Boolean hasResponseJsonSchema(AppContext context) {
         WorkflowStepWrapper workflowStepWrapper = context.getStepWrapper(context.getStepId());
         return this.hasResponseJsonSchema(workflowStepWrapper);
@@ -178,11 +202,11 @@ public abstract class BaseActionHandler extends Object {
         AppValidate.notNull(scopeDataOperator, "应用步骤执行失败！无法获取应用执行元数据，请联系管理员或稍后重试！");
         String stepId = this.getStepId(scopeDataOperator);
         String conversationUid = context.getConversationUid();
-
+        AppEntity app = context.getApp();
         try {
 
             // 更新缓存为开始
-            appStepStatusCache.stepStart(conversationUid, stepId);
+            appStepStatusCache.stepStart(conversationUid, stepId, app);
 
             // 执行前的准备工作
             context.setStepId(stepId);
@@ -200,22 +224,22 @@ public abstract class BaseActionHandler extends Object {
             reduceRights(context, response);
 
             // 更新缓存为成功
-            appStepStatusCache.stepSuccess(conversationUid, stepId);
+            appStepStatusCache.stepSuccess(conversationUid, stepId, app);
 
             return response;
         } catch (ActionResponseException exception) {
-            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(exception.getCode()), exception.getMessage());
+            appStepStatusCache.stepFailure(conversationUid, stepId, app);
             loggerError(context, exception, "步骤");
             exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
             throw exception;
         } catch (ServiceException exception) {
-            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(exception.getCode()), exception.getMessage());
+            appStepStatusCache.stepFailure(conversationUid, stepId, app);
             loggerError(context, exception, "步骤");
             exception.setMessage("【" + stepId + "】步骤执行失败: " + exception.getMessage());
             throw exception;
         } catch (Exception exception) {
             ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE;
-            appStepStatusCache.stepFailure(conversationUid, stepId, String.valueOf(errorCode.getCode()), exception.getMessage());
+            appStepStatusCache.stepFailure(conversationUid, stepId, app);
             loggerError(context, exception, "步骤");
             throw ServiceExceptionUtil.exceptionWithCause(errorCode, "【" + stepId + "】步骤执行失败: " + exception.getMessage(), exception);
         }
@@ -259,7 +283,7 @@ public abstract class BaseActionHandler extends Object {
             return null;
         }
 
-        VariableItemEntity modeVariableItem = stepWrapperOptional.get().getModeVariableItem(AppConstants.MODEL);
+        VariableItemEntity modeVariableItem = stepWrapperOptional.get().getModelVariableItem(AppConstants.MODEL);
         if (modeVariableItem == null) {
             return null;
         }
@@ -276,6 +300,8 @@ public abstract class BaseActionHandler extends Object {
      *
      * @param actionResponse 执行结果
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void validateResponse(ActionResponse actionResponse, String stepId) {
         if (actionResponse == null) {
             throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode(),
@@ -295,6 +321,8 @@ public abstract class BaseActionHandler extends Object {
      * @param context        上下文
      * @param actionResponse 执行结果
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void reduceRights(AppContext context, ActionResponse actionResponse) {
         AdminUserRightsTypeEnum userRightsType = this.getUserRightsType();
         Integer costPoints = actionResponse.getCostPoints();
@@ -321,6 +349,8 @@ public abstract class BaseActionHandler extends Object {
      *
      * @param context 上下文
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void loggerBegin(AppContext context, String title) {
         log.info("\n{}【开始执行】: " +
                         "\n\t执行步骤: {}, " +
@@ -328,14 +358,17 @@ public abstract class BaseActionHandler extends Object {
                         "\n\t应用UID: {}, " +
                         "\n\t会话UID: {}, " +
                         "\n\t权益用户: {}, " +
-                        "\n\t权益租户: {}, ",
+                        "\n\t权益租户: {}, " +
+                        "\n\t 来源：{}",
                 title,
                 context.getStepId(),
                 this.getClass().getSimpleName(),
                 context.getUid(),
                 context.getConversationUid(),
                 context.getUserId(),
-                TenantContextHolder.getTenantId()
+                TenantContextHolder.getTenantId(),
+                context.getApp().getSource()
+
         );
     }
 
@@ -345,6 +378,8 @@ public abstract class BaseActionHandler extends Object {
      * @param context 上下文
      * @param param   参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void loggerParamter(AppContext context, Object param, String title) {
         log.info("\n{}【准备调用模型】: " +
                         "\n\t执行步骤: {}, " +
@@ -371,6 +406,8 @@ public abstract class BaseActionHandler extends Object {
      * @param context  上下文
      * @param response 执行结果
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void loggerSuccess(AppContext context, ActionResponse response, String title) {
         log.info("\n{}【执行成功】: " +
                         "\n\t执行步骤: {}, " +
@@ -397,6 +434,8 @@ public abstract class BaseActionHandler extends Object {
      * @param context   上下文
      * @param exception 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void loggerError(AppContext context, Exception exception, String title) {
         Integer errorCode = ErrorCodeConstants.EXECUTE_APP_ACTION_FAILURE.getCode();
         if (exception instanceof ActionResponseException) {
@@ -441,5 +480,6 @@ public abstract class BaseActionHandler extends Object {
         boolean equals = super.equals(obj);
         return equals;
     }
+
 
 }

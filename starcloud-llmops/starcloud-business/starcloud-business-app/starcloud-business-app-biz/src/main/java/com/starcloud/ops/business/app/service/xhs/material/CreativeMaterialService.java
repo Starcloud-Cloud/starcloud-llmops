@@ -2,10 +2,9 @@ package com.starcloud.ops.business.app.service.xhs.material;
 
 import cn.hutool.json.JSON;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
+import com.starcloud.ops.business.app.model.creative.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
@@ -13,9 +12,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.M
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespLogVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.MaterialRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -97,13 +94,6 @@ public interface CreativeMaterialService {
      * @return
      */
     Boolean judgePicture(String uid, String planSource);
-
-    /**
-     * 查询素材集合
-     * @param uid 执行计划uid
-     * @return
-     */
-    List<Map<String, Object>> listMaterial(String uid);
 
     /**
      *

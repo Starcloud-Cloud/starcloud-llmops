@@ -2,8 +2,8 @@ package com.starcloud.ops.business.app.controller.admin.log;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
-import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
-import com.starcloud.ops.business.app.api.log.vo.response.ImageLogMessageRespVO;
+import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.controller.admin.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;

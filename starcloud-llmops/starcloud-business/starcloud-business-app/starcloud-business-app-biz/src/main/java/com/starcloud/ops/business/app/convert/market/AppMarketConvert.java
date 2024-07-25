@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.skill.HandlerSkillVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
@@ -76,7 +77,6 @@ public interface AppMarketConvert {
      */
     default AppMarketDO convert(AppMarketEntity appMarketEntity) {
         AppMarketDO appMarket = new AppMarketDO();
-        appMarket.setMaterialList(appMarketEntity.getMaterialList());
         appMarket.setUid(appMarketEntity.getUid());
         appMarket.setName(appMarketEntity.getName());
         appMarket.setType(appMarketEntity.getType());
@@ -159,7 +159,6 @@ public interface AppMarketConvert {
         appMarketEntity.setDescription(app.getDescription());
         appMarketEntity.setExample(app.getExample());
         appMarketEntity.setDemo(app.getDemo());
-        appMarketEntity.setMaterialList(app.getMaterialList());
         // 处理配置信息
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
@@ -228,6 +227,25 @@ public interface AppMarketConvert {
      * @return entity
      */
     AppMarketEntity convert(AppReqVO appRequest);
+
+
+    AppMarketEntity convert(AppUpdateReqVO appRequest);
+
+    /**
+     * 响应转为entity
+     *
+     * @param appRequest 请求
+     * @return entity
+     */
+    AppMarketEntity convertEntity(AppMarketRespVO appResponse);
+
+    /**
+     * 响应转为entity
+     *
+     * @param appRequest 请求
+     * @return entity
+     */
+    AppMarketRespVO convertResponse(AppMarketEntity entity);
 
     /**
      * 将返回转换为 AppRespVO
@@ -300,6 +318,61 @@ public interface AppMarketConvert {
         return appMarketResponse;
     }
 
+    /**
+     * AppMarketDO 转 AppMarketRespVO
+     *
+     * @param appMarket AppMarketDO
+     * @return AppMarketRespVO
+     */
+    default AppMarketRespVO convertResponseWithId(AppMarketDO appMarket) {
+        AppMarketRespVO appMarketResponse = new AppMarketRespVO();
+        appMarketResponse.setId(appMarket.getId());
+        appMarketResponse.setUid(appMarket.getUid());
+        appMarketResponse.setName(appMarket.getName());
+        appMarketResponse.setSpell(PinyinCache.get(appMarket.getName()));
+        appMarketResponse.setSpellSimple(PinyinCache.getSimple(appMarket.getName()));
+        appMarketResponse.setType(appMarket.getType());
+        appMarketResponse.setModel(appMarket.getModel());
+        appMarketResponse.setVersion(appMarket.getVersion());
+        appMarketResponse.setLanguage(appMarket.getLanguage());
+        appMarketResponse.setSort(appMarket.getSort());
+        appMarketResponse.setCategory(appMarket.getCategory());
+        appMarketResponse.setTags(AppUtils.split(appMarket.getTags()));
+        appMarketResponse.setScenes(AppUtils.splitScenes(appMarket.getScenes()));
+        appMarketResponse.setImages(AppUtils.split(appMarket.getImages()));
+        appMarketResponse.setIcon(appMarket.getIcon());
+        appMarketResponse.setFree(appMarket.getFree());
+        appMarketResponse.setCost(appMarket.getCost());
+        appMarketResponse.setUsageCount(appMarket.getUsageCount());
+        appMarketResponse.setLikeCount(appMarket.getLikeCount());
+        appMarketResponse.setViewCount(appMarket.getViewCount());
+        appMarketResponse.setInstallCount(appMarket.getInstallCount());
+        appMarketResponse.setDescription(appMarket.getDescription());
+        appMarketResponse.setExample(appMarket.getExample());
+        appMarketResponse.setDemo(appMarket.getDemo());
+        appMarketResponse.setCreateTime(appMarket.getCreateTime());
+        appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
+        // 处理配置信息
+        if (AppModelEnum.COMPLETION.name().equals(appMarket.getModel())) {
+            WorkflowConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), WorkflowConfigRespVO.class);
+            if (Objects.nonNull(config)) {
+                appMarketResponse.setWorkflowConfig(config);
+                appMarketResponse.setStepCount(Optional.of(config).map(WorkflowConfigRespVO::getSteps).map(List::size).orElse(0));
+            }
+        } else if (AppModelEnum.CHAT.name().equals(appMarket.getModel())) {
+            ChatConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), ChatConfigRespVO.class);
+            if (Objects.nonNull(config)) {
+                appMarketResponse.setChatConfig(config);
+            }
+        } else if (AppModelEnum.IMAGE.name().equals(appMarket.getModel())) {
+            ImageConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), ImageConfigRespVO.class);
+            if (Objects.nonNull(config)) {
+                appMarketResponse.setImageConfig(config);
+            }
+        }
+        appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
+        return appMarketResponse;
+    }
 
     /**
      * handlerSkillVO 转 HandlerSkill

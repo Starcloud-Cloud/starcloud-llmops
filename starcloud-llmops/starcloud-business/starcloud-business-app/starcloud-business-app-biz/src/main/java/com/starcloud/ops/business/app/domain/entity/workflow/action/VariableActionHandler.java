@@ -7,13 +7,18 @@ import cn.kstry.framework.core.annotation.ReqTaskParam;
 import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -47,11 +52,27 @@ public class VariableActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        VariableEntity variable = wrapper.getVariable();
+        AppValidate.notEmpty(variable.variableList(), "【{}】步骤最少需要配置一个变量！", wrapper.getName());
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
@@ -62,11 +83,13 @@ public class VariableActionHandler extends BaseActionHandler {
      * @return 步骤信息
      */
     @Override
-    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-        ObjectSchema objectSchema = workflowStepWrapper.getVariable().getJsonSchema();
-        objectSchema.setTitle(workflowStepWrapper.getStepCode());
-        objectSchema.setDescription(workflowStepWrapper.getDescription());
-        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
+        ObjectSchema objectSchema = stepWrapper.getVariable().getSchema();
+        objectSchema.setTitle(stepWrapper.getStepCode());
+        objectSchema.setDescription(stepWrapper.getDescription());
+        objectSchema.setId(stepWrapper.getFlowStep().getHandler());
         return objectSchema;
     }
 
@@ -76,7 +99,9 @@ public class VariableActionHandler extends BaseActionHandler {
      * @return 步骤信息
      */
     @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         return null;
     }
 
@@ -87,6 +112,8 @@ public class VariableActionHandler extends BaseActionHandler {
      * @return 执行结果
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
         // 开始日志打印
         loggerBegin(context, "全局变量步骤");

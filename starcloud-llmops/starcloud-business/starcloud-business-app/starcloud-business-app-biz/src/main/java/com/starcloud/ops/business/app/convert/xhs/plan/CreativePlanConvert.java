@@ -7,10 +7,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
@@ -26,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_LIST;
@@ -44,77 +42,39 @@ public interface CreativePlanConvert {
      */
     CreativePlanConvert INSTANCE = Mappers.getMapper(CreativePlanConvert.class);
 
-    /**
-     * 转换创建请求
-     *
-     * @param request 请求信息
-     * @return 数据对象
-     */
-    default CreativePlanDO convertCreateRequest(CreativePlanCreateReqVO request) {
+
+    default CreativePlanMaterialDO convertModifyRequest(CreativePlanModifyReqVO request) {
         AppValidate.notNull(request.getConfiguration(), "创作计划配置信息不能为空！");
         AppValidate.notNull(request.getConfiguration().getAppInformation(), "应用配置信息不能为空！");
+
         AppMarketRespVO appInformation = request.getConfiguration().getAppInformation();
 
-        CreativePlanDO creativePlan = new CreativePlanDO();
-        creativePlan.setUid(IdUtil.fastSimpleUUID());
-        creativePlan.setAppUid(appInformation.getUid());
-        creativePlan.setVersion(appInformation.getVersion());
-        creativePlan.setSource(request.getSource());
-        creativePlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
-        creativePlan.setTotalCount(request.getTotalCount());
-        creativePlan.setStatus(CreativePlanStatusEnum.PENDING.name());
-        creativePlan.setDeleted(Boolean.FALSE);
-        creativePlan.setCreateTime(LocalDateTime.now());
-        creativePlan.setUpdateTime(LocalDateTime.now());
-        return creativePlan;
-    }
-
-    /***
-     * 转换修改请求
-     * @param request 请求信息
-     * @return CreationPlanDO
-     */
-    default CreativePlanDO convertModifyRequest(CreativePlanModifyReqVO request) {
-        CreativePlanDO creativePlan = convertCreateRequest(request);
-        // 修改时，不修改创建时间和状态
-        creativePlan.setCreateTime(null);
-        creativePlan.setStatus(null);
-        creativePlan.setUid(request.getUid());
-        return creativePlan;
-    }
-
-    default CreativePlanMaterialDO convertModifyReq(CreativePlanModifyReqVO request) {
-        AppValidate.notNull(request.getConfiguration(), "创作计划配置信息不能为空！");
-        AppValidate.notNull(request.getConfiguration().getAppInformation(), "应用配置信息不能为空！");
-        AppMarketRespVO appInformation = request.getConfiguration().getAppInformation();
-
-        CreativePlanMaterialDO creativePlanMaterialDO = new CreativePlanMaterialDO();
-        creativePlanMaterialDO.setUid(IdUtil.fastSimpleUUID());
-        creativePlanMaterialDO.setAppUid(appInformation.getUid());
-        creativePlanMaterialDO.setVersion(appInformation.getVersion());
-        creativePlanMaterialDO.setSource(request.getSource());
-        creativePlanMaterialDO.setMaterialList(request.getConfiguration().getMaterialList());
+        CreativePlanMaterialDO creativePlanMaterial = new CreativePlanMaterialDO();
+        creativePlanMaterial.setUid(IdUtil.fastSimpleUUID());
+        creativePlanMaterial.setAppUid(appInformation.getUid());
+        creativePlanMaterial.setVersion(appInformation.getVersion());
+        creativePlanMaterial.setSource(request.getSource());
 
         WorkflowStepWrapperRespVO materialStep = request.getConfiguration().getAppInformation()
                 .getStepByHandler(MaterialActionHandler.class.getSimpleName());
         if (materialStep != null) {
-            materialStep.updateStepVariableValue(MATERIAL_LIST,StringUtils.EMPTY);
+            materialStep.putVariable(MATERIAL_LIST, StringUtils.EMPTY);
         }
         request.getConfiguration().setMaterialList(Collections.EMPTY_LIST);
-        creativePlanMaterialDO.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
+        creativePlanMaterial.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
 
-        creativePlanMaterialDO.setTotalCount(request.getTotalCount());
-        creativePlanMaterialDO.setStatus(CreativePlanStatusEnum.PENDING.name());
-        creativePlanMaterialDO.setDeleted(Boolean.FALSE);
-        creativePlanMaterialDO.setCreateTime(LocalDateTime.now());
-        creativePlanMaterialDO.setUpdateTime(LocalDateTime.now());
+        creativePlanMaterial.setTotalCount(request.getTotalCount());
+        creativePlanMaterial.setStatus(CreativePlanStatusEnum.PENDING.name());
+        creativePlanMaterial.setDeleted(Boolean.FALSE);
+        creativePlanMaterial.setCreateTime(LocalDateTime.now());
+        creativePlanMaterial.setUpdateTime(LocalDateTime.now());
 
         // 修改时，不修改创建时间和状态
-        creativePlanMaterialDO.setCreateTime(null);
-        creativePlanMaterialDO.setStatus(null);
-        creativePlanMaterialDO.setUid(request.getUid());
+        creativePlanMaterial.setCreateTime(null);
+        creativePlanMaterial.setStatus(null);
+        creativePlanMaterial.setUid(request.getUid());
 
-        return creativePlanMaterialDO;
+        return creativePlanMaterial;
     }
 
     /**

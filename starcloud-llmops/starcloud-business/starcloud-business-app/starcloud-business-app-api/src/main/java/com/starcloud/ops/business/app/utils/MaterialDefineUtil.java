@@ -30,6 +30,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
+@Deprecated
 public class MaterialDefineUtil {
 
     private static final String MATERIAL_ACTION_HANDLER = "MaterialActionHandler";
@@ -47,7 +48,7 @@ public class MaterialDefineUtil {
         if (Objects.isNull(stepWrapperRespVO)) {
             throw exception(MATERIAL_STEP_NOT_EXIST);
         }
-        VariableItemRespVO variable = stepWrapperRespVO.getVariable(CreativeConstants.MATERIAL_DEFINE);
+        VariableItemRespVO variable = stepWrapperRespVO.getVariableItem(CreativeConstants.MATERIAL_DEFINE);
         String materialDefine = Optional.ofNullable(variable)
                 .map(VariableItemRespVO::getValue)
                 .map(Object::toString)

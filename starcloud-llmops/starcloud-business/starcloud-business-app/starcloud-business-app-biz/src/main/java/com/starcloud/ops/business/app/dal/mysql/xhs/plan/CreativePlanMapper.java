@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanListQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.util.PageUtil;
@@ -61,6 +61,13 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         wrapper.eq(CreativePlanDO::getAppUid, appUid);
         wrapper.eq(CreativePlanDO::getCreator, userId);
         wrapper.eq(CreativePlanDO::getSource, source);
+        return this.selectOne(wrapper);
+    }
+
+    default CreativePlanDO getByAppUid(String appUid, Long userId) {
+        LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(CreativePlanDO::getAppUid, appUid);
+        wrapper.eq(CreativePlanDO::getCreator, userId);
         return this.selectOne(wrapper);
     }
 

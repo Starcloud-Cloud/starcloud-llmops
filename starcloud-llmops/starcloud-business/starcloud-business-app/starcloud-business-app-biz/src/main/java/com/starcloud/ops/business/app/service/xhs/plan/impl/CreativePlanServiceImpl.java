@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -18,20 +19,17 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.api.xhs.content.dto.CreativeContentExecuteParam;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreateSameAppReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanGetQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanListQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanListQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
@@ -45,10 +43,17 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -61,7 +66,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.Mat
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
-import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -258,6 +262,47 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
             appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
             configuration.setAppInformation(appInformation);
+            // 迁移旧素材数据
+            CreativePlanMaterialDO planMaterialDO = creativePlanMaterialMapper.getMaterial(plan.getUid());
+            if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType()) &&
+                    CollectionUtil.isNotEmpty(planMaterialDO.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+                        // 应用市场从数据库迁移素材库
+                        creativeMaterialManager.migrateFromData(appInformation.getName(), plan.getUid(),
+                                MaterialBindTypeEnum.CREATION_PLAN.getCode(), stepByHandler, planMaterialDO.getMaterialList(), Long.valueOf(plan.getCreator()));
+                        planMaterialDO.setMaterialList(Collections.emptyList());
+                    } else if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
+                        // 我的应用 执行计划使用同一个素材库 不需要单独copy
+                        planMaterialDO.setMaterialList(Collections.emptyList());
+                    }
+                    planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                    creativePlanMaterialMapper.updateById(planMaterialDO);
+                }
+            } else if (AppTypeEnum.MEDIA_MATRIX.name().equals(appInformation.getType()) &&
+                    CollectionUtil.isEmpty(planMaterialDO.getMaterialList())) {
+                WorkflowStepWrapperRespVO stepByHandler = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+                if (Objects.nonNull(stepByHandler)) {
+                    String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
+                    if (CreativePlanSourceEnum.APP.name().equalsIgnoreCase(query.getSource())) {
+                        // 我的应用 执行计划使用同一个素材库 不需要单独copy
+                        planMaterialDO.setMaterialList(Collections.emptyList());
+                        creativePlanMaterialMapper.updateById(planMaterialDO);
+                    } else if (StringUtils.isNotBlank(stepVariableValue)) {
+                        // 从变量配置中迁移
+                        creativeMaterialManager.migrateFromConfig(appInformation.getName(), plan.getUid(),
+                                MaterialBindTypeEnum.CREATION_PLAN.getCode(), stepVariableValue, Long.valueOf(plan.getCreator()));
+                        stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
+                        planMaterialDO.setConfiguration(JsonUtils.toJsonString(configuration));
+                        creativePlanMaterialMapper.updateById(planMaterialDO);
+                    } else {
+                        // 没有数据库配置和变量配置 新建一个空素材库
+                        creativeMaterialManager.createEmptyLibrary(appInformation.getName(), plan.getUid(),
+                                MaterialBindTypeEnum.CREATION_PLAN.getCode(), Long.valueOf(plan.getCreator()));
+                    }
+                }
+            }
 
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
             List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
@@ -268,7 +313,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 新的创作计划配置
-        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse);
+        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse, query.getSource());
 
         // 创建一个计划
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
@@ -282,22 +327,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setDeleted(Boolean.FALSE);
         creativePlan.setCreateTime(LocalDateTime.now());
         creativePlan.setUpdateTime(LocalDateTime.now());
-        creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(query.getAppUid(), query.getSource()));
+
+        if (CreativePlanSourceEnum.MARKET.name().equalsIgnoreCase(query.getSource())) {
+            // 应用市场新建执行计划 copy 素材库
+            creativeMaterialManager.upgradeMaterialLibrary(appMarketResponse.getUid(), creativePlan, appMarketResponse.getName());
+        }
+
         creativePlanMaterialMapper.insert(creativePlan);
         return get(creativePlan.getUid());
-    }
-
-    /**
-     * 创建创作计划
-     *
-     * @param request 创作计划请求
-     */
-    @Override
-    public String create(CreativePlanCreateReqVO request) {
-        handlerAndValidate(request);
-        CreativePlanDO plan = CreativePlanConvert.INSTANCE.convertCreateRequest(request);
-        creativePlanMapper.insert(plan);
-        return plan.getUid();
     }
 
     /**
@@ -321,41 +358,35 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public String modify(CreativePlanModifyReqVO request) {
-
-        // 基本校验
-        AppValidate.notBlank(request.getUid(), CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
+        request.setValidateType(ValidateTypeEnum.UPDATE.name());
+        // 处理并且校验请求
         handlerAndValidate(request);
 
         // 查询创作计划，并且校验是否存在
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
+        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
 
         // 更新创作计划
-        CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyReq(request);
+        CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
         creativePlanMaterialMapper.updateById(modifyPlan);
         return modifyPlan.getUid();
     }
 
+    /**
+     * 修改配置
+     *
+     * @param request 创作计划请求
+     * @return 创作计划UID
+     */
     @Override
     public String modifyConfiguration(CreativePlanModifyReqVO request) {
-        AppValidate.notBlank(request.getUid(), CreativeErrorCodeConstants.PLAN_UID_REQUIRED);
+        request.setValidateType(ValidateTypeEnum.CONFIG.name());
+        // 处理并且校验请求
+        handlerAndValidate(request);
+
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
-        if (!CreativePlanStatusEnum.canModifyStatus(plan.getStatus())) {
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_STATUS_NOT_SUPPORT_MODIFY);
-        }
-
-        CreativePlanConfigurationDTO configuration = request.getConfiguration();
-        AppMarketRespVO appInformation = configuration.getAppInformation();
-
-        // 为空或者为true时校验，为false时不校验
-        if (Objects.isNull(request.getValidate()) || request.getValidate()) {
-            // 校验配置
-            validImage(appInformation, configuration);
-            MaterialDefineUtil.verifyStep(appInformation);
-        }
-        validPoster(configuration, request);
+        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
         // 素材单独存放
@@ -528,13 +559,14 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();
         // 如果全量覆盖，否则直接使用最新应用配置
         if (isFullCover) {
-            // 把最新的素材库步骤填充到配置中
             configuration.setMaterialList(Collections.emptyList());
-            creativePlan.setMaterialList(creativeMaterialManager.getMaterialList(request.getAppUid(), plan.getSource()));
             // 把最新的海报步骤填充到配置中
             WorkflowStepWrapperRespVO posterStepWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
             List<PosterStyleDTO> posterStyleList = CreativeUtils.getPosterStyleListByStepWrapper(posterStepWrapper);
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
+            // copy素材库
+            creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket.getUid(), plan.getUid());
+
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
@@ -575,6 +607,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
     }
 
+    /**
+     * 获取应用配置
+     *
+     * @param uid        应用UID
+     * @param planSource 创作计划来源
+     * @return 应用配置
+     */
     @Override
     public AppMarketRespVO getAppRespVO(String uid, String planSource) {
         if (CreativePlanSourceEnum.isApp(planSource)) {
@@ -662,9 +701,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-        configuration.validate();
-        // 获取创作计划的素材配置
-        List<Map<String, Object>> materialList = creativeMaterialManager.getPlanMaterialList(creativePlan.getUid());
+        configuration.validate(ValidateTypeEnum.EXECUTE);
+        // 计划来源
+        CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
+        AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
 
         /*
          * 获取计划应用信息
@@ -675,31 +715,55 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO latestAppMarket = this.getAppInformation(creativePlan.getAppUid(), creativePlan.getSource());
         // 合并应用市场配置，某一些配置项需要保持最新
         appInformation = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
+
+        // 获取创作计划的素材列表
+        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(creativePlan);
+        // 素材库步骤不为空的话，上传素材不能为空
+        AppValidate.notEmpty(materialList, "素材列表不能为空，请上传或选择素材后重试！");
+
         /*
          * 获取到素材库步骤，素材库类型，素材库处理器
          */
         // 素材库步骤校验
         WorkflowStepWrapperRespVO materialStepWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
         AppValidate.notNull(materialStepWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
-        // 素材库步骤不为空的话，上传素材不能为空
-        AppValidate.notEmpty(materialList, "素材列表不能为空，请上传素材后重试！");
+
         // 素材字段配置列表
-        List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(materialStepWrapper);
+        List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(creativePlan);
         AppValidate.notEmpty(fieldList, "素材字段配置不能为空，请联系管理员！");
 
         // 获取素材库类型
-        String businessType = materialStepWrapper.getStepVariableValue(CreativeConstants.BUSINESS_TYPE);
-
+        String businessType = materialStepWrapper.getVariableToString(CreativeConstants.BUSINESS_TYPE);
+        Boolean isPicture;
         // 判断修改业务类型
-        Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
-        businessType = isPicture ? CreativeConstants.PICTURE : businessType;
-        materialStepWrapper.updateStepVariableValue(CreativeConstants.BUSINESS_TYPE, businessType);
+        if (CreativePlanSourceEnum.isApp(planSource.name())) {
+            isPicture = CreativeUtils.judgePicture(appInformation.getUid());
+        } else {
+            isPicture = CreativeUtils.judgePicture(creativePlan.getUid());
+        }
 
-//        AppValidate.notBlank(businessType, "创作计划应用配置异常，资料库步骤配置的变量{}是必须的！请联系管理员！", CreativeConstants.BUSINESS_TYPE);
+        businessType = isPicture ? CreativeConstants.PICTURE : businessType;
+        materialStepWrapper.putVariable(CreativeConstants.BUSINESS_TYPE, businessType);
 
         // 获取资料库的具体处理器
         AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
         AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", businessType);
+
+        // 获取到素材使用模式
+        MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
+        // 获取到素材库UID 废除
+//        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
+//                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
+//                .orElse(StringUtils.EMPTY);
+//        if (StringUtils.isBlank(materialLibraryJsonVariable)) {
+//            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
+//        }
+        // 获取查询条件
+//        List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
+//        if (CollectionUtil.isEmpty(queryParam)) {
+//            throw ServiceExceptionUtil.invalidParamException("执行失败！获取素材库UID不存在！");
+//        }
+//        String libraryUid = queryParam.get(0).getLibraryUid();
 
         /*
          * 将配置信息平铺为，进行平铺，生成执行参数，方便后续进行随机。
@@ -710,11 +774,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         WorkflowStepWrapperRespVO posterStepWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
         // 获取到海报配置
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-        // 如果没有海报步骤或者海报风格配置不存在，直接创建一个执行参数
+        // 如果没有海报步骤或者海报风格配置不存在，抛出异常
         if (Objects.isNull(posterStepWrapper) || CollectionUtil.isEmpty(posterStyleList)) {
-            CreativeContentExecuteParam planExecute = new CreativeContentExecuteParam();
-            planExecute.setAppInformation(handlerExecuteApp(appInformation));
-            creativeContentExecuteList.add(planExecute);
+            throw ServiceExceptionUtil.invalidParamException("海报步骤或者海报风格配置不存在，请检查您的配置！");
         }
 
         // 素材步骤的步骤ID
@@ -735,8 +797,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 处理并且填充应用
             AppMarketRespVO appMarketResponse = handlerExecuteApp(appInformation);
             // 将处理后的应用填充到执行参数中
-            Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
-            appMarketResponse.putStepVariable(posterStepId, variableMap);
+            appMarketResponse.putVariable(posterStepId, CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
 
             CreativeContentExecuteParam planExecute = new CreativeContentExecuteParam();
             planExecute.setAppInformation(appMarketResponse);
@@ -776,10 +837,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 素材处理器进行素材处理
         // 不同的处理器处理海报风格
         MaterialMetadata materialMetadata = new MaterialMetadata();
+        materialMetadata.setAppUid(appInformation.getUid());
+        materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
+        materialMetadata.setPlanSource(planSource);
+//        materialMetadata.setMaterialLibraryUid(libraryUid);
+        materialMetadata.setMaterialUsageModel(materialUsageModel);
         materialMetadata.setMaterialType(businessType);
         materialMetadata.setMaterialStepId(materialStepId);
         materialMetadata.setMaterialFieldList(fieldList);
+        materialMetadata.setPlanUid(creativePlan.getUid());
+
         Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList, materialMetadata);
+//        boolean isAllEmptyMaterial = materialMap.values().stream().anyMatch(CollectionUtil::isNotEmpty);
+//        if (!isAllEmptyMaterial) {
+//            throw ServiceExceptionUtil.invalidParamException("素材分配失败，请检查您的图片配置或者海报配置是否正确");
+//        }
         // 二次处理批量内容任务
         List<CreativeContentCreateReqVO> handleContentCreateRequestList = Lists.newArrayList();
         for (int index = 0; index < contentCreateRequestList.size(); index++) {
@@ -790,28 +862,25 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             if (Objects.isNull(posterStepWrapper)) {
                 continue;
             }
-            VariableItemRespVO posterStyleVariable = appResponse.getStepVariable(posterStepId, CreativeConstants.POSTER_STYLE);
+            VariableItemRespVO posterStyleVariable = appResponse.getVariableItem(posterStepId, CreativeConstants.POSTER_STYLE);
             if (StringUtil.objectNotBlank(posterStyleVariable)) {
                 // 获取海报风格
                 PosterStyleDTO posterStyle = JsonUtils.parseObject(String.valueOf(posterStyleVariable.getValue()), PosterStyleDTO.class);
                 // 获取到该风格下的素材列表
                 List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
                 // 如果没有素材列表，直接跳过，不创建任务
-                if (handleMaterialList.isEmpty()) {
-                    // 如果没有素材列表，直接跳过，不创建任务
-                    continue;
-                }
+//                if (handleMaterialList.isEmpty()) {
+//                    // 如果没有素材列表，直接跳过，不创建任务
+//                    continue;
+//                }
 
                 // 不同的处理器处理海报风格
                 PosterStyleDTO style = materialHandler.handlePosterStyle(posterStyle, handleMaterialList, materialMetadata);
 
                 // 将处理后的海报风格填充到执行参数中
-                Map<String, Object> variableMap = Collections.singletonMap(CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
-                appResponse.putStepVariable(posterStepId, variableMap);
-
+                appResponse.putVariable(posterStepId, CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
                 // 将素材库的素材列表填充上传素材步骤变量中
-                Map<String, Object> handleMaterialMap = Collections.singletonMap(CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(handleMaterialList));
-                appResponse.putStepVariable(materialStepId, handleMaterialMap);
+                appResponse.putVariable(materialStepId, CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(handleMaterialList));
             }
             contentExecute.setAppInformation(appResponse);
             contentCreateRequest.setExecuteParam(contentExecute);
@@ -853,7 +922,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                     Optional<String> posterStyleOptional = Optional.ofNullable(item)
                             .map(CreativeContentCreateReqVO::getExecuteParam)
                             .map(CreativeContentExecuteParam::getAppInformation)
-                            .map(appResponse -> appResponse.getStepVariableValue(posterStepId, CreativeConstants.POSTER_STYLE));
+                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
 
                     if (!posterStyleOptional.isPresent()) {
                         return null;
@@ -874,48 +943,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      *
      * @param request 创作计划请求
      */
-    private void handlerAndValidate(CreativePlanCreateReqVO request) {
+    private void handlerAndValidate(CreativePlanModifyReqVO request) {
         request.validate();
-        CreativePlanConfigurationDTO configuration = request.getConfiguration();
-        AppMarketRespVO appInformation = configuration.getAppInformation();
-        // 应用校验
-        CreativeUtils.validAppInformation(appInformation);
-
-        // 图片风格
-        validImage(appInformation, configuration);
-
-        // 校验素材配置
-        MaterialDefineUtil.verifyStep(appInformation);
-
-        // 处理海报风格数据
-        validPoster(configuration, request);
-    }
-
-    /**
-     * 图片风格校验
-     *
-     * @param appInformation 应用信息
-     * @param configuration  配置信息
-     */
-    private void validImage(AppMarketRespVO appInformation, CreativePlanConfigurationDTO configuration) {
-        WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
-        if (Objects.nonNull(posterWrapper)) {
-            AppValidate.notEmpty(configuration.getImageStyleList(), "图片生成步骤【" + posterWrapper.getName() + "】未选择图片风格，最少需要选择一个图片风格！");
-        }
-    }
-
-    /**
-     * 处理海报风格数据
-     *
-     * @param configuration
-     * @param request
-     */
-    private void validPoster(CreativePlanConfigurationDTO configuration, CreativePlanCreateReqVO request) {
-        List<PosterStyleDTO> imageStyleList = CollectionUtil.emptyIfNull(configuration.getImageStyleList());
-        List<PosterStyleDTO> styleList = CreativeUtils.preHandlerPosterStyleList(imageStyleList);
-
-        configuration.setImageStyleList(styleList);
-        request.setConfiguration(configuration);
     }
 
 }

@@ -2,13 +2,16 @@ package com.starcloud.ops.business.app.service.market.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListGroupByCategoryQuery;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
@@ -20,6 +23,8 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.operate.AppOperateConvert;
@@ -33,14 +38,18 @@ import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -87,6 +96,9 @@ public class AppMarketServiceImpl implements AppMarketService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private CreativeMaterialManager creativeMaterialManager;
 
     /**
      * 获取应用详情
@@ -142,11 +154,38 @@ public class AppMarketServiceImpl implements AppMarketService {
     public AppMarketRespVO getAndIncreaseView(String uid) {
         AppValidate.notBlank(uid, ErrorCodeConstants.MARKET_UID_REQUIRED);
         // 查询应用市场信息
-        AppMarketDO appMarket = appMarketMapper.getWithoutMaterial(uid);
+        AppMarketDO appMarket = appMarketMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, uid);
 
         // 转换应用数据
         AppMarketRespVO response = AppMarketConvert.INSTANCE.convertResponse(appMarket);
+
+        // 迁移旧素材数据
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType())) {
+            WorkflowStepWrapperRespVO stepByHandler = response.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+            if (CollectionUtil.isNotEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                // 从数据库迁移
+                creativeMaterialManager.migrateFromData(appMarket.getName(), appMarket.getUid(),
+                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, appMarket.getMaterialList(), Long.valueOf(appMarket.getCreator()));
+                appMarket.setMaterialList(Collections.emptyList());
+                appMarketMapper.updateById(appMarket);
+
+            } else if (CollectionUtil.isEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
+                if (com.baomidou.mybatisplus.core.toolkit.StringUtils.isBlank(stepVariableValue)) {
+                    // 新建
+                    creativeMaterialManager.createEmptyLibrary(appMarket.getName(), appMarket.getUid(),
+                            MaterialBindTypeEnum.APP_MARKET.getCode(), Long.valueOf(appMarket.getCreator()));
+                } else {
+                    // 从变量迁移
+                    creativeMaterialManager.migrateFromConfig(appMarket.getName(), appMarket.getUid(),
+                            MaterialBindTypeEnum.APP_MARKET.getCode(), stepVariableValue, Long.valueOf(appMarket.getCreator()));
+                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
+                    appMarket.setConfig(JsonUtils.toJsonString(response.getWorkflowConfig()));
+                    appMarketMapper.updateById(appMarket);
+                }
+            }
+        }
 
         // 获取当前登录用户并且校验
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
@@ -283,7 +322,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         // 按照类别分组
         Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).parallelStream()
                 .filter(item -> StringUtils.isNotBlank(item.getCategory()))
-                .map(AppMarketConvert.INSTANCE::convertResponse)
+                .map(AppMarketConvert.INSTANCE::convertResponseWithId)
                 .peek(item -> {
                     if (CollectionUtil.isNotEmpty(favoriteMap)) {
                         item.setIsFavorite(favoriteMap.containsKey(item.getUid()));
@@ -306,8 +345,10 @@ public class AppMarketServiceImpl implements AppMarketService {
 
             marketList = marketList.stream()
                     .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
-                            .thenComparing(AppMarketRespVO::getUpdateTime, Comparator.nullsLast(LocalDateTime::compareTo))
-                    ).collect(Collectors.toList());
+                            .thenComparingLong(AppMarketRespVO::getId)
+                    )
+                    .peek(item -> item.setId(null))
+                    .collect(Collectors.toList());
 
             // 转换数据
             AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
@@ -376,6 +417,18 @@ public class AppMarketServiceImpl implements AppMarketService {
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.insert();
+
+        // 为新的应用创建一个新的素材库
+        MaterialLibrarySliceAppReqVO source = new MaterialLibrarySliceAppReqVO();
+        source.setAppUid(appMarketUid);
+
+        MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
+        target.setAppUid(appEntity.getUid());
+        target.setAppName(appEntity.getName());
+        target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
+        target.setUserId(WebFrameworkUtils.getLoginUserId());
+
+        creativeMaterialManager.copyLibrary(source, target);
         return appEntity.getUid();
     }
 

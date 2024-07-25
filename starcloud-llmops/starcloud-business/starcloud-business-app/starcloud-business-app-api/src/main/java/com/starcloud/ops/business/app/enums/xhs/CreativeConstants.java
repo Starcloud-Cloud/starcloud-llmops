@@ -40,6 +40,11 @@ public interface CreativeConstants {
     String FIELD_MAP = "FIELD_MAP";
 
     /**
+     * 图片链接集合
+     */
+    String IMAGE_OCR_URL = "IMAGE_OCR_URL";
+
+    /**
      * 参考内容 带模仿要求
      */
     String REFERS_IMITATE = "REFERS_IMITATE";
@@ -134,6 +139,11 @@ public interface CreativeConstants {
     String MATERIAL_LIST = "MATERIAL_LIST";
 
     /**
+     * 素材节点 素材列表
+     */
+    String MATERIAL_USAGE_MODEL = "MATERIAL_USAGE_MODEL";
+
+    /**
      * 素材节点 素材生成配置
      */
     String MATERIAL_GENERATE_CONFIG = "MATERIAL_GENERATE_CONFIG";
@@ -142,6 +152,11 @@ public interface CreativeConstants {
      * 素材节点 素材生成配置
      */
     String CUSTOM_MATERIAL_GENERATE_CONFIG = "CUSTOM_MATERIAL_GENERATE_CONFIG";
+
+    /**
+     * 素材库配置
+     */
+    String LIBRARY_QUERY = "LIBRARY_QUERY";
 
     /**
      * 参考素材JsonSchema

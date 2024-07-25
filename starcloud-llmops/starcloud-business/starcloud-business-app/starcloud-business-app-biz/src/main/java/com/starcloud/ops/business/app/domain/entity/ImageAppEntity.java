@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHandler;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
@@ -83,8 +84,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(ImageReqVO request) {
-        getImageConfig().validate();
+    protected void doValidate(ImageReqVO request, ValidateTypeEnum validateType) {
+        getImageConfig().validate(validateType);
     }
 
     /**

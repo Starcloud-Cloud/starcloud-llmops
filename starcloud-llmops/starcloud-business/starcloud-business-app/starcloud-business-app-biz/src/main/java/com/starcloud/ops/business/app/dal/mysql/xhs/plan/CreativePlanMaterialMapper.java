@@ -8,11 +8,12 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMateri
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface CreativePlanMaterialMapper  extends BaseMapper<CreativePlanMaterialDO> {
+public interface CreativePlanMaterialMapper extends BaseMapper<CreativePlanMaterialDO> {
 
     default CreativePlanMaterialDO getMaterial(String uid) {
         LambdaQueryWrapper<CreativePlanMaterialDO> wrapper = Wrappers.lambdaQuery(CreativePlanMaterialDO.class);
-        wrapper.select(CreativePlanMaterialDO::getUid, CreativePlanMaterialDO::getMaterialList);
+        wrapper.select(CreativePlanMaterialDO::getUid, CreativePlanMaterialDO::getMaterialList,
+                CreativePlanMaterialDO::getId);
         wrapper.eq(CreativePlanMaterialDO::getUid, uid);
         return this.selectOne(wrapper);
     }

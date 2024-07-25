@@ -2,10 +2,10 @@ package com.starcloud.ops.business.app.convert.xhs.batch;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchReqVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.CreativePlanConfigurationDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import org.apache.commons.lang3.StringUtils;

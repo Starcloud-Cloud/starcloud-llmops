@@ -34,9 +34,9 @@ import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
 import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
@@ -149,7 +149,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(ChatRequestVO request) {
+    protected void doValidate(ChatRequestVO request, ValidateTypeEnum validateType) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
@@ -159,7 +159,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
-        getChatConfig().validate();
+        getChatConfig().validate(validateType);
     }
 
     @Override
@@ -230,10 +230,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         if (StringUtils.isBlank(request.getModelType())) {
             throw ServiceExceptionUtil.invalidParamException("请选择大模型类型！");
         }
-        // 获取到模型类型，从字典中获取
-        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
         // 获取到执行的模型
-        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), appTypeEnum);
+        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), Boolean.TRUE);
         return llmModelType.getName();
     }
 
@@ -295,10 +293,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         if (StringUtils.isBlank(request.getModelType())) {
             throw ServiceExceptionUtil.invalidParamException("请选择大模型类型！");
         }
-        // 获取到模型类型，从字典中获取
-        AppTypeEnum appTypeEnum = AppTypeEnum.valueOf(this.getType());
         // 获取到执行的模型
-        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), appTypeEnum);
+        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), Boolean.TRUE);
 
         // 设置模型到配置中
         Optional.ofNullable(this.getChatConfig())

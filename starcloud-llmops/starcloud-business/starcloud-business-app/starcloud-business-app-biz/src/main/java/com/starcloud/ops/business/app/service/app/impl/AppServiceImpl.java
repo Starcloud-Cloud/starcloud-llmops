@@ -3,8 +3,10 @@ package com.starcloud.ops.business.app.service.app.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -22,6 +24,8 @@ import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -30,23 +34,31 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
-import com.starcloud.ops.business.app.enums.app.*;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
-import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -58,7 +70,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
@@ -90,6 +109,10 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private AppMarketMapper appMarketMapper;
+
+    @Resource
+    private CreativeMaterialManager creativeMaterialManager;
+
 
     /**
      * 查询应用语言列表
@@ -180,7 +203,7 @@ public class AppServiceImpl implements AppService {
             return RecommendStepWrapperFactory.defCommonStepWrapperList();
         }
         // 应用为媒体矩阵且为管理员
-        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(type) && UserUtils.isAdmin()) {
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(type)) {
             return RecommendStepWrapperFactory.defMediaMatrixStepWrapperList();
         }
         throw exception(ErrorCodeConstants.APP_TYPE_NONSUPPORT);
@@ -206,17 +229,43 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO get(String uid) {
-        AppDO app = appMapper.getWithoutMaterial(uid);
+        AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.APP_NON_EXISTENT, uid);
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
-            WorkflowStepWrapperRespVO posterStepWrapper = appResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
-            if (Objects.nonNull(posterStepWrapper)) {
-                // 获取到海报系统配置的变量
-                WorkflowStepWrapperRespVO handlerStepWrapper = CreativeUtils.handlerPosterStepWrapper(posterStepWrapper);
-                // 替换原有的海报系统配置的变量
-                appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
+//            WorkflowStepWrapperRespVO posterStepWrapper = appResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
+//            if (Objects.nonNull(posterStepWrapper)) {
+//                // 获取到海报系统配置的变量
+//                WorkflowStepWrapperRespVO handlerStepWrapper = CreativeUtils.handlerPosterStepWrapper(posterStepWrapper);
+//                // 替换原有的海报系统配置的变量
+//                appResponse.setStepByHandler(PosterActionHandler.class.getSimpleName(), handlerStepWrapper);
+//            }
+            // 迁移旧素材数据
+            WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class.getSimpleName());
+            if (CollectionUtil.isNotEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                // 从数据库迁移
+                creativeMaterialManager.migrateFromData(app.getName(), app.getUid(),
+                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, app.getMaterialList(), Long.valueOf(app.getCreator()));
+                app.setMaterialList(Collections.emptyList());
+                appMapper.updateById(app);
+            } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
+                String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
+
+                if (StringUtils.isBlank(stepVariableValue)) {
+                    // 新建
+                    creativeMaterialManager.createEmptyLibrary(app.getName(), app.getUid(),
+                            MaterialBindTypeEnum.APP_MAY.getCode(), Long.valueOf(app.getCreator()));
+                } else {
+                    // 从变量迁移
+                    creativeMaterialManager.migrateFromConfig(app.getName(), app.getUid(),
+                            MaterialBindTypeEnum.APP_MAY.getCode(), stepVariableValue, Long.valueOf(app.getCreator()));
+                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
+                    app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
+                    appMapper.updateById(app);
+                }
             }
+
+
         }
         return appResponse;
     }
@@ -243,12 +292,22 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        appEntity.insert();
         appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.insert();
         return AppConvert.INSTANCE.convertResponse(appEntity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AppRespVO create(AppUpdateReqVO request) {
+        AppRespVO appRespVO = create((AppReqVO) request);
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(request.getType())) {
+            creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
+        }
+        return appRespVO;
     }
 
     /**
@@ -276,6 +335,8 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdateTime(LocalDateTime.now());
         // 插入数据库
         appEntity.insert();
+        creativeMaterialManager.copyAppMaterial(uid, appEntity.getName(), appEntity.getUid());
+
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
 
@@ -465,7 +526,6 @@ public class AppServiceImpl implements AppService {
             if (StringUtils.isBlank(request.getIcon())) {
                 request.setIcon(category.getIcon());
             }
-            MaterialDefineUtil.verifyAppConfig(request.getWorkflowConfig());
             // 图片默认为分类图片
             request.setImages(Collections.singletonList(category.getImage()));
         }

@@ -5,9 +5,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import com.starcloud.ops.business.app.api.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.api.xhs.material.dto.CreativeMaterialGenerationDTO;
+import com.starcloud.ops.business.app.model.creative.CreativeMaterialGenerationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.BaseMaterialVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.FilterMaterialReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
@@ -94,12 +93,6 @@ public class CreativeMaterialController {
     @Operation(summary = "素材生成")
     public CommonResult<JSON> customMaterialGenerate(@Validated @RequestBody CreativeMaterialGenerationDTO request) {
         return CommonResult.success(creativeMaterialService.customMaterialGenerate(request));
-    }
-
-    @GetMapping("/list")
-    @Operation(summary = "素材列表", description = "素材列表")
-    public CommonResult<List<Map<String, Object>>> listMaterial(@RequestParam("uid") String uid) {
-        return CommonResult.success(creativeMaterialService.listMaterial(uid));
     }
 
     @PostMapping(value = "/infoPageByMarketUid")

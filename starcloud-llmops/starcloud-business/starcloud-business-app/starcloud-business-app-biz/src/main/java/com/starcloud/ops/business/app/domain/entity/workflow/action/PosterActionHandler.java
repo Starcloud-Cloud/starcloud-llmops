@@ -21,10 +21,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.PosterTitleDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -35,10 +31,15 @@ import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTitleDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -125,11 +126,42 @@ public class PosterActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (Objects.isNull(systemPosterConfig)) {
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+        }
+        if (systemPosterConfig instanceof String) {
+            String systemPosterStyleConfig = String.valueOf(systemPosterConfig);
+            if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            }
+            List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
+            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+        }
+        if (systemPosterConfig instanceof List) {
+            List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
+            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
+        }
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_IMAGE;
     }
@@ -140,11 +172,13 @@ public class PosterActionHandler extends BaseActionHandler {
      * @return
      */
     @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         ObjectSchema objectSchema = new ObjectSchema();
-        objectSchema.setTitle(workflowStepWrapper.getStepCode());
-        objectSchema.setDescription(workflowStepWrapper.getDescription());
-        objectSchema.setId(workflowStepWrapper.getFlowStep().getHandler());
+        objectSchema.setTitle(stepWrapper.getStepCode());
+        objectSchema.setDescription(stepWrapper.getDescription());
+        objectSchema.setId(stepWrapper.getFlowStep().getHandler());
 
         for (int i = 0; i < 10; i++) {
             if (i == 0) {
@@ -267,7 +301,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private boolean hasDependencyTemplate(PosterStyleDTO style) {
-        return style.getPosterTemplateList().stream().anyMatch(PosterTemplateDTO::getIsDependency);
+        return style.posterTemplateList().stream().anyMatch(PosterTemplateDTO::getIsDependency);
     }
 
     /**
@@ -279,11 +313,11 @@ public class PosterActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private void markerDependencyTemplate(AppContext context, PosterStyleDTO posterStyle) {
         // 校验海报风格模板
-        List<PosterTemplateDTO> templateList = posterStyle.getPosterTemplateList();
+        List<PosterTemplateDTO> templateList = posterStyle.posterTemplateList();
         String stepCode = context.getStepWrapper().getStepCode();
         for (int i = 0; i < templateList.size(); i++) {
             PosterTemplateDTO posterTemplate = templateList.get(i);
-            List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
+            List<PosterVariableDTO> variableList = posterTemplate.posterVariableList();
             // 默认设置为不依赖生成结果
             posterTemplate.setIsDependency(Boolean.FALSE);
             // 循环处理变量列表
@@ -351,7 +385,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private void handlerCopyTemplate(AppContext context, PosterStyleDTO style) {
         // 获取海报模板列表
-        List<PosterTemplateDTO> templateList = style.getPosterTemplateList();
+        List<PosterTemplateDTO> templateList = style.posterTemplateList();
 
         PosterTemplateDTO copyTemplate = null;
         int copyIndex = -1;
@@ -429,7 +463,7 @@ public class PosterActionHandler extends BaseActionHandler {
             Map<String, Object> replaceValueMap = context.parseMapFromVariablesValues(variableMap, materialMap);
 
             // 循环处理变量列表，进行值填充
-            for (PosterVariableDTO variable : copy.getPosterVariableList()) {
+            for (PosterVariableDTO variable : copy.posterVariableList()) {
                 // 从作用域数据中获取变量值
                 Object value = replaceValueMap.get(variable.getUuid());
                 // 如果从作用域数据中获取的变量值为空，则为空字符串。
@@ -452,11 +486,13 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param style 海报风格
      * @return 需要的素材数量
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private int calculateNeedMaterialCount(PosterStyleDTO style) {
 
         // 报模板，图片变量值，获取到选择素材的最大索引列表
         List<Integer> templateIndexList = new ArrayList<>();
-        for (PosterTemplateDTO template : style.getPosterTemplateList()) {
+        for (PosterTemplateDTO template : style.posterTemplateList()) {
             // 如果海报模板为空，设置默认值为 -1
             if (Objects.isNull(template)) {
                 templateIndexList.add(-1);
@@ -479,6 +515,8 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param style 海报风格
      * @return 需要的素材数量
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private int calculateTemplateNeedMaterialCount(PosterTemplateDTO template) {
 
         // 如果海报模板为空，设置默认值为 -1
@@ -486,7 +524,7 @@ public class PosterActionHandler extends BaseActionHandler {
             return -1;
         }
         // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
-        Integer maxIndex = template.getPosterVariableList().stream()
+        Integer maxIndex = template.posterVariableList().stream()
                 .filter(Objects::nonNull)
                 .map(item -> {
                     Integer matcher = matcherMax(item.emptyIfNullValue());
@@ -505,6 +543,8 @@ public class PosterActionHandler extends BaseActionHandler {
      * @return 素材列表
      * @return
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private List<Map<String, Object>> getMaterialList(AppContext context) {
         // 获取素材的步骤
         WorkflowStepWrapper materialStepWrapper = context.getStepWrapper(MaterialActionHandler.class);
@@ -529,7 +569,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     private List<PosterTemplateDTO> getPosterTemplateList(PosterStyleDTO posterStyle, boolean isDependencyResult) {
-        return posterStyle.getPosterTemplateList().stream().filter(item -> item.getIsDependency().equals(isDependencyResult)).filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute()).collect(Collectors.toList());
+        return posterStyle.posterTemplateList().stream().filter(item -> item.getIsDependency().equals(isDependencyResult)).filter(item -> Objects.isNull(item.getIsExecute()) || item.getIsExecute()).collect(Collectors.toList());
     }
 
     /**
@@ -542,7 +582,7 @@ public class PosterActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     private void assemble(AppContext context, PosterStyleDTO posterStyle, boolean isDependencyResult) {
         // 获取海报模版列表
-        List<PosterTemplateDTO> posterTemplateList = posterStyle.getPosterTemplateList();
+        List<PosterTemplateDTO> posterTemplateList = posterStyle.posterTemplateList();
         String stepCode = context.getStepWrapper().getStepCode();
 
         // 循环处理海报模板列表
@@ -553,7 +593,7 @@ public class PosterActionHandler extends BaseActionHandler {
             }
 
             // 获取海报模板变量列表
-            List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
+            List<PosterVariableDTO> variableList = posterTemplate.posterVariableList();
             // 如果变量列表为空，则直接执行图片生成
             if (CollectionUtil.isEmpty(variableList)) {
                 posterTemplate.setIsExecute(Boolean.TRUE);
@@ -624,7 +664,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 将不依赖结果的模板结果放入到全局上下文中。保证 undependencyResponse 和 templateList 顺序一致
         Map<String, Object> posterResult = new HashMap<>();
         List<PosterGenerationHandler.Response> responseList = SerializationUtils.clone(new ArrayList<>(undependencyResponse));
-        List<PosterTemplateDTO> templateList = style.getPosterTemplateList();
+        List<PosterTemplateDTO> templateList = style.posterTemplateList();
         for (int i = 0; i < templateList.size(); i++) {
             PosterTemplateDTO template = templateList.get(i);
             if (i == 0) {
@@ -671,7 +711,7 @@ public class PosterActionHandler extends BaseActionHandler {
         List<PosterGenerationHandler.Response> list = new ArrayList<>();
         List<PosterGenerationHandler.Response> dependencyList = SerializationUtils.clone(new ArrayList<>(dependencyResponse));
         List<PosterGenerationHandler.Response> undependencyList = SerializationUtils.clone(new ArrayList<>(undependencyResponse));
-        for (PosterTemplateDTO template : style.getPosterTemplateList()) {
+        for (PosterTemplateDTO template : style.posterTemplateList()) {
             if (template.getIsDependency()) {
                 list.add(dependencyList.remove(0));
             } else {
@@ -697,7 +737,7 @@ public class PosterActionHandler extends BaseActionHandler {
         response.setType(AppStepResponseTypeEnum.JSON.name());
         response.setIsShow(Boolean.TRUE);
         response.setStepConfig(JsonUtils.toJsonString(style));
-        response.setMessage(JsonUtils.toJsonString(style));
+        response.setMessage(" ");
         response.setAnswer(JsonUtils.toJsonPrettyString(list));
         response.setOutput(JsonData.of(list));
         response.setCostPoints(list.size());
@@ -885,9 +925,11 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param posterTemplateList 模板列表
      * @return 模板变量集合
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static Map<String, Object> getPosterVariableMap(PosterTemplateDTO posterTemplate, boolean isIncludeMultimodal) {
         Map<String, Object> variableMap = new HashMap<>();
-        for (PosterVariableDTO variable : posterTemplate.getPosterVariableList()) {
+        for (PosterVariableDTO variable : posterTemplate.posterVariableList()) {
             // 如果不包含多模态处理生成标题，则不包含多模态处理生成标题的变量
             if (!isIncludeMultimodal) {
                 if (MULTIMODAL_PATTERN.matcher(variable.emptyIfNullValue()).find()) {
@@ -906,11 +948,13 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param posterTemplate 海报模版
      * @return 是否需要多模态处理生成标题
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static boolean isNeedMultimodal(PosterTemplateDTO posterTemplate) {
         // 如果需要多模态处理生成标题，只要该值为 false，则不需要多模态处理。该值为 true，且变量中有匹配到多模态正则表达式，才需要多模态处理
         if (Objects.nonNull(posterTemplate.getIsMultimodalTitle()) && posterTemplate.getIsMultimodalTitle()) {
             // 获取所有的变量列表
-            List<PosterVariableDTO> variableList = posterTemplate.getPosterVariableList();
+            List<PosterVariableDTO> variableList = posterTemplate.posterVariableList();
             // 只要有一个变量匹配到多模态正则表达式，则需要多模态处理
             return variableList.stream().anyMatch(item -> MULTIMODAL_PATTERN.matcher(item.emptyIfNullValue()).find());
         }
@@ -923,6 +967,8 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param posterTemplate 海报模版
      * @return 图片消息列表
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static List<String> imageMessageList(PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
         // 图片变量列表
         List<PosterVariableDTO> imageVariableList = CreativeUtils.getImageVariableList(posterTemplate);
@@ -950,6 +996,8 @@ public class PosterActionHandler extends BaseActionHandler {
      * @param input 输入
      * @return 返回的数字，没有匹配到，返回 -1
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     private static Integer matcherMax(String input) {
         if (StringUtils.isBlank(input)) {
             return -1;
@@ -960,7 +1008,7 @@ public class PosterActionHandler extends BaseActionHandler {
         int max = -1;
         try {
             while (matcher.find()) {
-                int number = Integer.valueOf(matcher.group(1));
+                int number = Integer.parseInt(matcher.group(1));
                 if (number > max) {
                     max = number;
                 }

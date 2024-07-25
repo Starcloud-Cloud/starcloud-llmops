@@ -293,4 +293,25 @@ public interface CreativeErrorCodeConstants {
      * 段落数量使必填的
      */
     ErrorCode PARAGRAPH_COUNT_IS_REQUIRED = new ErrorCode(750100317, "段落数量使必填的！");
+
+
+    /**
+     * url地址不是图片
+     */
+    ErrorCode URL_IS_NOT_IMAGES = new ErrorCode(760100001, "url地址不是图片！{}");
+
+    /**
+     * 插件不存在
+     */
+    ErrorCode PLUGIN_NOT_EXIST = new ErrorCode(760100002, "插件不存在！{}");
+
+    /**
+     * 插件执行失败
+     */
+    ErrorCode PLUGIN_EXECUTE_ERROR = new ErrorCode(760100003, "插件执行失败！{}");
+
+    /**
+     * 插件配置错误
+     */
+    ErrorCode PLUGIN_CONFIG_ERROR = new ErrorCode(760100004, "插件配置错误！{}");
 }

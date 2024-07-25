@@ -3,15 +3,17 @@ package com.starcloud.ops.business.app.api.app.vo.response.action;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * 工作流步骤实体
@@ -47,41 +49,5 @@ public class WorkflowStepRespVO extends ActionRespVO {
      */
     @Schema(description = "步骤版本，默认版本 1")
     private Integer version;
-
-    /**
-     * 步骤标签
-     */
-    @Schema(description = "步骤标签")
-    private List<String> tags;
-
-    /**
-     * 步骤场景
-     */
-    @Schema(description = "步骤场景")
-    private List<String> scenes;
-
-    /**
-     * 步骤变量
-     */
-    @Schema(description = "步骤变量")
-    private VariableRespVO variable;
-
-    /**
-     * 步骤图标
-     */
-    @Schema(description = "步骤图标")
-    private String icon;
-
-
-    /**
-     * 添加步骤变量
-     *
-     * @param variable 变量
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putStepModelVariable(Map<String, Object> variable) {
-        this.variable.putVariable(variable);
-    }
 
 }

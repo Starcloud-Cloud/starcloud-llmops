@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -9,17 +11,22 @@ import cn.kstry.framework.core.annotation.TaskComponent;
 import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -39,6 +46,8 @@ import java.util.Map;
 @TaskComponent
 public class MaterialActionHandler extends BaseActionHandler {
 
+    private static final ThreadLocal<JsonSchema> JSON_SCHEMA = new TransmittableThreadLocal<>();
+
     /**
      * 流程执行器，action 执行入口
      *
@@ -54,41 +63,55 @@ public class MaterialActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
     }
 
+    /**
+     * 具体步骤执行器的入参定义的{@code JsonSchema}
+     *
+     * @param stepWrapper 当前步骤包装器
+     * @return 具体步骤执行器的入参定义的 {@code JsonSchema}
+     */
     @Override
-    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getInVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         //不用返回入参
         return null;
     }
 
     /**
-     * 只根据配置的 素材类型，直接获取对应的 素材类型 对象的结构
+     * 具体步骤执行器的出参定义的{@code JsonSchema}
      *
-     * @return 输出变量的jsonSchema
+     * @param stepWrapper 当前步骤包装器
+     * @return 具体步骤执行器的出参定义的 {@code JsonSchema}
      */
     @Override
-    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper workflowStepWrapper) {
-        //构造一层 array schema
-        ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
-        docSchema.setTitle(workflowStepWrapper.getStepCode());
-        docSchema.setDescription(workflowStepWrapper.getDescription());
-
-        ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
-
-        // 素材自定义配置
-        String materialDefine = workflowStepWrapper.getVariablesValue(CreativeConstants.MATERIAL_DEFINE);
-        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(materialDefine);
-        arraySchema.setItemsSchema(materialSchema);
-
-        return docSchema;
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
+        return JSON_SCHEMA.get();
     }
 
     /**
@@ -106,10 +129,20 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 开始日志打印
         loggerBegin(context, "素材上传步骤");
 
+        //保持跟返回结果一样的JsonSchema
+        JsonSchema outJsonSchema;
+        CreativePlanMapper creativePlanMapper = SpringUtil.getBean(CreativePlanMapper.class);
+        CreativePlanDO planDO = creativePlanMapper.getByAppUid(context.getUid(), context.getUserId());
+        if (CreativePlanSourceEnum.isApp(planDO.getSource())) {
+            outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getAppUid());
+        } else {
+            outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getUid());
+        }
+
+        JSON_SCHEMA.set(outJsonSchema);
+
         // 获取所有上游信息
         Map<String, Object> params = context.getContextVariablesValues();
-        //保持跟返回结果一样的JsonSchema
-        JsonSchema outJsonSchema = this.getOutVariableJsonSchema(context.getStepWrapper());
 
         // 获取到资料库类型
         String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
@@ -129,7 +162,7 @@ public class MaterialActionHandler extends BaseActionHandler {
 
         // 结束日志打印
         loggerSuccess(context, response, "素材上传步骤");
-
+        JSON_SCHEMA.remove();
         return response;
     }
 
@@ -148,7 +181,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         response.setIsShow(Boolean.FALSE);
         response.setAnswer(answer);
         response.setOutput(JsonData.of(answer));
-        response.setMessage(JsonUtils.toJsonString(params));
+        response.setMessage(" ");
         response.setStepConfig(params);
         response.setMessageTokens(0L);
         response.setMessageUnitPrice(BigDecimal.ZERO);

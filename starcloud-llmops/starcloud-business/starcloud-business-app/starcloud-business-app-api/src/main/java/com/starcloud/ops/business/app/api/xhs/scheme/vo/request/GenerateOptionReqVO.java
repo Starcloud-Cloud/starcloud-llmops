@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.vo.request;
 
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -17,5 +18,11 @@ public class GenerateOptionReqVO {
     /**
      * 逻辑上应该前端的所以改动都要请求下接口重新进行计算
      */
-    private AppReqVO appReqVO;
+    private AppUpdateReqVO appReqVO;
+
+    @Schema(description = "APP/MARKET")
+    private String source;
+
+    @Schema(description = "计划uid source为MARKET时必填")
+    private String planUid;
 }

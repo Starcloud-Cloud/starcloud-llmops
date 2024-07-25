@@ -8,7 +8,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingStyleEnum;
 import com.starcloud.ops.business.app.recommend.enums.WritingToneEnum;
 import com.starcloud.ops.business.app.util.AppUtils;
@@ -411,9 +411,45 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * 素材库
+     *
+     * @return
+     */
+    public static VariableItemRespVO defMaterialLibraryVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.LIBRARY_QUERY);
+        variableItem.setLabel("素材库定义");
+        variableItem.setDescription("素材库定义");
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
+     * 素材使用模式
+     *
+     * @return 素材使用模式
+     */
+    public static VariableItemRespVO defMaterialUsageModelVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.MATERIAL_USAGE_MODEL);
+        variableItem.setLabel("素材使用模式");
+        variableItem.setDescription("素材使用模式");
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.INPUT.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.FALSE);
+        return variableItem;
+    }
+
+    /**
      * xhs字段映射
      *
-     * @return xhs字段映射
+     * @return
      */
     public static VariableItemRespVO defFieldMapVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -433,7 +469,7 @@ public class RecommendVariableItemFactory {
     /**
      * 小红书笔记地址
      *
-     * @return 小红书笔记地址
+     * @return
      */
     public static VariableItemRespVO defXhsUrlVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
@@ -450,6 +486,25 @@ public class RecommendVariableItemFactory {
         return variableItem;
     }
 
+    /**
+     * 图片oss地址
+     *
+     * @return
+     */
+    public static VariableItemRespVO defImageUrlVariable() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.IMAGE_OCR_URL);
+        variableItem.setLabel("图片oss地址");
+        variableItem.setDefaultValue(StrUtil.EMPTY);
+        variableItem.setDescription("图片oss地址");
+        variableItem.setOrder(1);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.JSON.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
 
     /**
      * 素材列表
@@ -524,17 +579,17 @@ public class RecommendVariableItemFactory {
         variableItem.setField(CreativeConstants.GENERATE_MODE);
         variableItem.setLabel("生成模式");
         variableItem.setDescription("生成模式");
-        variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
-        variableItem.setValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setDefaultValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
+        variableItem.setValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
         variableItem.setOrder(1000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.RADIO.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
-        variableItem.addOption(CreativeSchemeGenerateModeEnum.RANDOM.getLabel(), CreativeSchemeGenerateModeEnum.RANDOM.name(), "从参考内容中随机获取一条内容使用");
-        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_PARODY.getLabel(), CreativeSchemeGenerateModeEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
-        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_CUSTOM.getLabel(), CreativeSchemeGenerateModeEnum.AI_CUSTOM.name(), "直接让AI生成内容，要求越详细越好");
+        variableItem.addOption(CreativeContentGenerateModelEnum.RANDOM.getLabel(), CreativeContentGenerateModelEnum.RANDOM.name(), "从参考内容中随机获取一条内容使用");
+        variableItem.addOption(CreativeContentGenerateModelEnum.AI_PARODY.getLabel(), CreativeContentGenerateModelEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
+        variableItem.addOption(CreativeContentGenerateModelEnum.AI_CUSTOM.getLabel(), CreativeContentGenerateModelEnum.AI_CUSTOM.name(), "直接让AI生成内容，要求越详细越好");
         return variableItem;
     }
 
@@ -549,15 +604,15 @@ public class RecommendVariableItemFactory {
         variableItem.setField(CreativeConstants.GENERATE_MODE);
         variableItem.setLabel("生成模式");
         variableItem.setDescription("生成模式");
-        variableItem.setDefaultValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
-        variableItem.setValue(CreativeSchemeGenerateModeEnum.AI_PARODY.name());
+        variableItem.setDefaultValue(CreativeContentGenerateModelEnum.AI_PARODY.name());
+        variableItem.setValue(CreativeContentGenerateModelEnum.AI_PARODY.name());
         variableItem.setOrder(1000);
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.RADIO.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
-        variableItem.addOption(CreativeSchemeGenerateModeEnum.AI_PARODY.getLabel(), CreativeSchemeGenerateModeEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
+        variableItem.addOption(CreativeContentGenerateModelEnum.AI_PARODY.getLabel(), CreativeContentGenerateModelEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
         return variableItem;
     }
 

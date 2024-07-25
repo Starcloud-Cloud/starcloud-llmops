@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.service.xhs.scheme.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -12,19 +11,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeAppStepSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeExampleReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.GenerateOptionReqVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
@@ -34,27 +31,22 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO
 import com.starcloud.ops.business.app.dal.mysql.xhs.scheme.CreativeSchemeMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeTypeEnum;
+import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
-import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
-import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.AbstractMaterialHandler;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.Lists;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -88,12 +80,6 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Resource
     private AppMarketService appMarketService;
 
-    @Resource
-    private MaterialHandlerHolder materialHandlerHolder;
-
-    @Resource
-    private CreativeImageManager creativeImageManager;
-
     /**
      * 获取创作方案元数据
      *
@@ -104,7 +90,7 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         Map<String, Object> metadata = Maps.newHashMap();
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
         metadata.put("refersSource", CreativeSchemeRefersSourceEnum.options());
-        metadata.put("generateMode", CreativeSchemeGenerateModeEnum.options());
+        metadata.put("generateMode", CreativeContentGenerateModelEnum.options());
         return metadata;
     }
 
@@ -250,40 +236,41 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @Override
     public List<CreativeSchemeListOptionRespVO> listOption(CreativeSchemeListReqVO query) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (Objects.isNull(loginUserId)) {
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
-        }
-        query.setLoginUserId(String.valueOf(loginUserId));
-        query.setIsAdmin(UserUtils.isAdmin());
-        List<CreativeSchemeRespVO> list = list(query);
-        return CollectionUtil.emptyIfNull(list).stream().map(item -> {
-            CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
-            List<BaseSchemeStepDTO> steps = item.getConfiguration().getSteps();
-
-            // 资料库类型字段获取
-            MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(steps);
-            AppValidate.notNull(materialSchemeStep, "无法获取资料库类型步骤！");
-            MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
-            AppValidate.notNull(materialType, "无法获取资料库类型！");
-
-            // 变量信息填充
-            VariableSchemeStepDTO variableSchemeStep = CreativeUtils.getVariableSchemeStep(steps);
-            if (variableSchemeStep != null) {
-                option.setVariableList(CollectionUtil.emptyIfNull(variableSchemeStep.getVariableList()));
-            } else {
-                option.setVariableList(Collections.emptyList());
-            }
-
-            option.setUid(item.getUid());
-            option.setName(item.getName());
-            option.setMaterialType(materialType.getTypeCode());
-            option.setMaterialTypeName(materialType.getDesc());
-            option.setDescription(item.getDescription());
-            option.setCreateTime(item.getCreateTime());
-            option.setTags(item.getTags());
-            return option;
-        }).collect(Collectors.toList());
+//        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+//        if (Objects.isNull(loginUserId)) {
+//            throw ServiceExceptionUtil.exception(ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+//        }
+//        query.setLoginUserId(String.valueOf(loginUserId));
+//        query.setIsAdmin(UserUtils.isAdmin());
+//        List<CreativeSchemeRespVO> list = list(query);
+//        return CollectionUtil.emptyIfNull(list).stream().map(item -> {
+//            CreativeSchemeListOptionRespVO option = new CreativeSchemeListOptionRespVO();
+//            List<BaseSchemeStepDTO> steps = item.getConfiguration().getSteps();
+//
+//            // 资料库类型字段获取
+//            MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(steps);
+//            AppValidate.notNull(materialSchemeStep, "无法获取资料库类型步骤！");
+//            MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
+//            AppValidate.notNull(materialType, "无法获取资料库类型！");
+//
+//            // 变量信息填充
+//            VariableSchemeStepDTO variableSchemeStep = CreativeUtils.getVariableSchemeStep(steps);
+//            if (variableSchemeStep != null) {
+//                option.setVariableList(CollectionUtil.emptyIfNull(variableSchemeStep.getVariableList()));
+//            } else {
+//                option.setVariableList(Collections.emptyList());
+//            }
+//
+//            option.setUid(item.getUid());
+//            option.setName(item.getName());
+//            option.setMaterialType(materialType.getTypeCode());
+//            option.setMaterialTypeName(materialType.getDesc());
+//            option.setDescription(item.getDescription());
+//            option.setCreateTime(item.getCreateTime());
+//            option.setTags(item.getTags());
+//            return option;
+//        }).collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     /**
@@ -445,7 +432,50 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     @Override
     public List<CreativeOptionDTO> newOptions(GenerateOptionReqVO reqVO) {
         AppMarketEntity marketEntity = AppMarketConvert.INSTANCE.convert(reqVO.getAppReqVO());
-        return workflowStepOptions(marketEntity, reqVO.getStepCode());
+
+        List<WorkflowStepWrapper> workflowStepWrappers = Optional.ofNullable(marketEntity.getWorkflowConfig().getSteps()).orElse(new ArrayList<>());
+
+        List<CreativeOptionDTO> result = new ArrayList<>(workflowStepWrappers.size());
+        for (WorkflowStepWrapper stepWrapper : workflowStepWrappers) {
+            String stepCode = stepWrapper.getStepCode();
+            String desc = stepWrapper.getDescription();
+
+            CreativeOptionDTO stepOption = new CreativeOptionDTO();
+            stepOption.setName(stepCode);
+            stepOption.setDescription(desc);
+            stepOption.setCode(stepCode);
+
+            JsonSchema intJsonNode = stepWrapper.getInVariableJsonSchema();
+            stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
+
+            if (stepCode.equals(reqVO.getStepCode())) {
+                if (PosterActionHandler.class.getSimpleName().equalsIgnoreCase(stepWrapper.getFlowStep().getHandler())) {
+                    JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
+                    stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                    stepOption.setCurrentStep(true);
+                    result.add(stepOption);
+                }
+                return result;
+            }
+
+            if (MaterialActionHandler.class.getSimpleName().equalsIgnoreCase(stepWrapper.getFlowStep().getHandler())) {
+                // 素材表头jsonschema 从素材库单独计算
+                String uid;
+                if (CreativePlanSourceEnum.isApp(reqVO.getSource())) {
+                    uid = marketEntity.getUid();
+                } else {
+                    uid = reqVO.getPlanUid();
+                }
+                JsonSchema outJsonNode = JsonSchemaUtils.getOutVariableJsonSchema(uid);
+                stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                result.add(stepOption);
+            } else {
+                JsonSchema outJsonNode = stepWrapper.getOutVariableJsonSchema();
+                stepOption.setOutJsonSchema(JsonSchemaUtils.jsonNode2Str(outJsonNode));
+                result.add(stepOption);
+            }
+        }
+        return result;
     }
 
     /**
@@ -473,45 +503,45 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
     }
 
     private void mergePoster(CreativeSchemeConfigurationDTO configuration) {
-        // 获取到步骤列表
-        List<BaseSchemeStepDTO> schemeStepList = CollectionUtil.emptyIfNull(configuration.getSteps());
-        PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(schemeStepList);
-        if (Objects.isNull(posterSchemeStep)) {
-            return;
-        }
-        // 查询最新的海报模板
-        Map<String, PosterTemplateDTO> templateMap = creativeImageManager.mapPosterTemplate();
-        // 获取到海报样式集合
-        List<PosterStyleDTO> styleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
-        List<PosterStyleDTO> posterStyleList = Lists.newArrayList();
-
-        for (PosterStyleDTO posterStyle : styleList) {
-            PosterStyleDTO style = SerializationUtils.clone(posterStyle);
-
-            // 处理海报模板
-            List<PosterTemplateDTO> templateList = Lists.newArrayList();
-            List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(style.getTemplateList());
-
-            for (PosterTemplateDTO posterTemplate : posterTemplateList) {
-
-                // 如果最新的海报模板不存在，则跳过，从现有的列表中删除。
-                if (!templateMap.containsKey(posterTemplate.getUuid()) || Objects.isNull(templateMap.get(posterTemplate.getUuid()))) {
-                    continue;
-                }
-                // 进行海报模板参数的合并
-                PosterTemplateDTO template = templateMap.get(posterTemplate.getUuid());
-                PosterTemplateDTO mergeTemplate = CreativeUtils.mergePosterTemplate(posterTemplate, template);
-                templateList.add(mergeTemplate);
-            }
-
-            // 替换海报模板
-            posterStyle.setTemplateList(templateList);
-            posterStyleList.add(posterStyle);
-        }
-
-        posterSchemeStep.setStyleList(posterStyleList);
-        schemeStepList.set(schemeStepList.indexOf(posterSchemeStep), posterSchemeStep);
-        configuration.setSteps(schemeStepList);
+//        // 获取到步骤列表
+//        List<BaseSchemeStepDTO> schemeStepList = CollectionUtil.emptyIfNull(configuration.getSteps());
+//        PosterSchemeStepDTO posterSchemeStep = CreativeUtils.getPosterSchemeStep(schemeStepList);
+//        if (Objects.isNull(posterSchemeStep)) {
+//            return;
+//        }
+//        // 查询最新的海报模板
+//        Map<String, PosterTemplateDTO> templateMap = creativeImageManager.mapPosterTemplate();
+//        // 获取到海报样式集合
+//        List<PosterStyleDTO> styleList = CollectionUtil.emptyIfNull(posterSchemeStep.getStyleList());
+//        List<PosterStyleDTO> posterStyleList = Lists.newArrayList();
+//
+//        for (PosterStyleDTO posterStyle : styleList) {
+//            PosterStyleDTO style = SerializationUtils.clone(posterStyle);
+//
+//            // 处理海报模板
+//            List<PosterTemplateDTO> templateList = Lists.newArrayList();
+//            List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(style.getTemplateList());
+//
+//            for (PosterTemplateDTO posterTemplate : posterTemplateList) {
+//
+//                // 如果最新的海报模板不存在，则跳过，从现有的列表中删除。
+//                if (!templateMap.containsKey(posterTemplate.getUuid()) || Objects.isNull(templateMap.get(posterTemplate.getUuid()))) {
+//                    continue;
+//                }
+//                // 进行海报模板参数的合并
+//                PosterTemplateDTO template = templateMap.get(posterTemplate.getUuid());
+//                PosterTemplateDTO mergeTemplate = CreativeUtils.mergePosterTemplate(posterTemplate, template);
+//                templateList.add(mergeTemplate);
+//            }
+//
+//            // 替换海报模板
+//            posterStyle.setTemplateList(templateList);
+//            posterStyleList.add(posterStyle);
+//        }
+//
+//        posterSchemeStep.setStyleList(posterStyleList);
+//        schemeStepList.set(schemeStepList.indexOf(posterSchemeStep), posterSchemeStep);
+//        configuration.setSteps(schemeStepList);
     }
 
     /**
@@ -561,46 +591,46 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
      */
     @SuppressWarnings("all")
     private void handlerAndValidate(CreativeSchemeReqVO request) {
-        request.validate();
-        // 如果是普通用户或者为空，强制设置为用户类型
-        if (UserUtils.isNotAdmin() || StringUtils.isBlank(request.getType())) {
-            request.setType(CreativeSchemeTypeEnum.USER.name());
-        }
-        if (StringUtils.isBlank(request.getDescription())) {
-            request.setDescription(StringUtils.EMPTY);
-        }
-
-        // 处理创作方案配置
-        CreativeSchemeConfigurationDTO configuration = request.getConfiguration();
-
-        // 资料库步骤校验
-        MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(CollectionUtil.emptyIfNull(configuration.getSteps()));
-        AppValidate.notNull(materialSchemeStep, "创作模版配置异常，资料库步骤是必须的！请联系管理员！");
-        // 获取到具体的资料库类型枚举
-        MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
-        AppValidate.notNull(materialType, "资料库类型不支持，请联系管理员{}！", materialSchemeStep.getMaterialType());
-        // 获取资料库的具体处理器
-        AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType.getTypeCode());
-        AppValidate.notNull(materialHandler, "资料库类型不支持，请联系管理员{}！", materialType.getTypeCode());
-
-        // 处理海报信息，填充必要的信息
-        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(configuration.getSteps())
-                .stream()
-                .map(item -> {
-                    if (!PosterActionHandler.class.getSimpleName().equals(item.getCode())) {
-                        return item;
-                    }
-                    PosterSchemeStepDTO posterStep = (PosterSchemeStepDTO) item;
-                    List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterStep.getStyleList());
-                    // 校验海报样式
-                    posterStyleList.forEach(materialHandler::validatePosterStyle);
-                    // 处理海报样式
-                    posterStep.setStyleList(CreativeUtils.preHandlerPosterStyleList(posterStep.getStyleList()));
-                    return posterStep;
-                })
-                .collect(Collectors.toList());
-
-        configuration.setSteps(steps);
-        request.setConfiguration(configuration);
+//        request.validate();
+//        // 如果是普通用户或者为空，强制设置为用户类型
+//        if (UserUtils.isNotAdmin() || StringUtils.isBlank(request.getType())) {
+//            request.setType(CreativeSchemeTypeEnum.USER.name());
+//        }
+//        if (StringUtils.isBlank(request.getDescription())) {
+//            request.setDescription(StringUtils.EMPTY);
+//        }
+//
+//        // 处理创作方案配置
+//        CreativeSchemeConfigurationDTO configuration = request.getConfiguration();
+//
+//        // 资料库步骤校验
+//        MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(CollectionUtil.emptyIfNull(configuration.getSteps()));
+//        AppValidate.notNull(materialSchemeStep, "创作模版配置异常，资料库步骤是必须的！请联系管理员！");
+//        // 获取到具体的资料库类型枚举
+//        MaterialTypeEnum materialType = MaterialTypeEnum.of(materialSchemeStep.getMaterialType());
+//        AppValidate.notNull(materialType, "资料库类型不支持，请联系管理员{}！", materialSchemeStep.getMaterialType());
+//        // 获取资料库的具体处理器
+//        AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(materialType.getTypeCode());
+//        AppValidate.notNull(materialHandler, "资料库类型不支持，请联系管理员{}！", materialType.getTypeCode());
+//
+//        // 处理海报信息，填充必要的信息
+//        List<BaseSchemeStepDTO> steps = CollectionUtil.emptyIfNull(configuration.getSteps())
+//                .stream()
+//                .map(item -> {
+//                    if (!PosterActionHandler.class.getSimpleName().equals(item.getCode())) {
+//                        return item;
+//                    }
+//                    PosterSchemeStepDTO posterStep = (PosterSchemeStepDTO) item;
+//                    List<PosterStyleDTO> posterStyleList = CollectionUtil.emptyIfNull(posterStep.getStyleList());
+//                    // 校验海报样式
+//                    posterStyleList.forEach(materialHandler::validatePosterStyle);
+//                    // 处理海报样式
+//                    posterStep.setStyleList(CreativeUtils.preHandlerPosterStyleList(posterStep.getStyleList()));
+//                    return posterStep;
+//                })
+//                .collect(Collectors.toList());
+//
+//        configuration.setSteps(steps);
+//        request.setConfiguration(configuration);
     }
 }

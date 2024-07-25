@@ -107,8 +107,6 @@ public class RecommendVariableFactory {
      * @return
      */
     public static VariableRespVO defXhsOcrVariable() {
-
-
         VariableItemRespVO xhsUrlVariable = RecommendVariableItemFactory.defXhsUrlVariable();
         xhsUrlVariable.setOrder(1);
         xhsUrlVariable.setIsShow(Boolean.TRUE);
@@ -116,6 +114,23 @@ public class RecommendVariableFactory {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.singletonList(
                 xhsUrlVariable
+        ));
+        return variable;
+    }
+
+    /**
+     * 图片ocr
+     *
+     * @return
+     */
+    public static VariableRespVO defImageOcrVariable() {
+        VariableItemRespVO imageUrlVariable = RecommendVariableItemFactory.defImageUrlVariable();
+        imageUrlVariable.setOrder(1);
+        imageUrlVariable.setIsShow(Boolean.TRUE);
+
+        VariableRespVO variable = new VariableRespVO();
+        variable.setVariables(Arrays.asList(
+                imageUrlVariable
         ));
         return variable;
     }
@@ -451,25 +466,35 @@ public class RecommendVariableFactory {
         materialListVariable.setOrder(3);
         materialListVariable.setIsShow(Boolean.FALSE);
 
+        VariableItemRespVO materialLibraryVariable = RecommendVariableItemFactory.defMaterialLibraryVariable();
+        materialLibraryVariable.setOrder(4);
+        materialLibraryVariable.setIsShow(true);
+
         VariableItemRespVO materialGenerateConfigVariable = RecommendVariableItemFactory.defMaterialGenerateConfigVariable();
-        materialGenerateConfigVariable.setOrder(4);
+        materialGenerateConfigVariable.setOrder(5);
         materialGenerateConfigVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO customMaterialGenerateConfigVariable = RecommendVariableItemFactory.defCustomMaterialGenerateConfigVariable();
-        customMaterialGenerateConfigVariable.setOrder(5);
+        customMaterialGenerateConfigVariable.setOrder(6);
         customMaterialGenerateConfigVariable.setIsShow(Boolean.TRUE);
 
         VariableItemRespVO searchHabitsVariable = RecommendVariableItemFactory.defSearchHabitsVariable();
-        searchHabitsVariable.setOrder(6);
+        searchHabitsVariable.setOrder(7);
         searchHabitsVariable.setIsShow(Boolean.FALSE);
+
+        VariableItemRespVO materialUsageModel = RecommendVariableItemFactory.defMaterialUsageModelVariable();
+        materialUsageModel.setOrder(8);
+        materialUsageModel.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 materialTypeVariable,
                 materialDefineVariable,
                 materialListVariable,
+                materialLibraryVariable,
                 materialGenerateConfigVariable,
                 customMaterialGenerateConfigVariable,
-                searchHabitsVariable
+                searchHabitsVariable,
+                materialUsageModel
         ));
         return variable;
     }

@@ -1,11 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.batch;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchListReqVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchPageReqVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.request.CreativePlanBatchReqVO;
-import com.starcloud.ops.business.app.api.xhs.bath.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 
 import java.util.List;
 

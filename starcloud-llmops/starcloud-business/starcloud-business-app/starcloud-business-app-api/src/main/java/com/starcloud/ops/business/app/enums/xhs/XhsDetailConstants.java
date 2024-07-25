@@ -31,6 +31,8 @@ public class XhsDetailConstants {
 
     public static final String SHARE_NOTEID = "https://www.xiaohongshu.com/discovery/item/([a-zA-Z0-9]{24})";
 
+    public static final  String TAGS = "#(.*?)(?=\n|$)";
+
     public static void validNoteUrl(String noteUrl) {
         boolean match = ReUtil.isMatch(XhsDetailConstants.XHS_URL_REGEX, noteUrl);
         if (match) {

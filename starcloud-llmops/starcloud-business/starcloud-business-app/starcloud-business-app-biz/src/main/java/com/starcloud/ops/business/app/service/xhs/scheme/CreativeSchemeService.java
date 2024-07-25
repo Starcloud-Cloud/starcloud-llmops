@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.scheme;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
+import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;

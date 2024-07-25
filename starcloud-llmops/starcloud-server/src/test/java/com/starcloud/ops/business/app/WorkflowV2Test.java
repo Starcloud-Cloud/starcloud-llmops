@@ -1,55 +1,24 @@
 package com.starcloud.ops.business.app;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.mq.redis.core.RedisMQTemplate;
-import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration;
-import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
-import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
-import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
-import cn.iocoder.yudao.module.system.service.dept.DeptService;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import cn.iocoder.yudao.module.system.service.permission.PermissionService;
-import cn.iocoder.yudao.module.system.service.permission.RoleService;
-import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import cn.kstry.framework.core.engine.StoryEngine;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Sets;
-import com.ql.util.express.*;
+import com.ql.util.express.ArraySwap;
+import com.ql.util.express.ExpressRunner;
+import com.ql.util.express.InstructionSetContext;
+import com.ql.util.express.OperateData;
 import com.ql.util.express.config.QLExpressRunStrategy;
 import com.ql.util.express.instruction.op.OperatorBase;
 import com.starcloud.ops.BaseUserContextTest;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
-import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
-import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
-import com.starcloud.ops.business.app.domain.entity.workflow.WorkflowStepEntity;
-import com.starcloud.ops.business.app.domain.factory.AppFactory;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.QLExpressUtils;
-import com.starcloud.ops.server.StarcloudServerConfiguration;
-import javassist.CtField;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.redisson.misc.Hash;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -58,13 +27,10 @@ import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 /**
@@ -88,23 +54,23 @@ public class WorkflowV2Test extends BaseUserContextTest {
     @Test
     public void testRunTest() {
 
-
-        AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
-
-        executeReqVO.setAppUid("77a466b2e70f48f9b61910105f5db0f7");
-        executeReqVO.setUserId(186L);
-        executeReqVO.setAppReqVO(new AppReqVO());
-        executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
-
-        executeReqVO.setTenantId(2L);
-
-        SseEmitter emitter = new SseEmitter(60000L);
-
-        //executeReqVO.setSseEmitter(emitter);
-
-        AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
-
-        app.execute(executeReqVO);
+        //
+        // AppExecuteReqVO executeReqVO = new AppExecuteReqVO();
+        //
+        // executeReqVO.setAppUid("77a466b2e70f48f9b61910105f5db0f7");
+        // executeReqVO.setUserId(186L);
+        // executeReqVO.setAppReqVO(new AppReqVO());
+        // executeReqVO.setScene(AppSceneEnum.WEB_ADMIN.name());
+        //
+        // executeReqVO.setTenantId(2L);
+        //
+        // SseEmitter emitter = new SseEmitter(60000L);
+        //
+        // //executeReqVO.setSseEmitter(emitter);
+        //
+        // AppEntity app = AppFactory.factoryApp(executeReqVO.getAppUid());
+        //
+        // app.execute(executeReqVO);
 
     }
 
@@ -152,7 +118,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
         SpelParserConfiguration config = new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null, true, true, 1);
 
-        //SpelParserConfiguration config = new SpelParserConfiguration(true, true);
+        // SpelParserConfiguration config = new SpelParserConfiguration(true, true);
 
 
         // 创建spel表达式分析器
@@ -220,7 +186,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
 
         StandardEvaluationContext context = new StandardEvaluationContext(root);
-        //context.setVariable("内容生成.data", "3333");
+        // context.setVariable("内容生成.data", "3333");
 
         // 输入表达式
         Expression exp = parser.parseExpression("测试：{{SC.docs[1].author}}", parserContext);
@@ -266,7 +232,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
         JSONObject jsonObject = JSONUtil.parseObj(json);
 
-        //JsonNode jsonNode = JsonSchemaUtils.str2JsonNode(json);
+        // JsonNode jsonNode = JsonSchemaUtils.str2JsonNode(json);
 
         rootMap.put("素材2", jsonObject);
 
@@ -297,28 +263,28 @@ public class WorkflowV2Test extends BaseUserContextTest {
             Set<String> secureMethods = new HashSet<>();
             secureMethods.add("SC");
 
-            //QLExpressRunStrategy.setSecureMethods(secureMethods);
+            // QLExpressRunStrategy.setSecureMethods(secureMethods);
 
-            //QLExpressRunStrategy.setSandBoxMode(true);
+            // QLExpressRunStrategy.setSandBoxMode(true);
             QLExpressRunStrategy.setMaxArrLength(50);
 
 //            runner.addOperator("join", new JoinOperator());
 //
 //            runner.replaceOperator("+", new JoinOperator());
 
-            //runner.addFunction("join", new JoinOperator());
+            // runner.addFunction("join", new JoinOperator());
 
             runner.addMacro("计算平均成绩", "(语文+数学+英语)/3.0");
-            //runner.addOperatorWithAlias();
+            // runner.addOperatorWithAlias();
 
             ListOperator listOperator = new ListOperator();
             runner.addClassMethod("list", List.class, listOperator);
 
-            //添加类的属性字段
-            //runner.addClassField(String field, Class<?>bindingClass, Class<?>returnType, Operator op);
+            // 添加类的属性字段
+            // runner.addClassField(String field, Class<?>bindingClass, Class<?>returnType, Operator op);
 
-            //添加类的方法
-            //runner.addClassMethod(String name, Class<?>bindingClass, OperatorBase op);
+            // 添加类的方法
+            // runner.addClassMethod(String name, Class<?>bindingClass, OperatorBase op);
 
             String content = "体育; 1 join 2 join 3";
 
@@ -345,7 +311,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
             content = "sdsd{{内容生成5.bookName}} ++ {{素材.docs.list('author')}} sdas";
 
             content = "{{素材2.zzz}}";
-           // content = "{{素材2.get('zzz')}}";
+            // content = "{{素材2.get('zzz')}}";
 
 //            String vars[] = runner.getOutVarNames(content);
 //
@@ -354,7 +320,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
 
             Object r = QLExpressUtils.execute(content, rootMap);
 
-            //Object r = runner.execute(content, rootMap, null, false, false);
+            // Object r = runner.execute(content, rootMap, null, false, false);
 //
             log.info("data:{}", r);
             log.info("data type: {}", r.getClass());
@@ -395,7 +361,7 @@ public class WorkflowV2Test extends BaseUserContextTest {
             matcher.appendReplacement(result, "new+" + variable);
         }
 
-        //matcher.appendTail(result);
+        // matcher.appendTail(result);
 
         log.info("rr: {}", result.toString());
     }

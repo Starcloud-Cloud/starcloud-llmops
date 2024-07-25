@@ -172,7 +172,7 @@ public class UploadMaterialImageManager implements InitializingBean {
         } else if (StringUtil.isPath(imagePath)) {
             // 本地图片存在使用本地图片
             ossUrl = localImageUpload(unzipDir, imagePath, parseUid);
-        } else if (StringUtil.isUrl(imagePath)) {
+        } else if (ImageUploadUtils.isImage(imagePath)) {
             // excel 中有内容 为http图片地址
             String relativePath = "material" + File.separator + parseUid;
             ossUrl = ImageUploadUtils.dumpToOss(imagePath, IdUtil.fastSimpleUUID(), relativePath);

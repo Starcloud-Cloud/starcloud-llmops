@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.service.xhs.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterTemplateTypeDTO;
-import com.starcloud.ops.business.app.api.xhs.plan.dto.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateTypeDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;

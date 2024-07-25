@@ -6,7 +6,6 @@ import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 应用默认配置管理器
@@ -63,9 +63,9 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType) {
+    public ModelTypeEnum getLlmModelType(String model, Long userId, Boolean isPermission) {
         Map<String, String> map = this.defaultLlmModelTypeMap();
-        return getLlmModelType(model, userId, appType, map);
+        return getLlmModelType(model, userId, isPermission, map);
     }
 
     /**
@@ -73,11 +73,11 @@ public class AppDefaultConfigManager {
      *
      * @return 默认模型类型
      */
-    public ModelTypeEnum getLlmModelType(String model, Long userId, AppTypeEnum appType, Map<String, String> map) {
+    public ModelTypeEnum getLlmModelType(String model, Long userId, Boolean isPermission, Map<String, String> map) {
 
         ModelProviderEnum modelProvider = ModelProviderEnum.fromName(model);
-        // 获取大模型
-        if (!AppTypeEnum.MEDIA_MATRIX.equals(appType)) {
+        // 是否走权限
+        if (Objects.nonNull(isPermission) && isPermission) {
             // 权限相关
             if (StringUtils.isNotBlank(modelProvider.getPermissions())) {
                 String permissions = modelProvider.getPermissions();

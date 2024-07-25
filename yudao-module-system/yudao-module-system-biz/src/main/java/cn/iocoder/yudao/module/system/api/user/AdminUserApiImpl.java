@@ -63,4 +63,13 @@ public class AdminUserApiImpl implements AdminUserApi {
         userService.validateUserList(ids);
     }
 
+
+    @Override
+    public AdminUserRespDTO getUserByUsername(String name) {
+        AdminUserDO user = userService.getUserByUsername(name);
+        return UserConvert.INSTANCE.convert4(user);
+
+    }
+
+
 }

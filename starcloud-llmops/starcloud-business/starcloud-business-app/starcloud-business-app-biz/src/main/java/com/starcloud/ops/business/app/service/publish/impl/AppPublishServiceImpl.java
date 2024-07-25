@@ -4,10 +4,13 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidStatusRequest;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO;
@@ -25,13 +28,16 @@ import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -73,6 +79,9 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private ChatExpandConfigService chatExpandConfigService;
+
+    @Resource
+    private CreativeMaterialManager creativeMaterialManager;
 
     /**
      * 分页查询应用发布记录
@@ -251,6 +260,8 @@ public class AppPublishServiceImpl implements AppPublishService {
             appPublish.setAppInfo(JSONUtil.toJsonStr(app));
             // 插入 chat配置
             chatExpandConfigService.copyConfig(app.getUid(), uid);
+        } else if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
+            appPublish.setAppInfo(JsonUtils.toJsonString(app));
         }
 
         appPublish.setUserId(SecurityFrameworkUtils.getLoginUserId());
@@ -423,6 +434,7 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
+        AppDO app = JsonUtils.parseObject(appPublish.getAppInfo(), AppDO.class);
 
         String marketUid = IdUtil.fastSimpleUUID();
         if (AppModelEnum.CHAT.name().equals(appMarketEntity.getModel())) {
@@ -445,8 +457,15 @@ public class AppPublishServiceImpl implements AppPublishService {
                 appMarketEntity.setViewCount(appMarket.getViewCount());
                 appMarketEntity.setInstallCount(appMarket.getInstallCount());
                 appMarketEntity.update();
+                if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarketEntity.getType())) {
+                    creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
+                }
                 return appMarketEntity;
             }
+        }
+        appMarketEntity.setUid(marketUid);
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarketEntity.getType())) {
+            creativeMaterialManager.upgradeMaterialLibrary(app.getUid(), appMarketEntity);
         }
         // 如果应用市场不存在该应用，说明是第一次发布/或者已经删除，需要新增应用市场记录
         appMarketEntity.insert();
