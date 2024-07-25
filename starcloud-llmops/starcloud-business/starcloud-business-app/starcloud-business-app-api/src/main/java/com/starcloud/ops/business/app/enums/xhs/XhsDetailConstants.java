@@ -23,15 +23,15 @@ public class XhsDetailConstants {
 
     public static final String INITIAL_STATE = "window.__INITIAL_STATE__=";
 
-    public static final String DOMAIN = "https://www.xiaohongshu.com/explore/";
+    public static final String DOMAIN = "https://www.xiaohongshu.com/explore/([a-zA-Z0-9]{24})";
 
-    public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24})$";
+    public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24}\\?*\\S*)";
 
     public static final String SHARE_LINK = "http://xhslink.com/([a-zA-Z0-9]{6})";
 
     public static final String SHARE_NOTEID = "https://www.xiaohongshu.com/discovery/item/([a-zA-Z0-9]{24})";
 
-    public static final  String TAGS = "#(.*?)(?=\n|$)";
+    public static final String TAGS = "#(.*?)(?=\n|$)";
 
     public static void validNoteUrl(String noteUrl) {
         boolean match = ReUtil.isMatch(XhsDetailConstants.XHS_URL_REGEX, noteUrl);
@@ -52,7 +52,7 @@ public class XhsDetailConstants {
     }
 
     public static String parsingWebUrl(String noteUrl) {
-        return ReUtil.delAll(XhsDetailConstants.DOMAIN, noteUrl);
+        return ReUtil.get(XhsDetailConstants.DOMAIN, noteUrl, 1);
     }
 
     /**

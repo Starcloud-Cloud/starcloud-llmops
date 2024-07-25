@@ -550,7 +550,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         } catch (Exception exception) {
             ErrorCode errorCode = ErrorCodeConstants.EXECUTE_APP_FAILURE;
             log.error("应用执行【执行失败】: 应用UID: {}, 执行场景: {}, 会话UID: {}, \n\t错误码: {}, 错误消息: {}",
-                    this.getUid(), appContext.getScene().name(), appContext.getConversationUid(), errorCode.getCode(), exception.getMessage());
+                    this.getUid(), appContext.getScene().name(), appContext.getConversationUid(), errorCode.getCode(), exception.getMessage(), exception);
 
             ServiceException serviceException = ServiceExceptionUtil.exceptionWithCause(errorCode, exception);
             serviceException.setScene(appContext.getScene().name());
@@ -834,7 +834,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
         }
 
         // 如果执行结果失败，抛出异常
-        if (!response.getSuccess()) {
+        if (Objects.isNull(response.getSuccess()) || !response.getSuccess()) {
             int errorCode = response.transformErrorCode();
             String errorMessage = response.transformErrorMessage(appContext.getStepId());
             throw exception(new ErrorCode(errorCode, errorMessage));

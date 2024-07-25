@@ -135,7 +135,6 @@ public class PluginsServiceImpl implements PluginsService {
         AppExecuteReqVO appExecuteRequest = new AppExecuteReqVO();
         appExecuteRequest.setAppUid(app.getUid());
         appExecuteRequest.setContinuous(Boolean.FALSE);
-        appExecuteRequest.setStepId(stepId);
         appExecuteRequest.setUserId(SecurityFrameworkUtils.getLoginUserId());
         appExecuteRequest.setScene(AppSceneEnum.XHS_WRITING.name());
         appExecuteRequest.setAppReqVO(AppConvert.INSTANCE.convertRequest(app));
