@@ -50,6 +50,7 @@ import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -335,7 +336,9 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdateTime(LocalDateTime.now());
         // 插入数据库
         appEntity.insert();
-        creativeMaterialManager.copyAppMaterial(uid, appEntity.getName(), appEntity.getUid());
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appEntity.getType())) {
+            creativeMaterialManager.copyAppMaterial(uid, appEntity.getName(), appEntity.getUid());
+        }
 
         return AppConvert.INSTANCE.convertResponse(appEntity);
     }
