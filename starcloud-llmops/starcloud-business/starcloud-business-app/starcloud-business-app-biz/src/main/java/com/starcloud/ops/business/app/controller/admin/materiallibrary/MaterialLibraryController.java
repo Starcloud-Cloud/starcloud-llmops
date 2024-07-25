@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
@@ -63,6 +64,9 @@ public class MaterialLibraryController {
         }
 
         PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
+        if (CollUtil.isEmpty(pageResult.getList())){
+            return success(PageResult.empty());
+        }
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
         bean.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
 
