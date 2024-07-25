@@ -25,7 +25,7 @@ public class XhsDetailConstants {
 
     public static final String DOMAIN = "https://www.xiaohongshu.com/explore/";
 
-    public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24})$";
+    public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24}\\S*)";
 
     public static final String SHARE_LINK = "http://xhslink.com/([a-zA-Z0-9]{6})";
 
