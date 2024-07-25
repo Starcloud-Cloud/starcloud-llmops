@@ -109,7 +109,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapper(String stepId) {
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> item.getStepCode().equals(stepId) || item.getField().equals(stepId))
+                .filter(item -> item.getStepCode().equalsIgnoreCase(stepId) || item.getName().equalsIgnoreCase(stepId))
                 .findFirst()
                 .orElseThrow(() -> ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_APP_STEP_NON_EXISTENT, stepId));
     }
@@ -124,7 +124,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public WorkflowStepWrapper getStepWrapperByStepId(String stepId) {
         return CollectionUtil.emptyIfNull(steps).stream()
-                .filter(item -> item.getStepCode().equals(stepId) || item.getField().equals(stepId))
+                .filter(item -> item.getStepCode().equalsIgnoreCase(stepId) || item.getName().equalsIgnoreCase(stepId))
                 .findFirst()
                 .orElse(null);
     }
@@ -174,7 +174,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     public List<WorkflowStepWrapper> getPreStepWrappers(String stepId) {
         List<WorkflowStepWrapper> preStepList = new ArrayList<>();
         for (WorkflowStepWrapper wrapper : steps) {
-            if (!wrapper.getStepCode().equals(stepId) || !wrapper.getName().equals(stepId)) {
+            if (!wrapper.getStepCode().equalsIgnoreCase(stepId) || !wrapper.getName().equalsIgnoreCase(stepId)) {
                 preStepList.add(wrapper);
             } else {
                 preStepList.add(wrapper);
@@ -502,7 +502,7 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @JSONField(serialize = false)
     public void addVariable(String stepId, String key, Object value) {
         for (WorkflowStepWrapper step : this.steps) {
-            if (step.getStepCode().equals(stepId) || step.getName().equals(stepId)) {
+            if (step.getStepCode().equalsIgnoreCase(stepId) || step.getName().equalsIgnoreCase(stepId)) {
                 step.addVariable(key, value);
             }
         }

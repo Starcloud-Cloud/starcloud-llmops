@@ -365,7 +365,7 @@ public class AppContext {
             allVariablesValues.putAll(Optional.ofNullable(variablesValuesV2).orElse(MapUtil.newHashMap()));
 
             //再生成无前缀的占位符表示当前节点变量（可以引用自己节点的变量）
-            if (wrapper.getStepCode().equals(stepId)) {
+            if (wrapper.getStepCode().equalsIgnoreCase(stepId) || wrapper.getName().equalsIgnoreCase(stepId)) {
                 Map<String, Object> variablesValuesV3 = wrapper.getContextVariablesValues(null, false);
                 allVariablesValues.putAll(Optional.ofNullable(variablesValuesV3).orElse(MapUtil.newHashMap()));
             }
