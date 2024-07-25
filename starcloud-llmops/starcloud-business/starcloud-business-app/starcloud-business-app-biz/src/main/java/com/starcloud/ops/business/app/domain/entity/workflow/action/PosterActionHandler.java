@@ -33,6 +33,7 @@ import com.starcloud.ops.business.app.domain.handler.poster.PosterGenerationHand
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
@@ -190,7 +191,7 @@ public class PosterActionHandler extends BaseActionHandler {
             }
             StringSchema schema = new StringSchema();
             schema.setTitle(IMAGE + i);
-            schema.setDescription(IMAGE + i + "-" + MaterialFieldTypeEnum.image.getCode());
+            schema.setDescription(IMAGE + i + "-" + MaterialFormatTypeEnum.IMAGE.getCode());
             objectSchema.putProperty(IMAGE + i, schema);
         }
         return objectSchema;
