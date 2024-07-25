@@ -181,7 +181,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 return step.getVariableItem(field);
             }
         }
@@ -205,7 +205,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 return step.getVariableToString(field);
             }
         }
@@ -229,7 +229,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 return step.getVariable(field);
             }
         }
@@ -253,7 +253,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 step.putVariable(field, value);
                 break;
             }
@@ -277,7 +277,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 return step.getModelVariableItem(field);
             }
         }
@@ -301,7 +301,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 return step.getModelVariableToString(field);
             }
         }
@@ -325,7 +325,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 return step.getModelVariable(field);
             }
         }
@@ -349,7 +349,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             if (Objects.isNull(step)) {
                 continue;
             }
-            if (stepId.equalsIgnoreCase(step.getStepCode())) {
+            if (stepId.equalsIgnoreCase(step.getStepCode()) || stepId.equalsIgnoreCase(step.getName())) {
                 step.putModelVariable(field, value);
                 break;
             }
