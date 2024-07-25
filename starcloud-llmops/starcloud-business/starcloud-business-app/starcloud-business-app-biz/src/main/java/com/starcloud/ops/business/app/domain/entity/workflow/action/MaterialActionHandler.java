@@ -111,7 +111,7 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
-        return JSON_SCHEMA.get();
+        return new ObjectSchema();
     }
 
     /**
@@ -128,18 +128,6 @@ public class MaterialActionHandler extends BaseActionHandler {
     protected ActionResponse doExecute(AppContext context) {
         // 开始日志打印
         loggerBegin(context, "素材上传步骤");
-
-        //保持跟返回结果一样的JsonSchema
-        JsonSchema outJsonSchema;
-        CreativePlanMapper creativePlanMapper = SpringUtil.getBean(CreativePlanMapper.class);
-        CreativePlanDO planDO = creativePlanMapper.getByAppUid(context.getUid(), context.getUserId());
-        if (CreativePlanSourceEnum.isApp(planDO.getSource())) {
-            outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getAppUid());
-        } else {
-            outJsonSchema = JsonSchemaUtils.expendGenerateJsonSchema(planDO.getUid());
-        }
-
-        JSON_SCHEMA.set(outJsonSchema);
 
         // 获取所有上游信息
         Map<String, Object> params = context.getContextVariablesValues();
@@ -158,7 +146,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 转换响应结果
         ActionResponse response = convert(params, businessType);
         response.setAnswer(JsonUtils.toJsonPrettyString(response.getAnswer()));
-        response.setOutput(JsonData.of(jsonDocsDefSchema, outJsonSchema));
+        response.setOutput(JsonData.of(jsonDocsDefSchema, new ObjectSchema()));
 
         // 结束日志打印
         loggerSuccess(context, response, "素材上传步骤");

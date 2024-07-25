@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
@@ -221,7 +222,7 @@ public class AppAlarmManager {
      */
     private String getErrorMessage(Throwable throwable) {
         if (throwable != null) {
-            return throwable.getMessage();
+            return Optional.ofNullable(throwable.getMessage()).orElse(StringUtils.EMPTY);
         }
         return StringUtils.EMPTY;
     }

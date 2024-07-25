@@ -260,7 +260,7 @@ public class CreativeAlarmManager {
      */
     private String getErrorMessage(Throwable throwable) {
         if (throwable != null) {
-            return throwable.getMessage();
+            return Optional.ofNullable(throwable.getMessage()).orElse(StringUtils.EMPTY);
         }
         return StringUtils.EMPTY;
     }
