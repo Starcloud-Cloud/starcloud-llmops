@@ -198,6 +198,9 @@ public class AppStepStatusCache {
                         appStepStatus.setStartTime(LocalDateTime.now());
                         appStepStatus.setStatus(AppStepStatusEnum.RUNNING.name());
                     } else {
+                        if (Objects.isNull(appStepStatus.getStartTime())) {
+                            appStepStatus.setStartTime(LocalDateTime.now());
+                        }
                         appStepStatus.setEndTime(LocalDateTime.now());
                         appStepStatus.setElapsed(LocalDateTimeUtil.toEpochMilli(appStepStatus.getEndTime()) - LocalDateTimeUtil.toEpochMilli(appStepStatus.getStartTime()));
                         appStepStatus.setStatus(status.name());
@@ -221,6 +224,9 @@ public class AppStepStatusCache {
             appStepStatus.setStartTime(LocalDateTime.now());
             appStepStatus.setStatus(AppStepStatusEnum.RUNNING.name());
         } else {
+            if (Objects.isNull(appStepStatus.getStartTime())) {
+                appStepStatus.setStartTime(LocalDateTime.now());
+            }
             appStepStatus.setEndTime(LocalDateTime.now());
             appStepStatus.setElapsed(LocalDateTimeUtil.toEpochMilli(appStepStatus.getEndTime()) - LocalDateTimeUtil.toEpochMilli(appStepStatus.getStartTime()));
             appStepStatus.setStatus(status.name());

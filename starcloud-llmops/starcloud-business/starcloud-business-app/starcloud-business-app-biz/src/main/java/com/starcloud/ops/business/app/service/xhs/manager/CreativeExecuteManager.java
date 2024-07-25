@@ -211,10 +211,10 @@ public class CreativeExecuteManager {
                 // 返回结果
                 return executeResponse;
             } catch (Throwable throwable) {
-                // 后置处理步骤缓存状态更新
-                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
                 // 根据异常更新创作内容状态
                 updateContentFailureByThrowable(latestContent, start, maxRetry, throwable);
+                // 后置处理步骤缓存状态更新
+                appStepStatusCache.stepFailure(latestContent.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
                 throw throwable;
             }
         } catch (ServiceException exception) {
