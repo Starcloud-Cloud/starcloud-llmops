@@ -139,7 +139,7 @@ public class WorkflowStepWrapper {
     @JsonIgnore
     @JSONField(serialize = false)
     public String getStepCode() {
-        return this.name;
+        return this.field;
     }
 
     /**
