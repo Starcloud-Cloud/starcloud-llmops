@@ -120,8 +120,20 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         AppValidate.notNull(appReqVO.getAppType(), "获取素材库失败，应用类型不能为空");
         AppValidate.notNull(appReqVO.getUserId(), "获取素材库失败，用户编号不能为空");
 
+
+        String name;
+        Integer libraryType;
+        if (MaterialBindTypeEnum.isAppMarket(appReqVO.getAppType())) {
+            libraryType = MaterialLibraryTypeEnum.PUBLISH.getCode();
+            name = StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_PUBLISH, appReqVO.getAppName());
+        } else {
+            libraryType = MaterialLibraryTypeEnum.SYSTEM.getCode();
+            name = StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, appReqVO.getAppName());
+        }
+
+
         // 创建系统素材库
-        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(StrUtil.format(MATERIAL_LIBRARY_TEMPLATE_SYSTEM, appReqVO.getAppName())).setLibraryType(MaterialLibraryTypeEnum.SYSTEM.getCode()));
+        MaterialLibraryDO materialLibrary = saveMaterialLibrary(new MaterialLibrarySaveReqVO().setName(name).setLibraryType(libraryType));
         // 添加绑定关系
         materialLibraryAppBindService.createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(appReqVO.getAppUid()).setAppType(appReqVO.getAppType()).setUserId(appReqVO.getUserId()));
 
@@ -410,16 +422,15 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(newApp.getAppUid());
 
-        if (bind!= null){
+        if (bind != null) {
             MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
 
-            if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())){
-                if (!MaterialLibraryTypeEnum.isCommon(materialLibrary.getLibraryType())){
+            if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
+                if (!MaterialLibraryTypeEnum.isCommon(materialLibrary.getLibraryType())) {
                     deleteMaterialLibrary(materialLibrary.getId());
                 }
             }
         }
-
 
 
         // 复制素材库

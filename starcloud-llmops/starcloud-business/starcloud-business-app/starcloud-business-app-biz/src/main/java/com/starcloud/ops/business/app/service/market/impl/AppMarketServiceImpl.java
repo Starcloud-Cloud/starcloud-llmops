@@ -166,7 +166,7 @@ public class AppMarketServiceImpl implements AppMarketService {
             if (CollectionUtil.isNotEmpty(appMarket.getMaterialList()) && Objects.nonNull(stepByHandler)) {
                 // 从数据库迁移
                 creativeMaterialManager.migrateFromData(appMarket.getName(), appMarket.getUid(),
-                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, appMarket.getMaterialList(), Long.valueOf(appMarket.getCreator()));
+                        MaterialBindTypeEnum.APP_MARKET.getCode(), stepByHandler, appMarket.getMaterialList(), Long.valueOf(appMarket.getCreator()));
                 appMarket.setMaterialList(Collections.emptyList());
                 appMarketMapper.updateById(appMarket);
 
