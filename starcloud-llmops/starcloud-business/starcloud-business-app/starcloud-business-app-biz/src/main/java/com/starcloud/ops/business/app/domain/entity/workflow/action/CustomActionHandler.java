@@ -118,6 +118,9 @@ public class CustomActionHandler extends BaseActionHandler {
             throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，生成模式不合法！", stepName);
         }
 
+        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+            return;
+        }
         // 生成模式校验, 随机生成和AI模仿生成需要参考素材
         if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generate) || CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
             // 参考素材类型变量
