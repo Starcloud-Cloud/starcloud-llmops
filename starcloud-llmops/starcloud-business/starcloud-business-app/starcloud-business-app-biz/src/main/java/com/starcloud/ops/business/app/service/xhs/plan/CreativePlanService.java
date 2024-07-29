@@ -101,6 +101,12 @@ public interface CreativePlanService {
     void delete(String uid);
 
     /**
+     * 删除创作计划
+     * @param appUid 应用uid
+     */
+    void deleteByAppUid(String appUid);
+
+    /**
      * 更新创作计划状态
      *
      * @param planUid  计划UID

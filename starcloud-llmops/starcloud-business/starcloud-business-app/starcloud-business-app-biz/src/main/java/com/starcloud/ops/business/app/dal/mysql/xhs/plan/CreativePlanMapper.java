@@ -17,6 +17,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -83,6 +84,19 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         wrapper.eq(StringUtils.isNotBlank(query.getUid()), CreativePlanDO::getUid, query.getUid());
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativePlanDO::getStatus, query.getStatus());
         return this.selectList(wrapper);
+    }
+
+    default void deleteByAppUid(String appUid) {
+        LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery(CreativePlanDO.class);
+        wrapper.eq(CreativePlanDO::getAppUid, appUid);
+        delete(wrapper);
+    }
+
+    default List<String> getPlanUid(String appUid) {
+        LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery(CreativePlanDO.class);
+        wrapper.select(CreativePlanDO::getUid);
+        wrapper.eq(CreativePlanDO::getAppUid, appUid);
+        return selectList(wrapper).stream().map(CreativePlanDO::getUid).collect(Collectors.toList());
     }
 
     /**
