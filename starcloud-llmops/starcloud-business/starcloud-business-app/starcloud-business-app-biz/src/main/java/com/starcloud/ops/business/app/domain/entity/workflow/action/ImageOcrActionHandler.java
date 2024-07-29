@@ -80,7 +80,7 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
     @Override
     protected ActionResponse doExecute(AppContext context) {
         Map<String, Object> params = context.getContextVariablesValues();
-        HandlerReq handlerReq  = JSONUtil.toBean((String) params.get(CreativeConstants.IMAGE_OCR_URL), HandlerReq.class);
+        HandlerReq handlerReq = JSONUtil.toBean((String) params.get(CreativeConstants.IMAGE_OCR_URL), HandlerReq.class);
 
         List<String> urls = handlerReq.getImageUrls();
 
@@ -220,7 +220,7 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
         step.setScenes(AppUtils.DEFAULT_SCENES);
 
         VariableRespVO variable = new VariableRespVO();
-
+        variable.setVariables(Collections.emptyList());
         variable.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(this.inVariableJsonSchema()));
 
         step.setVariable(variable);
