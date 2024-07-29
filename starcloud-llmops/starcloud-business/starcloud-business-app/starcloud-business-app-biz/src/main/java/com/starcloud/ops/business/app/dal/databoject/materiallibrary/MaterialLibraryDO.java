@@ -46,6 +46,12 @@ public class MaterialLibraryDO extends BaseDO {
     private Integer formatType;
 
     private Integer libraryType;
+
+    /**
+     * 素材库创建来源
+     */
+    private Integer createSource;
+
     /**
      * 素材库大小
      */

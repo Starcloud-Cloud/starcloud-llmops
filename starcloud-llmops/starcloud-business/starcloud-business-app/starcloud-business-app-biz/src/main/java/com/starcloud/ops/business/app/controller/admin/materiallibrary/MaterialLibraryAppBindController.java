@@ -7,10 +7,10 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
-import com.rometools.rome.feed.atom.Person;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -100,23 +100,23 @@ public class MaterialLibraryAppBindController {
 
     @PostMapping("/page")
     @Operation(summary = "获得应用素材绑定分页")
-    public CommonResult<PageResult<MaterialLibraryRespVO>> getMaterialLibraryAppBindPage(@Valid @RequestBody MaterialLibraryAppBindPageReqVO pageReqVO) {
+    public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryAppBindPage(@Valid @RequestBody MaterialLibraryAppBindPageReqVO pageReqVO) {
         PageResult<MaterialLibraryAppBindDO> pageResult = materialLibraryAppBindService.getMaterialLibraryAppBindPage(pageReqVO);
 
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }
 
-        PageResult<MaterialLibraryRespVO>  libraryRespVOPageResult = new PageResult<>();
+        PageResult<MaterialLibraryPageRespVO> libraryRespVOPageResult = new PageResult<>();
         ArrayList<MaterialLibraryDO> list = new ArrayList<>();
 
-        List<MaterialLibraryAppBindDO> uniqueBind = new ArrayList<>(        pageResult.getList().stream()
+        List<MaterialLibraryAppBindDO> uniqueBind = new ArrayList<>(pageResult.getList().stream()
                 .collect(Collectors.toMap(MaterialLibraryAppBindDO::getLibraryId, Function.identity(), (existing, replacement) -> existing))
                 .values());
         uniqueBind.forEach(bind -> list.add(materialLibraryService.getMaterialLibrary(bind.getLibraryId())));
 
-        libraryRespVOPageResult.setList(BeanUtils.toBean(list, MaterialLibraryRespVO.class));
-        libraryRespVOPageResult.setTotal( pageResult.getTotal() );
+        libraryRespVOPageResult.setList(BeanUtils.toBean(list, MaterialLibraryPageRespVO.class));
+        libraryRespVOPageResult.setTotal(pageResult.getTotal());
 
         return success(libraryRespVOPageResult);
     }

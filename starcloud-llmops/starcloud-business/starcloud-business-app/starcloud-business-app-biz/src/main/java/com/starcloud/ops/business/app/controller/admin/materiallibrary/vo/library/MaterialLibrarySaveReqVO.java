@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library;
 
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,23 +21,23 @@ public class MaterialLibrarySaveReqVO {
     private String name;
 
     @Schema(description = "图标链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
-    // @NotEmpty(message = "图标链接不能为空")
     private String iconUrl;
 
     @Schema(description = "描述", requiredMode = Schema.RequiredMode.REQUIRED, example = "你猜")
-    // @NotEmpty(message = "描述不能为空")
     private String description;
 
     @Schema(description = "素材类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    // @NotNull(message = "素材类型不能为空")
     private Integer formatType = MaterialFormatTypeEnum.EXCEL.getCode();
 
     @Schema(description = "素材库类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    // @NotNull(message = "素材类型不能为空")
-    private Integer libraryType = MaterialLibraryTypeEnum.COMMON.getCode();
+    private Integer libraryType = MaterialLibraryTypeEnum.MEMBER.getCode();
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     @NotNull(message = "状态不能为空")
     private Boolean status;
+
+    @Schema(description = "素材库创建来源", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    private Integer createSource = MaterialBindTypeEnum.MEMBER.getCode();
+
 
 }

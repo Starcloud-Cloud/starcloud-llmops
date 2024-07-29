@@ -14,11 +14,18 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum MaterialLibraryTypeEnum implements IntArrayValuable {
 
-    SYSTEM(0, "系统素材库"),
 
-    COMMON(1, "普通素材库"),
+    //
+    // SYSTEM(0, "系统素材库"),
+    //
+    // COMMON(1, "普通素材库"),
+    //
+    // PUBLISH(9, "发布素材库"),
 
-    PUBLISH(9, "发布素材库"),
+
+    SYSTEM(10, "系统素材库"),
+    MEMBER(20, "用户素材库"),
+
 
     ;
 
@@ -48,13 +55,14 @@ public enum MaterialLibraryTypeEnum implements IntArrayValuable {
     public static boolean isSystem(Integer status) {
         return Objects.equals(status, SYSTEM.getCode());
     }
+
     /**
-     * 判断是否是【系统素材库】类型
+     * 判断是否是【普通素材库】类型
      *
      * @param status 指定code
      * @return 是否
      */
-    public static boolean isCommon(Integer status) {
-        return Objects.equals(status, COMMON.getCode());
+    public static boolean isMember(Integer status) {
+        return Objects.equals(status, MEMBER.getCode());
     }
 }

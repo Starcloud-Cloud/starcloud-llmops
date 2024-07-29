@@ -31,7 +31,8 @@ import java.util.Objects;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_ID_EMPTY;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
 
 
 @Tag(name = "管理后台 - 素材知识库")
@@ -58,13 +59,13 @@ public class MaterialLibraryController {
     @PostMapping("/page")
     @Operation(summary = "获得素材知识库分页")
     public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryPage(@Valid @RequestBody MaterialLibraryPageReqVO pageReqVO) {
-        if (Objects.nonNull(pageReqVO.getCreateName())){
+        if (Objects.nonNull(pageReqVO.getCreateName())) {
             AdminUserRespDTO user = adminUserApi.getUserByUsername(pageReqVO.getCreateName());
             pageReqVO.setCreator(user.getId());
         }
 
         PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
-        if (CollUtil.isEmpty(pageResult.getList())){
+        if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty());
         }
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
@@ -76,7 +77,7 @@ public class MaterialLibraryController {
     @PostMapping("/create")
     @Operation(summary = "创建素材知识库")
     public CommonResult<Long> createMaterialLibrary(@Valid @RequestBody MaterialLibrarySaveReqVO createReqVO) {
-        return success(materialLibraryService.createMaterialLibrary(createReqVO));
+        return success(materialLibraryService.createSystemMaterialLibrary(createReqVO));
     }
 
     @PutMapping("/update")
@@ -100,7 +101,7 @@ public class MaterialLibraryController {
     public CommonResult<MaterialLibraryRespVO> getMaterialLibrary(@RequestParam("id") Long id) {
         MaterialLibraryDO materialLibrary = materialLibraryService.getMaterialLibrary(id);
 
-        if (materialLibrary == null){
+        if (materialLibrary == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
         // 数据转换
@@ -156,5 +157,13 @@ public class MaterialLibraryController {
         materialLibraryService.updatePluginConfig(getLoginUserId(), plugInConfigReqVO);
         return success(true);
     }
+
+    @PostMapping("/copy")
+    @Operation(summary = "复制素材库")
+    public CommonResult<Boolean> materialLibraryCopy(@Valid @RequestBody MaterialLibraryCopyReqVO copyReqVO) {
+        materialLibraryService.materialLibraryCopy(copyReqVO);
+        return success(true);
+    }
+
 
 }

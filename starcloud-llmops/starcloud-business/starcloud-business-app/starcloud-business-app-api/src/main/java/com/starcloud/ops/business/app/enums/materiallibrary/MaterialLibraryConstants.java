@@ -38,5 +38,7 @@ public interface MaterialLibraryConstants {
 
     String MATERIAL_LIBRARY_TEMPLATE_PUBLISH = "{}_发布素材库";
 
+    String MATERIAL_LIBRARY_TEMPLATE_COPY = "{}_复制素材库";
+
 
 }
