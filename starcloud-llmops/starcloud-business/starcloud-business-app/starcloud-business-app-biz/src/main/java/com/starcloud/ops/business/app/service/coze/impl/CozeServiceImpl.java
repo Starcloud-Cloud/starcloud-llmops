@@ -46,11 +46,9 @@ public class CozeServiceImpl implements CozeService {
     @Override
     public ChatResult chat(CozeChatReqVO request) {
         try {
-            if (StringUtils.isEmpty(request.getUserId())) {
-                request.setUserId(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-            }
             log.info("扣子机器人聊天【准备执行】：请求参数：{}", JsonUtils.toJsonString(request));
             CozeChatRequest cozeChatRequest = CozeConvert.INSTANCE.convert(request);
+            cozeChatRequest.setUserId(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
             CozeResponse<CozeChatResult> cozeResponse = cozeClient.chat(request.getConversationId(), cozeChatRequest);
             // 判断是否成功
             if (cozeResponse.getCode() != 0) {
