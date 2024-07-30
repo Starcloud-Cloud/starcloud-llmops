@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.coze;
 
+import cn.hutool.json.JSON;
 import com.starcloud.ops.business.app.controller.admin.coze.vo.CozeChatQuery;
 import com.starcloud.ops.business.app.controller.admin.coze.vo.CozeChatReqVO;
 import com.starcloud.ops.business.app.model.coze.ChatResult;
@@ -41,5 +42,8 @@ public interface CozeService {
      * @return ChatResult
      */
     List<MessageResult> messageList(@Validated CozeChatQuery query);
+
+    JSON parseMessage(@Validated CozeChatQuery query);
+
 
 }

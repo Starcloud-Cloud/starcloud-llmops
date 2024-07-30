@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.coze.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -18,8 +20,8 @@ import com.starcloud.ops.business.app.model.coze.ChatResult;
 import com.starcloud.ops.business.app.model.coze.MessageResult;
 import com.starcloud.ops.business.app.service.coze.CozeService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -135,6 +137,27 @@ public class CozeServiceImpl implements CozeService {
             log.error("查询扣子机器人会话消息列表【执行失败】：未知错误，错误信息：{}", exception.getMessage());
             throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_000, exception.getMessage()));
         }
+    }
+
+    @Override
+    public JSON parseMessage(CozeChatQuery query) {
+        // 查询消息列表
+        List<MessageResult> messageList = this.messageList(query);
+
+        for (int i = messageList.size() - 1; i >= 0; i--) {
+            MessageResult message = messageList.get(i);
+            if (message == null) {
+                continue;
+            }
+            if ("tool_response".equalsIgnoreCase(message.getType())) {
+                if (StringUtils.isBlank(message.getContent())) {
+                    throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_001, "生成结果不未找到! 请稍后重试或者联系管理员"));
+                }
+                return JSONUtil.parse(message.getContent());
+            }
+        }
+
+        throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_001, "生成结果不未找到! 请稍后重试或者联系管理员"));
     }
 
 }
