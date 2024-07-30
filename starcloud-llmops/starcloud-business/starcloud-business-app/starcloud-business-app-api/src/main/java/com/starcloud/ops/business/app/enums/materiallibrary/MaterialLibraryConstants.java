@@ -32,13 +32,13 @@ public interface MaterialLibraryConstants {
     String TEMPLATE_FILE_SUFFIX = "的导入模板";
 
 
-    String MATERIAL_LIBRARY_TEMPLATE_SYSTEM = "{}_初始素材库";
+    String MATERIAL_LIBRARY_TEMPLATE_SYSTEM = "{}";
 
     String MATERIAL_LIBRARY_TEMPLATE_COMMON = "{}";
 
-    String MATERIAL_LIBRARY_TEMPLATE_PUBLISH = "{}_发布素材库";
+    String MATERIAL_LIBRARY_TEMPLATE_PUBLISH = "{}";
 
-    String MATERIAL_LIBRARY_TEMPLATE_COPY = "{}_复制素材库";
+    String MATERIAL_LIBRARY_TEMPLATE_COPY = "{}";
 
 
 }

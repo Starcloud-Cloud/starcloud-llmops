@@ -579,27 +579,23 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
         AtomicReference<MaterialLibraryDO> materialLibraryDO = new AtomicReference<>();
-        DataPermissionUtils.executeIgnore(() -> {
-
-            materialLibraryDO.set(validateMaterialLibraryExists(libraryId));
-
-        });
+        DataPermissionUtils.executeIgnore(() -> materialLibraryDO.set(validateMaterialLibraryExists(libraryId)));
 
         String name = Objects.isNull(libraryName) ? materialLibraryDO.get().getName() : libraryName;
 
-        String newName = "";
-        // 检查字符串是否包含下划线
-        int underscoreIndex = name.indexOf("_");
-        // 判断是否存在下划线 存在则取下划线前的字符 如果下划线前的字符为空 则不做处理
-        if (underscoreIndex != -1) {
-            // 如果存在下划线，截取下划线前的部分
-            newName = name.substring(0, underscoreIndex);
-        }
-        if (StrUtil.isBlank(newName)) {
-            newName = name;
-        }
+        // String newName = "";
+        // // 检查字符串是否包含下划线
+        // int underscoreIndex = name.indexOf("_");
+        // // 判断是否存在下划线 存在则取下划线前的字符 如果下划线前的字符为空 则不做处理
+        // if (underscoreIndex != -1) {
+        //     // 如果存在下划线，截取下划线前的部分
+        //     newName = name.substring(0, underscoreIndex);
+        // }
+        // if (StrUtil.isBlank(newName)) {
+        //     newName = name;
+        // }
 
-        return createSystemMaterialLibrary(newName, createSource);
+        return createSystemMaterialLibrary(name, createSource);
     }
 
     private MaterialLibraryDO saveMaterialLibrary(MaterialLibrarySaveReqVO createReqVO) {
