@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 public class MaterialLibrarySliceAppPageReqVO extends SortablePageParam {
 
 
+    public static final String SORT_FIELD_ID = "id";
     public static final String SORT_FIELD_USED_COUNT = "used_count";
     public static final String SORT_FIELD_CREATE_TIME = "create_time";
     public static final String SORT_FIELD_UPDATE_TIME = "update_time";

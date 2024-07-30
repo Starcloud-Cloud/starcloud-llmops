@@ -13,10 +13,16 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 public enum MaterialBindTypeEnum implements IntArrayValuable {
+    //
+    // APP_MAY(0, "我的应用"),
+    // APP_MARKET(1, "应用市场"),
+    // CREATION_PLAN(2, "创作计划"),
 
-    APP_MAY(0, "我的应用"),
-    APP_MARKET(1, "应用市场"),
-    CREATION_PLAN(2, "创作计划"),
+    APP_MAY(10, "我的应用"),
+    APP_MARKET(20, "应用市场"),
+    CREATION_PLAN(30, "创作计划"),
+    MEMBER(40, " 用户"),
+    MEMBER_COPY(50, " 用户复制"),
 
     ;
 
@@ -42,8 +48,38 @@ public enum MaterialBindTypeEnum implements IntArrayValuable {
      * @param code 指定code
      * @return 是否
      */
+    public static boolean isAppMay(Integer code) {
+        return Objects.equals(code, APP_MAY.getCode());
+    }
+
+    /**
+     * 判断是否是【应用市场】类型
+     *
+     * @param code 指定code
+     * @return 是否
+     */
     public static boolean isAppMarket(Integer code) {
         return Objects.equals(code, APP_MARKET.getCode());
+    }
+
+    /**
+     * 判断是否是【应用市场】类型
+     *
+     * @param code 指定code
+     * @return 是否
+     */
+    public static boolean isCreationPlan(Integer code) {
+        return Objects.equals(code, CREATION_PLAN.getCode());
+    }
+
+    /**
+     * 判断是否是【应用市场】类型
+     *
+     * @param code 指定code
+     * @return 是否
+     */
+    public static boolean isMember(Integer code) {
+        return Objects.equals(code, MEMBER.getCode());
     }
 
 

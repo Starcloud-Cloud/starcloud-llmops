@@ -35,7 +35,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                 .eqIfPresent(MaterialLibrarySliceDO::getSequence, reqVO.getSequence())
                 .eqIfPresent(MaterialLibrarySliceDO::getStatus, reqVO.getStatus())
                 .betweenIfPresent(MaterialLibrarySliceDO::getCreateTime, reqVO.getCreateTime())
-                .orderByAsc(MaterialLibrarySliceDO::getCreateTime));
+                .orderByDesc(MaterialLibrarySliceDO::getCreateTime));
     }
 
     default MaterialLibrarySliceDO selectLastSequence(Long libraryId) {
@@ -131,6 +131,8 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
 
     default PageResult<MaterialLibrarySliceDO> selectPage2(Long libraryId, MaterialLibrarySliceAppPageReqVO appPageReqVO) {
         return selectPage(appPageReqVO, new LambdaQueryWrapperX<MaterialLibrarySliceDO>()
-                .eq(MaterialLibrarySliceDO::getLibraryId, libraryId));
+                .eq(MaterialLibrarySliceDO::getLibraryId, libraryId)
+                .orderByDesc(MaterialLibrarySliceDO::getCreateTime)
+        );
     }
 }

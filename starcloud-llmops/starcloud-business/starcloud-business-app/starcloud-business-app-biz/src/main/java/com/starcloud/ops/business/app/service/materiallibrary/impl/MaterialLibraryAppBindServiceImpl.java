@@ -22,7 +22,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS;
@@ -78,11 +77,11 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Override
     @Transactional
     public void createMaterialLibraryAppBind(BindMigrationReqVO bindMigrationReqVO) {
-        MaterialLibraryRespVO materialLibrary ;
-        if (Objects.nonNull(bindMigrationReqVO.getLibraryUid())){
-            materialLibrary=  materialLibraryService.getMaterialLibraryByUid(bindMigrationReqVO.getLibraryUid());
-        }else {
-            materialLibrary =  materialLibraryService.getMaterialLibraryByApp(new MaterialLibraryAppReqVO().setAppUid(bindMigrationReqVO.getAppUid()));
+        MaterialLibraryRespVO materialLibrary;
+        if (Objects.nonNull(bindMigrationReqVO.getLibraryUid())) {
+            materialLibrary = materialLibraryService.getMaterialLibraryByUid(bindMigrationReqVO.getLibraryUid());
+        } else {
+            materialLibrary = materialLibraryService.getMaterialLibraryByApp(new MaterialLibraryAppReqVO().setAppUid(bindMigrationReqVO.getAppUid()));
         }
         createMaterialLibraryAppBind(new MaterialLibraryAppBindSaveReqVO().setLibraryId(materialLibrary.getId()).setAppUid(bindMigrationReqVO.getAppUid()).setAppType(bindMigrationReqVO.getAppType()).setUserId(bindMigrationReqVO.getUserId()));
     }
@@ -213,6 +212,17 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Override
     public PageResult<MaterialLibraryAppBindDO> getMaterialLibraryAppBindPage(MaterialLibraryAppBindPageReqVO pageReqVO) {
         return materialLibraryAppBindMapper.selectPage(pageReqVO);
+    }
+
+    /**
+     * 通过素材编号获取绑定关系
+     *
+     * @param libraryId 素材编号
+     * @return 绑定列表
+     */
+    @Override
+    public List<MaterialLibraryAppBindDO> getBindList(Long libraryId) {
+        return materialLibraryAppBindMapper.selectListByLibrary(libraryId);
     }
 
 }

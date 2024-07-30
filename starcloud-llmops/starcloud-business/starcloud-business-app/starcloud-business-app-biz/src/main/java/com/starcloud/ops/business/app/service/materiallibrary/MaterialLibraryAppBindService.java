@@ -86,4 +86,11 @@ public interface MaterialLibraryAppBindService {
      */
     PageResult<MaterialLibraryAppBindDO> getMaterialLibraryAppBindPage(MaterialLibraryAppBindPageReqVO pageReqVO);
 
+    /**
+     * 通过素材编号获取绑定关系
+     *
+     * @param libraryId 素材编号
+     * @return 绑定列表
+     */
+    List<MaterialLibraryAppBindDO> getBindList(Long libraryId);
 }

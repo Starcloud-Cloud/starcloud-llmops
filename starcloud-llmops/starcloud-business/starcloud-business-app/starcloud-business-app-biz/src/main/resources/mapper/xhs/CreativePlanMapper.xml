@@ -22,6 +22,7 @@
                  left join system_users u on p.creator = u.id
         where p.deleted = false
           and u.deleted = false
+          and p.source = 'APP'
         order by CASE
                      WHEN p.creator = #{currentUserId} THEN 0
                      ELSE 1

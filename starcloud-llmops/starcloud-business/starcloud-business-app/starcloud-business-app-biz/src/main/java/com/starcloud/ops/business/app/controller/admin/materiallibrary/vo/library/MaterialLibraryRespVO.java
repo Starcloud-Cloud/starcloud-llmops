@@ -44,6 +44,10 @@ public class MaterialLibraryRespVO {
     @Schema(description = "素材库类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
     private Integer libraryType;
 
+    @Schema(description = "来源", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @DictFormat("material_create_source")
+    private Integer createSource;
+
     @Schema(description = "素材库大小", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("素材库大小")
     private Long allFileSize;

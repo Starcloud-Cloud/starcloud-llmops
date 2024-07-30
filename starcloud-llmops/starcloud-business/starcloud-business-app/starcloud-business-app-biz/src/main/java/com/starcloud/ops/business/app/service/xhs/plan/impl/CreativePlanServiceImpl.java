@@ -416,6 +416,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativeContentService.deleteByPlanUid(uid);
     }
 
+    @Override
+    public void deleteByAppUid(String appUid) {
+        if (StringUtils.isBlank(appUid)) {
+            return;
+        }
+        List<String> planUids = creativePlanMapper.getPlanUid(appUid);
+        if (CollectionUtil.isEmpty(planUids)) {
+            return;
+        }
+        for (String planUid : planUids) {
+            delete(planUid);
+        }
+    }
+
     /**
      * 更新计划状态
      *

@@ -4,13 +4,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
-import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
-import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
-import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
@@ -81,17 +76,17 @@ public class MaterialLibrarySliceController {
     }
 
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "获得素材知识库数据分页")
-    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePage(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
+    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePage(@Valid @RequestBody MaterialLibrarySlicePageReqVO pageReqVO) {
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
     }
 
 
-    @GetMapping("/page-uid")
+    @PostMapping("/page-uid")
     @Operation(summary = "获得素材库 UID 素材知识库数据分页")
-    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePageByLibraryUid(@Valid MaterialLibrarySlicePageReqVO pageReqVO) {
+    public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePageByLibraryUid(@Valid @RequestBody MaterialLibrarySlicePageReqVO pageReqVO) {
         PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePageByLibraryUid(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
     }

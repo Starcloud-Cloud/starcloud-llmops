@@ -106,6 +106,7 @@ public class AppStepStatusCache {
         for (WorkflowStepWrapper stepWrapper : stepWrappersOptional.get()) {
             String stepId = stepWrapper.getStepCode();
             String handleCode = stepWrapper.getHandler();
+
             stepStatusMap.put(stepId, AppStepStatusDTO.initOf(stepId, handleCode));
         }
 

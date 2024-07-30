@@ -23,7 +23,7 @@ public interface MaterialLibraryService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createMaterialLibrary(@Valid MaterialLibrarySaveReqVO createReqVO);
+    Long createSystemMaterialLibrary(@Valid MaterialLibrarySaveReqVO createReqVO);
 
 
     /**
@@ -32,7 +32,7 @@ public interface MaterialLibraryService {
      * @param appName 应用名称
      * @return 编号
      */
-    Long createMaterialLibrary(String appName, Integer libraryType);
+    Long createSystemMaterialLibrary(String appName, Integer libraryType);
 
 
     /**
@@ -145,14 +145,16 @@ public interface MaterialLibraryService {
     MaterialLibrarySliceUseRespVO getMaterialLibrarySlice(MaterialLibrarySliceAppReqVO appReqVO);
 
     /**
-     * 应用发布，直接复制一份新的素材库出来（版本管理）
+     * 素材库-》素材库的复制（包含全部数据）
      *
-     * @param appReqVO 应用中绑定的数据
+     * @param copyReqVO 模板复制素材库VO
      * @return 素材库 UID
      */
-    List<String> materialLibraryCopy(List<MaterialLibrarySliceAppReqVO> appReqVO);
+    Long materialLibraryCopy(MaterialLibraryCopyReqVO copyReqVO);
 
     /**
+     * 老应用的素材库-》新应用的素材库的复制（包含全部数据）
+     *
      * @param newApp 新应用
      * @param oldApp 老应用
      */
@@ -171,9 +173,8 @@ public interface MaterialLibraryService {
      * 素材数据迁移
      *
      * @param sliceMigrationReqVO 迁移 VO
-     * @return 素材库 UID
      */
-    String materialLibraryDataMigration(SliceMigrationReqVO sliceMigrationReqVO);
+    void materialLibraryDataMigration(SliceMigrationReqVO sliceMigrationReqVO);
 
     /**
      * 更新素材库插件配置
