@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.model.coze.Message;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,12 +64,12 @@ public class CozeChatReqVO implements java.io.Serializable {
      *     </li>
      * </ol>
      */
-    private Boolean stream;
+    private Boolean stream = false;
 
     /**
      * Bot 中定义的变量。在 Bot prompt 中设置变量 {{key}} 后，可以通过该参数传入变量值，同时支持 Jinja2 语法
      */
-    private Map<String, String> variables;
+    private Map<String, String> variables = new HashMap<>();
 
     /**
      * 是否自动保存历史对话记录：
@@ -77,12 +78,13 @@ public class CozeChatReqVO implements java.io.Serializable {
      *     <li>false：系统不保存历史对话记录，后续无法查看本次对话的基础信息或消息详情。</li>
      * </ol>
      */
-    private Boolean autoSaveHistory;
+    private Boolean autoSaveHistory = true;
 
     /**
      * 创建消息时的附加消息，获取消息时也会返回此附加消息。<br>
      * 自定义键值对，应指定为 Map 对象格式。长度为 16 对键值对，<br>
      * 其中键（key）的长度范围为 1～64 个字符，值（value）的长度范围为 1～512 个字符。
      */
-    private Map<String, String> metaData;
+    private Map<String, String> metaData = new HashMap<>();
+
 }

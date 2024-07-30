@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.coze.vo.CozeChatQuery;
 import com.starcloud.ops.business.app.controller.admin.coze.vo.CozeChatReqVO;
 import com.starcloud.ops.business.app.convert.coze.CozeConvert;
@@ -18,6 +19,7 @@ import com.starcloud.ops.business.app.model.coze.MessageResult;
 import com.starcloud.ops.business.app.service.coze.CozeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -44,6 +46,9 @@ public class CozeServiceImpl implements CozeService {
     @Override
     public ChatResult chat(CozeChatReqVO request) {
         try {
+            if (StringUtils.isEmpty(request.getUserId())) {
+                request.setUserId(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
+            }
             log.info("扣子机器人聊天【准备执行】：请求参数：{}", JsonUtils.toJsonString(request));
             CozeChatRequest cozeChatRequest = CozeConvert.INSTANCE.convert(request);
             CozeResponse<CozeChatResult> cozeResponse = cozeClient.chat(request.getConversationId(), cozeChatRequest);

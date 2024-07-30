@@ -34,7 +34,7 @@ public class Message implements java.io.Serializable {
      *     <li>follow_up：如果在 Bot 上配置打开了用户问题建议开关，则会返回推荐问题相关的回复内容。</li>
      *     <li>verbose：多 answer 场景下，服务端会返回一个 verbose 包，对应的 content 为 JSON 格式，content.msg_type =generate_answer_finish 代表全部 answer 回复完成。</li>
      * </ol>
-     *
+     * <p>
      * 说明：仅发起会话（v3）接口支持将此参数作为入参，且：
      * <ol>
      *     <li>如果 autoSaveHistory=true，type 支持设置为 question 或 answer。</li>
@@ -70,4 +70,18 @@ public class Message implements java.io.Serializable {
      * 值（value）的长度范围为 1～512 个字符。
      */
     private Map<String, String> metaData;
+
+    /**
+     * 创建消息对象
+     *
+     * @param message 消息内容
+     * @return 消息对象
+     */
+    public static Message of(String message) {
+        Message msg = new Message();
+        msg.setRole("user");
+        msg.setContent(message);
+        msg.setContentType("text");
+        return msg;
+    }
 }
