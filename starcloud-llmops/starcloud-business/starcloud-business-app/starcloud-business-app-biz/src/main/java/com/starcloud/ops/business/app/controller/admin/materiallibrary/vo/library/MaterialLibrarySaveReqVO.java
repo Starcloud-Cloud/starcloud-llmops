@@ -8,6 +8,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Schema(description = "管理后台 - 素材知识库新增/修改 Request VO")
 @Data
@@ -18,12 +19,14 @@ public class MaterialLibrarySaveReqVO {
 
     @Schema(description = "名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     @NotEmpty(message = "名称不能为空")
+    @Size(max = 100, message = "素材库名称不能超过100个字符")
     private String name;
 
     @Schema(description = "图标链接", requiredMode = Schema.RequiredMode.REQUIRED, example = "https://www.iocoder.cn")
     private String iconUrl;
 
     @Schema(description = "描述", requiredMode = Schema.RequiredMode.REQUIRED, example = "你猜")
+    @Size(max = 300, message = "素材库描述不能超过100个字符")
     private String description;
 
     @Schema(description = "素材类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
