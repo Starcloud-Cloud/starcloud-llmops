@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
@@ -30,10 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -45,6 +43,9 @@ import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.E
 @RequestMapping("/llm/material-library-app-bind")
 @Validated
 public class MaterialLibraryAppBindController {
+
+    @Resource
+    private AdminUserApi adminUserApi;
 
     @Resource
     @Lazy
@@ -116,6 +117,8 @@ public class MaterialLibraryAppBindController {
         uniqueBind.forEach(bind -> list.add(materialLibraryService.getMaterialLibrary(bind.getLibraryId())));
 
         libraryRespVOPageResult.setList(BeanUtils.toBean(list, MaterialLibraryPageRespVO.class));
+
+        libraryRespVOPageResult.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
         libraryRespVOPageResult.setTotal(pageResult.getTotal());
 
         return success(libraryRespVOPageResult);
@@ -133,11 +136,5 @@ public class MaterialLibraryAppBindController {
                 BeanUtils.toBean(list, MaterialLibraryAppBindRespVO.class));
     }
 
-
-    // 自定义去重比较器
-    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
 
 }
