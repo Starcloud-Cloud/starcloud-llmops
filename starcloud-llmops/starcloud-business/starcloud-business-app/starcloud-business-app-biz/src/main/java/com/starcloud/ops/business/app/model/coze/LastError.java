@@ -9,7 +9,9 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class LastError {
+public class LastError implements java.io.Serializable {
+
+    private static final long serialVersionUID = 4328352372172483364L;
 
     /**
      * 错误码。

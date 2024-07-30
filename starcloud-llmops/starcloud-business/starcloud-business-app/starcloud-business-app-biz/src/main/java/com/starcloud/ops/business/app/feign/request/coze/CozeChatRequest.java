@@ -16,7 +16,9 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Data
-public class CozeChatRequest {
+public class CozeChatRequest implements java.io.Serializable {
+
+    private static final long serialVersionUID = -6171979849294061362L;
 
     /**
      * 要进行会话聊天的 Bot ID <br>

@@ -9,7 +9,9 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class CozeResponse<T> {
+public class CozeResponse<T> implements java.io.Serializable {
+
+    private static final long serialVersionUID = 3667983188357138391L;
 
     /**
      * 状态码。
@@ -18,7 +20,7 @@ public class CozeResponse<T> {
     @JsonProperty("code")
     private Integer code;
 
-     /**
+    /**
      * 状态信息。API 调用失败时可通过此字段查看详细错误信息。
      */
     @JsonProperty("msg")

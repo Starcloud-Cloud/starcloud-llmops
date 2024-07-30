@@ -8,15 +8,17 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class RequiredAction {
+public class RequiredAction implements java.io.Serializable {
+
+    private static final long serialVersionUID = 4093758970720841595L;
 
     /**
-     * 类型
+     * 额外操作的类型，枚举值为 submit_tool_outputs。
      */
     private String type;
 
     /**
-     * 提交工具输出
+     * 需要提交的结果详情，通过提交接口上传，并可以继续聊天
      */
     private OutputTool submitToolOutputs;
 

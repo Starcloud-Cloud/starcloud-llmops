@@ -10,10 +10,12 @@ import java.util.List;
  * @since 1.0.0
  */
 @Data
-public class OutputTool {
+public class OutputTool implements java.io.Serializable {
+
+    private static final long serialVersionUID = 8989164680434466844L;
 
     /**
-     * 会话 ID，即会话的唯一标识。
+     * 具体上报信息详情。
      */
     private List<ToolCall> toolCalls;
 }

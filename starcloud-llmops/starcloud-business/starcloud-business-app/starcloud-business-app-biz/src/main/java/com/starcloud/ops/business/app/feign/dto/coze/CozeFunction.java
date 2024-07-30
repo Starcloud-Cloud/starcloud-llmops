@@ -9,16 +9,18 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class CozeFunction {
+public class CozeFunction implements java.io.Serializable {
+
+    private static final long serialVersionUID = -4158737612684149608L;
 
     /**
-     * 工具名称
+     * 方法名称
      */
     @JsonProperty("name")
     private String name;
 
     /**
-     * 工具参数
+     * 方法参数
      */
     @JsonProperty("argument")
     private String argument;

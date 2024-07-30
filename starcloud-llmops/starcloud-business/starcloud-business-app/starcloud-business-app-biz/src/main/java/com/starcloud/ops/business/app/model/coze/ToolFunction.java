@@ -8,15 +8,17 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class ToolFunction {
+public class ToolFunction implements java.io.Serializable {
+
+    private static final long serialVersionUID = 2066411103620670358L;
 
     /**
-     * 工具名称
+     * 方法名称
      */
     private String name;
 
     /**
-     * 工具参数
+     * 方法参数
      */
     private String argument;
 }

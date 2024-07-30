@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.controller.admin.coze.vo.CozeChatQuery;
 import com.starcloud.ops.business.app.controller.admin.coze.vo.CozeChatReqVO;
 import com.starcloud.ops.business.app.model.coze.ChatResult;
 import com.starcloud.ops.business.app.model.coze.MessageResult;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -23,15 +24,15 @@ public interface CozeService {
      * @param request 请求参数
      * @return ChatResult
      */
-    ChatResult chat(CozeChatReqVO request);
+    ChatResult chat(@Validated CozeChatReqVO request);
 
     /**
-     * 查询扣子机器执行会话执行情况
+     * 查询扣子机器人会话详情
      *
      * @param query 请求参数
      * @return ChatResult
      */
-    ChatResult retrieve(CozeChatQuery query);
+    ChatResult retrieve(@Validated CozeChatQuery query);
 
     /**
      * 查询扣子机器执行消息列表
@@ -39,6 +40,6 @@ public interface CozeService {
      * @param query 请求参数
      * @return ChatResult
      */
-    List<MessageResult> messageList(CozeChatQuery query);
+    List<MessageResult> messageList(@Validated CozeChatQuery query);
 
 }

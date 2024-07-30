@@ -11,10 +11,12 @@ import java.util.List;
  * @since 1.0.0
  */
 @Data
-public class CozeOutputTool {
+public class CozeOutputTool implements java.io.Serializable {
+
+    private static final long serialVersionUID = -8848016117885313778L;
 
     /**
-     * 会话 ID，即会话的唯一标识。
+     * 具体上报信息详情。
      */
     @JsonProperty("tool_calls")
     private List<CozeToolCall> toolCalls;

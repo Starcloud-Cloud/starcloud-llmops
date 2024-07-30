@@ -11,7 +11,9 @@ import java.util.Map;
  * @since 1.0.0
  */
 @Data
-public class CozeChatResult {
+public class CozeChatResult implements java.io.Serializable {
+
+    private static final long serialVersionUID = -2263361700708212478L;
 
     /**
      * 对话 ID，即对话的唯一标识。

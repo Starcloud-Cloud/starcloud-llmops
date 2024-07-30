@@ -8,13 +8,17 @@ import lombok.Data;
  * @author nacoyer
  */
 @Data
-public class CozeObjectString {
+public class CozeObjectString implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1139319424672893305L;
 
     /**
      * 多模态消息内容类型，支持设置为：
-     * text：文本类型。
-     * file：文件类型。
-     * image：图片类型。
+     * <ol>
+     *     <li>text：文本类型。</li>
+     *     <li>file：文件类型。</li>
+     *     <li>image：图片类型。</li>
+     * </ol>
      */
     private String type;
 

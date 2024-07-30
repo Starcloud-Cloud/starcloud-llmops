@@ -9,7 +9,9 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class CozeLastError {
+public class CozeLastError implements java.io.Serializable {
+
+    private static final long serialVersionUID = -6134565580188557993L;
 
     /**
      * 错误码。

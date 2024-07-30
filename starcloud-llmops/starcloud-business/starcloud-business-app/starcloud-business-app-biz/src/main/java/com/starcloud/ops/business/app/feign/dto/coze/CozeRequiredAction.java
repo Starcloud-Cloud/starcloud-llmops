@@ -9,16 +9,18 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class CozeRequiredAction {
+public class CozeRequiredAction implements java.io.Serializable {
+
+    private static final long serialVersionUID = -4904459416790532845L;
 
     /**
-     * 类型
+     * 额外操作的类型，枚举值为 submit_tool_outputs。
      */
     @JsonProperty("type")
     private String type;
 
     /**
-     * 提交工具输出
+     * 需要提交的结果详情，通过提交接口上传，并可以继续聊天
      */
     @JsonProperty("submit_tool_outputs")
     private CozeOutputTool submitToolOutputs;

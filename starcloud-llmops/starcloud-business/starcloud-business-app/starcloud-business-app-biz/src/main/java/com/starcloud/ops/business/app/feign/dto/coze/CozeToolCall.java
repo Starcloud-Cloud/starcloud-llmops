@@ -9,22 +9,24 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class CozeToolCall {
+public class CozeToolCall implements java.io.Serializable {
+
+    private static final long serialVersionUID = 3212035416343471748L;
 
     /**
-     * 工具 ID。
+     * 上报运行结果的 ID。
      */
     @JsonProperty("id")
     private String id;
 
     /**
-     * 工具类型
+     * 工具类型，枚举值为 function。
      */
     @JsonProperty("type")
     private String type;
 
     /**
-     * 工具名称
+     * 执行方法 function 的定义。
      */
     @JsonProperty("function")
     private CozeFunction function;

@@ -8,20 +8,22 @@ import lombok.Data;
  * @since 1.0.0
  */
 @Data
-public class ToolCall {
+public class ToolCall implements java.io.Serializable {
+
+    private static final long serialVersionUID = -3719080105771430879L;
 
     /**
-     * 工具 ID。
+     * 上报运行结果的 ID。
      */
     private String id;
 
     /**
-     * 工具类型
+     * 工具类型，枚举值为 function。
      */
     private String type;
 
     /**
-     * 工具名称
+     * 执行方法 function 的定义。
      */
     private ToolFunction function;
 

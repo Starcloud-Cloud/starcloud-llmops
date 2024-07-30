@@ -55,6 +55,6 @@ public interface CozeClient {
      * @return 消息列表
      */
     @GetMapping("/chat/message/list")
-    CozeResponse<List<CozeMessageResult>> list(@RequestParam(value = "conversation_id") String conversationId,
-                                               @RequestParam(value = "chat_id") String chatId);
+    CozeResponse<List<CozeMessageResult>> messageList(@RequestParam(value = "conversation_id") String conversationId,
+                                                      @RequestParam(value = "chat_id") String chatId);
 }
