@@ -7,10 +7,11 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
-import com.rometools.rome.feed.atom.Person;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -30,10 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -45,6 +43,9 @@ import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.E
 @RequestMapping("/llm/material-library-app-bind")
 @Validated
 public class MaterialLibraryAppBindController {
+
+    @Resource
+    private AdminUserApi adminUserApi;
 
     @Resource
     @Lazy
@@ -100,23 +101,25 @@ public class MaterialLibraryAppBindController {
 
     @PostMapping("/page")
     @Operation(summary = "获得应用素材绑定分页")
-    public CommonResult<PageResult<MaterialLibraryRespVO>> getMaterialLibraryAppBindPage(@Valid @RequestBody MaterialLibraryAppBindPageReqVO pageReqVO) {
+    public CommonResult<PageResult<MaterialLibraryPageRespVO>> getMaterialLibraryAppBindPage(@Valid @RequestBody MaterialLibraryAppBindPageReqVO pageReqVO) {
         PageResult<MaterialLibraryAppBindDO> pageResult = materialLibraryAppBindService.getMaterialLibraryAppBindPage(pageReqVO);
 
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty(pageResult.getTotal()));
         }
 
-        PageResult<MaterialLibraryRespVO>  libraryRespVOPageResult = new PageResult<>();
+        PageResult<MaterialLibraryPageRespVO> libraryRespVOPageResult = new PageResult<>();
         ArrayList<MaterialLibraryDO> list = new ArrayList<>();
 
-        List<MaterialLibraryAppBindDO> uniqueBind = new ArrayList<>(        pageResult.getList().stream()
+        List<MaterialLibraryAppBindDO> uniqueBind = new ArrayList<>(pageResult.getList().stream()
                 .collect(Collectors.toMap(MaterialLibraryAppBindDO::getLibraryId, Function.identity(), (existing, replacement) -> existing))
                 .values());
         uniqueBind.forEach(bind -> list.add(materialLibraryService.getMaterialLibrary(bind.getLibraryId())));
 
-        libraryRespVOPageResult.setList(BeanUtils.toBean(list, MaterialLibraryRespVO.class));
-        libraryRespVOPageResult.setTotal( pageResult.getTotal() );
+        libraryRespVOPageResult.setList(BeanUtils.toBean(list, MaterialLibraryPageRespVO.class));
+
+        libraryRespVOPageResult.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
+        libraryRespVOPageResult.setTotal(pageResult.getTotal());
 
         return success(libraryRespVOPageResult);
     }
@@ -133,11 +136,5 @@ public class MaterialLibraryAppBindController {
                 BeanUtils.toBean(list, MaterialLibraryAppBindRespVO.class));
     }
 
-
-    // 自定义去重比较器
-    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
 
 }

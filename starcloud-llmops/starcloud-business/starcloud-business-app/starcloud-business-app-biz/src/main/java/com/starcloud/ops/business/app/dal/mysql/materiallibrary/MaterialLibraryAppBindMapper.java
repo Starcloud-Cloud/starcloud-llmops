@@ -43,4 +43,12 @@ public interface MaterialLibraryAppBindMapper extends BaseMapperX<MaterialLibrar
                 .eq(MaterialLibraryAppBindDO::getAppUid, appUid);
         return selectList(wrapper);
     }
+
+    default List<MaterialLibraryAppBindDO> selectListByLibrary(Long libraryId) {
+        LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class)
+                .eq(MaterialLibraryAppBindDO::getLibraryId, libraryId)
+                .eq(MaterialLibraryAppBindDO::getStatus, true)
+                ;
+        return selectList(wrapper);
+    }
 }
