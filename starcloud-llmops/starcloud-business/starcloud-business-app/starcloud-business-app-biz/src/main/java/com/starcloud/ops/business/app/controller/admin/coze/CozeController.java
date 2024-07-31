@@ -53,7 +53,7 @@ public class CozeController {
         return CommonResult.success(cozeService.messageList(query));
     }
 
-    @GetMapping("/chat/getMessageResult")
+    @GetMapping("/chat/getResult")
     @Operation(summary = "解析消息", description = "解析消息")
     @ApiOperationSupport(order = 40, author = "nacoyer")
     public CommonResult<Object> parseMessage(@Validated CozeChatQuery query) {
