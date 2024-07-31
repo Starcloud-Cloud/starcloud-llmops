@@ -52,4 +52,11 @@ public class CozeController {
     public CommonResult<List<MessageResult>> messageList(@Validated CozeChatQuery query) {
         return CommonResult.success(cozeService.messageList(query));
     }
+
+    @GetMapping("/chat/getMessageResult")
+    @Operation(summary = "解析消息", description = "解析消息")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
+    public CommonResult<Object> parseMessage(@Validated CozeChatQuery query) {
+        return CommonResult.success(cozeService.parseMessage(query));
+    }
 }
