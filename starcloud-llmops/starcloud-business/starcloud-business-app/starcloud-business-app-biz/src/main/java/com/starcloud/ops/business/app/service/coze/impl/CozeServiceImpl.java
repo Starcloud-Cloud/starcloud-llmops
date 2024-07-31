@@ -35,6 +35,10 @@ import java.util.Objects;
 @Service
 public class CozeServiceImpl implements CozeService {
 
+    public static final String TOOL_RESPONSE = "tool_response";
+
+    public static final String ANSWER = "answer";
+
     @Resource
     private CozeClient cozeClient;
 
@@ -145,7 +149,7 @@ public class CozeServiceImpl implements CozeService {
      * @return Object
      */
     @Override
-    public Object parseMessage(CozeChatQuery query) {
+    public Object getToolResponse(CozeChatQuery query) {
         // 查询消息列表
         List<MessageResult> messageList = this.messageList(query);
         for (int i = messageList.size() - 1; i >= 0; i--) {
@@ -153,7 +157,29 @@ public class CozeServiceImpl implements CozeService {
             if (Objects.isNull(message)) {
                 continue;
             }
-            if ("tool_response".equalsIgnoreCase(message.getType())) {
+            if (TOOL_RESPONSE.equalsIgnoreCase(message.getType())) {
+                return this.parseMessage(message.getContent());
+            }
+        }
+        throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_001, "生成结果不未找到! 请稍后重试或者联系管理员"));
+    }
+
+    /**
+     * 获取扣子机器人回答的结果
+     *
+     * @param query 请求参数
+     * @return Object
+     */
+    @Override
+    public Object getAnswer(CozeChatQuery query) {
+        // 查询消息列表
+        List<MessageResult> messageList = this.messageList(query);
+        for (int i = messageList.size() - 1; i >= 0; i--) {
+            MessageResult message = messageList.get(i);
+            if (Objects.isNull(message)) {
+                continue;
+            }
+            if (ANSWER.equalsIgnoreCase(message.getType())) {
                 return this.parseMessage(message.getContent());
             }
         }
@@ -179,7 +205,12 @@ public class CozeServiceImpl implements CozeService {
                 throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_002, "生成结果格式化异常! 请稍后重试或者联系管理员"));
             }
         }
-        // todo 对原始内容进行解析。防止有些失败信息直接在 content 中的情况
+
+        if (content.contains("抱歉")) {
+            log.error("扣子生成结果异常: {}", content);
+            throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_003, content));
+        }
+
         return content;
     }
 
