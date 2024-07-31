@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -63,14 +63,19 @@ public class MaterialLibraryTableColumnController {
     @Operation(summary = "获取表头数据列表")
     public CommonResult<List<MaterialLibraryTableColumnRespVO>> updateBatch(@RequestParam("libraryId") Long libraryId) {
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
-        return success(BeanUtils.toBean(tableColumnDOList,MaterialLibraryTableColumnRespVO.class));
+        return success(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
     }
 
     @PostMapping("/update-batch")
     @Operation(summary = "批量更新表头数据")
-    public CommonResult<Boolean> updateBatch(@Valid @RequestBody  MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
+    public CommonResult<Boolean> updateBatch(@Valid @RequestBody MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
         materialLibraryTableColumnService.updateBatchByLibraryId(batchSaveReqVO);
         return success(true);
     }
 
+    @PostMapping("/validate-switch-bind")
+    @Operation(summary = "切换绑定表头校验")
+    public CommonResult<Boolean> validateSwitchBind(@Valid @RequestBody MaterialLibraryAppBindSaveReqVO saveReqVO) {
+        return success(materialLibraryTableColumnService.validateSwitchBind(saveReqVO));
+    }
 }
