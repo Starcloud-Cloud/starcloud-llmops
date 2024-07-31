@@ -33,10 +33,10 @@ public class CozeTempController {
         CozeChatRequest request = new CozeChatRequest();
 
         request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
-        request.setBotId("7397320453251579913");
+        request.setBotId("7397633729629945891");
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
-        cozeMessage.setContent("分析小红书链接内容：" + params.get("urls"));
+        cozeMessage.setContent(params.get("urls").toString());
         cozeMessage.setContentType("text");
         request.setMessages(Collections.singletonList(cozeMessage));
         CozeResponse<CozeChatResult> chat = cozeClient.chat(null, request);
@@ -67,13 +67,13 @@ public class CozeTempController {
         if (toolResponse.isPresent()) {
             ParseResult parseResult = new ParseResult();
             String content = toolResponse.get().getContent();
-            Type type = new TypeReference<Map<String, String>>() {
+            Type type = new TypeReference<List<Map<String, String>>>() {
             }.getType();
 
-            parseResult.setMaterialList(Collections.singletonList(JSON.parseObject(content,type)));
+            parseResult.setMaterialList(JSON.parseObject(content, type));
             parseResult.setComplete(true);
             return CommonResult.success(parseResult);
         }
-        return CommonResult.error(500,"");
+        return CommonResult.error(500, "");
     }
 }
