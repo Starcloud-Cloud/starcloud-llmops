@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.coze.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -139,25 +138,49 @@ public class CozeServiceImpl implements CozeService {
         }
     }
 
+    /**
+     * 解析消息, 返回解析后的结果
+     *
+     * @param query 请求参数
+     * @return Object
+     */
     @Override
-    public JSON parseMessage(CozeChatQuery query) {
+    public Object parseMessage(CozeChatQuery query) {
         // 查询消息列表
         List<MessageResult> messageList = this.messageList(query);
-
         for (int i = messageList.size() - 1; i >= 0; i--) {
             MessageResult message = messageList.get(i);
-            if (message == null) {
+            if (Objects.isNull(message)) {
                 continue;
             }
             if ("tool_response".equalsIgnoreCase(message.getType())) {
-                if (StringUtils.isBlank(message.getContent())) {
-                    throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_001, "生成结果不未找到! 请稍后重试或者联系管理员"));
-                }
-                return JSONUtil.parse(message.getContent());
+                return this.parseMessage(message.getContent());
             }
         }
-
         throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_001, "生成结果不未找到! 请稍后重试或者联系管理员"));
+    }
+
+    /**
+     * 解析消息, 返回解析后的结果
+     *
+     * @param content 请求参数
+     * @return Object
+     */
+    public Object parseMessage(String content) {
+        if (StringUtils.isBlank(content)) {
+            throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_001, "生成结果不未找到! 请稍后重试或者联系管理员"));
+        }
+        // 判断是否是 JSON 格式
+        if (JSONUtil.isTypeJSON(content)) {
+            try {
+                return JSONUtil.parse(content);
+            } catch (Exception exception) {
+                log.error("扣子生成结果格式化处理异常: {}", exception.getMessage());
+                throw ServiceExceptionUtil.exception(new ErrorCode(3_105_00_002, "生成结果格式化异常! 请稍后重试或者联系管理员"));
+            }
+        }
+        // todo 对原始内容进行解析。防止有些失败信息直接在 content 中的情况
+        return content;
     }
 
 }
