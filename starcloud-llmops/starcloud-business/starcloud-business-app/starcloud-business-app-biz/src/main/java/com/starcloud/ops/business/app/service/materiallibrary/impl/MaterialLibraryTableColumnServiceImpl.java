@@ -7,17 +7,21 @@ import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryTableColumnMapper;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -50,6 +55,9 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Resource
     @Lazy
     private MaterialLibraryService materialLibraryService;
+
+    @Resource
+    private MaterialLibraryAppBindService materialLibraryAppBindService;
 
     @Resource
     private MaterialLibraryTableColumnMapper materialLibraryTableColumnMapper;
@@ -209,6 +217,31 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             data.setId(null);
         });
        saveBatchData(newTableColumnSaveList);
+
+    }
+
+    /**
+     * 切换绑定校验
+     *
+     * @param saveReqVO 换绑 VO
+     */
+    @Override
+    public Boolean validateSwitchBind(MaterialLibraryAppBindSaveReqVO saveReqVO) {
+        MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(saveReqVO.getAppUid());
+        materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
+
+        Set<String> existingColumnCodes = getMaterialLibraryTableColumnByLibrary(bind.getLibraryId()).stream()
+                .map(MaterialLibraryTableColumnDO::getColumnCode)
+                .filter(StringUtils::isNotBlank) // 防止空字符串
+                .collect(Collectors.toSet());
+
+        Set<String> newColumnCodes = getMaterialLibraryTableColumnByLibrary(saveReqVO.getLibraryId()).stream()
+                .map(MaterialLibraryTableColumnDO::getColumnCode)
+                .filter(StringUtils::isNotBlank) // 防止空字符串
+                .collect(Collectors.toSet());
+
+        return CollectionUtils.containsAll(newColumnCodes, existingColumnCodes);
+
 
     }
 
