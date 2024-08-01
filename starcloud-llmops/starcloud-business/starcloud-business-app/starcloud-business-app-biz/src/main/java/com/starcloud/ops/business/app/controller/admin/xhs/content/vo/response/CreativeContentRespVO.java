@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response;
 
-import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
+import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -143,5 +143,5 @@ public class CreativeContentRespVO implements java.io.Serializable {
      * 执行进度
      */
     @Schema(description = "执行进度")
-    private AppExecuteProgressDTO progress;
+    private AppExecuteProgress progress;
 }

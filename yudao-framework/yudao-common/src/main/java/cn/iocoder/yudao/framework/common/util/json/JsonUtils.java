@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -171,6 +172,19 @@ public class JsonUtils {
         }
         try {
             MapType mapType = objectMapper.getTypeFactory().constructMapType(Map.class, keyClass, valueClass);
+            return objectMapper.readValue(text, mapType);
+        } catch (IOException e) {
+            log.error("json parse err,json:{}", text, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <K, V> LinkedHashMap<K, V> parseLinkedHashMap(String text, Class<K> keyClass, Class<V> valueClass) {
+        if (StrUtil.isEmpty(text)) {
+            return new LinkedHashMap<>();
+        }
+        try {
+            MapType mapType = objectMapper.getTypeFactory().constructMapType(LinkedHashMap.class, keyClass, valueClass);
             return objectMapper.readValue(text, mapType);
         } catch (IOException e) {
             log.error("json parse err,json:{}", text, e);
