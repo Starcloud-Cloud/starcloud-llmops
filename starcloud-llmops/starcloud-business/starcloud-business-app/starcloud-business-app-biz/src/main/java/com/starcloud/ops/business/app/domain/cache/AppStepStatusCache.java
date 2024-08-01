@@ -56,7 +56,7 @@ public class AppStepStatusCache {
     public LinkedHashMap<String, String> get(String conversation) {
         ValueOperations<String, String> operations = redisTemplate.opsForValue();
         String value = operations.get(getCacheKey(conversation));
-        return StringUtils.isBlank(value) ? parse(value) : null;
+        return StringUtils.isNotBlank(value) ? parse(value) : null;
     }
 
     /**
