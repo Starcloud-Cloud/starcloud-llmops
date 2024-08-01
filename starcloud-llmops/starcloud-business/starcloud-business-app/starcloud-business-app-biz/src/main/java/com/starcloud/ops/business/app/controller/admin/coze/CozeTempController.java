@@ -33,7 +33,8 @@ public class CozeTempController {
         CozeChatRequest request = new CozeChatRequest();
 
         request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
-        request.setBotId("7397633729629945891");
+        request.setBotId("7398039516847767602");
+//        request.setBotId("7397633729629945891");
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
         cozeMessage.setContent(params.get("urls").toString());
