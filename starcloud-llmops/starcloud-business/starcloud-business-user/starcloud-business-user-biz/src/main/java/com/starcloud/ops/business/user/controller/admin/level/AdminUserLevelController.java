@@ -2,6 +2,8 @@ package com.starcloud.ops.business.user.controller.admin.level;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelLimitRespVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelLimitUsedRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelRespVO;
 import com.starcloud.ops.business.user.convert.level.AdminUserLevelConvert;
@@ -52,6 +54,19 @@ public class AdminUserLevelController {
     public CommonResult<Boolean> createInitLevelRecord() {
         adminUserLevelService.createInitLevelRecord(getLoginUserId());
         return success(Boolean.TRUE);
+    }
+
+
+    @GetMapping("/user_rights_limit_use")
+    @Operation(summary = "用户权益是否超过使用限制")
+    public CommonResult<AdminUserLevelLimitRespVO> validateLevelRightsLimit(@RequestParam("levelRightsCode") String levelRightsCode) {
+        return success(adminUserLevelService.validateLevelRightsLimit(levelRightsCode, getLoginUserId()));
+    }
+
+    @GetMapping("/user_rights_limit_used_count")
+    @Operation(summary = "用户权益使用限制查询")
+    public CommonResult<AdminUserLevelLimitUsedRespVO> getLevelRightsLimitCount(@RequestParam("levelRightsCode") String levelRightsCode) {
+        return success(adminUserLevelService.getLevelRightsLimitCount(levelRightsCode, getLoginUserId()));
     }
 
 

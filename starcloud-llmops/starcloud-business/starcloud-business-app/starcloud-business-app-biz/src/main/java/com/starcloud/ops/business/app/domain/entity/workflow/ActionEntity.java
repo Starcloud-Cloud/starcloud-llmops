@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import lombok.Data;
 
 /**
@@ -39,11 +40,12 @@ public class ActionEntity extends BaseActionEntity {
         return ObjectUtil.isNotEmpty(this.getResponse()) ? ObjectUtil.isNotEmpty(this.getResponse().getOutput()) ? this.getResponse().getOutput().getData() : null : null;
     }
 
+
     /**
      * Action 校验
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
     }
 }

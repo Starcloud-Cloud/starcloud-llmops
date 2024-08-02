@@ -185,7 +185,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             SHARE_WEB,
             SHARE_IFRAME,
             SHARE_JS,
-            SHARE_API
+            SHARE_API,
+            XHS_WRITING
     );
 
     /**
@@ -319,6 +320,16 @@ public enum AppSceneEnum implements IEnumable<Integer> {
         return CollectionUtil.emptyIfNull(sceneEnumList).stream()
                 .map(item -> Option.of(item.name(), item.getLabel(), item.getLabelEn()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据Name获取枚举
+     */
+    public static AppSceneEnum getByName(String name) {
+        return Arrays.stream(values())
+                .filter(item -> item.name().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
 

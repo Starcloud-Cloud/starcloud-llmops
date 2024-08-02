@@ -3,8 +3,10 @@ package com.starcloud.ops.business.app.service.app;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
@@ -100,6 +102,13 @@ public interface AppService {
     AppRespVO create(AppReqVO request);
 
     /**
+     * 新建应用 复制素材库
+     * @param request
+     * @return
+     */
+    AppRespVO create(AppUpdateReqVO request);
+
+    /**
      * 复制应用
      *
      * @param request 应用请求信息
@@ -139,4 +148,11 @@ public interface AppService {
      */
     void asyncExecute(AppExecuteReqVO request);
 
+    /**
+     * 生成field
+     *
+     * @param reqVO
+     * @return
+     */
+    List<VariableItemRespVO> generalFieldCode(VariableReqVO reqVO);
 }

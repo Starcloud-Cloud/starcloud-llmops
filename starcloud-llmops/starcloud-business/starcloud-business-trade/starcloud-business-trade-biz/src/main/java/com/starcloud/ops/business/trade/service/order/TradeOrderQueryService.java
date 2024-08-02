@@ -11,6 +11,7 @@ import com.starcloud.ops.business.trade.framework.delivery.core.client.dto.Expre
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.singleton;
 
@@ -165,6 +166,20 @@ public interface TradeOrderQueryService {
      */
     TradeOrderDO getOrderBySignPayTime(Long signId, LocalDate signPayTime);
 
-    Integer getSignPaySuccessCountBySignId(Long signId);
+    List<TradeOrderDO> getSignPayTradeList(Long signId);
 
+    /**
+     * 订单通知-查询指定timeNum 内的订单 发送到钉钉通知
+     * @param timeNum 指定天数内
+     * @return 订单数
+     */
+    int orderAutoNotify(Long timeNum);
+
+    /**
+     * 构建通知参数
+     * @param tradeOrderDO 交易订单DO
+     * @param orderItems 订单项
+     * @return 通知参数
+     */
+    Map<String, Object> buildTradeNotifyMsg(TradeOrderDO tradeOrderDO, List<TradeOrderItemDO> orderItems);
 }

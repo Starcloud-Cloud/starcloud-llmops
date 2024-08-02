@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,9 +49,9 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     public List<AppCategoryVO> categoryList(Boolean isRoot) {
         String categoryType = AppConstants.APP_CATEGORY_DICT_TYPE;
         Long tenantId = TenantContextHolder.getRequiredTenantId();
-        if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId)) {
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
             categoryType = AppConstants.APP_CATEGORY_DICT_TYPE;
-        } else if (AppConstants.JU_ZHEN_TENANT_ID.equals(tenantId)) {
+        } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
             categoryType = AppConstants.APP_CATEGORY_DICT_TYPE_JU_ZHEN;
         }
 
@@ -87,9 +88,9 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     public List<String> hotSearchMarketAppNameList() {
         String hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET;
         Long tenantId = TenantContextHolder.getRequiredTenantId();
-        if (AppConstants.MO_FA_AI_TENANT_ID.equals(tenantId)) {
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
             hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET;
-        } else if (AppConstants.JU_ZHEN_TENANT_ID.equals(tenantId)) {
+        } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
             hotSearchMarket = AppConstants.APP_HOT_SEARCH_MARKET_JU_ZHEN;
         }
         List<DictDataDO> dictDataList = getDictionaryList(hotSearchMarket);
@@ -200,6 +201,42 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         List<AppCategoryVO> collect = dictDataList.stream().map(CategoryConvert.INSTANCE::convert).sorted(Comparator.comparingInt(AppCategoryVO::getSort)).collect(Collectors.toList());
         // 递归实现分类树
         return categoryListToTree(collect, AppConstants.ROOT);
+    }
+
+    /**
+     * 搜索应用模板名称，用于搜索应用市场应用名称
+     *
+     * @return 搜索应用模板名称
+     */
+    @Override
+    public List<String> appTemplateAppNameList() {
+
+        String hotSearchMarket = AppConstants.APP_TEMPLATE_SEARCH_MARKET;
+        Long tenantId = TenantContextHolder.getRequiredTenantId();
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+            hotSearchMarket = AppConstants.APP_TEMPLATE_SEARCH_MARKET;
+        } else if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
+            hotSearchMarket = AppConstants.APP_TEMPLATE_SEARCH_MARKET_JU_ZHEN;
+        }
+        List<DictDataDO> dictDataList = getDictionaryList(hotSearchMarket);
+        return CollectionUtil.emptyIfNull(dictDataList)
+                .stream()
+                .sorted(Comparator.comparingInt(DictDataDO::getSort))
+                .map(DictDataDO::getLabel).filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取应用默认配置
+     *
+     * @return 应用默认配置
+     */
+    @Override
+    public Map<String, String> defaultAppConfiguration() {
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.DEFAULT_APP_CONFIGURATION);
+        return CollectionUtil.emptyIfNull(dictDataList).stream()
+                .collect(Collectors.toMap(DictDataDO::getValue, DictDataDO::getRemark));
     }
 
     /**

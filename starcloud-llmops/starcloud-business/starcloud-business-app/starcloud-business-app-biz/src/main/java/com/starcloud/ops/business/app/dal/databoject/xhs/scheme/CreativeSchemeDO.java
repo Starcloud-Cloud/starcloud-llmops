@@ -69,12 +69,6 @@ public class CreativeSchemeDO extends TenantBaseDO {
     private String description;
 
     /**
-     * 创作方案模式
-     */
-    @TableField("mode")
-    private String mode;
-
-    /**
      * 创作方案配置信息
      */
     @TableField("configuration")

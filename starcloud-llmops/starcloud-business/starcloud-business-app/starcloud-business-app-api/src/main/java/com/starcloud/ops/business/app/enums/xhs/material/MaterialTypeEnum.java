@@ -17,23 +17,31 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.MA
 
 @Getter
 public enum MaterialTypeEnum implements IEnumable<String> {
-    BOOK_LIST("bookList", "书单", BookListCreativeMaterialDTO.class),
-    CONTRACT("contract", "合同模板", ContractCreativeMaterialDTO.class),
-    PERSONA("persona", "人设", PersonaCreativeMaterialDTO.class),
-    PICTURE("picture", "图片", PictureCreativeMaterialDTO.class),
-    QUOTATION("quotation", "语录号", PositiveQuotationCreativeMaterialDTO.class),
-    SNACK("snack", "小吃配方", SnackRecipeCreativeMaterialDTO.class);
+    //    BOOK_LIST("bookList", "书单", BookListCreativeMaterialDTO.class),
+//    CONTRACT("contract", "合同模板", ContractCreativeMaterialDTO.class),
+    NOTE("note", "普通笔记", OrdinaryNoteMaterialDTO.class),
+    NOTE_TITLE("noteTitle", "普通笔记标题", OrdinaryNoteTitleMaterialDTO.class),
+    NOTE_CONTENT("noteContent", "普通笔记内容", OrdinaryNoteContentMaterialDTO.class),
+//    PERSONA("persona", "人设", PersonaCreativeMaterialDTO.class),
+//    PICTURE("picture", "图片", PictureCreativeMaterialDTO.class),
+//    QUOTATION("quotation", "语录号", PositiveQuotationCreativeMaterialDTO.class),
+//    SNACK("snack", "小吃配方", SnackRecipeCreativeMaterialDTO.class),
+//    TRAVEL("travel", "旅游攻略", TravelGuideCreativeMaterialDTO.class),
+    ;
 
     private final String typeCode;
 
     private final String desc;
 
-    private final Class<? extends AbstractBaseCreativeMaterialDTO> aClass;
+    private final Class<? extends AbstractCreativeMaterialDTO> aClass;
 
-    private static final Map<String, MaterialTypeEnum> ENUM_MAP = Arrays.stream(MaterialTypeEnum.values())
+    public static final Map<String, MaterialTypeEnum> ENUM_MAP = Arrays.stream(MaterialTypeEnum.values())
             .collect(Collectors.toMap(MaterialTypeEnum::getTypeCode, Function.identity()));
 
-    MaterialTypeEnum(String typeCode, String desc, Class<? extends AbstractBaseCreativeMaterialDTO> aClass) {
+    // 参考素材类型
+    private static final List<MaterialTypeEnum> REFER_MATERIALS = Arrays.asList(NOTE_TITLE, NOTE_CONTENT);
+
+    MaterialTypeEnum(String typeCode, String desc, Class<? extends AbstractCreativeMaterialDTO> aClass) {
         this.typeCode = typeCode;
         this.desc = desc;
         this.aClass = aClass;
@@ -68,20 +76,47 @@ public enum MaterialTypeEnum implements IEnumable<String> {
                 definitionDTO.setFieldName(field.getName());
                 definitionDTO.setType(annotation.type().getTypeCode());
                 definitionDTO.setDesc(annotation.desc());
+                definitionDTO.setRequired(annotation.required());
+                definitionDTO.setWidth(annotation.width());
                 result.add(definitionDTO);
             }
         }
         return result;
     }
 
-    public static List<Option> options() {
+    /**
+     * 筛选指定类型的字段
+     *
+     * @param fieldTypeEnum
+     * @return
+     */
+    public List<Field> filterField(FieldTypeEnum fieldTypeEnum) {
+        Field[] fields = this.getAClass().getDeclaredFields();
+        List<Field> result = new ArrayList<>();
+        for (Field field : fields) {
+            FieldDefine annotation = field.getAnnotation(FieldDefine.class);
+            if (Objects.nonNull(annotation) && fieldTypeEnum.getTypeCode().equals(annotation.type().getTypeCode())) {
+                result.add(field);
+            }
+        }
+        return result;
+    }
+
+    public static List<Option> allOptions() {
         return Arrays.stream(values()).sorted(Comparator.comparingInt(MaterialTypeEnum::ordinal))
-                .map(item -> {
-                    Option option = new Option();
-                    option.setLabel(item.getDesc());
-                    option.setValue(item.getCode());
-                    return option;
-                }).collect(Collectors.toList());
+                .map(MaterialTypeEnum::option).collect(Collectors.toList());
+    }
+
+    public static List<Option> referOptions() {
+        return REFER_MATERIALS.stream().sorted(Comparator.comparingInt(MaterialTypeEnum::ordinal))
+                .map(MaterialTypeEnum::option).collect(Collectors.toList());
+    }
+
+    public Option option() {
+        Option option = new Option();
+        option.setLabel(desc);
+        option.setValue(typeCode);
+        return option;
     }
 
     @Override

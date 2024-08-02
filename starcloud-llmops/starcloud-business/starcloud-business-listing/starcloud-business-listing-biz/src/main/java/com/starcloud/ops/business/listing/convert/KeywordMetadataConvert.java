@@ -20,10 +20,10 @@ public interface KeywordMetadataConvert {
     KeywordMetadataConvert INSTANCE = Mappers.getMapper(KeywordMetadataConvert.class);
 
 
-    @Mappings({@Mapping(target = "gkDatas",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertGkDatasDTO(bean.getGkDatas()))"),
-            @Mapping(target = "departments",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertDepartmentsDTO(bean.getDepartments()))"),
-            @Mapping(target = "trends",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertSearchesTrendDTO(bean.getTrends()))"),
-            @Mapping(target = "monopolyAsinDtos",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertMonopolyAsinDtosDTO(bean.getMonopolyAsinDtos()))")})
+    @Mappings({@Mapping(target = "gkDatas", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertGkDatasDTO(bean.getGkDatas()))"),
+            @Mapping(target = "departments", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertDepartmentsDTO(bean.getDepartments()))"),
+            @Mapping(target = "trends", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertSearchesTrendDTO(bean.getTrends()))"),
+            @Mapping(target = "monopolyAsinDtos", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertMonopolyAsinDtosDTO(bean.getMonopolyAsinDtos()))")})
     KeywordMetadataRespVO convert(KeywordMetadataDO bean);
 
     List<KeywordMetadataRespVO> convertList(List<KeywordMetadataDO> beans);
@@ -31,17 +31,17 @@ public interface KeywordMetadataConvert {
     PageResult<KeywordMetadataRespVO> convertPage(PageResult<KeywordMetadataDO> page);
 
 
-
-    @Mappings({@Mapping(target = "gkDatas",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertGkDatasDTO(bean.getGkDatas()))"),
-            @Mapping(target = "departments",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertDepartmentsDTO(bean.getDepartments()))"),
-            @Mapping(target = "trends",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertSearchesTrendDTO(bean.getTrends()))"),
-            @Mapping(target = "monopolyAsinDtos",  expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertMonopolyAsinDtosDTO(bean.getMonopolyAsinDtos()))")})
+    @Mappings({@Mapping(target = "gkDatas", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertGkDatasDTO(bean.getGkDatas()))"),
+            @Mapping(target = "departments", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertDepartmentsDTO(bean.getDepartments()))"),
+            @Mapping(target = "trends", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertSearchesTrendDTO(bean.getTrends()))"),
+            @Mapping(target = "monopolyAsinDtos", expression = "java(com.starcloud.ops.business.listing.convert.KeywordMetadataConvert.convertMonopolyAsinDtosDTO(bean.getMonopolyAsinDtos()))")})
     KeywordMetadataDO convert(ItemsDTO bean);
 
 
     static List<GkDatasDTO> convertGkDatasDTO(String data) {
         return JSONUtil.toList(data, GkDatasDTO.class);
     }
+
     static String convertGkDatasDTO(List<GkDatasDTO> data) {
         return JSONUtil.toJsonStr(data);
     }
@@ -49,9 +49,11 @@ public interface KeywordMetadataConvert {
     static List<DepartmentsDTO> convertDepartmentsDTO(String data) {
         return JSONUtil.toList(data, DepartmentsDTO.class);
     }
+
     static String convertDepartmentsDTO(List<DepartmentsDTO> data) {
         return JSONUtil.toJsonStr(data);
     }
+
     static List<SearchesTrendsDTO> convertSearchesTrendDTO(String data) {
         return JSONUtil.toList(data, SearchesTrendsDTO.class);
     }
@@ -59,6 +61,7 @@ public interface KeywordMetadataConvert {
     static String convertSearchesTrendDTO(List<SearchesTrendsDTO> data) {
         return JSONUtil.toJsonStr(data);
     }
+
     static List<MonopolyAsinDtosDTO> convertMonopolyAsinDtosDTO(String data) {
         return JSONUtil.toList(data, MonopolyAsinDtosDTO.class);
     }
@@ -69,13 +72,16 @@ public interface KeywordMetadataConvert {
     }
 
 
-
-    default List<ExtendAsinReposeExcelVO> convertExcelVOList(List<ItemsDTO> beans){
+    default List<ExtendAsinReposeExcelVO> convertExcelVOList(List<ItemsDTO> beans) {
         return beans.stream().map(this::convertExcelVO).collect(Collectors.toList());
     }
 
-    default ExtendAsinReposeExcelVO convertExcelVO(ItemsDTO bean){
+    default ExtendAsinReposeExcelVO convertExcelVO(ItemsDTO bean) {
         ExtendAsinReposeExcelVO excelVO = new ExtendAsinReposeExcelVO();
+
+        if (bean == null){
+            return excelVO;
+        }
         excelVO.setKeywords(bean.getKeywords());
         excelVO.setKeywordCn(bean.getKeywordCn());
         excelVO.setTrafficPercentage(bean.getTrafficPercentage());
@@ -83,7 +89,7 @@ public interface KeywordMetadataConvert {
         excelVO.setRelationVariationsItem(bean.getRelationVariationsItems().stream().map(RelationVariationsItemsDTO::getAsin).collect(Collectors.joining("/")));
         excelVO.setSearchesRank(bean.getSearchesRank());
         excelVO.setSearches(bean.getSearches());
-        excelVO.setSearchesDays(bean.getSearches()/30);
+        excelVO.setSearchesDays(Math.floorDiv(bean.getSearches() == null ? 1 : bean.getSearches() <= 0 ? 1 : bean.getSearches(), 30));
         excelVO.setPurchases(bean.getPurchases());
         excelVO.setPurchaseRate(bean.getPurchaseRate());
         excelVO.setCprExact(bean.getCprExact());
@@ -97,14 +103,12 @@ public interface KeywordMetadataConvert {
         excelVO.setTop3ClickingRate(bean.getTop3ClickingRate());
         excelVO.setTop3ConversionRate(bean.getTop3ConversionRate());
         excelVO.setBid(bean.getBid());
-        excelVO.setBidRate(bean.getBidMin()+"-"+bean.getBidMax());
+        excelVO.setBidRate(bean.getBidMin() + "-" + bean.getBidMax());
         excelVO.setBadges(bean.getBadges().stream().map(Object::toString).collect(Collectors.joining("/")));
 
 
         return excelVO;
     }
-
-
 
 
 }

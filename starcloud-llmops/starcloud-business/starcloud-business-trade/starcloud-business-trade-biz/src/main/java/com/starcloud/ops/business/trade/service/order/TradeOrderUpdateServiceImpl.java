@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.trade.service.order;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -11,16 +10,12 @@ import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.number.MoneyUtils;
-import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
-import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.api.tenant.TenantApi;
-import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
@@ -59,22 +54,25 @@ import com.starcloud.ops.business.trade.service.price.calculator.TradePriceCalcu
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
 import com.starcloud.ops.business.trade.service.sign.TradeSignUpdateService;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.*;
 import static cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils.minusTime;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
-import static cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum.getChineseName;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 /**
@@ -111,8 +109,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
     @Resource
     private PayOrderApi payOrderApi;
-    //    @Resource
-//    private MemberAddressApi addressApi;
+
     @Resource
     private ProductCommentApi productCommentApi;
 
@@ -140,13 +137,6 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Resource
     private TenantApi tenantApi;
 
-
-    // @Resource
-    // @Lazy
-    // private CouponTemplateApi couponTemplateApi;
-
-
-    // =================== Order ===================
 
     @Override
     public AppTradeOrderSettlementRespVO settlementOrder(Long userId, AppTradeOrderSettlementReqVO settlementReqVO) {
@@ -331,7 +321,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     /**
      * 订单创建后，执行后置逻辑
      * <p>
-     * 例如说：优惠劵的扣减、积分的扣减、支付单的创建等等
+     * 例如说：优惠劵的扣减、积分的扣减、支付单创建等等
      *
      * @param order       订单
      * @param orderItems  订单项
@@ -379,7 +369,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         PayOrderRespDTO payOrder = orderResult.getValue();
 
         // 2. 更新 TradeOrderDO 状态为已支付，等待发货
-        int updateCount = 0;
+        int updateCount;
         // 判断是否需要发货
         if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
             updateCount = tradeOrderMapper.updateByIdAndStatus(id, order.getStatus(),
@@ -395,7 +385,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
 
-        // 3. 执行 TradeOrderHandler 的后置处理
+        // 3. 执行 TradeOrderHandler 的后置处理 权益发放
         List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
         tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
 
@@ -407,16 +397,14 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
         TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
 
-        // 如果是签约订单 则更新下次扣款时间
-        Integer count = 0;
-        if (Objects.nonNull(order.getTradeSignId())) {
-            tradeSignUpdateService.updatePayTime(order.getTradeSignId());
-            // 获取当前签约成功次数
-            count = tradeOrderQueryService.getSignPaySuccessCountBySignId(order.getTradeSignId());
-
-        }
-
-        sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), orderItems.get(0).getProperties().get(0).getValueName(), order.getGiveRights(), order.getTotalPrice(), order.getDiscountPrice() + order.getCouponPrice(), order.getPayPrice(), LocalDateTime.now(), count);
+        // 当前数据状态 需要在事务提交后获取
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                order.setPayChannelCode(payOrder.getChannelCode());
+                tradeOrderHandlers.forEach(handler -> handler.afterPayOrderLast(order, orderItems));
+            }
+        });
 
     }
 
@@ -981,7 +969,7 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     }
 
     /**
-     * @param bean
+     * @param bean 交易 DO
      */
     @Override
     public void updateOrderTimeAndStatus(TradeOrderDO bean) {
@@ -1051,53 +1039,53 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
         return SpringUtil.getBean(getClass());
     }
 
-    /**
-     * 订单钉钉消息通知
-     *
-     * @param userId        用户 ID
-     * @param productName   商品名称
-     * @param totalPrice    商品金额
-     * @param discountPrice 优惠金额
-     * @param payPrice      支付金额
-     * @param payTime       支付时间
-     */
-    @TenantIgnore
-    private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount) {
+    // /**
+    //  * 订单钉钉消息通知
+    //  *
+    //  * @param userId        用户 ID
+    //  * @param productName   商品名称
+    //  * @param totalPrice    商品金额
+    //  * @param discountPrice 优惠金额
+    //  * @param payPrice      支付金额
+    //  * @param payTime       支付时间
+    //  */
+    // @TenantIgnore
+    // private void sendPaySuccessMsg(Long userId, String productName, String productType, List<AdminUserRightsAndLevelCommonDTO> giveRights, Integer totalPrice, Integer discountPrice, Integer payPrice, LocalDateTime payTime, Integer successCount, String payChannelCode) {
+    //     log.info("[sendPaySuccessMsg]====>params(userId:{},productName:{},productType:{},giveRights:{},totalPrice:{},discountPrice:{},payPrice:{},payTime:{},successCount:{},payChannelCode:{}", userId, productName, productType, giveRights, totalPrice, discountPrice, payPrice, payTime, successCount, payChannelCode);
+    //     try {
+    //         Long tenantId = TenantContextHolder.getTenantId();
+    //         // 获取订单来源
+    //         String from = tenantId != null ? tenantApi.getTenantById(tenantId).getContactName() : null;
+    //         AdminUserDO user = userService.getUser(userId);
+    //
+    //         Map<String, Object> templateParams = new HashMap<>();
+    //         String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
+    //
+    //         // couponTemplateApi.getCouponTemplate(1L);
+    //
+    //         templateParams.put("environmentName", environmentName);
+    //         templateParams.put("userName", user.getNickname());
+    //         templateParams.put("productName", productName);
+    //         templateParams.put("productType", productType);
+    //         templateParams.put("purchaseDuration", giveRights.get(0).getRightsBasicDTO().getTimesRange().getNums() + getChineseName(giveRights.get(0).getRightsBasicDTO().getTimesRange().getRange()));
+    //         templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(totalPrice));
+    //         templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
+    //         templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
+    //         templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
+    //         templateParams.put("successCount", successCount);
+    //         templateParams.put("from", from);
+    //         templateParams.put("payChannelCode", PayChannelEnum.isAlipay(payChannelCode) ? "支付宝" : "微信");
+    //
+    //         smsSendApi.sendSingleSmsToAdmin(
+    //                 new SmsSendSingleToUserReqDTO()
+    //                         .setUserId(1L).setMobile("17835411844")
+    //                         .setTemplateCode("DING_TALK_PAY_NOTIFY_01")
+    //                         .setTemplateParams(templateParams));
+    //     } catch (RuntimeException e) {
+    //         log.error("系统支付通知信息发送失败", e);
+    //     }
+    //
+    // }
 
-        try {
-            Long tenantId = TenantContextHolder.getTenantId();
-            // 获取订单来源
-            String from = tenantId != null ? tenantApi.getTenantById(tenantId).getContactName() : null;
-            AdminUserDO user = userService.getUser(userId);
-
-            Map<String, Object> templateParams = new HashMap<>();
-            String environmentName = dingTalkNoticeProperties.getName().equals("Test") ? "测试环境" : "正式环境";
-
-            //
-            // couponTemplateApi.getCouponTemplate(1L);
-
-
-            templateParams.put("environmentName", environmentName);
-            templateParams.put("userName", user.getNickname());
-            templateParams.put("productName", productName);
-            templateParams.put("productType", productType);
-            templateParams.put("purchaseDuration", giveRights.get(0).getRightsBasicDTO().getTimesRange().getNums() + getChineseName(giveRights.get(0).getRightsBasicDTO().getTimesRange().getRange()));
-            templateParams.put("totalPrice", MoneyUtils.fenToYuanStr(totalPrice));
-            templateParams.put("discountPrice", MoneyUtils.fenToYuanStr(discountPrice));
-            templateParams.put("payPrice", MoneyUtils.fenToYuanStr(payPrice));
-            templateParams.put("payTime", LocalDateTimeUtil.formatNormal(payTime));
-            templateParams.put("successCount", successCount);
-            templateParams.put("from", from);
-
-            smsSendApi.sendSingleSmsToAdmin(
-                    new SmsSendSingleToUserReqDTO()
-                            .setUserId(1L).setMobile("17835411844")
-                            .setTemplateCode("DING_TALK_PAY_NOTIFY_01")
-                            .setTemplateParams(templateParams));
-        } catch (RuntimeException e) {
-            log.error("系统支付通知信息发送失败", e);
-        }
-
-    }
 
 }

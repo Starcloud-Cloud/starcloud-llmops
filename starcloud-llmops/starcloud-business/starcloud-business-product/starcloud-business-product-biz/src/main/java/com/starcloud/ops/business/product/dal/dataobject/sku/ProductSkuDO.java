@@ -2,6 +2,7 @@ package com.starcloud.ops.business.product.dal.dataobject.sku;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -11,7 +12,7 @@ import com.starcloud.ops.business.product.api.sku.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyDO;
 import com.starcloud.ops.business.product.dal.dataobject.property.ProductPropertyValueDO;
 import com.starcloud.ops.business.product.dal.dataobject.spu.ProductSpuDO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import lombok.*;
 
 import java.util.List;
@@ -85,11 +86,20 @@ public class ProductSkuDO extends BaseDO {
      */
     private Double volume;
 
+
+    /**
+     * 赠送的优惠劵编号的数组
+     * <p>
+     * 对应 CouponTemplateDO 的 id 属性
+     */
+    @TableField(typeHandler = LongListTypeHandler.class)
+    private List<Long> giveCouponTemplateIds;
+
     /**
      * 商品附属权益
      */
     @TableField(typeHandler = RightsTypeHandler.class)
-    private AdminUserRightsCommonDTO rightsConfig;
+    private AdminUserRightsAndLevelCommonDTO rightsConfig;
     /**
      * 商品签约配置
      */
@@ -223,7 +233,7 @@ public class ProductSkuDO extends BaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseObject(json, AdminUserRightsCommonDTO.class);
+            return JsonUtils.parseObject(json, AdminUserRightsAndLevelCommonDTO.class);
         }
 
         @Override

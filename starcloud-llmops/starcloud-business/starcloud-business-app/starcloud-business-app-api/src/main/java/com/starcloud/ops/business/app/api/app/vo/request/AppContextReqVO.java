@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author admin
@@ -33,6 +34,12 @@ public class AppContextReqVO implements Serializable {
      */
     @Schema(description = "应用ID")
     private String appUid;
+
+    /**
+     * 应用名称
+     */
+    @Schema(description = "应用名称")
+    private String appName;
 
     /**
      * 渠道媒介 UID
@@ -73,5 +80,10 @@ public class AppContextReqVO implements Serializable {
      * 租户ID，可设置
      */
     private Long tenantId;
+
+    /**
+     * 扩展信息
+     */
+    private Map<String, Object> extended;
 
 }

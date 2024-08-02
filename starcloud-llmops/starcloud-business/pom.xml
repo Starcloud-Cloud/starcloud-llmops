@@ -31,6 +31,7 @@
         <module>starcloud-business-product</module>
         <module>starcloud-business-promotion</module>
         <module>starcloud-business-trade</module>
+        <module>starcloud-business-poster</module>
     </modules>
 
 
@@ -108,6 +109,13 @@
             <dependency>
                 <groupId>com.starcloud.ops</groupId>
                 <artifactId>starcloud-business-share</artifactId>
+                <version>${starcloud.revision}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.starcloud.ops</groupId>
+                <artifactId>starcloud-business-poster</artifactId>
                 <version>${starcloud.revision}</version>
             </dependency>
 

@@ -643,7 +643,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
     private Long computationalPower(String modelType) {
         ModelTypeEnum modelTypeEnum = TokenCalculator.fromName(modelType);
-        return ModelTypeEnum.GPT_4_TURBO.equals(modelTypeEnum) ? 30L : 1L;
+        return ModelTypeEnum.GPT_4_TURBO.equals(modelTypeEnum) ? 15L : 1L;
     }
 
     private Long calculationTokens(Integer token) {
@@ -655,7 +655,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
     }
 
     private Long computationalPower(String modelType, Integer tokens) {
-        return Long.valueOf(CostPointUtils.obtainMagicBeanCostPoint(modelType, Long.valueOf(tokens)));
+        return Long.valueOf(CostPointUtils.obtainChatMagicBeanCostPoint(modelType, Long.valueOf(tokens)));
     }
 
     /**

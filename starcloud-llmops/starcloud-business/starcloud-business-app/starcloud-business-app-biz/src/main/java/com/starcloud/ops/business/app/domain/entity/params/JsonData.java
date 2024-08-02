@@ -1,5 +1,8 @@
 package com.starcloud.ops.business.app.domain.entity.params;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,25 @@ public class JsonData extends BaseDataEntity {
     private String jsonSchema;
 
     /**
+     * 创建一个 String 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static JsonData of(String data) {
+        JsonData jsonData = new JsonData();
+
+        //默认套一层 jsonSchema
+        JsonDataDefSchema jsonDataDefSchema = new JsonDataDefSchema();
+        jsonDataDefSchema.setData(data);
+
+        jsonData.setData(jsonDataDefSchema);
+        jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(JsonDataDefSchema.class));
+
+        return jsonData;
+    }
+
+    /**
      * 创建一个 JsonData 对象
      *
      * @param data 数据
@@ -30,8 +52,37 @@ public class JsonData extends BaseDataEntity {
      */
     public static JsonData of(Object data) {
         JsonData jsonData = new JsonData();
+
         jsonData.setData(data);
+
         return jsonData;
     }
 
+    /**
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static <T> JsonData of(Object data, Class<T> tClass) {
+        JsonData jsonData = new JsonData();
+        jsonData.setData(data);
+        jsonData.setJsonSchema(JsonSchemaUtils.generateJsonSchemaStr(tClass));
+
+        return jsonData;
+    }
+
+    /**
+     * 创建一个 JsonData 对象
+     *
+     * @param data 数据
+     * @return JsonData 对象
+     */
+    public static <T> JsonData of(Object data, JsonSchema jsonSchema) {
+        JsonData jsonData = new JsonData();
+        jsonData.setData(data);
+        jsonData.setJsonSchema(JsonSchemaUtils.jsonSchema2Str(jsonSchema));
+
+        return jsonData;
+    }
 }

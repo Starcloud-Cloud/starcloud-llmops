@@ -51,7 +51,7 @@ public class BeanOutputParser<T> implements OutputParser<T> {
         Objects.requireNonNull(clazz, "Java Class cannot be null;");
         this.clazz = clazz;
         this.objectMapper = objectMapper != null ? objectMapper : getObjectMapper();
-        this.jsonSchema = JsonSchemaUtils.generateJsonSchema(clazz);
+        this.jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(clazz);
     }
 
     /**

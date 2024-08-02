@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.user.service.rights;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
@@ -36,7 +36,26 @@ public interface AdminUserRightsService {
      * @param pageVO 分页查询
      * @return 签到记录分页
      */
-    PageResult<AdminUserRightsDO> getRightsPage(Long userId, PageParam pageVO);
+    PageResult<AdminUserRightsDO> getRightsPage(Long userId, AppAdminUserRightsPageReqVO pageVO);
+
+
+    /**
+     * 通过业务 ID 和业务类型获取权益数据
+     *
+     * @param bizType 业务类型
+     * @param bizId   业务编号
+     * @param userId  用户编号
+     * @return 权益数据
+     */
+    AdminUserRightsDO getRecordByBiz(Integer bizType, Long bizId,Long userId);
+
+    /**
+     * 获取权益数据汇总
+     *
+     * @param userId 用户编号
+     * @return 权益数据汇总
+     */
+    List<AdminUserRightsCollectRespVO> getGroupRightsCollect(Long userId);
 
     /**
      * 获取权益数据汇总
@@ -56,13 +75,13 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean,Integer timeNums, Integer timeRange, AdminUserRightsBizTypeEnum bizType, String bizId, Long LevelId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long LevelId);
 
 
     /**
      * 创建用户权益记录
      *
-     * @param addRightsDTO     新增权益 DTO
+     * @param addRightsDTO 新增权益 DTO
      */
     void createRights(AddRightsDTO addRightsDTO);
 
@@ -74,7 +93,7 @@ public interface AdminUserRightsService {
      * @param bizType   业务类型
      * @param bizId     业务编号
      */
-    void createRights(AdminUserRightsCommonDTO rightsDTO,Long userId, AdminUserRightsBizTypeEnum bizType, String bizId);
+    AdminUserRightsDO createRights(AdminUserRightsAndLevelCommonDTO rightsDTO, Long userId, Integer bizType, String bizId);
 
 
     /**
@@ -101,10 +120,10 @@ public interface AdminUserRightsService {
 
     /**
      * 权益扣减
+     *
      * @param reduceRightsDTO 权益扣减DTO
      */
     void reduceRights(ReduceRightsDTO reduceRightsDTO);
-
 
 
     /**

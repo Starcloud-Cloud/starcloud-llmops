@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
 
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import lombok.Data;
 
 /**
@@ -13,7 +14,7 @@ public class ChatPromptConfig extends BaseConfigEntity {
 
 
     @Override
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
 
     }
 }

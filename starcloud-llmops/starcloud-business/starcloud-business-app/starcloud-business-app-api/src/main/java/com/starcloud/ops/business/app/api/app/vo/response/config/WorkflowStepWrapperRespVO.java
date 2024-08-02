@@ -1,22 +1,22 @@
 package com.starcloud.ops.business.app.api.app.vo.response.config;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * App 步骤实体包装类
@@ -70,18 +70,173 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @Schema(description = "步骤变量")
     private VariableRespVO variable;
 
-
-    public void putVariable(Map<String, Object> variable) {
-        this.variable.putVariable(variable);
-    }
-
-    public VariableItemRespVO getVariable(String key) {
-        List<VariableItemRespVO> variables = Optional.ofNullable(this.getVariable()).map(VariableRespVO::getVariables).orElse(new ArrayList<>());
-        Map<String, VariableItemRespVO> collect = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
-        if (collect.containsKey(key)) {
-            return collect.get(key);
+    /**
+     * 补充步骤默认变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void supplementStepVariable(Map<String, VariableRespVO> variableRespMap) {
+        if (Objects.isNull(flowStep) || Objects.isNull(variable) || CollectionUtil.isEmpty(variableRespMap)) {
+            return;
         }
-        return null;
+
+        String handler = flowStep.getHandler();
+        VariableRespVO defaultVariables = variableRespMap.get(handler);
+        if (Objects.isNull(defaultVariables)) {
+            return;
+        }
+        variable.supplementStepVariable(defaultVariables.getVariables());
     }
 
+    /**
+     * 获取步骤的 code
+     *
+     * @return String
+     */
+    public String getStepCode() {
+        return this.field;
+    }
+
+    /**
+     * 获取步骤的执行器
+     *
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getHandler() {
+        return Optional.ofNullable(this.flowStep).map(WorkflowStepRespVO::getHandler).orElse(null);
+    }
+
+    /**
+     * 获取步骤变量
+     *
+     * @param field 变量的{@code field}
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getVariableItem(String field) {
+        if (Objects.isNull(this.variable)) {
+            return null;
+        }
+        return this.variable.getItem(field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getVariableToString(String field) {
+        if (Objects.isNull(this.variable)) {
+            return StringUtils.EMPTY;
+        }
+        return this.variable.getVariableToString(field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String field) {
+        if (Objects.isNull(this.variable)) {
+            return null;
+        }
+        return this.variable.getVariable(field);
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String field, Object value) {
+        if (Objects.isNull(this.variable)) {
+            return;
+        }
+        this.variable.putVariable(field, value);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param field 变量的{@code field}
+     * @return VariableItemRespVO
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemRespVO getModelVariableItem(String field) {
+        if (Objects.isNull(this.flowStep)) {
+            return null;
+        }
+        return this.flowStep.getModelVariableItem(field);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getModelVariableToString(String field) {
+        if (Objects.isNull(this.flowStep)) {
+            return StringUtils.EMPTY;
+        }
+        return this.flowStep.getModelVariableToString(field);
+    }
+
+    /**
+     * 根据模型变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(String field) {
+        if (Objects.isNull(this.flowStep)) {
+            return null;
+        }
+        return this.flowStep.getModelVariable(field);
+    }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String field, Object value) {
+        if (Objects.isNull(this.flowStep)) {
+            return;
+        }
+        this.flowStep.putModelVariable(field, value);
+    }
+
+    /**
+     * 合并步骤
+     *
+     * @param stepWrapper 步骤
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void merge(WorkflowStepWrapperRespVO stepWrapper) {
+        // 只进行变量合并，不进行其他属性合并
+        this.variable.merge(stepWrapper.getVariable());
+    }
 }

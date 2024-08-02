@@ -24,6 +24,7 @@ public interface AdminUserApi {
 
     /**
      * 查询租户id
+     *
      * @param id
      * @return
      */
@@ -72,5 +73,13 @@ public interface AdminUserApi {
      * @param ids 用户编号数组
      */
     void validateUserList(Collection<Long> ids);
+
+    /**
+     * 根据用户名获取用户信息
+     *
+     * @param name 用户名称
+     * @return 用户对象信息
+     */
+    AdminUserRespDTO getUserByUsername(String name);
 
 }

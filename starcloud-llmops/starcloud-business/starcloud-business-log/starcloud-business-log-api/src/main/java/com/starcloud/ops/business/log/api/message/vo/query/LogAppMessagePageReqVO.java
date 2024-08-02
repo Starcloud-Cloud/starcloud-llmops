@@ -65,4 +65,9 @@ public class LogAppMessagePageReqVO extends PageParam {
     @Schema(description = "创建人")
     private String creator;
 
+    /**
+     * 是否抛出异常
+     */
+    private Boolean throwIfEmpty;
+
 }

@@ -17,7 +17,9 @@
 
     <properties>
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
-        <java-langchain.version>v1.0.7</java-langchain.version>
+        <java-langchain.version>v1.1.0</java-langchain.version>
+        <poi-version>3.17</poi-version>
+        <aspose-version>23.1</aspose-version>
     </properties>
 
     <modules>
@@ -80,6 +82,18 @@
                 <version>${starcloud.revision}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.luhuiguo</groupId>
+                <artifactId>aspose-words</artifactId>
+                <version>${aspose-version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -94,21 +108,21 @@
     <repositories>
 
         <repository>
-            <id>seastar</id>
-            <url>https://pkgs.dev.azure.com/duanfeisj/seastar/_packaging/seastar/maven/v1</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-
-        <repository>
             <id>jitpack</id>
             <url>https://jitpack.io</url>
         </repository>
+
+<!--        <repository>-->
+<!--            <id>seastar</id>-->
+<!--            <url>https://pkgs.dev.azure.com/duanfeisj/seastar/_packaging/seastar/maven/v1</url>-->
+<!--            <releases>-->
+<!--                <enabled>true</enabled>-->
+<!--            </releases>-->
+<!--            <snapshots>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
 
     </repositories>
 

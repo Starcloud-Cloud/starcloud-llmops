@@ -5,15 +5,13 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageTemplateTypeDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeListReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemePageReqVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeReqVO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateTypeDTO;
+import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.*;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeListOptionRespVO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.SchemeAppCategoryRespVO;
+import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeTemplateGroupRespVO;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,23 +48,44 @@ public class CreativeSchemeController {
 
     @GetMapping("/metadata")
     @Operation(summary = "获取创作方案元数据", description = "获取创作方案元数据")
-    @ApiOperationSupport(order = 20, author = "nacoyer")
+    @ApiOperationSupport(order = 10, author = "nacoyer")
     public CommonResult<Map<String, Object>> metadata() {
         return CommonResult.success(creativeSchemeService.metadata());
     }
 
-    @GetMapping("/appGroupList")
+    @GetMapping("/posterTemplate")
     @Operation(summary = "获取应用列表", description = "获取应用列表")
     @ApiOperationSupport(order = 20, author = "nacoyer")
-    public CommonResult<List<SchemeAppCategoryRespVO>> appList() {
-        return CommonResult.success(creativeSchemeService.appGroupList());
+    public CommonResult<PosterTemplateDTO> getPosterTemplate(@RequestParam("templateId") String templateId) {
+        return CommonResult.success(creativeImageManager.getPosterTemplate(templateId));
     }
 
-    @GetMapping("/templateGroupByType")
+    @GetMapping("/listPosterTemplate")
     @Operation(summary = "获取图片模板列表", description = "获取图片模板列表")
     @ApiOperationSupport(order = 30, author = "nacoyer")
-    public CommonResult<List<CreativeImageTemplateTypeDTO>> templateGroupByType() {
-        return CommonResult.success(creativeImageManager.templateGroupByType());
+    public CommonResult<List<PosterTemplateDTO>> listPosterTemplate() {
+        return CommonResult.success(creativeImageManager.listPosterTemplate());
+    }
+
+    @GetMapping("/mapPosterTemplate")
+    @Operation(summary = "获取图片模板Map", description = "获取图片模板Map")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
+    public CommonResult<Map<String, PosterTemplateDTO>> mapPosterTemplate() {
+        return CommonResult.success(creativeImageManager.mapPosterTemplate());
+    }
+
+    @GetMapping("/listPosterTemplateType")
+    @Operation(summary = "获取图片模板类型列表", description = "获取图片模板类型列表")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
+    public CommonResult<List<PosterTemplateTypeDTO>> listPosterTemplateType() {
+        return CommonResult.success(creativeImageManager.listPosterTemplateType());
+    }
+
+    @GetMapping("/schemeTemplateList")
+    @Operation(summary = "获取创作方案模板没配置", description = "获取应用列表")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<List<CreativeSchemeTemplateGroupRespVO>> schemeTemplateList() {
+        return CommonResult.success(creativeSchemeService.schemeTemplateList());
     }
 
     @GetMapping("/get/{uid}")
@@ -128,18 +147,24 @@ public class CreativeSchemeController {
         return CommonResult.success(true);
     }
 
-    @GetMapping("/options")
-    @Operation(summary = "删除创作方案", description = "删除创作方案")
+    @PostMapping("/appStepOptions")
+    @Operation(summary = "应用节点出入参数列表", description = "应用节点出入参数列表")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<List<CreativeOptionDTO>> options(@RequestParam("appUid") String appUid) {
-        return CommonResult.success(creativeSchemeService.options(appUid));
+    public CommonResult<List<CreativeOptionDTO>> options(@Validated @RequestBody CreativeAppStepSchemeReqVO stepSchemeReqVO) {
+        return CommonResult.success(creativeSchemeService.options(stepSchemeReqVO));
+    }
+
+    @PostMapping("/newOptions")
+    @Operation(summary = "应用节点出入参数列表2", description = "应用节点出入参数列表2")
+    public CommonResult<List<CreativeOptionDTO>> newOptions(@Validated @RequestBody GenerateOptionReqVO generateOptionReqVO) {
+        return CommonResult.success(creativeSchemeService.newOptions(generateOptionReqVO));
     }
 
     @PostMapping(value = "/example")
     @Operation(summary = "小红书文案测试生成")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<Boolean> example(@Validated @RequestBody CreativeSchemeModifyReqVO executeRequest) {
-        creativeSchemeService.example(executeRequest);
+    public CommonResult<Boolean> example(@Validated @RequestBody CreativeSchemeExampleReqVO request) {
+        creativeSchemeService.example(request);
         return CommonResult.success(Boolean.TRUE);
     }
 

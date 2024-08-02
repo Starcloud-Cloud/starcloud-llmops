@@ -13,7 +13,7 @@ import com.starcloud.ops.business.app.dal.redis.limit.AppPublishLimitRedisMapper
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
-import com.starcloud.ops.business.app.validate.AppValidate;
+import com.starcloud.ops.business.app.api.AppValidate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

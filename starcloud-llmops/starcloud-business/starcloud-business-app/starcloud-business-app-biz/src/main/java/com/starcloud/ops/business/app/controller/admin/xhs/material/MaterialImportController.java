@@ -1,6 +1,10 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.MaterialUploadReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.ParseXhsReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.ParseResult;
 import com.starcloud.ops.business.app.service.xhs.material.ParseMaterialService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,10 +33,27 @@ public class MaterialImportController {
         return CommonResult.success(parseMaterialService.template(type));
     }
 
+    @Operation(summary = "下载素材模板")
+    @GetMapping("/download/template")
+    @OperateLog(enable = false)
+    public void downloadTemplate(@RequestParam("uid") String uid,
+                                 @RequestParam("planSource") String planSource,
+                                 HttpServletResponse response) {
+        parseMaterialService.downloadTemplate(uid, planSource, response);
+    }
+
     @PostMapping("/import")
     @Operation(summary = "导入素材", description = "导入素材")
-    public CommonResult<String> importMaterial(@RequestParam("file") MultipartFile file){
-        return CommonResult.success(parseMaterialService.parseToRedis(file));
+    @OperateLog(enable = false)
+    public CommonResult<String> importMaterial(@Valid MaterialUploadReqVO uploadReqVO) {
+        return CommonResult.success(parseMaterialService.parseToRedis(uploadReqVO));
+    }
+
+    @PostMapping("/parse")
+    @Operation(summary = "批量解析小红书内容", description = "批量解析小红书内容")
+    @OperateLog(enable = false)
+    public CommonResult<List<AbstractCreativeMaterialDTO>> parseXhs(@Valid @RequestBody ParseXhsReqVO reqVO) {
+        return CommonResult.success(parseMaterialService.parseXhs(reqVO));
     }
 
     @GetMapping("/result/{parseUid}")

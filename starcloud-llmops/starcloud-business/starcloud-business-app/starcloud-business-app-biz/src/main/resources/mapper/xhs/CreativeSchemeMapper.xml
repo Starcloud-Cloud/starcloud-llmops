@@ -5,50 +5,48 @@
     <!-- 根据UID查询创作方案详情 -->
     <select id="get" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT `id`,
-               `uid`,
-               `name`,
-               `type`,
-               `category`,
-               `tags`,
-               `description`,
-               `mode`,
-               `configuration`,
-               `use_images`,
-               `materiel`,
-               `deleted`,
-               `creator`,
-               `updater`,
-               `create_time`,
-               `update_time`,
-               `tenant_id`
+        `uid`,
+        `name`,
+        `type`,
+        `category`,
+        `tags`,
+        `description`,
+        `configuration`,
+        `use_images`,
+        `materiel`,
+        `deleted`,
+        `creator`,
+        `updater`,
+        `create_time`,
+        `update_time`,
+        `tenant_id`
         FROM llm_creative_scheme
         WHERE uid = #{uid}
-          AND `deleted` = 0
+        AND `deleted` = 0
     </select>
     
     <!-- 根据条件查询创作方案列表 -->
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT `id`,
-               `uid`,
-               `name`,
-               `type`,
-               `category`,
-               `tags`,
-               `description`,
-               `mode`,
-               `configuration`,
-               `use_images`,
-               `materiel`,
-               `deleted`,
-               `creator`,
-               `updater`,
-               `create_time`,
-               `update_time`,
-               `tenant_id`
+        `uid`,
+        `name`,
+        `type`,
+        `category`,
+        `tags`,
+        `description`,
+        `configuration`,
+        `use_images`,
+        `materiel`,
+        `deleted`,
+        `creator`,
+        `updater`,
+        `create_time`,
+        `update_time`,
+        `tenant_id`
         FROM llm_creative_scheme
         <where>
             ((`type` = "SYSTEM")
-                OR
+            OR
             (`type` = "USER"
             <if test="query.name != null and query.name != ''">
                 <bind name="name" value="query.name + '%'"/>
@@ -67,29 +65,28 @@
                 AND `creator` = #{query.loginUserId}
             </if>
             ))
-              AND `deleted` = 0
+            AND `deleted` = 0
         </where>
     </select>
     
     <!-- 根据 UID 列表查询创作方案列表 -->
     <select id="listByUidList" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT `id`,
-               `uid`,
-               `name`,
-               `type`,
-               `category`,
-               `tags`,
-               `description`,
-               `mode`,
-               `configuration`,
-               `use_images`,
-               `materiel`,
-               `deleted`,
-               `creator`,
-               `updater`,
-               `create_time`,
-               `update_time`,
-               `tenant_id`
+        `uid`,
+        `name`,
+        `type`,
+        `category`,
+        `tags`,
+        `description`,
+        `configuration`,
+        `use_images`,
+        `materiel`,
+        `deleted`,
+        `creator`,
+        `updater`,
+        `create_time`,
+        `update_time`,
+        `tenant_id`
         FROM llm_creative_scheme
         <where>
             <if test="uidList != null and uidList.size() > 0">
@@ -105,22 +102,21 @@
     <!-- 根据条件分页查询创作方案列表 -->
     <select id="page" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.scheme.CreativeSchemeDO">
         SELECT `id`,
-               `uid`,
-               `name`,
-               `type`,
-               `category`,
-               `tags`,
-               `description`,
-               `mode`,
-               `configuration`,
-               `use_images`,
-               `materiel`,
-               `deleted`,
-               `creator`,
-               `updater`,
-               `create_time`,
-               `update_time`,
-               `tenant_id`
+        `uid`,
+        `name`,
+        `type`,
+        `category`,
+        `tags`,
+        `description`,
+        `configuration`,
+        `use_images`,
+        `materiel`,
+        `deleted`,
+        `creator`,
+        `updater`,
+        `create_time`,
+        `update_time`,
+        `tenant_id`
         FROM llm_creative_scheme
         <where>
             <if test="query.name != null and query.name != ''">
@@ -131,7 +127,8 @@
                 AND `category` = #{query.category}
             </if>
             <if test="query.mode != null and query.mode != ''">
-                AND `mode` = #{query.mode}</if>
+                AND `mode` = #{query.mode}
+            </if>
             <if test="query.tags != null and query.tags.size() > 0">
                 AND
                 <foreach collection='query.tags' item='tag' separator=' AND '>

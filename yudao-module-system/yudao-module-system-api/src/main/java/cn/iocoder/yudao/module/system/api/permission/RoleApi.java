@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.system.api.permission;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 角色 API 接口
@@ -17,5 +18,13 @@ public interface RoleApi {
      * @param ids 角色编号数组
      */
     void validRoleList(Collection<Long> ids);
+
+
+    /**
+     * 获取当前用户所有角色数据
+     *
+     * @param userId 角色编号数组
+     */
+    List<String> getRoleNameList(Long userId);
 
 }

@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
-import cn.hutool.json.JSONUtil;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
 import cn.kstry.framework.core.annotation.ReqTaskParam;
@@ -9,6 +8,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
@@ -16,11 +16,13 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
 import com.starcloud.ops.business.app.domain.handler.textgeneration.OpenAIChatHandler;
+import com.starcloud.ops.business.app.enums.AppConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.CostPointUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -53,59 +55,100 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     }
 
     /**
+     * 校验步骤
+     *
+     * @param wrapper      步骤包装器
+     * @param validateType 校验类型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+
+    }
+
+    /**
      * 获取用户权益类型
      *
      * @return 权益类型
      */
     @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected AdminUserRightsTypeEnum getUserRightsType() {
         return AdminUserRightsTypeEnum.MAGIC_BEAN;
+    }
+
+    /**
+     * 获取应用执行模型
+     *
+     * @param context 上下文
+     * @return 应用执行模型
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected String getLlmModelType(AppContext context) {
+        String llmModelType = super.getLlmModelType(context);
+        return TokenCalculator.fromName(llmModelType).getName();
     }
 
     /**
      * 执行OpenApi生成的步骤
      *
      * @param request 请求参数
+     * @param context
      * @return 执行结果
      */
     @Override
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    protected ActionResponse doExecute() {
+    protected ActionResponse doExecute(AppContext context) {
+        // 开始日志打印
+        loggerBegin(context, "AI生成步骤");
 
-        log.info("OpenAI ChatGPT Action 执行开始......");
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(this.getAppContext().getSseEmitter());
-        OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
+        // 获取执行参数
+        Map<String, Object> params = context.getContextVariablesValues();
+        String model = this.getLlmModelType(context);
+        Integer n = Optional.ofNullable(context.getN()).orElse(1);
+        String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, "hi, what you name?"));
+        Integer maxTokens = Integer.valueOf((String) params.getOrDefault(AppConstants.MAX_TOKENS, "1000"));
+        Double temperature = Double.valueOf((String) params.getOrDefault(AppConstants.TEMPERATURE, "0.7d"));
 
-        //获取前端传的完整字段（老结构）
-        Long userId = this.getAppContext().getUserId();
-        Long endUser = this.getAppContext().getEndUserId();
-        String conversationId = this.getAppContext().getConversationUid();
-        Map<String, Object> params = this.getAppContext().getContextVariablesValues();
-        log.info("OpenAI ChatGPT Action 执行种: 请求参数：\n{}", JSONUtil.parse(params).toStringPretty());
+        // 参数日志打印
+        loggerParamter(context, params, "AI生成步骤");
 
-        String model = Optional.ofNullable(this.getAiModel()).orElse(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
-        Integer n = Optional.ofNullable(this.getAppContext().getN()).orElse(1);
-        String prompt = String.valueOf(params.getOrDefault("PROMPT", "hi, what you name?"));
-        Integer maxTokens = Integer.valueOf((String) params.getOrDefault("MAX_TOKENS", "1000"));
-        Double temperature = Double.valueOf((String) params.getOrDefault("TEMPERATURE", "0.7d"));
-
-        // 构建请求
+        // 构建AI生成请求
         OpenAIChatHandler.Request handlerRequest = new OpenAIChatHandler.Request();
-        handlerRequest.setStream(Objects.nonNull(this.getAppContext().getSseEmitter()));
+        handlerRequest.setStream(Objects.nonNull(context.getSseEmitter()));
         handlerRequest.setModel(model);
         handlerRequest.setPrompt(prompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
         handlerRequest.setN(n);
 
-        // 构建请求
-        HandlerContext handlerContext = HandlerContext.createContext(this.getAppUid(), conversationId, userId, endUser, this.getAppContext().getScene(), handlerRequest);
-        // 执行步骤
+        // 构建AI生成请求上下文
+        HandlerContext handlerContext = HandlerContext.createContext(
+                context.getUid(),
+                context.getConversationUid(),
+                context.getUserId(),
+                context.getEndUserId(),
+                context.getScene(),
+                handlerRequest
+        );
+
+        // 构建AI生成处理器
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
+        OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
+
+        // 执行AI生成处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);
-        ActionResponse response = convert(handlerResponse);
-        log.info("OpenAI ChatGPT Action 执行结束: 响应结果：\n {}", JSONUtil.parse(response).toStringPretty());
+        ActionResponse response = convert(context, handlerResponse);
+
+        // 结束日志打印
+        loggerSuccess(context, response, "AI生成步骤");
+
         return response;
     }
 
@@ -118,30 +161,32 @@ public class OpenAIChatActionHandler extends BaseActionHandler {
     @SuppressWarnings("all")
     @JsonIgnore
     @JSONField(serialize = false)
-    private ActionResponse convert(HandlerResponse handlerResponse) {
-        ActionResponse actionResponse = new ActionResponse();
-        actionResponse.setSuccess(handlerResponse.getSuccess());
-        actionResponse.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
-        actionResponse.setErrorMsg(handlerResponse.getErrorMsg());
-        actionResponse.setType(handlerResponse.getType());
-        actionResponse.setIsShow(true);
-        actionResponse.setMessage(handlerResponse.getMessage());
-        actionResponse.setAnswer(handlerResponse.getAnswer());
-        actionResponse.setOutput(JsonData.of(handlerResponse.getOutput()));
-        actionResponse.setMessageTokens(handlerResponse.getMessageTokens());
-        actionResponse.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
-        actionResponse.setAnswerTokens(handlerResponse.getAnswerTokens());
-        actionResponse.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
-        actionResponse.setTotalTokens(handlerResponse.getTotalTokens());
-        actionResponse.setTotalPrice(handlerResponse.getTotalPrice());
-        actionResponse.setStepConfig(handlerResponse.getStepConfig());
-
+    private ActionResponse convert(AppContext context, HandlerResponse handlerResponse) {
         // 计算权益点数
-        Long tokens = actionResponse.getMessageTokens() + actionResponse.getAnswerTokens();
-        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(this.getAiModel(), tokens);
+        Long tokens = handlerResponse.getMessageTokens() + handlerResponse.getAnswerTokens();
+        String llmModelType = this.getLlmModelType(context);
+        Integer costPoints = CostPointUtils.obtainMagicBeanCostPoint(llmModelType, tokens);
 
-        actionResponse.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
-        return actionResponse;
+        ActionResponse response = new ActionResponse();
+        response.setSuccess(handlerResponse.getSuccess());
+        response.setErrorCode(String.valueOf(handlerResponse.getErrorCode()));
+        response.setErrorMsg(handlerResponse.getErrorMsg());
+        response.setType(handlerResponse.getType());
+        response.setIsShow(true);
+        response.setMessage(handlerResponse.getMessage());
+        response.setAnswer(handlerResponse.getAnswer());
+        response.setOutput(JsonData.of(handlerResponse.getOutput()));
+        response.setMessageTokens(handlerResponse.getMessageTokens());
+        response.setMessageUnitPrice(handlerResponse.getMessageUnitPrice());
+        response.setAnswerTokens(handlerResponse.getAnswerTokens());
+        response.setAnswerUnitPrice(handlerResponse.getAnswerUnitPrice());
+        response.setTotalTokens(handlerResponse.getTotalTokens());
+        response.setTotalPrice(handlerResponse.getTotalPrice());
+        response.setAiModel(llmModelType);
+        response.setStepConfig(handlerResponse.getStepConfig());
+        response.setCostPoints(handlerResponse.getSuccess() ? costPoints : 0);
+
+        return response;
     }
 
 

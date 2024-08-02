@@ -18,6 +18,17 @@ import java.util.*;
  */
 public interface CouponService {
 
+
+    /**
+     * 获取优惠劵，不校验 状态、有限期
+     * <p>
+     *
+     * @param id     优惠劵编号
+     * @param userId 用户编号
+     * @return 优惠劵信息
+     */
+    CouponDO getCoupon(Long id, Long userId);
+
     /**
      * 校验优惠劵，包括状态、有限期
      * <p>
@@ -170,7 +181,7 @@ public interface CouponService {
      * @param categoryIds 匹配参数
      * @return 优惠券列表
      */
-    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds);
+    Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds,List<Long> skuIds, List<Long> categoryIds);
 
     /**
      * 过期优惠券

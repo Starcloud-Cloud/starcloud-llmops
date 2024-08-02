@@ -1,25 +1,22 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response;
 
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.vo.response.CreativeSchemeRespVO;
-import com.starcloud.ops.business.app.enums.xhs.batch.CreativePlanBatchStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 public class CreativePlanBatchRespVO {
 
-    @Schema(description = "id")
     private Long id;
 
     /**
-     * 执行批次号 时间戳
+     * 执行批次号
      */
-    @Schema(description = "执行批次号")
-    private Long batch;
+    @Schema(description = "执行UID")
+    private String uid;
 
     /**
      * 创作计划uid
@@ -28,22 +25,46 @@ public class CreativePlanBatchRespVO {
     private String planUid;
 
     /**
+     * 应用UID
+     */
+    @Schema(description = "应用UID")
+    private String appUid;
+
+    /**
+     * 应用版本号
+     */
+    @Schema(description = "版本号")
+    private Integer version;
+
+    /**
+     * 创作计划来源
+     */
+    @Schema(description = "创作计划来源")
+    private String source;
+
+    /**
      * 执行计划json
      */
-    @Schema(description = "执行计划json")
-    private CreativePlanRespVO creativePlan;
+    @Schema(description = "创作计划配置")
+    private CreativePlanConfigurationDTO configuration;
 
     /**
-     * 创作方案json
+     * 总数
      */
-    @Schema(description = "创作方案json")
-    private CreativeSchemeRespVO schemeConfig;
+    @Schema(description = "总数")
+    private Integer totalCount;
 
     /**
-     * 批次状态，执行中，执行结束 {@link CreativePlanBatchStatusEnum}
+     * 失败数
      */
-    @Schema(description = "批次状态")
-    private String status;
+    @Schema(description = "失败数")
+    private Integer failureCount;
+
+    /**
+     * 成功数
+     */
+    @Schema(description = "成功数")
+    private Integer successCount;
 
     /**
      * 开始执行时间
@@ -64,20 +85,20 @@ public class CreativePlanBatchRespVO {
     private Long elapsed;
 
     /**
-     * 失败数
+     * 批次状态，执行中，执行结束 {@link CreativePlanStatusEnum}
      */
-    @Schema(description = "失败数")
-    private Integer failureCount;
+    @Schema(description = "批次状态")
+    private String status;
 
     /**
-     * 成功数
+     * 批次创建者
      */
-    @Schema(description = "成功数")
-    private Integer successCount;
+    @Schema(description = "批次创建者")
+    private String creator;
 
     /**
-     * 总数
+     * 创建时间
      */
-    @Schema(description = "总数")
-    private Integer totalCount;
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
 }

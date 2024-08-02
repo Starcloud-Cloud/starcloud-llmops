@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 支付宝【Wap 网站】的 PayClient 实现类
- *
+ * <p>
  * 文档：<a href="https://opendocs.alipay.com/apis/api_1/alipay.trade.wap.pay">手机网站支付接口</a>
  *
  * @author 芋道源码
@@ -45,6 +45,8 @@ public class AlipayWapPayClient extends AbstractAlipayPayClient {
         request.setNotifyUrl(reqDTO.getNotifyUrl());
         request.setReturnUrl(reqDTO.getReturnUrl());
         model.setQuitUrl(reqDTO.getReturnUrl());
+        //
+        model.setTimeExpire(formatTime(reqDTO.getExpireTime()));
 
         // 2.1 执行请求
         AlipayTradeWapPayResponse response = client.pageExecute(request, Method.GET.name());

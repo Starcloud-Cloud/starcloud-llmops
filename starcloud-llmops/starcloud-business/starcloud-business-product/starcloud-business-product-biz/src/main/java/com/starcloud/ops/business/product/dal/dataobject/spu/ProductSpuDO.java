@@ -13,7 +13,7 @@ import com.starcloud.ops.business.product.dal.dataobject.brand.ProductBrandDO;
 import com.starcloud.ops.business.product.dal.dataobject.category.ProductCategoryDO;
 import com.starcloud.ops.business.product.dal.dataobject.sku.ProductSkuDO;
 import com.starcloud.ops.business.product.enums.spu.ProductSpuStatusEnum;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import lombok.*;
 
 import java.util.List;
@@ -232,7 +232,7 @@ public class ProductSpuDO extends BaseDO {
      * 属性数组，JSON 格式
      */
     @TableField(typeHandler = GiveRightsTypeHandler.class)
-    private AdminUserRightsCommonDTO giveRights;
+    private AdminUserRightsAndLevelCommonDTO giveRights;
 
     // ========== 签约相关配置 =========
     /**
@@ -286,7 +286,7 @@ public class ProductSpuDO extends BaseDO {
 
         @Override
         protected Object parse(String json) {
-            return JsonUtils.parseObject(json, AdminUserRightsCommonDTO.class);
+            return JsonUtils.parseObject(json, AdminUserRightsAndLevelCommonDTO.class);
         }
 
         @Override

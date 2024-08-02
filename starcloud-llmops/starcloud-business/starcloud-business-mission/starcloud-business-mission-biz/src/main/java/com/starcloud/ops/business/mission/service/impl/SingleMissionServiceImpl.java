@@ -15,24 +15,31 @@ import cn.iocoder.yudao.module.member.service.point.MemberPointRecordService;
 import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
-import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
-import com.starcloud.ops.business.mission.controller.admin.vo.response.*;
+import com.starcloud.ops.business.app.model.content.ImageContent;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
-import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
-import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
-import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
+import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.RefreshNoteDetailReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import com.starcloud.ops.business.mission.convert.SingleMissionConvert;
+import com.starcloud.ops.business.mission.dal.dataobject.MissionNotificationDTO;
 import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDO;
 import com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO;
 import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
+import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -44,11 +51,28 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.BUDGET_ERROR;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.CAN_NOT_REFRESH;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.DONT_ALLOW_DELETE;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.EXCEL_IS_EMPTY;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.EXISTING_BOUND_CREATIVE;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.MISSION_NOT_EXISTS;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.MISSION_STATUS_NOT_SUPPORT;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.NOTIFICATION_NOT_BOUND_MISSION;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.NOTIFICATION_STATUS_NOT_SUPPORT;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.NOT_EXIST_UID;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.ONLY_STAY_CLAIM;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.TOO_MANY_MISSION;
 
 
 @Slf4j
@@ -96,7 +120,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             return;
         }
         validBudget(notificationCenterDO.getSingleBudget(), notificationCenterDO.getNotificationBudget(), boundCreativeUidList.size() + creativeUids.size());
-        List<CreativeContentRespVO> claimList = creativeContentService.bound(toBeBound);
+        List<CreativeContentRespVO> claimList = creativeContentService.batchBind(toBeBound);
         List<SingleMissionDO> singleMissions = claimList.stream().map(contentDO -> SingleMissionConvert.INSTANCE.convert(contentDO, notificationCenterDO)).collect(Collectors.toList());
         singleMissionMapper.insertBatch(singleMissions);
     }
@@ -189,7 +213,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
                 && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
-        creativeContentService.unBound(Collections.singletonList(missionDO.getCreativeUid()));
+        creativeContentService.batchUnbind(Collections.singletonList(missionDO.getCreativeUid()));
         singleMissionMapper.deleteById(missionDO.getId());
     }
 
@@ -206,7 +230,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             throw exception(new ErrorCode(500, "只允许删除 待发布 待认领 关闭状态的任务"));
         }
         List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
-        creativeContentService.unBound(creativeUids);
+        creativeContentService.batchUnbind(creativeUids);
         singleMissionMapper.batchDelete(uids);
     }
 
@@ -353,9 +377,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             }
             int amount = singleMissionRespVO.getEstimatedAmount().intValue();
             String claimUserId = singleMissionRespVO.getClaimUserId();
-            Assert.notBlank(claimUserId,"认领人id不存在");
+            Assert.notBlank(claimUserId, "认领人id不存在");
             MemberUserDO user = memberUserService.getUser(Long.valueOf(claimUserId));
-            Assert.notNull(user,"认领人不存在");
+            Assert.notNull(user, "认领人不存在");
             TenantContextHolder.setIgnore(false);
             TenantContextHolder.setTenantId(user.getTenantId());
             memberPointRecordService.createPointRecord(user.getId(), amount, MemberPointBizTypeEnum.MISSION_SETTLEMENT, singleMissionRespVO.getUid());
@@ -387,7 +411,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             }
         }
         List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
-        creativeContentService.unBound(creativeUids);
+        creativeContentService.batchUnbind(creativeUids);
         singleMissionMapper.batchDelete(singleMissionDOList.stream().map(SingleMissionDO::getUid).collect(Collectors.toList()));
     }
 
@@ -448,12 +472,12 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (StringUtils.isBlank(str)) {
             return StringUtils.EMPTY;
         }
-        List<CreativeImageDTO> list = JSONUtil.parseArray(str).toList(CreativeImageDTO.class);
+        List<ImageContent> list = JSONUtil.parseArray(str).toList(ImageContent.class);
         if (CollectionUtils.isEmpty(list)) {
             return StringUtils.EMPTY;
         }
         StringJoiner sj = new StringJoiner(StringUtils.LF);
-        for (CreativeImageDTO creativeImageDTO : list) {
+        for (ImageContent creativeImageDTO : list) {
             sj.add(creativeImageDTO.getUrl());
         }
         return sj.toString();

@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.convert.limit;
 
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.limit.dto.AppLimitConfigDTO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppLimitConfigReqVO;
 import com.starcloud.ops.business.app.api.limit.vo.request.AppPublishLimitModifyReqVO;
@@ -35,13 +35,13 @@ public interface AppPublishLimitConvert {
         appPublishLimit.setChannelUid(request.getChannelUid());
         // 应用使用率限流
         AppLimitConfigDTO rate = convertConfig(AppLimitConfigEnum.RATE.name(), AppLimitByEnum.APP.name(), request.getRateConfig());
-        appPublishLimit.setRateConfig(JSONUtil.toJsonStr(rate));
+        appPublishLimit.setRateConfig(JsonUtils.toJsonString(rate));
         // 用户使用率限流
         AppLimitConfigDTO userRate = convertConfig(AppLimitConfigEnum.USER_RATE.name(), AppLimitByEnum.USER.name(), request.getUserRateConfig());
-        appPublishLimit.setUserRateConfig(JSONUtil.toJsonStr(userRate));
+        appPublishLimit.setUserRateConfig(JsonUtils.toJsonString(userRate));
         // 广告使用率
         AppLimitConfigDTO advertising = convertConfig(AppLimitConfigEnum.ADVERTISING.name(), AppLimitByEnum.ADVERTISING.name(), request.getAdvertisingConfig());
-        appPublishLimit.setAdvertisingConfig(JSONUtil.toJsonStr(advertising));
+        appPublishLimit.setAdvertisingConfig(JsonUtils.toJsonString(advertising));
         appPublishLimit.setDeleted(Boolean.FALSE);
         return appPublishLimit;
     }
@@ -70,9 +70,9 @@ public interface AppPublishLimitConvert {
         appPublishLimitResponse.setAppUid(appPublishLimit.getAppUid());
         appPublishLimitResponse.setPublishUid(appPublishLimit.getPublishUid());
         appPublishLimitResponse.setChannelUid(appPublishLimit.getChannelUid());
-        appPublishLimitResponse.setRateConfig(JSONUtil.toBean(appPublishLimit.getRateConfig(), AppLimitConfigDTO.class));
-        appPublishLimitResponse.setUserRateConfig(JSONUtil.toBean(appPublishLimit.getUserRateConfig(), AppLimitConfigDTO.class));
-        appPublishLimitResponse.setAdvertisingConfig(JSONUtil.toBean(appPublishLimit.getAdvertisingConfig(), AppLimitConfigDTO.class));
+        appPublishLimitResponse.setRateConfig(JsonUtils.parseObject(appPublishLimit.getRateConfig(), AppLimitConfigDTO.class));
+        appPublishLimitResponse.setUserRateConfig(JsonUtils.parseObject(appPublishLimit.getUserRateConfig(), AppLimitConfigDTO.class));
+        appPublishLimitResponse.setAdvertisingConfig(JsonUtils.parseObject(appPublishLimit.getAdvertisingConfig(), AppLimitConfigDTO.class));
         appPublishLimitResponse.setTenantId(appPublishLimit.getTenantId());
         appPublishLimitResponse.setCreator(appPublishLimit.getCreator());
         appPublishLimitResponse.setUpdater(appPublishLimit.getUpdater());

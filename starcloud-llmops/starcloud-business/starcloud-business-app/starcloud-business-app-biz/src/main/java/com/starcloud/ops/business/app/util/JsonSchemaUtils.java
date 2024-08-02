@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.util;
 
-import cn.hutool.core.lang.Assert;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -8,26 +11,43 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.fasterxml.jackson.module.jsonSchema.types.*;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
-import com.starcloud.ops.business.app.api.xhs.material.dto.BookListCreativeMaterialDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeOptionDTO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeOptionModelEnum;
+import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
+import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
+import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
+import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author nacoyer
@@ -122,144 +142,176 @@ public class JsonSchemaUtils {
      * @param clazz 给定的 Java 类
      * @return 生成的 JSON Schema
      */
-    public static String generateJsonSchema(Class<?> clazz) {
+    public static String generateJsonSchemaStr(Class<?> clazz) {
         try {
-            JacksonModule jacksonModule = new JacksonModule();
-            SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
-                    .with(jacksonModule);
-            SchemaGeneratorConfig config = configBuilder.build();
-            SchemaGenerator generator = new SchemaGenerator(config);
-            JsonNode jsonNode = generator.generateSchema(clazz);
+
+            JsonSchema jsonSchema = generateJsonSchema(clazz);
+            return generateJsonSchemaStr(jsonSchema);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not pretty print json schema for " + clazz);
+        }
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @return 生成的 JSON Schema
+     */
+    public static String generateJsonSchemaStr(JsonSchema jsonSchema) {
+        try {
+
             DefaultIndenter defaultIndenter = new DefaultIndenter()
                     .withLinefeed("\n");
             DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
                     .withObjectIndenter(defaultIndenter);
             ObjectWriter objectWriter = new ObjectMapper()
                     .writer(defaultPrettyPrinter);
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+            // 生成 JSON Schema
+            return objectWriter.writeValueAsString(jsonSchema);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not pretty print json schema", e);
+
+        }
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param clazz 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static JsonSchema generateJsonSchema(Class<?> clazz) {
+        try {
+
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
+
+            return jsonSchemaGenerator.generateSchema(clazz);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateSchema for " + clazz, e);
+        }
+    }
+
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param clazz 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    @Deprecated
+    public static JsonNode generateJsonNode(Class<?> clazz) {
+        try {
+            JacksonModule jacksonModule = new JacksonModule();
+            SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
+                    .with(jacksonModule);
+            SchemaGeneratorConfig config = configBuilder.build();
+
+            SchemaGenerator generator = new SchemaGenerator(config);
+
+            return generator.generateSchema(clazz);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateJsonSchemaNode for " + clazz, e);
+        }
+    }
+
+
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @param jsonNode 给定的 Java 类
+     * @return 生成的 JSON Schema
+     */
+    public static String jsonNode2Str(Object jsonNode) {
+
+        if (ObjectUtil.isNull(jsonNode)) {
+            return null;
+        }
+
+        try {
+
+            DefaultIndenter defaultIndenter = new DefaultIndenter()
+                    .withLinefeed("\n");
+            DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
+                    .withObjectIndenter(defaultIndenter);
+            ObjectWriter objectWriter = new ObjectMapper()
+                    .writer(defaultPrettyPrinter);
+
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
             // 生成 JSON Schema
             return objectWriter.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Could not pretty print json schema for " + clazz, e);
+            throw new RuntimeException("JsonNode Could not pretty print json schema: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * 将具体的类转换为 Option。
-     *
-     * @param clazz JSON Schema
-     * @param code  编码
-     * @param model 模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(Class<?> clazz, String code, String model) {
-        String jsonSchema = generateJsonSchema(clazz);
-        return jsonSchemaToOptions(jsonSchema, code, code, StringUtils.EMPTY, model, Boolean.FALSE);
-    }
 
     /**
-     * 将具体的类转换为 Option。
+     * 根据给定的 Java 类生成对应的 JSON Schema。
      *
-     * @param clazz JSON Schema
-     * @param code  编码
-     * @param name  名称
-     * @param model 模型
-     * @return 选项列表
+     * @param jsonSchema 给定的 Java 类
+     * @return 生成的 JSON Schema
      */
-    public static CreativeOptionDTO jsonSchemaToOptions(Class<?> clazz, String code, String name, String model) {
-        String jsonSchema = generateJsonSchema(clazz);
-        return jsonSchemaToOptions(jsonSchema, code, name, StringUtils.EMPTY, model, Boolean.FALSE);
-    }
+    public static String jsonSchema2Str(JsonSchema jsonSchema) {
 
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema JSON Schema
-     * @param code       编码
-     * @param model      模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String model) {
-        return jsonSchemaToOptions(jsonSchema, code, code, StringUtils.EMPTY, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema JSON Schema
-     * @param code       编码
-     * @param name       名称
-     * @param model      模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String name, String model) {
-        return jsonSchemaToOptions(jsonSchema, code, name, name, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema  JSON Schema
-     * @param code        编码
-     * @param name        名称
-     * @param description 描述
-     * @param model       模型
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String name, String description, String model) {
-        return jsonSchemaToOptions(jsonSchema, code, name, description, model, Boolean.FALSE);
-    }
-
-    /**
-     * 将JSON Schema 转换为选项列表。
-     *
-     * @param jsonSchema   JSON Schema
-     * @param code         编码
-     * @param name         名称
-     * @param description  描述
-     * @param model        模型
-     * @param isSplitArray 是否拆分数组
-     * @return 选项列表
-     */
-    public static CreativeOptionDTO jsonSchemaToOptions(String jsonSchema, String code, String name, String description, String model, Boolean isSplitArray) {
         try {
 
-            Assert.notBlank(jsonSchema, "JSON Schema must not be blank");
-            Assert.notBlank(code, "Code must not be blank");
-            Assert.notBlank(name, "Name must not be blank");
-            Assert.notBlank(model, "Model must not be blank");
+            DefaultIndenter defaultIndenter = new DefaultIndenter()
+                    .withLinefeed("\n");
+            DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter()
+                    .withObjectIndenter(defaultIndenter);
+            ObjectWriter objectWriter = new ObjectMapper()
+                    .writer(defaultPrettyPrinter);
+            objectWriter.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+            // 生成 JSON Schema
+            return objectWriter.writeValueAsString(jsonSchema);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JsonNode Could not pretty print json schema: " + e.getMessage(), e);
+        }
+    }
 
-            // 获取下拉框类型的枚举值
-            CreativeOptionModelEnum optionModel = CreativeOptionModelEnum.of(model);
-            Assert.notNull(optionModel, "Model must be a valid enum value");
+
+    public static JsonNode str2JsonNode(String jsonSchema) {
+
+        try {
 
             JsonNode jsonNode = OBJECT_MAPPER.readTree(jsonSchema);
             // 检查是否为 JSON Schema，如果不是，则抛出异常
-            Assert.isTrue(
-                    jsonNode.has(JSON_SCHEMA) && StringUtils.isNotBlank(jsonNode.get(JSON_SCHEMA).asText()),
-                    "The given JSON is not a JSON Schema"
-            );
+//            Assert.isTrue(
+//                    ObjectUtil.isNotNull(jsonNode) &&
+//                            jsonNode.has(JSON_SCHEMA) && StringUtils.isNotBlank(jsonNode.get(JSON_SCHEMA).asText()),
+//                    "The given JSON is not a JSON Schema"
+//            );
 
-            if (jsonNode.has(ALL_OF)) {
-                jsonNode = jsonNode.get(ALL_OF).get(0);
-            }
+//        if (jsonNode.has(ALL_OF)) {
+//            jsonNode = jsonNode.get(ALL_OF).get(0);
+//        }
 
-            // 获取类型
-            String type = getJsonSchemaFieldType(jsonNode);
-            String filedCode = getCode(code, optionModel.getPrefix());
+            return jsonNode;
 
-            // 构建根节点
-            CreativeOptionDTO option = new CreativeOptionDTO();
-            option.setParentCode(optionModel.getPrefix());
-            option.setCode(filedCode);
-            option.setName(name);
-            option.setType(type);
-            option.setModel(model);
-            option.setDescription(StringUtils.isBlank(description) ? name : description);
-            option.setChildren(getChildren(filedCode, jsonNode, model, isSplitArray));
-            return option;
         } catch (Exception e) {
-            throw new RuntimeException("Could not convert JSON Schema to options", e);
+            //
+            throw new RuntimeException(e.getMessage(), e);
         }
+
+    }
+
+
+    public static JsonSchema str2JsonSchema(String jsonSchema) {
+
+        try {
+
+            JsonSchema jsonNode = OBJECT_MAPPER.readValue(jsonSchema, ContainerTypeSchema.class);
+
+            return jsonNode;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not str2JsonSchema for " + jsonSchema, e);
+        }
+
     }
 
     /**
@@ -429,10 +481,103 @@ public class JsonSchemaUtils {
                 Optional.ofNullable(field.get(DESCRIPTION)).map(JsonNode::asText).orElse(StringUtils.EMPTY) : StringUtils.EMPTY;
     }
 
-    public static void main(String[] args) {
-        String string = generateJsonSchema(BookListCreativeMaterialDTO.class);
-        System.out.println(string);
-        CreativeOptionDTO a = jsonSchemaToOptions(CreativeOptionDTO.class, "生成文本", CreativeOptionModelEnum.STEP_RESPONSE.name());
-        System.out.println(a);
+    /**
+     * 获取 JSON Schema 增加字段拓展类型
+     *
+     * @param clazz
+     * @return
+     */
+    public static JsonSchema expendGenerateJsonSchema(Class<?> clazz) {
+        JsonSchema jsonSchema = generateJsonSchema(clazz);
+        if (!(jsonSchema instanceof ObjectSchema)) {
+            return jsonSchema;
+        }
+
+        Map<String, JsonSchema> properties = ((ObjectSchema) jsonSchema).getProperties();
+        Map<String, Field> fieldMap = Arrays.stream(clazz.getDeclaredFields()).collect(Collectors.toMap(Field::getName, Function.identity()));
+
+        for (String fieldName : properties.keySet()) {
+            JsonSchema fieldSchema = properties.get(fieldName);
+            Field field = fieldMap.get(fieldName);
+            if (Objects.isNull(field)) {
+                continue;
+            }
+            FieldDefine fieldDefine = field.getAnnotation(FieldDefine.class);
+            if (Objects.isNull(fieldDefine)) {
+                continue;
+            }
+            String description = fieldSchema.getDescription();
+            fieldSchema.setRequired(fieldDefine.required());
+            fieldSchema.setDescription(description + "-" + fieldDefine.type().getTypeCode());
+
+//            ExpandStringSchema expandStringSchema = new ExpandStringSchema();
+//            BeanUtil.copyProperties(fieldSchema, expandStringSchema);
+//            expandStringSchema.setExpandType(fieldDefine.type().getTypeCode());
+//            properties.put(fieldName, expandStringSchema);
+        }
+        return jsonSchema;
     }
+
+    /**
+     * 素材自定义配置生成 jsonschema
+     * 暂时只使用第一个素材库的标题
+     *
+     * @param uid
+     * @return
+     */
+    public static JsonSchema expendGenerateJsonSchema(String uid) {
+        ObjectSchema obj = new ObjectSchema();
+
+
+        MaterialLibraryService materialLibraryService = SpringUtil.getBean(MaterialLibraryService.class);
+
+        MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
+        appReqVO.setAppUid(uid);
+        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+        if (Objects.isNull(libraryRespVO)) {
+            return obj;
+        }
+        List<MaterialLibraryTableColumnRespVO> tableMeta = libraryRespVO.getTableMeta();
+        if (CollectionUtil.isEmpty(tableMeta)) {
+            return obj;
+        }
+
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(tableMeta.size());
+        for (MaterialLibraryTableColumnRespVO columnRespVO : tableMeta) {
+            StringSchema schema = new StringSchema();
+            schema.setTitle(columnRespVO.getColumnName());
+            schema.setDescription("" + "-" + columnRespVO.getColumnType());
+            properties.put(columnRespVO.getColumnCode(), schema);
+            if (ColumnTypeEnum.IMAGE.getCode().equals(columnRespVO.getColumnType())) {
+                ObjectSchema ocrSchema = (ObjectSchema) generateJsonSchema(OcrGeneralDTO.class);
+                Map<String, JsonSchema> ocrSchemaProperties = ocrSchema.getProperties();
+                for (String key : ocrSchemaProperties.keySet()) {
+                    JsonSchema jsonSchema = ocrSchemaProperties.get(key);
+                    if (jsonSchema instanceof SimpleTypeSchema) {
+                        SimpleTypeSchema simpleTypeSchema = (SimpleTypeSchema) jsonSchema;
+                        simpleTypeSchema.setTitle(simpleTypeSchema.getDescription());
+                    }
+                }
+                ocrSchemaProperties.remove("url");
+                ocrSchemaProperties.remove("data");
+                ocrSchema.setDescription(columnRespVO.getColumnName() + "_ext");
+                properties.put(columnRespVO.getColumnCode() + "_ext", ocrSchema);
+            }
+        }
+        obj.setProperties(properties);
+        return obj;
+    }
+
+    public JsonSchema getOutVariableJsonSchema(String uid) {
+        //构造一层 array schema
+        ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
+        docSchema.setTitle("上传素材");
+        docSchema.setDescription("上传素材步骤。应用中可以存在一个此步骤。");
+        ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
+        // 素材自定义配置
+        ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(uid);
+        arraySchema.setItemsSchema(materialSchema);
+        return docSchema;
+    }
+
 }

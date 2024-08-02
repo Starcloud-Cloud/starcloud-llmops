@@ -246,7 +246,7 @@ public class PaySignServiceImpl implements PaySignService {
     @Override
     public int syncSign(LocalDateTime minCreateTime) {
         // 1. 查询指定创建时间内的待签约订单
-        List<PaySignExtensionDO> paySignExtensionDOS = paySignExtensionMapper.selectListByStatusAndCreateTimeGe(
+        List<PaySignExtensionDO> paySignExtensionDOS = paySignExtensionMapper.selectListByStatusAndCreateTimeLe(
                 PayOrderStatusEnum.WAITING.getStatus(), minCreateTime);
         if (CollUtil.isEmpty(paySignExtensionDOS)) {
             return 0;

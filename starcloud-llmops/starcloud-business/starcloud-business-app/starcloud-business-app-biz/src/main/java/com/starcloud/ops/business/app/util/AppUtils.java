@@ -3,12 +3,12 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.LanguageEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -220,27 +220,32 @@ public class AppUtils {
     }
 
     /**
-     * AI 模型集合
+     * 聊天类型
      *
-     * @return AI 模型集合
+     * @return 聊天类型
      */
-    public static List<Option> aiModelList() {
+    public static List<Option> llmModelTypeList() {
         Locale locale = LocaleContextHolder.getLocale();
         List<Option> options = new ArrayList<>();
         Option option35 = new Option();
         option35.setLabel(Locale.CHINA.equals(locale) ? "默认模型3.5" : "Default Model 3.5");
-        option35.setValue(ModelTypeEnum.GPT_3_5_TURBO_16K.getName());
+        option35.setValue(ModelProviderEnum.GPT35.name());
         options.add(option35);
 
         Option option40 = new Option();
         option40.setLabel(Locale.CHINA.equals(locale) ? "默认模型4.0" : "Default Model 4.0");
-        option40.setValue(ModelTypeEnum.GPT_4_TURBO.getName());
+        option40.setValue(ModelProviderEnum.GPT4.name());
         options.add(option40);
 
         Option optionQwen = new Option();
         optionQwen.setLabel(Locale.CHINA.equals(locale) ? "通义千问" : "QWEN");
-        optionQwen.setValue(ModelTypeEnum.QWEN.getName());
+        optionQwen.setValue(ModelProviderEnum.QWEN.name());
         options.add(optionQwen);
+
+        Option optionQwenMax = new Option();
+        optionQwenMax.setLabel(Locale.CHINA.equals(locale) ? "通义千问MAX" : "QWEN Max");
+        optionQwenMax.setValue(ModelProviderEnum.QWEN_MAX.name());
+        options.add(optionQwenMax);
         return options;
     }
 }

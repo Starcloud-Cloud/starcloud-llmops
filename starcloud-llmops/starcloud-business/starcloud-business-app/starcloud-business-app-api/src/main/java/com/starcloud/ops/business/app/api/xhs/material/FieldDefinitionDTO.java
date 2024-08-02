@@ -14,6 +14,12 @@ public class FieldDefinitionDTO {
     @Schema(description = "字段描述 excel标题")
     private String desc;
 
+    @Schema(description = "字段是否必填")
+    private boolean required;
+
+    @Schema(description = "表格宽度")
+    private int width;
+
     /**
      * {@link FieldTypeEnum#getTypeCode()}
      */

@@ -134,5 +134,11 @@ public interface ProductSkuService {
      */
     int updateSkuPropertyValue(Long propertyValueId, String propertyValueName, String propertyValueRemark);
 
-    void canPlaceOrder(Long userId, Long skuId);
+    void canPlaceOrder(Long userId, Long skuId,Long couponId);
+
+    /**
+     * 验证商品是否支持签约
+     * @param skuId SKU 编号
+     */
+    void isValidSubscriptionSupported(Long skuId);
 }

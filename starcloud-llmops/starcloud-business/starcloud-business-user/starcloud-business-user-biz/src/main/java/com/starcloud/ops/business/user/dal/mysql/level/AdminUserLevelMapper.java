@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
@@ -30,29 +29,40 @@ public interface AdminUserLevelMapper extends BaseMapperX<AdminUserLevelDO> {
                 .orderByDesc(AdminUserLevelDO::getId));
     }
 
-    default AdminUserLevelDO findLatestExpirationByLevel(Long userId, Long levelId) {
-        return selectOne(new QueryWrapper<AdminUserLevelDO>()
-                .eq("user_id", userId)
-                .eq("level_id", levelId)
-                .orderByDesc("valid_start_time")
-                .last("limit 1"));
-    }
-
-    default List<AdminUserLevelDO> selectValidList(Long userId) {
-        return selectList(new LambdaQueryWrapper<AdminUserLevelDO>()
-                .eq(AdminUserLevelDO::getUserId, userId)
-                .le(AdminUserLevelDO::getValidStartTime, LocalDateTime.now())
-                .ge(AdminUserLevelDO::getValidEndTime, LocalDateTime.now())
-                .eq(AdminUserLevelDO::getStatus, CommonStatusEnum.ENABLE.getStatus())
-                .orderByDesc(AdminUserLevelDO::getLevelId)
-        );
-    }
-
-    default List<AdminUserLevelDO> selectListByStatusAndValidTimeLt(Integer status, LocalDateTime now) {
+    /**
+     * 获取失效的等级列表
+     *
+     * @param status 状态
+     * @param now    时间
+     * @return 数据列表
+     */
+    default List<AdminUserLevelDO> getUserLevelsNearExpiry(Integer status, LocalDateTime now) {
         return selectList(new LambdaQueryWrapper<AdminUserLevelDO>()
                 .lt(AdminUserLevelDO::getValidStartTime, now)
                 .lt(AdminUserLevelDO::getValidEndTime, now)
                 .eq(AdminUserLevelDO::getStatus, status)
+        );
+    }
+
+    /**
+     * 获取有效【包含未生效】的等级数据列表
+     * 如果用户编号（userId）为空 则查询所有的数据
+     *
+     * @param userId 用户编号
+     * @return 数据列表
+     */
+    default List<AdminUserLevelDO> getValidAdminUserLevels(Long userId, List<Long> levels, LocalDateTime now) {
+
+        return selectList(new LambdaQueryWrapperX<AdminUserLevelDO>()
+                .eqIfPresent(AdminUserLevelDO::getUserId, userId)
+                .inIfPresent(AdminUserLevelDO::getLevelId, levels)
+                .eq(AdminUserLevelDO::getStatus, CommonStatusEnum.ENABLE.getStatus())
+                .and(wrapper -> wrapper
+                        .or(w->w.le(AdminUserLevelDO::getValidStartTime, now) // validStartTime <= NOW()
+                                .ge(AdminUserLevelDO::getValidEndTime, now))
+                        .or(w-> w.ge(AdminUserLevelDO::getValidStartTime, now) // validStartTime > NOW()
+                                        .ge(AdminUserLevelDO::getValidEndTime, now))
+                       )
         );
     }
 

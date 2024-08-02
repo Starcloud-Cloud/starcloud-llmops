@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.user.controller.admin.rights;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
@@ -9,14 +8,12 @@ import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsRespVO;
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
-import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelConfigService;
-import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -69,7 +66,7 @@ public class AdminUserRightsController {
     @GetMapping("/u/page")
     @Operation(summary = "系统会员-获得用户权益记录分页")
     @PreAuthenticated
-    public CommonResult<PageResult<AppAdminUserRightsRespVO>> getPointRecordPage(@Valid PageParam pageVO) {
+    public CommonResult<PageResult<AppAdminUserRightsRespVO>> getPointRecordPage(@Valid AppAdminUserRightsPageReqVO pageVO) {
         PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(getLoginUserId(), pageVO);
         // 优化显示内容
         if (!pageResult.getList().isEmpty()){
@@ -85,7 +82,7 @@ public class AdminUserRightsController {
         }
         PageResult<AppAdminUserRightsRespVO> result = AdminUserRightsConvert.INSTANCE.convertPage02(pageResult);
 
-        result.getList().stream().forEach(data->{
+        result.getList().forEach(data->{
             if (Objects.nonNull(data.getUserLevelId())) {
                 data.setLevelName(adminUserLevelConfigService.getLevelConfig(data.getUserLevelId()).getName());
             }

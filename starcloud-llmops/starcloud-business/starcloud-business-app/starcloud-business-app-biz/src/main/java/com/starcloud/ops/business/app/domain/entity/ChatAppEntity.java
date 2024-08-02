@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.domain.entity;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -31,21 +30,23 @@ import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
+import com.starcloud.ops.business.app.domain.manager.AppDefaultConfigManager;
 import com.starcloud.ops.business.app.domain.repository.app.AppRepository;
 import com.starcloud.ops.business.app.enums.ChatErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
-import com.starcloud.ops.business.limits.enums.BenefitsTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
-import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.agent.OpenAIFunctionsAgent;
 import com.starcloud.ops.llm.langchain.core.agent.base.AgentExecutor;
 import com.starcloud.ops.llm.langchain.core.agent.base.action.AgentFinish;
@@ -60,6 +61,7 @@ import com.starcloud.ops.llm.langchain.core.tools.base.BaseTool;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -100,6 +102,21 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
 
+    /**
+     * 应用报警管理
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private AppDefaultConfigManager appDefaultConfigManager = SpringUtil.getBean(AppDefaultConfigManager.class);
+
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
+
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppRepository appRepository;
@@ -132,7 +149,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(ChatRequestVO request) {
+    protected void doValidate(ChatRequestVO request, ValidateTypeEnum validateType) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
@@ -142,7 +159,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
-        getChatConfig().validate();
+        getChatConfig().validate(validateType);
     }
 
     @Override
@@ -203,13 +220,19 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     }
 
     /**
-     * 模版方法：获取应用的 AI 模型类型
+     * 模版方法：获取应用的 AI 模型类型 <br>
+     * 1. 只在创建会话记录时候使用
      *
      * @param request 请求参数
      */
     @Override
-    protected String obtainLlmAiModelType(ChatRequestVO request) {
-        return Optional.ofNullable(request.getModelType()).orElse(ModelTypeEnum.GPT_3_5_TURBO.getName());
+    protected String getLlmModelType(ChatRequestVO request) {
+        if (StringUtils.isBlank(request.getModelType())) {
+            throw ServiceExceptionUtil.invalidParamException("请选择大模型类型！");
+        }
+        // 获取到执行的模型
+        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), Boolean.TRUE);
+        return llmModelType.getName();
     }
 
     @Override
@@ -221,7 +244,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         } catch (ServiceException exception) {
             log.error("聊天执行异常(ServerException): 错误信息: {}", exception.getMessage());
-            // ServiceException 时候将消息UID传入exception中
             exception.setBizUid(request.getAppUid());
             exception.setScene(request.getScene());
             throw exception;
@@ -233,8 +255,8 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(ChatRequestVO request) {
-        JsonData jsonParams = this.doExecute(request);
+    protected JsonData doAsyncExecute(ChatRequestVO request) {
+        return this.doExecute(request);
     }
 
     /**
@@ -244,8 +266,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @Override
     protected void beforeExecute(ChatRequestVO chatRequestVO) {
-
-        this.updateChatAppConfig(chatRequestVO, this);
+        this.updateChatAppConfig(chatRequestVO);
     }
 
     /**
@@ -256,56 +277,35 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 1，查看当前应用配置，参数不能降级
      * 2，判断是否有升级后的权限
      */
-    private void updateChatAppConfig(ChatRequestVO chatRequest, ChatAppEntity appEntity) {
-
-        //用户已登录，判断是否有升级的权限
-        if (chatRequest.getUserId() != null) {
-
-            PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
-
-            if (StrUtil.isNotBlank(chatRequest.getModelType())) {
-                ModelProviderEnum providerEnum = IEnumable.nameOf(chatRequest.getModelType(), ModelProviderEnum.class);
-                if (providerEnum == null) {
-                    //不合法参数
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
-                }
-
-                //无配置不处理
-                if (StrUtil.isNotBlank(providerEnum.getPermissions())) {
-
-                    if (!permissionApi.hasAnyPermissions(chatRequest.getUserId(), providerEnum.getPermissions())) {
-
-                        //没权限抛异常
-                        throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_MODEL_ERROR, chatRequest.getModelType());
-                    }
-                }
-
-                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).ifPresent(modelConfig -> modelConfig.setProvider(chatRequest.getModelType()));
-
-                //模型选择处理下
-                if (ModelProviderEnum.GPT35.name().equals(chatRequest.getModelType())) {
-                    Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).map(ModelConfigEntity::getCompletionParams).ifPresent(params -> params.setModel(ModelTypeEnum.GPT_3_5_TURBO.getName()));
-                }
-
-                if (ModelProviderEnum.GPT4.name().equals(chatRequest.getModelType())) {
-                    Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getModelConfig).map(ModelConfigEntity::getCompletionParams).ifPresent(params -> params.setModel(ModelTypeEnum.GPT_4_TURBO.getName()));
-                }
+    private void updateChatAppConfig(ChatRequestVO request) {
+        // 搜索权限校验
+        if (Objects.nonNull(request.getWebSearch())) {
+            // 权限校验，没有权限，抛出异常
+            if (request.getWebSearch() && !permissionApi.hasAnyPermissions(request.getUserId(), "chat:config:websearch")) {
+                throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
             }
-
-
-            if (chatRequest.getWebSearch() != null) {
-                //设置开启，但是没权限
-                if (chatRequest.getWebSearch() && !permissionApi.hasAnyPermissions(chatRequest.getUserId(), "chat:config:websearch")) {
-
-                    //没权限抛异常
-                    throw ServiceExceptionUtil.exception(ChatErrorCodeConstants.CONFIG_WEB_SEARCH_ERROR);
-                }
-
-                //设置开启 或 关闭了
-                Optional.ofNullable(appEntity.getChatConfig()).map(ChatConfigEntity::getWebSearchConfig).ifPresent(webSearchConfig -> webSearchConfig.setEnabled(chatRequest.getWebSearch()));
-            }
+            //设置开启 或 关闭了
+            Optional.ofNullable(this.getChatConfig())
+                    .map(ChatConfigEntity::getWebSearchConfig)
+                    .ifPresent(webSearchConfig -> webSearchConfig.setEnabled(request.getWebSearch()));
         }
 
+        if (StringUtils.isBlank(request.getModelType())) {
+            throw ServiceExceptionUtil.invalidParamException("请选择大模型类型！");
+        }
+        // 获取到执行的模型
+        ModelTypeEnum llmModelType = appDefaultConfigManager.getLlmModelType(request.getModelType(), request.getUserId(), Boolean.TRUE);
+
+        // 设置模型到配置中
+        Optional.ofNullable(this.getChatConfig())
+                .map(ChatConfigEntity::getModelConfig)
+                .ifPresent(modelConfig -> modelConfig.setProvider(request.getModelType()));
+
+        // 设置模型到配置中`
+        Optional.ofNullable(this.getChatConfig())
+                .map(ChatConfigEntity::getModelConfig)
+                .map(ModelConfigEntity::getCompletionParams)
+                .ifPresent(params -> params.setModel(llmModelType.getName()));
     }
 
     /**
@@ -314,7 +314,14 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void afterExecute(ChatRequestVO request, Throwable throwable) {
+    protected void afterExecute(JsonData result, ChatRequestVO request, Throwable throwable) {
+
+        if (throwable != null) {
+            // 发送告警信息
+            request.setAppName(this.getName());
+            request.setMode(AppModelEnum.CHAT.name());
+            appAlarmManager.executeAlarm(request, throwable);
+        }
 
         SseEmitter sseEmitter = request.getSseEmitter();
 
@@ -339,9 +346,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatConfigEntity chatConfig = this.getChatConfig();
 
-        // 从表单配置中筛选输入变量，处理必填字段、默认值和选项值
-        Map<String, Object> cleanInputs = getVariableItem(chatConfig.getVariable());
-
         //工具入参
         HandlerContext appContext = this.instanceHandlerContext(request);
 
@@ -351,18 +355,21 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
         ChatPrompt chatPrompt = new ChatPrompt(chatPrePrompt, contextPrompt, historyPrompt);
 
-        int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
-        //设置 memory 必要参数
-        this.getMessageMemory().setSummaryMaxTokens(maxTokens);
+        //int maxTokens = chatPrompt.calculateModelUseMaxToken(chatConfig.getModelConfig(), request.getQuery());
+        //设置 强制总结的 tokens
+        this.getMessageMemory().setSummaryMaxTokens(4000);
 
         BaseVariable humanInput = BaseVariable.newString("input", request.getQuery());
 
+        // 获取模型类型
+        String llmModelType = this.getChatConfig().getModelConfig().getProvider();
         //千问调用
-        if (ModelProviderEnum.QWEN.name().equals(this.getChatConfig().getModelConfig().getProvider())) {
+        if (ModelProviderEnum.QWEN.name().equals(llmModelType) ||
+                ModelProviderEnum.QWEN_MAX.name().equals(llmModelType)) {
 
             ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
-            LLMChain<GenerationResult> llmChain = buildQwenLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
+            LLMChain<GenerationResult> llmChain = buildQwenLlm(request, chatConfig, chatPromptTemplate, emitter);
 
             BaseLLMResult<GenerationResult> result = llmChain.call(Arrays.asList(humanInput));
 
@@ -393,7 +400,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
                 ChatPromptTemplate chatPromptTemplate = chatPrompt.buildChatPromptTemplate(this.getMessageMemory());
 
-                LLMChain<ChatCompletionResult> llmChain = buildLlm(request, maxTokens, chatConfig, chatPromptTemplate, emitter);
+                LLMChain<ChatCompletionResult> llmChain = buildLlm(request, chatConfig, chatPromptTemplate, emitter);
 
                 BaseLLMResult<ChatCompletionResult> result = llmChain.call(Arrays.asList(humanInput));
 
@@ -438,7 +445,6 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      * 千问 LLm
      *
      * @param request
-     * @param maxTokens
      * @param chatConfig
      * @param chatPromptTemplate
      * @param emitter
@@ -446,13 +452,14 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private LLMChain<GenerationResult> buildQwenLlm(ChatRequestVO request, int maxTokens,
+    private LLMChain<GenerationResult> buildQwenLlm(ChatRequestVO request,
                                                     ChatConfigEntity chatConfig,
                                                     ChatPromptTemplate chatPromptTemplate,
                                                     SseEmitter emitter) {
         ChatQwen chatQwen = new ChatQwen();
 
         chatQwen.setTopP(chatConfig.getModelConfig().getCompletionParams().getTemperature());
+        chatQwen.setModel(chatConfig.getModelConfig().getCompletionParams().getModel());
         chatQwen.setStream(false);
 
         chatQwen.getCallbackManager().addCallbackHandler(new MySseCallBackHandler(emitter, request));
@@ -464,7 +471,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
 
     @JsonIgnore
     @JSONField(serialize = false)
-    private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request, int maxTokens,
+    private LLMChain<com.theokanning.openai.completion.chat.ChatCompletionResult> buildLlm(ChatRequestVO request,
                                                                                            ChatConfigEntity chatConfig,
                                                                                            ChatPromptTemplate chatPromptTemplate,
                                                                                            SseEmitter emitter) {

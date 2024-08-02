@@ -61,6 +61,7 @@ public class CouponTemplateBaseVO {
     @Schema(description = "商品范围编号的数组", example = "[1, 3]")
     private List<Long> productScopeValues;
 
+
     @Schema(description = "生效日期类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotNull(message = "生效日期类型不能为空")
     @InEnum(CouponTemplateValidityTypeEnum.class)
@@ -105,6 +106,8 @@ public class CouponTemplateBaseVO {
         return Objects.equals(productScope, PromotionProductScopeEnum.ALL.getScope()) // 全部范围时，可以为空
                 || CollUtil.isNotEmpty(productScopeValues);
     }
+
+
 
     @AssertTrue(message = "生效开始时间不能为空")
     @JsonIgnore

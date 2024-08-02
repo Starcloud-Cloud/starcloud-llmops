@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.mission.controller.admin.vo.dto;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.CreativeImageDTO;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.XhsNoteDetailRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -24,7 +24,7 @@ public class PostingContentDTO {
     private String text;
 
     @Schema(description = "发帖图片")
-    private List<CreativeImageDTO> picture;
+    private List<ImageContent> picture;
 
     public void validPostingContent(XhsNoteDetailRespVO noteDetail) {
         if (noteDetail != null

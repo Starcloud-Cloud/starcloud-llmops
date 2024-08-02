@@ -15,14 +15,64 @@ public interface AppConstants {
     Integer DEFAULT_VERSION = 1;
 
     /**
+     * 默认版本
+     */
+    Integer STEP_VERSION_V2 = 2;
+
+    /**
      * 魔法AI 租户ID
      */
-    Long MO_FA_AI_TENANT_ID = 2L;
+    Long MOFAAI_TENANT_ID = 2L;
 
     /**
      * 矩阵租户ID
      */
-    Long JU_ZHEN_TENANT_ID = 3L;
+    Long JUZHEN_TENANT_ID = 3L;
+
+    /**
+     * Prompt 变量表示
+     */
+    String PROMPT = "PROMPT";
+
+    /**
+     * Model 变量表示
+     */
+    String MODEL = "MODEL";
+
+    /**
+     * MAX_TOKENS 变量表示
+     */
+    String MAX_TOKENS = "MAX_TOKENS";
+
+    /**
+     * TEMPERATURE 变量表示
+     */
+    String TEMPERATURE = "TEMPERATURE";
+
+    /**
+     * 默认模式类型标识
+     */
+    String DEFAULT_MODEL_TYPE = "DEFAULT_MODEL_TYPE";
+
+    /**
+     * 默认生成模式类型标识
+     */
+    String DEFAULT_COMPLETION_MODEL_TYPE = "DEFAULT_COMPLETION_MODEL_TYPE";
+
+    /**
+     * 默认聊天模式类型标识
+     */
+    String DEFAULT_CHAT_MODEL_TYPE = "DEFAULT_CHAT_MODEL_TYPE";
+
+    /**
+     * 默认媒体矩阵模式类型标识
+     */
+    String DEFAULT_MEDIA_MATRIX_MODEL_TYPE = "DEFAULT_MEDIA_MATRIX_MODEL_TYPE";
+
+    /**
+     * 默认大模型映射关系
+     */
+    String DEFAULT_LLM_MODEL_TYPE_MAP = "DEFAULT_LLM_MODEL_TYPE_MAP";
 
     /**
      * 应用分类字典类型
@@ -43,6 +93,16 @@ public interface AppConstants {
      * 热门应用分类字典类型
      */
     String APP_HOT_SEARCH_MARKET_JU_ZHEN = "STAR_CLOUD_LLM_APP_HOT_SEARCH_MARKET_JU_ZHEN";
+
+    /**
+     * 热门应用分类字典类型
+     */
+    String APP_TEMPLATE_SEARCH_MARKET = "STAR_CLOUD_LLM_APP_TEMPLATE_SEARCH_MARKET";
+
+    /**
+     * 热门应用分类字典类型
+     */
+    String APP_TEMPLATE_SEARCH_MARKET_JU_ZHEN = "STAR_CLOUD_LLM_APP_TEMPLATE_SEARCH_MARKET_JU_ZHEN";
 
     /**
      * 图片生成 Prompt 案例
@@ -68,6 +128,11 @@ public interface AppConstants {
      * 创作方案字典类型
      */
     String CREATIVE_SCHEME_CATEGORY_DICT_TYPE = "STAR_CLOUD_LLM_CREATIVE_SCHEME_CATEGORY_TYPE";
+
+    /**
+     * 默认应用配置
+     */
+    String DEFAULT_APP_CONFIGURATION = "DEFAULT_APP_CONFIGURATION";
 
     /**
      * 应用市场应用默认图片
@@ -118,6 +183,5 @@ public interface AppConstants {
      * 生成字符串的范围
      */
     String CHARS = "ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
 
 }

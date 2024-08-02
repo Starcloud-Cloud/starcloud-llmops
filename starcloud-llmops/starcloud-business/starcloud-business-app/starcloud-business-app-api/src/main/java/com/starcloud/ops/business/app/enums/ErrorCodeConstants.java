@@ -10,7 +10,41 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 @SuppressWarnings("all")
 public interface ErrorCodeConstants {
 
+    // ============ 节点处理器执行异常错误码 =========================
+
+    ErrorCode EXECUTE_APP_FAILURE = new ErrorCode(300_100_500, "应用执行异常！请检查您的配置或请稍候重试！");
+
+    /**
+     * 步骤处理器顶级错误码。
+     */
+    ErrorCode EXECUTE_APP_ACTION_FAILURE = new ErrorCode(300_100_510, "【{}】步骤执行异常！请稍候重试！");
+
+    /**
+     * 步骤结果处理异常
+     */
+    ErrorCode EXECUTE_APP_ACTION_PARSE_RESULT_FAILURE = new ErrorCode(300_100_511, "【{}】步骤结果处理异常，请稍候重试！");
+
+    /**
+     * 节点处理器顶级错误码。
+     */
+    ErrorCode EXECUTE_STEP_HANDLER_FAILURE = new ErrorCode(300_100_530, "处理器执行异常！请稍候重试！");
+
+    /**
+     * 大模型执行异常
+     */
+    ErrorCode EXECUTE_LLM_FAILURE = new ErrorCode(300_100_550, "大模型执行异常！请稍候重试！");
+
+    /**
+     * 大模型执行异常
+     */
+    ErrorCode EXECUTE_POSTER_FAILURE = new ErrorCode(300_100_551, "海报执行异常！请稍候重试！");
+
     // 1.========== 通用错误 300 000 xxx ==========
+
+    /**
+     * 通用参数异常错误码
+     */
+    ErrorCode PARAMETER_EXCEPTION = new ErrorCode(300000400, "参数异常，请检查后重试！");
 
     /**
      * 用户未登录
@@ -56,6 +90,11 @@ public interface ErrorCodeConstants {
      * 应用执行步骤不存在
      */
     ErrorCode WORKFLOW_STEP_NOT_EXIST = new ErrorCode(300000407, "应用执行步骤不存在，请稍后重试或者联系管理员！");
+
+    /**
+     * 不支持的素材类型
+     */
+    ErrorCode APP_MATERIAL_TYPE_NONSUPPORT = new ErrorCode(300000408, "不支持的素材类型，请检查后重试（{}）！");
 
     // ========== 基本增删改查错误码 ==========
 
@@ -281,13 +320,12 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_SCENE_UNSUPPORTED = new ErrorCode(310000320, "不支持的执行场景，请检查后重试！");
 
+    /**
+     * AI结果解析异常
+     */
+    ErrorCode EXECUTE_JSON_RESULT_PARSE_ERROR = new ErrorCode(310000321, "AI结果解析异常！请稍候重试！");
 
     // ========== 应用执行错误码 310 100 xxx ==========
-
-    /**
-     * 应用执行通用错误码
-     */
-    ErrorCode EXECUTE_APP_FAILURE = new ErrorCode(310100000, "应用执行失败，请稍后重试或者联系管理员（{}）！");
 
     /**
      * 应用执行应用信息不能为空
@@ -452,6 +490,11 @@ public interface ErrorCodeConstants {
     /**
      * 上传图片失败
      */
+    ErrorCode UPLOAD_FAILURE = new ErrorCode(370000000, "{}");
+
+    /**
+     * 上传图片失败
+     */
     ErrorCode UPLOAD_IMAGE_FAILURE = new ErrorCode(370000000, "上传图片失败，请稍后重试或者联系管理员！");
 
     /**
@@ -555,5 +598,63 @@ public interface ErrorCodeConstants {
 
     ErrorCode CREATIVE_CONTENT_CLAIMED = new ErrorCode(300500009, "创作任务已绑定,不允许修改 {}");
 
+    ErrorCode DUPLICATE_LABEL = new ErrorCode(300500010, "存在重复label: {}");
+
+
+    // ========== 媒体评论 错误码 ==========
+    ErrorCode MEDIA_COMMENTS_NOT_EXISTS = new ErrorCode(300700101, "媒体评论不存在");
+
+    ErrorCode MEDIA_COMMENTS_ACTION_NOT_EXISTS = new ErrorCode(300700201, "{}不存在");
+
+    ErrorCode MEDIA_STRATEGY_NOT_EXISTS = new ErrorCode(300700301, "回复策略不存在");
+
+    ErrorCode MEDIA_STRATEGY_SAME_EXISTS = new ErrorCode(300700302, "存在相同的策略，请核对后重新提交");
+
+
+    // ==========图片搜索 错误码 ==========
+    ErrorCode PIXABAY_API_KEYS_LIMIT = new ErrorCode(300701201, "请求频率太快了，请等一分钟后再试");
+
+    ErrorCode PIXABAY_API_KEYS_REQUEST_ERROR = new ErrorCode(300701202, "请求异常，请稍候再试");
+
+    ErrorCode PIXABAY_API_KEYS_NETWORK_ERROR = new ErrorCode(300701203, "网络出小差了，请稍候再试");
+
+
+    ErrorCode XHS_OCR_PARAM_REQUIRED = new ErrorCode(300701301, "缺少必填字段");
+
+    ErrorCode IMAGE_OCR_ERROR = new ErrorCode(300701302, "ocr 异常：{}");
+
+
+    // ==========素材库 错误码 ==========
+    ErrorCode MATERIAL_LIBRARY_NOT_EXISTS = new ErrorCode(300702201, "素材库不存在，请刷新后再试");
+
+    ErrorCode MATERIAL_LIBRARY_FORAMT_NO_MODIFY = new ErrorCode(300702202, "素材库类型创建后不支持修改");
+
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS = new ErrorCode(300703203, "素材表列信息不存在");
+
+    ErrorCode MATERIAL_LIBRARY_SLICE_NOT_EXISTS = new ErrorCode(300704204, "素材数据不存在");
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL = new ErrorCode(300704205, "当前素材库非表格类型，无法自定义字段");
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN = new ErrorCode(300704206, "设置素材库列名失败，存在重复的字段名称:{}");
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_BATCH_ADD_FAIL = new ErrorCode(300704207, "批量设置素材列失败，类型转换异常");
+
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE = new ErrorCode(300702208, "导入素材库模板失败，非表格类型的素材库不支持导出模板");
+
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_COULMN_EMPTY = new ErrorCode(300702209, "导入素材库模板失败，不存在自定义字段");
+    ErrorCode MATERIAL_LIBRARY_IMPORT_FAIL_IMAGE_NO_SUPPRT = new ErrorCode(300702210, "暂不支持图片素材库导入");
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_EXCEL_NO_SUPPRT = new ErrorCode(300702211, "暂不支持Excel素材库导入");
+
+    ErrorCode MATERIAL_LIBRARY_ID_EMPTY = new ErrorCode(300702212, "素材库编号为空，请核对后再试");
+
+    ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ERROR = new ErrorCode(300702213, "表头与当前表结构不一致,列名称及顺序需保持一致，表头需要与现有表格结构保持一致。");
+
+    ErrorCode MATERIAL_LIBRARY_NO_BIND_APP = new ErrorCode(300702214, "当前应用未绑定素材库");
+
+    ErrorCode MATERIAL_LIBRARY_APP_BIND_NOT_EXISTS = new ErrorCode(300702215, "素材与应用不存在绑定关系");
+
+    ErrorCode MATERIAL_LIBRARY_APPUID_EMPTY = new ErrorCode(300702216, "应用编号为空，查询素材数据失败");
+
+    ErrorCode MATERIAL_LIBRARY_SLICE_DATA_MISSING = new ErrorCode(300702217, "部分数据缺失，请核对后再试");
 
 }

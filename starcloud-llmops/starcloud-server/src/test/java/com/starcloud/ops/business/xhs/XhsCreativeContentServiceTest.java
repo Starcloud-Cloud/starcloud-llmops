@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.security.config.YudaoSecurityAutoConfiguration
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
-import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.server.StarcloudServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +19,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @Import({StarcloudServerConfiguration.class, AdapterRuoyiProConfiguration.class, YudaoSecurityAutoConfiguration.class, YudaoDictAutoConfiguration.class})
@@ -53,19 +50,24 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
     public void executeTest() {
 
 
-        List<Long> ids = Arrays.asList(402L, 404L);
 
-        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.PICTURE.getCode(), true);
+        CreativeContentExecuteReqVO creativeContentExecuteReqVO = new CreativeContentExecuteReqVO();
+        creativeContentExecuteReqVO.setUid("402");
+        creativeContentExecuteReqVO.setForce(true);
+
+        xhsCreativeContentService.execute(creativeContentExecuteReqVO);
 
     }
 
     @Test
     public void executeTest2() {
 
+        CreativeContentExecuteReqVO creativeContentExecuteReqVO = new CreativeContentExecuteReqVO();
+        creativeContentExecuteReqVO.setUid("401");
+        creativeContentExecuteReqVO.setForce(true);
 
-        List<Long> ids = Arrays.asList(401L, 403L);
 
-        xhsCreativeContentService.execute(ids, CreativeContentTypeEnum.COPY_WRITING.getCode(), true);
+        xhsCreativeContentService.execute(creativeContentExecuteReqVO);
 
     }
 

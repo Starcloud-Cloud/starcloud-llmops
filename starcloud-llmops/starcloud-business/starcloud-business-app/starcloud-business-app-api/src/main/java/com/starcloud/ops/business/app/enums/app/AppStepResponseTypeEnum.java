@@ -1,7 +1,12 @@
 package com.starcloud.ops.business.app.enums.app;
 
+import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 步骤返回返回类型枚举
@@ -19,29 +24,14 @@ public enum AppStepResponseTypeEnum implements IEnumable<Integer> {
     TEXT(0, "文本类型"),
 
     /**
-     * 数组类型
-     */
-    ARRAY(1, "数组类型"),
-
-    /**
      * JSON类型
      */
     JSON(2, "JSON类型"),
 
     /**
-     * 跳转类型
+     * 图片样式
      */
-    REDIRECT(3, "跳转类型"),
-
-    /**
-     * 复制类型
-     */
-    COPY(4, "复制类型"),
-
-    /**
-     * 弹窗类型
-     */
-    DIALOG(5, "弹窗类型");
+    IMAGE(3, "图片类型");
 
     /**
      * 步骤返回类型Code
@@ -62,5 +52,30 @@ public enum AppStepResponseTypeEnum implements IEnumable<Integer> {
     AppStepResponseTypeEnum(Integer code, String label) {
         this.code = code;
         this.label = label;
+    }
+
+    /**
+     * 获取步骤返回类型选项列表
+     *
+     * @return 步骤返回类型选项列表
+     */
+    public static List<Option> options() {
+        return Arrays.stream(values())
+                .filter(item -> !item.equals(IMAGE))
+                .map(AppStepResponseTypeEnum::option)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取步骤返回类型选项
+     *
+     * @param typeEnum 获取步骤返回类型选项枚举
+     * @return 步骤返回样式选项
+     */
+    public static Option option(AppStepResponseTypeEnum typeEnum) {
+        Option option = new Option();
+        option.setLabel(typeEnum.getLabel());
+        option.setValue(typeEnum.name());
+        return option;
     }
 }

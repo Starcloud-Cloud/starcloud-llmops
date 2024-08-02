@@ -2,6 +2,8 @@ package com.starcloud.ops.business.mq.consumer;
 
 import cn.iocoder.yudao.framework.mq.redis.core.stream.AbstractRedisStreamMessageListener;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
+import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.dataset.service.datasetsourcedata.DatasetSourceDataService;
 import com.starcloud.ops.business.mq.message.AppDeleteMessage;
 import com.starcloud.ops.business.share.service.ConversationShareService;
@@ -24,6 +26,12 @@ public class AppDeleteConsumer extends AbstractRedisStreamMessageListener<AppDel
     @Resource
     private ConversationShareService conversationShareService;
 
+    @Resource
+    private CreativeMaterialManager creativeMaterialManager;
+
+    @Resource
+    private CreativePlanService creativePlanService;
+
     @Override
     public void onMessage(AppDeleteMessage message) {
         log.info("删除app消息 [消息内容({})]", message);
@@ -36,6 +44,9 @@ public class AppDeleteConsumer extends AbstractRedisStreamMessageListener<AppDel
         conversationShareService.deleteShare(message.getAppUid());
         // 数据集
         datasetSourceDataService.deleteAllDataByAppId(message.getAppUid());
-
+        // 删除素材库
+        creativeMaterialManager.deleteMaterial(message.getAppUid());
+        // 删除执行计划
+        creativePlanService.deleteByAppUid(message.getAppUid());
     }
 }

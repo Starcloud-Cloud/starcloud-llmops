@@ -15,6 +15,11 @@ import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeC
 @RestController
 public class DefaultController {
 
+    @RequestMapping("/health")
+    public CommonResult<Boolean> health() {
+        return CommonResult.success(true);
+    }
+
     @RequestMapping("/admin-api/bpm/**")
     public CommonResult<Boolean> bpm404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),

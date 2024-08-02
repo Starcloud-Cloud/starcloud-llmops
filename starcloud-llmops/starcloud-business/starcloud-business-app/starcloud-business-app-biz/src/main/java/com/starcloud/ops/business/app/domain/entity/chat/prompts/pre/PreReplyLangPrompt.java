@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.domain.entity.chat.prompts.pre;
 
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.BasePromptConfig;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import lombok.Data;
 
@@ -24,7 +25,7 @@ public class PreReplyLangPrompt extends BasePromptConfig {
 
 
     @Override
-    public void validate() {
+    public void validate(ValidateTypeEnum validateType) {
 
     }
 

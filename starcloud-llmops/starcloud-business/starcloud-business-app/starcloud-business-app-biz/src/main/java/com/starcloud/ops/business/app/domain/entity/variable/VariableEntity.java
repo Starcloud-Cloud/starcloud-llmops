@@ -5,12 +5,24 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.factories.JsonSchemaFactory;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ValueTypeSchema;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,6 +46,172 @@ public class VariableEntity {
      * 应用变量
      */
     private List<VariableItemEntity> variables;
+
+    /**
+     * 配置的数据
+     * v2
+     */
+    private Object data;
+
+    /**
+     * jsonSchema定义
+     * v2
+     */
+    private String jsonSchema;
+
+    /**
+     * 变量 校验
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void validate(ValidateTypeEnum validateType) {
+        if (CollectionUtil.isNotEmpty(this.variables)) {
+            this.variables.forEach(VariableItemEntity::validate);
+        }
+    }
+
+    /**
+     * 获取变量列表
+     *
+     * @return 变量列表
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<VariableItemEntity> variableList() {
+        return CollectionUtil.emptyIfNull(this.getVariables()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getItem(String field) {
+        if (StringUtils.isBlank(field)) {
+            return null;
+        }
+        for (VariableItemEntity item : variableList()) {
+            if (field.equalsIgnoreCase(item.getField())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，并且将值转换为字符串，找不到时返回空字符串
+     *
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public String getVariableToString(String field) {
+        Object value = getVariable(field);
+        if (Objects.isNull(value)) {
+            return StringUtils.EMPTY;
+        }
+        return String.valueOf(value);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String field) {
+        VariableItemEntity variable = getItem(field);
+        if (Objects.isNull(variable)) {
+            return null;
+        }
+        return variable.getValue();
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String field, Object value) {
+        if (StringUtils.isBlank(field)) {
+            return;
+        }
+        for (VariableItemEntity item : variableList()) {
+            if (field.equalsIgnoreCase(item.getField())) {
+                item.setValue(value);
+                return;
+            }
+        }
+    }
+
+    /**
+     * 放入一个变量
+     *
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void addVariable(String field, Object value) {
+        VariableItemEntity variableItemEntity = new VariableItemEntity();
+        variableItemEntity.setField(field);
+        variableItemEntity.setLabel(field);
+        variableItemEntity.setDefaultValue(value);
+        variableItemEntity.setValue(value);
+        variableItemEntity.setGroup(AppVariableGroupEnum.PARAMS.name());
+        this.variables.add(variableItemEntity);
+    }
+
+    /**
+     * 获取 JsonSchema 格式的参数对象
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public ObjectSchema getSchema() {
+
+        JsonSchemaFactory jsonSchemaFactory = new JsonSchemaFactory();
+
+        ObjectSchema objectSchema = jsonSchemaFactory.objectSchema();
+        //objectSchema.set$schema(SpecVersion.VersionFlag.V202012.getId());
+
+        Map<String, JsonSchema> properties = new HashMap<>();
+
+        for (VariableItemEntity variableItem : this.getVariables()) {
+
+            //现在只支持string
+            if (Arrays.asList(AppVariableStyleEnum.INPUT.name(),
+                            AppVariableStyleEnum.TEXTAREA.name(),
+                            AppVariableStyleEnum.IMAGE.name(),
+                            AppVariableStyleEnum.SELECT.name())
+                    .contains(variableItem.getStyle())) {
+
+                ValueTypeSchema valueTypeSchema = new StringSchema();
+                valueTypeSchema.setTitle(variableItem.getLabel());
+                valueTypeSchema.setDescription(variableItem.getDescription() + "-" + variableItem.getStyle().toLowerCase());
+                valueTypeSchema.setDefault((String.valueOf(Optional.ofNullable(variableItem.getValue()).orElseGet(variableItem::getDefaultValue))));
+
+                if (Arrays.asList(AppVariableStyleEnum.SELECT.name()).contains(variableItem.getType())) {
+                    valueTypeSchema.setEnums(Optional.ofNullable(variableItem.getOptions()).orElse(new ArrayList<>()).stream().map(Option::getValue).map(String::valueOf).collect(Collectors.toSet()));
+                }
+
+                properties.put(variableItem.getField(), valueTypeSchema);
+            }
+        }
+
+        objectSchema.setProperties(properties);
+
+        return objectSchema;
+    }
 
     /**
      * 获取指定类型的变量集合
@@ -88,24 +266,4 @@ public class VariableEntity {
         return Arrays.stream(Optional.ofNullable(keys).orElse(new String[]{})).filter(StrUtil::isNotEmpty).map(String::toUpperCase).collect(Collectors.joining("."));
     }
 
-    /**
-     * 变量 校验
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void validate() {
-        if (CollectionUtil.isNotEmpty(this.variables)) {
-            this.variables.forEach(VariableItemEntity::validate);
-        }
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public void putVariable(String key, Object value) {
-        for (VariableItemEntity variable : this.variables) {
-            if (variable.getField().equals(key)) {
-                variable.setValue(value);
-            }
-        }
-    }
 }

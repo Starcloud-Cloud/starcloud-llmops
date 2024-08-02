@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.app.domain.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -15,8 +18,13 @@ import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
@@ -30,16 +38,21 @@ import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_LIST;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_BEAN_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_IMAGE_NOT_ENOUGH;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.USER_RIGHTS_NOT_ENOUGH;
@@ -209,13 +222,18 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private Long tenantId;
 
     /**
+     * 素材列表
+     */
+    private List<Map<String, Object>> materialList;
+
+    /**
      * 模版方法：基础校验
      *
      * @param request 请求参数
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void doValidate(Q request);
+    protected abstract void doValidate(Q request, ValidateTypeEnum validateType);
 
     /**
      * 模版方法：执行应用
@@ -225,7 +243,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract R doExecute(Q request);
+    protected abstract R
+    doExecute(Q request);
 
     /**
      * 模版方法：异步执行应用
@@ -234,7 +253,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void doAsyncExecute(Q request);
+    protected abstract R doAsyncExecute(Q request);
 
     /**
      * 模版方法：执行应用前置处理方法
@@ -253,7 +272,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void afterExecute(Q request, Throwable throwable);
+    protected abstract void afterExecute(R result, Q request, Throwable throwable);
 
     /**
      * 模版方法：历史记录初始化
@@ -281,7 +300,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @param request 请求参数
      */
-    protected abstract String obtainLlmAiModelType(Q request);
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected abstract String getLlmModelType(Q request);
 
     /**
      * 模版方法：新增应用
@@ -329,18 +350,18 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getTenantId() != null) {
             TenantContextHolder.setTenantId(request.getTenantId());
         }
-        // 会话记录
+        // 初始化回话记录
         this.initAppConversationLog(request);
 
         try {
             log.info("应用执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
-            this.validate(request);
+            this.validate(request, ValidateTypeEnum.EXECUTE);
 
             // 执行应用
             this.beforeExecute(request);
             R result = this.doExecute(request);
-            this.afterExecute(request, null);
+            this.afterExecute(result, request, null);
 
             // 更新会话记录
             this.successAppConversationLog(request.getConversationUid(), request);
@@ -349,17 +370,17 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
 
         } catch (ServiceException exception) {
             log.error("应用执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
-            this.afterExecute(request, exception);
+            this.afterExecute(null, request, exception);
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exception;
 
         } catch (Exception exception) {
             log.error("应用执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
-            this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
+            this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            throw exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage());
+            throw exceptionWithCause(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage(), exception);
         }
     }
 
@@ -383,7 +404,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         try {
             log.info("应用异步执行：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
             // 基础校验
-            this.validate(request);
+            this.validate(request, ValidateTypeEnum.EXECUTE);
 
             // 异步执行应用
             threadExecutor.asyncExecute(() -> {
@@ -392,8 +413,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     log.info("应用异步执行-threadExecutor：权益扣除用户, 日志记录用户 ID：{}, {}, {}, {}", request.getUserId(), TenantContextHolder.getTenantId(), TenantContextHolder.isIgnore(), SecurityFrameworkUtils.getLoginUser());
 
                     this.beforeExecute(request);
-                    this.doAsyncExecute(request);
-                    this.afterExecute(request, null);
+                    R result = this.doAsyncExecute(request);
+                    this.afterExecute(result, request, null);
                     log.info("应用异步执行结束: 应用UID： {}", this.getUid());
                     // 更新会话记录
                     this.successAppConversationLog(request.getConversationUid(), request);
@@ -402,13 +423,13 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
                     log.error("应用异步任务执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
                     // 更新会话记录
                     this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-                    this.afterExecute(request, exception);
+                    this.afterExecute(null, request, exception);
 
                 } catch (Exception exception) {
                     log.error("应用异任务步任务执行异常: 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage(), exception);
                     // 更新会话记录
                     this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), exception.getMessage(), request);
-                    this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, ExceptionUtil.stackTraceToString(exception)));
+                    this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, ExceptionUtil.stackTraceToString(exception)));
                 }
             });
 
@@ -416,14 +437,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             log.error("应用异步执行异常(ServiceException): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(exception.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            this.afterExecute(request, exception);
+            this.afterExecute(null, request, exception);
         } catch (Exception exception) {
             log.error("应用异步执行异常(Exception): 应用UID: {}, 错误消息: {}", this.getUid(), exception.getMessage());
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
-            this.afterExecute(request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
+            this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
         }
     }
+
 
     /**
      * 基础校验
@@ -432,9 +454,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(Q request) {
+    public void validate(Q request, ValidateTypeEnum validateType) {
         log.info("应用执行：基础校验开始 ...");
-        this.doValidate(request);
+        this.doValidate(request, validateType);
         log.info("应用执行：基础校验结束 ...");
     }
 
@@ -448,7 +470,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (StrUtil.isBlank(this.getUid())) {
             this.setUid(IdUtil.fastSimpleUUID());
         }
-        this.validate(null);
+        this.validate(null, ValidateTypeEnum.CREATE);
         this.doInsert();
     }
 
@@ -458,8 +480,31 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void update() {
-        this.validate(null);
+        this.validate(null, ValidateTypeEnum.UPDATE);
+        disposeMaterial();
         this.doUpdate();
+    }
+
+    /**
+     * 素材单独拆出一个字段
+     */
+    private void disposeMaterial() {
+        if (Objects.nonNull(workflowConfig) && CollectionUtil.isEmpty(materialList)) {
+            TypeReference<List<Map<String, Object>>> typeReference = new TypeReference<List<Map<String, Object>>>() {
+            };
+            WorkflowStepWrapper stepWrapper = workflowConfig.getStepWrapperWithoutError(MaterialActionHandler.class);
+
+            if (Objects.isNull(stepWrapper)) {
+                return;
+            }
+
+            materialList = Optional.ofNullable(stepWrapper)
+                    .map(step -> step.getVariablesValue(MATERIAL_LIST))
+                    .map(Object::toString)
+                    .map(str -> JSONUtil.toBean(StringUtil.isBlank(str) ? "[]" : str, typeReference, true))
+                    .orElse(Collections.emptyList());
+            workflowConfig.putVariable(MaterialActionHandler.class, MATERIAL_LIST, "[]");
+        }
     }
 
     /**
@@ -537,7 +582,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         createRequest.setUpdater(String.valueOf(request.getUserId()));
         createRequest.setTenantId(this.getTenantId());
         createRequest.setFromScene(request.getScene());
-        createRequest.setAiModel(this.obtainLlmAiModelType(request));
+        createRequest.setAiModel(this.getLlmModelType(request));
         this.buildAppConversationLog(request, createRequest);
         logAppConversationService.createAppLogConversation(createRequest);
         return createRequest.getUid();
@@ -549,14 +594,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param conversationUid 会话UID
      * @param request         请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void successAppConversationLog(String conversationUid, Q request) {
-        log.info("应用执行成功：更新会话记录开始 会话 UID：{}...", conversationUid);
+        log.info("应用执行成功：更新会话记录开始: 应用UID: {}, 会话 UID：{}...", this.getUid(), conversationUid);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
         updateRequest.setUid(conversationUid);
-        updateRequest.setAiModel(this.obtainLlmAiModelType(request));
         updateRequest.setStatus(LogStatusEnum.SUCCESS.name());
         updateRequest.setErrorCode(null);
         updateRequest.setErrorMsg(null);
+        updateRequest.setAiModel(this.getLlmModelType(request));
         this.updateAppLogConversationStatus(updateRequest);
         log.info("应用执行成功：更新会话记录结束, 更新会话成功");
     }
@@ -569,14 +616,16 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param errorMsg        错误消息
      * @param request         请求参数
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected void failureAppConversationLog(String conversationUid, String errorCode, String errorMsg, Q request) {
-        log.info("应用执行失败：更新会话记录开始 会话 UID：{}, errorCode：{}，errorMsg：{} ...", conversationUid, errorCode, errorMsg);
+        log.info("应用执行失败：更新会话记录开始: 应用ID: {}, 会话 UID：{}, 错误码：{}", this.getUid(), conversationUid, errorCode);
         LogAppConversationStatusReqVO updateRequest = new LogAppConversationStatusReqVO();
         updateRequest.setUid(conversationUid);
-        updateRequest.setAiModel(this.obtainLlmAiModelType(request));
         updateRequest.setStatus(LogStatusEnum.ERROR.name());
         updateRequest.setErrorCode(errorCode);
         updateRequest.setErrorMsg(errorMsg);
+        updateRequest.setAiModel(this.getLlmModelType(request));
         this.updateAppLogConversationStatus(updateRequest);
         log.info("应用执行失败：更新会话记录结束, 更新会话成功");
     }
@@ -650,9 +699,202 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void setActionResponse(String stepId, ActionResponse response) {
-        if (response != null) {
-            workflowConfig.setActionResponse(stepId, response);
+        if (Objects.isNull(workflowConfig)) {
+            return;
         }
+        workflowConfig.setActionResponse(stepId, response);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getVariableItem(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariableItem(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量，找不到时返回{@code null}
+     *
+     * @param clazz 节点执行器
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getVariableItem(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariableItem(clazz, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariable(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取变量的值，找不到时返回null
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getVariable(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getVariable(clazz, field);
+    }
+
+    /**
+     * 将变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(String stepId, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putVariable(stepId, field, value);
+    }
+
+    /**
+     * 将{@code Map}中的变量值设置到变量中
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putVariable(Class<? extends BaseActionHandler> clazz, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putVariable(clazz, field, value);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量，找不到时返回{@code null}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getModelVariableItem(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariableItem(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量，找不到时返回{@code null}
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @return 变量
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public VariableItemEntity getModelVariableItem(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariableItem(clazz, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量的值，找不到时返回null
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(String stepId, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariable(stepId, field);
+    }
+
+    /**
+     * 根据变量的{@code field}获取模型变量的值，找不到时返回null
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @return 变量值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Object getModelVariable(Class<? extends BaseActionHandler> clazz, String field) {
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        return workflowConfig.getModelVariable(clazz, field);
+    }
+
+    /**
+     * 将模型变量为{@code field}的值设置为{@code value}
+     *
+     * @param stepId 步骤ID
+     * @param field  变量的{@code field}
+     * @param value  变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(String stepId, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putModelVariable(stepId, field, value);
+    }
+
+    /**
+     * 将{@code Map}中的变量值设置到模型变量中
+     *
+     * @param clazz 步骤ID
+     * @param field 变量的{@code field}
+     * @param value 变量的值
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public void putModelVariable(Class<? extends BaseActionHandler> clazz, String field, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        workflowConfig.putModelVariable(clazz, field, value);
     }
 
     /**
@@ -664,8 +906,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void putVariable(String stepId, String key, Object value) {
-        this.workflowConfig.putVariable(stepId, key, value);
+    public void addVariable(String stepId, String key, Object value) {
+        if (Objects.isNull(workflowConfig)) {
+            return;
+        }
+        this.workflowConfig.addVariable(stepId, key, value);
     }
 
     /**
@@ -674,6 +919,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param errorCode 错误码
      * @return 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode) {
         return ServiceExceptionUtil.exception(errorCode);
     }
@@ -685,8 +932,66 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * @param params    参数
      * @return 异常
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     protected static ServiceException exception(ErrorCode errorCode, Object... params) {
         return ServiceExceptionUtil.exception(errorCode, params);
+    }
+
+    /**
+     * 异常
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException exceptionWithMessage(ErrorCode errorCode, String message, Object... params) {
+        return ServiceExceptionUtil.exception0(errorCode.getCode(), message, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, String message, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exception1(errorCode.getCode(), message, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exceptionWithCause(errorCode, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param message 错误消息模板
+     * @param params  参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException invalidParamException(String message, Object... params) {
+        return ServiceExceptionUtil.invalidParamException(message, params);
     }
 
     /**
@@ -694,6 +999,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      *
      * @return 会话 UID
      */
+    @JsonIgnore
+    @JSONField(serialize = false)
     public static String createAppConversationUid() {
         return IdUtil.fastSimpleUUID();
     }

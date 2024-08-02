@@ -1,20 +1,20 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.RemoveBackgroundRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.RemoveBackgroundResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
+import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -59,7 +59,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
      */
     @Override
     public void handleRequest(RemoveBackgroundRequest request) {
-        log.info("去除图片背景【智能抠图】：请求参数：{}", JSONUtil.toJsonStr(request));
+
     }
 
     /**
@@ -84,7 +84,7 @@ public class RemoveBackgroundHandler extends BaseImageHandler<RemoveBackgroundRe
         RemoveBackgroundResponse response = new RemoveBackgroundResponse();
         response.setOriginalUrl(request.getImageUrl());
         response.setImages(Collections.singletonList(image));
-        log.info("去除图片背景【智能抠图】结束：响应结果：{}", JSONUtil.toJsonStr(response));
+        log.info("去除图片背景【智能抠图】结束：响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

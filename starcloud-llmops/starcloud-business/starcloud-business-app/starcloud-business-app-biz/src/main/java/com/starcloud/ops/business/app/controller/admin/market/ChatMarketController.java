@@ -2,9 +2,12 @@ package com.starcloud.ops.business.app.controller.admin.market;
 
 
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
+import com.starcloud.ops.business.app.domain.manager.AppAlarmManager;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
@@ -35,6 +38,9 @@ public class ChatMarketController {
     @Resource
     private AppLimitService appLimitService;
 
+    @Resource
+    private AppAlarmManager appAlarmManager;
+
     @Operation(summary = "应用市场聊天")
     @PostMapping("/chat")
     public SseEmitter market(@RequestBody ChatRequestVO request, HttpServletResponse httpServletResponse) {
@@ -44,8 +50,13 @@ public class ChatMarketController {
         SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "chat");
         request.setSseEmitter(emitter);
 
-        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() >= 800) {
-            emitter.completeWithError(exception(new ErrorCode(500,"问题字符数大于0且小于800")));
+        if (StringUtils.isBlank(request.getQuery()) || request.getQuery().length() > 800) {
+            ServiceException exception = exception(new ErrorCode(500, "问题字符数大于0且小于800"));
+            // 发送告警信息
+            request.setAppName(request.getAppName());
+            request.setMode(AppModelEnum.CHAT.name());
+            appAlarmManager.executeAlarm(request, exception);
+            emitter.completeWithError(exception);
             return emitter;
         }
 
@@ -65,7 +76,7 @@ public class ChatMarketController {
     @Operation(summary = "查询会话")
     @GetMapping("/conversation")
     public CommonResult<LogAppConversationRespVO> listConversation(@RequestParam(value = "appUid") String appUid) {
-        return CommonResult.success(chatService.getConversation(appUid,AppSceneEnum.CHAT_MARKET.name()));
+        return CommonResult.success(chatService.getConversation(appUid, AppSceneEnum.CHAT_MARKET.name()));
     }
 
 }

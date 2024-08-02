@@ -1,125 +1,162 @@
 package com.starcloud.ops.business.app.service.xhs.content;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.request.CreativeQueryReqVO;
-import com.starcloud.ops.business.app.api.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentBusinessPO;
-import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 
 import java.util.List;
-import java.util.Map;
 
 public interface CreativeContentService {
 
     /**
-     * 批量创建
-     */
-    void create(List<CreativeContentCreateReqVO> list);
-
-    /**
-     * 批量执行
+     * 获取创作内容详情
      *
-     * @param type  XhsCreativeContentTypeEnums.code
-     * @param force 忽略重试次数限制
+     * @param uid 创作内容UID
+     * @return 创作内容详情
      */
-    Map<Long, Boolean> execute(List<Long> ids, String type, Boolean force);
+    CreativeContentRespVO get(String uid);
 
     /**
-     * 重试
+     * 查询详情
+     *
+     * @param uid 创作内容UID
+     * @return 创作内容详情
      */
-    CreativeContentRespVO retry(String businessUid);
+    CreativeContentRespVO detail(String uid);
+
+    /**
+     * 查询创作内容列表
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    List<CreativeContentRespVO> list(CreativeContentListReqVO query);
+
+    /**
+     * 查询创作内容列表
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    List<CreativeContentRespVO> listStatus(CreativeContentListReqVO query);
+
+    /**
+     * 查询创作内容任务列表
+     *
+     * @param query 查询条件
+     * @return 创作内容任务列表
+     */
+    List<CreativeContentRespVO> listTask(CreativeContentTaskReqVO query);
+
+    /**
+     * 分页查询创作内容
+     *
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO query);
+
+    /**
+     * 创建装作内容
+     *
+     * @param request 请求
+     * @return 创作内容UID
+     */
+    String create(CreativeContentCreateReqVO request);
+
+    /**
+     * 批量创建创作内容
+     *
+     * @param requestList 批量请求
+     */
+    void batchCreate(List<CreativeContentCreateReqVO> requestList);
+
+    /**
+     * 修改创作内容
+     *
+     * @param request 修改请求
+     * @return 创作内容UID
+     */
+    String modify(CreativeContentModifyReqVO request);
+
+    /**
+     * 删除创作内容
+     *
+     * @param uid 创作内容UID
+     */
+    void delete(String uid);
+
+    /**
+     * 删除计划下的所有创作内容
+     *
+     * @param planUid 计划UID
+     */
+    void deleteByPlanUid(String planUid);
+
+    /**
+     * 执行创作内容
+     *
+     * @param request 执行请求
+     * @return 执行结果
+     */
+    CreativeContentExecuteRespVO execute(CreativeContentExecuteReqVO request);
+
+    /**
+     * 批量执行创作内容
+     *
+     * @param request 执行请求
+     * @return 执行结果
+     */
+    List<CreativeContentExecuteRespVO> batchExecute(List<CreativeContentExecuteReqVO> request);
+
+    /**
+     * 重新生成创作内容
+     *
+     * @param request 执行请求
+     */
+    void regenerate(CreativeContentRegenerateReqVO request);
 
     /**
      * 失败重试
      *
      * @param uid 任务 uid
      */
-    void failureRetry(String uid);
+    void retry(String uid);
 
     /**
-     * 查询任务
-     */
-    List<CreativeContentDO> jobQuery(CreativeQueryReqVO queryReq);
-
-    /**
-     * 查询计划的所有任务
-     */
-    List<CreativeContentDO> listByPlanUid(String planUid, Long batch);
-
-    /**
-     * 计划下的所有任务根据 业务uid 分组
+     * 批量绑定创作内容
      *
-     * @param planUidList 计划uid
-     * @return 业务uid
+     * @param uidList 创作内容UID集合
+     * @return 绑定之后结果
      */
-    List<CreativeContentBusinessPO> listGroupByPlanUid(List<String> planUidList);
-
-    /***
-     * 根据 UID List 查询
-     * @param businessUidList list
-     * @return 内容列表
-     */
-    List<CreativeContentRespVO> list(List<String> businessUidList);
+    List<CreativeContentRespVO> batchBind(List<String> uidList);
 
     /**
-     * 分页查询创作内容
-     */
-    PageResult<CreativeContentRespVO> page(CreativeContentPageReqVO req);
-
-    com.starcloud.ops.business.app.api.xhs.content.vo.response.PageResult<CreativeContentRespVO> newPage(CreativeContentPageReqVO req);
-
-    /**
-     * 查询详情
-     */
-    CreativeContentRespVO detail(String businessUid);
-
-    /**
-     * 修改创作内容
-     */
-    CreativeContentRespVO modify(CreativeContentModifyReqVO modifyReq);
-
-    /**
-     * 删除
+     * 批量解绑创作内容
      *
-     * @param businessUid
-     * @return
+     * @param uidList 创作内容UID集合
      */
-    void delete(String businessUid);
-
-    /**
-     * 删除计划下的所有创作内容
-     *
-     * @param planUid 计划uid
-     */
-    void deleteByPlanUid(String planUid);
-
-    /**
-     * 绑定任务
-     */
-    List<CreativeContentRespVO> bound(List<String> businessUids);
-
-    /**
-     * 解绑
-     *
-     * @param businessUids
-     */
-    void unBound(List<String> businessUids);
+    void batchUnbind(List<String> uidList);
 
     /**
      * 点赞
      *
-     * @param businessUid 业务uid
+     * @param uid 创作内容UID
      */
-    void like(String businessUid);
+    void like(String uid);
 
     /**
      * 取消点赞
      *
-     * @param businessUid 业务uid
+     * @param uid 创作内容UID
      */
-    void unlike(String businessUid);
+    void unlike(String uid);
 
 }

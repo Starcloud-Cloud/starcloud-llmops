@@ -1,13 +1,17 @@
 package com.starcloud.ops.business.app.recommend;
 
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -17,6 +21,8 @@ import java.util.List;
  * @since 2023-06-25
  */
 public class RecommendStepWrapperFactory {
+
+    private static AppDictionaryService appDictionaryService = SpringUtil.getBean(AppDictionaryService.class);
 
     /**
      * 默认生成文本步骤
@@ -33,6 +39,36 @@ public class RecommendStepWrapperFactory {
         VariableRespVO variable = new VariableRespVO();
         variable.setVariables(Collections.emptyList());
         stepWrapper.setVariable(variable);
+        return stepWrapper;
+    }
+
+    /**
+     * xhs + ocr
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defXhsOcrStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField("小红书ocr");
+        stepWrapper.setName("小红书ocr");
+        stepWrapper.setDescription("小红书ocr");
+        stepWrapper.setButtonLabel("小红书ocr");
+        stepWrapper.setFlowStep(RecommendActionFactory.defXhsOcrStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defXhsOcrVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 图片ocr
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defImageOcrStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField("图片ocr");
+        stepWrapper.setName("图片ocr");
+        stepWrapper.setDescription("图片ocr");
+        stepWrapper.setButtonLabel("图片ocr");
+        stepWrapper.setFlowStep(RecommendActionFactory.defImageOcrStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defImageOcrVariable());
         return stepWrapper;
     }
 
@@ -119,30 +155,49 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 变量步骤
      *
      * @return WorkflowStepRespVO
      */
-    public static WorkflowStepWrapperRespVO defVariableStepWrapper() {
+    public static WorkflowStepWrapperRespVO defGlobalVariableStepWrapper() {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        stepWrapper.setField("变量步骤");
-        stepWrapper.setName("变量步骤");
-        stepWrapper.setDescription("变量步骤");
-        stepWrapper.setButtonLabel("变量步骤");
-        stepWrapper.setFlowStep(RecommendActionFactory.defVariableActionStep());
-        stepWrapper.setVariable(RecommendVariableFactory.defVariableVariable());
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_NAME");
+        String field = AppUtils.obtainField(name);
+        stepWrapper.setField(name);
+        stepWrapper.setName(field);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_GLOBAL_VARIABLE_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defGlobalVariableActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defGlobalVariableVariable());
         return stepWrapper;
     }
 
     /**
-     * 默认生成内容步骤
+     * 资料库生成步骤
+     *
+     * @return WorkflowStepRespVO
+     */
+    public static WorkflowStepWrapperRespVO defMaterialStepWrapper() {
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_NAME");
+        String field = AppUtils.obtainField(name);
+        stepWrapper.setField(name);
+        stepWrapper.setName(field);
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_BUTTON_LABEL"));
+        stepWrapper.setFlowStep(RecommendActionFactory.defMaterialActionStep());
+        stepWrapper.setVariable(RecommendVariableFactory.defMaterialVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 标题生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defTitleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_TITLE_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -155,15 +210,15 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成内容步骤
+     * 自定义生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME"));
-        String defaultPrompt = "";
+        String prompt = "{{"+ CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT +"}}";
+        String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -175,14 +230,32 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 仿写步骤
+     *
+     * @return
+     */
+    public static WorkflowStepWrapperRespVO defImitateStepWrapper() {
+        String name = "笔记仿写";
+        String field = AppUtils.obtainField(name);
+        String defaultPrompt = "";
+        WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
+        stepWrapper.setField(field);
+        stepWrapper.setName(name);
+        stepWrapper.setDescription("仿写笔记标题和内容");
+        stepWrapper.setButtonLabel("笔记仿写");
+        stepWrapper.setFlowStep(RecommendActionFactory.defImitateActionStep(defaultPrompt));
+        stepWrapper.setVariable(RecommendVariableFactory.defImitateVariable());
+        return stepWrapper;
+    }
+
+    /**
+     * 段落生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defParagraphStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_PARAGRAPH_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -195,14 +268,13 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 内容拼接步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
-        String titleField = AppUtils.obtainField(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -215,14 +287,14 @@ public class RecommendStepWrapperFactory {
     }
 
     /**
-     * 默认生成文章摘要步骤
+     * 海报生成步骤
      *
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
         String field = AppUtils.obtainField(name);
-        String defaultPrompt = "";
+        String defaultPrompt = "为图片配上一个符合图片场景和意境的标题和副标题，标题在30到50个字内。\n {STEP." + field + ".REQUIREMENT}\n\n 输出格式：\n```\n标题:\n副标题:\n```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
@@ -239,7 +311,11 @@ public class RecommendStepWrapperFactory {
      * @return 通用步骤
      */
     public static List<WorkflowStepWrapperRespVO> defCommonStepWrapperList() {
-        return Collections.singletonList(defDefaultTextCompletionStepWrapper());
+        return Arrays.asList(
+                defDefaultTextCompletionStepWrapper(),
+                defXhsOcrStepWrapper(),
+                defImageOcrStepWrapper()
+        );
     }
 
     /**
@@ -249,13 +325,35 @@ public class RecommendStepWrapperFactory {
      */
     public static List<WorkflowStepWrapperRespVO> defMediaMatrixStepWrapperList() {
         return Arrays.asList(
-                defVariableStepWrapper(),
-                defTitleStepWrapper(),
+                defGlobalVariableStepWrapper(),
+                defMaterialStepWrapper(),
                 defCustomStepWrapper(),
-                defParagraphStepWrapper(),
                 defAssembleStepWrapper(),
                 defPosterStepWrapper()
         );
+    }
+
+    /**
+     * 步骤默认变量
+     *
+     * @return
+     */
+    public static Map<String, VariableRespVO> getStepVariable() {
+        Map<String, VariableRespVO> result = new HashMap<>();
+        for (WorkflowStepWrapperRespVO workflowStepWrapperRespVO : defMediaMatrixStepWrapperList()) {
+            result.put(workflowStepWrapperRespVO.getFlowStep().getHandler(), workflowStepWrapperRespVO.getVariable());
+        }
+        return result;
+    }
+
+    /**
+     * 从字典中获取默认值
+     *
+     * @param key key
+     * @return 默认值
+     */
+    private static String getDefaultFromDict(String key) {
+        return MapUtil.emptyIfNull(appDictionaryService.defaultAppConfiguration()).getOrDefault(key, StrUtil.EMPTY);
     }
 
 }

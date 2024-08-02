@@ -9,6 +9,7 @@ import com.starcloud.ops.business.promotion.controller.admin.coupon.vo.template.
 import com.starcloud.ops.business.promotion.dal.dataobject.coupon.CouponTemplateDO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.starcloud.ops.business.promotion.enums.coupon.CouponTemplateValidityTypeEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
@@ -67,9 +68,9 @@ public interface CouponTemplateMapper extends BaseMapperX<CouponTemplateDO> {
             canTakeConsumer = w ->
                     w.eq(CouponTemplateDO::getStatus, CommonStatusEnum.ENABLE.getStatus()) // 1. 状态为可用的
                             .in(CouponTemplateDO::getTakeType, canTakeTypes) // 2. 领取方式一致
-                            .and(ww -> ww.isNull(CouponTemplateDO::getValidEndTime)  // 3. 未过期
-                                    .or().gt(CouponTemplateDO::getValidEndTime, LocalDateTime.now()))
-                            .apply(" take_count < total_count "); // 4. 剩余数量大于 0
+                            .and(ww -> ww.gt(CouponTemplateDO::getValidEndTime, LocalDateTime.now())  // 3.1 未过期
+                                    .or().eq(CouponTemplateDO::getValidityType, CouponTemplateValidityTypeEnum.TERM.getType())) // 3.2 领取之后
+                            .apply(" (take_count < total_count OR total_count = -1 )");
         }
         return canTakeConsumer;
     }

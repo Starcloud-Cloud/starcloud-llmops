@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import com.alibaba.excel.util.StringUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.variable.VariableItemDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.reference.ReferenceSchemeDTO;
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeGenerateModeEnum;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +25,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Deprecated
 public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
 
     private static final long serialVersionUID = 2298470913179114149L;
@@ -37,8 +39,17 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
     /**
      * 创作方案参考内容
      */
-    @Schema(description = "创作方案参考内容")
-    private List<ReferenceSchemeDTO> referList;
+//    @Schema(description = "创作方案参考内容")
+//    private List<ReferenceSchemeDTO> referList;
+
+    /**
+     * 参考内容 素材库格式
+     */
+    @Schema(description = "参考内容-素材库格式")
+    private List<AbstractCreativeMaterialDTO> materialList;
+
+    @Schema(description = "素材类型")
+    private String materialType;
 
     /**
      * 创作方案步骤要求
@@ -57,20 +68,26 @@ public abstract class StandardSchemeStepDTO extends BaseSchemeStepDTO {
      */
     @Override
     public void validate() {
-        if (StrUtil.isBlank(model)) {
-            throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成模式不能为空！"));
-        }
+        AppValidate.notBlank(model, "缺少必填项：创作方案生成模式！");
         // 非自定义模式，参考文案不能为空
-        if (!CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
-            if (CollectionUtil.isEmpty(referList)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
+        if (!CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(model)) {
+//            if (CollectionUtil.isEmpty(referList)) {
+//                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考内容不能为空！"));
+//            }
+            if (CollectionUtil.isEmpty(materialList)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "参考素材不能为空！"));
             }
+            for (AbstractCreativeMaterialDTO abstractBaseCreativeMaterialDTO : materialList) {
+                abstractBaseCreativeMaterialDTO.valid();
+            }
+            if (StringUtils.isBlank(materialType)) {
+                throw ServiceExceptionUtil.exception(new ErrorCode(720100401, "参考素材类型不能为空！"));
+            }
+
         }
         // 自定义模式下，要求不能为空
-        if (CreativeSchemeGenerateModeEnum.AI_CUSTOM.name().equals(model)) {
-            if (StrUtil.isBlank(requirement)) {
-                throw ServiceExceptionUtil.exception(new ErrorCode(720100400, "生成要求不能为空！"));
-            }
+        if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(model)) {
+            AppValidate.notBlank(requirement, "缺少必填项：生成要求！");
         }
     }
 }

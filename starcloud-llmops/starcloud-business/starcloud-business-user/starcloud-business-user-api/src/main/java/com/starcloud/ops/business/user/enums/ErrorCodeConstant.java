@@ -58,6 +58,11 @@ public interface ErrorCodeConstant {
     ErrorCode USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_006, "用户矩阵豆权益不足");
 
     ErrorCode USER_RIGHTS_EXPIRE_FAIL_STATUS_NOT_ENABLE = new ErrorCode(2_004_008_005, "用户权益过期失败，用户等级不是启用状态");
+    ErrorCode USER_RIGHTS_LIMIT_USE = new ErrorCode(2_004_008_006, " 今日{}权益已经使用完，请升级或明天再试！");
+    ErrorCode USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND = new ErrorCode(2_004_008_007, "权益未找到，请核对后重试");
+
+
+
 
     //========== 签到配置 2-004-010-000 ==========
 

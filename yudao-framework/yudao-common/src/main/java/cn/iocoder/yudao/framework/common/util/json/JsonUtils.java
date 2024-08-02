@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JSON 工具类
@@ -156,6 +160,32 @@ public class JsonUtils {
             JsonNode treeNode = objectMapper.readTree(text);
             JsonNode pathNode = treeNode.path(path);
             return objectMapper.readValue(pathNode.toString(), objectMapper.getTypeFactory().constructCollectionType(List.class, clazz));
+        } catch (IOException e) {
+            log.error("json parse err,json:{}", text, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <K, V> Map<K, V> parseMap(String text, Class<K> keyClass, Class<V> valueClass) {
+        if (StrUtil.isEmpty(text)) {
+            return new HashMap<>();
+        }
+        try {
+            MapType mapType = objectMapper.getTypeFactory().constructMapType(Map.class, keyClass, valueClass);
+            return objectMapper.readValue(text, mapType);
+        } catch (IOException e) {
+            log.error("json parse err,json:{}", text, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <K, V> LinkedHashMap<K, V> parseLinkedHashMap(String text, Class<K> keyClass, Class<V> valueClass) {
+        if (StrUtil.isEmpty(text)) {
+            return new LinkedHashMap<>();
+        }
+        try {
+            MapType mapType = objectMapper.getTypeFactory().constructMapType(LinkedHashMap.class, keyClass, valueClass);
+            return objectMapper.readValue(text, mapType);
         } catch (IOException e) {
             log.error("json parse err,json:{}", text, e);
             throw new RuntimeException(e);

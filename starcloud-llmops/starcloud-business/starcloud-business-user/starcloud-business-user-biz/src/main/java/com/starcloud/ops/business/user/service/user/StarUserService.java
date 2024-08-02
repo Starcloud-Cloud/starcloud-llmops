@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.user;
 
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
+import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
@@ -108,4 +109,11 @@ public interface StarUserService {
      * @return
      */
     Boolean isNewUser(Long userId);
+
+    /**
+     * 获取登录用户的权限信息-存在团队 优先获取团队所有人的信息
+     * @param userId 用户id
+     * @return
+     */
+    AuthPermissionInfoRespVO getPermissionInfo(Long userId);
 }

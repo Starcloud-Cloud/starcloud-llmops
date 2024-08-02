@@ -53,6 +53,16 @@ public class CouponServiceImpl implements CouponService {
     @Resource
     private MemberUserApi memberUserApi;
 
+
+    @Override
+    public CouponDO getCoupon(Long id, Long userId) {
+        CouponDO coupon = couponMapper.selectByIdAndUserId(id, userId);
+        if (coupon == null) {
+            throw exception(COUPON_NOT_EXISTS);
+        }
+        return coupon;
+    }
+
     @Override
     public CouponDO validCoupon(Long id, Long userId) {
         CouponDO coupon = couponMapper.selectByIdAndUserId(id, userId);
@@ -231,17 +241,24 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<CouponDO> getMatchCouponList(Long userId, AppCouponMatchReqVO matchReqVO) {
-        return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
+        List<CouponDO> list = couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
-                matchReqVO.getPrice(), matchReqVO.getSpuIds(), matchReqVO.getCategoryIds());
+                matchReqVO.getPrice(), matchReqVO.getSpuIds(),matchReqVO.getSkuIds(), matchReqVO.getCategoryIds());
+        // 兜底逻辑：如果 CouponExpireJob 未执行，status 未变成 EXPIRE ，但是 validEndTime 已经过期了，需要进行过滤
+        list.removeIf(coupon -> !LocalDateTimeUtils.isBetween(coupon.getValidStartTime(), coupon.getValidEndTime()));
+        return list;
     }
 
 
     @Override
-    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> categoryIds) {
-        return couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
+    public Integer getMatchCouponCount(Long userId, Integer price, List<Long> spuIds, List<Long> skuIds, List<Long> categoryIds) {
+
+        List<CouponDO> couponDOS = couponMapper.selectListByUserIdAndStatusAndUsePriceLeAndProductScope(userId,
                 CouponStatusEnum.UNUSED.getStatus(),
-                price, spuIds, categoryIds).size();
+                price, spuIds, skuIds, categoryIds);
+        // 兜底逻辑：如果 CouponExpireJob 未执行，status 未变成 EXPIRE ，但是 validEndTime 已经过期了，需要进行过滤
+        couponDOS.removeIf(coupon -> !LocalDateTimeUtils.isBetween(coupon.getValidStartTime(), coupon.getValidEndTime()));
+        return couponDOS.size();
     }
 
     @Override

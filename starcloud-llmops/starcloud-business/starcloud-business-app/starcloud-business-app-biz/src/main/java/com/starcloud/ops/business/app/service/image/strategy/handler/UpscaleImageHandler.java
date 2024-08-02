@@ -1,21 +1,21 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.vo.request.UpscaleImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.UpscaleImageResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
-import com.starcloud.ops.business.app.feign.request.vsearch.VSearchUpscaleImageRequest;
 import com.starcloud.ops.business.app.feign.dto.VSearchImage;
+import com.starcloud.ops.business.app.feign.request.vsearch.VSearchUpscaleImageRequest;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -57,7 +57,6 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
      */
     @Override
     public void handleRequest(UpscaleImageRequest request) {
-        log.info("放大/高清图片：请求参数处理开始：请求参数：{}", JSONUtil.toJsonStr(request));
         // 获取原始图像的BufferedImage
         BufferedImage originalImage = ImageUploadUtils.getBufferedImage(request.getInitImage());
         int originalWidth = originalImage.getWidth();
@@ -87,8 +86,6 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
 
         request.setOriginalWidth(originalWidth);
         request.setOriginalHeight(originalHeight);
-
-        log.info("放大/高清图片：请求参数处理结束：请求参数：{}", JSONUtil.toJsonStr(request));
 
     }
 
@@ -125,7 +122,7 @@ public class UpscaleImageHandler extends BaseImageHandler<UpscaleImageRequest, U
         response.setHeight(request.getHeight());
         response.setImages(ImageConvert.INSTANCE.convert(vSearchImages));
 
-        log.info("放大/高清图片结束：响应结果：{}", JSONUtil.toJsonStr(response));
+        log.info("放大/高清图片结束：响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

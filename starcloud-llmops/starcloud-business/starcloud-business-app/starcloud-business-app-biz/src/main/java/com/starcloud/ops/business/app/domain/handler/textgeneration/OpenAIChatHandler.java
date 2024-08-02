@@ -2,8 +2,11 @@ package com.starcloud.ops.business.app.domain.handler.textgeneration;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
+import com.alibaba.dashscope.common.Status;
+import com.alibaba.dashscope.exception.ApiException;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
@@ -26,6 +29,7 @@ import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
@@ -80,7 +84,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     }
 
     /**
-     * 执行 GPT handler, 调用 ChatGPT AI模型生成内容
+     * 执行大模型，生成内容
      *
      * @param context 请求上下文
      * @return 返回结果
@@ -88,88 +92,130 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     @JsonIgnore
     @JSONField(serialize = false)
     private HandlerResponse<String> _executeGpt(HandlerContext<OpenAIChatHandler.Request> context) {
-
-        Request request = context.getRequest();
-        String prompt = request.getPrompt();
-
-        HandlerResponse<String> appStepResponse = new HandlerResponse<>();
-        appStepResponse.setSuccess(false);
-        appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
-        appStepResponse.setMessage(prompt);
-
-        ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
-        appStepResponse.setMessageUnitPrice(TokenCalculator.getUnitPrice(modelType, true));
-        appStepResponse.setAnswerUnitPrice(TokenCalculator.getUnitPrice(modelType, false));
-
         try {
+            // 获取请求参数
+            Request request = context.getRequest();
+            // 获取模型类型
+            ModelTypeEnum modelType = TokenCalculator.fromName(request.getModel());
+            request.setModel(modelType.getName());
             BaseLLMUsage baseLLMUsage;
-            String msg;
-            if (ModelTypeEnum.QWEN.equals(modelType)) {
+            String message;
+            // 执行通义千问
+            if (ModelTypeEnum.QWEN.equals(modelType) || ModelTypeEnum.QWEN_MAX.equals(modelType)) {
                 BaseLLMResult<GenerationResult> result = this._executeQwen(request);
                 baseLLMUsage = result.getUsage();
-                msg = result.getText();
-            } else {
-
-                ChatOpenAI chatOpenAI = new ChatOpenAI();
-                chatOpenAI.setModel(request.getModel());
-                chatOpenAI.setStream(request.getStream());
-                chatOpenAI.setMaxTokens(request.getMaxTokens());
-                chatOpenAI.setTemperature(request.getTemperature());
-                chatOpenAI.setN(request.getN());
-                chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
-
-                //数据集支持
-                List<List<BaseMessage>> chatMessages = Collections.singletonList(
-                        Collections.singletonList(new HumanMessage(prompt))
-                );
-
-                ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
-
+                message = result.getText();
+            }
+            // 执行OpenAI
+            else {
+                ChatResult<ChatCompletionResult> chatResult = _executeOpenAi(request);
                 baseLLMUsage = chatResult.getUsage();
-                if (request.getN() == 1) {
-                    msg = chatResult.getText();
-                } else {
-                    List<ChatCompletionResult> collect = CollectionUtil.emptyIfNull(chatResult.getChatGenerations()).stream()
-                            .map(ChatGeneration::getGenerationInfo).filter(Objects::nonNull).collect(Collectors.toList());
-                    if (CollectionUtil.isEmpty(collect)) {
-                        msg = "[]";
-                    } else {
-                        ChatCompletionResult chatCompletionResult = collect.get(0);
-                        List<ChatCompletionChoice> choices = CollectionUtil.emptyIfNull(chatCompletionResult.getChoices()).stream().peek(item -> item.setFinishReason(null)).collect(Collectors.toList());
-                        msg = JSONUtil.toJsonStr(choices);
-                    }
-                }
+                message = huandlerOpenAiMessage(chatResult, request);
             }
 
-            //组装参数
-            appStepResponse.setSuccess(true);
-            appStepResponse.setAnswer(msg);
-            appStepResponse.setOutput(msg);
-            appStepResponse.setMessageTokens(baseLLMUsage.getPromptTokens());
-            appStepResponse.setAnswerTokens(baseLLMUsage.getCompletionTokens());
-
+            // 计算价格相关数据
             Long messageTokens = baseLLMUsage.getPromptTokens();
             Long answerTokens = baseLLMUsage.getCompletionTokens();
-            BigDecimal totalPrice = TokenCalculator.getTextPrice(messageTokens, modelType, true).add(TokenCalculator.getTextPrice(answerTokens, modelType, false));
+            Long totalTokens = baseLLMUsage.getTotalTokens();
+            BigDecimal messageUnitPrice = TokenCalculator.getUnitPrice(modelType, true);
+            BigDecimal answerUnitPrice = TokenCalculator.getUnitPrice(modelType, false);
+            BigDecimal messagePrice = TokenCalculator.getTextPrice(messageTokens, modelType, true);
+            BigDecimal answerPrice = TokenCalculator.getTextPrice(answerTokens, modelType, false);
+            BigDecimal totalPrice = messagePrice.add(answerPrice);
 
-            appStepResponse.setTotalTokens(baseLLMUsage.getTotalTokens());
+            // 构建返回结果
+            HandlerResponse<String> appStepResponse = new HandlerResponse<>();
+            appStepResponse.setSuccess(true);
+            appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
+            appStepResponse.setMessage(request.getPrompt());
+            appStepResponse.setAnswer(message);
+            appStepResponse.setOutput(message);
+            appStepResponse.setMessageUnitPrice(messageUnitPrice);
+            appStepResponse.setAnswerUnitPrice(answerUnitPrice);
+            appStepResponse.setMessageTokens(messageTokens);
+            appStepResponse.setAnswerTokens(answerTokens);
+            appStepResponse.setTotalTokens(totalTokens);
             appStepResponse.setTotalPrice(totalPrice);
-
-        } catch (OpenAiHttpException exc) {
-
-            appStepResponse.setErrorCode(ErrorCodeConstants.OPENAI_ERROR.getCode());
-            appStepResponse.setErrorMsg(exc.getMessage());
-            log.error("OpenAIChatHandler OpenAi fail: {}", exc.getMessage(), exc);
-
-            throw ServiceExceptionUtil.exception(ErrorCodeConstants.OPENAI_ERROR);
+            return appStepResponse;
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            log.error("AI大模型【执行失败】: {}", exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_LLM_FAILURE, exception.getMessage(), exception);
         }
-
-        return appStepResponse;
     }
 
+    /**
+     * 调用 OpenAI AI模型生成内容
+     *
+     * @param request 请求
+     * @return 返回结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private ChatResult<ChatCompletionResult> _executeOpenAi(Request request) {
+        try {
+            log.info("OpenAI大模型【开始执行】: {}", JSONUtil.toJsonStr(request));
+            // 构建 ChatOpenAI 对象，用于调用 OpenAI 大模型
+            ChatOpenAI chatOpenAI = new ChatOpenAI();
+            chatOpenAI.setModel(request.getModel());
+            chatOpenAI.setStream(request.getStream());
+            chatOpenAI.setMaxTokens(request.getMaxTokens());
+            chatOpenAI.setTemperature(request.getTemperature());
+            chatOpenAI.setN(request.getN());
+            chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
+
+            // 构建消息提示词 prompt
+            HumanMessage message = new HumanMessage(request.getPrompt());
+            List<List<BaseMessage>> chatMessages = Collections.singletonList(Collections.singletonList(message));
+
+            // 执行 OpenAI 大模型
+            ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
+
+            log.info("OpenAI大模型【执行成功】: {}", JSONUtil.toJsonStr(chatResult));
+            return chatResult;
+        } catch (OpenAiHttpException exception) {
+            log.error("OpenAI大模型【执行失败】: Http状态码: {}, 错误码: {}, 错误类型: {}, 错误消息: {}, 请求参数: {}",
+                    exception.statusCode, exception.code, exception.type, exception.getMessage(), exception.param);
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_LLM_FAILURE, exception.getMessage(), exception);
+        } catch (Exception exception) {
+            log.error("OpenAI大模型【执行失败】: 错误消息: {}", exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_LLM_FAILURE, exception.getMessage(), exception);
+        }
+    }
 
     /**
-     * 执行 通义千问 handler, 调用 通义千问 AI模型生成内容
+     * 处理OpenAI返回结果
+     *
+     * @param chatResult OpenAI返回结果
+     * @param request    请求
+     * @return 返回结果
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private String huandlerOpenAiMessage(ChatResult<ChatCompletionResult> chatResult, Request request) {
+        if (request.getN() == 1) {
+            return chatResult.getText();
+        } else {
+            List<ChatCompletionResult> collect = CollectionUtil.emptyIfNull(chatResult.getChatGenerations()).stream()
+                    .map(ChatGeneration::getGenerationInfo)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            if (CollectionUtil.isEmpty(collect)) {
+                return "[]";
+            } else {
+                ChatCompletionResult chatCompletionResult = collect.get(0);
+                List<ChatCompletionChoice> choices = CollectionUtil.emptyIfNull(chatCompletionResult.getChoices()).stream()
+                        .peek(item -> item.setFinishReason(null))
+                        .collect(Collectors.toList());
+                return JSONUtil.toJsonStr(choices);
+            }
+        }
+    }
+
+    /**
+     * 调用 通义千问 AI模型生成内容
      *
      * @param request 请求
      * @return 返回结果
@@ -177,36 +223,41 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
     @JsonIgnore
     @JSONField(serialize = false)
     private BaseLLMResult<GenerationResult> _executeQwen(Request request) {
-        log.info("通义千问执行开始: {}", JSONUtil.toJsonStr(request));
-        String prompt = request.getPrompt();
+        try {
+            log.info("通义千问大模型【开始执行】: {}", JSONUtil.toJsonStr(request));
+            String prompt = request.getPrompt();
 
-        ChatQwen chatQwen = new ChatQwen();
-        chatQwen.setTopP(request.getTemperature());
-        chatQwen.setStream(false);
-        chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
+            // 构建 ChatQwen 对象，用于调用通义千问大模型
+            ChatQwen chatQwen = new ChatQwen();
+            chatQwen.setTopP(request.getTemperature());
+            chatQwen.setModel(request.getModel());
+            chatQwen.setStream(false);
+            chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
-        LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, buildChatPromptTemplate(prompt));
-        llmChain.setMemory(null);
+            // 构建消息提示 ChatPromptTemplate
+            StringPromptTemplate stringPromptTemplate = new PromptTemplate(prompt, new ArrayList<>());
+            HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
+            ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Collections.singletonList(humanMessagePromptTemplate));
 
-        BaseVariable humanInput = BaseVariable.newString("input", "");
-        BaseLLMResult<GenerationResult> result = llmChain.call(Collections.singletonList(humanInput));
+            // 构建 LLMChain 对象，用于调用通义千问大模型
+            LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
+            llmChain.setMemory(null);
 
-        log.info("通义千问执行结果: {}", JSONUtil.toJsonStr(result));
-        return result;
-    }
+            // 执行通义千问大模型
+            BaseVariable humanInput = BaseVariable.newString("input", "");
+            BaseLLMResult<GenerationResult> result = llmChain.call(Collections.singletonList(humanInput));
 
-    /**
-     * 构建聊天模板
-     *
-     * @param prompt 提示
-     * @return 聊天模板
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public ChatPromptTemplate buildChatPromptTemplate(String prompt) {
-        StringPromptTemplate stringPromptTemplate = new PromptTemplate(prompt, new ArrayList<>());
-        HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
-        return ChatPromptTemplate.fromMessages(Collections.singletonList(humanMessagePromptTemplate));
+            log.info("通义千问大模型【执行成功】: {}", JSONUtil.toJsonStr(result));
+            return result;
+        } catch (ApiException exception) {
+            Status status = exception.getStatus();
+            log.error("通义千问大模型【执行失败】: Http状态码: {}, 错误码: {}, 错误原因: {}, 使用量: {}",
+                    status.getStatusCode(), status.getCode(), status.getMessage(), JsonUtils.toJsonString(status.getUsage()));
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_LLM_FAILURE, status.getMessage(), exception);
+        } catch (Exception exception) {
+            log.error("通义千问大模型【执行失败】: 错误原因: {}", exception.getMessage());
+            throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_LLM_FAILURE, exception.getMessage(), exception);
+        }
     }
 
     /**
@@ -218,7 +269,7 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
         /**
          * AI 模型, 默认 ChatGPT 3.5 Turbo
          */
-        private String model = ModelTypeEnum.GPT_3_5_TURBO_16K.getName();
+        private String model = ModelTypeEnum.GPT_3_5_TURBO.getName();
 
         /**
          * 后续新参数 都是一个个独立字段即可

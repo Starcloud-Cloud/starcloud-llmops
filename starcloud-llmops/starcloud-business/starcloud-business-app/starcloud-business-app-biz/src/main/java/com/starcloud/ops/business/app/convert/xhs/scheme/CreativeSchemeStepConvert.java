@@ -4,18 +4,20 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.AssembleSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.CustomSchemeStepDTO;
-import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.MaterialSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.ParagraphSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.PosterSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.TitleSchemeStepDTO;
+import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.AssembleSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.BaseSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.CustomSchemeStepEntity;
-import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.VariableSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.MaterialSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.ParagraphSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.PosterSchemeStepEntity;
 import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.TitleSchemeStepEntity;
+import com.starcloud.ops.business.app.service.xhs.scheme.entity.step.VariableSchemeStepEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -55,6 +57,9 @@ public interface CreativeSchemeStepConvert {
         }
         if (schemeStep instanceof PosterSchemeStepEntity) {
             return convertPoster((PosterSchemeStepEntity) schemeStep);
+        }
+        if (schemeStep instanceof MaterialSchemeStepEntity) {
+            return convertMaterial((MaterialSchemeStepEntity) schemeStep);
         }
         throw new RuntimeException("不支持的方案步骤");
     }
@@ -108,6 +113,14 @@ public interface CreativeSchemeStepConvert {
     PosterSchemeStepDTO convertPoster(PosterSchemeStepEntity schemeStep);
 
     /**
+     * 资料库方案实体转换为资料库方案DTO
+     *
+     * @param schemeStep 资料库方案实体
+     * @return 资料库方案DTO
+     */
+    MaterialSchemeStepDTO convertMaterial(MaterialSchemeStepEntity schemeStep);
+
+    /**
      * 转换方案步骤DTO
      *
      * @param schemeStep 方案步骤DTO
@@ -131,6 +144,9 @@ public interface CreativeSchemeStepConvert {
         }
         if (schemeStep instanceof PosterSchemeStepDTO) {
             return convertPoster((PosterSchemeStepDTO) schemeStep);
+        }
+        if (schemeStep instanceof MaterialSchemeStepDTO) {
+            return convertMaterial((MaterialSchemeStepDTO) schemeStep);
         }
         throw new RuntimeException("不支持的方案步骤");
     }
@@ -183,7 +199,27 @@ public interface CreativeSchemeStepConvert {
      */
     PosterSchemeStepEntity convertPoster(PosterSchemeStepDTO schemeStep);
 
+    /**
+     * 资料库方案DTO转换为资料库方案实体
+     *
+     * @param schemeStep schemeStep
+     * @return 资料库方案实体
+     */
+    MaterialSchemeStepEntity convertMaterial(MaterialSchemeStepDTO schemeStep);
+
+    /**
+     * 变量响应列表转换为实体列表
+     *
+     * @param variableList 变量响应列表
+     * @return 变量实体列表
+     */
     List<VariableItemEntity> convertToEntity(List<VariableItemRespVO> variableList);
 
+    /**
+     * 变量实体列表转换为响应列表
+     *
+     * @param variableList 变量实体列表
+     * @return 变量响应列表
+     */
     List<VariableItemRespVO> convertToResponse(List<VariableItemEntity> variableList);
 }

@@ -43,6 +43,11 @@ public class AppExecuteRespVO implements Serializable {
     private String conversationUid;
 
     /**
+     * 结果是否发送一次sse
+     */
+    private Boolean isSendSseAll;
+
+    /**
      * 成功返回
      *
      * @param resultCode 返回code

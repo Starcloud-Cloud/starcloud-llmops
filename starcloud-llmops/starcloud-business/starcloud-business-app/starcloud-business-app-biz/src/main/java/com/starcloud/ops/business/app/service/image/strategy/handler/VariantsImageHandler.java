@@ -1,7 +1,8 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.vo.request.VariantsImageRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.VariantsImageResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
@@ -10,13 +11,12 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.vsearch.EngineEnum;
 import com.starcloud.ops.business.app.enums.vsearch.SamplerEnum;
-import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.feign.dto.VSearchImage;
+import com.starcloud.ops.business.app.feign.request.vsearch.VSearchImageRequest;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -62,8 +62,6 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
      */
     @Override
     public void handleRequest(VariantsImageRequest request) {
-        log.info("VariantsImageHandler handleRequest: 处理裂变图片请求开始：处理前数据：{}", JSONUtil.toJsonStr(request));
-
         // 初始化图片
         if (Objects.isNull(request.getImageStrength())) {
             request.setImageStrength(0.6);
@@ -91,8 +89,6 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         if (Objects.isNull(request.getSteps())) {
             request.setSteps(30);
         }
-
-        log.info("VariantsImageHandler handleRequest: 处理裂变图片请求结束：处理后数据：{}", JSONUtil.toJsonStr(request));
     }
 
     /**
@@ -103,7 +99,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
      */
     @Override
     public VariantsImageResponse handleImage(VariantsImageRequest request) {
-        log.info("VariantsImageHandler handle: 裂变图片请求开始...");
+        log.info("裂变图片请求开始...");
         // 处理初始化图片
         String initImage = request.getInitImage();
         request.setInitImage(ImageUploadUtils.handleImageToBase64(initImage));
@@ -125,7 +121,7 @@ public class VariantsImageHandler extends BaseImageHandler<VariantsImageRequest,
         response.setStylePreset(request.getStylePreset());
         response.setImages(ImageConvert.INSTANCE.convert(imageList));
 
-        log.info("VariantsImageHandler handle: 裂变图片请求结束... 响应结果：{}", JSONUtil.toJsonStr(response));
+        log.info("裂变图片请求结束: 响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

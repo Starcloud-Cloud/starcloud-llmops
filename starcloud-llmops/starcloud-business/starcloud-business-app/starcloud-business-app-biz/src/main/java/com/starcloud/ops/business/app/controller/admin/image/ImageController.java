@@ -8,6 +8,9 @@ import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageRespVO;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.service.image.ImageService;
+import com.starcloud.ops.business.app.service.image.impl.PixabayServiceImpl;
+import com.starcloud.ops.business.app.service.image.impl.dto.repose.PixabayImageResult;
+import com.starcloud.ops.business.app.service.image.impl.dto.request.PixabayImageRequestDTO;
 import com.starcloud.ops.business.app.service.limit.AppLimitRequest;
 import com.starcloud.ops.business.app.service.limit.AppLimitService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +46,9 @@ public class ImageController {
 
     @Resource
     private AppLimitService appLimitService;
+
+    @Resource
+    private  PixabayServiceImpl pixabayService;
 
     @GetMapping("/meta")
     @Operation(summary = "生成图片元数据", description = "生成图片元数据")
@@ -128,6 +134,14 @@ public class ImageController {
         AppLimitRequest limitRequest = AppLimitRequest.of(request.getAppUid(), request.getScene());
         appLimitService.appLimit(limitRequest);
         return CommonResult.success(imageService.execute(request));
+    }
+
+
+    @PostMapping(value = "/search")
+    @Operation(summary = "获取pixabay图片", description = "获取pixabay图片")
+    @ApiOperationSupport(order = 80, author = " Cusack Alan")
+    public CommonResult<PixabayImageResult> search(@Validated @RequestBody PixabayImageRequestDTO request) {
+        return CommonResult.success(pixabayService.getPixabayImage(request));
     }
 
 }

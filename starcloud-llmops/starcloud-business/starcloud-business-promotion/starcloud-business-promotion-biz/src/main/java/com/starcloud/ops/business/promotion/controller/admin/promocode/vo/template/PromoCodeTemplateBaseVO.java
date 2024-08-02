@@ -1,7 +1,7 @@
 package com.starcloud.ops.business.promotion.controller.admin.promocode.vo.template;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsCommonDTO;
+import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -55,7 +55,7 @@ public class PromoCodeTemplateBaseVO {
     private Long couponTemplateId;
 
     @Schema(description = "权益参数")
-    private AdminUserRightsCommonDTO giveRights;
+    private AdminUserRightsAndLevelCommonDTO giveRights;
 
 
 

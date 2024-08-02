@@ -2,14 +2,19 @@ package com.starcloud.ops.business.app.controller.admin.app;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -28,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +113,7 @@ public class AppController {
     @DataPermission(enable = false)
     @Operation(summary = "创建应用", description = "创建一个新的应用")
     @ApiOperationSupport(order = 90, author = "nacoyer")
-    public CommonResult<AppRespVO> create(@Validated @RequestBody AppReqVO request) {
+    public CommonResult<AppRespVO> create(@Validated @RequestBody AppUpdateReqVO request) {
         return CommonResult.success(appService.create(request));
     }
 
@@ -133,6 +139,13 @@ public class AppController {
     public CommonResult<Boolean> delete(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
         appService.delete(uid);
         return CommonResult.success(Boolean.TRUE);
+    }
+
+    @PostMapping("/fieldCode")
+    @Operation(summary = "生成变量field", description = "生成变量field")
+    @OperateLog(enable = false)
+    public CommonResult<List<VariableItemRespVO>> generalFieldCode(@RequestBody @Valid VariableReqVO reqVO) {
+        return CommonResult.success(appService.generalFieldCode(reqVO));
     }
 
 }

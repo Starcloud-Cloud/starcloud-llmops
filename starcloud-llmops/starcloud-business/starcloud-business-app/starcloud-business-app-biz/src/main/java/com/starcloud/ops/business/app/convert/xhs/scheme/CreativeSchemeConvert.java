@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.convert.xhs.scheme;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.CreativeSchemeConfigurationDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.vo.request.CreativeSchemeModifyReqVO;
@@ -43,7 +42,6 @@ public interface CreativeSchemeConvert {
         creativeScheme.setCategory(request.getCategory());
         creativeScheme.setTags(StringUtil.toString(request.getTags()));
         creativeScheme.setDescription(request.getDescription());
-        creativeScheme.setMode(request.getMode());
         // 创作计划配置信息
         if (request.getConfiguration() != null) {
             creativeScheme.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
@@ -55,7 +53,6 @@ public interface CreativeSchemeConvert {
 
         // 创作计划物料
         creativeScheme.setMateriel(request.getMateriel());
-        creativeScheme.setCreateTime(LocalDateTime.now());
         creativeScheme.setUpdateTime(LocalDateTime.now());
         creativeScheme.setDeleted(Boolean.FALSE);
         return creativeScheme;
@@ -88,7 +85,6 @@ public interface CreativeSchemeConvert {
         creativeSchemeResponse.setCategory(creativeScheme.getCategory());
         creativeSchemeResponse.setTags(StringUtil.toList(creativeScheme.getTags()));
         creativeSchemeResponse.setDescription(creativeScheme.getDescription());
-        creativeSchemeResponse.setMode(creativeScheme.getMode());
 
         // 创作计划配置信息
         if (StringUtils.isNotBlank(creativeScheme.getConfiguration())) {
@@ -97,7 +93,7 @@ public interface CreativeSchemeConvert {
 
         // 创作计划使用图片
         if (StringUtils.isNotBlank(creativeScheme.getUseImages())) {
-            creativeSchemeResponse.setUseImages(JSONUtil.toList(creativeScheme.getUseImages(), String.class));
+            creativeSchemeResponse.setUseImages(JsonUtils.parseArray(creativeScheme.getUseImages(), String.class));
         }
 
         // 创作计划物料

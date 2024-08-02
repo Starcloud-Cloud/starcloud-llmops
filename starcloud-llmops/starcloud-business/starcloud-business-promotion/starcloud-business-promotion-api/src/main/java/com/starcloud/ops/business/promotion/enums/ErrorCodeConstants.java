@@ -132,7 +132,7 @@ public interface ErrorCodeConstants {
 
     ErrorCode PROMO_CODE_TEMPLATE_TOTAL_COUNT_TOO_SMALL = new ErrorCode(1_013_021_001, "发放数量不能小于已领取数量({})");
     ErrorCode PROMO_CODE_TEMPLATE_NOT_ENOUGH = new ErrorCode(1_013_021_002, "当前剩余数量不够领取");
-    ErrorCode PROMO_CODE_TEMPLATE_USER_ALREADY_TAKE = new ErrorCode(1_013_021_003, "用户已领取过此优惠券");
+    ErrorCode PROMO_CODE_TEMPLATE_USER_ALREADY_TAKE = new ErrorCode(1_013_021_003, "用户已领取过此优惠码");
     ErrorCode PROMO_CODE_TEMPLATE_EXPIRED = new ErrorCode(1_013_021_004, "兑换码已过期");
     ErrorCode PROMO_CODE_TEMPLATE_CANNOT_TAKE = new ErrorCode(1_013_021_005, "领取方式不正确");
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.log.dal.mysql.LogAppMessageMapper">
-
+    
     <!--
         定义需要查询的字段
         1. 消息总数,
@@ -13,91 +13,99 @@
         7. 完成/聊天总花费积分,
         8. 图片总花费积分,
     -->
+    <!-- # COUNT(CASE WHEN fb.rating = 'LIKE' THEN 1 END)                                AS feedbackLikeCount, -->
     <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
-        COUNT(ms.id) AS messageCount,
-        COUNT(CASE WHEN ms.status = "SUCCESS" THEN 1 END) AS successCount,
-        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionSuccessCount,
-        COUNT(CASE WHEN ms.status = "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageSuccessCount,
-
-        COUNT(CASE WHEN ms.status != "SUCCESS" THEN 1 END) AS errorCount,
-        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode != "IMAGE" THEN 1 END) AS completionErrorCount,
-        COUNT(CASE WHEN ms.status != "SUCCESS" AND ms.app_mode = "IMAGE" THEN 1 END) AS imageErrorCount,
-
-        COUNT(CASE WHEN fb.rating = "LIKE" THEN 1 END) AS feedbackLikeCount,
-        AVG(CASE WHEN ms.app_mode != "IMAGE" THEN ms.elapsed END) AS completionAvgElapsed,
-        AVG(CASE WHEN ms.app_mode = "IMAGE" THEN ms.elapsed END) AS imageAvgElapsed,
-        SUM(ms.cost_points) AS completionCostPoints,
-        SUM(ms.image_points ) AS imageCostPoints,
-        SUM(
-        (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.message_tokens END) +
-        (CASE WHEN ms.app_mode = "COMPLETION" THEN ms.answer_tokens END)
-        ) AS completionTokens,
-        SUM(
-        (CASE WHEN ms.app_mode = "CHAT" THEN ms.message_tokens END) +
-        (CASE WHEN ms.app_mode = "CHAT" THEN ms.answer_tokens END)
-        ) AS chatTokens,
-        SUM(
-        (CASE WHEN ms.app_mode = "CHAT" THEN ms.message_tokens END) +
-        (CASE WHEN ms.app_mode = "CHAT" THEN ms.answer_tokens END)
-        ) AS tokens,
+        COUNT(ms.id)                                                                  AS messageCount,
+        COUNT(CASE WHEN ms.status = 'SUCCESS' THEN 1 END)                             AS successCount,
+        COUNT(CASE WHEN ms.status = 'SUCCESS' AND ms.app_mode != 'IMAGE' THEN 1 END)  AS completionSuccessCount,
+        COUNT(CASE WHEN ms.status = 'SUCCESS' AND ms.app_mode = 'IMAGE' THEN 1 END)   AS imageSuccessCount,
+        
+        COUNT(CASE WHEN ms.status != 'SUCCESS' THEN 1 END)                            AS errorCount,
+        COUNT(CASE WHEN ms.status != 'SUCCESS' AND ms.app_mode != 'IMAGE' THEN 1 END) AS completionErrorCount,
+        COUNT(CASE WHEN ms.status != 'SUCCESS' AND ms.app_mode = 'IMAGE' THEN 1 END)  AS imageErrorCount,
+        
+        
+        AVG(CASE WHEN ms.app_mode != 'IMAGE' THEN ms.elapsed END)                     AS completionAvgElapsed,
+        AVG(CASE WHEN ms.app_mode = 'IMAGE' THEN ms.elapsed END)                      AS imageAvgElapsed,
+        
+        SUM(ms.cost_points)                                                           AS completionCostPoints,
+        SUM(ms.image_points)                                                          AS imageCostPoints,
+        
+        SUM((CASE WHEN ms.app_mode != 'IMAGE' THEN ms.message_tokens END) +
+            (CASE WHEN ms.app_mode != 'IMAGE' THEN ms.answer_tokens END))             AS tokens,
+        SUM((CASE WHEN ms.app_mode = 'COMPLETION' THEN ms.message_tokens END) +
+            (CASE WHEN ms.app_mode = 'COMPLETION' THEN ms.answer_tokens END))         AS completionTokens,
+        SUM((CASE WHEN ms.app_mode = 'CHAT' THEN ms.message_tokens END) +
+            (CASE WHEN ms.app_mode = 'CHAT' THEN ms.answer_tokens END))               AS chatTokens,
         <choose>
             <when test="query.unit == 'HOURS'">
-                DATE_FORMAT(ms.create_time, '%Y-%m-%d %H') as create_date
+                ms.vrh_create_tiem as create_date
             </when>
             <when test="query.unit == 'DAYS'">
-                DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
+                ms.vrd_create_time AS create_date
             </when>
             <when test="query.unit == 'MONTHS'">
-                DATE_FORMAT(ms.create_time, '%Y-%m') as create_date
+                ms.vrm_create_time AS create_date
             </when>
             <otherwise>
-                DATE_FORMAT(ms.create_time, '%Y-%m-%d') as create_date
+                ms.vrd_create_time AS create_date
             </otherwise>
         </choose>
     </sql>
-
-    <!-- 定义分组规则 -->
-    <sql id="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF">
+    
+    <sql id="RANG_TIME_SQL">
+        <if test="query.startTime != null and query.endTime != null">
+            <choose>
+                <when test="query.unit == 'HOURS'">
+                    AND ms.vrh_create_tiem BETWEEN #{query.startTime} AND #{query.endTime}
+                </when>
+                <when test="query.unit == 'DAYS'">
+                    AND ms.vrd_create_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </when>
+                <when test="query.unit == 'MONTHS'">
+                    AND ms.vrm_create_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </when>
+                <otherwise>
+                    AND ms.vrd_create_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    
+    <sql id="USE_INDEX_SQL">
         <choose>
             <when test="query.unit == 'HOURS'">
-                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d %H')
+                USE INDEX (idx_vrh_create_time)
             </when>
             <when test="query.unit == 'DAYS'">
-                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
+                USE INDEX (idx_vrd_create_time)
             </when>
             <when test="query.unit == 'MONTHS'">
-                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m')
+                USE INDEX (idx_vrm_create_time)
             </when>
             <otherwise>
-                GROUP BY DATE_FORMAT(ms.create_time, '%Y-%m-%d')
+                USE INDEX (idx_vrd_create_time)
             </otherwise>
         </choose>
     </sql>
-
+    
     <!-- 生成记录日志统计 -->
     <select id="listLogAppMessageStatistics"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
-        FROM llm_log_app_message as ms
-        LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
-        LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+        FROM
+            llm_log_app_message as ms <include refid="USE_INDEX_SQL"/>
+        LEFT JOIN
+             llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
-            <if test="query.appUid != null and query.appUid != '' ">
+            <!-- 日期 -->
+            <include refid="RANG_TIME_SQL"/>
+            <if test="query.appUid != null and query.appUid != ''">
                 AND ms.app_uid = #{query.appUid}
             </if>
-            
-            <if test="query.appName != null and query.appName != '' ">
-                <bind name="appName" value="query.appName+'%'"/>
-                AND co.app_name LIKE #{appName}
-            </if>
-            
-            <if test="query.appMode != null and query.appMode != '' ">
-                AND ms.app_mode = #{query.appMode}
-            </if>
-            
             <choose>
-                <when test="query.fromScene != null and query.fromScene != '' ">
+                <when test="query.fromScene != null and query.fromScene != ''">
                     AND ms.from_scene = #{query.fromScene}
                 </when>
                 <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
@@ -107,65 +115,62 @@
                     </foreach>
                 </when>
             </choose>
-            <if test="query.userId != null and query.userId != '' ">
-                AND co.creator = #{query.userId}
+            <if test="query.appMode != null and query.appMode != ''">
+                AND ms.app_mode = #{query.appMode}
             </if>
-            
-            <if test="query.aiModel != null and query.aiModel != '' ">
+            <if test="query.aiModel != null and query.aiModel != ''">
                 AND ms.ai_model = #{query.aiModel}
             </if>
-            
-            <if test="query.status != null and query.status != '' ">
+            <if test="query.status != null and query.status != ''">
                 AND ms.status = #{query.status}
             </if>
-            
-            <if test="query.startTime != null and query.endTime != null">
-                AND ms.create_time between #{query.startTime} and #{query.endTime}
+            <!-- 创建者 -->
+            <if test="query.userId != null and query.userId != ''">
+                AND co.creator = #{query.userId}
+            </if>
+            <if test="query.appName != null and query.appName != ''">
+                <bind name="appName" value="query.appName + '%'"/>
+                AND co.app_name LIKE #{appName}
             </if>
         </where>
-        <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
+        GROUP BY create_date
         ORDER BY create_date;
     </select>
-
+    
     <!-- 根据应用 UID 日志统计 -->
     <select id="listLogAppMessageStatisticsByAppUid"
             resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
-        FROM llm_log_app_message as ms
-        LEFT JOIN llm_log_app_message_feedbacks as fb on fb.app_message_uid = ms.uid
-        LEFT JOIN llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+        FROM
+            llm_log_app_message as ms <include refid="USE_INDEX_SQL"/>
+        LEFT JOIN
+            llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
         <where>
+            <!-- 日期 -->
+            <include refid="RANG_TIME_SQL"/>
             <choose>
-                <when test="query.marketUid != null and query.marketUid != '' ">
+                <when test="query.marketUid != null and query.marketUid != ''">
                     AND ms.app_uid IN (#{query.appUid}, #{query.marketUid})
                 </when>
                 <otherwise>
                     AND ms.app_uid = #{query.appUid}
                 </otherwise>
             </choose>
-            
-            <if test="query.fromScene != null and query.fromScene != '' ">
+            <if test="query.fromScene != null and query.fromScene != ''">
                 AND ms.from_scene = #{query.fromScene}
             </if>
-            
-            <if test="query.aiModel != null and query.aiModel != '' ">
+            <if test="query.aiModel != null and query.aiModel != ''">
                 AND ms.ai_model = #{query.aiModel}
             </if>
-            
-            <if test="query.userId != null and query.userId != '' ">
-                AND co.creator = #{query.userId}
-            </if>
-            
-            <if test="query.status != null and query.status != '' ">
+            <if test="query.status != null and query.status != ''">
                 AND ms.status = #{query.status}
             </if>
-            
-            <if test="query.startTime != null and query.endTime != null">
-                AND ms.create_time between #{query.startTime} and #{query.endTime}
+            <if test="query.userId != null and query.userId != ''">
+                AND co.creator = #{query.userId}
             </if>
         </where>
-        <include refid="LIST_LOG_MESSAGE_STATISTICS_ORDER_BY_REF"/>
+        GROUP BY create_date
         ORDER BY create_date;
     </select>
 

@@ -1,10 +1,7 @@
 package com.starcloud.ops.business.app.domain.handler.common;
 
-import cn.hutool.Hutool;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -25,11 +22,6 @@ public class HandlerResponse<R> {
     private Boolean success;
 
     /**
-     * 执行耗时
-     */
-    private long elapsed;
-
-    /**
      * 响应错误码
      */
     private Integer errorCode;
@@ -40,10 +32,14 @@ public class HandlerResponse<R> {
     private String errorMsg;
 
     /**
+     * 执行耗时
+     */
+    private long elapsed;
+
+    /**
      * 相应类型
      */
     private String type;
-
 
     /**
      * 请求数据
@@ -55,7 +51,9 @@ public class HandlerResponse<R> {
      */
     private String answer;
 
-
+    /**
+     * 响应数据
+     */
     private R output;
 
     /**
@@ -101,16 +99,5 @@ public class HandlerResponse<R> {
      */
     private Object stepConfig;
 
-
-    public String toJsonOutput() {
-        if (this.getOutput() == null) {
-            return "";
-        }
-        return JSONUtil.toJsonStr(this.getOutput());
-    }
-
-    public static void main(String[] args) {
-        String a = "";
-    }
 
 }

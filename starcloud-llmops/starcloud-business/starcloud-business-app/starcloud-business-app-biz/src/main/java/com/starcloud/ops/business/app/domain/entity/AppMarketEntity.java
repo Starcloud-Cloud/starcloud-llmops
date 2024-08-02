@@ -8,6 +8,7 @@ import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.domain.repository.market.AppMarketRepository;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import lombok.Data;
@@ -86,8 +87,8 @@ public class AppMarketEntity extends AppEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(AppExecuteReqVO request) {
-        super.doValidate(request);
+    protected void doValidate(AppExecuteReqVO request, ValidateTypeEnum validateType) {
+        super.doValidate(request, validateType);
     }
 
     /**
@@ -128,8 +129,8 @@ public class AppMarketEntity extends AppEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doAsyncExecute(AppExecuteReqVO request) {
-        super.doAsyncExecute(request);
+    protected AppExecuteRespVO doAsyncExecute(AppExecuteReqVO request) {
+        return super.doAsyncExecute(request);
     }
 
     /**

@@ -14,14 +14,19 @@ public @interface FieldDefine {
 
     /**
      * 字段描述
-     * @return
      */
     String desc();
 
     /**
      * 字段类型
-     * @return
      */
     FieldTypeEnum type();
+
+    /**
+     * 是否必填
+     */
+    boolean required() default false;
+
+    int width() default 200;
 
 }

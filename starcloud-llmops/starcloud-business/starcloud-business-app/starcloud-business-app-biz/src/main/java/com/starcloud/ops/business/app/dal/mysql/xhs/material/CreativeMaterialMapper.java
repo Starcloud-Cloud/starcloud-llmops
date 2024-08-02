@@ -23,7 +23,7 @@ public interface CreativeMaterialMapper extends BaseMapperX<CreativeMaterialDO> 
         LambdaQueryWrapper<CreativeMaterialDO> wrapper = Wrappers.lambdaQuery(CreativeMaterialDO.class)
                 .eq(CreativeMaterialDO::getType, reqVO.getType())
                 .likeRight(StringUtils.isNotBlank(reqVO.getContent()), CreativeMaterialDO::getContent, reqVO.getContent())
-                .like(StringUtils.isNotBlank(reqVO.getTag()), CreativeMaterialDO::getTags, reqVO.getTag())
+                .apply("FIND_IN_SET({0}, tags)", reqVO.getTag())
                 .last("limit " + reqVO.getLimitCount());
         return selectList(wrapper);
     }

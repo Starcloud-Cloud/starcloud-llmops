@@ -1,22 +1,22 @@
 package com.starcloud.ops.business.app.service.image.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.image.dto.ImageDTO;
 import com.starcloud.ops.business.app.api.image.vo.request.RemoveTextRequest;
 import com.starcloud.ops.business.app.api.image.vo.response.RemoveTextResponse;
 import com.starcloud.ops.business.app.convert.image.ImageConvert;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
-import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.feign.dto.ClipDropImage;
+import com.starcloud.ops.business.app.feign.request.clipdrop.ImageFileClipDropRequest;
 import com.starcloud.ops.business.app.service.image.clipdrop.ClipDropImageService;
 import com.starcloud.ops.business.app.service.image.strategy.ImageScene;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.ImageUtils;
-import com.starcloud.ops.business.app.validate.AppValidate;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -61,7 +61,6 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
      */
     @Override
     public void handleRequest(RemoveTextRequest request) {
-        log.info("去除图片文字：请求参数：{}", JSONUtil.toJsonStr(request));
         String imageUrl = request.getImageUrl();
         String extension = ImageUploadUtils.getExtension(imageUrl);
         if (!"jpg".equals(extension) && !"jpeg".equals(extension) && !"png".equals(extension)) {
@@ -77,7 +76,7 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
      */
     @Override
     public RemoveTextResponse handleImage(RemoveTextRequest request) {
-        log.info("去除图片文字开始：处理前数据：{}", JSONUtil.toJsonStr(request));
+        log.info("去除图片文字开始...");
         // 处理请求参数
         ImageFileClipDropRequest imageFileClipDropRequest = new ImageFileClipDropRequest();
         imageFileClipDropRequest.setImageFile(ImageUploadUtils.getImageFile(request.getImageUrl()));
@@ -92,7 +91,7 @@ public class RemoveTextHandler extends BaseImageHandler<RemoveTextRequest, Remov
         response.setOriginalUrl(request.getImageUrl());
         response.setImages(Collections.singletonList(image));
 
-        log.info("去除图片文字结束：响应结果：{}", JSONUtil.toJsonStr(response));
+        log.info("去除图片文字结束: 响应结果: \n{}", JsonUtils.toJsonPrettyString(response));
         return response;
     }
 

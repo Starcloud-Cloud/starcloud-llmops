@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+
 /**
  * 基础配置实体
  *
@@ -13,7 +15,7 @@ public abstract class BaseConfigEntity {
 
     }
 
-    public abstract void validate();
+    public abstract void validate(ValidateTypeEnum validateType);
 
 
 }

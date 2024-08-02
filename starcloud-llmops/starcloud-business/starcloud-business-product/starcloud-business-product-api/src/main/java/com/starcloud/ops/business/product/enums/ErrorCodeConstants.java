@@ -47,6 +47,8 @@ public interface ErrorCodeConstants {
 
     ErrorCode SKU_FAIL_NEW_USER_LIMIT = new ErrorCode(1_008_006_005, "该商品仅限新用户下单购买");
     ErrorCode SKU_FAIL_COUPON_LIMIT = new ErrorCode(1_008_006_006, "该商品仅限特邀用户购买");
+    ErrorCode SKU_NO_SUPPORT_SUBSCRIPTION = new ErrorCode(1_008_006_007, "该商品不支持订阅");
+    ErrorCode SKU_FAIL_COUPON_LIMIT_COUPON_NULL = new ErrorCode(1_008_006_008, "请选择对应优惠券后下单");
 
     // ========== 商品 评价 1-008-007-000 ==========
     ErrorCode COMMENT_NOT_EXISTS = new ErrorCode(1_008_007_000, "商品评价不存在");

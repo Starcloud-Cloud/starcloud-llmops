@@ -114,9 +114,9 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     }
 
     /**
-     * @param userId
-     * @param startTime
-     * @param endTime
+     * @param userId    用户编号
+     * @param startTime 开始时间
+     * @param endTime   结束时间
      * @return
      */
     @Override
@@ -162,6 +162,10 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
         // 根据时间范围查询已经邀请人数
         Long count = getSelf().getInviteCountByTimes(inviteUserDO.getId(), startTime, endTime);
         log.info("用户{}当前邀请人数为{},开始检测是否满足规则", inviteUserDO.getId(), count);
+        if (count ==0L){
+            log.info("用户{}当前邀请人数为{},不否满足规则，直接跳出", inviteUserDO.getId(), count);
+            return;
+        }
         // 判断是否满足要求
         List<AdminUserInviteRuleDO.Rule> inviteRule = ruleDO.getInviteRule();
 
@@ -187,8 +191,8 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     public void validateCycleEffectRule(AdminUserDO inviteUserDO, Long inviteCount, Long ruleId, List<AdminUserInviteRuleDO.Rule> inviteRules, Long inviteRecordsId) {
         // 满足要求 添加权益
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
-            if (inviteCount % rule.getCount() == 0) {
-                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}",inviteCount,inviteRules);
+            if (inviteCount % rule.getCount() == 0L) {
+                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}", inviteCount, inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环
             }
@@ -210,7 +214,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
 
         for (AdminUserInviteRuleDO.Rule rule : inviteRules) {
             if (Objects.equals(rule.getCount(), inviteCount)) {
-                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}",inviteCount,inviteRules);
+                log.info("当前邀请人数满足邀请规则配置，当前邀请人数为{}规则配置为{}", inviteCount, inviteRules);
                 getSelf().setInviteUserRights(inviteUserDO, ruleId, rule, inviteRecordsId, inviteCount);
                 break; // 如果你只需要找到一个匹配的规则，可以使用break退出循环
             }
@@ -250,7 +254,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
             log.warn("[executeInviteRuleByRuleType] 当前规则暂无优惠券配置,规则ID为{}", ruleId);
         }
 
-        log.info("准备发送消息，当前 tag 为{}",tag);
+        log.info("准备发送消息，当前 tag 为{}", tag);
         if (tag > 0) {
             sendMsg(inviteUserDO.getId(), inviteCount);
         }

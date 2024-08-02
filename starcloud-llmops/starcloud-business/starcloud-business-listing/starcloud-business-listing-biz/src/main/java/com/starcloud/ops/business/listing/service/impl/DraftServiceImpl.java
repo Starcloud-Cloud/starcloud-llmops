@@ -34,6 +34,7 @@ import com.starcloud.ops.business.listing.dto.DraftItemScoreDTO;
 import com.starcloud.ops.business.listing.dto.KeywordMetaDataDTO;
 import com.starcloud.ops.business.listing.enums.AnalysisStatusEnum;
 import com.starcloud.ops.business.listing.enums.DraftSortFieldEnum;
+import com.starcloud.ops.business.listing.enums.KeywordMetadataStatusEnum;
 import com.starcloud.ops.business.listing.enums.ListExecuteEnum;
 import com.starcloud.ops.business.listing.service.DictService;
 import com.starcloud.ops.business.listing.service.DraftService;
@@ -54,14 +55,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -112,8 +106,8 @@ public class DraftServiceImpl implements DraftService {
         List<ListingDraftUserDTO> latestDrafts = draftMapper.getLatestDrafts(PageUtils.getStart(pageParam),
                 pageParam.getPageSize(),
                 DraftSortFieldEnum.getColumn(pageParam.getSortField()),
-                BooleanUtil.isTrue(pageParam.getAsc()) ? "ASC" : "DESC");
-        Long count = draftMapper.count();
+                BooleanUtil.isTrue(pageParam.getAsc()) ? "ASC" : "DESC", pageParam.getDraftName(), pageParam.getTitle());
+        Long count = draftMapper.count(pageParam.getDraftName(), pageParam.getTitle());
         return new PageResult<>(ListingDraftConvert.INSTANCE.convert2(latestDrafts), count);
     }
 
@@ -135,7 +129,20 @@ public class DraftServiceImpl implements DraftService {
             return respVO;
         }
         List<KeywordMetaDataDTO> metaData = keywordBindService.getMetaData(respVO.getKeywordResume(), draftDO.getEndpoint(), false);
-        respVO.setKeywordMetaData(metaData);
+
+        Map<String, KeywordMetaDataDTO> metaDataDTOMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity(), (a, b) -> a));
+
+        List<KeywordMetaDataDTO> result = new ArrayList<>(keywordBinds.size());
+        for (String keywordBind : keywordBinds) {
+            KeywordMetaDataDTO keywordMetaDataDTO = metaDataDTOMap.get(keywordBind);
+            if (Objects.isNull(keywordMetaDataDTO)) {
+                keywordMetaDataDTO = new KeywordMetaDataDTO();
+                keywordMetaDataDTO.setKeyword(keywordBind);
+                keywordMetaDataDTO.setStatus(KeywordMetadataStatusEnum.NO_DB_DATA.getCode());
+            }
+            result.add(keywordMetaDataDTO);
+        }
+        respVO.setKeywordMetaData(result);
         return respVO;
     }
 
@@ -202,6 +209,7 @@ public class DraftServiceImpl implements DraftService {
         } else {
             updateScore(draftDO);
             updateDo(draftDO, keywordBind.stream().map(KeywordBindDO::getKeyword).collect(Collectors.toList()));
+            updateById(draftDO);
         }
 
         return ListingDraftConvert.INSTANCE.convert(draftDO);
@@ -642,10 +650,10 @@ public class DraftServiceImpl implements DraftService {
         Long totalSearches = metaData.stream().mapToLong(KeywordMetaDataDTO::mouthSearches).sum();
 
         DraftRespVO respVO = ListingDraftConvert.INSTANCE.convert(draftDO);
-        Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity()));
+        Map<String, KeywordMetaDataDTO> metaMap = metaData.stream().collect(Collectors.toMap(KeywordMetaDataDTO::getKeyword, Function.identity(), (a, b) -> a));
 
         String content = listString(respVO);
-        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(content::contains).distinct().collect(Collectors.toList());
+        List<String> contentKeys = keys.stream().map(String::toLowerCase).filter(k -> ListingDraftScoreUtil.containsKey(content, k)).distinct().collect(Collectors.toList());
         long matchSearchers = 0L;
 
         BigDecimal matchSize = BigDecimal.valueOf(0);
@@ -660,7 +668,7 @@ public class DraftServiceImpl implements DraftService {
         // 搜索量
         draftDO.setTotalSearches(totalSearches);
         draftDO.setMatchSearchers(matchSearchers);
-        draftDO.setSearchersProportion(BigDecimal.valueOf(matchSearchers).divide(BigDecimal.valueOf(totalSearches),2, RoundingMode.HALF_UP).doubleValue());
+        draftDO.setSearchersProportion(BigDecimal.valueOf(matchSearchers).divide(BigDecimal.valueOf(totalSearches), 2, RoundingMode.HALF_UP).doubleValue());
     }
 
 

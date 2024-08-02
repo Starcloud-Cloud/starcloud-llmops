@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response;
 
-import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractBaseCreativeMaterialDTO;
+import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -18,5 +19,5 @@ public class ParseResult {
     private boolean complete;
 
     @Schema(description = "素材明细")
-    List<AbstractBaseCreativeMaterialDTO> materialDTOList;
+    List<Map<String, Object>> materialList;
 }

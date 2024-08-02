@@ -15,6 +15,7 @@ import com.starcloud.ops.business.product.service.property.ProductPropertyServic
 import com.starcloud.ops.business.product.service.property.ProductPropertyValueService;
 import com.starcloud.ops.business.product.service.spu.ProductSpuService;
 import com.starcloud.ops.business.promotion.api.coupon.CouponApi;
+import com.starcloud.ops.business.promotion.api.coupon.dto.CouponRespDTO;
 import com.starcloud.ops.business.user.api.user.AdminUsersApi;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -172,35 +173,21 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             return productSkuDOS;
         }
         if (filter) {
-            // List<ProductSkuDO> filteredSkus = productSkuDOS.stream()
-            //         .filter(sku -> {
-            //             ProductSkuDO.OrderLimitConfig config = sku.getOrderLimitConfig();
-            //             return config != null && (
-            //                     (config.getIsNewUser() && !adminUsersApi.isNewUser(userId)) ||
-            //                             (CollUtil.isNotEmpty(config.getLimitCouponTemplateId()) &&
-            //                                     couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(categoryId)) == 0)
-            //             );
-            //         })
-            //         .collect(Collectors.toList());
-            //
-            // return filteredSkus;
-            List<ProductSkuDO> collect = productSkuDOS.stream().filter(sku -> {
+            return productSkuDOS.stream().filter(sku -> {
                 if (Objects.nonNull(sku.getOrderLimitConfig())) {
                     if (sku.getOrderLimitConfig().getIsNewUser()) {
                         if (!adminUsersApi.isNewUser(userId)) {
                             return false;
                         }
                     }
-
                     if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
-                        return couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(categoryId)) != 0;
+                        return couponApi.getMatchCouponCount(userId, sku.getPrice(), Collections.singletonList(sku.getSpuId()), Collections.singletonList(sku.getId()), Collections.singletonList(categoryId)) != 0;
                     }
                     return true;
 
                 }
                 return true;
             }).collect(Collectors.toList());
-            return collect;
         }
         return productSkuDOS;
     }
@@ -278,8 +265,12 @@ public class ProductSkuServiceImpl implements ProductSkuService {
      * @param skuId  SKU 编号
      */
     @Override
-    public void canPlaceOrder(Long userId, Long skuId) {
+    public void canPlaceOrder(Long userId, Long skuId,Long couponId) {
         ProductSkuDO sku = getSku(skuId);
+
+        if (sku == null) {
+            throw exception(SKU_NOT_EXISTS);
+        }
 
         if (Objects.isNull(sku.getOrderLimitConfig())) {
             return;
@@ -291,9 +282,34 @@ public class ProductSkuServiceImpl implements ProductSkuService {
             }
         }
         if (CollUtil.isNotEmpty(sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
-            if (couponApi.validateUserExitTemplateId(userId,sku.getOrderLimitConfig().getLimitCouponTemplateId())) {
+            if (Objects.isNull(couponId)){
+                throw exception(SKU_FAIL_COUPON_LIMIT_COUPON_NULL);
+            }
+            CouponRespDTO coupon = couponApi.getCoupon(couponId, userId);
+            List<Long> limitCouponTemplateId = sku.getOrderLimitConfig().getLimitCouponTemplateId();
+            if (!limitCouponTemplateId.contains(coupon.getTemplateId())) {
                 throw exception(SKU_FAIL_COUPON_LIMIT);
             }
+        }
+    }
+
+    /**
+     * 验证商品是否支持签约
+     *
+     * @param skuId SKU 编号
+     */
+    @Override
+    public void isValidSubscriptionSupported(Long skuId) {
+        ProductSkuDO sku = getSku(skuId);
+
+        if (sku == null) {
+            throw exception(SKU_NOT_EXISTS);
+        }
+
+        if (Objects.isNull(sku.getSubscribeConfig()) || !sku.getSubscribeConfig().getIsSubscribe()) {
+            //  TODO 发送预警
+
+            throw exception(SKU_NO_SUPPORT_SUBSCRIPTION);
         }
     }
 

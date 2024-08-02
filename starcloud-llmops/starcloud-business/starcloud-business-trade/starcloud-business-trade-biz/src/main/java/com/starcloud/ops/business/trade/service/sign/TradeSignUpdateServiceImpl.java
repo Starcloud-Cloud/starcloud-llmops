@@ -2,13 +2,18 @@ package com.starcloud.ops.business.trade.service.sign;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.core.KeyValue;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.module.pay.api.sign.PaySignApi;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.sign.dto.PaySignRespDTO;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.spu.dto.SubscribeConfigDTO;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignCreateReqVO;
 import com.starcloud.ops.business.trade.controller.admin.sign.vo.AppTradeSignSettlementReqVO;
@@ -16,6 +21,7 @@ import com.starcloud.ops.business.trade.controller.app.order.vo.AppTradeOrderSet
 import com.starcloud.ops.business.trade.convert.order.TradeOrderConvert;
 import com.starcloud.ops.business.trade.convert.sign.TradeSignConvert;
 import com.starcloud.ops.business.trade.dal.dataobject.cart.CartDO;
+import com.starcloud.ops.business.trade.dal.dataobject.order.TradeOrderDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO;
 import com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignItemDO;
 import com.starcloud.ops.business.trade.dal.mysql.sign.TradeSignItemMapper;
@@ -25,13 +31,16 @@ import com.starcloud.ops.business.trade.enums.order.TradeOrderRefundStatusEnum;
 import com.starcloud.ops.business.trade.enums.sign.TradeSignStatusEnum;
 import com.starcloud.ops.business.trade.framework.order.config.TradeOrderProperties;
 import com.starcloud.ops.business.trade.service.cart.CartService;
+import com.starcloud.ops.business.trade.service.order.TradeOrderQueryService;
 import com.starcloud.ops.business.trade.service.price.TradePriceService;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateReqBO;
 import com.starcloud.ops.business.trade.service.price.bo.TradePriceCalculateRespBO;
 import com.starcloud.ops.business.trade.service.rights.TradeRightsService;
 import com.starcloud.ops.business.trade.service.rights.bo.TradeRightsCalculateRespBO;
+import com.starcloud.ops.business.trade.service.sign.handler.TradeSignHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -43,6 +52,7 @@ import java.util.Set;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getSumValue;
+import static com.starcloud.ops.business.trade.dal.dataobject.sign.TradeSignDO.PAY_DELAY_NUM;
 import static com.starcloud.ops.business.trade.enums.ErrorCodeConstants.*;
 
 @Service
@@ -57,7 +67,11 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
     private TradeSignItemMapper tradeSignItemMapper;
 
     @Resource
+    private TradeSignQueryService tradeSignQueryService;
+
+    @Resource
     private CartService cartService;
+
     @Resource
     private TradePriceService tradePriceService;
 
@@ -77,7 +91,18 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
 
     @Resource
-    private TradeSignQueryService tradeSignQueryService;
+    private List<TradeSignHandler> tradeSignHandlers;
+
+    @Resource
+    @Lazy
+    private TradeOrderQueryService tradeOrderQueryService;
+
+    @Resource
+    private SmsSendApi smsSendApi;
+
+
+    @Resource
+    private DingTalkNoticeProperties dingTalkNoticeProperties;
 
 
     @Override
@@ -103,17 +128,29 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // 设置预计扣款时间
         List<TradeSignItemDO> signItemDOS = buildTradeSignItems(tradeSignDO, calculateRespBO);
 
-        tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), 4, tradeSignDO.getSignConfigs().getPeriodType()));
+        // fixme 增加签约校验 避免有人修改配置导致配置异常
+        if (tradeSignDO.getSignConfigs().getPeriod() != 1) {
+            tradeSignDO.getSignConfigs().setPeriod(1);
+        }
+        if (tradeSignDO.getSignConfigs().getPeriod() != 30) {
+            tradeSignDO.getSignConfigs().setPeriodType(30);
+        }
 
-        // 2. 保存记录
+        tradeSignDO.setPayTime(calculateExpectedPaymentDate(LocalDate.now(), PAY_DELAY_NUM, tradeSignDO.getSignConfigs().getPeriodType()));
+
+        // 2.0 订单创建前的验证
+        tradeSignHandlers.forEach(handler -> handler.beforeSignValidate(tradeSignDO, signItemDOS));
+
+        // 3. 保存记录
         tradeSignMapper.insert(tradeSignDO);
         signItemDOS.forEach(orderItem -> orderItem.setSignId(tradeSignDO.getId()));
         tradeSignItemMapper.insertBatch(signItemDOS);
 
-        // 3. 签约创建后的逻辑
+        // 4. 签约创建后的逻辑
         afterCreateTradeOrder(tradeSignDO, signItemDOS, createReqVO);
         return tradeSignDO;
     }
+
 
     private SubscribeConfigDTO getProductSignConfig(Long userId, AppTradeSignCreateReqVO createReqVO) {
 
@@ -131,15 +168,15 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
     @Override
     public void updateSignStatus(Long id, Long paySignId, Boolean closeSign) {
+        log.info("收到签约回调信息，当前数据为签约编号{},签约支付号{},是否取消签约{},", id, paySignId, closeSign);
+        KeyValue<TradeSignDO, PaySignRespDTO> signResult = validateSignAble(id, paySignId, closeSign);
 
-        KeyValue<TradeSignDO, PaySignRespDTO> orderResult = validateSignAble(id, paySignId, closeSign);
-
-        TradeSignDO order = orderResult.getKey();
-        PaySignRespDTO payOrder = orderResult.getValue();
+        TradeSignDO signResultKey = signResult.getKey();
+        PaySignRespDTO signResultValue = signResult.getValue();
 
         // // 2. 更新 TradeOrderDO 状态为已支付，等待发货
         TradeSignDO signDO = new TradeSignDO()
-                .setPayChannelCode(payOrder.getChannelCode());
+                .setPayChannelCode(signResultValue.getChannelCode());
         if (closeSign) {
             signDO.setStatus(TradeSignStatusEnum.CANCELED.getStatus())
                     .setCancelTime(LocalDateTime.now());
@@ -147,47 +184,26 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
             signDO.setStatus(TradeSignStatusEnum.SIGNING.getStatus())
                     .setFinishTime(LocalDateTime.now());
         }
-        int updateCount = 0;
-        updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
+
+        int updateCount = tradeSignMapper.updateByIdAndStatus(id, signResultKey.getStatus(),
                 signDO);
 
 
         if (updateCount == 0) {
             throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
         }
-        // tradeSignQueryService.getSign()
-        //
-        //
-        // // 1. 校验并获得交易订单（可支付）
-        // KeyValue<TradeOrderDO, PayOrderRespDTO> orderResult = validateSignAble(id, payOrderId);
+        // 如果是关闭签约 检测用户是否在当前签约下没有支付订单
+        if (closeSign) {
+            closeSignPayOrderCheck(id);
+        }
 
-        //
-        // // 2. 更新 TradeOrderDO 状态为已支付，等待发货
-        // int updateCount = 0;
-        //
-        //    updateCount = tradeSignMapper.updateByIdAndStatus(id, order.getStatus(),
-        //            new TradeSignDO().setStatus(TradeSignStatusEnum.SIGNING.getStatus())
-        //                    .setFinishTime(LocalDateTime.now())
-        //                    .setPayChannelCode(payOrder.getChannelCode()));
-        //
-        //
-        // if (updateCount == 0) {
-        //    throw exception(ORDER_UPDATE_PAID_STATUS_NOT_UNPAID);
-        // }
-        //
-        // // 3. 执行 TradeOrderHandler 的后置处理
-        // List<TradeOrderItemDO> orderItems = tradeOrderItemMapper.selectListByOrderId(id);
-        // tradeOrderHandlers.forEach(handler -> handler.afterPayOrder(order, orderItems));
-        //
-        // // 4. 记录订单日志
-        // Integer afterStatus = TradeOrderStatusEnum.UNDELIVERED.getStatus();
-        // if (Objects.equals(DeliveryTypeEnum.AUTO.getType(), order.getDeliveryType())) {
-        //    afterStatus = TradeOrderStatusEnum.COMPLETED.getStatus();
-        // }
-        // TradeOrderLogUtils.setOrderInfo(order.getId(), order.getStatus(), afterStatus);
-        // TradeOrderLogUtils.setUserInfo(order.getUserId(), UserTypeEnum.ADMIN.getValue());
-        //
-        // sendPaySuccessMsg(order.getUserId(), orderItems.get(0).getSpuName(), order.getTotalPrice(), order.getDiscountPrice(), order.getPayPrice(), LocalDateTime.now());
+        // 当前数据状态 需要在事务提交后获取
+        // TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        //     @Override
+        //     public void afterCommit() {
+        tradeSignQueryService.executeAutoTradeSignPay();
+        //     }
+        // });
 
     }
 
@@ -197,7 +213,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
      * @param id 交易订单编号
      */
     @Override
-    public void updatePayTime(Long id) {
+    public TradeSignDO updatePayTime(Long id) {
         TradeSignDO signDO = tradeSignMapper.selectById(id);
         if (signDO == null) {
             throw exception(SIGN_NOT_FOUND);
@@ -207,6 +223,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
 
         LocalDateTime payTime = TimeRangeTypeEnum.getPlusTimeByRange(periodType, period, signDO.getPayTime().atStartOfDay());
         tradeSignMapper.updateById(new TradeSignDO().setId(signDO.getId()).setPayTime(payTime.toLocalDate()));
+        return signDO;
     }
 
     /**
@@ -311,28 +328,10 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         return TradeSignConvert.INSTANCE.convertList(tradeSignDO, calculateRespBO);
     }
 
-    private LocalDate buildSignPayTime(LocalDate date, TimeRangeTypeEnum timeRange) {
-        // 判断日期是否为每个月的28号以后
-        if (date.getDayOfMonth() > 28) {
-            switch (timeRange) {
-                case DAY:
-                    // 如果是，则将日期设置为下个月的1号
-                    return date.plusDays(7);
-                case MONTH:
-                    // 如果是，则将日期设置为下个月的1号
-                    return date.plusMonths(1).withDayOfMonth(1);
-            }
-            // 如果是，则将日期设置为下个月的1号
-            return date.plusMonths(1).withDayOfMonth(1);
-        }
-        return date;
-    }
-
 
     public static LocalDate calculateExpectedPaymentDate(LocalDate payTime, Integer plusNums, Integer timeRange) {
 
         if (TimeRangeTypeEnum.DAY.getType().equals(timeRange)) {
-            // 如果是，则将日期设置为下个月的1号
             return payTime.plusDays(7);
         }
 
@@ -345,7 +344,7 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
             calculateTime = payTime.plusMonths(1).withDayOfMonth(1);
         }
 
-        if (calculateTime.isAfter(payTime.plusDays(5))) {
+        if (calculateTime.isAfter(payTime.plusDays(PAY_DELAY_NUM + 1))) {
             calculateTime = calculateExpectedPaymentDate(payTime, plusNums - 1, timeRange); // 递归调用，并使用返回的结果替换calculateTime
         }
         return calculateTime;
@@ -408,4 +407,24 @@ public class TradeSignUpdateServiceImpl implements TradeSignUpdateService {
         // }
         return new KeyValue<>(signDO, paySignRespDTO);
     }
+
+    private void closeSignPayOrderCheck(Long id) {
+        try {
+            List<TradeOrderDO> signPayTradeList = tradeOrderQueryService.getSignPayTradeList(id);
+
+            // 获取当前运行环境
+            String environmentName = dingTalkNoticeProperties.getName().equals("Formal") ? "正式" : "测试";
+            if (signPayTradeList.isEmpty()) {
+                smsSendApi.sendSingleSmsToAdmin(new SmsSendSingleToUserReqDTO()
+                        .setUserId(1L)
+                        .setMobile("17835411844")
+                        .setTemplateCode("SIGN_CLOSE_NO_PAY_NOTIFY").
+                        setTemplateParams(MapUtil.<String, Object>builder().put("params", StrUtil.format("签约订单编号为{}的数据 关闭签约,且当前签约不存在有效的支付记录", id)).put("environmentName", environmentName).build()));
+            }
+        } catch (RuntimeException e) {
+            log.error("closeSignPayOrderCheck 发送通知失败");
+        }
+
+    }
+
 }

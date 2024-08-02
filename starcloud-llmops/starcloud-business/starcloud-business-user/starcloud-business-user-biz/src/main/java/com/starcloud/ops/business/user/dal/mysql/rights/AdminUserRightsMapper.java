@@ -1,15 +1,14 @@
 package com.starcloud.ops.business.user.dal.mysql.rights;
 
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.dal.dataobject.level.AdminUserLevelDO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
@@ -33,9 +32,10 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
                 .orderByDesc(AdminUserRightsDO::getId));
     }
 
-    default PageResult<AdminUserRightsDO> selectPage(Long userId, PageParam pageVO) {
+    default PageResult<AdminUserRightsDO> selectPage(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         return selectPage(pageVO, new LambdaQueryWrapperX<AdminUserRightsDO>()
-                .eq(AdminUserRightsDO::getUserId, userId)
+                .eqIfPresent(AdminUserRightsDO::getBizType, pageVO.getBizId())
+                .eqIfPresent(AdminUserRightsDO::getUserId, userId)
                 .orderByDesc(AdminUserRightsDO::getId));
     }
 
@@ -55,11 +55,25 @@ public interface AdminUserRightsMapper extends BaseMapperX<AdminUserRightsDO> {
     }
 
 
-    default AdminUserRightsDO findLatestExpirationByLevel(Long userId, Long levelId) {
-        return selectOne(new QueryWrapper<AdminUserRightsDO>()
-                .eq("user_id", userId)
-                .eq("user_level_id", levelId)
-                .orderByDesc("valid_end_time")
-                .last("limit 1"));
+    /**
+     * 获取有效【包含未生效】的权益数据列表
+     * 如果用户编号（userId）为空 则查询所有的数据
+     *
+     * @param userId 用户编号
+     * @return 数据列表
+     */
+    default List<AdminUserRightsDO> getValidAdminUserRights(Long userId, Long level, LocalDateTime now) {
+
+        return selectList(new LambdaQueryWrapperX<AdminUserRightsDO>()
+                .eqIfPresent(AdminUserRightsDO::getUserId, userId)
+                .eqIfPresent(AdminUserRightsDO::getUserLevelId, level)
+                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
+                .and(wrapper -> wrapper
+                        .or(w->w.le(AdminUserRightsDO::getValidStartTime, now) // validStartTime <= NOW()
+                                .ge(AdminUserRightsDO::getValidEndTime, now))
+                        .or(w-> w.ge(AdminUserRightsDO::getValidStartTime, now) // validStartTime > NOW()
+                                .ge(AdminUserRightsDO::getValidEndTime, now))
+                )
+        );
     }
 }

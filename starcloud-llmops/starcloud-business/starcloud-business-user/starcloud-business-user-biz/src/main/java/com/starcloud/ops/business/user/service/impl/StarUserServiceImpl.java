@@ -12,16 +12,16 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
+import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.MenuDO;
+import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
-import cn.iocoder.yudao.module.system.dal.mysql.permission.RoleMapper;
-import cn.iocoder.yudao.module.system.dal.mysql.permission.UserRoleMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.logger.LoginLogTypeEnum;
 import cn.iocoder.yudao.module.system.enums.logger.LoginResultEnum;
@@ -29,6 +29,9 @@ import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
 import cn.iocoder.yudao.module.system.service.logger.LoginLogService;
 import cn.iocoder.yudao.module.system.service.mail.MailSendServiceImpl;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
+import cn.iocoder.yudao.module.system.service.permission.MenuService;
+import cn.iocoder.yudao.module.system.service.permission.PermissionService;
+import cn.iocoder.yudao.module.system.service.permission.RoleService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.product.api.spu.ProductSpuApi;
@@ -62,7 +65,7 @@ import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import com.starcloud.ops.business.user.service.tag.AdminUserTagService;
 import com.starcloud.ops.business.user.service.user.StarUserService;
-import com.starcloud.ops.business.user.service.user.handler.UserRegisterHandler;
+import com.starcloud.ops.business.user.service.user.handler.NewUserHandler;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -76,12 +79,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.*;
 
@@ -110,14 +111,6 @@ public class StarUserServiceImpl implements StarUserService {
     @Autowired
     private RecoverPasswordMapper recoverPasswordMapper;
 
-    @Autowired
-    private UserRoleMapper userRoleMapper;
-
-//    @Autowired
-//    private PermissionProducer permissionProducer;
-
-//    @Autowired
-//    private UserBenefitsService benefitsService;
 
     @Resource
     private AdminUserInviteService adminUserInviteService;
@@ -130,9 +123,6 @@ public class StarUserServiceImpl implements StarUserService {
     @Resource
     private SendUserMsgService sendUserMsgService;
 
-
-    @Autowired
-    private RoleMapper roleMapper;
     @Resource
     private SendSocialMsgService sendSocialMsgService;
 
@@ -158,10 +148,18 @@ public class StarUserServiceImpl implements StarUserService {
     private CouponApi couponApi;
 
     @Resource
-    private List<UserRegisterHandler> userRegisterHandlers;
+    private List<NewUserHandler> newUserHandlers;
 
     @Resource
     private NewUserProperties newUserProperties;
+
+    @Resource
+    private PermissionService permissionService;
+
+    @Resource
+    private RoleService roleService;
+    @Resource
+    private MenuService menuService;
 
 
     @Override
@@ -187,7 +185,7 @@ public class StarUserServiceImpl implements StarUserService {
             }
         }
         String url = getOrigin();
-        String activationUrl = url + "/admin-api/llm/auth/activation/" + activationCode + "?redirectUri=" + getOrigin() + "/login";
+        String activationUrl = url + "/registerResult?activation=" + activationCode;
         Map<String, Object> map = new HashMap<>();
         map.put("activationUrl", activationUrl);
         // 创建未激活用户
@@ -315,8 +313,11 @@ public class StarUserServiceImpl implements StarUserService {
         }
         // 2.0 权益统一处理
         Long finalInviteUserid = inviteUserid;
-        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(currentUserId), finalInviteUserid == null ? null : userService.getUser(finalInviteUserid)));
-        // addBenefits(currentUserId, inviteUserid);
+        try {
+            newUserHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(currentUserId), finalInviteUserid == null ? null : userService.getUser(finalInviteUserid)));
+        } catch (RuntimeException e) {
+            log.error("新用户权益发放失败，失败原因{}", e.getMessage(), e);
+        }
     }
 
     @Override
@@ -326,7 +327,7 @@ public class StarUserServiceImpl implements StarUserService {
         if (registerUserDO == null) {
             throw exception(ACTIVATION_CODE_ERROR);
         }
-        if (registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) < 0) {
+        if (registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) < 0) {
             registerUserDO.setStatus(2);
             registerUserMapper.updateById(registerUserDO);
             throw exception(OPERATE_TIME_OUT);
@@ -338,7 +339,12 @@ public class StarUserServiceImpl implements StarUserService {
         if (i <= 0) {
             throw exception(ACTIVATION_USER_ERROR);
         }
-        userRegisterHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(registerUserDO.getUserId()), registerUserDO.getInviteUserId() == null ? null : userService.getUser(registerUserDO.getInviteUserId())));
+
+        try {
+            newUserHandlers.forEach(handler -> handler.afterUserRegister(userService.getUser(registerUserDO.getUserId()), registerUserDO.getInviteUserId() == null ? null : userService.getUser(registerUserDO.getInviteUserId())));
+        } catch (RuntimeException e) {
+            log.error("新用户权益发放失败，失败原因{}", e.getMessage(), e);
+        }
 
         // addBenefits(registerUserDO.getUserId(), registerUserDO.getInviteUserId());
         TenantContextHolder.setIgnore(true);
@@ -378,11 +384,10 @@ public class StarUserServiceImpl implements StarUserService {
         deptDO.setLeaderUserId(userDO.getId());
         deptMapper.updateById(deptDO);
 
-        // FIXME: 2023/12/19  设置用户等级 而不是设置设置用户角色
-        TenantUtils.execute(userDTO.getTenantId(), () -> {
-            adminUserLevelService.createInitLevelRecord(userDO.getId());
-            adminUserTagService.addNewUserTag(userDO.getId());
-        });
+        // TenantUtils.execute(userDTO.getTenantId(), () -> {
+        //     adminUserLevelService.createInitLevelRecord(userDO.getId());
+        //     adminUserTagService.addNewUserTag(userDO.getId());
+        // });
 
         return userDO.getId();
     }
@@ -420,6 +425,42 @@ public class StarUserServiceImpl implements StarUserService {
 
         return true;
     }
+
+    /**
+     * @param userId 用户ID
+     * @return AuthPermissionInfoRespVO
+     */
+    @Override
+    public AuthPermissionInfoRespVO getPermissionInfo(Long userId) {
+        // 1.1 获得用户信息
+        AdminUserDO user = userService.getUser(userId);
+        if (user == null) {
+            return null;
+        }
+        Long permissionUser;
+        // 获取当前用户的团队管理者
+        Long deptRightsUserId = getDeptRightsUserId(userId);
+        if (!userId.equals(deptRightsUserId)) {
+            permissionUser = deptRightsUserId;
+            log.info("当前用户{}存在团队，且不属于团队管理者，开始切换显示团队管理者{}菜单", userId, deptRightsUserId);
+        } else {
+            permissionUser = userId;
+        }
+        // 1.2 获得角色列表
+        Set<Long> roleIds = permissionService.getUserRoleIdListByUserId(permissionUser);
+        if (CollUtil.isEmpty(roleIds)) {
+            return AuthConvert.INSTANCE.convert(user, Collections.emptyList(), Collections.emptyList());
+        }
+        List<RoleDO> roles = roleService.getRoleList(roleIds);
+        roles.removeIf(role -> !CommonStatusEnum.ENABLE.getStatus().equals(role.getStatus())); // 移除禁用的角色
+
+        // 1.3 获得菜单列表
+        Set<Long> menuIds = permissionService.getRoleMenuListByRoleId(convertSet(roles, RoleDO::getId));
+        List<MenuDO> menuList = menuService.getMenuList(menuIds);
+        menuList.removeIf(menu -> !CommonStatusEnum.ENABLE.getStatus().equals(menu.getStatus())); // 移除禁用的菜单
+        return AuthConvert.INSTANCE.convert(user, roles, menuList);
+    }
+
 
     private void createLoginLog(Long userId, String username,
                                 LoginLogTypeEnum logTypeEnum, LoginResultEnum loginResult) {
@@ -597,14 +638,18 @@ public class StarUserServiceImpl implements StarUserService {
 
         // 获取用户等级
         List<AdminUserLevelDetailRespVO> levelList = adminUserLevelService.getLevelList(userId);
+        // 获取团队所属者用户等级
+        List<AdminUserLevelDetailRespVO> groupLevelList = adminUserLevelService.getGroupLevelList(userId);
         // 获取用户权益
         List<AdminUserRightsCollectRespVO> rightsCollect = adminUserRightsService.getRightsCollect(userId);
+        // 获取团队权益
+        List<AdminUserRightsCollectRespVO> teamRights = adminUserRightsService.getGroupRightsCollect(userId);
 
 
-        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect);
+        AdminUserInfoRespVO userDetailVO = UserDetailConvert.INSTANCE.useToDetail02(userDO, levelList, rightsCollect, teamRights);
         userDetailVO.setInviteCode(inviteCode);
         userDetailVO.setInviteUrl(String.format("%s/login?inviteCode=%s", getOrigin(), inviteCode));
-        userDetailVO.setIsNewUser(validateIsNewUser(userDO.getCreateTime(), userId));
+        userDetailVO.setIsNewUser(isNewUser(userId));
         userDetailVO.setRegisterTime(userDO.getCreateTime());
         userDetailVO.setEndTime(userDO.getCreateTime().plusDays(3));
         userDetailVO.setIsInviteUser(false);
@@ -686,21 +731,33 @@ public class StarUserServiceImpl implements StarUserService {
 
         RegisterUserDO registerUserDO = registerUserMapper.selectByUsername(username);
         // 注册时间30分钟内
-        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) > 0) {
             throw exception(USER_USERNAME_EXISTS);
         }
         registerUserDO = registerUserMapper.selectByEmail(email);
-        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(30)) > 0) {
+        if (registerUserDO != null && registerUserDO.getRegisterDate().compareTo(LocalDateTime.now().minusMinutes(60)) > 0) {
             throw exception(USER_EMAIL_EXISTS);
         }
     }
 
-    private Boolean validateIsNewUser(LocalDateTime RegisterTime, Long userId) {
-        if (tradeOrderApi.getSuccessOrderCount(userId) > 0) {
-            return false;
-        }
 
-        // 注册时间3天内
-        return RegisterTime.isAfter(LocalDateTime.now().minusDays(3));
+        /*
+      获取应该创作权益的用户   返回部门超级管理员id
+      1，获取当前用户的部门
+      2，判断是否是部门管理员
+      1）是部门管理员，返回
+      2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
+      3，返回有剩余点的用户ID（管理员或当前用户）
+     */
+
+    /**
+     * 这里关闭数据权限，主要是后面的 SQL查询会带上 kstry 线程中的其他正常用户的上下文，导致跟 powerjob 执行应用时候导致用户上下文冲突
+     * 所以这里直接 关闭数据权限，这样下面的 关于权益的扣点 已经不需要用户上下文了，单ruiyi 本地比如SQL update会继续获取，所以后续的方法最好直接指定字段创作DB。
+     */
+    protected Long getDeptRightsUserId(Long currentUserId) {
+        return userDeptService.selectSuperAdminId(currentUserId).getUserId();
     }
+
 }
+
+
