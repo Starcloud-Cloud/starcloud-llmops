@@ -45,6 +45,6 @@ public class XhsRequestInterceptor implements RequestInterceptor {
         }
         template.header(COOKIE, dictDataDO.getValue());
 
-//        template.header("User-Agent", USER_AGENT.get(RandomUtil.randomInt(USER_AGENT.size())));
+        template.header("User-Agent", USER_AGENT.get(RandomUtil.randomInt(USER_AGENT.size())));
     }
 }
