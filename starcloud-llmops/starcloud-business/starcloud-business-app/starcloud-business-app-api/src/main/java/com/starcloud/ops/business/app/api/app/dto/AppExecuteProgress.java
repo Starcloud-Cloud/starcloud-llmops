@@ -18,7 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Schema(description = "应用执行进度")
-public class AppExecuteProgressDTO implements java.io.Serializable {
+public class AppExecuteProgress implements java.io.Serializable {
 
     private static final long serialVersionUID = -2389223281767048800L;
 
