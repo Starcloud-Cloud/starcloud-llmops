@@ -73,6 +73,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         // 设置数据最新的序号
         MaterialLibrarySliceDO lastSequenceSliceDO = materialLibrarySliceMapper.selectLastSequence(sliceDO.getLibraryId());
 
+
         if (lastSequenceSliceDO != null) {
             nextSequence = nextSequence + 1;
         }
