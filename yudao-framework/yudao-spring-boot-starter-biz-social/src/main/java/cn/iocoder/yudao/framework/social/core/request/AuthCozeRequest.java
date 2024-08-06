@@ -1,16 +1,21 @@
 package cn.iocoder.yudao.framework.social.core.request;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.social.core.enums.AuthExtendSource;
 import com.alibaba.fastjson.JSONObject;
 import com.xingyuv.jushauth.cache.AuthStateCache;
 import com.xingyuv.jushauth.config.AuthConfig;
+import com.xingyuv.jushauth.enums.AuthResponseStatus;
 import com.xingyuv.jushauth.enums.AuthUserGender;
 import com.xingyuv.jushauth.exception.AuthException;
+import com.xingyuv.jushauth.log.Log;
 import com.xingyuv.jushauth.model.AuthCallback;
 import com.xingyuv.jushauth.model.AuthResponse;
 import com.xingyuv.jushauth.model.AuthToken;
 import com.xingyuv.jushauth.model.AuthUser;
 import com.xingyuv.jushauth.request.AuthDefaultRequest;
+import com.xingyuv.jushauth.utils.AuthChecker;
+import com.xingyuv.jushauth.utils.HttpUtils;
 
 
 public class AuthCozeRequest extends AuthDefaultRequest {
@@ -99,5 +104,23 @@ public class AuthCozeRequest extends AuthDefaultRequest {
             throw new AuthException(object.getString("message"));
         }
     }
+
+    @Override
+    public AuthResponse login(AuthCallback authCallback) {
+        try {
+            if (!config.isIgnoreCheckState()) {
+                AuthChecker.checkState(authCallback.getState(), source, authStateCache);
+            }
+            AuthToken authToken = this.getAccessToken(authCallback);
+            return AuthResponse.builder().code(AuthResponseStatus.SUCCESS.getCode()).data(authToken).build();
+        } catch (Exception e) {
+            Log.error("Failed to login with oauth authorization.", e);
+            return  AuthResponse.builder().code(AuthResponseStatus.FAILURE.getCode()).data(e).build();
+        }
+
+    }
+
+
+
 
 }
