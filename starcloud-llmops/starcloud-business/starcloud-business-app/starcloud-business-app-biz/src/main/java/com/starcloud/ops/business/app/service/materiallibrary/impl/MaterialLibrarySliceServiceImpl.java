@@ -208,7 +208,13 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void deleteBatch(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return;
+        }
+        MaterialLibrarySliceDO materialLibrarySliceDO = materialLibrarySliceMapper.selectById(ids.get(0));
         materialLibrarySliceMapper.deleteBatchIds(ids);
+
+        materialLibraryService.updateMaterialLibraryFileCount(materialLibrarySliceDO.getLibraryId());
     }
 
     /**
@@ -257,7 +263,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
 
-
         List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(bind.getLibraryId());
 
         return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
@@ -293,7 +298,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void updateSliceUsedCount(Long libraryId, Long sliceId, Integer usedCount) {
-        log.info("updateSliceUsedCount : libraryId:{},sliceId:{},usedCount:{}",libraryId,sliceId,usedCount);
+        log.info("updateSliceUsedCount : libraryId:{},sliceId:{},usedCount:{}", libraryId, sliceId, usedCount);
         MaterialLibrarySliceDO slice = materialLibrarySliceMapper.selectById(sliceId);
 
         if (slice == null) {
@@ -313,7 +318,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
 
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
-        if (tableColumnDOList.isEmpty()){
+        if (tableColumnDOList.isEmpty()) {
             return;
         }
 
@@ -323,7 +328,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         pageReqVO.setLibraryId(templateLibraryId);
 
 
-        AtomicReference<List<MaterialLibrarySliceDO> > templateSliceDOList  = new AtomicReference<>();
+        AtomicReference<List<MaterialLibrarySliceDO>> templateSliceDOList = new AtomicReference<>();
 
         // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
         DataPermissionUtils.executeIgnore(() -> {
@@ -333,7 +338,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         });
 
 
-        if (templateSliceDOList.get().isEmpty()){
+        if (templateSliceDOList.get().isEmpty()) {
             return;
         }
 
@@ -356,15 +361,12 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         });
 
 
-       saveBatchData(templateSliceDOList.get());
+        saveBatchData(templateSliceDOList.get());
 
     }
 
 
-
     private MaterialLibraryTableColumnDO findColumnDOByCode(List<MaterialLibraryTableColumnDO> tableColumnDOList, String columnCode) {
-        // 为了优化性能，这里可以考虑使用更高效的数据结构进行搜索，比如HashMap
-        // 由于示例中没有给出具体的ColumnDO实现，这里简单地使用循环遍历列表进行查找
         for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
             if (tableColumnDO.getColumnCode().equals(columnCode)) {
                 return tableColumnDO; // 找到匹配的ColumnDO，返回之
@@ -372,6 +374,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         return null; // 如果没有找到匹配的ColumnDO，返回null
     }
+
     /**
      * 校验数据是否存在
      *
