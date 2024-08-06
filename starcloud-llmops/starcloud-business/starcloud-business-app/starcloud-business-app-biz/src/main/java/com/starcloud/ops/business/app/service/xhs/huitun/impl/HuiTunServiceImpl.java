@@ -7,6 +7,9 @@
 // import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 // import com.alibaba.fastjson.JSONException;
 // import com.starcloud.ops.business.app.service.xhs.huitun.HuiTunService;
+// import com.starcloud.ops.business.app.service.xhs.huitun.dto.PersonFeatDTO;
+// import com.starcloud.ops.business.app.service.xhs.huitun.dto.SearchConditionsDTO;
+// import com.starcloud.ops.business.app.service.xhs.huitun.dto.TagLableDTO;
 // import org.springframework.stereotype.Service;
 //
 // import javax.annotation.Resource;
@@ -44,6 +47,7 @@
 //      * 内容特征
 //      */
 //     private static final String PERSON_FEAT = "https://xhsapi.huitun.com/common/getPersonFeat";
+//
 //
 //
 //     private final static String COOKIE_KEY = "SELLER_SPRITE_ACCOUNT";
@@ -226,6 +230,7 @@
 //         // // 更新账号 cookie
 //
 //     }
+//
 //
 //
 //     private static String extractCookiesAsString(List<HttpCookie> cookies) {
