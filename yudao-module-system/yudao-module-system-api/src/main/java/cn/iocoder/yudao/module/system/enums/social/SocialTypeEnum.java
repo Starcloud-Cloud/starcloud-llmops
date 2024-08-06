@@ -53,6 +53,13 @@ public enum SocialTypeEnum implements IntArrayValuable {
      * @see <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/login.html">接入文档</a>
      */
     WECHAT_MINI_APP(34, "WECHAT_MINI_APP"),
+
+    /**
+     * 扣子
+     *
+     * @see <a href="https://www.coze.cn/docs/developer_guides/oauth_code">接入文档</a>
+     */
+    COZE(35, "COZE"),
     ;
 
     public static final int[] ARRAYS = Arrays.stream(values()).mapToInt(SocialTypeEnum::getType).toArray();

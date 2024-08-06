@@ -59,4 +59,7 @@ public interface CozeService {
     Object getAnswer(@Validated CozeChatQuery query);
 
 
+    void oauth(@Validated String query);
+
+
 }

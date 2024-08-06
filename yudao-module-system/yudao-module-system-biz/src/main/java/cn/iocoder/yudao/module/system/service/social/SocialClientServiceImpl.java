@@ -12,6 +12,7 @@ import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.cache.CacheUtils;
 import cn.iocoder.yudao.framework.common.util.http.HttpUtils;
+import cn.iocoder.yudao.framework.social.core.YudaoAuthRequestFactory;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientCreateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientPageReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.client.SocialClientUpdateReqVO;
@@ -61,6 +62,8 @@ public class SocialClientServiceImpl implements SocialClientService {
 
     @Resource
     private AuthRequestFactory authRequestFactory;
+    @Resource
+    private YudaoAuthRequestFactory yudaoAuthRequestFactory;
 
     @Resource
     private WxMpService wxMpService;
@@ -70,10 +73,10 @@ public class SocialClientServiceImpl implements SocialClientService {
     private StringRedisTemplate stringRedisTemplate; // WxMpService 需要使用到，所以在 Service 注入了它
     /**
      * 缓存 WxMpService 对象
-     *
+     * <p>
      * key：使用微信公众号的 appId + secret 拼接，即 {@link SocialClientDO} 的 clientId 和 clientSecret 属性。
      * 为什么 key 使用这种格式？因为 {@link SocialClientDO} 在管理后台可以变更，通过这个 key 存储它的单例。
-     *
+     * <p>
      * 为什么要做 WxMpService 缓存？因为 WxMpService 构建成本比较大，所以尽量保证它是单例。
      */
     private final LoadingCache<String, WxMpService> wxMpServiceCache = CacheUtils.buildAsyncReloadingCache(
@@ -94,7 +97,7 @@ public class SocialClientServiceImpl implements SocialClientService {
     private WxMaProperties wxMaProperties;
     /**
      * 缓存 WxMaService 对象
-     *
+     * <p>
      * 说明同 {@link #wxMpServiceCache} 变量
      */
     private final LoadingCache<String, WxMaService> wxMaServiceCache = CacheUtils.buildAsyncReloadingCache(
@@ -140,12 +143,12 @@ public class SocialClientServiceImpl implements SocialClientService {
      * 构建 AuthRequest 对象，支持多租户配置
      *
      * @param socialType 社交类型
-     * @param userType 用户类型
+     * @param userType   用户类型
      * @return AuthRequest 对象
      */
     private AuthRequest buildAuthRequest(Integer socialType, Integer userType) {
         // 1. 先查找默认的配置项，从 application-*.yaml 中读取
-        AuthRequest request = authRequestFactory.get(SocialTypeEnum.valueOfType(socialType).getSource());
+        AuthRequest request = yudaoAuthRequestFactory.get(SocialTypeEnum.valueOfType(socialType).getSource());
         Assert.notNull(request, String.format("社交平台(%d) 不存在", socialType));
         // 2. 查询 DB 的配置项，如果存在则进行覆盖
         SocialClientDO client = socialClientMapper.selectBySocialTypeAndUserType(socialType, userType);
@@ -195,7 +198,7 @@ public class SocialClientServiceImpl implements SocialClientService {
     /**
      * 创建 clientId + clientSecret 对应的 WxMpService 对象
      *
-     * @param clientId 微信公众号 appId
+     * @param clientId     微信公众号 appId
      * @param clientSecret 微信公众号 secret
      * @return WxMpService 对象
      */
@@ -246,7 +249,7 @@ public class SocialClientServiceImpl implements SocialClientService {
     /**
      * 创建 clientId + clientSecret 对应的 WxMaService 对象
      *
-     * @param clientId 微信小程序 appId
+     * @param clientId     微信小程序 appId
      * @param clientSecret 微信小程序 secret
      * @return WxMaService 对象
      */
@@ -306,11 +309,11 @@ public class SocialClientServiceImpl implements SocialClientService {
 
     /**
      * 校验社交应用是否重复，需要保证 userType + socialType 唯一
-     *
+     * <p>
      * 原因是，不同端（userType）选择某个社交登录（socialType）时，需要通过 {@link #buildAuthRequest(Integer, Integer)} 构建对应的请求
      *
-     * @param id 编号
-     * @param userType 用户类型
+     * @param id         编号
+     * @param userType   用户类型
      * @param socialType 社交类型
      */
     @VisibleForTesting

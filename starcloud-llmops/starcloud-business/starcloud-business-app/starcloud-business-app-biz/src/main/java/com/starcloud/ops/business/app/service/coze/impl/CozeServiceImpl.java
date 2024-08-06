@@ -187,6 +187,16 @@ public class CozeServiceImpl implements CozeService {
     }
 
     /**
+     * @param query
+     */
+    @Override
+    public void oauth(String query) {
+
+
+
+    }
+
+    /**
      * 解析消息, 返回解析后的结果
      *
      * @param content 请求参数

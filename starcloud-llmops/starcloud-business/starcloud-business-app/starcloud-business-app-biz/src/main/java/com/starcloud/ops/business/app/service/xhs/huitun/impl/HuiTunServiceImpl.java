@@ -6,7 +6,6 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSONException;
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.service.xhs.huitun.HuiTunService;
 import com.starcloud.ops.business.app.service.xhs.huitun.dto.PersonFeatDTO;
 import com.starcloud.ops.business.app.service.xhs.huitun.dto.SearchConditionsDTO;
@@ -161,17 +160,17 @@ public class HuiTunServiceImpl implements HuiTunService {
 
     }
 
-    /**
-     * 灰豚数据 小红书数据搜索
-     *
-     * @param batch
-     * @param creativePlan
-     */
-    @Override
-    public void noteSearch(Long batch, CreativePlanRespVO creativePlan) {
-
-
-    }
+    // /**
+    //  * 灰豚数据 小红书数据搜索
+    //  *
+    //  * @param batch
+    //  * @param creativePlan
+    //  */
+    // @Override
+    // public void noteSearch(Long batch, CreativePlanRespVO creativePlan) {
+    //
+    //
+    // }
 
     /**
      * 灰豚手机登录接口

@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.app.service.xhs.huitun;
 
-import com.starcloud.ops.business.app.api.xhs.plan.vo.response.CreativePlanRespVO;
-
 /**
  * 灰豚数据
  */
@@ -18,19 +16,19 @@ public interface HuiTunService {
     void getSearchConditions();
 
     /**
-     *获取灰豚个人便签信息
+     * 获取灰豚个人便签信息
      */
     void getPersonFeat();
 
-    /**
-     * 灰豚数据 小红书数据搜索
-     */
-    void noteSearch(Long batch, CreativePlanRespVO creativePlan);
+    // /**
+    //  * 灰豚数据 小红书数据搜索
+    //  */
+    // void noteSearch(Long batch, CreativePlanRespVO creativePlan);
 
     /**
      * 灰豚手机登录接口
      *
-     * @param mobile 手机号
+     * @param mobile   手机号
      * @param password 密码
      */
     String phoneLogin(String mobile, String password);
