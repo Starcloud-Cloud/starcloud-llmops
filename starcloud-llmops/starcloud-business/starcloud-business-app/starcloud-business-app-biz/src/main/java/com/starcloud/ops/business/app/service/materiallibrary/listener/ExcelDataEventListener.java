@@ -6,6 +6,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.http.HttpUtil;
@@ -34,7 +35,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static cn.hutool.core.date.DatePattern.PURE_DATETIME_PATTERN;
+import static cn.hutool.core.date.DatePattern.PURE_DATETIME_MS_PATTERN;
 
 @Slf4j
 public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, String>> {
@@ -124,8 +125,7 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
                     List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
                     if (!CollUtil.isEmpty(filesInImagesFolder)) {
                         File images = FileUtil.file(filesInImagesFolder.get(0));
-
-                        imgUrl = ImageUploadUtils.uploadImage(images.getName() + "_" + LocalDateTimeUtil.format(LocalDateTimeUtil.now(),PURE_DATETIME_PATTERN), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
+                        imgUrl = ImageUploadUtils.uploadImage(StrUtil.format("{}_{}", LocalDateTimeUtil.format(LocalDateTimeUtil.now(), PURE_DATETIME_MS_PATTERN) + RandomUtil.randomInt(1000, 9999), images.getName()), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
                     }
                 } catch (IOException e) {
                     log.error("图片解析异常");
