@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.controller.admin.plugins.vo;
+package com.starcloud.ops.business.app.controller.admin.plugins.vo.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

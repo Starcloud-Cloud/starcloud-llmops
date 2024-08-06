@@ -1,0 +1,243 @@
+package com.starcloud.ops.business.app.service.plugins.impl;
+
+import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.service.social.SocialUserService;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginTestRespVO;
+import com.starcloud.ops.business.app.convert.plugin.PluginDefinitionConvert;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
+import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
+import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
+import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
+import com.starcloud.ops.business.app.feign.CozePublicClient;
+import com.starcloud.ops.business.app.feign.dto.coze.*;
+import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
+import com.starcloud.ops.business.app.feign.response.CozeResponse;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
+import com.starcloud.ops.business.app.util.UserUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
+
+@Slf4j
+@Service
+public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
+
+    @Resource
+    private PluginDefinitionMapper pluginDefinitionMapper;
+
+    @Resource
+    private CozePublicClient cozePublicClient;
+
+    @Resource
+    private AppMarketService appMarketService;
+
+    @Resource
+    private SocialUserService socialUserService;
+
+    @Override
+    public Map<String, Object> metadata() {
+        Map<String, Object> metadata = Maps.newHashMap();
+        metadata.put("platform", PlatformEnum.options());
+        metadata.put("scene", PluginSceneEnum.options());
+        return metadata;
+    }
+
+    @Override
+    public PluginTestRespVO verify(PluginTestReqVO reqVO) {
+        String accessToken = bearer(reqVO.getAccessTokenId());
+        CozeChatRequest request = new CozeChatRequest();
+        request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
+        request.setBotId(reqVO.getBotId());
+        CozeMessage cozeMessage = new CozeMessage();
+        cozeMessage.setRole("user");
+        cozeMessage.setContent(reqVO.getContent());
+        cozeMessage.setContentType("text");
+        request.setMessages(Collections.singletonList(cozeMessage));
+        CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
+        if (chat.getCode() != 0) {
+            throw exception(PLUGIN_CONFIG_ERROR, chat.getMsg());
+        }
+        log.info("conversationId={},chatId={},token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
+        int count = 0;
+        while (count < 180) {
+            CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(chat.getData().getConversationId(), chat.getData().getId(), accessToken);
+            if (retrieve.getCode() != 0) {
+                throw exception(COZE_ERROR, retrieve.getMsg());
+            }
+            String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
+            if (Objects.equals("completed", status)) {
+                break;
+            } else {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                count++;
+            }
+        }
+
+        if (count >= 180) {
+            throw exception(COZE_ERROR, "执行超时！");
+        }
+
+        CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(chat.getData().getConversationId(), chat.getData().getId(), accessToken);
+
+        PluginTestRespVO pluginTestRespVO = new PluginTestRespVO();
+        for (CozeMessageResult datum : list.getData()) {
+            if ("tool_response".equalsIgnoreCase(datum.getType())) {
+                String content = datum.getContent();
+                Type listType = new TypeReference<List<Map<String, String>>>() {
+                }.getType();
+                pluginTestRespVO.setOutput(JSON.parseObject(content, listType));
+            } else if ("function_call".equalsIgnoreCase(datum.getType())) {
+                String content = datum.getContent();
+                JSONObject jsonObject = JSON.parseObject(content);
+                Type mapType = new TypeReference<Map<String, Object>>() {
+                }.getType();
+                pluginTestRespVO.setArguments(JSON.parseObject(jsonObject.getString("arguments"), mapType));
+            }
+        }
+
+        return pluginTestRespVO;
+    }
+
+    @Override
+    public PluginRespVO create(PluginDefinitionVO pluginVO) {
+        PluginDefinitionDO pluginConfig = pluginDefinitionMapper.selectByName(pluginVO.getPluginName());
+        if (Objects.nonNull(pluginConfig)) {
+            throw exception(NAME_DUPLICATE, pluginVO.getPluginName());
+        }
+
+        PluginDefinitionDO pluginConfigDO = PluginDefinitionConvert.INSTANCE.convert(pluginVO);
+        if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
+            CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), pluginConfigDO.getCozeTokenId());
+            pluginConfigDO.setEntityName(cozeBotInfo.getName());
+        } else {
+            AppMarketRespVO appMarketRespVO = appMarketService.get(pluginConfigDO.getEntityUid());
+            pluginConfigDO.setEntityName(appMarketRespVO.getName());
+        }
+
+        pluginConfigDO.setUid(IdUtil.fastSimpleUUID());
+        pluginDefinitionMapper.insert(pluginConfigDO);
+        return PluginDefinitionConvert.INSTANCE.convert(pluginConfigDO);
+    }
+
+    @Override
+    @DataPermission(enable = false)
+    public List<PluginRespVO> publishedList() {
+        List<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.publishedList();
+        return PluginDefinitionConvert.INSTANCE.convert(pluginDOList);
+    }
+
+    @Override
+    public List<PluginRespVO> ownerList() {
+        List<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.selectOwnerPlugin(WebFrameworkUtils.getLoginUserId().toString());
+        return PluginDefinitionConvert.INSTANCE.convert(pluginDOList);
+    }
+
+
+    @Override
+    public void publish(String uid) {
+        if (UserUtils.isNotAdmin()) {
+            throw exception(NO_PERMISSIONS);
+        }
+        PluginDefinitionDO pluginConfigDO = getByUid(uid);
+
+        pluginConfigDO.setPublished(true);
+        pluginDefinitionMapper.updateById(pluginConfigDO);
+    }
+
+    @Override
+    public PluginRespVO modifyPlugin(PluginConfigModifyReqVO reqVO) {
+        PluginDefinitionDO pluginConfigDO = getByUid(reqVO.getUid());
+        if (UserUtils.isNotAdmin() && !WebFrameworkUtils.getLoginUserId().toString().equalsIgnoreCase(pluginConfigDO.getCreator())) {
+            throw exception(NO_PERMISSIONS);
+        }
+
+        PluginDefinitionDO updateConfig = PluginDefinitionConvert.INSTANCE.convert(reqVO);
+        if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
+            CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), pluginConfigDO.getCozeTokenId());
+            pluginConfigDO.setEntityName(cozeBotInfo.getName());
+        } else {
+            AppMarketRespVO appMarketRespVO = appMarketService.get(pluginConfigDO.getEntityUid());
+            pluginConfigDO.setEntityName(appMarketRespVO.getName());
+        }
+        updateConfig.setId(pluginConfigDO.getId());
+        pluginDefinitionMapper.updateById(updateConfig);
+        return PluginDefinitionConvert.INSTANCE.convert(updateConfig);
+    }
+
+    @Override
+    public void delete(String uid) {
+        PluginDefinitionDO pluginConfigDO = getByUid(uid);
+        if (UserUtils.isNotAdmin()) {
+            // 非管理员只能删除自己的
+            pluginDefinitionMapper.deleteOwnerPlugin(uid, WebFrameworkUtils.getLoginUserId().toString());
+        } else {
+            pluginDefinitionMapper.deleteById(pluginConfigDO.getId());
+        }
+    }
+
+    @Override
+    public PluginRespVO detail(String uid) {
+        PluginDefinitionDO pluginConfigDO = getByUid(uid);
+        return PluginDefinitionConvert.INSTANCE.convert(pluginConfigDO);
+    }
+
+    @Override
+    public SpaceInfo spaceBot(String spaceId, String accessTokenId, Integer pageSize, Integer pageIndex) {
+        String accessToken = bearer(accessTokenId);
+        CozeResponse<SpaceInfo> listCozeResponse = cozePublicClient.spaceBots(spaceId, accessToken, pageSize, pageIndex);
+        if (listCozeResponse.getCode() != 0) {
+            throw exception(PLUGIN_CONFIG_ERROR, listCozeResponse.getMsg());
+        }
+        return listCozeResponse.getData();
+    }
+
+    @Override
+    public CozeBotInfo botInfo(String botId, String accessTokenId) {
+        String accessToken = bearer(accessTokenId);
+        // 测试连接
+        CozeResponse<CozeBotInfo> cozeResponse = cozePublicClient.botInfo(botId, accessToken);
+        if (cozeResponse.getCode() != 0) {
+            throw exception(PLUGIN_CONFIG_ERROR, cozeResponse.getMsg());
+        }
+        return cozeResponse.getData();
+    }
+
+    private String bearer(String accessTokenId) {
+        SocialUserDO socialUser = socialUserService.getSocialUser(Long.valueOf(accessTokenId));
+        return "Bearer " + socialUser.getToken();
+    }
+
+    private PluginDefinitionDO getByUid(String uid) {
+        PluginDefinitionDO pluginConfigDO = pluginDefinitionMapper.selectByUid(uid);
+        if (Objects.isNull(pluginConfigDO)) {
+            throw exception(PLUGIN_NOT_EXIST, uid);
+        }
+        return pluginConfigDO;
+    }
+}
