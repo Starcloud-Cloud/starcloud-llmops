@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgressDTO;
+import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
@@ -553,7 +553,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(creativeContent);
         if (!CreativeContentStatusEnum.SUCCESS.name().equals(response.getStatus())) {
             // 获取执行进度
-            AppExecuteProgressDTO progress = appStepStatusCache.getProgress(response.getConversationUid());
+            AppExecuteProgress progress = appStepStatusCache.progress(response.getConversationUid());
             response.setProgress(progress);
         }
         return response;
