@@ -9,13 +9,12 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.ImageOcrReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.TextExtractionReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.XhsOcrReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.ImageOcrReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.TextExtractionReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.XhsOcrReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
@@ -29,7 +28,6 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
-import scala.util.parsing.json.JSON;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -86,10 +84,10 @@ public class PluginsServiceImpl implements PluginsService {
     /**
      * 不考虑前端传入的类型，因为开始节点参数都是定义出来的
      *
-     * @todo 下游要获取，需要实现占位符解析获取
      * @param tag
      * @param data
      * @return
+     * @todo 下游要获取，需要实现占位符解析获取
      */
     private JSONObject execute(String tag, Object data) {
 
