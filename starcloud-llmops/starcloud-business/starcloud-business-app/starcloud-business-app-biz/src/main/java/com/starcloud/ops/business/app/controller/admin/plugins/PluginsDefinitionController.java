@@ -53,7 +53,7 @@ public class PluginsDefinitionController {
     }
 
     @GetMapping(value = "/ownerList")
-    @Operation(summary = "未发布插件列表")
+    @Operation(summary = "owner插件列表")
     public CommonResult<List<PluginRespVO>> ownerList() {
         return CommonResult.success(pluginsDefinitionService.ownerList());
     }
