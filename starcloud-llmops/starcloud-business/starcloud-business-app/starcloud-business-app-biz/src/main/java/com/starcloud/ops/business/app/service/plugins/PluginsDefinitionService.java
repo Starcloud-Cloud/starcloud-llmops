@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.plugins;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginTestRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
@@ -26,6 +27,7 @@ public interface PluginsDefinitionService {
 
 
     List<PluginRespVO> ownerList();
+
     /**
      * 发布
      */
@@ -64,5 +66,13 @@ public interface PluginsDefinitionService {
     /**
      * 验证机器人
      */
-    PluginTestRespVO verify(PluginTestReqVO reqVO);
+    String verify(PluginTestReqVO reqVO);
+
+    /**
+     * 验证结果
+     *
+     * @param code
+     * @return
+     */
+    VerifyResult verifyResult(String code, String accessTokenId);
 }

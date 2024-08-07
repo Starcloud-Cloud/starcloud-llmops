@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -14,8 +15,8 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginTestRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginDefinitionConvert;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
@@ -30,12 +31,13 @@ import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
@@ -56,6 +58,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Resource
     private SocialUserService socialUserService;
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    private static final String prefix = "coze_verify_";
+
     @Override
     public Map<String, Object> metadata() {
         Map<String, Object> metadata = Maps.newHashMap();
@@ -65,7 +72,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     @Override
-    public PluginTestRespVO verify(PluginTestReqVO reqVO) {
+    public String verify(PluginTestReqVO reqVO) {
         String accessToken = bearer(reqVO.getAccessTokenId());
         CozeChatRequest request = new CozeChatRequest();
         request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
@@ -79,49 +86,46 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (chat.getCode() != 0) {
             throw exception(PLUGIN_CONFIG_ERROR, chat.getMsg());
         }
-        log.info("conversationId={},chatId={},token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
-        int count = 0;
-        while (count < 180) {
-            CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(chat.getData().getConversationId(), chat.getData().getId(), accessToken);
-            if (retrieve.getCode() != 0) {
-                throw exception(COZE_ERROR, retrieve.getMsg());
-            }
-            String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
-            if (Objects.equals("completed", status)) {
-                break;
-            } else {
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                count++;
-            }
+        log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
+        String code = IdUtil.fastSimpleUUID();
+        redisTemplate.boundValueOps(prefix + code).set(JSONUtil.toJsonStr(chat.getData()));
+        return code;
+    }
+
+    @Override
+    public VerifyResult verifyResult(String code, String accessTokenId) {
+        String cozeResult = redisTemplate.boundValueOps(prefix + code).get();
+        String accessToken = bearer(accessTokenId);
+        if (StringUtils.isBlank(cozeResult)) {
+            throw exception(COZE_ERROR, "请重新验证！");
         }
-
-        if (count >= 180) {
-            throw exception(COZE_ERROR, "执行超时！");
+        CozeChatResult cozeChatResult = JSONUtil.toBean(cozeResult, CozeChatResult.class);
+        CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+        if (retrieve.getCode() != 0) {
+            throw exception(COZE_ERROR, retrieve.getMsg());
         }
-
-        CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(chat.getData().getConversationId(), chat.getData().getId(), accessToken);
-
-        PluginTestRespVO pluginTestRespVO = new PluginTestRespVO();
+        String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
+        if (!Objects.equals("completed", status)) {
+            return new VerifyResult();
+        }
+        CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+        VerifyResult verifyResult = new VerifyResult();
         for (CozeMessageResult datum : list.getData()) {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
                 Type listType = new TypeReference<List<Map<String, String>>>() {
                 }.getType();
-                pluginTestRespVO.setOutput(JSON.parseObject(content, listType));
+                verifyResult.setOutput(JSON.parseObject(content, listType));
             } else if ("function_call".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
                 JSONObject jsonObject = JSON.parseObject(content);
                 Type mapType = new TypeReference<Map<String, Object>>() {
                 }.getType();
-                pluginTestRespVO.setArguments(JSON.parseObject(jsonObject.getString("arguments"), mapType));
+                verifyResult.setArguments(JSON.parseObject(jsonObject.getString("arguments"), mapType));
             }
         }
-
-        return pluginTestRespVO;
+        verifyResult.setVerifyState(true);
+        return verifyResult;
     }
 
     @Override
@@ -154,10 +158,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Override
     public List<PluginRespVO> ownerList() {
-        List<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.selectOwnerPlugin(WebFrameworkUtils.getLoginUserId().toString());
+        List<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.selectOwnerPlugin();
         return PluginDefinitionConvert.INSTANCE.convert(pluginDOList);
     }
-
 
     @Override
     public void publish(String uid) {
@@ -229,7 +232,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     private String bearer(String accessTokenId) {
-        SocialUserDO socialUser = socialUserService.getSocialUser(Long.valueOf(accessTokenId));
+        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(accessTokenId));
+        if (Objects.isNull(socialUser) || StringUtils.isBlank(socialUser.getToken())) {
+            throw exception(TOKEN_ERROR, accessTokenId);
+        }
         return "Bearer " + socialUser.getToken();
     }
 

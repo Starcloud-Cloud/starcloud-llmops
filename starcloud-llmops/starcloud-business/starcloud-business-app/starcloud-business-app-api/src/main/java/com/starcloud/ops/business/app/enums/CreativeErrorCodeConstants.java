@@ -330,6 +330,8 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode COZE_ERROR = new ErrorCode(760100009, "调用coze执行失败，{}");
 
+    ErrorCode TOKEN_ERROR = new ErrorCode(760100010, "token不存在，id = {}");
+
 
 
 }

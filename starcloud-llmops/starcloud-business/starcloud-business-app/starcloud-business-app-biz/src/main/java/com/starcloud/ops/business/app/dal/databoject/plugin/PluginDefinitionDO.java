@@ -81,4 +81,14 @@ public class PluginDefinitionDO extends TenantBaseDO {
      */
     private Boolean published;
 
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * 验证状态
+     */
+    private Boolean verifyState;
+
 }

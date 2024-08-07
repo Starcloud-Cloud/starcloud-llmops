@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Getter
 public enum PlatformEnum implements IEnumable<String> {
 
-    coze("coze", "扣子"),
+    coze("coze", "扣子机器人"),
 
     app_market("app_market", "应用市场");
 

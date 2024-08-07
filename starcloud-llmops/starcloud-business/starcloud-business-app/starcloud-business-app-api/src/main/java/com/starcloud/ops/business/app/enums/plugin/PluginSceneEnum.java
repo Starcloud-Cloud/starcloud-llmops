@@ -10,26 +10,30 @@ import java.util.stream.Collectors;
 
 public enum PluginSceneEnum implements IEnumable<String> {
 
-    DATA_ADDED("DATA_ADDED", "数据新增"),
+    DATA_ADDED("DATA_ADDED", "数据新增", "通过AI技术生成新的素材"),
 
-    DATA_COMPLETION("DATA_COMPLETION", "数据补齐"),
+    DATA_COMPLETION("DATA_COMPLETION", "数据补齐", "通过AI技术生成素材中的部分字段内容"),
 
-    DATA_EXTRACTION("DATA_EXTRACTION", "数据提取"),
+    DATA_EXTRACTION("DATA_EXTRACTION", "数据提取", "通过AI技术提取素材中的部分字段内容"),
 
-    DATA_MODIFY("DATA_MODIFY", "数据修改"),
+    DATA_MODIFY("DATA_MODIFY", "数据修改", "通过AI技术修改素材中的部分字段内容"),
 
-    IMAGE_ANALYSIS("IMAGE_ANALYSIS", "图片分析");
+    IMAGE_ANALYSIS("IMAGE_ANALYSIS", "图片分析", "通过AI技术提取图片中的文字信息");
 
 
     private String code;
 
     private String name;
 
-    PluginSceneEnum(String code, String name) {
+    private String description;
+
+    PluginSceneEnum(String code, String name, String description) {
 
         this.code = code;
 
         this.name = name;
+
+        this.description = description;
     }
 
     @Override
@@ -47,7 +51,8 @@ public enum PluginSceneEnum implements IEnumable<String> {
                 .map(item -> {
                     Option option = new Option();
                     option.setLabel(item.getLabel());
-                    option.setValue(item.name());
+                    option.setValue(item.getCode());
+                    option.setDescription(item.description);
                     return option;
                 }).collect(Collectors.toList());
     }

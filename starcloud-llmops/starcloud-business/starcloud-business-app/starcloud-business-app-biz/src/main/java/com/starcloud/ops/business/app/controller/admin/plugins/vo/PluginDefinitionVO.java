@@ -16,8 +16,7 @@ public class PluginDefinitionVO {
 
     @Schema(description = "插件名称")
     @NotBlank(message = "用户账号不能为空")
-    @Pattern(regexp = "^[a-zA-Z0-9]{4,20}$", message = "用户账号由 数字、字母 组成")
-    @Size(min = 4, max = 20, message = "用户账号长度为 4-20 个字符")
+    @Size(min = 2, max = 20, message = "用户账号长度为 2-20 个字符")
     private String pluginName;
 
     @Schema(description = "场景")
@@ -51,4 +50,9 @@ public class PluginDefinitionVO {
     @Schema(description = "机器人名称 或 应用名称")
     private String entityName;
 
+    @Schema(description = "描述")
+    private String description;
+
+    @Schema(description = "验证成功")
+    private Boolean verifyState;
 }
