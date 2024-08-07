@@ -29,11 +29,7 @@ public interface PluginDefinitionMapper extends BaseMapper<PluginDefinitionDO> {
         return selectOne(wrapper);
     }
 
-    default List<PluginDefinitionDO> selectOwnerPlugin(String creator) {
-        LambdaQueryWrapper<PluginDefinitionDO> wrapper = Wrappers.lambdaQuery(PluginDefinitionDO.class)
-                .eq(PluginDefinitionDO::getCreator, creator);
-        return selectList(wrapper);
-    }
+    List<PluginDefinitionDO> selectOwnerPlugin();
 
     default void deleteOwnerPlugin(String uid, String creator) {
         LambdaQueryWrapper<PluginDefinitionDO> wrapper = Wrappers.lambdaQuery(PluginDefinitionDO.class)

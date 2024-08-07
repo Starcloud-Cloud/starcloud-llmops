@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginTestRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
@@ -87,16 +88,22 @@ public class PluginsDefinitionController {
     @GetMapping(value = "/spaceBots")
     @Operation(summary = "bot列表")
     public CommonResult<SpaceInfo> spaceBots(@RequestParam("spaceId") String spaceId,
-                                             @RequestParam(value = "pageSize",defaultValue = "20") Integer pageSize,
-                                             @RequestParam(value = "pageIndex",defaultValue = "1") Integer pageIndex,
+                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,
+                                             @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                              @RequestParam("accessTokenId") String accessTokenId) {
-        return CommonResult.success(pluginsDefinitionService.spaceBot(spaceId, accessTokenId,pageSize,pageIndex));
+        return CommonResult.success(pluginsDefinitionService.spaceBot(spaceId, accessTokenId, pageSize, pageIndex));
     }
 
     @PostMapping(value = "/verify")
     @Operation(summary = "验证")
-    public CommonResult<PluginTestRespVO> verify(@RequestBody @Valid PluginTestReqVO reqVO) {
+    public CommonResult<String> verify(@RequestBody @Valid PluginTestReqVO reqVO) {
         return CommonResult.success(pluginsDefinitionService.verify(reqVO));
+    }
+
+    @PostMapping(value = "/verifyResult")
+    @Operation(summary = "验证结果")
+    public CommonResult<VerifyResult> verifyResult(@RequestParam("code") String code, @RequestParam("accessTokenId") String accessTokenId) {
+        return CommonResult.success(pluginsDefinitionService.verifyResult(code, accessTokenId));
     }
 
 }
