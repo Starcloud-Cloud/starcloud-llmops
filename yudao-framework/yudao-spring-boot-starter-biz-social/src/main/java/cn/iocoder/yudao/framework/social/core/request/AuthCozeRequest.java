@@ -25,8 +25,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
-import com.xingyuv.jushauth.utils.AuthChecker;
-import com.xingyuv.jushauth.utils.HttpUtils;
 
 
 public class AuthCozeRequest extends AuthDefaultRequest {
@@ -167,10 +165,6 @@ public class AuthCozeRequest extends AuthDefaultRequest {
         }
 
     }
-
-
-
-
 
 
 }
