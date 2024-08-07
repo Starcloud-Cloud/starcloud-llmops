@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
@@ -84,4 +85,11 @@ public interface MaterialLibraryTableColumnService extends CommonExcelReadServic
      * @param libraryId         素材库编号
      */
     void materialLibraryCopy(Long templateLibraryId, Long libraryId);
+
+    /**
+     * 切换绑定校验
+     *
+     * @param saveReqVO 换绑 VO
+     */
+    Boolean validateSwitchBind(MaterialLibraryAppBindSaveReqVO saveReqVO);
 }
