@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.plugins;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
@@ -102,6 +103,7 @@ public class PluginsDefinitionController {
 
     @PostMapping(value = "/verifyResult")
     @Operation(summary = "验证结果")
+    @OperateLog(enable = false)
     public CommonResult<VerifyResult> verifyResult(@RequestParam("code") String code, @RequestParam("accessTokenId") String accessTokenId) {
         return CommonResult.success(pluginsDefinitionService.verifyResult(code, accessTokenId));
     }
