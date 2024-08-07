@@ -1,7 +1,10 @@
 package cn.iocoder.yudao.module.system.service.social;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -9,7 +12,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
-import cn.iocoder.yudao.module.system.convert.social.SocialUserConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -17,6 +19,7 @@ import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.xingyuv.jushauth.model.AuthToken;
 import com.xingyuv.jushauth.model.AuthUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,13 +28,17 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 
 /**
@@ -97,10 +104,11 @@ public class SocialUserServiceImpl implements SocialUserService {
         if (socialUser == null) {
             throw exception(SOCIAL_USER_NOT_FOUND);
         }
-
+        socialUserMapper.deleteById(socialUser.getId());
         // 获得对应的社交绑定关系
         socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(userType, userId, socialUser.getType());
     }
+
     @Override
     public AdminUserDO getSocialUser(String openId, Integer socialUserType, Integer userType) {
         SocialUserDO socialUserDO = socialUserMapper.selectByTypeAndOpenid(socialUserType, openId);
@@ -114,6 +122,7 @@ public class SocialUserServiceImpl implements SocialUserService {
         AdminUserDO user = adminUserService.getUser(socialUserBindDO.getUserId());
         return user;
     }
+
     @Override
     public SocialUserRespDTO getSocialUser(Integer userType, Integer socialType, String code, String state) {
         // 获得社交用户
@@ -130,14 +139,15 @@ public class SocialUserServiceImpl implements SocialUserService {
     }
 
     // TODO 芋艿：调整下单测
+
     /**
      * 授权获得对应的社交用户
      * 如果授权失败，则会抛出 {@link ServiceException} 异常
      *
      * @param socialType 社交平台的类型 {@link SocialTypeEnum}
-     * @param userType 用户类型
-     * @param code     授权码
-     * @param state    state
+     * @param userType   用户类型
+     * @param code       授权码
+     * @param state      state
      * @return 授权用户
      */
     @NotNull
@@ -159,8 +169,16 @@ public class SocialUserServiceImpl implements SocialUserService {
             socialUser = new SocialUserDO();
         }
         socialUser.setType(socialType).setCode(code).setState(state) // 需要保存 code + state 字段，保证后续可查询
-                .setOpenid(authUser.getUuid()).setToken(authUser.getToken().getAccessToken()).setRawTokenInfo((toJsonString(authUser.getToken())))
-                .setNickname(authUser.getNickname()).setAvatar(authUser.getAvatar()).setRawUserInfo(toJsonString(authUser.getRawUserInfo()));
+                .setOpenid(authUser.getUuid())
+                .setToken(authUser.getToken().getAccessToken())
+                .setRawTokenInfo((toJsonString(authUser.getToken())))
+                .setNickname(authUser.getNickname())
+                .setAvatar(authUser.getAvatar())
+                .setRawUserInfo(toJsonString(authUser.getRawUserInfo()))
+                .setExpireIn(authUser.getToken().getExpireIn() > 0 ? authUser.getToken().getExpireIn() : -1)
+                .setRefreshTokenExpireIn(Objects.nonNull(authUser.getToken().getRefreshToken()) ? authUser.getToken().getRefreshTokenExpireIn() : -1)
+                .setRefreshToken(Objects.nonNull(authUser.getToken().getRefreshToken()) ? authUser.getToken().getRefreshToken() : null)
+        ;
         if (socialUser.getId() == null) {
             socialUserMapper.insert(socialUser);
         } else {
@@ -177,8 +195,48 @@ public class SocialUserServiceImpl implements SocialUserService {
     }
 
     @Override
+    public SocialUserDO getNewSocialUser(Long id) {
+        SocialUserDO socialUser = socialUserMapper.selectById(id);
+
+        if (socialUser == null){
+            throw  exception(SOCIAL_USER_AUTH_NO_FOUND);
+        }
+
+        if (validatedTokenExpireIn(socialUser)) {
+            return socialUser;
+        }
+
+        validatedRefreshTokenExpireIn(socialUser);
+
+        AuthToken authToken = socialClientService.refreshToken(socialUser.getType(), UserTypeEnum.ADMIN.getValue(), socialUser.getRefreshToken());
+
+        LocalDateTime thirtyDaysLater = LocalDateTimeUtil.now().plusDays(30);
+        // 指定时区（东八区）
+        ZoneId zoneId = ZoneId.of("Asia/Shanghai");
+        ZonedDateTime zonedDateTime = thirtyDaysLater.atZone(zoneId);
+
+        authToken.setRefreshTokenExpireIn((int) zonedDateTime.toEpochSecond());
+
+        socialUserMapper.updateById(socialUser.setToken(authToken.getAccessToken())
+                .setRawTokenInfo((toJsonString(authToken)))
+                .setExpireIn(authToken.getExpireIn() > 0 ? authToken.getExpireIn() : -1)
+                .setRefreshTokenExpireIn(Objects.nonNull(authToken.getRefreshToken()) ? authToken.getRefreshTokenExpireIn() : -1)
+                .setRefreshToken(Objects.nonNull(authToken.getRefreshToken()) ? authToken.getRefreshToken() : null));
+        return socialUserMapper.selectById(id);
+    }
+
+
+
+    @Override
     public PageResult<SocialUserDO> getSocialUserPage(SocialUserPageReqVO pageReqVO) {
-        return socialUserMapper.selectPage(pageReqVO);
+
+        // 获得绑定
+        List<SocialUserBindDO> socialUserBinds = socialUserBindMapper.selectListByUserIdAndUserType(getLoginUserId(), UserTypeEnum.ADMIN.getValue());
+        if (CollUtil.isEmpty(socialUserBinds)) {
+            return PageResult.empty();
+        }
+
+        return socialUserMapper.selectPage2(pageReqVO,convertSet(socialUserBinds, SocialUserBindDO::getSocialUserId));
     }
 
     @Override
@@ -194,4 +252,26 @@ public class SocialUserServiceImpl implements SocialUserService {
                 .stream().filter(socialUserDO -> SocialTypeEnum.WECHAT_MP.getType().equals(socialUserDO.getType()))
                 .findFirst().orElse(null);
     }
+
+
+    private Boolean validatedTokenExpireIn(SocialUserDO socialUser) {
+        DateTime expireData = DateUtil.date((long)socialUser.getExpireIn() * 1000);
+        DateTime now = DateUtil.date();
+        if (DateUtil.compare(expireData, now) <= 0) {
+            return false;
+        }
+
+        return DateUtil.compare(expireData, now.offsetNew(DateField.MINUTE, 2)) > 0;
+
+    }
+    private void validatedRefreshTokenExpireIn(SocialUserDO socialUser) {
+        long data = (long)socialUser.getRefreshTokenExpireIn() * 1000;
+        DateTime expireData = DateUtil.date(data);
+        DateTime now = DateUtil.date();
+        if (DateUtil.compare(expireData, now) <= 0) {
+            throw exception(SOCIAL_USER_REFRESH_AUTH_EXPIRE);
+        }
+
+    }
+
 }

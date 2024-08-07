@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.system.dal.mysql.social;
 
+import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
@@ -32,6 +34,14 @@ public interface SocialUserBindMapper extends BaseMapperX<SocialUserBindDO> {
         return selectList(new LambdaQueryWrapperX<SocialUserBindDO>()
                 .eq(SocialUserBindDO::getUserId, userId)
                 .eq(SocialUserBindDO::getUserType, userType));
+    }
+
+    default PageResult<SocialUserBindDO> selectPageByUserTypeAndUserIdAndSocialType(Integer userType, Long userId, Integer socialType) {
+        return selectPage(new PageParam(), new LambdaQueryWrapperX<SocialUserBindDO>()
+                .eq(SocialUserBindDO::getUserType, userType)
+                .eq(SocialUserBindDO::getUserId, userId)
+                .eq(SocialUserBindDO::getSocialType, socialType));
+
     }
 
 }
