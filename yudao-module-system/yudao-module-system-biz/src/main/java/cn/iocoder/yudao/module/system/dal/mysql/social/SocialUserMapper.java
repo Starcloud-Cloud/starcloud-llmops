@@ -8,6 +8,8 @@ import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Set;
+
 @Mapper
 public interface SocialUserMapper extends BaseMapperX<SocialUserDO> {
 
@@ -33,4 +35,13 @@ public interface SocialUserMapper extends BaseMapperX<SocialUserDO> {
                 .orderByDesc(SocialUserDO::getId));
     }
 
+    default PageResult<SocialUserDO> selectPage2(SocialUserPageReqVO reqVO, Set<Long> ids){
+        return selectPage(reqVO, new LambdaQueryWrapperX<SocialUserDO>()
+                .eqIfPresent(SocialUserDO::getType, reqVO.getType())
+                .likeIfPresent(SocialUserDO::getNickname, reqVO.getNickname())
+                .likeIfPresent(SocialUserDO::getOpenid, reqVO.getOpenid())
+                .inIfPresent(SocialUserDO::getId, ids)
+                .betweenIfPresent(SocialUserDO::getCreateTime, reqVO.getCreateTime())
+                .orderByDesc(SocialUserDO::getId));
+    }
 }

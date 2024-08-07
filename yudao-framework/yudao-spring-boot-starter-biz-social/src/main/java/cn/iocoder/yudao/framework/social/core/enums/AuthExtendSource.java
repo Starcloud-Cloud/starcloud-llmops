@@ -90,6 +90,7 @@ public enum AuthExtendSource implements AuthSource {
             return "https://api.coze.cn/api/permission/oauth2/token";
         }
 
+
         /**
          * @return
          */

@@ -28,6 +28,7 @@ import com.google.common.cache.LoadingCache;
 import com.xingyuv.jushauth.config.AuthConfig;
 import com.xingyuv.jushauth.model.AuthCallback;
 import com.xingyuv.jushauth.model.AuthResponse;
+import com.xingyuv.jushauth.model.AuthToken;
 import com.xingyuv.jushauth.model.AuthUser;
 import com.xingyuv.jushauth.request.AuthRequest;
 import com.xingyuv.jushauth.utils.AuthStateUtils;
@@ -137,6 +138,30 @@ public class SocialClientServiceImpl implements SocialClientService {
             throw exception(SOCIAL_USER_AUTH_FAILURE, authResponse.getMsg());
         }
         return (AuthUser) authResponse.getData();
+    }
+
+    /**
+     * 请求社交平台，获得授权的用户
+     *
+     * @param socialType   社交平台的类型
+     * @param userType     用户类型
+     * @param refreshToken 刷新令牌
+     * @return 授权的用户
+     */
+    @Override
+    public AuthToken refreshToken(Integer socialType, Integer userType, String refreshToken) {
+        // 构建请求
+        AuthRequest authRequest = buildAuthRequest(socialType, userType);
+        AuthToken authToken = AuthToken.builder().refreshToken(refreshToken).build();
+        // 执行请求
+        AuthResponse<?> authResponse = authRequest.refresh(authToken);
+
+        log.info("[refreshToken][请求社交平台 type({}) request({}) response({})]", socialType,
+                toJsonString(refreshToken), toJsonString(authResponse));
+        if (!authResponse.ok()) {
+            throw exception(SOCIAL_USER_REFRESH_AUTH_FAILURE, authResponse.getMsg());
+        }
+        return (AuthToken) authResponse.getData();
     }
 
     /**

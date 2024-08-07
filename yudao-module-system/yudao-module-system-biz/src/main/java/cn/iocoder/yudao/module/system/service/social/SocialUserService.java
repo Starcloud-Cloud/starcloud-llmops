@@ -81,6 +81,14 @@ public interface SocialUserService {
      */
     SocialUserDO getSocialUser(Long id);
 
+
+    /**
+     * 获得社交用户
+     *
+     * @param id 编号
+     * @return 社交用户
+     */
+    SocialUserDO getNewSocialUser(Long id);
     /**
      * 获得社交用户分页
      *
