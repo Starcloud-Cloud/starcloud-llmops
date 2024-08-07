@@ -53,10 +53,17 @@ public class CozeController {
         return CommonResult.success(cozeService.messageList(query));
     }
 
-    @GetMapping("/chat/getResult")
+    @GetMapping("/chat/getToolResponse")
     @Operation(summary = "解析消息", description = "解析消息")
     @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<Object> parseMessage(@Validated CozeChatQuery query) {
-        return CommonResult.success(cozeService.parseMessage(query));
+    public CommonResult<Object> getToolResponse(@Validated CozeChatQuery query) {
+        return CommonResult.success(cozeService.getToolResponse(query));
+    }
+
+    @GetMapping("/chat/getAnswer")
+    @Operation(summary = "解析消息", description = "解析消息")
+    @ApiOperationSupport(order = 40, author = "nacoyer")
+    public CommonResult<Object> getAnswer(@Validated CozeChatQuery query) {
+        return CommonResult.success(cozeService.getAnswer(query));
     }
 }

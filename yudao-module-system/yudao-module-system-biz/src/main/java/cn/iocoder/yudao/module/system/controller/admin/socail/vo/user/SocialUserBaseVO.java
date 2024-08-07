@@ -42,4 +42,13 @@ public class SocialUserBaseVO {
     @Schema(description = "最后一次的认证 state", requiredMode = Schema.RequiredMode.REQUIRED, example = "123456")
     private String state;
 
+    @Schema(description = "访问令牌 过期时间", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "123456")
+    private Integer expireIn;
+
+    @Schema(description = "刷新令牌", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "123456")
+    private String refreshToken;
+
+    @Schema(description = "刷新令牌 过期时间", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "123456")
+    private Integer refreshTokenExpireIn;
+
 }

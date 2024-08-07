@@ -43,12 +43,23 @@ public interface CozeService {
     List<MessageResult> messageList(@Validated CozeChatQuery query);
 
     /**
-     * 解析消息, 返回解析后的结果
+     * 获取机器人调用工具的结果
      *
      * @param query 请求参数
      * @return Object
      */
-    Object parseMessage(@Validated CozeChatQuery query);
+    Object getToolResponse(@Validated CozeChatQuery query);
+
+    /**
+     * 获取扣子机器人回答的结果
+     *
+     * @param query 请求参数
+     * @return Object
+     */
+    Object getAnswer(@Validated CozeChatQuery query);
+
+
+    void oauth(@Validated String query);
 
 
 }
