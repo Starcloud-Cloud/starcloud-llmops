@@ -19,6 +19,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
@@ -66,6 +67,7 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.Mat
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +84,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -360,16 +363,17 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public String modify(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
-        handlerAndValidate(request);
+        List<Verification> verifications = request.validate();
 
         // 查询创作计划，并且校验是否存在
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
+        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
 
         // 更新创作计划
         CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
         creativePlanMaterialMapper.updateById(modifyPlan);
+
         return modifyPlan.getUid();
     }
 
@@ -383,10 +387,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public String modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.CONFIG.name());
         // 处理并且校验请求
-        handlerAndValidate(request);
+        List<Verification> verifications = request.validate();
 
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
+        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
         // 素材单独存放
@@ -715,7 +719,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-        configuration.validate(ValidateTypeEnum.EXECUTE);
+        configuration.validate(creativePlan.getUid(), ValidateTypeEnum.EXECUTE);
         // 计划来源
         CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
         AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
@@ -950,15 +954,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
                 })
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 处理并且校验
-     *
-     * @param request 创作计划请求
-     */
-    private void handlerAndValidate(CreativePlanModifyReqVO request) {
-        request.validate();
     }
 
 }

@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateMo
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.util.ActionUtils;
 import com.starcloud.ops.business.app.util.CostPointUtils;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
@@ -92,8 +93,8 @@ public class ParagraphActionHandler extends BaseActionHandler {
      * @param validateType 校验类型
      */
     @Override
-    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        return Collections.emptyList();
     }
 
     /**

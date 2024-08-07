@@ -15,6 +15,7 @@ import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -227,13 +228,23 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private List<Map<String, Object>> materialList;
 
     /**
+     * 是否校验
+     */
+    private Boolean validate;
+
+    /**
+     * 验证列表
+     */
+    private List<Verification> verificationList = new ArrayList<>();
+
+    /**
      * 模版方法：基础校验
      *
      * @param request 请求参数
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract void doValidate(Q request, ValidateTypeEnum validateType);
+    protected abstract List<Verification> doValidate(Q request, ValidateTypeEnum validateType);
 
     /**
      * 模版方法：执行应用
@@ -454,10 +465,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(Q request, ValidateTypeEnum validateType) {
+    public List<Verification> validate(Q request, ValidateTypeEnum validateType) {
         log.info("应用执行：基础校验开始 ...");
-        this.doValidate(request, validateType);
+        List<Verification> verifications = this.doValidate(request, validateType);
         log.info("应用执行：基础校验结束 ...");
+        return verifications;
     }
 
     /**
@@ -470,7 +482,15 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (StrUtil.isBlank(this.getUid())) {
             this.setUid(IdUtil.fastSimpleUUID());
         }
-        this.validate(null, ValidateTypeEnum.CREATE);
+        // 开启校验，才会进行校验
+        if (Objects.isNull(this.validate) || this.validate) {
+            List<Verification> validate = this.validate(null, ValidateTypeEnum.CREATE);
+            if (CollectionUtil.isNotEmpty(validate)) {
+                this.setVerificationList(validate);
+                return;
+            }
+        }
+
         this.doInsert();
     }
 
@@ -480,7 +500,14 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void update() {
-        this.validate(null, ValidateTypeEnum.UPDATE);
+        // 开启校验，才会进行校验
+        if (Objects.isNull(this.validate) || this.validate) {
+            List<Verification> validate = this.validate(null, ValidateTypeEnum.UPDATE);
+            if (CollectionUtil.isNotEmpty(validate)) {
+                this.setVerificationList(validate);
+                return;
+            }
+        }
         disposeMaterial();
         this.doUpdate();
     }

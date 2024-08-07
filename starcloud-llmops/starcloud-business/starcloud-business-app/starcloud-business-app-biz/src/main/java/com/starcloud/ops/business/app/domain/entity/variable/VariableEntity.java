@@ -13,6 +13,7 @@ import com.fasterxml.jackson.module.jsonSchema.types.ValueTypeSchema;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -64,10 +65,15 @@ public class VariableEntity {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(ValidateTypeEnum validateType) {
+    public List<Verification> validate(String stepId, ValidateTypeEnum validateType) {
+        List<Verification> verifications = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(this.variables)) {
-            this.variables.forEach(VariableItemEntity::validate);
+            for (VariableItemEntity variableItem : this.variables) {
+                List<Verification> validateList = variableItem.validate(stepId, validateType);
+                verifications.addAll(validateList);
+            }
         }
+        return verifications;
     }
 
     /**

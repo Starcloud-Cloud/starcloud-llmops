@@ -165,4 +165,9 @@ public class AppMarketReqVO implements Serializable {
     @Schema(description = "应用example")
     private String example;
 
+    /**
+     * 是否校验
+     */
+    @Schema(description = "是否校验")
+    private Boolean validate;
 }

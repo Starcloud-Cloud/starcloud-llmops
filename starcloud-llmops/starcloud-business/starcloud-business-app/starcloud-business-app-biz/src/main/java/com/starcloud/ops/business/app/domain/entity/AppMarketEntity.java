@@ -11,10 +11,12 @@ import com.starcloud.ops.business.app.domain.repository.market.AppMarketReposito
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -87,8 +89,8 @@ public class AppMarketEntity extends AppEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(AppExecuteReqVO request, ValidateTypeEnum validateType) {
-        super.doValidate(request, validateType);
+    protected List<Verification> doValidate(AppExecuteReqVO request, ValidateTypeEnum validateType) {
+        return super.doValidate(request, validateType);
     }
 
     /**

@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -35,16 +34,21 @@ import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler
 import com.starcloud.ops.business.app.service.ocr.AliyunOcrManager;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 
 @Slf4j
 @TaskComponent
@@ -60,7 +64,6 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
         return super.execute(context, scopeDataOperator);
     }
 
-
     /**
      * 校验步骤
      *
@@ -68,8 +71,8 @@ public class ImageOcrActionHandler extends BaseActionHandler implements Variable
      * @param validateType 校验类型
      */
     @Override
-    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        return Collections.emptyList();
     }
 
     @Override

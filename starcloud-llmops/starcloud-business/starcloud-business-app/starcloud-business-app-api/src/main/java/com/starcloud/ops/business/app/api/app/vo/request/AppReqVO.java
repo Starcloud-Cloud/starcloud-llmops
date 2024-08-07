@@ -131,4 +131,10 @@ public class AppReqVO implements Serializable {
     @Schema(description = "应用示例")
     private String example;
 
+    /**
+     * 是否校验
+     */
+    @Schema(description = "是否校验")
+    private Boolean validate;
+
 }
