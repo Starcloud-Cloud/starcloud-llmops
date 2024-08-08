@@ -360,7 +360,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public String modify(CreativePlanModifyReqVO request) {
+    public CreativePlanRespVO modify(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
@@ -374,7 +374,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setId(plan.getId());
         creativePlanMaterialMapper.updateById(modifyPlan);
 
-        return modifyPlan.getUid();
+        CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
+        CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
+        planResponse.setVerificationList(verifications);
+
+        return planResponse;
     }
 
     /**
@@ -384,7 +388,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @return 创作计划UID
      */
     @Override
-    public String modifyConfiguration(CreativePlanModifyReqVO request) {
+    public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.CONFIG.name());
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
@@ -398,7 +402,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
-        return plan.getUid();
+
+        CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
+        CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
+        planResponse.setVerificationList(verifications);
+
+        return planResponse;
     }
 
     /**

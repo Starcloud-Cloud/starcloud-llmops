@@ -90,13 +90,13 @@ public class CreativePlanController {
     @PostMapping("/modify")
     @Operation(summary = "更新创作计划", description = "更新创作计划")
     @ApiOperationSupport(order = 70, author = "nacoyer")
-    public CommonResult<String> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
+    public CommonResult<CreativePlanRespVO> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modify(request));
     }
 
     @PostMapping("/modifyConfig")
     @Operation(summary = "更新创作计划配置", description = "更新创作计划配置")
-    public CommonResult<String> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
+    public CommonResult<CreativePlanRespVO> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modifyConfiguration(request));
     }
 
