@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -20,7 +19,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
@@ -818,11 +816,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             creativeContentExecuteList.add(planExecute);
         }
 
+        // 任务总数处理
+        int totalCount = creativePlan.getTotalCount();
+        // 如果是选择执行，重新计算任务总数。
+        if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
+            // 根据素材总数和风格进行计算可以生产任务的总数。
+            totalCount = materialHandler.calculateTotalCount(materialList, posterStyleList);
+        }
+
         /*
          * 根据总数创建批量任务
          */
         List<CreativeContentCreateReqVO> contentCreateRequestList = Lists.newArrayList();
-        for (int index = 0; index < creativePlan.getTotalCount(); index++) {
+        for (int index = 0; index < totalCount; index++) {
             // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
             int sequenceInt = index % creativeContentExecuteList.size();
             CreativeContentExecuteParam contentExecuteRequest = SerializationUtils.clone(creativeContentExecuteList.get(sequenceInt));
@@ -862,10 +868,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         materialMetadata.setPlanUid(creativePlan.getUid());
 
         Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, contentPosterStyleList, materialMetadata);
-//        boolean isAllEmptyMaterial = materialMap.values().stream().anyMatch(CollectionUtil::isNotEmpty);
-//        if (!isAllEmptyMaterial) {
-//            throw ServiceExceptionUtil.invalidParamException("素材分配失败，请检查您的图片配置或者海报配置是否正确");
-//        }
         // 二次处理批量内容任务
         List<CreativeContentCreateReqVO> handleContentCreateRequestList = Lists.newArrayList();
         for (int index = 0; index < contentCreateRequestList.size(); index++) {
