@@ -155,4 +155,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      * @param libraryId         老应用
      */
     void materialLibrarySliceCopy(Long templateLibraryId, Long libraryId);
+
+
+    void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> cachedDataList, List<String> otherFileKeys);
 }
