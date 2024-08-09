@@ -81,6 +81,13 @@ public class MaterialLibrarySliceSaveReqVO {
          */
         @Schema(description = "扩展数据", example = " 1")
         private String extend;
+
+
+        /**
+         * 扩展数据
+         */
+        @Schema(description = "数据执行编号", example = " 1")
+        private String executeId;
     }
 
 }
