@@ -37,4 +37,9 @@ public class VerifyResult {
      */
     private Integer completedAt;
 
+
+    @Schema(description = "执行时间 ms")
+    private Long executeTime;
+
+
 }

@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
@@ -14,11 +16,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginDefinitionConvert;
@@ -32,10 +33,13 @@ import com.starcloud.ops.business.app.feign.dto.coze.*;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,7 @@ import javax.annotation.Resource;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
@@ -67,7 +72,15 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    private static final String prefix = "coze_verify_";
+    @Resource
+    private PluginConfigService configService;
+
+    @Resource
+    private RedissonClient redissonClient;
+
+    private static final String prefix_exectue = "coze_exectue_";
+
+    private static final String prefix_start = "coze_start_";
 
 
     @Override
@@ -84,6 +97,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
         String accessTokenId = reqVO.getCozeTokenId();
         String accessToken = bearer(accessTokenId);
+        long start = System.currentTimeMillis();
 
         CozeChatRequest request = new CozeChatRequest();
         request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
@@ -105,7 +119,8 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
         log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
         String code = IdUtil.fastSimpleUUID();
-        redisTemplate.boundValueOps(prefix + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
+        redisTemplate.boundValueOps(prefix_start + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
+        redisTemplate.boundValueOps(prefix_exectue + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
         return code;
     }
 
@@ -113,7 +128,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     public PluginExecuteRespVO getPluginResultCoze(String code, PluginRespVO reqVO) {
 
         String accessTokenId = reqVO.getCozeTokenId();
-        String cozeResult = redisTemplate.boundValueOps(prefix + code).get();
+        String cozeResult = redisTemplate.boundValueOps(prefix_exectue + code).get();
 
         String accessToken = bearer(accessTokenId);
         if (StringUtils.isBlank(cozeResult)) {
@@ -165,13 +180,44 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (Objects.isNull(executeRespVO.getOutput())) {
             throw exception(INPUT_OUTPUT_ERROR, "出参为空");
         }
+
+        String start = redisTemplate.boundValueOps(prefix_start + code).getAndDelete();
+        if (NumberUtil.isLong(start)) {
+            long end = System.currentTimeMillis();
+            Long time = end - Long.parseLong(start);
+            updateTime(time, reqVO.getUid());
+        }
+
         log.info("getPluginResultCoze {}", JSONUtil.toJsonPrettyStr(executeRespVO));
         return executeRespVO;
     }
 
 
+    /**
+     * 更新插件执行时间
+     */
+    private void updateTime(Long time, String pluginUid) {
+        RLock lock = redissonClient.getLock(pluginUid);
+        try {
+            if (lock.tryLock(5, 5, TimeUnit.SECONDS)) {
+                PluginDefinitionDO pluginDefinitionDO = getByUid(pluginUid);
+                pluginDefinitionDO.setTotalTime((pluginDefinitionDO.getTotalTime() == null ? 0 : pluginDefinitionDO.getTotalTime()) + time);
+                pluginDefinitionDO.setCount((pluginDefinitionDO.getCount() == null ? 0 : pluginDefinitionDO.getCount()) + 1);
+                pluginDefinitionDO.setExecuteTimeAvg(pluginDefinitionDO.getTotalTime() / pluginDefinitionDO.getCount());
+                pluginDefinitionMapper.updateById(pluginDefinitionDO);
+            }
+        } catch (Exception e) {
+            log.warn("update time error", e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
     @Override
     public String verify(PluginTestReqVO reqVO) {
+        long start = System.currentTimeMillis();
         String accessToken = bearer(reqVO.getAccessTokenId());
         CozeChatRequest request = new CozeChatRequest();
         request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
@@ -187,13 +233,14 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
         log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
         String code = IdUtil.fastSimpleUUID();
-        redisTemplate.boundValueOps(prefix + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
+        redisTemplate.boundValueOps(prefix_start + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
+        redisTemplate.boundValueOps(prefix_exectue + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
         return code;
     }
 
     @Override
     public VerifyResult verifyResult(String code, String accessTokenId) {
-        String cozeResult = redisTemplate.boundValueOps(prefix + code).get();
+        String cozeResult = redisTemplate.boundValueOps(prefix_exectue + code).get();
         String accessToken = bearer(accessTokenId);
         if (StringUtils.isBlank(cozeResult)) {
             throw exception(COZE_ERROR, "请重新验证！");
@@ -260,6 +307,12 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         } else {
             verifyResult.setVerifyState(true);
         }
+        String start = redisTemplate.boundValueOps(prefix_start + code).getAndDelete();
+        if (NumberUtil.isLong(start)) {
+            long end = System.currentTimeMillis();
+            Long time = end - Long.parseLong(start);
+            verifyResult.setExecuteTime(time);
+        }
         return verifyResult;
     }
 
@@ -295,6 +348,24 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     public List<PluginRespVO> ownerList() {
         List<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.selectOwnerPlugin();
         return PluginDefinitionConvert.INSTANCE.convert(pluginDOList);
+    }
+
+    @Override
+    public List<PluginRespVO> list(PluginListReqVO reqVO) {
+        List<PluginDefinitionDO> result = new ArrayList<>();
+        List<PluginConfigRespVO> configList = configService.configList(reqVO.getLibraryUid());
+        Collection<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.publishedList();
+        Collection<PluginDefinitionDO> ownerPluginList = pluginDefinitionMapper.selectOwnerPlugin();
+
+        if (CollectionUtil.isNotEmpty(configList)) {
+            result = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
+            pluginDOList = CollUtil.subtract(pluginDOList, result);
+            ownerPluginList = CollUtil.subtract(ownerPluginList, result);
+        }
+
+        Set<PluginDefinitionDO> distinct = CollUtil.unionDistinct(pluginDOList, ownerPluginList);
+        result.addAll(distinct);
+        return PluginDefinitionConvert.INSTANCE.convert(result);
     }
 
     @Override

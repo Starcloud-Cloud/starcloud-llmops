@@ -7,6 +7,8 @@ import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+
 @Mapper
 public interface PluginConfigConvert {
 
@@ -17,5 +19,8 @@ public interface PluginConfigConvert {
     PluginConfigRespVO convert(PluginConfigDO pluginConfigDO);
 
     PluginConfigDO convert(PluginConfigReqVO pluginVO);
+
+
+    List<PluginConfigRespVO> convert(List<PluginConfigDO> pluginConfigDOList);
 
 }

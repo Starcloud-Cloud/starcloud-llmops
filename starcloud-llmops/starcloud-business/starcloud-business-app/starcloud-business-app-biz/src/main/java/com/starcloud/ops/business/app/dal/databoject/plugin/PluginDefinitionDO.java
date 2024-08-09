@@ -9,11 +9,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Objects;
+
 @Data
-@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @TableName("llm_material_plugin_definition")
 public class PluginDefinitionDO extends TenantBaseDO {
@@ -33,6 +33,11 @@ public class PluginDefinitionDO extends TenantBaseDO {
      * 插件名称
      */
     private String pluginName;
+
+    /**
+     * 图片
+     */
+    private String avatar;
 
     /**
      * 场景 {@link PluginSceneEnum}
@@ -106,4 +111,32 @@ public class PluginDefinitionDO extends TenantBaseDO {
      */
     private String outputType;
 
+    /**
+     * 总时间
+     */
+    private Long totalTime;
+
+    /**
+     * 执行次数
+     */
+    private Integer count;
+
+    /**
+     * 平均执行时间
+     */
+    private Long executeTimeAvg;
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PluginDefinitionDO that = (PluginDefinitionDO) o;
+        return Objects.equals(uid, that.uid) && Objects.equals(pluginName, that.pluginName) && Objects.equals(scene, that.scene) && Objects.equals(type, that.type) && Objects.equals(cozeTokenId, that.cozeTokenId) && Objects.equals(entityUid, that.entityUid) && Objects.equals(entityName, that.entityName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), uid, pluginName, scene, type, cozeTokenId, entityUid, entityName);
+    }
 }
