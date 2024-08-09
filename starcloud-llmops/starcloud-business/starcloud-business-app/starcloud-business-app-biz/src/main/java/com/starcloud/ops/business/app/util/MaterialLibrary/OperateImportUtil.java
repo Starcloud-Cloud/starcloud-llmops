@@ -7,6 +7,7 @@ import com.github.junrar.exception.RarException;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.listener.ExcelDataEventListener;
 import com.starcloud.ops.business.app.service.materiallibrary.listener.ExcelHeadEventListener;
+import com.starcloud.ops.business.app.service.materiallibrary.listener.ExcelImageEventListener;
 import com.starcloud.ops.business.app.util.MaterialLibrary.dto.ExcelDataImportConfigDTO;
 import com.starcloud.ops.business.app.util.UnpackUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.SUPPORT_COMPRESS_FORMAT;
 import static com.starcloud.ops.business.app.enums.xhs.CreativeConstants.MATERIAL_TMP_DIR_PATH;
@@ -76,6 +78,30 @@ public class OperateImportUtil {
                 .doReadSync();
 
         return excelHeadEventListener.getHeads();
+    }
+
+
+    /**
+     * 这种是 内存溢出出现的情况非常低，但是事务不好控制（主要是出错全部回滚）
+     *
+     * @param file          文件
+     * @param headRowNumber 将数据存储到某张表的service【需要在业务service上实现这个接口，并重写saveBatchData方法】
+     * @param columnIndex   泛型类型
+     * @return
+     */
+    public static <T> Map<Integer, List<String>>  readOtherExcel(File file, Integer headRowNumber, Map<Integer, List<Long>>  columnIndex) {
+
+        // 初始化监听器
+        ExcelImageEventListener excelHeadEventListener = new ExcelImageEventListener(columnIndex);
+
+        // 读取表头并验证
+
+        EasyExcel.read(file, excelHeadEventListener)
+                .headRowNumber(headRowNumber)
+                .sheet()
+                .doReadSync();
+
+        return excelHeadEventListener.getColumnData();
     }
 
 
