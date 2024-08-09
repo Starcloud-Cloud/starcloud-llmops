@@ -150,14 +150,32 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
         // 异步存储数据
         OperateImportUtil.readExcel(excel, childrenDirs, importConfigDTO, materialLibrarySliceService, 2, unzipDir.getAbsolutePath());
 
-        if (columnData.isEmpty()){
-            return;
+        if (columnData.isEmpty()) {
+
+            try {
+                for (int i = 0; i < 10; i++) {
+                    long size = materialLibrarySliceService.getMaterialLibrarySliceByLibraryId(importReqVO.getLibraryId()).size();
+                    if (size > 0) {
+                        log.info("Material library slice found after {} attempts.", i + 1);
+                        return;
+                    }
+                    TimeUnit.SECONDS.sleep(2L);
+                }
+                log.warn("Material library slice not found after 10 attempts.");
+                return;
+            } catch (InterruptedException e) {
+                // 改进异常处理
+                Thread.currentThread().interrupt(); // 恢复中断状态
+                log.error("Interrupted while waiting for material library slice.", e);
+                return;
+            }
+
         }
-        List<String> flatValues =  columnData.values()
+        List<String> flatValues = columnData.values()
                 .stream()
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
-        validateUploadIsSuccess(buildRedisKey(flatValues,importReqVO.getLibraryId()));
+        validateUploadIsSuccess(buildRedisKey(flatValues, importReqVO.getLibraryId()));
     }
 
 

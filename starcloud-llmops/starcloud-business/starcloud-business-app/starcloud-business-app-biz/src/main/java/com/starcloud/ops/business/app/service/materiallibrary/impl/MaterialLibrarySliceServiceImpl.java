@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -77,8 +78,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         sliceDO.setSequence(nextSequence);
 
         materialLibrarySliceMapper.insert(sliceDO);
-
-        materialLibraryService.updateMaterialLibraryFileCount(sliceDO.getLibraryId());
         // 返回
         return sliceDO.getId();
     }
@@ -143,8 +142,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         // 删除
         materialLibrarySliceMapper.deleteById(id);
-
-        materialLibraryService.updateMaterialLibraryFileCount(sliceDO.getLibraryId());
 
     }
 
@@ -222,8 +219,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         MaterialLibrarySliceDO materialLibrarySliceDO = materialLibrarySliceMapper.selectById(ids.get(0));
         materialLibrarySliceMapper.deleteBatchIds(ids);
-
-        materialLibraryService.updateMaterialLibraryFileCount(materialLibrarySliceDO.getLibraryId());
     }
 
     /**
@@ -373,6 +368,17 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     }
 
     /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @return 素材知识库数据
+     */
+    @Override
+    public Long getMaterialLibrarySliceCountByLibraryId(Long libraryId) {
+        return materialLibrarySliceMapper.selectCountByLibraryId(libraryId);
+    }
+
+    /**
      * @param saveReqVOS    需要保存的数据
      * @param otherFileKeys 需要处理的文件
      */
@@ -381,16 +387,27 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> saveReqVOS, List<String> otherFileKeys) {
 
         Long libraryId = saveReqVOS.stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst().orElse(null);
-
-
-        validateUploadIsSuccess(buildRedisKey(otherFileKeys,libraryId));
+        if (libraryId == null) {
+            log.error("素材数据存储失败，数据为{}", JSONObject.toJSONString(saveReqVOS));
+            return;
+        }
+        validateUploadIsSuccess(buildRedisKey(otherFileKeys, libraryId));
 
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
 
         Map<Integer, List<String>> imageOrDocumentColumn = getImageOrDocumentColumn(tableColumnDOList);
         if (imageOrDocumentColumn.isEmpty()) {
-            this.saveBatchData(saveReqVOS);
+            List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(saveReqVOS, MaterialLibrarySliceDO.class);
+            if (getLoginUserId() == null) {
+                bean.stream().forEach(material -> {
+                    material.setCreator(tableColumnDOList.get(0).getCreator());
+                    material.setUpdater(tableColumnDOList.get(0).getCreator());
+                });
+            }
+            materialLibrarySliceMapper.insertBatch(bean);
+            return;
         }
+
         List<String> imageColumn = imageOrDocumentColumn.get(ColumnTypeEnum.IMAGE.getCode());
 
         if (CollUtil.isNotEmpty(imageColumn)) {
@@ -398,7 +415,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
             saveReqVOS.forEach(saveReqVO -> {
                 saveReqVO.getContent().stream()
                         .filter(content -> imageColumn.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
-                        .forEach(content -> content.setValue(redisTemplate.boundValueOps(getRedisKey(content.getValue(),libraryId)).get()));
+                        .forEach(content -> content.setValue(redisTemplate.boundValueOps(getRedisKey(content.getValue(), libraryId)).get()));
             });
         }
 
@@ -410,7 +427,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 data.getContent().stream()
                         .filter(content -> documentColumn.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
                         .forEach(content -> {
-                            String key = getRedisKey(content.getValue(),libraryId);
+                            String key = getRedisKey(content.getValue(), libraryId);
                             String urlsString = redisTemplate.boundValueOps(key).get();
 
                             List<String> urls = null;
@@ -518,7 +535,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(list, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.insertBatch(bean);
-        bean.stream().map(MaterialLibrarySliceDO::getLibraryId).distinct().forEach(materialLibraryService::updateMaterialLibraryFileCount);
         return list.size();
 
     }
@@ -543,8 +559,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 .map(key -> getRedisKey(key, libraryId))
                 .collect(Collectors.toList());
     }
-
-
 
 
 }

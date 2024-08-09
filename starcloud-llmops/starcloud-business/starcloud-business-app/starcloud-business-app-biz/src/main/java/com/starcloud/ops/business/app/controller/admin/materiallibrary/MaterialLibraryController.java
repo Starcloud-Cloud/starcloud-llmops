@@ -69,7 +69,10 @@ public class MaterialLibraryController {
             return success(PageResult.empty());
         }
         PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
-        bean.getList().forEach(reqVO -> reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname()));
+        bean.getList().forEach(reqVO ->{
+            reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname());
+            reqVO.setFileCount(materialLibrarySliceService.getMaterialLibrarySliceCountByLibraryId(reqVO.getId()));
+        } );
 
         return success(bean);
     }
