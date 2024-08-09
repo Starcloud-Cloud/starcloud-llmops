@@ -192,12 +192,12 @@ public interface MaterialLibraryService {
     void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO);
 
 
-    /**
-     * 更新素材库文件数量
-     *
-     * @param libraryId 素材库编号
-     */
-    void updateMaterialLibraryFileCount(Long libraryId);
+    // /**
+    //  * 更新素材库文件数量
+    //  *
+    //  * @param libraryId 素材库编号
+    //  */
+    // void updateMaterialLibraryFileCount(Long libraryId);
 
 
 }

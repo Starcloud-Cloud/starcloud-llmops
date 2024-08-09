@@ -557,21 +557,21 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
     }
 
-    /**
-     * 更新素材库文件数量
-     *
-     * @param libraryId 素材库编号
-     */
-    @Override
-    public void updateMaterialLibraryFileCount(Long libraryId) {
-        try {
-            long size = materialLibrarySliceService.getMaterialLibrarySliceByLibraryId(libraryId).size();
-            materialLibraryMapper.updateById(new MaterialLibraryDO().setFileCount(size).setId(libraryId));
-        } catch (RuntimeException e) {
-            log.error("素材库文件数更新失败，素材库编号为:({})", libraryId, e);
-        }
-
-    }
+    // /**
+    //  * 更新素材库文件数量
+    //  *
+    //  * @param libraryId 素材库编号
+    //  */
+    // @Override
+    // public void updateMaterialLibraryFileCount(Long libraryId) {
+    //     try {
+    //         long size = materialLibrarySliceService.getMaterialLibrarySliceByLibraryId(libraryId).size();
+    //         materialLibraryMapper.updateById(new MaterialLibraryDO().setFileCount(size).setId(libraryId));
+    //     } catch (RuntimeException e) {
+    //         log.error("素材库文件数更新失败，素材库编号为:({})", libraryId, e);
+    //     }
+    //
+    // }
 
 
     // ========================================私有方法区 ========================================
