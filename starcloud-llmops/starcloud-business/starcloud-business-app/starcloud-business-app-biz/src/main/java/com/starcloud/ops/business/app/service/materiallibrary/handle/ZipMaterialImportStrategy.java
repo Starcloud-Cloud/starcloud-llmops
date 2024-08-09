@@ -263,19 +263,6 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
      * @return 查询到的文件
      */
     public List<File> findFilesInTargetFolder(File[] directoriesToSearch, String targetFolderName, String targetedFileName) {
-
-
-        // // 指定文件夹路径
-        // String folderPath = "/path/to/your/folder";
-        // // 获取文件夹内所有.txt文件
-        // List<File> txtFiles = FileUtil.loopFiles(new File(folderPath), file -> file.getName().toLowerCase().endsWith(".txt"));
-        //
-        // // 输出文件路径
-        // for (File txtFile : txtFiles) {
-        //     System.out.println(txtFile.getAbsolutePath());
-        // }
-
-
         List<File> foundFiles = new ArrayList<>();
         for (File directory : directoriesToSearch) {
             if (directory.isDirectory()) {
