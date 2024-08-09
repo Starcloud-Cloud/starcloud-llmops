@@ -19,5 +19,5 @@ public interface PluginConfigService {
      * @param libraryUid 素材库uid
      * @return
      */
-    PluginConfigRespVO getByLibrary(String libraryUid);
+    PluginConfigRespVO getByLibrary(String libraryUid, String pluginUid);
 }

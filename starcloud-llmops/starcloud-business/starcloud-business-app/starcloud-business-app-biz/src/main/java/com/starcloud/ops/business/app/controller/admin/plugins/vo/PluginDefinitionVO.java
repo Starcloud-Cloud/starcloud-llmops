@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.plugins.vo;
 
+import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
@@ -28,9 +28,15 @@ public class PluginDefinitionVO {
     @NotBlank(message = "输入不能为空")
     private String input;
 
+    @Schema(description = "输入结构")
+    private String inputFormart;
+
     @Schema(description = "输出")
     @NotBlank(message = "输出不能为空")
     private String output;
+
+    @Schema(description = "输出结构")
+    private String outputFormart;
 
     @Schema(description = "实现类型")
     @NotBlank(message = "实现类型不能为空")
@@ -55,4 +61,11 @@ public class PluginDefinitionVO {
 
     @Schema(description = "验证成功")
     private Boolean verifyState;
+
+    @Schema(description = "输出类型")
+    @InEnum(value = OutputTypeEnum.class, field = InEnum.EnumField.CODE, message = "输出类型[{value}]必须在: [{values}] 范围内！")
+    private String outputType;
+
+    @Schema(description = "是否发布")
+    private Boolean published;
 }

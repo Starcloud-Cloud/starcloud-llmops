@@ -40,16 +40,26 @@ public class PluginDefinitionDO extends TenantBaseDO {
     private String scene;
 
     /**
-     * 输入格式
+     * 输入参考内容
      */
     @TableField(value = "`input`")
     private String input;
 
     /**
-     * 输出格式
+     * 输入结构
+     */
+    private String inputFormart;
+
+    /**
+     * 输出参考内容
      */
     @TableField(value = "`output`")
     private String output;
+
+    /**
+     * 输出结构
+     */
+    private String outputFormart;
 
     /**
      * 实现类型 {@link PlatformEnum}
@@ -90,5 +100,10 @@ public class PluginDefinitionDO extends TenantBaseDO {
      * 验证状态
      */
     private Boolean verifyState;
+
+    /**
+     * 输出类型
+     */
+    private String outputType;
 
 }

@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -14,12 +16,15 @@ import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginDefinitionConvert;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
+import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
@@ -38,6 +43,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
@@ -63,13 +69,106 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     private static final String prefix = "coze_verify_";
 
+
     @Override
     public Map<String, Object> metadata() {
         Map<String, Object> metadata = Maps.newHashMap();
         metadata.put("platform", PlatformEnum.options());
         metadata.put("scene", PluginSceneEnum.options());
+        metadata.put("outputType", OutputTypeEnum.options());
         return metadata;
     }
+
+
+    public String executePluginCoze(PluginExecuteReqVO executeReqVO, PluginRespVO reqVO) {
+
+        String accessTokenId = reqVO.getCozeTokenId();
+        String accessToken = bearer(accessTokenId);
+
+        CozeChatRequest request = new CozeChatRequest();
+        request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
+        request.setBotId(reqVO.getEntityUid());
+        CozeMessage cozeMessage = new CozeMessage();
+        cozeMessage.setRole("user");
+        cozeMessage.setContentType("text");
+
+        String content = StrUtil.join("\r\n", Arrays.asList("用下面的参数执行流程", JSONUtil.toJsonPrettyStr(executeReqVO.getInputParams())));
+        cozeMessage.setContent(content);
+
+        request.setMessages(Collections.singletonList(cozeMessage));
+
+        log.info("executePluginCoze request content: {}", content);
+
+        CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
+        if (chat.getCode() != 0) {
+            throw exception(COZE_ERROR, chat.getMsg());
+        }
+        log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
+        String code = IdUtil.fastSimpleUUID();
+        redisTemplate.boundValueOps(prefix + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
+        return code;
+    }
+
+
+    public PluginExecuteRespVO getPluginResultCoze(String code, PluginRespVO reqVO) {
+
+        String accessTokenId = reqVO.getCozeTokenId();
+        String cozeResult = redisTemplate.boundValueOps(prefix + code).get();
+
+        String accessToken = bearer(accessTokenId);
+        if (StringUtils.isBlank(cozeResult)) {
+            throw exception(COZE_ERROR, "请重新验证！");
+        }
+
+        CozeChatResult cozeChatResult = JSONUtil.toBean(cozeResult, CozeChatResult.class);
+        CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+        if (retrieve.getCode() != 0) {
+            throw exception(COZE_ERROR, retrieve.getMsg());
+        }
+
+        PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
+
+        String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
+        if (!Objects.equals("completed", status)) {
+            executeRespVO.setStatus(status);
+            return executeRespVO;
+        }
+
+        executeRespVO.setStatus("completed");
+        executeRespVO.setCompletedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCompletedAt).orElse(null));
+
+        CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+
+        if (CollectionUtil.isEmpty(list.getData())) {
+            throw exception(COZE_ERROR, "未发现正确的执行记录");
+        }
+
+        for (CozeMessageResult datum : list.getData()) {
+            if ("tool_response".equalsIgnoreCase(datum.getType())) {
+                String content = datum.getContent();
+                if (JSONUtil.isTypeJSONArray(content)) {
+
+                    Type listType = new TypeReference<List<Map<String, String>>>() {
+                    }.getType();
+                    executeRespVO.setOutput(JSON.parseObject(content, listType));
+                } else if (JSONUtil.isTypeJSONObject(content)) {
+
+                    Type mapType = new TypeReference<Map<String, Object>>() {
+                    }.getType();
+                    executeRespVO.setOutput(JSON.parseObject(content, mapType));
+                } else {
+                    throw exception(OUTPUT_JSON_ERROR, content);
+                }
+            }
+        }
+
+        if (Objects.isNull(executeRespVO.getOutput())) {
+            throw exception(INPUT_OUTPUT_ERROR, "出参为空");
+        }
+        log.info("getPluginResultCoze {}", JSONUtil.toJsonPrettyStr(executeRespVO));
+        return executeRespVO;
+    }
+
 
     @Override
     public String verify(PluginTestReqVO reqVO) {
@@ -84,11 +183,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         request.setMessages(Collections.singletonList(cozeMessage));
         CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
         if (chat.getCode() != 0) {
-            throw exception(PLUGIN_CONFIG_ERROR, chat.getMsg());
+            throw exception(COZE_ERROR, chat.getMsg());
         }
         log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
         String code = IdUtil.fastSimpleUUID();
-        redisTemplate.boundValueOps(prefix + code).set(JSONUtil.toJsonStr(chat.getData()));
+        redisTemplate.boundValueOps(prefix + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
         return code;
     }
 
@@ -104,27 +203,63 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (retrieve.getCode() != 0) {
             throw exception(COZE_ERROR, retrieve.getMsg());
         }
+
+        VerifyResult verifyResult = new VerifyResult();
+        verifyResult.setVerifyState(false);
+
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
         if (!Objects.equals("completed", status)) {
-            return new VerifyResult();
+            verifyResult.setStatus(status);
+            verifyResult.setCreatedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCreatedAt).orElse(null));
+            return verifyResult;
         }
+
+        verifyResult.setCompletedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCompletedAt).orElse(null));
+
         CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
-        VerifyResult verifyResult = new VerifyResult();
+
+        log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
+
+        if (CollectionUtil.isEmpty(list.getData())) {
+            throw exception(COZE_ERROR, "未发现正确的执行记录");
+        }
+
         for (CozeMessageResult datum : list.getData()) {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
-                Type listType = new TypeReference<List<Map<String, String>>>() {
-                }.getType();
-                verifyResult.setOutput(JSON.parseObject(content, listType));
+                if (JSONUtil.isTypeJSONArray(content)) {
+                    verifyResult.setOutputType("list");
+                    Type listType = new TypeReference<List<Map<String, String>>>() {
+                    }.getType();
+                    verifyResult.setOutput(JSON.parseObject(content, listType));
+                } else if (JSONUtil.isTypeJSONObject(content)) {
+                    verifyResult.setOutputType("map");
+                    Type mapType = new TypeReference<Map<String, Object>>() {
+                    }.getType();
+                    verifyResult.setOutput(JSON.parseObject(content, mapType));
+                } else {
+                    throw exception(OUTPUT_JSON_ERROR, content);
+                }
+
             } else if ("function_call".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
+                if (JSONUtil.isTypeJSONObject(content)) {
+                    verifyResult.setOutputType("map");
+                } else {
+                    throw exception(INPUT_JSON_ERROR, content);
+                }
                 JSONObject jsonObject = JSON.parseObject(content);
                 Type mapType = new TypeReference<Map<String, Object>>() {
                 }.getType();
                 verifyResult.setArguments(JSON.parseObject(jsonObject.getString("arguments"), mapType));
             }
         }
-        verifyResult.setVerifyState(true);
+
+        if (Objects.isNull(verifyResult.getArguments()) || Objects.isNull(verifyResult.getOutput())) {
+            throw exception(INPUT_OUTPUT_ERROR, "出入参可能为空");
+        } else {
+            verifyResult.setVerifyState(true);
+        }
         return verifyResult;
     }
 
@@ -215,7 +350,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         String accessToken = bearer(accessTokenId);
         CozeResponse<SpaceInfo> listCozeResponse = cozePublicClient.spaceBots(spaceId, accessToken, pageSize, pageIndex);
         if (listCozeResponse.getCode() != 0) {
-            throw exception(PLUGIN_CONFIG_ERROR, listCozeResponse.getMsg());
+            throw exception(COZE_ERROR, listCozeResponse.getMsg());
         }
         return listCozeResponse.getData();
     }
@@ -226,7 +361,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         // 测试连接
         CozeResponse<CozeBotInfo> cozeResponse = cozePublicClient.botInfo(botId, accessToken);
         if (cozeResponse.getCode() != 0) {
-            throw exception(PLUGIN_CONFIG_ERROR, cozeResponse.getMsg());
+            throw exception(COZE_ERROR, cozeResponse.getMsg());
         }
         return cozeResponse.getData();
     }

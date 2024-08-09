@@ -32,6 +32,11 @@ public class PluginConfigDO extends TenantBaseDO {
     private String libraryUid;
 
     /**
+     * 插件uid
+     */
+    private String pluginUid;
+
+    /**
      * 字段映射
      */
     private String fieldMap;
