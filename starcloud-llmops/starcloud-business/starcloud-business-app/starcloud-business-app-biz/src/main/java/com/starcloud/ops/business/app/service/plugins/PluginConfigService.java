@@ -4,6 +4,8 @@ import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 
+import java.util.List;
+
 public interface PluginConfigService {
     /**
      * 新增配置
@@ -20,4 +22,11 @@ public interface PluginConfigService {
      * @return
      */
     PluginConfigRespVO getByLibrary(String libraryUid, String pluginUid);
+
+    /**
+     * 素材配置列表
+     * @param libraryUid
+     * @return
+     */
+    List<PluginConfigRespVO> configList(String libraryUid);
 }

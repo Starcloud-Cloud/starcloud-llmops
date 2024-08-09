@@ -19,6 +19,9 @@ public class PluginDefinitionVO {
     @Size(min = 2, max = 20, message = "用户账号长度为 2-20 个字符")
     private String pluginName;
 
+    @Schema(description = "图片")
+    private String avatar;
+
     @Schema(description = "场景")
     @NotBlank(message = "场景不能为空")
     @InEnum(value = PluginSceneEnum.class, field = InEnum.EnumField.CODE, message = "场景[{value}]必须在: [{values}] 范围内！")
@@ -68,4 +71,14 @@ public class PluginDefinitionVO {
 
     @Schema(description = "是否发布")
     private Boolean published;
+
+    @Schema(description = "执行总时间")
+    private Long totalTime;
+
+    @Schema(description = "执行次数")
+    private Integer count;
+
+    @Schema(description = "平均执行时间 ms")
+    private Long executeTimeAvg;
+
 }

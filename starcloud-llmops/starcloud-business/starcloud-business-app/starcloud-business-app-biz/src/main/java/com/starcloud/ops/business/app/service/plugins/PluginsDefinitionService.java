@@ -2,12 +2,11 @@ package com.starcloud.ops.business.app.service.plugins;
 
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginTestRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
-import com.starcloud.ops.business.app.feign.dto.coze.SpaceBot;
 import com.starcloud.ops.business.app.feign.dto.coze.SpaceInfo;
 
 import java.util.List;
@@ -27,6 +26,11 @@ public interface PluginsDefinitionService {
 
 
     List<PluginRespVO> ownerList();
+
+    /**
+     * 插件列表
+     */
+    List<PluginRespVO> list(PluginListReqVO reqVO);
 
     /**
      * 发布

@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface PluginConfigMapper extends BaseMapper<PluginConfigDO> {
 
@@ -22,5 +24,13 @@ public interface PluginConfigMapper extends BaseMapper<PluginConfigDO> {
                 .orderByDesc(PluginConfigDO::getUpdateTime)
                 ;
         return selectOne(wrapper);
+    }
+
+    default List<PluginConfigDO> selectByLibraryUid(String libraryUid) {
+        LambdaQueryWrapper<PluginConfigDO> wrapper = Wrappers.lambdaQuery(PluginConfigDO.class)
+                .eq(PluginConfigDO::getLibraryUid, libraryUid)
+                .orderByDesc(PluginConfigDO::getUpdateTime)
+                ;
+        return selectList(wrapper);
     }
 }

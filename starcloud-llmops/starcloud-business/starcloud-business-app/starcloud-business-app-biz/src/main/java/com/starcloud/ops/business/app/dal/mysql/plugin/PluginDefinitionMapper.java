@@ -11,9 +11,12 @@ import java.util.List;
 @Mapper
 public interface PluginDefinitionMapper extends BaseMapper<PluginDefinitionDO> {
 
-    default List<PluginDefinitionDO> publishedList() {
+    List<PluginDefinitionDO> publishedList();
+
+
+    default List<PluginDefinitionDO> selectByUid(List<String> uids) {
         LambdaQueryWrapper<PluginDefinitionDO> wrapper = Wrappers.lambdaQuery(PluginDefinitionDO.class)
-                .eq(PluginDefinitionDO::getPublished, true);
+                .in(PluginDefinitionDO::getUid,uids);
         return selectList(wrapper);
     }
 

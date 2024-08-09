@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -49,6 +50,13 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     public PluginConfigRespVO getByLibrary(String libraryUid, String pluginUid) {
         PluginConfigDO pluginConfigDO = pluginConfigMapper.selectByLibraryUid(libraryUid, pluginUid);
         return PluginConfigConvert.INSTANCE.convert(pluginConfigDO);
+    }
+
+
+    @Override
+    public List<PluginConfigRespVO> configList(String libraryUid) {
+        List<PluginConfigDO> pluginConfigDOList = pluginConfigMapper.selectByLibraryUid(libraryUid);
+        return PluginConfigConvert.INSTANCE.convert(pluginConfigDOList);
     }
 
     public PluginConfigDO getByUid(String uid) {

@@ -4,12 +4,11 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginTestRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
-import com.starcloud.ops.business.app.feign.dto.coze.SpaceBot;
 import com.starcloud.ops.business.app.feign.dto.coze.SpaceInfo;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,6 +58,13 @@ public class PluginsDefinitionController {
     public CommonResult<List<PluginRespVO>> ownerList() {
         return CommonResult.success(pluginsDefinitionService.ownerList());
     }
+
+    @PostMapping(value = "/list")
+    @Operation(summary = "插件列表")
+    public CommonResult<List<PluginRespVO>> list(@RequestBody @Valid PluginListReqVO reqVO) {
+        return CommonResult.success(pluginsDefinitionService.list(reqVO));
+    }
+
 
     @GetMapping(value = "/publish/{uid}")
     @Operation(summary = "发布插件")
