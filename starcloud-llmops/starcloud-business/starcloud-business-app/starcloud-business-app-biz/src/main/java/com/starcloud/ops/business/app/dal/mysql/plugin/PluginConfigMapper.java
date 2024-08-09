@@ -15,9 +15,12 @@ public interface PluginConfigMapper extends BaseMapper<PluginConfigDO> {
         return selectOne(wrapper);
     }
 
-    default PluginConfigDO selectByLibraryUid(String LibraryUid) {
+    default PluginConfigDO selectByLibraryUid(String libraryUid, String pluginUid) {
         LambdaQueryWrapper<PluginConfigDO> wrapper = Wrappers.lambdaQuery(PluginConfigDO.class)
-                .eq(PluginConfigDO::getLibraryUid, LibraryUid);
+                .eq(PluginConfigDO::getPluginUid, pluginUid)
+                .eq(PluginConfigDO::getLibraryUid, libraryUid)
+                .orderByDesc(PluginConfigDO::getUpdateTime)
+                ;
         return selectOne(wrapper);
     }
 }

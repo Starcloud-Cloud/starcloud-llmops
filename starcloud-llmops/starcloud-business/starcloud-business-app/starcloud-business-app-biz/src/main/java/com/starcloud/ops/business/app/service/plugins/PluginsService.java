@@ -3,9 +3,8 @@ package com.starcloud.ops.business.app.service.plugins;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.ImageOcrReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.TextExtractionReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.XhsOcrReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 
 public interface PluginsService {
 
@@ -32,5 +31,10 @@ public interface PluginsService {
      * @return
      */
     JSONObject intelligentTextExtraction(TextExtractionReqVO reqVO);
+
+
+    String executePlugin(PluginExecuteReqVO reqVO);
+
+    PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO);
 
 }

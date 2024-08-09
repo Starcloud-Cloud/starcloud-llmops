@@ -5,9 +5,8 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.ImageOcrReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.TextExtractionReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.XhsOcrReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,5 +44,16 @@ public class PluginsExecuteController {
         return CommonResult.success(pluginsService.intelligentTextExtraction(reqVO));
     }
 
+    @PostMapping(value = "/execute")
+    @Operation(summary = "执行插件")
+    public CommonResult<String> executePlugin(@Valid @RequestBody PluginExecuteReqVO reqVO) {
+        return CommonResult.success(pluginsService.executePlugin(reqVO));
+    }
+
+    @PostMapping(value = "/executeResult")
+    @Operation(summary = "查询插件执行结果")
+    public CommonResult<PluginExecuteRespVO> getPluginResult(@Valid @RequestBody PluginResultReqVO reqVO) {
+        return CommonResult.success(pluginsService.getPluginResult(reqVO));
+    }
 
 }

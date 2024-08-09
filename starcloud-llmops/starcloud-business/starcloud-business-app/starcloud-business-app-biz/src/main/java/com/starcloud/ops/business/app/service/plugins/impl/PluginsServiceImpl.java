@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -12,17 +13,23 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.ImageOcrReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.TextExtractionReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.XhsOcrReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeChatResult;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeMessage;
+import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
+import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -30,11 +37,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_ERROR;
@@ -51,6 +54,44 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Resource
     private AppService appService;
+
+    @Resource
+    private PluginsDefinitionServiceImpl pluginsDefinitionService;
+
+
+    @Override
+    public String executePlugin(PluginExecuteReqVO reqVO) {
+        String uuid = reqVO.getUuid();
+        PluginRespVO pluginRespVO = pluginsDefinitionService.detail(uuid);
+        String code = "";
+
+        switch (pluginRespVO.getType()) {
+            case "coze":
+                code = pluginsDefinitionService.executePluginCoze(reqVO, pluginRespVO);
+                break;
+            default:
+                throw exception(PLUGIN_EXECUTE_ERROR, "不支持的插件类型");
+        }
+        return code;
+    }
+
+    /**
+     * 获取执行返回结果
+     */
+    @Override
+    public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
+        PluginRespVO pluginRespVO = pluginsDefinitionService.detail(pluginResultReqVO.getUuid());
+        PluginExecuteRespVO result = null;
+        switch (pluginRespVO.getType()) {
+            case "coze":
+                result = pluginsDefinitionService.getPluginResultCoze(pluginResultReqVO.getCode(), pluginRespVO);
+                break;
+            default:
+                throw exception(PLUGIN_EXECUTE_ERROR, "不支持的插件类型");
+        }
+        return result;
+    }
+
 
     @Override
     public XhsNoteDTO xhsOcr(XhsOcrReqVO reqVO) {

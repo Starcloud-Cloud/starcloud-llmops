@@ -25,10 +25,9 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Resource
     private PluginConfigMapper pluginConfigMapper;
 
-
     @Override
     public PluginConfigRespVO create(PluginConfigVO pluginConfigVO) {
-        PluginConfigDO oldConfig = pluginConfigMapper.selectByLibraryUid(pluginConfigVO.getLibraryUid());
+        PluginConfigDO oldConfig = pluginConfigMapper.selectByLibraryUid(pluginConfigVO.getLibraryUid(), pluginConfigVO.getPluginUid());
         if (Objects.nonNull(oldConfig)) {
             throw exception(LIBRARY_HAS_CONFIG, pluginConfigVO.getLibraryUid());
         }
@@ -47,11 +46,8 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     }
 
     @Override
-    public PluginConfigRespVO getByLibrary(String libraryUid) {
-        PluginConfigDO pluginConfigDO = pluginConfigMapper.selectByLibraryUid(libraryUid);
-        if (Objects.isNull(pluginConfigDO)) {
-            throw exception(PLUGIN_CONFIG_NOT_EXIST, "libraryUid :" + libraryUid);
-        }
+    public PluginConfigRespVO getByLibrary(String libraryUid, String pluginUid) {
+        PluginConfigDO pluginConfigDO = pluginConfigMapper.selectByLibraryUid(libraryUid, pluginUid);
         return PluginConfigConvert.INSTANCE.convert(pluginConfigDO);
     }
 

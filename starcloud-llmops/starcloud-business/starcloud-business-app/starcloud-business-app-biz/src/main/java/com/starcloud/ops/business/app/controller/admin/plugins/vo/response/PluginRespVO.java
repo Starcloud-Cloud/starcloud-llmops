@@ -13,9 +13,6 @@ public class PluginRespVO extends PluginDefinitionVO {
     @Schema(description = "uid")
     private String uid;
 
-    @Schema(description = "是否发布")
-    private Boolean published;
-
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

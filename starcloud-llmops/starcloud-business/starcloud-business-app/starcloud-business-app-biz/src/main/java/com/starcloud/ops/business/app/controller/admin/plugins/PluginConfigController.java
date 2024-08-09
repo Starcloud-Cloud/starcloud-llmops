@@ -28,10 +28,11 @@ public class PluginConfigController {
         return CommonResult.success(pluginConfigService.create(pluginVO));
     }
 
-    @GetMapping(value = "/detail/{libraryUid}")
+    @GetMapping(value = "/detail")
     @Operation(summary = "素材库插件配置")
-    public CommonResult<PluginConfigRespVO> detail(@PathVariable("libraryUid") String libraryUid) {
-        return CommonResult.success(pluginConfigService.getByLibrary(libraryUid));
+    public CommonResult<PluginConfigRespVO> detail(@RequestParam("libraryUid") String libraryUid,
+                                                   @RequestParam("pluginUid") String pluginUid) {
+        return CommonResult.success(pluginConfigService.getByLibrary(libraryUid, pluginUid));
     }
 
     @PostMapping(value = "/modify")
