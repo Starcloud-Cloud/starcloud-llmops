@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
@@ -20,7 +20,13 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,7 +50,12 @@ public abstract class AbstractMaterialHandler {
     /**
      * 提取素材索引正则
      */
-    private static final Pattern PATTERN = Pattern.compile("\\[(\\d+)]");
+    private static final Pattern PATTERN = Pattern.compile("\\.docs\\[(\\d+)]");
+
+    /**
+     * 生成数据相关正则
+     */
+    private static final Pattern DATA_PATTERN = Pattern.compile("\\.data|\\.title|\\.content|\\.tagList");
 
     /**
      * 分组字段
@@ -189,6 +200,42 @@ public abstract class AbstractMaterialHandler {
      */
     protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
         return this.defaultComputeNeedMaterialSize(posterStyleList);
+    }
+
+    /**
+     * 计算生成任务总数量
+     *
+     * @param materialList    素材列表
+     * @param posterStyleList 海报风格列表
+     * @return 生成任务总数量
+     */
+    public int calculateTotalCount(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList) {
+        // 计算每个海报风格需要的素材数量
+        List<Integer> needMaterialSize = computeNeedMaterialSize(posterStyleList);
+        if (CollectionUtil.isEmpty(needMaterialSize)) {
+            return 0;
+        }
+        int totalCount = 0;
+        int currentMaterialSize = materialList.size();
+        int loopCount = 0;
+        do {
+            loopCount++;
+            for (int i = 0; i < needMaterialSize.size(); i++) {
+                int currentNeed = needMaterialSize.get(i);
+
+                if (currentNeed > currentMaterialSize) {
+                    if (loopCount == 1 && i == 0) {
+                        throw ServiceExceptionUtil.invalidParamException("选择的素材数量不足以生成一篇笔记，请重新选择后重试！");
+                    }
+                    return totalCount;
+                } else {
+                    totalCount++;
+                    currentMaterialSize -= currentNeed;
+                }
+            }
+        } while (currentMaterialSize > 0);
+
+        return totalCount;
     }
 
     /**
@@ -347,12 +394,13 @@ public abstract class AbstractMaterialHandler {
 
     /**
      * 默认逻辑： 将资料库列表按照指定的大小和总数进行分组
+     * 不会进行复制素材
      *
      * @param materialList 资料库列表
      * @param needSizeList 需要复制的列表
      * @return 分组后的资料库列表
      */
-    protected Map<Integer, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
+    protected Map<Integer, List<Map<String, Object>>> defaultCopyMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
         // 结果集合
         Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
@@ -397,6 +445,53 @@ public abstract class AbstractMaterialHandler {
     }
 
     /**
+     * 默认逻辑： 将资料库列表按照指定的大小和总数进行分组
+     *
+     * @param materialList 资料库列表
+     * @param needSizeList 需要复制的列表
+     * @return 分组后的资料库列表
+     */
+    protected Map<Integer, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
+        // 结果集合
+        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
+
+        // 如果素材列表为空或者需要复制的数量集合为空
+        if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(needSizeList)) {
+            return resultMap;
+        }
+
+        // 处理制的数量集合
+        needSizeList = needSizeList.stream().map(item -> {
+            if (item == null || item <= 0) {
+                return 0;
+            }
+            return item;
+        }).collect(Collectors.toList());
+
+        // 记录原始素材列表的大小
+        int originalSize = materialList.size();
+        int currentIndex = 0;
+        for (int i = 0; i < needSizeList.size(); i++) {
+            int currentNeed = needSizeList.get(i);
+            if (currentNeed > originalSize) {
+                if (i == 0) {
+                    throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记，请添加素材后重试！");
+                } else {
+                    break;
+                }
+            } else {
+                List<Map<String, Object>> subMaterialList = new ArrayList<>(materialList.subList(currentIndex, currentIndex + currentNeed));
+                resultMap.put(i, subMaterialList);
+                currentIndex += currentNeed;
+                originalSize -= currentNeed;
+            }
+
+        }
+
+        return resultMap;
+    }
+
+    /**
      * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
      *
      * @param input 输入
@@ -423,4 +518,20 @@ public abstract class AbstractMaterialHandler {
         return max;
     }
 
+    /**
+     * 匹配数据
+     *
+     * @param input 输入
+     * @return 返回匹配结果
+     */
+    protected static Integer matchData(String input) {
+        if (StringUtils.isBlank(input)) {
+            return -1;
+        }
+        Matcher matcher = DATA_PATTERN.matcher(input);
+        if (matcher.find()) {
+            return 1;
+        }
+        return -1;
+    }
 }
