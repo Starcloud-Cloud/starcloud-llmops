@@ -181,8 +181,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(INPUT_OUTPUT_ERROR, "出参为空");
         }
 
-        String start = redisTemplate.boundValueOps(prefix_start + code).getAndDelete();
+        String start = redisTemplate.boundValueOps(prefix_start + code).get();
         if (NumberUtil.isLong(start)) {
+            redisTemplate.delete(prefix_start + code);
             long end = System.currentTimeMillis();
             Long time = end - Long.parseLong(start);
             updateTime(time, reqVO.getUid());
@@ -307,8 +308,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         } else {
             verifyResult.setVerifyState(true);
         }
-        String start = redisTemplate.boundValueOps(prefix_start + code).getAndDelete();
+        String start = redisTemplate.boundValueOps(prefix_start + code).get();
         if (NumberUtil.isLong(start)) {
+            redisTemplate.delete(prefix_start + code);
             long end = System.currentTimeMillis();
             Long time = end - Long.parseLong(start);
             verifyResult.setExecuteTime(time);
