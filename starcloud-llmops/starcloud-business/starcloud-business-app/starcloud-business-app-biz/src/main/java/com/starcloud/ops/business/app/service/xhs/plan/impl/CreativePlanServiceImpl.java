@@ -2,7 +2,6 @@ package com.starcloud.ops.business.app.service.xhs.plan.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -21,7 +20,6 @@ import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
@@ -84,7 +82,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -132,6 +129,37 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    /**
+     * 从内容任务中获取，海报配置信息。
+     *
+     * @param contentCreateRequestList 内容人物列表
+     * @param posterStepId             海报步骤
+     * @return 海报列表
+     */
+    @NotNull
+    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
+        return CollectionUtil.emptyIfNull(contentCreateRequestList)
+                .stream()
+                .map(item -> {
+                    Optional<String> posterStyleOptional = Optional.ofNullable(item)
+                            .map(CreativeContentCreateReqVO::getExecuteParam)
+                            .map(CreativeContentExecuteParam::getAppInformation)
+                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
+
+                    if (!posterStyleOptional.isPresent()) {
+                        return null;
+                    }
+
+                    try {
+                        return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
+                    } catch (Exception e) {
+                        return null;
+                    }
+
+                })
+                .collect(Collectors.toList());
+    }
 
     /**
      * 创作计划元数据
@@ -728,7 +756,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-        configuration.validate(creativePlan.getUid(), ValidateTypeEnum.EXECUTE);
+        List<Verification> verifications = configuration.validate(creativePlan.getUid(), ValidateTypeEnum.EXECUTE);
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            Verification verification = verifications.get(0);
+            throw ServiceExceptionUtil.invalidParamException(verification.getMessage());
+        }
         // 计划来源
         CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
         AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
@@ -932,37 +964,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appMarket = SerializationUtils.clone(appMarketResponse);
 
         return appMarket;
-    }
-
-    /**
-     * 从内容任务中获取，海报配置信息。
-     *
-     * @param contentCreateRequestList 内容人物列表
-     * @param posterStepId             海报步骤
-     * @return 海报列表
-     */
-    @NotNull
-    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
-        return CollectionUtil.emptyIfNull(contentCreateRequestList)
-                .stream()
-                .map(item -> {
-                    Optional<String> posterStyleOptional = Optional.ofNullable(item)
-                            .map(CreativeContentCreateReqVO::getExecuteParam)
-                            .map(CreativeContentExecuteParam::getAppInformation)
-                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
-
-                    if (!posterStyleOptional.isPresent()) {
-                        return null;
-                    }
-
-                    try {
-                        return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
-                    } catch (Exception e) {
-                        return null;
-                    }
-
-                })
-                .collect(Collectors.toList());
     }
 
 }
