@@ -106,7 +106,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         cozeMessage.setRole("user");
         cozeMessage.setContentType("text");
 
-        String content = StrUtil.join("\r\n", Arrays.asList("用下面的参数执行流程", JSONUtil.toJsonPrettyStr(executeReqVO.getInputParams())));
+        String content = StrUtil.join("\r\n", Arrays.asList("用下面的参数执行流程", JSONUtil.toJsonStr(executeReqVO.getInputParams())));
         cozeMessage.setContent(content);
 
         request.setMessages(Collections.singletonList(cozeMessage));
