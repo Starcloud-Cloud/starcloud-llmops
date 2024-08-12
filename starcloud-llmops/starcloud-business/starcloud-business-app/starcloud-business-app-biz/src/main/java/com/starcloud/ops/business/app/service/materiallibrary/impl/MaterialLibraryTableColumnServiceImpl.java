@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryT
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,9 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
 
     @Resource
     private MaterialLibraryTableColumnMapper materialLibraryTableColumnMapper;
+
+    @Resource
+    private MaterialLibrarySliceService materialLibrarySliceService;
 
     @Override
     public Long createMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO createReqVO) {
@@ -173,12 +177,16 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 优先删除 避免同名的情况
         if (CollUtil.isNotEmpty(diffList.get(2))) {
             materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
+            materialLibrarySliceService.asyncUpdateSliceByColumnCodeDelete(diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList()),diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getLibraryId).collect(Collectors.toList()).get(0));
         }
 
-        generateColumnCode(saveReqVOS);
         // 第二步，批量添加、修改、删除
         if (CollUtil.isNotEmpty(diffList.get(0))) {
-            materialLibraryTableColumnMapper.insertBatch(diffList.get(0));
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = diffList.get(0);
+            List<MaterialLibraryTableColumnSaveReqVO> saveReqVOList = BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+            generateColumnCode(saveReqVOList);
+            List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(saveReqVOList, MaterialLibraryTableColumnDO.class);
+            materialLibraryTableColumnMapper.insertBatch(bean);
         }
         if (CollUtil.isNotEmpty(diffList.get(1))) {
             materialLibraryTableColumnMapper.updateBatch(diffList.get(1));
