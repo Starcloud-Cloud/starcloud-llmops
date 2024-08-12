@@ -166,4 +166,13 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
 
 
     void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> cachedDataList, List<String> otherFileKeys);
+
+    /**
+     * 列 删除后 删除数据内的列
+     *
+     * @param columnCodes 列
+     * @param libraryId   素材库编号
+     */
+
+    void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId);
 }
