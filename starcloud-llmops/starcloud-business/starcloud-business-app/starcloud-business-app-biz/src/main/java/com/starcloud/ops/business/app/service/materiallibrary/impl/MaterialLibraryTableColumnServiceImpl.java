@@ -175,10 +175,13 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
         }
 
-        generateColumnCode(saveReqVOS);
         // 第二步，批量添加、修改、删除
         if (CollUtil.isNotEmpty(diffList.get(0))) {
-            materialLibraryTableColumnMapper.insertBatch(diffList.get(0));
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = diffList.get(0);
+            List<MaterialLibraryTableColumnSaveReqVO> saveReqVOList = BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+            generateColumnCode(saveReqVOList);
+            List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(saveReqVOList, MaterialLibraryTableColumnDO.class);
+            materialLibraryTableColumnMapper.insertBatch(bean);
         }
         if (CollUtil.isNotEmpty(diffList.get(1))) {
             materialLibraryTableColumnMapper.updateBatch(diffList.get(1));
