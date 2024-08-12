@@ -61,6 +61,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     private MaterialLibraryTableColumnMapper materialLibraryTableColumnMapper;
 
     @Resource
+    @Lazy
     private MaterialLibrarySliceService materialLibrarySliceService;
 
     @Override

@@ -52,6 +52,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     private MaterialLibraryService materialLibraryService;
 
     @Resource
+    @Lazy
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
