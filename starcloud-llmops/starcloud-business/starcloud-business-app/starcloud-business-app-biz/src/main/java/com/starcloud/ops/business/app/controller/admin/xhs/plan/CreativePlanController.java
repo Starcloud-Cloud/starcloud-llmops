@@ -76,9 +76,9 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.list(limit));
     }
 
-    @PostMapping("/list")
+    @PostMapping("/query")
     @Operation(summary = "创作计划列表", description = "创作计划列表")
-    public CommonResult<List<CreativePlanRespVO>> list(@RequestBody CreativePlanListQuery query) {
+    public CommonResult<List<CreativePlanRespVO>> query(@RequestBody CreativePlanListQuery query) {
         return CommonResult.success(creativePlanService.list(query));
     }
 
