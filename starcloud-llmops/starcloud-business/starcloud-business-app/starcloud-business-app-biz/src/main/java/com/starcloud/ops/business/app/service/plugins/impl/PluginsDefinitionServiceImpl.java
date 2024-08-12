@@ -276,12 +276,12 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
                 if (JSONUtil.isTypeJSONArray(content)) {
-                    verifyResult.setOutputType("list");
+                    verifyResult.setOutputType(OutputTypeEnum.list.getCode());
                     Type listType = new TypeReference<List<Map<String, String>>>() {
                     }.getType();
                     verifyResult.setOutput(JSON.parseObject(content, listType));
                 } else if (JSONUtil.isTypeJSONObject(content)) {
-                    verifyResult.setOutputType("map");
+                    verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
                     Type mapType = new TypeReference<Map<String, Object>>() {
                     }.getType();
                     verifyResult.setOutput(JSON.parseObject(content, mapType));
@@ -292,7 +292,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             } else if ("function_call".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
                 if (JSONUtil.isTypeJSONObject(content)) {
-                    verifyResult.setOutputType("map");
+                    verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
                 } else {
                     throw exception(INPUT_JSON_ERROR, content);
                 }
