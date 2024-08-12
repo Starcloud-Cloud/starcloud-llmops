@@ -178,7 +178,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
 
         if (Objects.isNull(executeRespVO.getOutput())) {
-            throw exception(INPUT_OUTPUT_ERROR, "出参为空");
+            throw exception(INPUT_OUTPUT_ERROR, "未调用工作流");
         }
 
         String start = redisTemplate.boundValueOps(prefix_start + code).get();
@@ -304,7 +304,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
 
         if (Objects.isNull(verifyResult.getArguments()) || Objects.isNull(verifyResult.getOutput())) {
-            throw exception(INPUT_OUTPUT_ERROR, "出入参可能为空");
+            throw exception(INPUT_OUTPUT_ERROR, "未调用工作流");
         } else {
             verifyResult.setVerifyState(true);
         }
@@ -440,11 +440,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     private String bearer(String accessTokenId) {
-        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(accessTokenId));
-        if (Objects.isNull(socialUser) || StringUtils.isBlank(socialUser.getToken())) {
-            throw exception(TOKEN_ERROR, accessTokenId);
-        }
-        return "Bearer " + socialUser.getToken();
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(accessTokenId));
+//        if (Objects.isNull(socialUser) || StringUtils.isBlank(socialUser.getToken())) {
+//            throw exception(TOKEN_ERROR, accessTokenId);
+//        }
+        return "Bearer " + "pat_UB9hHkqnAnv2wqHwaZGgLpMA9OuevqUkgPLoVrdUJ2qrbLXSMMI2ctLLQiJfpahO";
     }
 
     private PluginDefinitionDO getByUid(String uid) {
