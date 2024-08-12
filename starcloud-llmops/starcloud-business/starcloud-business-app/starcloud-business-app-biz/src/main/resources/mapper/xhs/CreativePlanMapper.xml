@@ -54,7 +54,6 @@
         and u.deleted = false
         and a.deleted = false
         and p.source = #{source}
-        and p.`status` = 'COMPLETE'
         order by CASE
         WHEN p.creator = #{userId} THEN 0
         ELSE 1
