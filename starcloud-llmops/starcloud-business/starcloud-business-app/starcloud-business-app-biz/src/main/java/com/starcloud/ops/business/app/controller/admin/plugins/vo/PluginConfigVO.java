@@ -14,16 +14,6 @@ import java.time.LocalDateTime;
 @Schema(description = "插件配置")
 public class PluginConfigVO {
 
-    private Long id;
-
-    private LocalDateTime createTime;
-
-    private LocalDateTime updateTime;
-
-    private String creator;
-
-    private String updater;
-
     /**
      * 素材库uid
      */
