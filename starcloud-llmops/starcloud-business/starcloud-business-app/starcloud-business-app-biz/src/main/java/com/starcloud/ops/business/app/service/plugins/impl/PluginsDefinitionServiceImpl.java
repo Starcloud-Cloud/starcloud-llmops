@@ -440,11 +440,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     private String bearer(String accessTokenId) {
-//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(accessTokenId));
-//        if (Objects.isNull(socialUser) || StringUtils.isBlank(socialUser.getToken())) {
-//            throw exception(TOKEN_ERROR, accessTokenId);
-//        }
-        return "Bearer " + "pat_UB9hHkqnAnv2wqHwaZGgLpMA9OuevqUkgPLoVrdUJ2qrbLXSMMI2ctLLQiJfpahO";
+        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(accessTokenId));
+        if (Objects.isNull(socialUser) || StringUtils.isBlank(socialUser.getToken())) {
+            throw exception(TOKEN_ERROR, accessTokenId);
+        }
+        return "Bearer " + socialUser.getToken();
     }
 
     private PluginDefinitionDO getByUid(String uid) {
