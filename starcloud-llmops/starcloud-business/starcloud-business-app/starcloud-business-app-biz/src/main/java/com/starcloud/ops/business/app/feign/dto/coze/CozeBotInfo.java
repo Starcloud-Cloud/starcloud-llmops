@@ -13,4 +13,7 @@ public class CozeBotInfo {
 
     private String description;
 
+    @JsonProperty("bot_mode")
+    private String botMode;
+
 }
