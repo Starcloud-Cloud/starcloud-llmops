@@ -52,6 +52,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     private MaterialLibraryService materialLibraryService;
 
     @Resource
+    @Lazy
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
@@ -460,7 +461,32 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         materialLibrarySliceMapper.insertBatch(bean);
     }
 
-    // 循环获取值 获取 5 次 每次间隔 2 秒
+    /**
+     * 列 删除后 删除数据内的列
+     *
+     * @param columnCodes 列编码
+     * @param libraryId   素材库编号
+     */
+    @Override
+    @Async
+    public void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId) {
+        ArrayList<String> columnCodesToDelete = CollUtil.distinct(columnCodes);
+        List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(libraryId);
+        if (CollUtil.isEmpty(sliceDOList)){
+            return;
+        }
+
+        sliceDOList.forEach(data -> {
+            Optional.ofNullable(data.getContent())
+                    .ifPresent(contentList -> {
+                        if (!contentList.isEmpty()) { // 使用 isEmpty() 替换 CollUtil
+                            contentList.removeIf(content -> columnCodesToDelete.contains(content.getColumnCode()));
+                        }
+                    });
+        });
+        materialLibrarySliceMapper.updateBatch(sliceDOList);
+    }
+
     private void validateUploadIsSuccess(List<String> otherFileKeys) {
 
         ArrayList<String> distinct = CollUtil.distinct(otherFileKeys);
