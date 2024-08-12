@@ -163,17 +163,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
     }
 
-    /**
-     * 获取创作计划分页列表
-     *
-     * @param query 请求参数
-     * @return 创作计划分页列表
-     */
-    @Override
-    public List<CreativePlanRespVO> list(CreativePlanListQuery query) {
-        List<CreativePlanDO> list = creativePlanMapper.list(query);
-        return CreativePlanConvert.INSTANCE.convertList(list);
-    }
 
     /**
      * 获取创作计划分页列表
@@ -204,6 +193,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     public List<CreativePlanRespVO> list(Integer limit) {
         List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString(), limit);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(CreativePlanConvert.INSTANCE::convert)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<CreativePlanRespVO> list(CreativePlanListQuery query) {
+
+        query.setUserId(WebFrameworkUtils.getLoginUserId());
+
+        List<CreativePlanDTO> list = creativePlanMapper.query(query);
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
