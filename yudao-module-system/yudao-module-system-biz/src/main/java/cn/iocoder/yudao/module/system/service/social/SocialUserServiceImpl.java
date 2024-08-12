@@ -77,21 +77,17 @@ public class SocialUserServiceImpl implements SocialUserService {
     @Transactional(rollbackFor = Exception.class)
     public String bindSocialUser(SocialUserBindReqDTO reqDTO) {
         // 获得社交用户
-        SocialUserDO socialUser = authSocialUser(reqDTO.getSocialType(), reqDTO.getUserType(),
-                reqDTO.getCode(), reqDTO.getState());
+        SocialUserDO socialUser = authSocialUser(reqDTO.getSocialType(), reqDTO.getUserType(), reqDTO.getCode(), reqDTO.getState());
         Assert.notNull(socialUser, "社交用户不能为空");
 
         // 社交用户可能之前绑定过别的用户，需要进行解绑
         socialUserBindMapper.deleteByUserTypeAndSocialUserId(reqDTO.getUserType(), socialUser.getId());
 
         // 用户可能之前已经绑定过该社交类型，需要进行解绑
-        socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(reqDTO.getUserType(), reqDTO.getUserId(),
-                socialUser.getType());
+        socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(reqDTO.getUserType(), reqDTO.getUserId(), socialUser.getType());
 
         // 绑定当前登录的社交用户
-        SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
-                .userId(reqDTO.getUserId()).userType(reqDTO.getUserType())
-                .socialUserId(socialUser.getId()).socialType(socialUser.getType()).build();
+        SocialUserBindDO socialUserBind = SocialUserBindDO.builder().userId(reqDTO.getUserId()).userType(reqDTO.getUserType()).socialUserId(socialUser.getId()).socialType(socialUser.getType()).build();
         socialUserBindMapper.insert(socialUserBind);
         return socialUser.getOpenid();
     }
@@ -130,8 +126,7 @@ public class SocialUserServiceImpl implements SocialUserService {
         Assert.notNull(socialUser, "社交用户不能为空");
 
         // 如果未绑定的社交用户，则无法自动登录，进行报错
-        SocialUserBindDO socialUserBind = socialUserBindMapper.selectByUserTypeAndSocialUserId(userType,
-                socialUser.getId());
+        SocialUserBindDO socialUserBind = socialUserBindMapper.selectByUserTypeAndSocialUserId(userType, socialUser.getId());
         if (socialUserBind == null) {
             throw exception(AUTH_THIRD_LOGIN_NOT_BIND);
         }
@@ -169,16 +164,7 @@ public class SocialUserServiceImpl implements SocialUserService {
             socialUser = new SocialUserDO();
         }
         socialUser.setType(socialType).setCode(code).setState(state) // 需要保存 code + state 字段，保证后续可查询
-                .setOpenid(authUser.getUuid())
-                .setToken(authUser.getToken().getAccessToken())
-                .setRawTokenInfo((toJsonString(authUser.getToken())))
-                .setNickname(authUser.getNickname())
-                .setAvatar(authUser.getAvatar())
-                .setRawUserInfo(toJsonString(authUser.getRawUserInfo()))
-                .setExpireIn(authUser.getToken().getExpireIn() > 0 ? authUser.getToken().getExpireIn() : -1)
-                .setRefreshTokenExpireIn(Objects.nonNull(authUser.getToken().getRefreshToken()) ? authUser.getToken().getRefreshTokenExpireIn() : -1)
-                .setRefreshToken(Objects.nonNull(authUser.getToken().getRefreshToken()) ? authUser.getToken().getRefreshToken() : null)
-        ;
+                .setOpenid(authUser.getUuid()).setToken(authUser.getToken().getAccessToken()).setRawTokenInfo((toJsonString(authUser.getToken()))).setNickname(authUser.getNickname()).setAvatar(authUser.getAvatar()).setRawUserInfo(toJsonString(authUser.getRawUserInfo())).setExpireIn(authUser.getToken().getExpireIn() > 0 ? authUser.getToken().getExpireIn() : -1).setRefreshTokenExpireIn(Objects.nonNull(authUser.getToken().getRefreshToken()) ? authUser.getToken().getRefreshTokenExpireIn() : -1).setRefreshToken(Objects.nonNull(authUser.getToken().getRefreshToken()) ? authUser.getToken().getRefreshToken() : null);
         if (socialUser.getId() == null) {
             socialUserMapper.insert(socialUser);
         } else {
@@ -198,8 +184,8 @@ public class SocialUserServiceImpl implements SocialUserService {
     public SocialUserDO getNewSocialUser(Long id) {
         SocialUserDO socialUser = socialUserMapper.selectById(id);
 
-        if (socialUser == null){
-            throw  exception(SOCIAL_USER_AUTH_NO_FOUND);
+        if (socialUser == null) {
+            throw exception(SOCIAL_USER_AUTH_NO_FOUND);
         }
 
         if (validatedTokenExpireIn(socialUser)) {
@@ -217,14 +203,9 @@ public class SocialUserServiceImpl implements SocialUserService {
 
         authToken.setRefreshTokenExpireIn((int) zonedDateTime.toEpochSecond());
 
-        socialUserMapper.updateById(socialUser.setToken(authToken.getAccessToken())
-                .setRawTokenInfo((toJsonString(authToken)))
-                .setExpireIn(authToken.getExpireIn() > 0 ? authToken.getExpireIn() : -1)
-                .setRefreshTokenExpireIn(Objects.nonNull(authToken.getRefreshToken()) ? authToken.getRefreshTokenExpireIn() : -1)
-                .setRefreshToken(Objects.nonNull(authToken.getRefreshToken()) ? authToken.getRefreshToken() : null));
+        socialUserMapper.updateById(socialUser.setToken(authToken.getAccessToken()).setRawTokenInfo((toJsonString(authToken))).setExpireIn(authToken.getExpireIn() > 0 ? authToken.getExpireIn() : -1).setRefreshTokenExpireIn(Objects.nonNull(authToken.getRefreshToken()) ? authToken.getRefreshTokenExpireIn() : -1).setRefreshToken(Objects.nonNull(authToken.getRefreshToken()) ? authToken.getRefreshToken() : null));
         return socialUserMapper.selectById(id);
     }
-
 
 
     @Override
@@ -236,7 +217,7 @@ public class SocialUserServiceImpl implements SocialUserService {
             return PageResult.empty();
         }
 
-        return socialUserMapper.selectPage2(pageReqVO,convertSet(socialUserBinds, SocialUserBindDO::getSocialUserId));
+        return socialUserMapper.selectPage2(pageReqVO, convertSet(socialUserBinds, SocialUserBindDO::getSocialUserId));
     }
 
     @Override
@@ -253,9 +234,22 @@ public class SocialUserServiceImpl implements SocialUserService {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * 获得指定用户的社交用户
+     *
+     * @param userId     用户编号
+     * @param userType   用户类型
+     * @param socialType 社交平台的类型
+     * @return 社交用户
+     */
+    @Override
+    public SocialUserDO getSocialUser(Long userId, Integer userType, Integer socialType) {
+        return getSocialUserList(userId, UserTypeEnum.ADMIN.getValue()).stream().filter(socialUserDO -> socialType.equals(socialUserDO.getType())).findFirst().orElse(null);
+    }
+
 
     private Boolean validatedTokenExpireIn(SocialUserDO socialUser) {
-        DateTime expireData = DateUtil.date((long)socialUser.getExpireIn() * 1000);
+        DateTime expireData = DateUtil.date((long) socialUser.getExpireIn() * 1000);
         DateTime now = DateUtil.date();
         if (DateUtil.compare(expireData, now) <= 0) {
             return false;
@@ -264,8 +258,9 @@ public class SocialUserServiceImpl implements SocialUserService {
         return DateUtil.compare(expireData, now.offsetNew(DateField.MINUTE, 2)) > 0;
 
     }
+
     private void validatedRefreshTokenExpireIn(SocialUserDO socialUser) {
-        long data = (long)socialUser.getRefreshTokenExpireIn() * 1000;
+        long data = (long) socialUser.getRefreshTokenExpireIn() * 1000;
         DateTime expireData = DateUtil.date(data);
         DateTime now = DateUtil.date();
         if (DateUtil.compare(expireData, now) <= 0) {
