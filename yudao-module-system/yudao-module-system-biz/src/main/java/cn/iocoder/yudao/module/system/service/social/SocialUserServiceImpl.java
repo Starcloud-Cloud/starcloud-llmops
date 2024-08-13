@@ -198,6 +198,7 @@ public class SocialUserServiceImpl implements SocialUserService {
                 .setState(null) // 需要保存 code + state 字段，保证后续可查询
                 .setOpenid(openid)
                 .setToken(code)
+                .setAuto(false)
                 .setRawTokenInfo(null)
                 .setNickname(remark).setAvatar(null)
                 .setRemark(remark)
