@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.plugin;
 
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -11,6 +12,7 @@ import java.util.List;
 @Mapper
 public interface PluginDefinitionMapper extends BaseMapper<PluginDefinitionDO> {
 
+    @DataPermission(enable = false)
     List<PluginDefinitionDO> publishedList();
 
 
