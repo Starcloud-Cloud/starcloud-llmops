@@ -229,7 +229,7 @@ public class SocialUserServiceImpl implements SocialUserService {
             return socialUser;
         }
 
-        if (!socialUser.getAuto()) {
+        if (Objects.nonNull(socialUser.getAuto()) && !socialUser.getAuto()) {
             return socialUser;
         }
 
