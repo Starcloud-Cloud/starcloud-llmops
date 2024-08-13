@@ -43,8 +43,8 @@ public class SocialUserBindReqVO {
      * 绑定方式 自动/手动
      */
     @Schema(description = "绑定方式 自动/手动", requiredMode = Schema.RequiredMode.REQUIRED, example = "true")
-    @NotNull(message = "绑定方式 自动/手动 不能为空")
-    private Boolean auto;
+    // @NotNull(message = "绑定方式 自动/手动 不能为空")
+    private Boolean auto = true;
 
 
 }
