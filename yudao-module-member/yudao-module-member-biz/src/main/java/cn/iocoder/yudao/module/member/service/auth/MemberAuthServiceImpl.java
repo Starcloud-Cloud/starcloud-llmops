@@ -69,7 +69,7 @@ public class MemberAuthServiceImpl implements MemberAuthService {
         String openid = null;
         if (reqVO.getSocialType() != null) {
             openid = socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
-                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState()));
+                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState(),null,true));
         }
 
         // 创建 Token 令牌，记录登录日志
@@ -91,7 +91,7 @@ public class MemberAuthServiceImpl implements MemberAuthService {
         String openid = null;
         if (reqVO.getSocialType() != null) {
             openid = socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
-                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState()));
+                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState(),null,true));
         }
 
         // 创建 Token 令牌，记录登录日志
@@ -131,7 +131,7 @@ public class MemberAuthServiceImpl implements MemberAuthService {
 
         // 绑定社交用户
         String openid = socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
-                SocialTypeEnum.WECHAT_MINI_APP.getType(), reqVO.getLoginCode(), reqVO.getState()));
+                SocialTypeEnum.WECHAT_MINI_APP.getType(), reqVO.getLoginCode(), reqVO.getState(),null,false));
 
         // 创建 Token 令牌，记录登录日志
         return createTokenAfterLoginSuccess(user, user.getMobile(), LoginLogTypeEnum.LOGIN_SOCIAL, openid);
