@@ -47,7 +47,6 @@ public interface SocialUserService {
      */
     void unbindSocialUser(Long userId, Integer userType, Integer socialType, String openid);
 
-
     /**
      * 获得绑定用户
      *
