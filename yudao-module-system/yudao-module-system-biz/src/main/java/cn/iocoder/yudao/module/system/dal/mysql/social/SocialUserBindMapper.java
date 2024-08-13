@@ -32,7 +32,7 @@ public interface SocialUserBindMapper extends BaseMapperX<SocialUserBindDO> {
 
     default List<SocialUserBindDO> selectListByUserIdAndUserType(Long userId, Integer userType) {
         return selectList(new LambdaQueryWrapperX<SocialUserBindDO>()
-                .eq(SocialUserBindDO::getUserId, userId)
+                // .eq(SocialUserBindDO::getUserId, userId)
                 .eq(SocialUserBindDO::getUserType, userType));
     }
 
