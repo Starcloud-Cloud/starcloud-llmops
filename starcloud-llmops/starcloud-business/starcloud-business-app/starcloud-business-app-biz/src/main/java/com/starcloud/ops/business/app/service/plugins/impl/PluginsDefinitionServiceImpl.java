@@ -263,7 +263,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             verifyResult.setCreatedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCreatedAt).orElse(null));
             return verifyResult;
         }
-
+        verifyResult.setStatus("completed");
         verifyResult.setCompletedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCompletedAt).orElse(null));
 
         CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
