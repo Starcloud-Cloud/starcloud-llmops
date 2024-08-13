@@ -39,6 +39,7 @@ import java.util.Objects;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.framework.common.util.json.JsonUtils.toJsonString;
+import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static cn.iocoder.yudao.module.system.enums.ErrorCodeConstants.*;
 
 /**
@@ -90,7 +91,7 @@ public class SocialUserServiceImpl implements SocialUserService {
         socialUserBindMapper.deleteByUserTypeAndSocialUserId(reqDTO.getUserType(), socialUser.getId());
 
         // 用户可能之前已经绑定过该社交类型，需要进行解绑
-        if (!SocialTypeEnum.COZE.getType().equals(reqDTO.getSocialType())) {
+        if (!SocialTypeEnum.COZE.getType().equals(reqDTO.getSocialType())){
             socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(reqDTO.getUserType(), reqDTO.getUserId(), socialUser.getType());
         }
 
@@ -198,7 +199,6 @@ public class SocialUserServiceImpl implements SocialUserService {
                 .setState(null) // 需要保存 code + state 字段，保证后续可查询
                 .setOpenid(openid)
                 .setToken(code)
-                .setAuto(false)
                 .setRawTokenInfo(null)
                 .setNickname(remark).setAvatar(null)
                 .setRemark(remark)
@@ -230,7 +230,7 @@ public class SocialUserServiceImpl implements SocialUserService {
             return socialUser;
         }
 
-        if (Objects.nonNull(socialUser.getAuto()) && !socialUser.getAuto()) {
+        if (!socialUser.getAuto()){
             return socialUser;
         }
 
@@ -254,7 +254,7 @@ public class SocialUserServiceImpl implements SocialUserService {
     public PageResult<SocialUserDO> getSocialUserPage(SocialUserPageReqVO pageReqVO) {
 
         // 获得绑定
-        List<SocialUserBindDO> socialUserBinds = socialUserBindMapper.selectListByUserIdAndUserType(null, UserTypeEnum.ADMIN.getValue());
+        List<SocialUserBindDO> socialUserBinds = socialUserBindMapper.selectListByUserIdAndUserType(getLoginUserId(), UserTypeEnum.ADMIN.getValue());
         if (CollUtil.isEmpty(socialUserBinds)) {
             return PageResult.empty();
         }
