@@ -162,17 +162,19 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
                 if (JSONUtil.isTypeJSONArray(content)) {
-
-                    Type listType = new TypeReference<List<Map<String, String>>>() {
+                    Type listType = new TypeReference<List<Map<String, Object>>>() {
                     }.getType();
-                    executeRespVO.setOutput(JSON.parseObject(content, listType));
+                    List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
+                    listMap.forEach(this::cleanMap);
+                    executeRespVO.setOutput(listMap);
                 } else if (JSONUtil.isTypeJSONObject(content)) {
-
                     Type mapType = new TypeReference<Map<String, Object>>() {
                     }.getType();
-                    executeRespVO.setOutput(JSON.parseObject(content, mapType));
+                    Map<String, Object> objectMap = JSON.parseObject(content, mapType);
+                    cleanMap(objectMap);
+                    executeRespVO.setOutput(objectMap);
                 } else {
-                    throw exception(OUTPUT_JSON_ERROR, content);
+                    throw exception(OUTPUT_JSON_ERROR);
                 }
             }
         }
@@ -277,23 +279,25 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 String content = datum.getContent();
                 if (JSONUtil.isTypeJSONArray(content)) {
                     verifyResult.setOutputType(OutputTypeEnum.list.getCode());
-                    Type listType = new TypeReference<List<Map<String, String>>>() {
+                    Type listType = new TypeReference<List<Map<String, Object>>>() {
                     }.getType();
-                    verifyResult.setOutput(JSON.parseObject(content, listType));
+                    List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
+                    listMap.forEach(this::cleanMap);
+                    verifyResult.setOutput(listMap);
                 } else if (JSONUtil.isTypeJSONObject(content)) {
                     verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
                     Type mapType = new TypeReference<Map<String, Object>>() {
                     }.getType();
-                    verifyResult.setOutput(JSON.parseObject(content, mapType));
+                    Map<String, Object> objectMap = JSON.parseObject(content, mapType);
+                    cleanMap(objectMap);
+                    verifyResult.setOutput(objectMap);
                 } else {
-                    throw exception(OUTPUT_JSON_ERROR, content);
+                    throw exception(OUTPUT_JSON_ERROR);
                 }
 
             } else if ("function_call".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
-                if (JSONUtil.isTypeJSONObject(content)) {
-                    verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
-                } else {
+                if (!JSONUtil.isTypeJSONObject(content)) {
                     throw exception(INPUT_JSON_ERROR, content);
                 }
                 JSONObject jsonObject = JSON.parseObject(content);
@@ -445,6 +449,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(TOKEN_ERROR, accessTokenId);
         }
         return "Bearer " + socialUser.getToken();
+    }
+
+    private void cleanMap(Map<String, Object> objectMap) {
+        objectMap.remove("TAKO_BOT_HISTORY");
     }
 
     private PluginDefinitionDO getByUid(String uid) {
