@@ -417,6 +417,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     @Override
+    @DataPermission(enable = false)
     public PluginRespVO detail(String uid) {
         PluginDefinitionDO pluginConfigDO = getByUid(uid);
         return PluginDefinitionConvert.INSTANCE.convert(pluginConfigDO);
