@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -76,15 +77,23 @@ public class SocialUserServiceImpl implements SocialUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String bindSocialUser(SocialUserBindReqDTO reqDTO) {
-        // 获得社交用户
-        SocialUserDO socialUser = authSocialUser(reqDTO.getSocialType(), reqDTO.getUserType(), reqDTO.getCode(), reqDTO.getState());
-        Assert.notNull(socialUser, "社交用户不能为空");
+        SocialUserDO socialUser;
+        if (reqDTO.getAuto()) {
+            // 获得社交用户
+            socialUser = authSocialUser(reqDTO.getSocialType(), reqDTO.getUserType(), reqDTO.getCode(), reqDTO.getState());
+            Assert.notNull(socialUser, "社交用户不能为空");
+        } else {
+            socialUser = manualSocialUser(reqDTO.getSocialType(), reqDTO.getCode(), reqDTO.getRemark());
+        }
+
 
         // 社交用户可能之前绑定过别的用户，需要进行解绑
         socialUserBindMapper.deleteByUserTypeAndSocialUserId(reqDTO.getUserType(), socialUser.getId());
 
         // 用户可能之前已经绑定过该社交类型，需要进行解绑
-        socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(reqDTO.getUserType(), reqDTO.getUserId(), socialUser.getType());
+        if (!SocialTypeEnum.COZE.getType().equals(reqDTO.getSocialType())){
+            socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(reqDTO.getUserType(), reqDTO.getUserId(), socialUser.getType());
+        }
 
         // 绑定当前登录的社交用户
         SocialUserBindDO socialUserBind = SocialUserBindDO.builder().userId(reqDTO.getUserId()).userType(reqDTO.getUserType()).socialUserId(socialUser.getId()).socialType(socialUser.getType()).build();
@@ -101,8 +110,9 @@ public class SocialUserServiceImpl implements SocialUserService {
             throw exception(SOCIAL_USER_NOT_FOUND);
         }
         socialUserMapper.deleteById(socialUser.getId());
-        // 获得对应的社交绑定关系
-        socialUserBindMapper.deleteByUserTypeAndUserIdAndSocialType(userType, userId, socialUser.getType());
+        // 删除对应的社交绑定关系
+
+        socialUserBindMapper.deleteByUserTypeAndSocialUserId(userType, socialUser.getId());
     }
 
     @Override
@@ -173,6 +183,34 @@ public class SocialUserServiceImpl implements SocialUserService {
         return socialUser;
     }
 
+    @NotNull
+    public SocialUserDO manualSocialUser(Integer socialType, String code, String remark) {
+        // 优先从 DB 中获取，因为 code 有且可以使用一次。
+        // 在社交登录时，当未绑定 User 时，需要绑定登录，此时需要 code 使用两次
+        SocialUserDO socialUser = socialUserMapper.selectByTypeAndCodeAnState(socialType, code, null);
+        if (socialUser != null) {
+            return socialUser;
+        }
+        // 保存到 DB 中
+        socialUser = new SocialUserDO();
+        String openid = IdUtil.fastUUID();
+        socialUser.setType(socialType)
+                .setCode(code)
+                .setState(null) // 需要保存 code + state 字段，保证后续可查询
+                .setOpenid(openid)
+                .setToken(code)
+                .setRawTokenInfo(null)
+                .setNickname(remark).setAvatar(null)
+                .setRemark(remark)
+                .setRawUserInfo(null).setExpireIn(-1).setRefreshTokenExpireIn(-1).setRefreshToken(null);
+        if (socialUser.getId() == null) {
+            socialUserMapper.insert(socialUser);
+        } else {
+            socialUserMapper.updateById(socialUser);
+        }
+        return socialUser;
+    }
+
     // ==================== 社交用户 CRUD ====================
 
     @Override
@@ -189,6 +227,10 @@ public class SocialUserServiceImpl implements SocialUserService {
         }
 
         if (validatedTokenExpireIn(socialUser)) {
+            return socialUser;
+        }
+
+        if (!socialUser.getAuto()){
             return socialUser;
         }
 

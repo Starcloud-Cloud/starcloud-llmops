@@ -82,6 +82,16 @@ public class SocialUserDO extends TenantBaseDO {
      */
     private Integer refreshTokenExpireIn;
 
+    /**
+     * 绑定方式 自动/手动
+     */
+    private String remark;
+
+    /**
+     * 绑定方式 自动/手动
+     */
+    private Boolean auto;
+
 }
 
 

@@ -181,7 +181,7 @@ public class AdminAuthServiceImplTest extends BaseDbUnitTest {
         );
         verify(socialUserService).bindSocialUser(eq(new SocialUserBindReqDTO(
                 user.getId(), UserTypeEnum.ADMIN.getValue(),
-                reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState())));
+                reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState(),null,true)));
     }
 
     @Test
