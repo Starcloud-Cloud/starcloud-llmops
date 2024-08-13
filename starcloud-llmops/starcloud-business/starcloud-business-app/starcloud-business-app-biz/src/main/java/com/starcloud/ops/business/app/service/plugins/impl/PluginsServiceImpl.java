@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
@@ -60,6 +61,7 @@ public class PluginsServiceImpl implements PluginsService {
 
 
     @Override
+    @DataPermission(enable = false)
     public String executePlugin(PluginExecuteReqVO reqVO) {
         String uuid = reqVO.getUuid();
         PluginRespVO pluginRespVO = pluginsDefinitionService.detail(uuid);
@@ -79,6 +81,7 @@ public class PluginsServiceImpl implements PluginsService {
      * 获取执行返回结果
      */
     @Override
+    @DataPermission(enable = false)
     public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
         PluginRespVO pluginRespVO = pluginsDefinitionService.detail(pluginResultReqVO.getUuid());
         PluginExecuteRespVO result = null;
