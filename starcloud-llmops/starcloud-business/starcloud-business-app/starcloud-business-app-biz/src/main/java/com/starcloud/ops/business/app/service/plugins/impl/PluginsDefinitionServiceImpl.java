@@ -369,7 +369,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             ownerPluginList = CollUtil.subtract(ownerPluginList, result);
         }
 
-        Set<PluginDefinitionDO> distinct = CollUtil.unionDistinct(pluginDOList, ownerPluginList);
+        Set<PluginDefinitionDO> distinct = CollUtil.unionDistinct(ownerPluginList, pluginDOList);
         result.addAll(distinct);
         return PluginDefinitionConvert.INSTANCE.convert(result);
     }
