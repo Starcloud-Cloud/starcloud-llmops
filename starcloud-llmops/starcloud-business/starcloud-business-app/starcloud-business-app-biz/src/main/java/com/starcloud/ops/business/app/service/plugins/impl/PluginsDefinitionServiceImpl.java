@@ -174,6 +174,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     cleanMap(objectMap);
                     executeRespVO.setOutput(objectMap);
                 } else {
+                    log.error("输出结果格式错误 {}", content);
                     throw exception(OUTPUT_JSON_ERROR);
                 }
             }
@@ -292,6 +293,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     cleanMap(objectMap);
                     verifyResult.setOutput(objectMap);
                 } else {
+                    log.error("输出结果格式错误 {}", content);
                     throw exception(OUTPUT_JSON_ERROR);
                 }
 
