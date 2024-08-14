@@ -383,7 +383,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      * @param saveReqVOS    需要保存的数据
      * @param otherFileKeys 需要处理的文件
      */
-    @Async
+    // @Async
     @Override
     public void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> saveReqVOS, List<String> otherFileKeys) {
 
@@ -472,7 +472,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId) {
         ArrayList<String> columnCodesToDelete = CollUtil.distinct(columnCodes);
         List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(libraryId);
-        if (CollUtil.isEmpty(sliceDOList)){
+        if (CollUtil.isEmpty(sliceDOList)) {
             return;
         }
 
@@ -492,8 +492,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         ArrayList<String> distinct = CollUtil.distinct(otherFileKeys);
         final int MAX_RETRIES = 30;
         final long RETRY_DELAY_SECONDS = 3L;
-
-        // 循环尝试获取文件状态，最多尝试 MAX_RETRIES 次
         for (int i = 0; i < MAX_RETRIES; i++) {
             try {
                 // 计算其他文件键在 Redis 中的实际存在数量
@@ -509,18 +507,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 TimeUnit.SECONDS.sleep(RETRY_DELAY_SECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // 恢复中断状态
-                System.err.println("Thread was interrupted, Failed to complete operation");
+                log.error("Thread was interrupted, Failed to complete operation:({})", e.getMessage());
                 return;
             } catch (Exception e) {
                 // 处理其他可能的异常
-                System.err.println("An error occurred while checking file status: " + e.getMessage());
+                log.error("An error occurred while checking file status:({})", e.getMessage());
                 return;
             }
         }
 
-        // 如果经过多次尝试仍然没有所有文件，则认为上传失败
-        System.err.println("Not all files were successfully uploaded after multiple retries.");
-
+        throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
 
     }
 
