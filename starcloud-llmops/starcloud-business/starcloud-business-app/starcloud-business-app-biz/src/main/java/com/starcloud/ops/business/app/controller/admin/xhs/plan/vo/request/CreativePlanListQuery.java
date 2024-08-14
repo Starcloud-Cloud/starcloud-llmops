@@ -22,11 +22,6 @@ public class CreativePlanListQuery implements java.io.Serializable {
 
     private static final long serialVersionUID = 8118507177135519788L;
 
-    /**
-     * 创作计划uid
-     */
-    @Schema(description = "创作计划uid")
-    private String uid;
 
     @Schema(description = "来源  APP/MARKET")
     @NotBlank(message = "来源 不能为空")
@@ -38,10 +33,5 @@ public class CreativePlanListQuery implements java.io.Serializable {
     @Schema(description = "limit")
     private int limit = 100;
 
-    /**
-     * 创作计划状态
-     */
-    @Schema(description = "创作计划状态")
-    private String status;
 
 }
