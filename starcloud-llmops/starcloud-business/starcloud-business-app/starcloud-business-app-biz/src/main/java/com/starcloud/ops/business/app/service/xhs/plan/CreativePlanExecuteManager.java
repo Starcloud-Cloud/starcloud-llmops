@@ -92,7 +92,7 @@ public class CreativePlanExecuteManager {
     private final MaterialHandlerHolder materialHandlerHolder;
 
     /**
-     * 获取创作计划锁的 Key
+     * 获取创作计划锁的 Key。
      *
      * @param planUid 计划UID
      * @return 获取创作计划锁的 Key
