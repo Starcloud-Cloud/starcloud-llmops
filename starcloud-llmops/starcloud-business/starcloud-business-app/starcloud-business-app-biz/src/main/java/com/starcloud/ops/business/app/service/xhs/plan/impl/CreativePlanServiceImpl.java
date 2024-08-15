@@ -108,9 +108,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private AppMarketService appMarketService;
 
     @Resource
-    private MaterialHandlerHolder materialHandlerHolder;
-
-    @Resource
     private TransactionTemplate transactionTemplate;
 
 
