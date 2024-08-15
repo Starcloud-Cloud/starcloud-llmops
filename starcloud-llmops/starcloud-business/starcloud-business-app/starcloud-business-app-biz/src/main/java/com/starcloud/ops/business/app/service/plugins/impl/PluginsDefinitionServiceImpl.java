@@ -57,31 +57,22 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 @Service
 public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
+    private static final String prefix_exectue = "coze_exectue_";
+    private static final String prefix_start = "coze_start_";
     @Resource
     private PluginDefinitionMapper pluginDefinitionMapper;
-
     @Resource
     private CozePublicClient cozePublicClient;
-
     @Resource
     private AppMarketService appMarketService;
-
     @Resource
     private SocialUserService socialUserService;
-
     @Autowired
     private StringRedisTemplate redisTemplate;
-
     @Resource
     private PluginConfigService configService;
-
     @Resource
     private RedissonClient redissonClient;
-
-    private static final String prefix_exectue = "coze_exectue_";
-
-    private static final String prefix_start = "coze_start_";
-
 
     @Override
     public Map<String, Object> metadata() {
@@ -144,6 +135,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
+        if (Objects.equals("failed", status)) {
+            String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
+            throw exception(COZE_ERROR, error);
+        }
+
         if (!Objects.equals("completed", status)) {
             executeRespVO.setStatus(status);
             return executeRespVO;
@@ -259,6 +255,12 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         verifyResult.setVerifyState(false);
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
+
+        if (Objects.equals("failed", status)) {
+            String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
+            throw exception(COZE_ERROR, error);
+        }
+
         if (!Objects.equals("completed", status)) {
             verifyResult.setStatus(status);
             verifyResult.setCreatedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCreatedAt).orElse(null));

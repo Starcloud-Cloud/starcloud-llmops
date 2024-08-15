@@ -13,7 +13,6 @@ import com.fasterxml.jackson.module.jsonSchema.types.ValueTypeSchema;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -61,19 +60,67 @@ public class VariableEntity {
     private String jsonSchema;
 
     /**
+     * 获取指定类型的变量集合
+     *
+     * @param variable     待合并的变量
+     * @param stepVariable 待合并的步骤变量
+     * @param consumer     变量值处理函数
+     * @param prefixKey    变量前缀
+     * @param <V>          变量值类型
+     * @return 合并后的变量集合
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static <V> Map<String, V> mergeVariables(VariableEntity variable, VariableEntity stepVariable, Function<VariableItemEntity, V> consumer, String prefixKey) {
+
+        // 定义一个合并的变量集合。逐个添加，防止出现引用问题
+        List<VariableItemEntity> mergeVariableList = new ArrayList<>();
+
+        // variableEntity 变量集合
+        List<VariableItemEntity> variablesList = Optional.ofNullable(stepVariable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
+        if (CollectionUtil.isNotEmpty(variablesList)) {
+            mergeVariableList.addAll(variablesList);
+        }
+
+        // coverVariableEntity 变量集合
+        List<VariableItemEntity> coverVariablesList = Optional.ofNullable(variable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
+        if (CollectionUtil.isNotEmpty(coverVariablesList)) {
+            mergeVariableList.addAll(coverVariablesList);
+        }
+
+        // 合并变量集合
+        Map<String, V> variablesMap = MapUtil.newHashMap();
+        mergeVariableList.forEach(item -> {
+            String allKey = generateKey(prefixKey, item.getField());
+            if (consumer.apply(item) != null) {
+                variablesMap.put(allKey.toUpperCase(), consumer.apply(item));
+            }
+        });
+
+        return variablesMap;
+    }
+
+    /**
+     * 生成变量Key
+     *
+     * @param keys 变量Key
+     * @return 变量Key
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static String generateKey(String... keys) {
+        return Arrays.stream(Optional.ofNullable(keys).orElse(new String[]{})).filter(StrUtil::isNotEmpty).map(String::toUpperCase).collect(Collectors.joining("."));
+    }
+
+    /**
      * 变量 校验
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public List<Verification> validate(String stepId, ValidateTypeEnum validateType) {
-        List<Verification> verifications = new ArrayList<>();
+    public void validate(ValidateTypeEnum validateType) {
         if (CollectionUtil.isNotEmpty(this.variables)) {
-            for (VariableItemEntity variableItem : this.variables) {
-                List<Verification> validateList = variableItem.validate(stepId, validateType);
-                verifications.addAll(validateList);
-            }
+            this.variables.forEach(VariableItemEntity::validate);
         }
-        return verifications;
     }
 
     /**
@@ -217,59 +264,6 @@ public class VariableEntity {
         objectSchema.setProperties(properties);
 
         return objectSchema;
-    }
-
-    /**
-     * 获取指定类型的变量集合
-     *
-     * @param variable     待合并的变量
-     * @param stepVariable 待合并的步骤变量
-     * @param consumer     变量值处理函数
-     * @param prefixKey    变量前缀
-     * @param <V>          变量值类型
-     * @return 合并后的变量集合
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static <V> Map<String, V> mergeVariables(VariableEntity variable, VariableEntity stepVariable, Function<VariableItemEntity, V> consumer, String prefixKey) {
-
-        // 定义一个合并的变量集合。逐个添加，防止出现引用问题
-        List<VariableItemEntity> mergeVariableList = new ArrayList<>();
-
-        // variableEntity 变量集合
-        List<VariableItemEntity> variablesList = Optional.ofNullable(stepVariable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
-        if (CollectionUtil.isNotEmpty(variablesList)) {
-            mergeVariableList.addAll(variablesList);
-        }
-
-        // coverVariableEntity 变量集合
-        List<VariableItemEntity> coverVariablesList = Optional.ofNullable(variable).map(VariableEntity::getVariables).orElse(new ArrayList<>());
-        if (CollectionUtil.isNotEmpty(coverVariablesList)) {
-            mergeVariableList.addAll(coverVariablesList);
-        }
-
-        // 合并变量集合
-        Map<String, V> variablesMap = MapUtil.newHashMap();
-        mergeVariableList.forEach(item -> {
-            String allKey = generateKey(prefixKey, item.getField());
-            if (consumer.apply(item) != null) {
-                variablesMap.put(allKey.toUpperCase(), consumer.apply(item));
-            }
-        });
-
-        return variablesMap;
-    }
-
-    /**
-     * 生成变量Key
-     *
-     * @param keys 变量Key
-     * @return 变量Key
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static String generateKey(String... keys) {
-        return Arrays.stream(Optional.ofNullable(keys).orElse(new String[]{})).filter(StrUtil::isNotEmpty).map(String::toUpperCase).collect(Collectors.joining("."));
     }
 
 }

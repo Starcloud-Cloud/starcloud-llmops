@@ -4,11 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import lombok.Data;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * 基础 action 实体类
@@ -50,7 +46,6 @@ public class ActionEntity extends BaseActionEntity {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public List<Verification> validate(String stepId, ValidateTypeEnum validateType) {
-        return Collections.emptyList();
+    public void validate(ValidateTypeEnum validateType) {
     }
 }

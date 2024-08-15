@@ -2,12 +2,10 @@ package com.starcloud.ops.business.app.model.plan;
 
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
-import com.starcloud.ops.business.app.verification.VerificationUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,10 +14,8 @@ import lombok.ToString;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -58,26 +54,20 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     /**
      * 校验配置信息
      */
-    public List<Verification> validate(String planUid, ValidateTypeEnum validateType) {
-        List<Verification> verifications = new ArrayList<>();
+    public void validate(ValidateTypeEnum validateType) {
         // 非配置校验的话，会校验 素材列表和海报列表
         if (!ValidateTypeEnum.CONFIG.equals(validateType)) {
             //AppValidate.notEmpty(materialList, "创作计划素材列表不能为空！");
-            VerificationUtils.notEmptyCreative(verifications, imageStyleList, planUid, "创作计划海报风格列表不能为空");
+            AppValidate.notEmpty(imageStyleList, "创作计划海报风格列表不能为空！");
         }
         // 应用信息始终校验
-        VerificationUtils.notNullCreative(verifications, appInformation, planUid, "创作计划应用信息不能为空");
-        if (Objects.isNull(appInformation)) {
-            return verifications;
-        }
+        AppValidate.notNull(appInformation, "应用配置信息不能为空！");
         // 将 appInformation 转换为 AppMarketEntity 对象
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convertEntity(appInformation);
         // 进行校验应用
-        List<Verification> validate = appMarketEntity.validate(null, validateType);
-        verifications.addAll(validate);
+        appMarketEntity.validate(null, validateType);
 
         appInformation = AppMarketConvert.INSTANCE.convertResponse(appMarketEntity);
-        return verifications;
     }
 
 }

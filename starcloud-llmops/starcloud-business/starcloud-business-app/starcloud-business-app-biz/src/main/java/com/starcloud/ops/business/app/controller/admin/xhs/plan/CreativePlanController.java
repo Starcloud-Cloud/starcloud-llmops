@@ -7,8 +7,6 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
-import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,9 +40,6 @@ public class CreativePlanController {
 
     @Resource
     private CreativePlanService creativePlanService;
-
-    @Resource
-    private CreativePlanExecuteManager creativePlanExecuteManager;
 
     @PostMapping(value = "/metadata")
     @Operation(summary = "创作计划元数据", description = "创作计划元数据")
@@ -97,13 +92,13 @@ public class CreativePlanController {
     @PostMapping("/modify")
     @Operation(summary = "更新创作计划", description = "更新创作计划")
     @ApiOperationSupport(order = 70, author = "nacoyer")
-    public CommonResult<CreativePlanRespVO> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
+    public CommonResult<String> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modify(request));
     }
 
     @PostMapping("/modifyConfig")
     @Operation(summary = "更新创作计划配置", description = "更新创作计划配置")
-    public CommonResult<CreativePlanRespVO> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
+    public CommonResult<String> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modifyConfiguration(request));
     }
 
@@ -118,8 +113,9 @@ public class CreativePlanController {
     @PostMapping("/execute")
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 90, author = "nacoyer")
-    public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
-        return CommonResult.success(creativePlanExecuteManager.execute(request.getUid()));
+    public CommonResult<Boolean> execute(@Validated @RequestBody UidRequest request) {
+        creativePlanService.execute(request.getUid());
+        return CommonResult.success(true);
     }
 
     @PostMapping("/upgrade")

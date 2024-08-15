@@ -4,14 +4,13 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
-import com.starcloud.ops.business.app.api.verification.Verification;
-import com.starcloud.ops.business.app.verification.VerificationUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,10 +18,8 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -55,23 +52,19 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
-        List<Verification> verifications = new ArrayList<>();
-        // 步骤名称重复检查，并且进行步骤校验
-        Set<String> stepNameSet = new HashSet<>();
-        for (WorkflowStepWrapper stepWrapper : this.stepWrapperList()) {
+    public void validate(ValidateTypeEnum validateType) {
+        AppValidate.notEmpty(this.steps, "应用最少需要一个步骤！");
+        List<WorkflowStepWrapper> stepWrappers = this.stepWrapperList();
+        for (WorkflowStepWrapper stepWrapper : stepWrappers) {
             if (Objects.isNull(stepWrapper)) {
                 continue;
             }
-            if (!stepNameSet.add(stepWrapper.getName())) {
-                VerificationUtils.addVerificationApp(verifications, uid, "应用步骤【" + stepWrapper.getName() + "】名称重复！");
+            // name 不能重复
+            if (stepWrappers.stream().filter(step -> step.getName().equals(stepWrapper.getName())).count() > 1) {
+                throw ServiceExceptionUtil.invalidParamException("应用步骤【{}】名称重复，请检查后重试", stepWrapper.getName());
             }
-
-            // 每个步骤的具体校验
-            List<Verification> stepValidationList = stepWrapper.validate(validateType);
-            verifications.addAll(stepValidationList);
+            stepWrapper.validate(validateType);
         }
-        return verifications;
     }
 
     /**
@@ -83,6 +76,16 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
         return CollectionUtil.emptyIfNull(this.getSteps()).stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取所有的步骤，如果步骤为空，抛出异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public List<WorkflowStepWrapper> getStepWrappersOrThrow() {
+        AppValidate.notEmpty(this.steps, ErrorCodeConstants.EXECUTE_APP_STEPS_REQUIRED);
+        return CollectionUtil.emptyIfNull(steps);
     }
 
     /**
@@ -179,20 +182,6 @@ public class WorkflowConfigEntity extends BaseConfigEntity {
             }
         }
         return preStepList;
-    }
-
-    /**
-     * 判断处理器是否只有一个
-     *
-     * @param clazz 处理器
-     * @return 处理器是否只有一个
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public boolean isOnlyoneHandler(Class<? extends BaseActionHandler> clazz) {
-        return this.stepWrapperList().stream()
-                .filter(item -> item.equalsHandler(clazz))
-                .count() == 1;
     }
 
     /**

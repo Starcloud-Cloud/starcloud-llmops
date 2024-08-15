@@ -58,17 +58,6 @@ public class AppValidate {
     }
 
     /**
-     * 断言对象不为空
-     *
-     * @param object 对象
-     * @param code   错误码
-     * @param args   错误码参数
-     */
-    public static void notNull(Object object, ErrorCode code, String message, Object... args) {
-        Assert.notNull(object, () -> ServiceExceptionUtil.exception0(code.getCode(), message, args));
-    }
-
-    /**
      * 断言字符串不为空字符串
      *
      * @param text    字符串

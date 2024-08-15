@@ -1,32 +1,25 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.config.BaseConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.GptPluginSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
+import com.starcloud.ops.business.app.domain.entity.config.*;
+import com.starcloud.ops.business.app.domain.entity.skill.*;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
+import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.config.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
-import com.starcloud.ops.business.app.api.verification.Verification;
+import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +33,38 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 public class ChatConfigEntity extends BaseConfigEntity {
 
+
+    private String code;
+    private String prePrompt;
+    private PrePromptConfigEntity prePromptConfig;
+    private VariableEntity variable;
+    private ModelConfigEntity modelConfig;
+    private WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
+    private List<DatesetEntity> datesetEntities;
+    private SuggestedQuestionEntity suggestedQuestion;
+    private OpeningStatementEntity openingStatement;
+    private AudioConfigEntity audioConfig;
+    private DescriptionEnity description;
+    /**
+     * 挂载的 gpt插件技能列表
+     */
+    private transient List<HandlerSkill> handlerSkills;
+    /**
+     * 挂载的 gpt插件技能列表
+     */
+    private transient List<GptPluginSkill> gptPluginSkills;
+    /**
+     * 挂载的 API技能列表
+     */
+    private transient List<ApiSkill> apiSkills;
+    /**
+     * 挂载的 应用技能列表
+     */
+    private transient List<AppWorkflowSkill> appWorkflowSkills;
+    /**
+     * 技能配置
+     */
+    private String appConfigId;
 
     @Override
     public void init() {
@@ -88,60 +113,11 @@ public class ChatConfigEntity extends BaseConfigEntity {
 
     }
 
-
-    private String code;
-
-    private String prePrompt;
-
-    private PrePromptConfigEntity prePromptConfig;
-
-    private VariableEntity variable;
-
-    private ModelConfigEntity modelConfig;
-
-    private WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
-
-    private List<DatesetEntity> datesetEntities;
-
-    private SuggestedQuestionEntity suggestedQuestion;
-
-    private OpeningStatementEntity openingStatement;
-
-    private AudioConfigEntity audioConfig;
-
-    private DescriptionEnity description;
-
-    /**
-     * 挂载的 gpt插件技能列表
-     */
-    private transient List<HandlerSkill> handlerSkills;
-
-    /**
-     * 挂载的 gpt插件技能列表
-     */
-    private transient List<GptPluginSkill> gptPluginSkills;
-
-    /**
-     * 挂载的 API技能列表
-     */
-    private transient List<ApiSkill> apiSkills;
-
-    /**
-     * 挂载的 应用技能列表
-     */
-    private transient List<AppWorkflowSkill> appWorkflowSkills;
-
-    /**
-     * 技能配置
-     */
-    private String appConfigId;
-
-
     /**
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现
      */
     @Override
-    public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
-        return Collections.emptyList();
+    public void validate(ValidateTypeEnum validateType) {
+
     }
 }

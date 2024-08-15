@@ -2,18 +2,16 @@ package com.starcloud.ops.business.app.domain.entity.workflow;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
-import com.starcloud.ops.business.app.api.verification.Verification;
-import com.starcloud.ops.business.app.verification.VerificationUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -73,16 +71,10 @@ public class WorkflowStepEntity extends ActionEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public List<Verification> validate(String stepId, ValidateTypeEnum validateType) {
-        List<Verification> verifications = new ArrayList<>();
-        VerificationUtils.notNullStep(verifications, this.getHandler(), stepId, "应用不知处理器不能为空，请重试或联系管理员！");
-        VerificationUtils.notNullStep(verifications, this.getVariable(), stepId, "应用步骤模型变量不存在!");
-        if (Objects.isNull(this.variable)) {
-            return verifications;
-        }
-        List<Verification> validateList = this.variable.validate(stepId, validateType);
-        verifications.addAll(validateList);
-        return verifications;
+    public void validate(ValidateTypeEnum validateType) {
+        AppValidate.notBlank(this.getHandler(), "应用步骤处理器不能为空!");
+        AppValidate.notNull(this.getVariable(), "应用步骤模型变量不存在！");
+        this.variable.validate(validateType);
     }
 
     /**

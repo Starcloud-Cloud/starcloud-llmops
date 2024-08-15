@@ -66,11 +66,6 @@ public class MaterialMetadata implements java.io.Serializable {
     private String materialStepId;
 
     /**
-     * 海报步骤ID
-     */
-    private String posterStepId;
-
-    /**
      * 素材字段配置
      */
     private List<MaterialFieldConfigDTO> materialFieldList;

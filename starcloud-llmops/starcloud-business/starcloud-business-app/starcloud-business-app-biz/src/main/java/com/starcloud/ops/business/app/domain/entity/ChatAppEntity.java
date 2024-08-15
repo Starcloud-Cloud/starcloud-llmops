@@ -41,7 +41,6 @@ import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.chat.momory.ConversationSummaryDbMessageMemory;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.dataset.service.segment.DocumentSegmentsService;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
@@ -68,7 +67,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,31 +97,24 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @JsonIgnore
     @JSONField(serialize = false)
     private static DocumentSegmentsService documentSegmentsService = SpringUtil.getBean(DocumentSegmentsService.class);
-
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static AppRepository appRepository;
     @JsonIgnore
     @JSONField(serialize = false)
     private ThreadWithContext threadExecutor = SpringUtil.getBean(ThreadWithContext.class);
-
     /**
      * 应用报警管理
      */
     @JsonIgnore
     @JSONField(serialize = false)
     private AppAlarmManager appAlarmManager = SpringUtil.getBean(AppAlarmManager.class);
-
     @JsonIgnore
     @JSONField(serialize = false)
     private AppDefaultConfigManager appDefaultConfigManager = SpringUtil.getBean(AppDefaultConfigManager.class);
-
     @JsonIgnore
     @JSONField(serialize = false)
     private PermissionApi permissionApi = SpringUtil.getBean(PermissionApi.class);
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private static AppRepository appRepository;
-
-
     /**
      * 自定义memory 处理总结和tool历史问题。历史初始化时候新建
      */
@@ -151,7 +142,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected List<Verification> doValidate(ChatRequestVO request, ValidateTypeEnum validateType) {
+    protected void doValidate(ChatRequestVO request, ValidateTypeEnum validateType) {
 
         //@todo 现在默认都挂载一个 数据集，具体是否能搜索靠后续向量搜索处理
         DatesetEntity datesetEntity = new DatesetEntity();
@@ -161,8 +152,7 @@ public class ChatAppEntity<Q, R> extends BaseAppEntity<ChatRequestVO, JsonData> 
         this.getChatConfig().setDatesetEntities(Arrays.asList(datesetEntity));
 
 
-        getChatConfig().validate(this.getUid(), validateType);
-        return Collections.emptyList();
+        getChatConfig().validate(validateType);
     }
 
     @Override

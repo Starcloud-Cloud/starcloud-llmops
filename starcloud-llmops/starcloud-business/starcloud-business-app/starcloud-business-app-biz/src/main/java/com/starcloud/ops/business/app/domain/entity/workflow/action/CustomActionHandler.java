@@ -21,6 +21,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -42,8 +43,6 @@ import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
-import com.starcloud.ops.business.app.api.verification.Verification;
-import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
@@ -53,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -109,71 +107,46 @@ public class CustomActionHandler extends BaseActionHandler {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
-        List<Verification> verifications = new ArrayList<>();
+    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
         String stepName = wrapper.getName();
-        String stepCode = wrapper.getStepCode();
-        // 获取到生成模式变量
+        // 生成模式
         Object generateModel = wrapper.getVariable(CreativeConstants.GENERATE_MODE);
-        VerificationUtils.notNullStep(verifications, generateModel, stepCode,
-                "【" + stepName + "】步骤参数错误，生成模式为必选项！");
-        if (Objects.isNull(generateModel)) {
-            return verifications;
-        }
-
-        // 生成模式校验
+        AppValidate.notNull(generateModel, "【{}】步骤参数错误，生成模式为必选项！", stepName);
+        // 生成模式
         String generate = String.valueOf(generateModel);
         if (!IEnumable.contains(generate, CreativeContentGenerateModelEnum.class)) {
-            VerificationUtils.notNullStep(verifications, generateModel, stepCode,
-                    "【" + stepName + "】步骤参数错误，生成模式不合法！");
+            throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，生成模式不合法！", stepName);
         }
 
+        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+            return;
+        }
         // 生成模式校验, 随机生成和AI模仿生成需要参考素材
-        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generate) ||
-                CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
-
+        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generate) || CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
             // 参考素材类型变量
             Object materialTypeValue = wrapper.getVariable(CreativeConstants.MATERIAL_TYPE);
-            VerificationUtils.notNullStep(verifications, materialTypeValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，参考素材类型不能为空！");
-            if (Objects.isNull(materialTypeValue)) {
-                return verifications;
-            }
-            // 参考素材类型校验
+            AppValidate.notNull(materialTypeValue, "【{}】步骤参数错误，参考素材类型不能为空！", stepName);
             String materialType = String.valueOf(materialTypeValue);
-            if (!MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) &&
-                    !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType)) {
-                VerificationUtils.notNullStep(verifications, materialTypeValue, stepCode,
-                        "【" + stepName + "】步骤参数错误，参考素材类型不合法！");
+            if (!MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) && !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType)) {
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，参考素材类型不合法！", stepName);
             }
 
             // 参考素材变量
             Object refersValue = wrapper.getVariable(CreativeConstants.REFERS);
-            VerificationUtils.notNullStep(verifications, refersValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，参考素材不能为空！");
-            if (Objects.isNull(refersValue)) {
-                return verifications;
-            }
+            AppValidate.notNull(refersValue, "【{}】步骤参数错误，参考素材不能为空！", stepName);
             String refers = String.valueOf(refersValue);
             if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
-                VerificationUtils.addVerificationStep(verifications, stepCode,
-                        "【" + stepName + "】步骤参数错误，参考素材不能为空！");
+                throw ServiceExceptionUtil.invalidParamException("【{}】步骤参数错误，参考素材不能为空！", stepName);
             }
         }
         // AI自定义校验，文案生成要求不能为空
         else {
             // 文案生成要求变量
             Object requirementValue = wrapper.getVariable(CreativeConstants.REQUIREMENT);
-            VerificationUtils.notNullStep(verifications, requirementValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
-            if (Objects.isNull(requirementValue)) {
-                return verifications;
-            }
+            AppValidate.notNull(requirementValue, "【{}】步骤参数错误，文案生成要求不能为空！", stepName);
             String requirement = String.valueOf(requirementValue);
-            VerificationUtils.notBlankStep(verifications, requirement, stepCode,
-                    "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
+            AppValidate.notBlank(requirement, "【{}】步骤参数错误，文案生成要求不能为空！", stepName);
         }
-        return verifications;
     }
 
     /**

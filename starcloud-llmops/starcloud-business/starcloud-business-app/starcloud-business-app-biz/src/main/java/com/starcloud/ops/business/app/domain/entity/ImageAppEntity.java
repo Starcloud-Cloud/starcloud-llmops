@@ -20,7 +20,6 @@ import com.starcloud.ops.business.app.service.image.strategy.handler.BaseImageHa
 import com.starcloud.ops.business.app.service.vsearch.VSearchService;
 import com.starcloud.ops.business.app.util.ImageUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageCreateReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
@@ -38,7 +37,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -86,9 +84,8 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected List<Verification> doValidate(ImageReqVO request, ValidateTypeEnum validateType) {
-        getImageConfig().validate(this.getUid(), validateType);
-        return Collections.emptyList();
+    protected void doValidate(ImageReqVO request, ValidateTypeEnum validateType) {
+        getImageConfig().validate(validateType);
     }
 
     /**

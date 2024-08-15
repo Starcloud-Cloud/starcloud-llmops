@@ -1,9 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.config;
 
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
-import com.starcloud.ops.business.app.api.verification.Verification;
-
-import java.util.List;
 
 /**
  * 基础配置实体
@@ -18,7 +15,7 @@ public abstract class BaseConfigEntity {
 
     }
 
-    public abstract List<Verification> validate(String uid, ValidateTypeEnum validateType);
+    public abstract void validate(ValidateTypeEnum validateType);
 
 
 }

@@ -305,42 +305,42 @@ public class CreativeUtils {
     /**
      * 合并应用的海报缝合配置
      *
-     * @param originalAppInformation 应用
-     * @param latestAppInformation   最新应用
+     * @param appMarket       应用
+     * @param latestAppMarket 最新应用
      * @return 应用
      */
-    public static AppMarketRespVO mergeAppInformation(AppMarketRespVO originalAppInformation, AppMarketRespVO latestAppInformation) {
+    public static AppMarketRespVO mergeAppInformation(AppMarketRespVO appMarket, AppMarketRespVO latestAppMarket) {
 
         // 获取最新应用海报步骤
-        WorkflowStepWrapperRespVO latestWrapper = latestAppInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+        WorkflowStepWrapperRespVO latestWrapper = latestAppMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
         // 如果最新海报步骤不为空，则将系统海报配置设置到计划应用中, 保证最新的系统海报配置。
         if (Objects.nonNull(latestWrapper)) {
             // 获取到最新的海报风格配置列表
             List<PosterStyleDTO> latestSystemPosterList = getSystemPosterStyleListByStepWrapper(latestWrapper);
             // 获取应用海报步骤
-            WorkflowStepWrapperRespVO wrapper = originalAppInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
+            WorkflowStepWrapperRespVO wrapper = appMarket.getStepByHandler(PosterActionHandler.class.getSimpleName());
             if (Objects.nonNull(wrapper)) {
                 // 放入到应用中
-                originalAppInformation.putModelVariable(wrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestSystemPosterList));
-                originalAppInformation.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-                originalAppInformation.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
+                appMarket.putModelVariable(wrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestSystemPosterList));
+                appMarket.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
+                appMarket.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
             }
         }
 
         // 示例取最新的
-        originalAppInformation.setName(latestAppInformation.getName());
-        originalAppInformation.setIcon(latestAppInformation.getIcon());
-        originalAppInformation.setSpell(latestAppInformation.getSpell());
-        originalAppInformation.setSpellSimple(latestAppInformation.getSpellSimple());
-        originalAppInformation.setDescription(latestAppInformation.getDescription());
-        originalAppInformation.setExample(latestAppInformation.getExample());
-        originalAppInformation.setSource(latestAppInformation.getSource());
-        originalAppInformation.setCategory(latestAppInformation.getCategory());
-        originalAppInformation.setDemo(latestAppInformation.getDemo());
-        originalAppInformation.setScenes(latestAppInformation.getScenes());
-        originalAppInformation.setSort(latestAppInformation.getSort());
-        originalAppInformation.setModel(latestAppInformation.getModel());
-        return originalAppInformation;
+        appMarket.setName(latestAppMarket.getName());
+        appMarket.setIcon(latestAppMarket.getIcon());
+        appMarket.setSpell(latestAppMarket.getSpell());
+        appMarket.setSpellSimple(latestAppMarket.getSpellSimple());
+        appMarket.setDescription(latestAppMarket.getDescription());
+        appMarket.setExample(latestAppMarket.getExample());
+        appMarket.setSource(latestAppMarket.getSource());
+        appMarket.setCategory(latestAppMarket.getCategory());
+        appMarket.setDemo(latestAppMarket.getDemo());
+        appMarket.setScenes(latestAppMarket.getScenes());
+        appMarket.setSort(latestAppMarket.getSort());
+        appMarket.setModel(latestAppMarket.getModel());
+        return appMarket;
     }
 
     /**

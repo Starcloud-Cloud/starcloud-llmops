@@ -15,7 +15,6 @@ import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -228,14 +227,96 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private List<Map<String, Object>> materialList;
 
     /**
-     * 是否校验
+     * 异常
+     *
+     * @param errorCode 错误码
+     * @return 异常
      */
-    private Boolean validate;
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException exception(ErrorCode errorCode) {
+        return ServiceExceptionUtil.exception(errorCode);
+    }
 
     /**
-     * 验证列表
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param params    参数
+     * @return 异常
      */
-    private List<Verification> verificationList = new ArrayList<>();
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException exception(ErrorCode errorCode, Object... params) {
+        return ServiceExceptionUtil.exception(errorCode, params);
+    }
+
+    /**
+     * 异常
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException exceptionWithMessage(ErrorCode errorCode, String message, Object... params) {
+        return ServiceExceptionUtil.exception0(errorCode.getCode(), message, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, String message, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exception1(errorCode.getCode(), message, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param errorCode 错误码
+     * @param cause     异常
+     * @param params    参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
+        return ServiceExceptionUtil.exceptionWithCause(errorCode, cause, params);
+    }
+
+    /**
+     * 异常处理
+     *
+     * @param message 错误消息模板
+     * @param params  参数
+     * @return 异常
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    protected static ServiceException invalidParamException(String message, Object... params) {
+        return ServiceExceptionUtil.invalidParamException(message, params);
+    }
+
+    /**
+     * 创建会话 UID
+     *
+     * @return 会话 UID
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public static String createAppConversationUid() {
+        return IdUtil.fastSimpleUUID();
+    }
 
     /**
      * 模版方法：基础校验
@@ -244,7 +325,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    protected abstract List<Verification> doValidate(Q request, ValidateTypeEnum validateType);
+    protected abstract void doValidate(Q request, ValidateTypeEnum validateType);
 
     /**
      * 模版方法：执行应用
@@ -457,7 +538,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         }
     }
 
-
     /**
      * 基础校验
      *
@@ -465,11 +545,10 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public List<Verification> validate(Q request, ValidateTypeEnum validateType) {
+    public void validate(Q request, ValidateTypeEnum validateType) {
         log.info("应用执行：基础校验开始 ...");
-        List<Verification> verifications = this.doValidate(request, validateType);
+        this.doValidate(request, validateType);
         log.info("应用执行：基础校验结束 ...");
-        return verifications;
     }
 
     /**
@@ -482,15 +561,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (StrUtil.isBlank(this.getUid())) {
             this.setUid(IdUtil.fastSimpleUUID());
         }
-        // 开启校验，才会进行校验
-        if (Objects.isNull(this.validate) || this.validate) {
-            List<Verification> validate = this.validate(null, ValidateTypeEnum.CREATE);
-            if (CollectionUtil.isNotEmpty(validate)) {
-                this.setVerificationList(validate);
-                return;
-            }
-        }
-
+        this.validate(null, ValidateTypeEnum.CREATE);
         this.doInsert();
     }
 
@@ -500,14 +571,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     @JsonIgnore
     @JSONField(serialize = false)
     public void update() {
-        // 开启校验，才会进行校验
-        if (Objects.isNull(this.validate) || this.validate) {
-            List<Verification> validate = this.validate(null, ValidateTypeEnum.UPDATE);
-            if (CollectionUtil.isNotEmpty(validate)) {
-                this.setVerificationList(validate);
-                return;
-            }
-        }
+        this.validate(null, ValidateTypeEnum.UPDATE);
         disposeMaterial();
         this.doUpdate();
     }
@@ -938,98 +1002,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             return;
         }
         this.workflowConfig.addVariable(stepId, key, value);
-    }
-
-    /**
-     * 异常
-     *
-     * @param errorCode 错误码
-     * @return 异常
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected static ServiceException exception(ErrorCode errorCode) {
-        return ServiceExceptionUtil.exception(errorCode);
-    }
-
-    /**
-     * 异常处理
-     *
-     * @param errorCode 错误码
-     * @param params    参数
-     * @return 异常
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected static ServiceException exception(ErrorCode errorCode, Object... params) {
-        return ServiceExceptionUtil.exception(errorCode, params);
-    }
-
-    /**
-     * 异常
-     *
-     * @param errorCode 错误码
-     * @param message   消息
-     * @param params    参数
-     * @return 异常
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected static ServiceException exceptionWithMessage(ErrorCode errorCode, String message, Object... params) {
-        return ServiceExceptionUtil.exception0(errorCode.getCode(), message, params);
-    }
-
-    /**
-     * 异常处理
-     *
-     * @param errorCode 错误码
-     * @param message   消息
-     * @param cause     异常
-     * @param params    参数
-     * @return 异常
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static ServiceException exceptionWithCause(ErrorCode errorCode, String message, Throwable cause, Object... params) {
-        return ServiceExceptionUtil.exception1(errorCode.getCode(), message, cause, params);
-    }
-
-    /**
-     * 异常处理
-     *
-     * @param errorCode 错误码
-     * @param cause     异常
-     * @param params    参数
-     * @return 异常
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static ServiceException exceptionWithCause(ErrorCode errorCode, Throwable cause, Object... params) {
-        return ServiceExceptionUtil.exceptionWithCause(errorCode, cause, params);
-    }
-
-    /**
-     * 异常处理
-     *
-     * @param message 错误消息模板
-     * @param params  参数
-     * @return 异常
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    protected static ServiceException invalidParamException(String message, Object... params) {
-        return ServiceExceptionUtil.invalidParamException(message, params);
-    }
-
-    /**
-     * 创建会话 UID
-     *
-     * @return 会话 UID
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public static String createAppConversationUid() {
-        return IdUtil.fastSimpleUUID();
     }
 
 }

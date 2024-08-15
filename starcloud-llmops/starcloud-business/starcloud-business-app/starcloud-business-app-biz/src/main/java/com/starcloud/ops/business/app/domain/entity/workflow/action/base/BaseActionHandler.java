@@ -30,7 +30,6 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.workflow.app.process.AppProcessParser;
 import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
@@ -38,7 +37,6 @@ import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -83,6 +81,7 @@ public abstract class BaseActionHandler extends Object {
         return null;
     }
 
+
     /**
      * 校验步骤
      *
@@ -91,7 +90,7 @@ public abstract class BaseActionHandler extends Object {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public abstract List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType);
+    public abstract void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType);
 
     /**
      * 获取用户权益类型
