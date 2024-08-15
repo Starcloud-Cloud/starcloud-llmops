@@ -11,6 +11,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.Creat
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +46,9 @@ public class CreativePlanController {
 
     @Resource
     private CreativePlanService creativePlanService;
+
+    @Resource
+    private CreativePlanExecuteManager creativePlanExecuteManager;
 
     @PostMapping(value = "/metadata")
     @Operation(summary = "创作计划元数据", description = "创作计划元数据")
@@ -111,9 +116,8 @@ public class CreativePlanController {
     @PostMapping("/execute")
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 90, author = "nacoyer")
-    public CommonResult<Boolean> execute(@Validated @RequestBody UidRequest request) {
-        creativePlanService.execute(request.getUid());
-        return CommonResult.success(true);
+    public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
+        return CommonResult.success(creativePlanExecuteManager.execute(request.getUid()));
     }
 
     @PostMapping("/upgrade")
