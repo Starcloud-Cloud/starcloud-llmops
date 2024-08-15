@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -16,12 +15,16 @@ import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.api.verification.Verification;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,21 +79,39 @@ public class WorkflowStepWrapper {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(ValidateTypeEnum validateType) {
-        AppValidate.notBlank(this.name, "应用步骤名称不能为空");
-        AppValidate.notNull(this.flowStep, "应用步骤配置不能为空");
-        AppValidate.notNull(this.variable, "应用步骤变量不能为空");
+    public List<Verification> validate(ValidateTypeEnum validateType) {
+        List<Verification> verifications = new ArrayList<>();
 
-        this.variable.validate(validateType);
-        this.flowStep.validate(validateType);
+        String stepCode = this.getStepCode();
+        // 基础校验
+        VerificationUtils.notBlankStep(verifications, this.name, stepCode, "应用步骤名称不能为空!");
+        VerificationUtils.notNullStep(verifications, this.flowStep, stepCode, "应用步骤【" + this.name + "】配置不能为空！");
+        VerificationUtils.notNullStep(verifications, this.variable, stepCode, "应用步骤【" + this.name + "】变量配置不能为空!");
 
-        // 获取步骤处理器
-        BaseActionHandler handler = BaseActionHandler.of(this.getHandler());
-        AppValidate.notNull(handler, "应用步骤处理器(" + this.getHandler() + ")不存在或不支持");
-        // 校验步骤处理器
-        if (Objects.nonNull(handler)) {
-            handler.validate(this, validateType);
+        // 变量校验
+        if (Objects.isNull(this.variable)) {
+            return verifications;
         }
+        List<Verification> validateList = this.variable.validate(stepCode, validateType);
+        verifications.addAll(validateList);
+
+        // 步骤配置校验
+        if (Objects.isNull(this.flowStep)) {
+            return verifications;
+        }
+        List<Verification> stepValidationList = this.flowStep.validate(stepCode, validateType);
+        verifications.addAll(stepValidationList);
+
+        // 步骤处理器校验
+        String handlerName = this.getHandler();
+        BaseActionHandler handler = BaseActionHandler.of(handlerName);
+        VerificationUtils.notNullStep(verifications, handler, stepCode, "应用步骤处理器【" + handlerName + "】不存在或不支持!");
+        if (Objects.isNull(handler)) {
+            return verifications;
+        }
+        List<Verification> handlerValidationList = handler.validate(this, validateType);
+        verifications.addAll(handlerValidationList);
+        return verifications;
     }
 
     /**
@@ -214,6 +235,18 @@ public class WorkflowStepWrapper {
 
         return variableMap;
 
+    }
+
+    /**
+     * 比较步骤的处理器名称
+     *
+     * @param clazz 处理器类
+     * @return 是否相等
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public boolean equalsHandler(Class<? extends BaseActionHandler> clazz) {
+        return clazz.getSimpleName().equals(this.getHandler());
     }
 
     /**

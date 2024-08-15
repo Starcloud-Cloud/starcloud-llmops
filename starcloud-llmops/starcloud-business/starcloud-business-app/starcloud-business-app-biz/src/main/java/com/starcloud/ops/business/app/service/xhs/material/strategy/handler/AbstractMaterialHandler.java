@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.librar
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
+import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
@@ -63,6 +64,50 @@ public abstract class AbstractMaterialHandler {
     private static final String GROUP = "group";
 
     /**
+     * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
+     *
+     * @param input 输入
+     * @return 返回的数字，没有匹配到，返回 -1
+     */
+    protected static Integer matcherMax(String input) {
+        if (StringUtils.isBlank(input)) {
+            return -1;
+        }
+        // 定义正则表达式匹配方括号中的数字
+        Matcher matcher = PATTERN.matcher(input);
+        // 如果匹配到，则返回最大的数字。
+        int max = -1;
+        try {
+            while (matcher.find()) {
+                int number = Integer.parseInt(matcher.group(1));
+                if (number > max) {
+                    max = number;
+                }
+            }
+        } catch (Exception exception) {
+            return -1;
+        }
+        return max;
+    }
+
+    /**
+     * 匹配数据
+     *
+     * @param input 输入
+     * @return 返回匹配结果
+     */
+    protected static Integer matchData(String input) {
+        if (StringUtils.isBlank(input)) {
+            return -1;
+        }
+        Matcher matcher = DATA_PATTERN.matcher(input);
+        if (matcher.find()) {
+            return 1;
+        }
+        return -1;
+    }
+
+    /**
      * 不同的素材类型，验证海报风格的要求可能不一样。
      * 提供一个默认的实现，子类可以覆盖
      *
@@ -104,13 +149,7 @@ public abstract class AbstractMaterialHandler {
             List<Map<String, Object>> list = new ArrayList<>();
             map.values().forEach(list::addAll);
             // 去重
-            list = new ArrayList<>(list.stream()
-                    .collect(
-                            Collectors.toMap(
-                                    m -> m.get("__id__"),
-                                    m -> m, (existing, replacement) -> existing)
-                    )
-                    .values());
+            list = new ArrayList<>(list.stream().collect(Collectors.toMap(m -> m.get("__id__"), m -> m, (existing, replacement) -> existing)).values());
 
             List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
             for (Map<String, Object> mapItem : list) {
@@ -209,11 +248,11 @@ public abstract class AbstractMaterialHandler {
      * @param posterStyleList 海报风格列表
      * @return 生成任务总数量
      */
-    public int calculateTotalCount(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList) {
+    public PlanTotalCount calculateTotalCount(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList) {
         // 计算每个海报风格需要的素材数量
         List<Integer> needMaterialSize = computeNeedMaterialSize(posterStyleList);
         if (CollectionUtil.isEmpty(needMaterialSize)) {
-            return 0;
+            return PlanTotalCount.of(0);
         }
         int totalCount = 0;
         int currentMaterialSize = materialList.size();
@@ -224,10 +263,12 @@ public abstract class AbstractMaterialHandler {
                 int currentNeed = needMaterialSize.get(i);
 
                 if (currentNeed > currentMaterialSize) {
+                    // 如果是第一次循环，并且是第一个海报风格，说明素材数量不足
                     if (loopCount == 1 && i == 0) {
                         throw ServiceExceptionUtil.invalidParamException("选择的素材数量不足以生成一篇笔记，请重新选择后重试！");
                     }
-                    return totalCount;
+                    // 其他情况，给提示，即第totalCount + 1 个海报风格的素材数量不足
+                    return PlanTotalCount.of(totalCount, "选择的素材数量不足以生成第 " + (totalCount + 1) + " 篇笔记，我们将会为您生成 " + totalCount + " 篇笔记。");
                 } else {
                     totalCount++;
                     currentMaterialSize -= currentNeed;
@@ -235,7 +276,7 @@ public abstract class AbstractMaterialHandler {
             }
         } while (currentMaterialSize > 0);
 
-        return totalCount;
+        return PlanTotalCount.of(totalCount);
     }
 
     /**
@@ -261,9 +302,7 @@ public abstract class AbstractMaterialHandler {
         defaultGroup.setFieldName(GROUP);
         defaultGroup.setIsGroupField(Boolean.TRUE);
         // 获取分组字段
-        MaterialFieldConfigDTO groupField = materialFieldList.stream()
-                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
-                .findFirst().orElse(defaultGroup);
+        MaterialFieldConfigDTO groupField = materialFieldList.stream().filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE)).findFirst().orElse(defaultGroup);
 
         // 如果分组字段为空，直接按照默认的复制逻辑进行复制
         if (StringUtil.isBlank(groupField.getFieldName())) {
@@ -273,10 +312,7 @@ public abstract class AbstractMaterialHandler {
         String group = groupField.getFieldName();
 
         // 分组字段不为空的素材
-        List<Map<String, Object>> groupMaterial = copyMaterialList.stream()
-                .filter(Objects::nonNull)
-                .filter(item -> StringUtil.objectNotBlank(item.get(group)))
-                .collect(Collectors.toList());
+        List<Map<String, Object>> groupMaterial = copyMaterialList.stream().filter(Objects::nonNull).filter(item -> StringUtil.objectNotBlank(item.get(group))).collect(Collectors.toList());
 
         // 1. 如果有分组的素材为空，直接按照默认的复制逻辑进行复制
         if (CollectionUtil.isEmpty(groupMaterial)) {
@@ -284,8 +320,7 @@ public abstract class AbstractMaterialHandler {
         }
 
         // 将同一组的素材分组，并且保持原有的顺序。
-        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
-                .collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
+        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream().collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
 
         // 2. 如果分组的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量，这时候，直接按照 materialSizeList 的数量进行复制即可
         if (collect.size() >= materialSizeList.size()) {
@@ -315,10 +350,7 @@ public abstract class AbstractMaterialHandler {
         List<Integer> subList = materialSizeList.subList(collect.size(), materialSizeList.size());
 
         // 分组字段为空的素材
-        List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream()
-                .filter(Objects::nonNull)
-                .filter(item -> Objects.isNull(item.get(group)))
-                .collect(Collectors.toList());
+        List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream().filter(Objects::nonNull).filter(item -> Objects.isNull(item.get(group))).collect(Collectors.toList());
 
         // 将没有分组的素材按照默认复制逻辑复制
         Map<Integer, List<Map<String, Object>>> noGroupMap = this.defaultMaterialListMap(noGroupMaterial, subList);
@@ -365,8 +397,7 @@ public abstract class AbstractMaterialHandler {
                     continue;
                 }
                 // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
-                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream()
-                        .filter(Objects::nonNull)
+                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream().filter(Objects::nonNull)
                         //.filter(CreativeUtils::isImageVariable)
                         .map(item -> {
                             Integer matcher = matcherMax(String.valueOf(item.getValue()));
@@ -374,8 +405,7 @@ public abstract class AbstractMaterialHandler {
                                 return -1;
                             }
                             return matcher + 1;
-                        })
-                        .max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
+                        }).max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
 
                 templateIndexList.add(maxIndex);
             }
@@ -489,49 +519,5 @@ public abstract class AbstractMaterialHandler {
         }
 
         return resultMap;
-    }
-
-    /**
-     * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
-     *
-     * @param input 输入
-     * @return 返回的数字，没有匹配到，返回 -1
-     */
-    protected static Integer matcherMax(String input) {
-        if (StringUtils.isBlank(input)) {
-            return -1;
-        }
-        // 定义正则表达式匹配方括号中的数字
-        Matcher matcher = PATTERN.matcher(input);
-        // 如果匹配到，则返回最大的数字。
-        int max = -1;
-        try {
-            while (matcher.find()) {
-                int number = Integer.parseInt(matcher.group(1));
-                if (number > max) {
-                    max = number;
-                }
-            }
-        } catch (Exception exception) {
-            return -1;
-        }
-        return max;
-    }
-
-    /**
-     * 匹配数据
-     *
-     * @param input 输入
-     * @return 返回匹配结果
-     */
-    protected static Integer matchData(String input) {
-        if (StringUtils.isBlank(input)) {
-            return -1;
-        }
-        Matcher matcher = DATA_PATTERN.matcher(input);
-        if (matcher.find()) {
-            return 1;
-        }
-        return -1;
     }
 }
