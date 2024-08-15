@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -64,6 +65,7 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.Mat
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -127,6 +129,37 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    /**
+     * 从内容任务中获取，海报配置信息。
+     *
+     * @param contentCreateRequestList 内容人物列表
+     * @param posterStepId             海报步骤
+     * @return 海报列表
+     */
+    @NotNull
+    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
+        return CollectionUtil.emptyIfNull(contentCreateRequestList)
+                .stream()
+                .map(item -> {
+                    Optional<String> posterStyleOptional = Optional.ofNullable(item)
+                            .map(CreativeContentCreateReqVO::getExecuteParam)
+                            .map(CreativeContentExecuteParam::getAppInformation)
+                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
+
+                    if (!posterStyleOptional.isPresent()) {
+                        return null;
+                    }
+
+                    try {
+                        return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
+                    } catch (Exception e) {
+                        return null;
+                    }
+
+                })
+                .collect(Collectors.toList());
+    }
 
     /**
      * 创作计划元数据
@@ -358,20 +391,25 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public String modify(CreativePlanModifyReqVO request) {
+    public CreativePlanRespVO modify(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
-        handlerAndValidate(request);
+        List<Verification> verifications = request.validate();
 
         // 查询创作计划，并且校验是否存在
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
+        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
 
         // 更新创作计划
         CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
         creativePlanMaterialMapper.updateById(modifyPlan);
-        return modifyPlan.getUid();
+
+        CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
+        CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
+        planResponse.setVerificationList(verifications);
+
+        return planResponse;
     }
 
     /**
@@ -381,13 +419,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @return 创作计划UID
      */
     @Override
-    public String modifyConfiguration(CreativePlanModifyReqVO request) {
+    public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.CONFIG.name());
         // 处理并且校验请求
-        handlerAndValidate(request);
+        List<Verification> verifications = request.validate();
 
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
+        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
         // 素材单独存放
@@ -395,7 +433,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
-        return plan.getUid();
+
+        CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
+        CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
+        planResponse.setVerificationList(verifications);
+
+        return planResponse;
     }
 
     /**
@@ -716,7 +759,11 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
         // 获取到计划配置
         CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-        configuration.validate(ValidateTypeEnum.EXECUTE);
+        List<Verification> verifications = configuration.validate(creativePlan.getUid(), ValidateTypeEnum.EXECUTE);
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            Verification verification = verifications.get(0);
+            throw ServiceExceptionUtil.invalidParamException(verification.getMessage());
+        }
         // 计划来源
         CreativePlanSourceEnum planSource = CreativePlanSourceEnum.of(creativePlan.getSource());
         AppValidate.notNull(planSource, "执行失败！获取素材列表失败：计划来源不支持！");
@@ -924,46 +971,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appMarket = SerializationUtils.clone(appMarketResponse);
 
         return appMarket;
-    }
-
-    /**
-     * 从内容任务中获取，海报配置信息。
-     *
-     * @param contentCreateRequestList 内容人物列表
-     * @param posterStepId             海报步骤
-     * @return 海报列表
-     */
-    @NotNull
-    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
-        return CollectionUtil.emptyIfNull(contentCreateRequestList)
-                .stream()
-                .map(item -> {
-                    Optional<String> posterStyleOptional = Optional.ofNullable(item)
-                            .map(CreativeContentCreateReqVO::getExecuteParam)
-                            .map(CreativeContentExecuteParam::getAppInformation)
-                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
-
-                    if (!posterStyleOptional.isPresent()) {
-                        return null;
-                    }
-
-                    try {
-                        return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
-                    } catch (Exception e) {
-                        return null;
-                    }
-
-                })
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 处理并且校验
-     *
-     * @param request 创作计划请求
-     */
-    private void handlerAndValidate(CreativePlanModifyReqVO request) {
-        request.validate();
     }
 
 }
