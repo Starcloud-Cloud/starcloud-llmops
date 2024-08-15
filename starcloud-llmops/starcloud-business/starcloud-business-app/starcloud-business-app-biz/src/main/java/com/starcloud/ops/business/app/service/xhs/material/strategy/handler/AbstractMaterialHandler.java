@@ -247,7 +247,7 @@ public abstract class AbstractMaterialHandler {
     }
 
     /**
-     * 计算生成任务总数量。
+     * 计算生成任务总数量。的
      *
      * @param materialList    素材列表
      * @param posterStyleList 海报风格列表
