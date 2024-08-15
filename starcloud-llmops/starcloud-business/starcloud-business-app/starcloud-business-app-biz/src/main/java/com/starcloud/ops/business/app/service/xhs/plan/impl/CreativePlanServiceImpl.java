@@ -129,6 +129,37 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     private TransactionTemplate transactionTemplate;
 
     /**
+     * 从内容任务中获取，海报配置信息。
+     *
+     * @param contentCreateRequestList 内容人物列表
+     * @param posterStepId             海报步骤
+     * @return 海报列表
+     */
+    @NotNull
+    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
+        return CollectionUtil.emptyIfNull(contentCreateRequestList)
+                .stream()
+                .map(item -> {
+                    Optional<String> posterStyleOptional = Optional.ofNullable(item)
+                            .map(CreativeContentCreateReqVO::getExecuteParam)
+                            .map(CreativeContentExecuteParam::getAppInformation)
+                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
+
+                    if (!posterStyleOptional.isPresent()) {
+                        return null;
+                    }
+
+                    try {
+                        return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
+                    } catch (Exception e) {
+                        return null;
+                    }
+
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 创作计划元数据
      *
      * @return 元数据
@@ -162,7 +193,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppValidate.notNull(creativePlan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, uid);
         return CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
     }
-
 
     /**
      * 获取创作计划分页列表
@@ -199,7 +229,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return list.stream().map(CreativePlanConvert.INSTANCE::convert)
                 .collect(Collectors.toList());
     }
-
 
     @Override
     public List<CreativePlanRespVO> list(CreativePlanListQuery query) {
@@ -924,37 +953,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         AppMarketRespVO appMarket = SerializationUtils.clone(appMarketResponse);
 
         return appMarket;
-    }
-
-    /**
-     * 从内容任务中获取，海报配置信息。
-     *
-     * @param contentCreateRequestList 内容人物列表
-     * @param posterStepId             海报步骤
-     * @return 海报列表
-     */
-    @NotNull
-    private static List<PosterStyleDTO> getPosterStyleList(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
-        return CollectionUtil.emptyIfNull(contentCreateRequestList)
-                .stream()
-                .map(item -> {
-                    Optional<String> posterStyleOptional = Optional.ofNullable(item)
-                            .map(CreativeContentCreateReqVO::getExecuteParam)
-                            .map(CreativeContentExecuteParam::getAppInformation)
-                            .map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
-
-                    if (!posterStyleOptional.isPresent()) {
-                        return null;
-                    }
-
-                    try {
-                        return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
-                    } catch (Exception e) {
-                        return null;
-                    }
-
-                })
-                .collect(Collectors.toList());
     }
 
     /**
