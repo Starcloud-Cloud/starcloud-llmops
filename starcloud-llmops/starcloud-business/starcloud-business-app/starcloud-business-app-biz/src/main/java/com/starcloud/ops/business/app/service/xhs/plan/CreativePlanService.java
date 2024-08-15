@@ -116,13 +116,6 @@ public interface CreativePlanService {
     void updatePlanStatus(String planUid, String batchUid);
 
     /**
-     * 执行创作计划
-     *
-     * @param uid 创作计划UID
-     */
-    void execute(String uid);
-
-    /**
      * 升级创作计划
      *
      * @param request 执行请求
