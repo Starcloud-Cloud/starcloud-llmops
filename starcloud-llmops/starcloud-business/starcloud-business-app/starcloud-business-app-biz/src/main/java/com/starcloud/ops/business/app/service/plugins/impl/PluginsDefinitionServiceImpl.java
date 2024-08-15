@@ -144,11 +144,6 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
-        if (Objects.equals("failed", status)) {
-            String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
-            throw exception(COZE_ERROR, error);
-        }
-
         if (!Objects.equals("completed", status)) {
             executeRespVO.setStatus(status);
             return executeRespVO;
@@ -264,12 +259,6 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         verifyResult.setVerifyState(false);
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
-
-        if (Objects.equals("failed", status)) {
-            String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
-            throw exception(COZE_ERROR, error);
-        }
-
         if (!Objects.equals("completed", status)) {
             verifyResult.setStatus(status);
             verifyResult.setCreatedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCreatedAt).orElse(null));
