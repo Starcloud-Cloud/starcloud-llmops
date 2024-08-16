@@ -49,7 +49,6 @@ import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
-import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialHandlerHolder;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
@@ -106,9 +105,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private AppMarketService appMarketService;
-
-    @Resource
-    private MaterialHandlerHolder materialHandlerHolder;
 
     @Resource
     private TransactionTemplate transactionTemplate;
