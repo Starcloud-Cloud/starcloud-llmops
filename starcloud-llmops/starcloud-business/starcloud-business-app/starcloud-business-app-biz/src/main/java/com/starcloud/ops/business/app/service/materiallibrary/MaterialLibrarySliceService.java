@@ -155,4 +155,24 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      * @param libraryId         老应用
      */
     void materialLibrarySliceCopy(Long templateLibraryId, Long libraryId);
+
+    /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @return 素材知识库数据
+     */
+    Long getMaterialLibrarySliceCountByLibraryId(Long libraryId);
+
+
+    void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> cachedDataList, List<String> otherFileKeys);
+
+    /**
+     * 列 删除后 删除数据内的列
+     *
+     * @param columnCodes 列
+     * @param libraryId   素材库编号
+     */
+
+    void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId);
 }
