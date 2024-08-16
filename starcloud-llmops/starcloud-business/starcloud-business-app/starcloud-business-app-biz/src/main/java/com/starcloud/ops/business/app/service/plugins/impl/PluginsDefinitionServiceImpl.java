@@ -137,6 +137,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
         CozeChatResult cozeChatResult = JSONUtil.toBean(cozeResult, CozeChatResult.class);
         CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+        log.info("coze result {}", JSONUtil.toJsonPrettyStr(retrieve));
         if (retrieve.getCode() != 0) {
             throw exception(COZE_ERROR, retrieve.getMsg());
         }
@@ -256,6 +257,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
         CozeChatResult cozeChatResult = JSONUtil.toBean(cozeResult, CozeChatResult.class);
         CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+        log.info("coze result {}", JSONUtil.toJsonPrettyStr(retrieve));
         if (retrieve.getCode() != 0) {
             throw exception(COZE_ERROR, retrieve.getMsg());
         }
