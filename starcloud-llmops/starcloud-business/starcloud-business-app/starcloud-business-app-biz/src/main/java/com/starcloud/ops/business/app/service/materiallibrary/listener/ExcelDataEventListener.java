@@ -264,5 +264,4 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         DictDataDO dictData = bean.parseDictData("playwright", "material_parse");
         return dictData.getValue();
     }
-
 }

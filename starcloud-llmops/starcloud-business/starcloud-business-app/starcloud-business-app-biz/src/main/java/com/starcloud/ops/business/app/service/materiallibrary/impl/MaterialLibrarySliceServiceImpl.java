@@ -367,8 +367,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
 
     private MaterialLibraryTableColumnDO findColumnDOByCode(List<MaterialLibraryTableColumnDO> tableColumnDOList, String columnCode) {
-        // 为了优化性能，这里可以考虑使用更高效的数据结构进行搜索，比如HashMap
-        // 由于示例中没有给出具体的ColumnDO实现，这里简单地使用循环遍历列表进行查找
         for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
             if (tableColumnDO.getColumnCode().equals(columnCode)) {
                 return tableColumnDO; // 找到匹配的ColumnDO，返回之

@@ -39,12 +39,11 @@ public class XhsRequestInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
-//        不使用互动数据 不需登录
-//        DictDataDO dictDataDO = dictDataService.parseDictData(DICTTYPE, DICTLABEL);
-//        if (dictDataDO == null || StringUtils.isBlank(dictDataDO.getValue())) {
-//            throw exception(DICT_DATA_NOT_EXISTS);
-//        }
-//        template.header(COOKIE, dictDataDO.getValue());
+        DictDataDO dictDataDO = dictDataService.parseDictData(DICTTYPE, DICTLABEL);
+        if (dictDataDO == null || StringUtils.isBlank(dictDataDO.getValue())) {
+            throw exception(DICT_DATA_NOT_EXISTS);
+        }
+        template.header(COOKIE, dictDataDO.getValue());
 
         template.header("User-Agent", USER_AGENT.get(RandomUtil.randomInt(USER_AGENT.size())));
     }
