@@ -4,12 +4,9 @@ package com.starcloud.ops.business.app.controller.admin.plugins;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
-import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.ImageOcrReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.TextExtractionReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.XhsOcrReqVO;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,8 +20,8 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/llm/creative/plugins")
-@Tag(name = "星河云海-创作插件", description = "创作插件")
-public class PluginsController {
+@Tag(name = "星河云海-执行创作插件", description = "执行创作插件")
+public class PluginsExecuteController {
 
     @Resource
     private PluginsService pluginsService;
@@ -47,5 +44,16 @@ public class PluginsController {
         return CommonResult.success(pluginsService.intelligentTextExtraction(reqVO));
     }
 
+    @PostMapping(value = "/execute")
+    @Operation(summary = "执行插件")
+    public CommonResult<String> executePlugin(@Valid @RequestBody PluginExecuteReqVO reqVO) {
+        return CommonResult.success(pluginsService.executePlugin(reqVO));
+    }
+
+    @PostMapping(value = "/executeResult")
+    @Operation(summary = "查询插件执行结果")
+    public CommonResult<PluginExecuteRespVO> getPluginResult(@Valid @RequestBody PluginResultReqVO reqVO) {
+        return CommonResult.success(pluginsService.getPluginResult(reqVO));
+    }
 
 }
