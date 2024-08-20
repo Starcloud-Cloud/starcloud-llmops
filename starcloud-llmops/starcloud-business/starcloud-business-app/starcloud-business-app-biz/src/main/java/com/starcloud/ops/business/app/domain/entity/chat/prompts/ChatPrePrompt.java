@@ -1,20 +1,17 @@
 package com.starcloud.ops.business.app.domain.entity.chat.prompts;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.starcloud.ops.business.app.domain.entity.chat.PrePromptConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.pre.PreMaxReturnPrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.pre.PreReplyLangPrompt;
 import com.starcloud.ops.business.app.domain.entity.chat.prompts.pre.PreTonePrompt;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
-import io.vavr.collection.Array;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -56,8 +53,8 @@ public class ChatPrePrompt extends BasePromptConfig {
 
 
     @Override
-    public void validate(ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
+        return super.validate(uid, validateType);
     }
 
     @Override

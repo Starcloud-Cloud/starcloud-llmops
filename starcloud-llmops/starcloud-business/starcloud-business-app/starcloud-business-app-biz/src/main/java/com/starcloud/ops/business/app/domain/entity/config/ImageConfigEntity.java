@@ -2,7 +2,11 @@ package com.starcloud.ops.business.app.domain.entity.config;
 
 import com.starcloud.ops.business.app.api.image.vo.request.BaseImageRequest;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import lombok.Data;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * App 配置实体类
@@ -19,12 +23,9 @@ public class ImageConfigEntity extends BaseConfigEntity {
      */
     private BaseImageRequest info;
 
-    /**
-     * 基础数据校验
-     */
     @Override
-    public void validate(ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
+        return Collections.emptyList();
     }
 
 }

@@ -35,7 +35,6 @@ import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
@@ -43,6 +42,8 @@ import com.starcloud.ops.business.app.model.poster.PosterTitleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.api.verification.Verification;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
@@ -113,107 +114,6 @@ public class PosterActionHandler extends BaseActionHandler {
     private static final PosterThreadPoolHolder POSTER_TEMPLATE_THREAD_POOL_HOLDER = SpringUtil.getBean(PosterThreadPoolHolder.class);
 
     /**
-     * 获取模板变量集合，变量 UUID 和 value 的Map集合
-     *
-     * @param posterTemplateList 模板列表
-     * @return 模板变量集合
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private static Map<String, Object> getPosterVariableMap(PosterTemplateDTO posterTemplate, boolean isIncludeMultimodal) {
-        Map<String, Object> variableMap = new HashMap<>();
-        for (PosterVariableDTO variable : posterTemplate.posterVariableList()) {
-            // 如果不包含多模态处理生成标题，则不包含多模态处理生成标题的变量
-            if (!isIncludeMultimodal) {
-                if (MULTIMODAL_PATTERN.matcher(variable.emptyIfNullValue()).find()) {
-                    continue;
-                }
-            }
-            String value = variable.emptyIfNullValue();
-            variableMap.put(variable.getUuid(), value);
-        }
-        return variableMap;
-    }
-
-    /**
-     * 是否需要多模态处理生成标题
-     *
-     * @param posterTemplate 海报模版
-     * @return 是否需要多模态处理生成标题
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private static boolean isNeedMultimodal(PosterTemplateDTO posterTemplate) {
-        // 如果需要多模态处理生成标题，只要该值为 false，则不需要多模态处理。该值为 true，且变量中有匹配到多模态正则表达式，才需要多模态处理
-        if (Objects.nonNull(posterTemplate.getIsMultimodalTitle()) && posterTemplate.getIsMultimodalTitle()) {
-            // 获取所有的变量列表
-            List<PosterVariableDTO> variableList = posterTemplate.posterVariableList();
-            // 只要有一个变量匹配到多模态正则表达式，则需要多模态处理
-            return variableList.stream().anyMatch(item -> MULTIMODAL_PATTERN.matcher(item.emptyIfNullValue()).find());
-        }
-        return false;
-    }
-
-    /**
-     * 获取多模态参数图片消息列表
-     *
-     * @param posterTemplate 海报模版
-     * @return 图片消息列表
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private static List<String> imageMessageList(PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
-        // 图片变量列表
-        List<PosterVariableDTO> imageVariableList = CreativeUtils.getImageVariableList(posterTemplate);
-        // 处理需要上传的图片
-        List<String> urlList = new ArrayList<>();
-        // 如果图片数量大于2，只取前2个，否则取全部
-        for (PosterVariableDTO imageVariable : imageVariableList) {
-            if (urlList.size() == 2) {
-                break;
-            }
-            // 获取图片地址
-            String value = String.valueOf(valueMap.getOrDefault(imageVariable.getUuid(), StrUtil.EMPTY));
-            if (StringUtils.isBlank(value)) {
-                continue;
-            }
-            String imageUrl = value + IMAGE_URL_LIMIT_PIXEL;
-            urlList.add(imageUrl);
-        }
-        return urlList;
-    }
-
-    /**
-     * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
-     *
-     * @param input 输入
-     * @return 返回的数字，没有匹配到，返回 -1
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private static Integer matcherMax(String input) {
-        if (StringUtils.isBlank(input)) {
-            return -1;
-        }
-        // 定义正则表达式匹配方括号中的数字
-        Matcher matcher = MATERIAL_PATTERN.matcher(input);
-        // 如果匹配到，则返回最大的数字。
-        int max = -1;
-        try {
-            while (matcher.find()) {
-                int number = Integer.parseInt(matcher.group(1));
-                if (number > max) {
-                    max = number;
-                }
-            }
-        } catch (Exception exception) {
-            log.error("{}解析素材正则异常：{}: {}", PosterActionHandler.class.getSimpleName(), input, exception.getMessage());
-            return -1;
-        }
-        return max;
-    }
-
-    /**
      * 流程执行器，action 执行入口
      *
      * @param context           上下文
@@ -236,24 +136,37 @@ public class PosterActionHandler extends BaseActionHandler {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        List<Verification> verifications = new ArrayList<>();
+        String stepName = wrapper.getName();
+        String stepCode = wrapper.getStepCode();
         Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        VerificationUtils.notNullStep(verifications, systemPosterConfig, stepCode,
+                "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
         if (Objects.isNull(systemPosterConfig)) {
-            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            return verifications;
         }
+
         if (systemPosterConfig instanceof String) {
             String systemPosterStyleConfig = String.valueOf(systemPosterConfig);
             if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
-                throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
             }
             List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
-            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            VerificationUtils.notEmptyStep(verifications, systemPosterStyleList, stepCode,
+                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
         }
         if (systemPosterConfig instanceof List) {
             List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
-            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            VerificationUtils.notEmptyStep(verifications, systemPosterStyleList, stepCode,
+                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                return verifications;
+            }
             wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
         }
+        return verifications;
     }
 
     /**
@@ -1019,6 +932,107 @@ public class PosterActionHandler extends BaseActionHandler {
                     posterTemplate.getName(), posterTemplate.getCode(), exception.getMessage());
             throw ServiceExceptionUtil.exceptionWithCause(ErrorCodeConstants.EXECUTE_POSTER_FAILURE, exception.getMessage(), exception);
         }
+    }
+
+    /**
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static Map<String, Object> getPosterVariableMap(PosterTemplateDTO posterTemplate, boolean isIncludeMultimodal) {
+        Map<String, Object> variableMap = new HashMap<>();
+        for (PosterVariableDTO variable : posterTemplate.posterVariableList()) {
+            // 如果不包含多模态处理生成标题，则不包含多模态处理生成标题的变量
+            if (!isIncludeMultimodal) {
+                if (MULTIMODAL_PATTERN.matcher(variable.emptyIfNullValue()).find()) {
+                    continue;
+                }
+            }
+            String value = variable.emptyIfNullValue();
+            variableMap.put(variable.getUuid(), value);
+        }
+        return variableMap;
+    }
+
+    /**
+     * 是否需要多模态处理生成标题
+     *
+     * @param posterTemplate 海报模版
+     * @return 是否需要多模态处理生成标题
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static boolean isNeedMultimodal(PosterTemplateDTO posterTemplate) {
+        // 如果需要多模态处理生成标题，只要该值为 false，则不需要多模态处理。该值为 true，且变量中有匹配到多模态正则表达式，才需要多模态处理
+        if (Objects.nonNull(posterTemplate.getIsMultimodalTitle()) && posterTemplate.getIsMultimodalTitle()) {
+            // 获取所有的变量列表
+            List<PosterVariableDTO> variableList = posterTemplate.posterVariableList();
+            // 只要有一个变量匹配到多模态正则表达式，则需要多模态处理
+            return variableList.stream().anyMatch(item -> MULTIMODAL_PATTERN.matcher(item.emptyIfNullValue()).find());
+        }
+        return false;
+    }
+
+    /**
+     * 获取多模态参数图片消息列表
+     *
+     * @param posterTemplate 海报模版
+     * @return 图片消息列表
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static List<String> imageMessageList(PosterTemplateDTO posterTemplate, Map<String, Object> valueMap) {
+        // 图片变量列表
+        List<PosterVariableDTO> imageVariableList = CreativeUtils.getImageVariableList(posterTemplate);
+        // 处理需要上传的图片
+        List<String> urlList = new ArrayList<>();
+        // 如果图片数量大于2，只取前2个，否则取全部
+        for (PosterVariableDTO imageVariable : imageVariableList) {
+            if (urlList.size() == 2) {
+                break;
+            }
+            // 获取图片地址
+            String value = String.valueOf(valueMap.getOrDefault(imageVariable.getUuid(), StrUtil.EMPTY));
+            if (StringUtils.isBlank(value)) {
+                continue;
+            }
+            String imageUrl = value + IMAGE_URL_LIMIT_PIXEL;
+            urlList.add(imageUrl);
+        }
+        return urlList;
+    }
+
+    /**
+     * 获取到 [n] 中的数字，如果包含多个 [n],只返回最大的数字
+     *
+     * @param input 输入
+     * @return 返回的数字，没有匹配到，返回 -1
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static Integer matcherMax(String input) {
+        if (StringUtils.isBlank(input)) {
+            return -1;
+        }
+        // 定义正则表达式匹配方括号中的数字
+        Matcher matcher = MATERIAL_PATTERN.matcher(input);
+        // 如果匹配到，则返回最大的数字。
+        int max = -1;
+        try {
+            while (matcher.find()) {
+                int number = Integer.parseInt(matcher.group(1));
+                if (number > max) {
+                    max = number;
+                }
+            }
+        } catch (Exception exception) {
+            log.error("{}解析素材正则异常：{}: {}", PosterActionHandler.class.getSimpleName(), input, exception.getMessage());
+            return -1;
+        }
+        return max;
     }
 
 }

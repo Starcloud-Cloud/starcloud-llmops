@@ -11,10 +11,12 @@ import com.starcloud.ops.business.app.domain.repository.market.AppMarketReposito
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -26,50 +28,60 @@ import java.math.BigDecimal;
 public class AppMarketEntity extends AppEntity {
 
     /**
+     * 应用版本
+     */
+    private Integer version;
+
+    /**
+     * 版本名称
+     */
+    private String language;
+
+    /**
+     * 审核状态
+     */
+    private Integer audit;
+
+    /**
+     * 应用是否是免费的
+     */
+    private Boolean free;
+
+    /**
+     * 应用收费数
+     */
+    private BigDecimal cost;
+
+    /**
+     * 使用数量
+     */
+    private Integer usageCount;
+
+    /**
+     * 点赞数量
+     */
+    private Integer likeCount;
+
+    /**
+     * 查看数量
+     */
+    private Integer viewCount;
+
+    /**
+     * 安装数量
+     */
+    private Integer installCount;
+
+    /**
      * 应用市场数据库操作类
      */
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppMarketRepository appMarketRepository = SpringUtil.getBean(AppMarketRepository.class);
+
     @JsonIgnore
     @JSONField(serialize = false)
     private static AppMarketService appMarketService = SpringUtil.getBean(AppMarketService.class);
-    /**
-     * 应用版本
-     */
-    private Integer version;
-    /**
-     * 版本名称
-     */
-    private String language;
-    /**
-     * 审核状态
-     */
-    private Integer audit;
-    /**
-     * 应用是否是免费的
-     */
-    private Boolean free;
-    /**
-     * 应用收费数
-     */
-    private BigDecimal cost;
-    /**
-     * 使用数量
-     */
-    private Integer usageCount;
-    /**
-     * 点赞数量
-     */
-    private Integer likeCount;
-    /**
-     * 查看数量
-     */
-    private Integer viewCount;
-    /**
-     * 安装数量
-     */
-    private Integer installCount;
 
     /**
      * 校验
@@ -77,8 +89,8 @@ public class AppMarketEntity extends AppEntity {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    protected void doValidate(AppExecuteReqVO request, ValidateTypeEnum validateType) {
-        super.doValidate(request, validateType);
+    protected List<Verification> doValidate(AppExecuteReqVO request, ValidateTypeEnum validateType) {
+        return super.doValidate(request, validateType);
     }
 
     /**
