@@ -73,18 +73,6 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         return this.selectOne(wrapper);
     }
 
-    /**
-     * 获取创作计划列表
-     *
-     * @param query 请求参数
-     * @return 创作计划列表
-     */
-    default List<CreativePlanDO> list(CreativePlanListQuery query) {
-        LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery(CreativePlanDO.class);
-        wrapper.eq(StringUtils.isNotBlank(query.getUid()), CreativePlanDO::getUid, query.getUid());
-        wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativePlanDO::getStatus, query.getStatus());
-        return this.selectList(wrapper);
-    }
 
     default void deleteByAppUid(String appUid) {
         LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery(CreativePlanDO.class);
@@ -116,5 +104,8 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
     }
 
     List<CreativePlanDTO> list(@Param("currentUserId") String currentUserId, @Param("limit") Integer limit);
+
+
+    List<CreativePlanDTO> query(CreativePlanListQuery query);
 
 }

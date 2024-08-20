@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -20,16 +22,16 @@ public class CreativePlanListQuery implements java.io.Serializable {
 
     private static final long serialVersionUID = 8118507177135519788L;
 
-    /**
-     * 创作计划uid
-     */
-    @Schema(description = "创作计划uid")
-    private String uid;
 
-    /**
-     * 创作计划状态
-     */
-    @Schema(description = "创作计划状态")
-    private String status;
+    @Schema(description = "来源  APP/MARKET")
+    @NotBlank(message = "来源 不能为空")
+    private String source;
+
+    @Schema(description = "用户id")
+    private Long userId;
+
+    @Schema(description = "limit")
+    private int limit = 100;
+
 
 }

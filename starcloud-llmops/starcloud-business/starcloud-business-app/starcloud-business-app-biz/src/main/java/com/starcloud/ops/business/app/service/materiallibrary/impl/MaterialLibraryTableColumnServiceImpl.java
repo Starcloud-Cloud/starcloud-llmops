@@ -18,6 +18,7 @@ import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryT
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -61,6 +59,10 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
 
     @Resource
     private MaterialLibraryTableColumnMapper materialLibraryTableColumnMapper;
+
+    @Resource
+    @Lazy
+    private MaterialLibrarySliceService materialLibrarySliceService;
 
     @Override
     public Long createMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO createReqVO) {
@@ -166,7 +168,6 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public void updateBatchByLibraryId(MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS = batchSaveReqVO.getTableColumnSaveReqVOList();
-        generateColumnCode(saveReqVOS);
         List<MaterialLibraryTableColumnDO> newList = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
         // 第一步，对比新老数据，获得添加、修改、删除的列表
         List<MaterialLibraryTableColumnDO> oldList = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(batchSaveReqVO.getLibraryId());
@@ -174,20 +175,25 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         List<List<MaterialLibraryTableColumnDO>> diffList =
                 diffList(oldList, newList, // id 不同，就认为是不同的记录
                         (oldVal, newVal) -> ObjectUtil.equal(oldVal.getId(), newVal.getId()));
+        // 优先删除 避免同名的情况
+        if (CollUtil.isNotEmpty(diffList.get(2))) {
+            materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
+            materialLibrarySliceService.asyncUpdateSliceByColumnCodeDelete(diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList()),diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getLibraryId).collect(Collectors.toList()).get(0));
+        }
 
         // 第二步，批量添加、修改、删除
         if (CollUtil.isNotEmpty(diffList.get(0))) {
-            materialLibraryTableColumnMapper.insertBatch(diffList.get(0));
+            List<MaterialLibraryTableColumnDO> tableColumnDOList = diffList.get(0);
+            List<MaterialLibraryTableColumnSaveReqVO> saveReqVOList = BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnSaveReqVO.class);
+            generateColumnCode(saveReqVOList);
+            List<MaterialLibraryTableColumnDO> bean = BeanUtils.toBean(saveReqVOList, MaterialLibraryTableColumnDO.class);
+            materialLibraryTableColumnMapper.insertBatch(bean);
         }
         if (CollUtil.isNotEmpty(diffList.get(1))) {
             materialLibraryTableColumnMapper.updateBatch(diffList.get(1));
         }
-        if (CollUtil.isNotEmpty(diffList.get(2))) {
-            materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
-        }
-
-
     }
+
 
     /**
      * 仅仅复制一个新的素材库表头templateLibraryId -> libraryId
@@ -297,26 +303,24 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             return;
         }
 
-        List<String> columnCodeExistList = new ArrayList<>();
+        Set<String> columnCodeExistList = new HashSet<>();
 
         List<Long> collect = saveReqVOS.stream().map(MaterialLibraryTableColumnSaveReqVO::getLibraryId).collect(Collectors.toList());
 
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(collect.get(0));
 
         if (CollUtil.isNotEmpty(tableColumnDOList)) {
-            columnCodeExistList.addAll(tableColumnDOList.stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList()));
+            columnCodeExistList.addAll(tableColumnDOList.stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toSet()));
         }
 
         for (MaterialLibraryTableColumnSaveReqVO saveReqVO : saveReqVOS) {
-
-            String columnName = saveReqVO.getColumnName();
-
             // 已有ColumnCode的字段跳过
             if (StringUtils.isNoneBlank(saveReqVO.getColumnCode())) {
                 columnCodeExistList.add(saveReqVO.getColumnCode());
                 continue;
             }
 
+            String columnName = saveReqVO.getColumnName();
             char[] nameChar = columnName.trim().toCharArray();
             StringBuilder sb = new StringBuilder();
             for (char c : nameChar) {
@@ -354,7 +358,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
      * @param columnCodeExistList 已经存在的列 code
      * @return 列 code
      */
-    private String pinyinFirstCharUnique(String columnCode, List<String> columnCodeExistList) {
+    private String pinyinFirstCharUnique(String columnCode, Set<String> columnCodeExistList) {
         if (columnCodeExistList.contains(columnCode)) {
             return pinyinFirstCharUnique(columnCode + RandomUtil.randomString(BASE_CHAR_NUMBER_LOWER, 1), columnCodeExistList);
         }

@@ -27,4 +27,5 @@ public class ImageConfigEntity extends BaseConfigEntity {
     public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
         return Collections.emptyList();
     }
+
 }

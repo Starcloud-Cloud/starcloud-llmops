@@ -135,4 +135,10 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                 .orderByDesc(MaterialLibrarySliceDO::getCreateTime)
         );
     }
+
+    default Long selectCountByLibraryId(Long libraryId){
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
+        return selectCount(wrapper);
+    }
 }

@@ -41,6 +41,38 @@ import java.util.stream.Collectors;
 public class ChatConfigEntity extends BaseConfigEntity {
 
 
+    private String code;
+    private String prePrompt;
+    private PrePromptConfigEntity prePromptConfig;
+    private VariableEntity variable;
+    private ModelConfigEntity modelConfig;
+    private WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
+    private List<DatesetEntity> datesetEntities;
+    private SuggestedQuestionEntity suggestedQuestion;
+    private OpeningStatementEntity openingStatement;
+    private AudioConfigEntity audioConfig;
+    private DescriptionEnity description;
+    /**
+     * 挂载的 gpt插件技能列表
+     */
+    private transient List<HandlerSkill> handlerSkills;
+    /**
+     * 挂载的 gpt插件技能列表
+     */
+    private transient List<GptPluginSkill> gptPluginSkills;
+    /**
+     * 挂载的 API技能列表
+     */
+    private transient List<ApiSkill> apiSkills;
+    /**
+     * 挂载的 应用技能列表
+     */
+    private transient List<AppWorkflowSkill> appWorkflowSkills;
+    /**
+     * 技能配置
+     */
+    private String appConfigId;
+
     @Override
     public void init() {
 
@@ -87,55 +119,6 @@ public class ChatConfigEntity extends BaseConfigEntity {
                 }).collect(Collectors.toList());
 
     }
-
-
-    private String code;
-
-    private String prePrompt;
-
-    private PrePromptConfigEntity prePromptConfig;
-
-    private VariableEntity variable;
-
-    private ModelConfigEntity modelConfig;
-
-    private WebSearchConfigEntity webSearchConfig = new WebSearchConfigEntity();
-
-    private List<DatesetEntity> datesetEntities;
-
-    private SuggestedQuestionEntity suggestedQuestion;
-
-    private OpeningStatementEntity openingStatement;
-
-    private AudioConfigEntity audioConfig;
-
-    private DescriptionEnity description;
-
-    /**
-     * 挂载的 gpt插件技能列表
-     */
-    private transient List<HandlerSkill> handlerSkills;
-
-    /**
-     * 挂载的 gpt插件技能列表
-     */
-    private transient List<GptPluginSkill> gptPluginSkills;
-
-    /**
-     * 挂载的 API技能列表
-     */
-    private transient List<ApiSkill> apiSkills;
-
-    /**
-     * 挂载的 应用技能列表
-     */
-    private transient List<AppWorkflowSkill> appWorkflowSkills;
-
-    /**
-     * 技能配置
-     */
-    private String appConfigId;
-
 
     /**
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现

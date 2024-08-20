@@ -1,18 +1,7 @@
 package com.starcloud.ops.business.app.service.materiallibrary.listener;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
-import cn.iocoder.yudao.module.system.service.dict.DictDataService;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.exception.ExcelDataConvertException;
@@ -21,56 +10,44 @@ import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
-import com.starcloud.ops.business.app.service.materiallibrary.CommonExcelReadService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
-import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.MaterialLibrary.dto.ExcelDataImportConfigDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static cn.hutool.core.date.DatePattern.PURE_DATETIME_MS_PATTERN;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, String>> {
 
-    /**
-     * 每隔5条存储数据库，实际使用中可以100条，然后清理list ，方便内存回收
-     */
     private static final int BATCH_COUNT = 100;
     private List<MaterialLibrarySliceSaveReqVO> cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
 
-    /**
-     * 假设这个是一个DAO，当然有业务逻辑这个也可以是一个service。当然如果不用存储这个对象没用。
-     */
-    private CommonExcelReadService service;
+    private List<String> otherFileKeys = new ArrayList<>();
 
-    /**
-     * 假设这个是一个DAO，当然有业务逻辑这个也可以是一个service。当然如果不用存储这个对象没用。
-     */
+    private MaterialLibrarySliceService service;
+
     private File[] files;
+
+    private long start;
+    private long end;
+
 
     /**
      * 解压后的绝对路径
      */
     private String unzipDirPath;
 
-    /**
-     * 如果使用了spring,请使用这个构造方法。每次创建Listener的时候需要把spring管理的类传进来
-     *
-     * @param service 公共 service
-     */
+
     public ExcelDataEventListener(MaterialLibrarySliceService service,
                                   File[] files, String unzipDirPath) {
         this.service = service;
         this.files = files;
         this.unzipDirPath = unzipDirPath;
+        start = System.currentTimeMillis();
 
     }
 
@@ -97,8 +74,7 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         materialLibrarySliceSaveReqVO.setStatus(true);
         materialLibrarySliceSaveReqVO.setIsShare(false);
 
-        // 用并行流处理大数据集
-        long totalLength = data.values().parallelStream()
+        long totalLength = data.values().stream()
                 .filter(Objects::nonNull)
                 .map(Object::toString)
                 .mapToInt(String::length)
@@ -109,7 +85,6 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
         List<MaterialLibrarySliceSaveReqVO.TableContent> contents = new ArrayList<>();
 
         List<MaterialLibraryTableColumnRespVO> columnConfig = importConfigDTO.getColumnConfig();
-        List<String> screenShot = new ArrayList<>();
         for (int i = 0; i < columnConfig.size(); i++) {
             MaterialLibraryTableColumnRespVO tableColumnRespVO = columnConfig.get(i);
 
@@ -119,49 +94,23 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
             tableContent.setColumnName(tableColumnRespVO.getColumnName());
             tableContent.setValue(data.get(i));
 
-            if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType())) {
-                String imgUrl = StrUtil.NULL;
-                try {
-                    List<File> filesInImagesFolder = findFilesInTargetFolder(files, "images", tableContent.getValue());
-                    if (!CollUtil.isEmpty(filesInImagesFolder)) {
-                        File images = FileUtil.file(filesInImagesFolder.get(0));
-
-                        imgUrl = ImageUploadUtils.uploadImage(StrUtil.format("{}_{}", LocalDateTimeUtil.format(LocalDateTimeUtil.now(), PURE_DATETIME_MS_PATTERN), images.getName()), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(images.toPath()))).getUrl();
-                    }
-                } catch (IOException e) {
-                    log.error("图片解析异常");
-                    // throw new RuntimeException("图片解析异常");
-                }
-                tableContent.setValue(imgUrl);
-
-            } else if (ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())
-                    && StringUtils.isNotBlank(unzipDirPath)) {
-                // 文档相对路径  文字文稿.docx
-                String documentPath = tableContent.getValue();
-                List<String> urls = documentScreenshot(IdUtil.fastSimpleUUID(), documentPath, unzipDirPath);
-                screenShot.addAll(urls);
+            if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType()) || ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())) {
+                otherFileKeys.add(data.get(i));
             }
+
             contents.add(tableContent);
-        }
 
-        Map<String, Integer> codeType = importConfigDTO.getColumnConfig().stream().collect(Collectors.toMap(MaterialLibraryTableColumnRespVO::getColumnCode, MaterialLibraryTableColumnRespVO::getColumnType));
-        Iterator<String> iterator = screenShot.iterator();
-        for (MaterialLibrarySliceSaveReqVO.TableContent content : contents) {
-            Integer type = codeType.get(content.getColumnCode());
-            String value = content.getValue();
-            if (ColumnTypeEnum.IMAGE.getCode().equals(type)
-                    && (StringUtils.isBlank(value) || StrUtil.NULL.equalsIgnoreCase(value))
-                    && iterator.hasNext()) {
-                content.setValue(iterator.next());
-            }
         }
 
         materialLibrarySliceSaveReqVO.setContent(contents);
 
         cachedDataList.add(materialLibrarySliceSaveReqVO);
+
+
         if (cachedDataList.size() >= BATCH_COUNT) {
             saveData();
             cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
+            otherFileKeys = ListUtils.newArrayList();
         }
     }
 
@@ -174,7 +123,8 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
         saveData();
-        log.info("所有数据解析完成！");
+        end = System.currentTimeMillis();
+        log.info("所有数据解析完成！耗时{}", end - start);
 
     }
 
@@ -203,7 +153,10 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
      */
     private void saveData() {
         log.info("{}条数据，开始存储数据库！", cachedDataList.size());
-        service.saveBatchData(cachedDataList);
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        // threadPoolTaskExecutor.execute(() -> {
+        service.batchSaveDataAndExecuteOtherFile(cachedDataList, otherFileKeys);
+        // });
         log.info("存储数据库成功！");
     }
 
@@ -217,6 +170,19 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
      * @return 查询到的文件
      */
     public List<File> findFilesInTargetFolder(File[] directoriesToSearch, String targetFolderName, String targetedFileName) {
+
+
+        // // 指定文件夹路径
+        // String folderPath = "/path/to/your/folder";
+        // // 获取文件夹内所有.txt文件
+        // List<File> txtFiles = FileUtil.loopFiles(new File(folderPath), file -> file.getName().toLowerCase().endsWith(".txt"));
+        //
+        // // 输出文件路径
+        // for (File txtFile : txtFiles) {
+        //     System.out.println(txtFile.getAbsolutePath());
+        // }
+
+
         List<File> foundFiles = new ArrayList<>();
         for (File directory : directoriesToSearch) {
             if (directory.isDirectory()) {
@@ -243,25 +209,4 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
     }
 
 
-    private List<String> documentScreenshot(String parseUid, String documentPath, String unzipDir) {
-        HashMap<String, Object> paramMap = new HashMap<>();
-        File document = Paths.get(unzipDir, documentPath).toFile();
-        if (!document.exists()) {
-            return Collections.emptyList();
-        }
-        paramMap.put("file", document);
-        paramMap.put("parseUid", parseUid);
-        String result = HttpUtil.post(getUrl(), paramMap, 1_0000);
-        List<String> documentScreenshot = JSONUtil.parseArray(result).toList(String.class);
-        if (documentScreenshot == null) {
-            documentScreenshot = Collections.emptyList();
-        }
-        return documentScreenshot;
-    }
-
-    private String getUrl() {
-        DictDataService bean = SpringUtil.getBean(DictDataService.class);
-        DictDataDO dictData = bean.parseDictData("playwright", "material_parse");
-        return dictData.getValue();
-    }
 }
