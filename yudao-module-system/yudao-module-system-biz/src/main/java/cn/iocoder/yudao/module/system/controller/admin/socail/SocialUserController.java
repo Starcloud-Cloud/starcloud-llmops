@@ -13,7 +13,6 @@ import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,15 +50,21 @@ public class SocialUserController {
     @GetMapping("/get")
     @Operation(summary = "获得社交用户")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('system:social-user:query')")
     public CommonResult<SocialUserRespVO> getSocialUser(@RequestParam("id") Long id) {
         SocialUserDO socialUser = socialUserService.getSocialUser(id);
         return success(SocialUserConvert.INSTANCE.convert(socialUser));
     }
 
+    @GetMapping("/get-new")
+    @Operation(summary = "获得社交用户-获取最新 token")
+    @Parameter(name = "id", description = "编号", required = true, example = "1024")
+    public CommonResult<SocialUserRespVO> getNewSocialUser(@RequestParam("id") Long id) {
+        SocialUserDO socialUser = socialUserService.getNewSocialUser(id);
+        return success(SocialUserConvert.INSTANCE.convert(socialUser));
+    }
+
     @GetMapping("/page")
     @Operation(summary = "获得社交用户分页")
-    @PreAuthorize("@ss.hasPermission('system:social-user:query')")
     public CommonResult<PageResult<SocialUserRespVO>> getSocialUserPage(@Valid SocialUserPageReqVO pageVO) {
         PageResult<SocialUserDO> pageResult = socialUserService.getSocialUserPage(pageVO);
         return success(SocialUserConvert.INSTANCE.convertPage(pageResult));

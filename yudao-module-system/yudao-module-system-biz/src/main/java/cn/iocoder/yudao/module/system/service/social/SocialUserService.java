@@ -40,15 +40,12 @@ public interface SocialUserService {
     /**
      * 取消绑定社交用户
      *
-     * @param userId 用户编号
-     * @param userType 全局用户类型
+     * @param userId     用户编号
+     * @param userType   全局用户类型
      * @param socialType 社交平台的类型 {@link SocialTypeEnum}
-     * @param openid 社交平台的 openid
+     * @param openid     社交平台的 openid
      */
     void unbindSocialUser(Long userId, Integer userType, Integer socialType, String openid);
-
-
-
 
     /**
      * 获得绑定用户
@@ -60,13 +57,13 @@ public interface SocialUserService {
 
     /**
      * 获得社交用户
-     *
+     * <p>
      * 在认证信息不正确的情况下，也会抛出 {@link ServiceException} 业务异常
      *
-     * @param userType 用户类型
+     * @param userType   用户类型
      * @param socialType 社交平台的类型
-     * @param code 授权码
-     * @param state state
+     * @param code       授权码
+     * @param state      state
      * @return 社交用户
      */
     SocialUserRespDTO getSocialUser(Integer userType, Integer socialType, String code, String state);
@@ -81,6 +78,15 @@ public interface SocialUserService {
      */
     SocialUserDO getSocialUser(Long id);
 
+
+    /**
+     * 获得社交用户
+     *
+     * @param id 编号
+     * @return 社交用户
+     */
+    SocialUserDO getNewSocialUser(Long id);
+
     /**
      * 获得社交用户分页
      *
@@ -91,6 +97,7 @@ public interface SocialUserService {
 
     /**
      * 绑定公共号用户
+     *
      * @param socialUserDO
      * @param socialUserBindDO
      */
@@ -98,10 +105,22 @@ public interface SocialUserService {
 
     /**
      * 获得指定用户的社交用户
+     *
      * @param userId
      * @param userType
      * @return
      */
     SocialUserDO getSocialUser(Long userId, Integer userType);
+
+    /**
+     * 获得指定用户的社交用户
+     *
+     * @param userId     用户编号
+     * @param userType   用户类型
+     * @param socialType 社交平台的类型
+     * @return 社交用户
+     */
+    SocialUserDO getSocialUser(Long userId, Integer userType, Integer socialType);
+
 
 }

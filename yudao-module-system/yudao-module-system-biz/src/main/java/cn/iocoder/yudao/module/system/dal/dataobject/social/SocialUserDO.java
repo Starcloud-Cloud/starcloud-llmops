@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.module.system.dal.dataobject.social;
 
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
@@ -29,7 +28,7 @@ public class SocialUserDO extends TenantBaseDO {
     private Long id;
     /**
      * 社交平台的类型
-     *
+     * <p>
      * 枚举 {@link SocialTypeEnum}
      */
     private Integer type;
@@ -68,6 +67,30 @@ public class SocialUserDO extends TenantBaseDO {
      * 最后一次的认证 state
      */
     private String state;
+
+    /**
+     * 访问令牌 过期时间
+     */
+    private Integer expireIn;
+    /**
+     * 刷新令牌
+     */
+    private String refreshToken;
+
+    /**
+     * 刷新令牌 过期时间
+     */
+    private Integer refreshTokenExpireIn;
+
+    /**
+     * 绑定方式 自动/手动
+     */
+    private String remark;
+
+    /**
+     * 绑定方式 自动/手动
+     */
+    private Boolean auto;
 
 }
 

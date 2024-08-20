@@ -122,6 +122,9 @@ public interface ErrorCodeConstants {
     // ========== 社交用户 1-002-018-000 ==========
     ErrorCode SOCIAL_USER_AUTH_FAILURE = new ErrorCode(1_002_018_000, "社交授权失败，原因是：{}");
     ErrorCode SOCIAL_USER_NOT_FOUND = new ErrorCode(1_002_018_001, "社交授权失败，找不到对应的用户");
+    ErrorCode SOCIAL_USER_REFRESH_AUTH_FAILURE = new ErrorCode(1_002_018_003, "社交授权刷新失败，原因是：{}");
+    ErrorCode SOCIAL_USER_REFRESH_AUTH_EXPIRE = new ErrorCode(1_002_018_004, "刷新令牌已过期，请重新绑定");
+    ErrorCode SOCIAL_USER_AUTH_NO_FOUND = new ErrorCode(1_002_018_005, "社交授权不存在");
 
     ErrorCode SOCIAL_CLIENT_WEIXIN_MINI_APP_PHONE_CODE_ERROR = new ErrorCode(1_002_018_200, "获得手机号失败");
     ErrorCode SOCIAL_CLIENT_NOT_EXISTS = new ErrorCode(1_002_018_201, "社交客户端不存在");
