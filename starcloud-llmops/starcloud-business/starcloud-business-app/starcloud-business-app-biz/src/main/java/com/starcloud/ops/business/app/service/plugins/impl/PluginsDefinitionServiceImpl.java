@@ -400,7 +400,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
         PluginDefinitionDO updateConfig = PluginDefinitionConvert.INSTANCE.convert(reqVO);
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
-            CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), pluginConfigDO.getCozeTokenId());
+            CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), reqVO.getCozeTokenId());
             pluginConfigDO.setEntityName(cozeBotInfo.getName());
         } else {
             AppMarketRespVO appMarketRespVO = appMarketService.get(pluginConfigDO.getEntityUid());
