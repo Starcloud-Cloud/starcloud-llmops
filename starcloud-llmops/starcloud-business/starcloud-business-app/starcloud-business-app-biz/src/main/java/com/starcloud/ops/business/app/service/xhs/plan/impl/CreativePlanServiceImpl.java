@@ -424,6 +424,47 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     }
 
     /**
+     * 取消创作计划
+     *
+     * @param batchUid 批次UID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancel(String batchUid) {
+        log.info("取消创作计划执行【开始】，batchUid: {}", batchUid);
+        transactionTemplate.executeWithoutResult(status -> {
+
+            CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+            AppValidate.notNull(batch, "取消执行失败，创作计划批次不存在！批次UID: {}", batchUid);
+
+            // 查询创作计划
+            CreativePlanDO plan = creativePlanMapper.get(batch.getPlanUid());
+            AppValidate.notNull(plan, "取消执行失败，创作计划不存在！计划UID: {}", batch.getPlanUid());
+
+            // 如果创作计划是执行中或者待执行状态，则取消
+            if (CreativePlanStatusEnum.RUNNING.name().equals(plan.getStatus()) ||
+                    CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
+                // 更新创作计划状态
+                LambdaUpdateWrapper<CreativePlanDO> wrapper = Wrappers.lambdaUpdate(CreativePlanDO.class);
+                wrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.CANCELED.name());
+                wrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());
+                wrapper.eq(CreativePlanDO::getUid, plan.getUid());
+            }
+
+            // 如果创作计划批次是执行中或者待执行状态，则取消
+            if (CreativePlanStatusEnum.RUNNING.name().equals(batch.getStatus()) ||
+                    CreativePlanStatusEnum.PENDING.name().equals(batch.getStatus())) {
+                creativePlanBatchService.cancelBatch(batchUid);
+            }
+
+            // 取消创作计划批次下的创作内容
+            creativeContentService.cancelByBatchUid(batchUid);
+        });
+
+        log.info("取消创作计划执行【结束】，batchUid: {}", batchUid);
+    }
+
+    /**
      * 更新计划状态
      *
      * @param planUid 计划UID
@@ -442,43 +483,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             transactionTemplate.executeWithoutResult(status -> {
                 CreativePlanDO plan = creativePlanMapper.get(planUid);
                 AppValidate.notNull(plan, "创作计划不存在！UID: {}", planUid);
-
                 // 创作计划批次状态更新
                 creativePlanBatchService.updateStatus(batchUid);
-
-                // 查询当前计划下所有的创作批次
-//                CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
-//                bathQuery.setPlanUid(planUid);
-//                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.listStatus(bathQuery));
-//
-//                // 查询当前计划下所有的创作内容
-//                CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
-//                contentQuery.setPlanUid(planUid);
-//                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listStatus(contentQuery));
-//
-//                // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
-//                boolean bathComplete = batchList.stream()
-//                        .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
-//                boolean contentComplete = contentList.stream()
-//                        .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
-//                if (bathComplete && contentComplete) {
-//                    log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
-//                    updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
-//                    log.info("更新计划状态【结束】，planUid: {}", planUid);
-//                    return;
-//                }
-//
-//                // 当前计划下只要有彻底失败的，则计划失败
-//                boolean contentFailure = contentList.stream()
-//                        .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
-//
-//                if (contentFailure) {
-//                    log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
-//                    updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
-//                    log.info("更新计划状态【结束】，planUid: {}", planUid);
-//                    return;
-//                }
-
                 // 查询当前批次
                 CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
                 // 如果当前批次是完成状态，则计划完成
