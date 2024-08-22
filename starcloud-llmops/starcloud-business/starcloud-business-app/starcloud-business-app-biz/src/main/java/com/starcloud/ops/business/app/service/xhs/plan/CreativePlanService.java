@@ -88,8 +88,8 @@ public interface CreativePlanService {
     /**
      * 修改计划配置项
      *
-     * @param request
-     * @return
+     * @param request 请求
+     * @return 创作计划UID
      */
     String modifyConfiguration(CreativePlanModifyReqVO request);
 
@@ -106,6 +106,13 @@ public interface CreativePlanService {
      * @param appUid 应用uid
      */
     void deleteByAppUid(String appUid);
+
+    /**
+     * 取消创作计划
+     *
+     * @param batchUid 批次UID
+     */
+    void cancel(String batchUid);
 
     /**
      * 更新创作计划状态
@@ -134,9 +141,9 @@ public interface CreativePlanService {
     /**
      * 重我的应用或执行计划中获取应用信息
      *
-     * @param uid
-     * @param planSource
-     * @return
+     * @param uid      应用UID
+     * @param planSource 计划来源
+     * @return 应用信息
      */
     AppMarketRespVO getAppRespVO(String uid, String planSource);
 

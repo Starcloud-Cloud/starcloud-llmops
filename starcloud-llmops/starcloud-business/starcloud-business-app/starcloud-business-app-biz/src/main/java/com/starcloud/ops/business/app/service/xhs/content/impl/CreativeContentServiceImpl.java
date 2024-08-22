@@ -61,6 +61,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -475,6 +476,61 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         planUpdateWrapper.eq(CreativePlanDO::getUid, content.getPlanUid());
         planUpdateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
         creativePlanMapper.update(planUpdateWrapper);
+    }
+
+    /**
+     * 取消创作内容
+     *
+     * @param uid 创作内容UID
+     */
+    @Override
+    public void cancel(String uid) {
+        CreativeContentDO content = creativeContentMapper.get(uid);
+        AppValidate.notNull(content, "创作内容不存在({})", uid);
+        cancel(content);
+    }
+
+    /**
+     * 取消创作内容
+     *
+     * @param batchUid 批次UID
+     */
+    @Override
+    public void cancelByBatchUid(String batchUid) {
+        // 查询该批次下的所有创作内容任务
+        CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
+        contentQuery.setBatchUid(batchUid);
+        List<CreativeContentDO> contentList = CollectionUtil.emptyIfNull(creativeContentMapper.listStatus(contentQuery));
+        if (CollectionUtils.isEmpty(contentList)) {
+            return;
+        }
+        // 取消创作内容
+        contentList.forEach(this::cancel);
+    }
+
+    /**
+     * 取消创作内容
+     *
+     * @param content 创作内容
+     */
+    public void cancel(CreativeContentDO content) {
+        String status = content.getStatus();
+        // 如果取消，成功或者最终失败，则不需要取消
+        if (CreativeContentStatusEnum.SUCCESS.name().equals(status) ||
+                CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(status) ||
+                CreativeContentStatusEnum.CANCELED.name().equals(status)) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        long elapsed = Duration.between(content.getStartTime(), now).toMillis();
+
+        LambdaUpdateWrapper<CreativeContentDO> wrapper = Wrappers.lambdaUpdate(CreativeContentDO.class);
+        wrapper.set(CreativeContentDO::getStatus, CreativeContentStatusEnum.CANCELED.name());
+        wrapper.set(CreativeContentDO::getEndTime, now);
+        wrapper.set(CreativeContentDO::getElapsed, elapsed);
+        wrapper.set(CreativeContentDO::getUpdateTime, now);
+        wrapper.eq(CreativeContentDO::getUid, content.getUid());
+        creativeContentMapper.update(wrapper);
     }
 
     /**
