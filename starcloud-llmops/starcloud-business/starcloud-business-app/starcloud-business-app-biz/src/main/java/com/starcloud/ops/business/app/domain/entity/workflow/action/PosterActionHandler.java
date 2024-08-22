@@ -21,6 +21,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -42,7 +43,6 @@ import com.starcloud.ops.business.app.model.poster.PosterTitleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
@@ -141,9 +141,10 @@ public class PosterActionHandler extends BaseActionHandler {
         String stepName = wrapper.getName();
         String stepCode = wrapper.getStepCode();
         Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-        VerificationUtils.notNullStep(verifications, systemPosterConfig, stepCode,
-                "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+
         if (Objects.isNull(systemPosterConfig)) {
+            VerificationUtils.addVerificationStep(verifications, stepCode,
+                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
             return verifications;
         }
 
@@ -152,16 +153,21 @@ public class PosterActionHandler extends BaseActionHandler {
             if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
                 VerificationUtils.addVerificationStep(verifications, stepCode,
                         "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+                return verifications;
             }
             List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
-            VerificationUtils.notEmptyStep(verifications, systemPosterStyleList, stepCode,
-                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+                return verifications;
+            }
         }
         if (systemPosterConfig instanceof List) {
             List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
-            VerificationUtils.notEmptyStep(verifications, systemPosterStyleList, stepCode,
-                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
             if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
                 return verifications;
             }
             wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));

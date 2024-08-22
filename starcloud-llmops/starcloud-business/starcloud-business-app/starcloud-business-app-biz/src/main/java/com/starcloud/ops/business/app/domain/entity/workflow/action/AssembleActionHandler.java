@@ -9,6 +9,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -17,15 +18,17 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.model.content.CopyWritingContent;
-import com.starcloud.ops.business.app.api.verification.Verification;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 拼接文本 action
@@ -62,7 +65,19 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
-        return Collections.emptyList();
+        List<Verification> verifications = new ArrayList<>();
+        Object titleObject = wrapper.getVariablesValue(CreativeConstants.TITLE);
+        if (Objects.isNull(titleObject) || StringUtils.isBlank(String.valueOf(titleObject))) {
+            VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(),
+                    "【" + wrapper.getName() + "】步骤标题变量不能为空！");
+        }
+        Object contentObject = wrapper.getVariablesValue(CreativeConstants.CONTENT);
+        if (Objects.isNull(contentObject) || StringUtils.isBlank(String.valueOf(contentObject))) {
+            VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(),
+                    "【" + wrapper.getName() + "】步骤内容变量不能为空！");
+        }
+
+        return verifications;
     }
 
     /**
