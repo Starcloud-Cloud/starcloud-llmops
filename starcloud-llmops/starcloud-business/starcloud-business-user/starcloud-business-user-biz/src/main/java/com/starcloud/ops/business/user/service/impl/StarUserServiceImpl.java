@@ -590,6 +590,7 @@ public class StarUserServiceImpl implements StarUserService {
 
         Map<String, Object> map = new HashMap<>();
         map.put("recoverUrl", recoverUrl);
+        map.put("username", userDO.getUsername());
 
         RecoverPasswordDO recoverPasswordDO = new RecoverPasswordDO();
         recoverPasswordDO.setUserId(userDO.getId());
