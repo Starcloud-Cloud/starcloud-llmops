@@ -3,7 +3,7 @@ package com.starcloud.ops.business.user.dal.mysql;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.user.dal.dataobject.RecoverPasswordDO;
+import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
