@@ -2,15 +2,12 @@ package com.starcloud.ops.business.job.biz.processor;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
-import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginExecuteReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
@@ -28,12 +25,9 @@ import org.springframework.stereotype.Component;
 import tech.powerjob.worker.log.OmsLogger;
 
 import javax.annotation.Resource;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.*;
@@ -76,6 +70,8 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
         if (CollectionUtil.isEmpty(fieldMap)) {
             throw exception(JOB_CONFIG_ERROR, businessJobDO.getId(), "字段映射未配置");
         }
+        String libraryUid = pluginConfigVO.getLibraryUid();
+        MaterialLibraryRespVO library = materialLibraryService.getMaterialLibraryByUid(libraryUid);
 
         String executeParams = pluginConfigVO.getExecuteParams();
         PluginExecuteReqVO executeReqVO = new PluginExecuteReqVO();
@@ -84,8 +80,7 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
         Object content = pluginsService.syncExecute(executeReqVO);
 
         // 字段映射落库
-        String libraryUid = pluginConfigVO.getLibraryUid();
-        savaLibrary(libraryUid, content, fieldMap, taskContextDTO.getOmsLogger());
+        savaLibrary(library, content, fieldMap, taskContextDTO.getOmsLogger());
         return new ProcessResultDTO(true, content);
     }
 
@@ -94,9 +89,7 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
      *
      * @param omsLogger powerjob线上日志
      */
-    private void savaLibrary(String libraryUid, Object content, Map<String, String> fieldMap, OmsLogger omsLogger) {
-        MaterialLibraryRespVO library = materialLibraryService.getMaterialLibraryByUid(libraryUid);
-
+    private void savaLibrary(MaterialLibraryRespVO library, Object content, Map<String, String> fieldMap, OmsLogger omsLogger) {
         List<MaterialLibraryTableColumnDO> tableColumnList = tableColumnService.getMaterialLibraryTableColumnByLibrary(library.getId());
         if (CollectionUtils.isEmpty(tableColumnList)) {
             throw exception(LIBRARY_COLUMN_ERROR, library.getId());
