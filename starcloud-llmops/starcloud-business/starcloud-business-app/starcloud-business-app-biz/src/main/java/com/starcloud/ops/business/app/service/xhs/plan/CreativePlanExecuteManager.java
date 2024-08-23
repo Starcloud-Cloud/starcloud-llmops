@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -14,6 +15,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.PlanExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
@@ -104,11 +106,13 @@ public class CreativePlanExecuteManager {
     /**
      * 计划执行
      *
-     * @param planUid 计划UID
+     * @param request 执行请求
      * @return 执行结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public PlanExecuteResult execute(String planUid) {
+    public PlanExecuteResult execute(PlanExecuteRequest request) {
+        String planUid = request.getUid();
+        AppValidate.notBlank(planUid, "计划执行失败：计划UID不能为空！");
         RLock lock = redissonClient.getLock(lockKey(planUid));
 
         try {
@@ -118,7 +122,7 @@ public class CreativePlanExecuteManager {
             }
 
             // 获取并且校验计划
-            CreativePlanRespVO planResponse = this.getAndValidate(planUid);
+            CreativePlanRespVO planResponse = this.getAndValidate(request);
 
             // 创作内容任务数据整合处理
             ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse);
@@ -160,13 +164,12 @@ public class CreativePlanExecuteManager {
     /**
      * 获取并且校验计划
      *
-     * @param planUid 计划UID
+     * @param request 计划UID
      * @return 计划
      */
-    private CreativePlanRespVO getAndValidate(String planUid) {
+    private CreativePlanRespVO getAndValidate(PlanExecuteRequest request) {
 
-        AppValidate.notBlank(planUid, "计划执行失败：计划UID不能为空！");
-        CreativePlanRespVO planResponse = creativePlanService.get(planUid);
+        CreativePlanRespVO planResponse = creativePlanService.get(request.getUid());
 
         // 计划状态，只能修改待执行、已完成、失败的创作计划
         if (!CreativePlanStatusEnum.canModifyStatus(planResponse.getStatus())) {
@@ -180,10 +183,42 @@ public class CreativePlanExecuteManager {
         // 计划配置校验
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         AppValidate.notNull(configuration, "计划执行失败：计划配置不能为空！");
+
+        // 处理一下计划配置信息
+        this.handlerConfiguration(configuration, request);
+
+        // 计划配置校验
         configuration.validate(ValidateTypeEnum.EXECUTE);
 
-
         return planResponse;
+    }
+
+    /**
+     * 处理计划配置信息
+     *
+     * @param configuration 计划配置信息
+     * @param request       请求参数
+     */
+    private void handlerConfiguration(CreativePlanConfigurationDTO configuration, PlanExecuteRequest request) {
+        // 获取请求参数
+        Map<String, Object> params = MapUtil.emptyIfNull(request.getParams());
+
+        // 获取计划应用信息
+        AppMarketRespVO appInformation = configuration.getAppInformation();
+        AppValidate.notNull(appInformation, "计划执行失败：应用配置信息不能为空！");
+        // 获取全局变量步骤。如果没有全局变量步骤，则不进行处理
+        WorkflowStepWrapperRespVO variableStepWrapper = CreativeUtils.getVariableStepWrapper(appInformation);
+        if (Objects.isNull(variableStepWrapper)) {
+            return;
+        }
+
+        // 将参数填充到全局变量步骤中
+        params.forEach((key, value) -> {
+            // 将参数填充到全局变量步骤中
+            appInformation.putVariable(variableStepWrapper.getStepCode(), key, value);
+        });
+
+        configuration.setAppInformation(appInformation);
     }
 
     /**

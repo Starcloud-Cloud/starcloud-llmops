@@ -5,7 +5,13 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanListQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.PlanExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
@@ -27,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -119,7 +126,10 @@ public class CreativePlanController {
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
-        return CommonResult.success(creativePlanExecuteManager.execute(request.getUid()));
+        PlanExecuteRequest executeRequest = new PlanExecuteRequest();
+        executeRequest.setUid(request.getUid());
+        executeRequest.setParams(Collections.emptyMap());
+        return CommonResult.success(creativePlanExecuteManager.execute(executeRequest));
     }
 
     @PostMapping("/upgrade")
