@@ -122,6 +122,12 @@
             <version>${starcloud.revision}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-job-biz</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
 </project>
