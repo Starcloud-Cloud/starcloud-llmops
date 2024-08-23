@@ -47,5 +47,4 @@ public abstract class JobConfigBaseVO {
         throw exception(FIELD_VALID_ERROR, validate.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(",")));
     }
 
-//    public abstract void valid();
 }
