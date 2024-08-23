@@ -47,6 +47,9 @@ public class PluginDetailVO extends JobConfigBaseVO {
     @Schema(description = "执行参数配置")
     private String executeParams;
 
+    @Schema(description = "入参定义")
+    private String paramsDefine;
+
     @Override
     public void valid() {
         super.valid();
