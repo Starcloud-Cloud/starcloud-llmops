@@ -1,14 +1,9 @@
 package com.starcloud.ops.business.app.controller.admin.plugins.vo;
 
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.apache.ibatis.type.JdbcType;
 
 import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
 
 @Data
 @Schema(description = "插件配置")
@@ -29,6 +24,7 @@ public class PluginConfigVO {
      * 字段映射
      */
     @Schema(description = "字段映射配置")
+    @NotBlank(message = "字段映射配置 不能为空")
     private String fieldMap;
 
     /**

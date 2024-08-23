@@ -37,4 +37,10 @@ public interface PluginsService {
 
     PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO);
 
+    /**
+     * 同步执行插件
+     * @param reqVO
+     */
+    Object syncExecute(PluginExecuteReqVO reqVO);
+
 }

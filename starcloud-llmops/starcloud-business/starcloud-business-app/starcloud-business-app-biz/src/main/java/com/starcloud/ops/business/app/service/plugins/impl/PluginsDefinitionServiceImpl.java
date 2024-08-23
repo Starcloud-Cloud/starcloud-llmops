@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -100,7 +101,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         long start = System.currentTimeMillis();
 
         CozeChatRequest request = new CozeChatRequest();
-        request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        request.setUserId(Objects.isNull(loginUserId) ?
+                UserContextHolder.getUserId().toString() : loginUserId.toString());
         request.setBotId(reqVO.getEntityUid());
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
@@ -145,7 +148,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
-        if (Objects.equals("failed", status)) {
+        if (Objects.equals("failed", status)
+                || Objects.equals("requires_action", status)
+                || Objects.equals("canceled", status)
+
+        ) {
             String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
             throw exception(COZE_ERROR, error);
         }
@@ -267,7 +274,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
 
-        if (Objects.equals("failed", status)) {
+        if (Objects.equals("failed", status)
+                || Objects.equals("requires_action", status)
+                || Objects.equals("canceled", status)
+
+        ) {
             String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
             throw exception(COZE_ERROR, error);
         }

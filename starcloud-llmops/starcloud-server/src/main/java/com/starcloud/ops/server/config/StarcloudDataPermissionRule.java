@@ -57,7 +57,8 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "system_social_user",
             "system_social_user_bind",
             "llm_material_library_app_bind",
-            "llm_material_plugin_definition"
+            "llm_material_plugin_definition",
+            "llm_business_job"
     );
 
     @Resource
