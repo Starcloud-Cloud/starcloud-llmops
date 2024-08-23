@@ -188,7 +188,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     executeRespVO.setOutput(objectMap);
                 } else {
                     log.error("输出结果格式错误 {}", content);
-                    throw exception(OUTPUT_JSON_ERROR);
+                    throw exception(OUTPUT_JSON_ERROR, content);
                 }
             }
         }
@@ -318,7 +318,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     verifyResult.setOutput(objectMap);
                 } else {
                     log.error("输出结果格式错误 {}", content);
-                    throw exception(OUTPUT_JSON_ERROR);
+                    throw exception(OUTPUT_JSON_ERROR, content);
                 }
 
             } else if ("function_call".equalsIgnoreCase(datum.getType())) {

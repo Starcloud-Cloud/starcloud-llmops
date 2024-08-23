@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 public enum TriggerTypeEnum  implements IEnumable<Integer> {
 //    API(1, "API"),
-    CRON(2, "CRON"),
+    CRON(2, "定时执行"),
 //    FIXED_RATE(3, "固定频率/毫秒"),
 //    FIXED_DELAY(4, "固定延迟/毫秒"),
 //    WORKFLOW(5, "工作流"),
