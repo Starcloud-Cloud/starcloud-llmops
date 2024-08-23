@@ -57,22 +57,31 @@ import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 @Service
 public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
-    private static final String prefix_exectue = "coze_exectue_";
-    private static final String prefix_start = "coze_start_";
     @Resource
     private PluginDefinitionMapper pluginDefinitionMapper;
+
     @Resource
     private CozePublicClient cozePublicClient;
+
     @Resource
     private AppMarketService appMarketService;
+
     @Resource
     private SocialUserService socialUserService;
+
     @Autowired
     private StringRedisTemplate redisTemplate;
+
     @Resource
     private PluginConfigService configService;
+
     @Resource
     private RedissonClient redissonClient;
+
+    private static final String prefix_exectue = "coze_exectue_";
+
+    private static final String prefix_start = "coze_start_";
+
 
     @Override
     public Map<String, Object> metadata() {

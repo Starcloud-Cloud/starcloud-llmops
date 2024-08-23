@@ -98,9 +98,17 @@ public class CreativeUtils {
      * @param app 应用
      * @return 变量步骤列表
      */
-    public static WorkflowStepWrapperRespVO getVariableStepWrapperList(AppMarketRespVO app) {
-        return Optional.ofNullable(app.getStepByHandler(VariableActionHandler.class.getSimpleName()))
-                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"));
+    public static WorkflowStepWrapperRespVO getVariableStepWrapper(AppMarketRespVO app) {
+        List<WorkflowStepWrapperRespVO> variableStepList =
+                app.getWorkflowConfig().stepWrapperList().stream().filter(item -> VariableActionHandler.class.getSimpleName().equals(item.getFlowStep().getHandler())).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(variableStepList)) {
+            return null;
+        }
+        if (variableStepList.size() > 1) {
+            throw ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】最多只能有一个【全局变量】步骤！");
+        }
+        return variableStepList.get(0);
+
     }
 
     /**

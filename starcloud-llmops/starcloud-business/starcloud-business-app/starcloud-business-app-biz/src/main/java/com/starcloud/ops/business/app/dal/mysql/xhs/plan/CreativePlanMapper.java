@@ -73,7 +73,6 @@ public interface CreativePlanMapper extends BaseMapper<CreativePlanDO> {
         return this.selectOne(wrapper);
     }
 
-
     default void deleteByAppUid(String appUid) {
         LambdaQueryWrapper<CreativePlanDO> wrapper = Wrappers.lambdaQuery(CreativePlanDO.class);
         wrapper.eq(CreativePlanDO::getAppUid, appUid);
