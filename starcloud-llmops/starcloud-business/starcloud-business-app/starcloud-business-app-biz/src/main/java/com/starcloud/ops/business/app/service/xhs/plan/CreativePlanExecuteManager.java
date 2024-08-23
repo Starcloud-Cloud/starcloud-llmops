@@ -189,7 +189,7 @@ public class CreativePlanExecuteManager {
         this.handlerConfiguration(configuration, request);
 
         // 计划配置校验
-        List< Verification > verifications = configuration.validate(planUid, ValidateTypeEnum.EXECUTE);
+        List< Verification > verifications = configuration.validate(request.getUid(), ValidateTypeEnum.EXECUTE);
         if (CollectionUtil.isNotEmpty(verifications)) {
             Verification verification = verifications.get(0);
             throw ServiceExceptionUtil.invalidParamException(verification.getMessage());
