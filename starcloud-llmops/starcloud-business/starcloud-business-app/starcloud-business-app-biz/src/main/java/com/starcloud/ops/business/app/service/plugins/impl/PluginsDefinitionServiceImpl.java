@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
+import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
 import com.starcloud.ops.business.app.feign.dto.coze.*;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
@@ -180,8 +181,12 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     cleanMap(objectMap);
                     executeRespVO.setOutput(objectMap);
                 } else {
+
                     log.error("输出结果格式错误 {}", content);
-                    throw exception(OUTPUT_JSON_ERROR);
+
+                    //处理一些场景的错误，并返回
+                    throw exception(new CozeErrorCode(content));
+
                 }
             }
         }
