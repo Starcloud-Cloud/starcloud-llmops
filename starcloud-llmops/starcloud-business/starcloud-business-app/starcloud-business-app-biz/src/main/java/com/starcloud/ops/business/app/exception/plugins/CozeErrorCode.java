@@ -51,7 +51,7 @@ public class CozeErrorCode extends ErrorCode {
             messageList.add("["+findErrType+"]");
 
             if (this.isUserLimitation()) {
-                messageList.add("流程执行限流");
+                messageList.add("coze工作流执行限流");
             } else {
                 //@todo
                 messageList.add(this.getBlockType());
