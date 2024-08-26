@@ -42,30 +42,37 @@ public class BusinessJobController {
 
     @DeleteMapping("/delete/{uid}")
     @Operation(summary = "删除定时任务", description = "删除定时任务")
-    public CommonResult<Boolean> delete(@PathVariable("uid")String uid) {
+    public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {
         businessJobService.delete(uid);
         return CommonResult.success(true);
     }
 
     @PutMapping("/stop/{uid}")
     @Operation(summary = "暂停定时任务", description = "暂停定时任务")
-    public CommonResult<Boolean> stop(@PathVariable("uid")String uid) {
+    public CommonResult<Boolean> stop(@PathVariable("uid") String uid) {
         businessJobService.stop(uid);
         return CommonResult.success(true);
     }
 
     @PutMapping("/start/{uid}")
     @Operation(summary = "启动定时任务", description = "启动定时任务")
-    public CommonResult<Boolean> start(@PathVariable("uid")String uid) {
+    public CommonResult<Boolean> start(@PathVariable("uid") String uid) {
         businessJobService.start(uid);
         return CommonResult.success(true);
     }
 
     @GetMapping("/detail/{foreignKey}")
     @Operation(summary = "查询定时任务", description = "查询定时任务")
-    public CommonResult<BusinessJobRespVO> detail(@PathVariable("foreignKey")String foreignKey) {
+    public CommonResult<BusinessJobRespVO> detail(@PathVariable("foreignKey") String foreignKey) {
         BusinessJobRespVO respVO = businessJobService.getByForeignKey(foreignKey);
         return CommonResult.success(respVO);
+    }
+
+    @GetMapping("/runJob/{uid}")
+    @Operation(summary = "执行定时任务", description = "执行定时任务")
+    public CommonResult<Boolean> runJob(@PathVariable("uid") String uid) {
+        businessJobService.runJob(uid);
+        return CommonResult.success(true);
     }
 
 

@@ -109,6 +109,12 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     }
 
     @Override
+    public void runJob(String uid) {
+        BusinessJobDO jobDO = getByUid(uid);
+        powerjobManager.runJob(jobDO.getJobId(), null, 0L);
+    }
+
+    @Override
     public BusinessJobRespVO getByForeignKey(String foreignKey) {
         BusinessJobDO businessJobDO = getByForeignKey0(foreignKey);
         return BusinessJobConvert.INSTANCE.convert(businessJobDO);

@@ -95,4 +95,16 @@ public class PowerjobManager {
         }
     }
 
+    /**
+     * 触发任务执行
+     * @param params 执行参数
+     * @param delay 延迟
+     */
+    public void runJob(Long jobId, String params, long delay) {
+        ResultDTO<Long> result = powerJobClient.runJob(jobId, params, delay);
+        if (!result.isSuccess()) {
+            throw exception(REQUEST_POWERJOB_ERROR, "执行任务", result.getMessage());
+        }
+    }
+
 }

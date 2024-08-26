@@ -42,6 +42,11 @@ public interface BusinessJobService {
     BusinessJobDO getByJobId(Long jobId);
 
     /**
+     * 执行任务
+     */
+    void runJob(String uid);
+
+    /**
      * 查询定时任务配置
      */
     BusinessJobRespVO getByForeignKey(String foreignKey);
