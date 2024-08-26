@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -189,6 +190,13 @@ public class CreativePlanExecuteManager {
 
         // 计划配置校验
         configuration.validate(ValidateTypeEnum.EXECUTE);
+
+        // 计划配置校验
+        List<Verification> verifications = configuration.validate(planUid, ValidateTypeEnum.EXECUTE);
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            Verification verification = verifications.get(0);
+            throw ServiceExceptionUtil.invalidParamException(verification.getMessage());
+        }
 
         return planResponse;
     }
