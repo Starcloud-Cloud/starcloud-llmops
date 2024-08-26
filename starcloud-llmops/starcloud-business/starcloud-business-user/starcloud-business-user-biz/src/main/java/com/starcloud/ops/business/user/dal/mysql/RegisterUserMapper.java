@@ -3,7 +3,7 @@ package com.starcloud.ops.business.user.dal.mysql;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;

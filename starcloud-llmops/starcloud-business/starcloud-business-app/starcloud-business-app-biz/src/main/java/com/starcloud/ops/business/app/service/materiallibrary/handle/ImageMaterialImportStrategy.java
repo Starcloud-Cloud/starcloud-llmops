@@ -28,6 +28,7 @@ public class ImageMaterialImportStrategy implements MaterialImportStrategy{
      */
     @Override
     public void importMaterial(MaterialLibraryImportReqVO importReqVO) {
+        // 批量上传图片
         throw exception(MATERIAL_LIBRARY_IMPORT_FAIL_IMAGE_NO_SUPPRT);
     }
 }

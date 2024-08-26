@@ -6,29 +6,36 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibrarySliceMapper;
+import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.MATERIAL_IMAGE_REDIS_PREFIX;
 
 /**
  * 素材知识库数据 Service 实现类
@@ -45,6 +52,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     private MaterialLibraryService materialLibraryService;
 
     @Resource
+    @Lazy
     private MaterialLibraryTableColumnService materialLibraryTableColumnService;
 
     @Resource
@@ -52,6 +60,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     @Resource
     private MaterialLibrarySliceMapper materialLibrarySliceMapper;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public Long createMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO createReqVO) {
@@ -62,14 +73,13 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         // 设置数据最新的序号
         MaterialLibrarySliceDO lastSequenceSliceDO = materialLibrarySliceMapper.selectLastSequence(sliceDO.getLibraryId());
 
+
         if (lastSequenceSliceDO != null) {
             nextSequence = nextSequence + 1;
         }
         sliceDO.setSequence(nextSequence);
 
         materialLibrarySliceMapper.insert(sliceDO);
-
-        materialLibraryService.updateMaterialLibraryFileCount(sliceDO.getLibraryId());
         // 返回
         return sliceDO.getId();
     }
@@ -134,8 +144,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         // 删除
         materialLibrarySliceMapper.deleteById(id);
-
-        materialLibraryService.updateMaterialLibraryFileCount(sliceDO.getLibraryId());
 
     }
 
@@ -213,8 +221,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         MaterialLibrarySliceDO materialLibrarySliceDO = materialLibrarySliceMapper.selectById(ids.get(0));
         materialLibrarySliceMapper.deleteBatchIds(ids);
-
-        materialLibraryService.updateMaterialLibraryFileCount(materialLibrarySliceDO.getLibraryId());
     }
 
     /**
@@ -315,8 +321,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void materialLibrarySliceCopy(Long templateLibraryId, Long libraryId) {
-
-
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
         if (tableColumnDOList.isEmpty()) {
             return;
@@ -365,6 +369,162 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     }
 
+    /**
+     * 根据素材库编号 获得素材知识库数据
+     *
+     * @param libraryId 素材库编号
+     * @return 素材知识库数据
+     */
+    @Override
+    public Long getMaterialLibrarySliceCountByLibraryId(Long libraryId) {
+        return materialLibrarySliceMapper.selectCountByLibraryId(libraryId);
+    }
+
+    /**
+     * @param saveReqVOS    需要保存的数据
+     * @param otherFileKeys 需要处理的文件
+     */
+    @Async
+    @Override
+    public void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> saveReqVOS, List<String> otherFileKeys) {
+
+        Long libraryId = saveReqVOS.stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst().orElse(null);
+        if (libraryId == null) {
+            log.error("素材数据存储失败，数据为{}", JSONObject.toJSONString(saveReqVOS));
+            return;
+        }
+        validateUploadIsSuccess(buildRedisKey(otherFileKeys, libraryId));
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
+
+        Map<Integer, List<String>> imageOrDocumentColumn = getImageOrDocumentColumn(tableColumnDOList);
+        if (imageOrDocumentColumn.isEmpty()) {
+            List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(saveReqVOS, MaterialLibrarySliceDO.class);
+            if (getLoginUserId() == null) {
+                bean.stream().forEach(material -> {
+                    material.setCreator(tableColumnDOList.get(0).getCreator());
+                    material.setUpdater(tableColumnDOList.get(0).getCreator());
+                });
+            }
+            materialLibrarySliceMapper.insertBatch(bean);
+            return;
+        }
+
+        List<String> imageColumn = imageOrDocumentColumn.get(ColumnTypeEnum.IMAGE.getCode());
+
+        if (CollUtil.isNotEmpty(imageColumn)) {
+
+            saveReqVOS.forEach(saveReqVO -> {
+                saveReqVO.getContent().stream()
+                        .filter(content -> imageColumn.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                        .forEach(content -> content.setValue(redisTemplate.boundValueOps(getRedisKey(content.getValue(), libraryId)).get()));
+            });
+        }
+
+        List<String> documentColumn = imageOrDocumentColumn.get(ColumnTypeEnum.DOCUMENT.getCode());
+
+
+        if (CollUtil.isNotEmpty(documentColumn)) {
+            saveReqVOS.forEach(data -> {
+                data.getContent().stream()
+                        .filter(content -> documentColumn.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                        .forEach(content -> {
+                            String key = getRedisKey(content.getValue(), libraryId);
+                            String urlsString = redisTemplate.boundValueOps(key).get();
+
+                            List<String> urls = null;
+                            if (StrUtil.isNotBlank(urlsString)) {
+                                urls = new ArrayList<>(Arrays.asList(urlsString.split(",")));
+                            }
+
+                            if (urls != null) {
+                                ListIterator<String> iterator = urls.listIterator();
+
+                                String value = content.getValue();
+                                // 如果列类型为图片且值为空或为NULL，则设置新的图片值
+                                if (imageColumn.contains(content.getColumnCode())
+                                        && (StrUtil.isBlank(value) || StrUtil.NULL.equalsIgnoreCase(value))
+                                        && iterator.hasNext()) {
+                                    content.setValue(iterator.next());
+                                }
+                            }
+                        });
+            });
+
+        }
+        List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(saveReqVOS, MaterialLibrarySliceDO.class);
+        if (getLoginUserId() == null) {
+            bean.stream().forEach(material -> {
+                material.setCreator(tableColumnDOList.get(0).getCreator());
+                material.setUpdater(tableColumnDOList.get(0).getCreator());
+            });
+        }
+        materialLibrarySliceMapper.insertBatch(bean);
+    }
+
+    /**
+     * 列 删除后 删除数据内的列
+     *
+     * @param columnCodes 列编码
+     * @param libraryId   素材库编号
+     */
+    @Override
+    @Async
+    public void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId) {
+        ArrayList<String> columnCodesToDelete = CollUtil.distinct(columnCodes);
+        List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(libraryId);
+        if (CollUtil.isEmpty(sliceDOList)){
+            return;
+        }
+
+        sliceDOList.forEach(data -> {
+            Optional.ofNullable(data.getContent())
+                    .ifPresent(contentList -> {
+                        if (!contentList.isEmpty()) { // 使用 isEmpty() 替换 CollUtil
+                            contentList.removeIf(content -> columnCodesToDelete.contains(content.getColumnCode()));
+                        }
+                    });
+        });
+        materialLibrarySliceMapper.updateBatch(sliceDOList);
+    }
+
+    private void validateUploadIsSuccess(List<String> otherFileKeys) {
+
+        ArrayList<String> distinct = CollUtil.distinct(otherFileKeys);
+        final int MAX_RETRIES = 30;
+        final long RETRY_DELAY_SECONDS = 3L;
+
+        // 循环尝试获取文件状态，最多尝试 MAX_RETRIES 次
+        for (int i = 0; i < MAX_RETRIES; i++) {
+            try {
+                // 计算其他文件键在 Redis 中的实际存在数量
+                Long existingCount = redisTemplate.countExistingKeys(distinct);
+
+                // 如果所有文件都已存在，则认为上传成功，直接返回
+                if (existingCount != null && existingCount.equals((long) distinct.size())) {
+                    System.out.println("All files have been successfully uploaded.");
+                    return;
+                }
+
+                // 等待 RETRY_DELAY_SECONDS 秒后再次尝试
+                TimeUnit.SECONDS.sleep(RETRY_DELAY_SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // 恢复中断状态
+                System.err.println("Thread was interrupted, Failed to complete operation");
+                return;
+            } catch (Exception e) {
+                // 处理其他可能的异常
+                System.err.println("An error occurred while checking file status: " + e.getMessage());
+                return;
+            }
+        }
+
+        // 如果经过多次尝试仍然没有所有文件，则认为上传失败
+        System.err.println("Not all files were successfully uploaded after multiple retries.");
+
+
+    }
+
 
     private MaterialLibraryTableColumnDO findColumnDOByCode(List<MaterialLibraryTableColumnDO> tableColumnDOList, String columnCode) {
         for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
@@ -402,8 +562,30 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(list, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.insertBatch(bean);
-        bean.stream().map(MaterialLibrarySliceDO::getLibraryId).distinct().forEach(materialLibraryService::updateMaterialLibraryFileCount);
         return list.size();
 
     }
+
+    private static Map<Integer, List<String>> getImageOrDocumentColumn(List<MaterialLibraryTableColumnDO> materialConfigList) {
+        return materialConfigList.stream()
+                .filter(column -> Objects.equals(column.getColumnType(), ColumnTypeEnum.IMAGE.getCode())
+                        || Objects.equals(column.getColumnType(), ColumnTypeEnum.DOCUMENT.getCode()))
+                .sorted(Comparator.comparing(MaterialLibraryTableColumnDO::getSequence)
+                        .thenComparing(MaterialLibraryTableColumnDO::getId))
+                .collect(Collectors.groupingBy(
+                        MaterialLibraryTableColumnDO::getColumnType, // 分组依据
+                        Collectors.mapping(MaterialLibraryTableColumnDO::getColumnCode, Collectors.toList())));
+    }
+
+    private String getRedisKey(String data, Long libraryId) {
+        return String.format(MATERIAL_IMAGE_REDIS_PREFIX, libraryId, data);
+    }
+
+    private List<String> buildRedisKey(List<String> keys, Long libraryId) {
+        return CollUtil.distinct(keys).stream()
+                .map(key -> getRedisKey(key, libraryId))
+                .collect(Collectors.toList());
+    }
+
+
 }
