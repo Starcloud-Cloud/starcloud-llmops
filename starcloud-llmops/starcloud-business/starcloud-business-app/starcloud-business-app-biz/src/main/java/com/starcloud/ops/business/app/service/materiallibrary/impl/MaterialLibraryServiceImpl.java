@@ -39,6 +39,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.ImageMateri
 import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
+import com.starcloud.ops.business.mq.producer.LibraryDeleteProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
@@ -85,6 +86,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Resource
     private MaterialLibraryMapper materialLibraryMapper;
+
+    @Resource
+    private LibraryDeleteProducer deleteProducer;
 
 
     @Override
@@ -211,6 +215,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         materialLibrarySliceService.deleteMaterialLibrarySliceByLibraryId(id);
         // 删除素材库
         materialLibraryMapper.deleteById(id);
+
+        deleteProducer.send(libraryDO.getUid());
     }
 
     /**
@@ -245,7 +251,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         // 删除素材库
         materialLibraryMapper.deleteById(materialLibrary.getId());
 
-
+        deleteProducer.send(materialLibrary.getUid());
     }
 
     @Override
