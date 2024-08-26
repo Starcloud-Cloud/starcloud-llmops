@@ -24,7 +24,6 @@ public class PluginConfigVO {
      * 字段映射
      */
     @Schema(description = "字段映射配置")
-    @NotBlank(message = "字段映射配置 不能为空")
     private String fieldMap;
 
     /**
