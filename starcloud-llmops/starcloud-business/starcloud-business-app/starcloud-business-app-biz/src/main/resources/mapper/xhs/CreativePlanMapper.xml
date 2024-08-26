@@ -45,14 +45,12 @@
         p.create_time   as createTime,
         p.update_time   as updateTime,
         p.tenant_id     as tenantId,
-        a.name          as appName,
+        json_unquote(JSON_EXTRACT(p.configuration, '$.appInformation.name')) as appName,
         u.nickname      as creatorName
         from llm_creative_plan p
         left join system_users u on p.creator = u.id
-        inner join llm_app a on a.uid = p.app_uid
         where p.deleted = false
         and u.deleted = false
-        and a.deleted = false
         and p.source = #{source}
         order by CASE
         WHEN p.creator = #{userId} THEN 0
