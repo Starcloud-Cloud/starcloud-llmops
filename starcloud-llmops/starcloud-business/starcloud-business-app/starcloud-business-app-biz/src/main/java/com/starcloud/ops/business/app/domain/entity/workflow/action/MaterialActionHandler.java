@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -14,10 +12,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.ttl.TransmittableThreadLocal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
-import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
-import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -26,13 +21,13 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
-import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -71,8 +66,8 @@ public class MaterialActionHandler extends BaseActionHandler {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        return Collections.emptyList();
     }
 
     /**

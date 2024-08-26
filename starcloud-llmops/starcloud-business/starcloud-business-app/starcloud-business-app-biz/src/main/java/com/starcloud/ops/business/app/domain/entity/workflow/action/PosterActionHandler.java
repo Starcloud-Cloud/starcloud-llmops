@@ -21,6 +21,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -35,7 +36,6 @@ import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialFormatTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
@@ -43,6 +43,7 @@ import com.starcloud.ops.business.app.model.poster.PosterTitleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
@@ -135,24 +136,43 @@ public class PosterActionHandler extends BaseActionHandler {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        List<Verification> verifications = new ArrayList<>();
+        String stepName = wrapper.getName();
+        String stepCode = wrapper.getStepCode();
         Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+
         if (Objects.isNull(systemPosterConfig)) {
-            throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            VerificationUtils.addVerificationStep(verifications, stepCode,
+                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+            return verifications;
         }
+
         if (systemPosterConfig instanceof String) {
             String systemPosterStyleConfig = String.valueOf(systemPosterConfig);
             if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
-                throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+                return verifications;
             }
             List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
-            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+                return verifications;
+            }
         }
         if (systemPosterConfig instanceof List) {
             List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
-            AppValidate.notEmpty(systemPosterStyleList, "【{}】步骤执行失败：系统风格模板配置为空！", wrapper.getName());
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+                return verifications;
+            }
             wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
         }
+        return verifications;
     }
 
     /**

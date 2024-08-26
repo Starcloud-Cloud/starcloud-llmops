@@ -2,7 +2,9 @@ package com.starcloud.ops.business.app.domain.entity.variable;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.api.verification.Verification;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -96,8 +99,10 @@ public class VariableItemEntity {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate() {
-        AppValidate.notBlank(this.getField(), "应用步骤变量 field 不能为空!");
+    public List<Verification> validate(String stepId, ValidateTypeEnum validateType) {
+        List<Verification> verifications = new ArrayList<>();
+        VerificationUtils.notBlankStep(verifications, this.getField(), stepId, "应用步骤变量【" + this.label + "】field 不能为空!");
+        return verifications;
     }
 
 
