@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -103,6 +104,7 @@ public interface AppService {
 
     /**
      * 新建应用 复制素材库
+     *
      * @param request
      * @return
      */
@@ -135,7 +137,7 @@ public interface AppService {
     AppRespVO getRecently(Long userId);
 
     /**
-     * 异步执行应用
+     * 执行应用
      *
      * @param request 应用执行请求信息
      */
@@ -147,6 +149,20 @@ public interface AppService {
      * @param request 应用执行请求信息
      */
     void asyncExecute(AppExecuteReqVO request);
+
+    /**
+     * 执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    AppExecuteRespVO run(AppExecuteRequest request);
+
+    /**
+     * 异步执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    void asyncRun(AppExecuteRequest request);
 
     /**
      * 生成field

@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.Map;
+
 /**
  * 应用类别 DTO 对象
  *
@@ -66,5 +68,9 @@ public class AppExecuteReqVO extends AppContextReqVO {
     @Schema(description = "入参")
     private JsonData jsonData;
 
-
+    /**
+     * 全局参数
+     */
+    @Schema(description = "全局参数")
+    private Map<String, Object> globalParams;
 }

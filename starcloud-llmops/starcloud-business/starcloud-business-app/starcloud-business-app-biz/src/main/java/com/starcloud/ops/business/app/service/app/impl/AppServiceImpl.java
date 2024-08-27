@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.app.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -23,6 +24,7 @@ import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -32,7 +34,10 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -418,6 +423,7 @@ public class AppServiceImpl implements AppService {
     @SuppressWarnings("all")
     public AppExecuteRespVO execute(AppExecuteReqVO request) {
         BaseAppEntity app = AppFactory.factory(request);
+        handlerVariableStepParams(app, request);
         return (AppExecuteRespVO) app.execute(request);
     }
 
@@ -431,12 +437,36 @@ public class AppServiceImpl implements AppService {
     public void asyncExecute(AppExecuteReqVO request) {
         try {
             BaseAppEntity app = AppFactory.factory(request);
+            handlerVariableStepParams(app, request);
             app.asyncExecute(request);
         } catch (Exception exception) {
             if (request.getSseEmitter() != null) {
                 request.getSseEmitter().completeWithError(exception);
             }
         }
+    }
+
+    /**
+     * 执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    @Override
+    public AppExecuteRespVO run(AppExecuteRequest request) {
+//        BaseAppEntity app = AppFactory.factory(request);
+//        handlerVariableStepParams(app, request);
+//        return (AppExecuteRespVO) app.execute(request);
+        return null;
+    }
+
+    /**
+     * 异步执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    @Override
+    public void asyncRun(AppExecuteRequest request) {
+
     }
 
     @Override
@@ -619,5 +649,40 @@ public class AppServiceImpl implements AppService {
         AppRespVO appResponse = AppConvert.INSTANCE.convert(appMarketResponse);
         appResponse.setSource(AppSourceEnum.WEB.name());
         return appResponse;
+    }
+
+    /**
+     * 处理变量步骤
+     *
+     * @param appEntity 应用实体
+     * @param request   请求信息
+     */
+    @SuppressWarnings("all")
+    private void handlerVariableStepParams(BaseAppEntity appEntity, AppExecuteReqVO request) {
+        // 获取请求参数
+        Map<String, Object> params = MapUtil.emptyIfNull(request.getGlobalParams());
+
+        if (CollectionUtil.isEmpty(params)) {
+            return;
+        }
+
+        // 获取全局变量步骤。如果没有全局变量步骤，则不进行处理
+        WorkflowConfigEntity workflowConfig = appEntity.getWorkflowConfig();
+        AppValidate.notNull(workflowConfig, "应用执行失败，应用配置异常，请检查后重试！");
+        List<WorkflowStepWrapper> variableWrapperList = CollectionUtil.emptyIfNull(workflowConfig.stepWrapperList()).stream()
+                .filter(item -> item.getHandler().equals(VariableActionHandler.class.getSimpleName()))
+                .collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(variableWrapperList)) {
+            return;
+        }
+
+        // 遍历全局变量步骤，将参数填充到全局变量步骤中
+        for (WorkflowStepWrapper stepWrapper : variableWrapperList) {
+            params.forEach((key, value) -> {
+                // 将参数填充到全局变量步骤中
+                appEntity.putVariable(stepWrapper.getStepCode(), key, value);
+            });
+        }
     }
 }
