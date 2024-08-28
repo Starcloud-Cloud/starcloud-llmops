@@ -444,11 +444,11 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (bind != null) {
             MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
 
-            if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
-                if (!MaterialLibraryTypeEnum.isMember(materialLibrary.getLibraryType())) {
-                    deleteMaterialLibrary(materialLibrary.getId());
-                }
-            }
+            // if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
+            //     if (!MaterialLibraryTypeEnum.isMember(materialLibrary.getLibraryType())) {
+            deleteMaterialLibrary(materialLibrary.getId());
+            //     }
+            // }
         }
 
 

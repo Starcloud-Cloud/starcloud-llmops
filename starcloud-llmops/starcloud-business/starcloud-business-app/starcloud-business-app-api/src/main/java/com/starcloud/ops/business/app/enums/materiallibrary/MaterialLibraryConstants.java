@@ -41,9 +41,11 @@ public interface MaterialLibraryConstants {
     String MATERIAL_LIBRARY_TEMPLATE_COPY = "{}";
 
 
-    String MATERIAL_LIBRARY_FILE_UPLOAD = "https://service-oss.mofaai.com.cn/9522EDD9E5611F63898CA6A4C0FAC76A.png";
+    String MATERIAL_LIBRARY_FILE_UPLOAD = "https://service-oss.mofaai.com.cn/upload_failed.png";
 
-    String MATERIAL_LIBRARY_FILE_NO_FOUND = "https://service-oss.mofaai.com.cn/C465BE75DC6EB8E03EFF2018F7BA11F8.png";
+    String MATERIAL_LIBRARY_FILE_TYPE_ERROR = "https://service-oss.mofaai.com.cn/unknown_type.png";
+
+    String MATERIAL_LIBRARY_FILE_NO_FOUND = "https://service-oss.mofaai.com.cn/upload_failed.png";
 
     String MATERIAL_LIBRARY_FAIL_IMAGE_UPLOAD = "https://service-oss.mofaai.com.cn/FDDCD7C6E456E5B131CFCF780B837E74.png";
 
