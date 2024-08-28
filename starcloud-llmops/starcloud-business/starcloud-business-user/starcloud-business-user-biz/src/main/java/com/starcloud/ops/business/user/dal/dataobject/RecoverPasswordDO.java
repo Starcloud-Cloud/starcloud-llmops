@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.dal.dataobject;
+package com.starcloud.ops.business.user.dal.dataObject;
 
 
 import com.baomidou.mybatisplus.annotation.KeySequence;

@@ -47,8 +47,8 @@ import com.starcloud.ops.business.user.controller.admin.vo.AdminUserInfoRespVO;
 import com.starcloud.ops.business.user.controller.admin.vo.UserDetailVO;
 import com.starcloud.ops.business.user.convert.UserConvert;
 import com.starcloud.ops.business.user.convert.UserDetailConvert;
-import com.starcloud.ops.business.user.dal.dataobject.RecoverPasswordDO;
-import com.starcloud.ops.business.user.dal.dataobject.RegisterUserDO;
+import com.starcloud.ops.business.user.dal.dataObject.RecoverPasswordDO;
+import com.starcloud.ops.business.user.dal.dataObject.RegisterUserDO;
 import com.starcloud.ops.business.user.dal.mysql.RecoverPasswordMapper;
 import com.starcloud.ops.business.user.dal.mysql.RegisterUserMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
@@ -590,6 +590,7 @@ public class StarUserServiceImpl implements StarUserService {
 
         Map<String, Object> map = new HashMap<>();
         map.put("recoverUrl", recoverUrl);
+        map.put("username", userDO.getUsername());
 
         RecoverPasswordDO recoverPasswordDO = new RecoverPasswordDO();
         recoverPasswordDO.setUserId(userDO.getId());

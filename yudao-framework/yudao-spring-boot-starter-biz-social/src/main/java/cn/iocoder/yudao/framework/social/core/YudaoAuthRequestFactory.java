@@ -3,6 +3,7 @@ package cn.iocoder.yudao.framework.social.core;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.iocoder.yudao.framework.social.core.enums.AuthExtendSource;
+import cn.iocoder.yudao.framework.social.core.request.AuthCozeRequest;
 import cn.iocoder.yudao.framework.social.core.request.AuthWeChatMiniAppRequest;
 import cn.iocoder.yudao.framework.social.core.request.AuthWeChatMpRequest;
 import com.xingyuv.jushauth.cache.AuthStateCache;
@@ -86,6 +87,8 @@ public class YudaoAuthRequestFactory extends AuthRequestFactory {
         switch (authExtendSource) {
             case WECHAT_MINI_APP:
                 return new AuthWeChatMiniAppRequest(config, authStateCache);
+            case COZE:
+                return new AuthCozeRequest(config, authStateCache);
             default:
                 return null;
         }

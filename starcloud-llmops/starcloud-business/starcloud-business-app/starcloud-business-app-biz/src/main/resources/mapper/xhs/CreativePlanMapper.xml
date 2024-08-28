@@ -30,4 +30,33 @@
                  p.create_time desc
         limit #{limit}
     </select>
+
+
+    <select id="query" resultType="com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO">
+        select p.id     as id,
+        p.uid           as uid,
+        p.app_uid       as appUid,
+        p.version       as version,
+        p.configuration as configuration,
+        p.total_count   as totalCount,
+        p.status        as status,
+        p.creator       as creator,
+        p.updater       as updater,
+        p.create_time   as createTime,
+        p.update_time   as updateTime,
+        p.tenant_id     as tenantId,
+        json_unquote(JSON_EXTRACT(p.configuration, '$.appInformation.name')) as appName,
+        u.nickname      as creatorName
+        from llm_creative_plan p
+        left join system_users u on p.creator = u.id
+        where p.deleted = false
+        and u.deleted = false
+        and p.source = #{source}
+        order by CASE
+        WHEN p.creator = #{userId} THEN 0
+        ELSE 1
+        END,
+        p.create_time desc
+        limit #{limit}
+    </select>
 </mapper>

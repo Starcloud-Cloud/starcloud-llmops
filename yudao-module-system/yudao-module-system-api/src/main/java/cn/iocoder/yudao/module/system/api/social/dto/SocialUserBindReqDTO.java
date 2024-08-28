@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * 取消绑定社交用户 Request DTO
@@ -48,5 +49,20 @@ public class SocialUserBindReqDTO {
      */
     @NotNull(message = "state 不能为空")
     private String state;
+
+
+    /**
+     * 绑定方式 自动/手动
+     */
+    // @NotNull(message = "绑定方式 自动/手动 不能为空")
+    @Size(max = 200, message = "备注仅限 200 个字符")
+    private String remark;
+
+    /**
+     * 绑定方式 自动/手动
+     */
+    // @NotNull(message = "state 不能为空")
+    private Boolean auto;
+
 
 }

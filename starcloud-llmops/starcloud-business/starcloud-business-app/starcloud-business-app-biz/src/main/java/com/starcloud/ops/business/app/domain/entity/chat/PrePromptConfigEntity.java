@@ -1,19 +1,13 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import com.starcloud.ops.business.app.domain.entity.config.BaseConfigEntity;
-import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.GptPluginSkill;
-import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
-import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 聊天应用配置实体
@@ -48,12 +42,8 @@ public class PrePromptConfigEntity extends BaseConfigEntity {
      */
     private Integer maxReturn;
 
-
-    /**
-     * 校验实体，对一写复杂逻辑的校验，可以在这里实现
-     */
     @Override
-    public void validate(ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
+        return Collections.emptyList();
     }
 }

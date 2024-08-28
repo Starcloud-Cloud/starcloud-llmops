@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.framework.social.core.enums;
 
+import cn.iocoder.yudao.framework.social.core.request.AuthCozeRequest;
 import com.xingyuv.jushauth.config.AuthSource;
 import com.xingyuv.jushauth.request.AuthDefaultRequest;
 
@@ -39,6 +40,63 @@ public enum AuthExtendSource implements AuthSource {
         @Override
         public Class<? extends AuthDefaultRequest> getTargetClass() {
             return null;
+        }
+    }
+    ,
+    COZE {
+        /**
+         * 授权的api
+         *
+         * @return url
+         */
+        @Override
+        public String authorize() {
+            return "https://www.coze.cn/api/permission/oauth2/authorize";
+        }
+
+        /**
+         * 获取accessToken的api
+         *
+         * @return url
+         */
+        @Override
+        public String accessToken() {
+            return "https://api.coze.cn/api/permission/oauth2/token";
+        }
+
+        /**
+         * 获取用户信息的api
+         *
+         * @return url
+         */
+        @Override
+        public String userInfo() {
+            return "http://gitlab.xxx.com/api/v4/user";
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public String revoke() {
+            return super.revoke();
+        }
+
+        /**
+         * @return
+         */
+        @Override
+        public String refresh() {
+            return "https://api.coze.cn/api/permission/oauth2/token";
+        }
+
+
+        /**
+         * @return
+         */
+        @Override
+        public Class<AuthCozeRequest> getTargetClass() {
+            return AuthCozeRequest.class;
         }
     }
 
