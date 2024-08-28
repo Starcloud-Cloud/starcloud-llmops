@@ -288,10 +288,12 @@ public class CreativeMaterialManager {
     private void copyPluginConfig(String sourceUid, String targetUid) {
         MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
         appReqVO.setAppUid(sourceUid);
-        MaterialLibraryRespVO sourceLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
-        appReqVO.setAppUid(targetUid);
-        MaterialLibraryRespVO targetLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
-        pluginConfigService.copyPluginConfig(sourceLibrary.getUid(), targetLibrary.getUid());
+        DataPermissionUtils.executeIgnore(() -> {
+            MaterialLibraryRespVO sourceLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+            appReqVO.setAppUid(targetUid);
+            MaterialLibraryRespVO targetLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+            pluginConfigService.copyPluginConfig(sourceLibrary.getUid(), targetLibrary.getUid());
+        });
     }
 
 

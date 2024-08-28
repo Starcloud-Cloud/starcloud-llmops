@@ -15,7 +15,7 @@ public interface PluginDefinitionMapper extends BaseMapper<PluginDefinitionDO> {
     @DataPermission(enable = false)
     List<PluginDefinitionDO> publishedList();
 
-
+    @DataPermission(enable = false)
     default List<PluginDefinitionDO> selectByUid(List<String> uids) {
         LambdaQueryWrapper<PluginDefinitionDO> wrapper = Wrappers.lambdaQuery(PluginDefinitionDO.class)
                 .in(PluginDefinitionDO::getUid,uids);

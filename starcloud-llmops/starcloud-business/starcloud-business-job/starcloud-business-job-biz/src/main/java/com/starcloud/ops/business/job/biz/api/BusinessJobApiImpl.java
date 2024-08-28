@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.job.biz.api;
 
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.BusinessJobBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
@@ -21,6 +22,7 @@ public class BusinessJobApiImpl implements BusinessJobApi {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @DataPermission(enable = false)
     public void deleteByForeignKey(String foreignKey) {
         BusinessJobRespVO businessJobRespVO = businessJobService.getByForeignKey(foreignKey);
         if (Objects.isNull(businessJobRespVO)) {
