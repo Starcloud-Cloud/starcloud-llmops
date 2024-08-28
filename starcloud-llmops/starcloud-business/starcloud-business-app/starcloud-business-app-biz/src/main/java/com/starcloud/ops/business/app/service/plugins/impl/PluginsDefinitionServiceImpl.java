@@ -241,7 +241,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         request.setBotId(reqVO.getBotId());
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
-        cozeMessage.setContent(reqVO.getContent());
+
+        String content = StrUtil.join("\r\n", Arrays.asList("必须使用下面的参数调用工作流:", reqVO.getContent()));
+        cozeMessage.setContent(content);
+
         cozeMessage.setContentType("text");
         request.setMessages(Collections.singletonList(cozeMessage));
         CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
