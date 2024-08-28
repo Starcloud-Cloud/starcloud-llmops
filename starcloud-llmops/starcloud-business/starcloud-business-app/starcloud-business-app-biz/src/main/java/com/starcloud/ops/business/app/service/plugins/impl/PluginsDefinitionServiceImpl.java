@@ -165,6 +165,8 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(COZE_ERROR, "未发现正确的执行记录");
         }
 
+        log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
+
         for (CozeMessageResult datum : list.getData()) {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
@@ -189,6 +191,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 }
             }
         }
+
 
         if (Objects.isNull(executeRespVO.getOutput())) {
             throw exception(INPUT_OUTPUT_ERROR, "未调用工作流");
