@@ -448,6 +448,7 @@ public class CreativePlanExecuteManager {
      * @return 素材列表
      */
     private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse) {
+        log.info("开始获取素材库列表");
         List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
         // 素材库步骤不为空的话，上传素材不能为空
         AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
