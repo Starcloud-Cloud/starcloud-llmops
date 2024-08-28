@@ -10,6 +10,7 @@
     <artifactId>starcloud-business-job-biz</artifactId>
 
     <name>starcloud-business-job-biz</name>
+    <version>${starcloud.revision}</version>
     <url>http://maven.apache.org</url>
 
     <properties>

@@ -62,7 +62,7 @@ public class BusinessJobController {
     }
 
     @GetMapping("/detail/{foreignKey}")
-    @Operation(summary = "查询定时任务", description = "查询定时任务")
+    @Operation(summary = "查询素材库定时任务", description = "查询素材库定时任务")
     public CommonResult<BusinessJobRespVO> detail(@PathVariable("foreignKey") String foreignKey) {
         BusinessJobRespVO respVO = businessJobService.getByForeignKey(foreignKey);
         return CommonResult.success(respVO);

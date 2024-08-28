@@ -35,6 +35,7 @@ import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,9 @@ public class CreativeMaterialManager {
 
     @Resource
     private MaterialLibrarySliceService sliceService;
+
+    @Resource
+    private PluginConfigService pluginConfigService;
 
     /**
      * 删除素材库
@@ -278,6 +282,18 @@ public class CreativeMaterialManager {
         copyLibrary(source, target);
     }
 
+    /**
+     * 复制插件配置 定时任务
+     */
+    private void copyPluginConfig(String sourceUid, String targetUid) {
+        MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
+        appReqVO.setAppUid(sourceUid);
+        MaterialLibraryRespVO sourceLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+        appReqVO.setAppUid(targetUid);
+        MaterialLibraryRespVO targetLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+        pluginConfigService.copyPluginConfig(sourceLibrary.getUid(), targetLibrary.getUid());
+    }
+
 
     /**
      * 应用市场初始化应用 全量更新素材库
@@ -293,6 +309,7 @@ public class CreativeMaterialManager {
         copyLibrary(source, target);
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
+        deleteMaterial(sourceUid);
     }
 
     /**
@@ -369,6 +386,7 @@ public class CreativeMaterialManager {
         materialLibraryService.materialLibraryCopy(target, source);
         long end = System.currentTimeMillis();
         log.info("material library copy, {}", end - start);
+        copyPluginConfig(source.getAppUid(), target.getAppUid());
     }
 
     /**

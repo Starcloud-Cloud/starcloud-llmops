@@ -3,7 +3,6 @@ package com.starcloud.ops.business.job.biz.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.BusinessJobBaseVO;
-import com.starcloud.ops.business.job.biz.controller.admin.vo.JobConfigBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.BusinessJobModifyReqVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
 import com.starcloud.ops.business.job.biz.convert.BusinessJobConvert;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -27,7 +27,7 @@ import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB
 
 @Slf4j
 @Service
-public class BusinessJobServiceImpl implements BusinessJobService {
+public class BusinessJobServiceImpl implements BusinessJobService{
 
     @Resource
     private PowerjobManager powerjobManager;
@@ -41,7 +41,6 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         metadata.put("businessType", BusinessJobTypeEnum.options());
         metadata.put("triggerType", TriggerTypeEnum.options());
         return metadata;
-
     }
 
     @Override
@@ -120,6 +119,11 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         return BusinessJobConvert.INSTANCE.convert(businessJobDO);
     }
 
+    @Override
+    public List<BusinessJobRespVO> getByForeignKey(List<String> foreignKeys) {
+        List<BusinessJobDO> jobDOList = businessJobMapper.getByForeignKey(foreignKeys);
+        return  BusinessJobConvert.INSTANCE.convert(jobDOList);
+    }
 
     private BusinessJobDO getByForeignKey0(String foreignKey) {
         return businessJobMapper.getByForeignKey(foreignKey);

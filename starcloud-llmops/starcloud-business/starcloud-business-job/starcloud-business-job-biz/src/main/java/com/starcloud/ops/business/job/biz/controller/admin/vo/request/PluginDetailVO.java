@@ -1,19 +1,16 @@
 package com.starcloud.ops.business.job.biz.controller.admin.vo.request;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobConfigBaseVO;
+import com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-
 import java.util.Map;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB_CONFIG_ERROR;
 
 @Data
 @Schema(description = "插件详情")
@@ -57,7 +54,7 @@ public class PluginDetailVO extends JobConfigBaseVO {
         };
         Map<String, String> fieldMap = JSON.parseObject(this.fieldMap, typeReference.getType());
         if (CollectionUtil.isEmpty(fieldMap)) {
-            throw exception(JOB_CONFIG_ERROR, "", "字段映射未配置");
+            throw ServiceExceptionUtil.exception(JobErrorCodeConstants.JOB_CONFIG_ERROR, libraryUid, "字段映射未配置");
         }
 
     }

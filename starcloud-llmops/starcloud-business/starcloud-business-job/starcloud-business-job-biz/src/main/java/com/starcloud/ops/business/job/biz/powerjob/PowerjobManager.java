@@ -5,6 +5,7 @@ import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tech.powerjob.client.PowerJobClient;
 import tech.powerjob.common.enums.DispatchStrategy;
@@ -97,8 +98,9 @@ public class PowerjobManager {
 
     /**
      * 触发任务执行
+     *
      * @param params 执行参数
-     * @param delay 延迟
+     * @param delay  延迟
      */
     public void runJob(Long jobId, String params, long delay) {
         ResultDTO<Long> result = powerJobClient.runJob(jobId, params, delay);

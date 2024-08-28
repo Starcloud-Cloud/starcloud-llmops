@@ -1,7 +1,5 @@
 package com.starcloud.ops.business.job.biz.controller.admin.vo;
 
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
-import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
 import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
 import com.starcloud.ops.business.job.biz.enums.TriggerTypeEnum;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
@@ -9,8 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -19,14 +15,14 @@ import javax.validation.constraints.NotNull;
 public class BusinessJobBaseVO {
 
     @Schema(description = "名称")
-    @NotBlank(message = "定时任务不能为空")
+    @NotBlank(message = "定时任务名称不能为空")
     @Length(min = 4, max = 50, message = "账号长度为 4-50 位")
     private String name;
 
     @Schema(description = "描述")
     private String descption;
 
-    @Schema(description = "业务key 素材库定时任务就填libraryUid")
+    @Schema(description = "业务key 素材库定时任务就填素材库配置uid")
     @NotBlank(message = "业务key 必填")
     private String foreignKey;
 

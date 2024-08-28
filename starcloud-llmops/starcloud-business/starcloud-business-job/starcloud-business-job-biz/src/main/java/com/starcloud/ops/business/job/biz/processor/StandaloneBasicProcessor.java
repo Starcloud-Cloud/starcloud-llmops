@@ -21,7 +21,6 @@ import tech.powerjob.worker.log.OmsLogger;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * 单机执行BasicProcessor
@@ -47,13 +46,13 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
         Long jobId = context.getJobId();
         BusinessJobDO businessJobDO = businessJobService.getByJobId(jobId);
         if (BooleanUtils.isNotTrue(businessJobDO.getEnable())) {
-            return new ProcessResult(false,"任务已关闭，businessJobId=" + businessJobDO.getId() + ", jobId=" + jobId);
+            return new ProcessResult(false, "任务已关闭，businessJobId=" + businessJobDO.getId() + ", jobId=" + jobId);
         }
         logInfo(omsLogger, "start execute businessJobId={}, retryTime={}", businessJobDO.getId(), context.getCurrentRetryTimes());
 
         String instanceParams = context.getInstanceParams();
         if (StringUtils.isNotBlank(instanceParams)) {
-            // 使用临时运行参数做为执行参数
+            // 手动触发 使用临时运行参数做为执行参数
             businessJobDO.setConfig(instanceParams);
         }
         try {

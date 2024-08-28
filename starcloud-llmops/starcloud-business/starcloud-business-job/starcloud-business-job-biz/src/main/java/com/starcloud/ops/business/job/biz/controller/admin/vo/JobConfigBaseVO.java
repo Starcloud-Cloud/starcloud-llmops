@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.job.biz.controller.admin.vo;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.extra.validation.ValidationUtil;
+import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
 import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
+import com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -17,9 +18,6 @@ import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotBlank;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.FIELD_VALID_ERROR;
 
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "businessJobType", visible = true)
@@ -44,7 +42,7 @@ public abstract class JobConfigBaseVO {
         if (CollectionUtil.isEmpty(validate)) {
             return;
         }
-        throw exception(FIELD_VALID_ERROR, validate.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(",")));
+        throw ServiceExceptionUtil.exception(JobErrorCodeConstants.FIELD_VALID_ERROR, validate.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(",")));
     }
 
 }

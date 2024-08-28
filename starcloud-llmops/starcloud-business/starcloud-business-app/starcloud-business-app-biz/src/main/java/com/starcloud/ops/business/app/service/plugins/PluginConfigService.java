@@ -18,15 +18,28 @@ public interface PluginConfigService {
     void modify(PluginConfigReqVO pluginVO);
 
     /**
+     * 删除插件配置
+     */
+    void delete(String uid);
+
+    /**
      * @param libraryUid 素材库uid
-     * @return
      */
     PluginConfigRespVO getByLibrary(String libraryUid, String pluginUid);
 
     /**
      * 素材配置列表
+     *
      * @param libraryUid
      * @return
      */
     List<PluginConfigRespVO> configList(String libraryUid);
+
+    /**
+     * 复制插件配置 定时任务
+     *
+     * @param sourceUid 素材库uid
+     * @param targetUid 素材库uid
+     */
+    void copyPluginConfig(String sourceUid, String targetUid);
 }

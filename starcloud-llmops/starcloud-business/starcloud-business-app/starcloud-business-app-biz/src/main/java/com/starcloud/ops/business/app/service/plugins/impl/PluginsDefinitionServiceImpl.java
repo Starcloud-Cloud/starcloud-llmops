@@ -384,19 +384,12 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Override
     public List<PluginRespVO> list(PluginListReqVO reqVO) {
-        List<PluginDefinitionDO> result = new ArrayList<>();
         List<PluginConfigRespVO> configList = configService.configList(reqVO.getLibraryUid());
-        Collection<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.publishedList();
-        Collection<PluginDefinitionDO> ownerPluginList = pluginDefinitionMapper.selectOwnerPlugin();
-
-        if (CollectionUtil.isNotEmpty(configList)) {
-            result = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
-            pluginDOList = CollUtil.subtract(pluginDOList, result);
-            ownerPluginList = CollUtil.subtract(ownerPluginList, result);
+        if (CollectionUtil.isEmpty(configList)) {
+            return Collections.emptyList();
         }
 
-        Set<PluginDefinitionDO> distinct = CollUtil.unionDistinct(ownerPluginList, pluginDOList);
-        result.addAll(distinct);
+        List<PluginDefinitionDO> result = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
         return PluginDefinitionConvert.INSTANCE.convert(result);
     }
 

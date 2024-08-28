@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface BusinessJobMapper extends BaseMapperX<BusinessJobDO> {
 
@@ -25,6 +27,12 @@ public interface BusinessJobMapper extends BaseMapperX<BusinessJobDO> {
         LambdaQueryWrapper<BusinessJobDO> wrapper = Wrappers.lambdaQuery(BusinessJobDO.class)
                 .eq(BusinessJobDO::getUid, uid);
         return selectOne(wrapper);
+    }
+
+    default List<BusinessJobDO> getByForeignKey(List<String> foreignKeys) {
+        LambdaQueryWrapper<BusinessJobDO> wrapper = Wrappers.lambdaQuery(BusinessJobDO.class)
+                .in(BusinessJobDO::getForeignKey, foreignKeys);
+        return selectList(wrapper);
     }
 
 }
