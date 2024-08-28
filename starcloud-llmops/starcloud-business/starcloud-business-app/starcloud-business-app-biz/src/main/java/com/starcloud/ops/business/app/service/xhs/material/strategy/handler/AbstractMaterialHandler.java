@@ -144,33 +144,29 @@ public abstract class AbstractMaterialHandler {
         }
         Map<Integer, List<Map<String, Object>>> map = this.doHandleMaterialMap(materialList, needMaterialSizeList, metadata);
 
-        // 使用模式为过滤使用，素材使用次数+1
-        if (MaterialUsageModel.FILTER_USAGE.equals(metadata.getMaterialUsageModel())) {
-            List<Map<String, Object>> list = new ArrayList<>();
-            map.values().forEach(list::addAll);
-            // 去重
-            list = new ArrayList<>(list.stream().collect(Collectors.toMap(m -> m.get("__id__"), m -> m, (existing, replacement) -> existing)).values());
-
-            List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
-            for (Map<String, Object> mapItem : list) {
-                Long id = (Long) mapItem.get("__id__");
-                SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
-                sliceCountRequest.setSliceId(id);
-                sliceCountRequest.setNums(1);
-                sliceCountRequestList.add(sliceCountRequest);
-            }
-            SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
-
-            if (CreativePlanSourceEnum.isApp(metadata.getPlanSource().name())) {
-                sliceUsageCountRequest.setAppUid(metadata.getAppUid());
-            } else {
-                sliceUsageCountRequest.setAppUid(metadata.getPlanUid());
-            }
-
-            sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
-
-            MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
+        // 素材使用量增加
+        List<Map<String, Object>> list = new ArrayList<>();
+        map.values().forEach(list::addAll);
+        // 去重
+        list = new ArrayList<>(list.stream().collect(Collectors.toMap(m -> m.get("__id__"), m -> m, (existing, replacement) -> existing)).values());
+        List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
+        for (Map<String, Object> mapItem : list) {
+            Long id = (Long) mapItem.get("__id__");
+            SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
+            sliceCountRequest.setSliceId(id);
+            sliceCountRequest.setNums(1);
+            sliceCountRequestList.add(sliceCountRequest);
         }
+
+        SliceUsageCountReqVO sliceUsageCountRequest = new SliceUsageCountReqVO();
+        if (CreativePlanSourceEnum.isApp(metadata.getPlanSource().name())) {
+            sliceUsageCountRequest.setAppUid(metadata.getAppUid());
+        } else {
+            sliceUsageCountRequest.setAppUid(metadata.getPlanUid());
+        }
+        sliceUsageCountRequest.setSliceCountReqVOS(sliceCountRequestList);
+        MATERIAL_LIBRARY_SERVICE.materialLibrarySliceUsageCount(sliceUsageCountRequest);
+
         return map;
     }
 
