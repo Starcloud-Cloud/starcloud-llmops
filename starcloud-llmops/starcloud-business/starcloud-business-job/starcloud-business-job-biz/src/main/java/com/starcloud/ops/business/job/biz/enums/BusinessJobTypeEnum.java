@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.job.biz.enums;
 
-import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.job.biz.processor.CozeStandaloneProcessor;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;

@@ -3,23 +3,22 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.starcloud.ops</groupId>
-        <artifactId>starcloud-business</artifactId>
+        <artifactId>starcloud-business-job</artifactId>
         <version>${starcloud.revision}</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>starcloud-business-job</artifactId>
+    <artifactId>starcloud-business-job-api</artifactId>
     <version>${starcloud.revision}</version>
-    <packaging>pom</packaging>
-    <modules>
-        <module>starcloud-business-job-biz</module>
-        <module>starcloud-business-job-api</module>
-    </modules>
-
+    <name>starcloud-business-job-api</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-common</artifactId>
+        </dependency>
 
-
+    </dependencies>
 </project>

@@ -5,6 +5,7 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.request.BusinessJo
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
 
+import java.util.List;
 import java.util.Map;
 
 public interface BusinessJobService {
@@ -25,7 +26,7 @@ public interface BusinessJobService {
     void delete(String uid);
 
     /**
-     * 停止任务并停止调度实例
+     * 停止任务
      */
     void stop(String uid);
 
@@ -50,6 +51,8 @@ public interface BusinessJobService {
      * 查询定时任务配置
      */
     BusinessJobRespVO getByForeignKey(String foreignKey);
+
+    List<BusinessJobRespVO> getByForeignKey(List<String> foreignKeys);
 
     /**
      * 枚举值

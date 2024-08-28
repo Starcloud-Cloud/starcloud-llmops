@@ -6,6 +6,7 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.JobConfigBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobLogBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.JobLogRespVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobLogDO;
+import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -33,5 +34,19 @@ public interface BusinessJobLogConvert {
             return StringUtils.EMPTY;
         }
         return JsonUtils.toJsonString(config);
+    }
+
+    default void convert(JobLogRespVO respVO) {
+        String executeConfig = respVO.getExecuteConfig();
+        if (StringUtils.isBlank(executeConfig)) {
+            return;
+        }
+        JobConfigBaseVO configBaseVO = BusinessJobConvert.INSTANCE.convert(executeConfig);
+        if (Objects.isNull(configBaseVO) || !(configBaseVO instanceof PluginDetailVO)) {
+            return;
+        }
+        PluginDetailVO pluginDetailVO = (PluginDetailVO) configBaseVO;
+        respVO.setPluginName(pluginDetailVO.getPluginName());
+        respVO.setPluginUid(pluginDetailVO.getPluginUid());
     }
 }
