@@ -107,7 +107,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         cozeMessage.setRole("user");
         cozeMessage.setContentType("text");
 
-        String content = StrUtil.join("\r\n", Arrays.asList("用下面的参数执行流程", JSONUtil.toJsonStr(executeReqVO.getInputParams())));
+        String content = StrUtil.join("\r\n", Arrays.asList("必须使用下面的参数调用工作流:", JSONUtil.toJsonStr(executeReqVO.getInputParams())));
         cozeMessage.setContent(content);
 
         request.setMessages(Collections.singletonList(cozeMessage));
@@ -165,6 +165,8 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(COZE_ERROR, "未发现正确的执行记录");
         }
 
+        log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
+
         for (CozeMessageResult datum : list.getData()) {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
                 String content = datum.getContent();
@@ -189,6 +191,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 }
             }
         }
+
 
         if (Objects.isNull(executeRespVO.getOutput())) {
             throw exception(INPUT_OUTPUT_ERROR, "未调用工作流");
@@ -238,7 +241,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         request.setBotId(reqVO.getBotId());
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
-        cozeMessage.setContent(reqVO.getContent());
+
+        String content = StrUtil.join("\r\n", Arrays.asList("必须使用下面的参数调用工作流:", reqVO.getContent()));
+        cozeMessage.setContent(content);
+
         cozeMessage.setContentType("text");
         request.setMessages(Collections.singletonList(cozeMessage));
         CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
