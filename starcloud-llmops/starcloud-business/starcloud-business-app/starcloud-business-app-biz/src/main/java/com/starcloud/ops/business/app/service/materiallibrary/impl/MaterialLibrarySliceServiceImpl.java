@@ -294,6 +294,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appUid);
 
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appUid);
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
@@ -315,6 +316,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
 
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appPageReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
