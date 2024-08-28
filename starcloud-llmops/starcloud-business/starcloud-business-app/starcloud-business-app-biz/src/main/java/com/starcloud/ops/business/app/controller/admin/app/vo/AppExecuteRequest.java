@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,10 +32,10 @@ public class AppExecuteRequest extends AppContextReqVO {
     private SseEmitter sseEmitter;
 
     /**
-     * 应用执行步骤ID
+     * 应用标签
      */
-    @Schema(description = "应用执行步骤ID")
-    private String uid;
+    @Schema(description = "应用标签")
+    private List<String> tagList;
 
     /**
      * 全局参数

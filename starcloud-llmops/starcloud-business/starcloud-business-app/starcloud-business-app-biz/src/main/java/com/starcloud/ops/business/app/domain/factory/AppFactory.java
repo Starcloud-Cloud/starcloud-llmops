@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.factory;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -8,6 +9,7 @@ import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.controller.admin.image.vo.ImageReqVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -315,5 +317,15 @@ public class AppFactory {
         return (ChatAppEntity) entity;
     }
 
+    public static AppMarketEntity factory(AppExecuteRequest request) {
+        if (StringUtils.isNotBlank(request.getAppUid())) {
+            return factoryMarket(request.getAppUid());
+        }
+
+        if (CollectionUtil.isNotEmpty(request.getTagList())) {
+            return null;
+        }
+        throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT);
+    }
 
 }

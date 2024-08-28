@@ -33,6 +33,7 @@ import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
@@ -453,10 +454,9 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppExecuteRespVO run(AppExecuteRequest request) {
-//        BaseAppEntity app = AppFactory.factory(request);
-//        handlerVariableStepParams(app, request);
-//        return (AppExecuteRespVO) app.execute(request);
-        return null;
+        AppMarketEntity app = AppFactory.factory(request);
+        handlerVariableStepParams(app, request);
+        return app.execute(request);
     }
 
     /**
