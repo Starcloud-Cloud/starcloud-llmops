@@ -84,7 +84,7 @@ public class OperateImportUtil {
     public static <T> Map<Integer, List<String>> readOtherExcel(File file, Integer headRowNumber, Map<Integer, List<Long>> columnIndex) {
         // 初始化监听器
         ExcelImageEventListener excelHeadEventListener = new ExcelImageEventListener(columnIndex);
-        // 读取表头并验证
+        // 读取表内扩展数据（图片和文档）
         EasyExcel.read(file, excelHeadEventListener)
                 .headRowNumber(headRowNumber)
                 .sheet()
