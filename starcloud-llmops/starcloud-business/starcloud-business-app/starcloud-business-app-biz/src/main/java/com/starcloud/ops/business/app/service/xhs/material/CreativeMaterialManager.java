@@ -309,7 +309,6 @@ public class CreativeMaterialManager {
         copyLibrary(source, target);
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
-        deleteMaterial(sourceUid);
     }
 
     /**
