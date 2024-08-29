@@ -99,7 +99,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 校验名称
         validateMaterialLibraryTableColumnName(updateReqVO.getLibraryId(), updateReqVO.getId(), Collections.singletonList(updateReqVO.getColumnName()));
         // 填充ColumnCode
-        generateColumnCode(Collections.singletonList(updateReqVO));
+        // generateColumnCode(Collections.singletonList(updateReqVO));
 
 
         // 更新
