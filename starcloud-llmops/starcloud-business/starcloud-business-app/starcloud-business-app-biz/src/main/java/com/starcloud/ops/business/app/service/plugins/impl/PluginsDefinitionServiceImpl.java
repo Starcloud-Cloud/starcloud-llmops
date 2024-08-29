@@ -49,6 +49,7 @@ import javax.annotation.Resource;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -388,9 +389,13 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (CollectionUtil.isEmpty(configList)) {
             return Collections.emptyList();
         }
-
-        List<PluginDefinitionDO> result = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
-        return PluginDefinitionConvert.INSTANCE.convert(result);
+        Map<String, PluginConfigRespVO> map = configList.stream().collect(Collectors.toMap(PluginConfigVO::getPluginUid, Function.identity(), (a, b) -> a));
+        List<PluginDefinitionDO> pluginDefinitionDOList = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
+        List<PluginRespVO> result = PluginDefinitionConvert.INSTANCE.convert(pluginDefinitionDOList);
+        result.forEach(plugin -> {
+            plugin.setConfigUid(map.get(plugin.getUid()).getUid());
+        });
+        return result;
     }
 
     @Override
