@@ -101,7 +101,6 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 填充ColumnCode
         // generateColumnCode(Collections.singletonList(updateReqVO));
 
-
         // 更新
         MaterialLibraryTableColumnDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibraryTableColumnDO.class);
         materialLibraryTableColumnMapper.updateById(updateObj);
