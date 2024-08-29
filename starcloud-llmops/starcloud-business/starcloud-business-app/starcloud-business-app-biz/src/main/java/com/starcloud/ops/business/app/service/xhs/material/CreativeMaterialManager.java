@@ -327,7 +327,7 @@ public class CreativeMaterialManager {
         MaterialLibrarySliceAppReqVO materialListRequest = new MaterialLibrarySliceAppReqVO();
 
         // 选择模式执行查询条件构造
-        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
+        if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
             materialListRequest = CreativeUtils.getSelectMaterialRequestByStepWrapper(materialStepWrapper);
         }
 
