@@ -551,18 +551,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                             throw new RuntimeException("Failed to upload image: " + imageName, e);
                         }
                     });
-                }
-
-                if (ImageUploadUtils.isImage(imageName)) {
+                }else if (ImageUploadUtils.isImage(imageName)) {
                     // excel 中有内容 为http图片地址
                     threadPoolTaskExecutor.execute(() -> {
                         String relativePath = "material" + File.separator + prefix;
                         String ossUrl = ImageUploadUtils.dumpToOss(imageName, IdUtil.fastSimpleUUID(), relativePath);
                         setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(ossUrl));
                     });
+                } else{
+                    setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_TYPE_ERROR));
                 }
-
-                setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_TYPE_ERROR));
 
             });
 
