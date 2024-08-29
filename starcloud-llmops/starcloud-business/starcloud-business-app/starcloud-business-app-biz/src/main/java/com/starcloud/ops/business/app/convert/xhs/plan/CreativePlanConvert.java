@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDTO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.lang3.StringUtils;
@@ -55,12 +56,11 @@ public interface CreativePlanConvert {
         creativePlanMaterial.setVersion(appInformation.getVersion());
         creativePlanMaterial.setSource(request.getSource());
 
-        WorkflowStepWrapperRespVO materialStep = request.getConfiguration().getAppInformation()
-                .getStepByHandler(MaterialActionHandler.class.getSimpleName());
+        WorkflowStepWrapperRespVO materialStep = CreativeUtils.getMaterialStepWrapper(appInformation);
         if (materialStep != null) {
             materialStep.putVariable(MATERIAL_LIST, StringUtils.EMPTY);
         }
-        request.getConfiguration().setMaterialList(Collections.EMPTY_LIST);
+        request.getConfiguration().setMaterialList(Collections.emptyList());
         creativePlanMaterial.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
 
         creativePlanMaterial.setTotalCount(request.getTotalCount());

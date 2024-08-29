@@ -164,6 +164,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryDO materialLibrary;
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
 
@@ -230,6 +231,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         List<MaterialLibraryAppBindDO> bindList = materialLibraryAppBindService.getBindList(bind.getLibraryId());
@@ -437,6 +439,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(oldApp.getAppUid());
 
             if (bind == null) {
+                log.error("当前应用未绑定素材库，{}", oldApp.getAppUid());
                 throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
             }
             templateBind.set(bind);
@@ -450,11 +453,11 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (bind != null) {
             MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
 
-            if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
-                if (!MaterialLibraryTypeEnum.isMember(materialLibrary.getLibraryType())) {
-                    deleteMaterialLibrary(materialLibrary.getId());
-                }
-            }
+            // if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
+            //     if (!MaterialLibraryTypeEnum.isMember(materialLibrary.getLibraryType())) {
+            deleteMaterialLibrary(materialLibrary.getId());
+            //     }
+            // }
         }
 
 

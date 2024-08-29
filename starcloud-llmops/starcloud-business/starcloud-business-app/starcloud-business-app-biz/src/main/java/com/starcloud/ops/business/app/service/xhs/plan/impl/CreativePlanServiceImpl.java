@@ -147,6 +147,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
     }
 
+
     /**
      * 获取创作计划分页列表
      *
@@ -182,6 +183,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return list.stream().map(CreativePlanConvert.INSTANCE::convert)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<CreativePlanRespVO> list(CreativePlanListQuery query) {

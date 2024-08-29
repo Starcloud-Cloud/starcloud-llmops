@@ -29,6 +29,7 @@ import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
+import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
 import com.starcloud.ops.business.app.feign.dto.coze.*;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
@@ -109,7 +110,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         cozeMessage.setRole("user");
         cozeMessage.setContentType("text");
 
-        String content = StrUtil.join("\r\n", Arrays.asList("用下面的参数执行流程", JSONUtil.toJsonStr(executeReqVO.getInputParams())));
+        String content = StrUtil.join("\r\n", Arrays.asList("必须使用下面的参数调用工作流:", JSONUtil.toJsonStr(executeReqVO.getInputParams())));
         cozeMessage.setContent(content);
 
         request.setMessages(Collections.singletonList(cozeMessage));
@@ -170,6 +171,8 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (CollectionUtil.isEmpty(list.getData())) {
             throw exception(COZE_ERROR, "未发现正确的执行记录");
         }
+
+        log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
 
         for (CozeMessageResult datum : list.getData()) {
             if ("tool_response".equalsIgnoreCase(datum.getType())) {
@@ -241,7 +244,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         request.setBotId(reqVO.getBotId());
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
-        cozeMessage.setContent(reqVO.getContent());
+
+        String content = StrUtil.join("\r\n", Arrays.asList("必须使用下面的参数调用工作流:", reqVO.getContent()));
+        cozeMessage.setContent(content);
+
         cozeMessage.setContentType("text");
         request.setMessages(Collections.singletonList(cozeMessage));
         CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
@@ -318,7 +324,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     verifyResult.setOutput(objectMap);
                 } else {
                     log.error("输出结果格式错误 {}", content);
-                    throw exception(OUTPUT_JSON_ERROR, content);
+                    throw exception(new CozeErrorCode(content));
                 }
 
             } else if ("function_call".equalsIgnoreCase(datum.getType())) {
