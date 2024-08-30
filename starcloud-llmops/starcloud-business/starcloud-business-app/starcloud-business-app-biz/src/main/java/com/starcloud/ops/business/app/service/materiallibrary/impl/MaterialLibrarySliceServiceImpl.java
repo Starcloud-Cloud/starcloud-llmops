@@ -69,7 +69,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     // 定义常量
     private static final int EXPIRATION_DAYS = 3;
-    private static final TimeUnit TIME_UNIT = TimeUnit.DAYS;
+    private static final TimeUnit TIME_UNIT = TimeUnit.MINUTES;
 
 
     @Resource(name = LIBRARY_DATA_UPLOAD_THREAD_POOL_TASK_EXECUTOR)
@@ -294,6 +294,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appUid);
 
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appUid);
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
@@ -315,6 +316,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
 
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appPageReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
@@ -549,8 +551,8 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                             throw new RuntimeException("Failed to upload image: " + imageName, e);
                         }
                     });
+                    return;
                 }
-
                 if (ImageUploadUtils.isImage(imageName)) {
                     // excel 中有内容 为http图片地址
                     threadPoolTaskExecutor.execute(() -> {
@@ -558,9 +560,10 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                         String ossUrl = ImageUploadUtils.dumpToOss(imageName, IdUtil.fastSimpleUUID(), relativePath);
                         setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(ossUrl));
                     });
+                    return;
                 }
-
                 setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_TYPE_ERROR));
+
 
             });
 
