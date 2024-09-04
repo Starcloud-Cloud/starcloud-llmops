@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -92,5 +94,7 @@ public class CreativePlanRespVO implements java.io.Serializable {
     private LocalDateTime updateTime;
 
     private String creatorName;
+
+    private List<Verification> verificationList;
 
 }

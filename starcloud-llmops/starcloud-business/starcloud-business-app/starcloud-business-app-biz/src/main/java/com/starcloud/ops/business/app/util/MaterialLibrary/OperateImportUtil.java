@@ -40,13 +40,9 @@ public class OperateImportUtil {
      * @param headRowNumber 表头行数
      */
     public static List<String> readExcelHead(File file, Integer limitColSize, Integer headRowNumber) {
-
-
         // 初始化一个表头监听器
         ExcelHeadEventListener excelHeadEventListener = new ExcelHeadEventListener(limitColSize);
-
         // 读取表头并验证
-
         EasyExcel.read(file, excelHeadEventListener)
                 .headRowNumber(headRowNumber)
                 .sheet()
@@ -65,13 +61,9 @@ public class OperateImportUtil {
      * @param headRowNumber 表头行数
      */
     public static List<String> readExcelHead(InputStream inputStream, Integer limitColSize, Integer headRowNumber) {
-
-
         // 初始化一个表头监听器
         ExcelHeadEventListener excelHeadEventListener = new ExcelHeadEventListener(limitColSize);
-
         // 读取表头并验证
-
         EasyExcel.read(inputStream, excelHeadEventListener)
                 .headRowNumber(headRowNumber)
                 .sheet()
@@ -89,18 +81,14 @@ public class OperateImportUtil {
      * @param columnIndex   泛型类型
      * @return
      */
-    public static <T> Map<Integer, List<String>>  readOtherExcel(File file, Integer headRowNumber, Map<Integer, List<Long>>  columnIndex) {
-
+    public static <T> Map<Integer, List<String>> readOtherExcel(File file, Integer headRowNumber, Map<Integer, List<Long>> columnIndex) {
         // 初始化监听器
         ExcelImageEventListener excelHeadEventListener = new ExcelImageEventListener(columnIndex);
-
-        // 读取表头并验证
-
+        // 读取表内扩展数据（图片和文档）
         EasyExcel.read(file, excelHeadEventListener)
                 .headRowNumber(headRowNumber)
                 .sheet()
                 .doReadSync();
-
         return excelHeadEventListener.getColumnData();
     }
 
@@ -119,7 +107,7 @@ public class OperateImportUtil {
                 .customObject(configDTO)
                 .sheet()
                 .headRowNumber(headRowNumber)
-                .doRead();
+                .doReadSync();
     }
 
     /**
@@ -136,7 +124,7 @@ public class OperateImportUtil {
                 .customObject(configDTO)
                 .sheet()
                 .headRowNumber(headRowNumber)
-                .doRead();
+                .doReadSync();
     }
 
 

@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -180,8 +181,13 @@ public class CreativePlanExecuteManager {
         // 计划配置校验
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         AppValidate.notNull(configuration, "计划执行失败：计划配置不能为空！");
-        configuration.validate(ValidateTypeEnum.EXECUTE);
 
+        // 计划配置校验
+        List<Verification> verifications = configuration.validate(planUid, ValidateTypeEnum.EXECUTE);
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            Verification verification = verifications.get(0);
+            throw ServiceExceptionUtil.invalidParamException(verification.getMessage());
+        }
 
         return planResponse;
     }
@@ -442,6 +448,7 @@ public class CreativePlanExecuteManager {
      * @return 素材列表
      */
     private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse) {
+        log.info("开始获取素材库列表");
         List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
         // 素材库步骤不为空的话，上传素材不能为空
         AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");

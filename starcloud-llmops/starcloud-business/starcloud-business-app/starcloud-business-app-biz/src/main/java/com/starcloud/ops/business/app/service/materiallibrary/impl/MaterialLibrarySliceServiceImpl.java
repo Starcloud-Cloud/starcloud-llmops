@@ -1,11 +1,21 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
@@ -18,24 +28,34 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryApp
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.date.DatePattern.PURE_DATETIME_MS_PATTERN;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.*;
-import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.MATERIAL_IMAGE_REDIS_PREFIX;
+import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibraryConstants.*;
+import static com.starcloud.ops.business.app.service.materiallibrary.config.MaterialLibraryDataUploadJobConfiguration.LIBRARY_DATA_UPLOAD_THREAD_POOL_TASK_EXECUTOR;
 
 /**
  * 素材知识库数据 Service 实现类
@@ -46,6 +66,14 @@ import static com.starcloud.ops.business.app.enums.materiallibrary.MaterialLibra
 @Service
 @Validated
 public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceService {
+
+    // 定义常量
+    private static final int EXPIRATION_DAYS = 3;
+    private static final TimeUnit TIME_UNIT = TimeUnit.MINUTES;
+
+
+    @Resource(name = LIBRARY_DATA_UPLOAD_THREAD_POOL_TASK_EXECUTOR)
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Resource
     @Lazy
@@ -231,6 +259,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public List<MaterialLibrarySliceRespVO> selectSliceBySortingField(Long libraryId, List<Long> sliceIdList, List<Long> removeSliceIdList, SortingField sortingField) {
+        log.info("查询素材列表：素材库ID：{}，需要查询的数据ID列表: {}, 排除的素材库列表:{}, 排序规则: {}", libraryId, sliceIdList, removeSliceIdList, sortingField);
         List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectSliceListByUserLibraryId(libraryId, sliceIdList, removeSliceIdList, sortingField);
 
         return BeanUtils.toBean(sliceDOList, MaterialLibrarySliceRespVO.class);
@@ -265,6 +294,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appUid);
 
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appUid);
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
@@ -286,6 +316,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appPageReqVO.getAppUid());
 
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appPageReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         materialLibraryService.validateMaterialLibraryExists(bind.getLibraryId());
@@ -384,7 +415,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      * @param saveReqVOS    需要保存的数据
      * @param otherFileKeys 需要处理的文件
      */
-    @Async
+    // @Async
     @Override
     public void batchSaveDataAndExecuteOtherFile(List<MaterialLibrarySliceSaveReqVO> saveReqVOS, List<String> otherFileKeys) {
 
@@ -473,7 +504,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId) {
         ArrayList<String> columnCodesToDelete = CollUtil.distinct(columnCodes);
         List<MaterialLibrarySliceDO> sliceDOList = this.getMaterialLibrarySliceByLibraryId(libraryId);
-        if (CollUtil.isEmpty(sliceDOList)){
+        if (CollUtil.isEmpty(sliceDOList)) {
             return;
         }
 
@@ -488,13 +519,163 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         materialLibrarySliceMapper.updateBatch(sliceDOList);
     }
 
+    @Override
+    @Async
+    public void executeAsyncUpload(Map<Integer, List<String>> columnData, File[] childrenDirs, String unzipDirPath, Long libraryId) {
+        log.info("=========> 图片和文档数据 异步处理");
+        String prefix = LocalDateTimeUtil.format(LocalDateTimeUtil.now(), PURE_DATETIME_MS_PATTERN) + RandomUtil.randomInt(1000, 9999);
+
+        List<String> images = CollUtil.distinct(columnData.get(ColumnTypeEnum.IMAGE.getCode()));
+
+        if (CollUtil.isNotEmpty(images)) {
+            log.info("=========> 图片数量为{}", images.size());
+
+            images.forEach(imageName -> {
+                if (StringUtil.isPath(imageName)) {
+                    List<File> filesInImagesFolder = findFilesInTargetFolder(childrenDirs, "images", imageName);
+
+                    if (CollUtil.isEmpty(filesInImagesFolder)) {
+                        setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_NO_FOUND));
+                        return;
+                    }
+
+                    threadPoolTaskExecutor.execute(() -> {
+                        File image = FileUtil.file(filesInImagesFolder.get(0));
+
+                        try (InputStream is = Files.newInputStream(image.toPath())) {
+                            byte[] bytes = IoUtil.readBytes(is);
+                            String url = ImageUploadUtils.uploadImage(StrUtil.format("{}_{}", prefix, imageName), ImageUploadUtils.UPLOAD_PATH, bytes).getUrl();
+                            setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(url));
+                        } catch (IOException e) {
+                            log.error("Failed to upload image: {}", imageName, e);
+                            throw new RuntimeException("Failed to upload image: " + imageName, e);
+                        }
+                    });
+                    return;
+                }
+                if (ImageUploadUtils.isImage(imageName)) {
+                    // excel 中有内容 为http图片地址
+                    threadPoolTaskExecutor.execute(() -> {
+                        String relativePath = "material" + File.separator + prefix;
+                        String ossUrl = ImageUploadUtils.dumpToOss(imageName, IdUtil.fastSimpleUUID(), relativePath);
+                        setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(ossUrl));
+                    });
+                    return;
+                }
+                setRedisValue(getRedisKey(imageName, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_TYPE_ERROR));
+
+
+            });
+
+            // images.forEach(imageName -> {
+            //     if (StringUtil.isPath(imageName)) {
+            //         List<File> filesInImagesFolder = findFilesInTargetFolder(childrenDirs, "images", imageName);
+            //         if (CollUtil.isEmpty(filesInImagesFolder)) {
+            //             redisTemplate.boundValueOps(getRedisKey(imageName, libraryId)).set(JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_NO_FOUND), 3, TimeUnit.DAYS);
+            //             return;
+            //         }
+            //         threadPoolTaskExecutor.execute(() -> {
+            //             File image = FileUtil.file(filesInImagesFolder.get(0));
+            //
+            //             try {
+            //                 String url = ImageUploadUtils.uploadImage(StrUtil.format("{}_{}", prefix, imageName), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(image.toPath()))).getUrl();
+            //                 redisTemplate.boundValueOps(getRedisKey(imageName, libraryId)).set(JSONUtil.toJsonStr(url), 3, TimeUnit.DAYS);
+            //             } catch (IOException e) {
+            //                 throw new RuntimeException(e);
+            //             }
+            //         });
+            //     }
+            //
+            //     if (ImageUploadUtils.isImage(imageName)) {
+            //         // excel 中有内容 为http图片地址
+            //         String relativePath = "material" + File.separator + prefix;
+            //         String ossUrl = ImageUploadUtils.dumpToOss(imageName, IdUtil.fastSimpleUUID(), relativePath);
+            //         redisTemplate.boundValueOps(getRedisKey(imageName, libraryId)).set(JSONUtil.toJsonStr(ossUrl), 3, TimeUnit.DAYS);
+            //     }
+            //
+            //
+            //
+            // });
+        }
+
+
+        List<String> documentNames = CollUtil.distinct(columnData.get(ColumnTypeEnum.DOCUMENT.getCode()));
+        if (CollUtil.isNotEmpty(documentNames)) {
+            log.info("=========> 文档数量为{}", images.size());
+            documentNames.forEach(documentName -> {
+                threadPoolTaskExecutor.execute(() -> {
+                    List<String> urls = documentScreenshot(IdUtil.fastSimpleUUID(), documentName, unzipDirPath);
+                    redisTemplate.boundValueOps(getRedisKey(documentName, libraryId)).set(String.join(",", urls), 3, TimeUnit.DAYS);
+
+                });
+
+            });
+
+        }
+        log.info("=========> 图片和文档数据 异步处理中");
+
+    }
+
+    // 封装 Redis 操作
+    private void setRedisValue(String key, String value) {
+        redisTemplate.boundValueOps(key).set(value, EXPIRATION_DAYS, TIME_UNIT);
+    }
+
+    private List<String> documentScreenshot(String parseUid, String documentPath, String unzipDir) {
+        HashMap<String, Object> paramMap = new HashMap<>();
+        File document = Paths.get(unzipDir, documentPath).toFile();
+        if (!document.exists()) {
+            return Collections.emptyList();
+        }
+        paramMap.put("file", document);
+        paramMap.put("parseUid", parseUid);
+        String result = HttpUtil.post(getUrl(), paramMap, 1_0000);
+        List<String> documentScreenshot = JSONUtil.parseArray(result).toList(String.class);
+        if (documentScreenshot == null) {
+            documentScreenshot = Collections.emptyList();
+        }
+        return documentScreenshot;
+    }
+
+    /**
+     * 查找特定文件夹下的特定文件
+     *
+     * @param directoriesToSearch 文件列表
+     * @param targetFolderName    目标文件夹名称
+     * @param targetedFileName    目标文件名称
+     * @return 查询到的文件
+     */
+    public List<File> findFilesInTargetFolder(File[] directoriesToSearch, String targetFolderName, String targetedFileName) {
+        List<File> foundFiles = new ArrayList<>();
+        for (File directory : directoriesToSearch) {
+            if (directory.isDirectory()) {
+                // 遍历目录下的所有文件和子目录
+                File[] files = directory.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.isDirectory() && file.getName().equals(targetFolderName)) {
+                            // 进入目标文件夹后，再次遍历查找指定文件
+                            File[] targetFiles = file.listFiles(pathname -> pathname.getName().equals(targetedFileName));
+                            if (targetFiles != null) {
+                                for (File targetFile : targetFiles) {
+                                    if (targetFile.isFile()) {
+                                        foundFiles.add(targetFile);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return foundFiles;
+    }
+
     private void validateUploadIsSuccess(List<String> otherFileKeys) {
 
         ArrayList<String> distinct = CollUtil.distinct(otherFileKeys);
         final int MAX_RETRIES = 30;
         final long RETRY_DELAY_SECONDS = 3L;
-
-        // 循环尝试获取文件状态，最多尝试 MAX_RETRIES 次
         for (int i = 0; i < MAX_RETRIES; i++) {
             try {
                 // 计算其他文件键在 Redis 中的实际存在数量
@@ -510,21 +691,24 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 TimeUnit.SECONDS.sleep(RETRY_DELAY_SECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // 恢复中断状态
-                System.err.println("Thread was interrupted, Failed to complete operation");
+                log.error("Thread was interrupted, Failed to complete operation:({})", e.getMessage());
                 return;
             } catch (Exception e) {
                 // 处理其他可能的异常
-                System.err.println("An error occurred while checking file status: " + e.getMessage());
+                log.error("An error occurred while checking file status:({})", e.getMessage());
                 return;
             }
         }
 
-        // 如果经过多次尝试仍然没有所有文件，则认为上传失败
-        System.err.println("Not all files were successfully uploaded after multiple retries.");
-
+        throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
 
     }
 
+    private String getUrl() {
+        DictDataService bean = SpringUtil.getBean(DictDataService.class);
+        DictDataDO dictData = bean.parseDictData("playwright", "material_parse");
+        return dictData.getValue();
+    }
 
     private MaterialLibraryTableColumnDO findColumnDOByCode(List<MaterialLibraryTableColumnDO> tableColumnDOList, String columnCode) {
         for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {

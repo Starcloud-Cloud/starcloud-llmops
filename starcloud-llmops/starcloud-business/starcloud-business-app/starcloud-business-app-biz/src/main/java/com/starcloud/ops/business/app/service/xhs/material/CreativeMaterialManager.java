@@ -339,10 +339,13 @@ public class CreativeMaterialManager {
                 .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
                 .orElse(StringUtils.EMPTY);
 
+        log.info("查询素材库数据参数：{}", materialLibraryJsonVariable);
+
         MaterialLibrarySliceAppReqVO appReqVO = new MaterialLibrarySliceAppReqVO();
         // 获取查询条件
         if (StringUtils.isNotBlank(materialLibraryJsonVariable)) {
             List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
+            log.info("查询素材库数据参数：{}", JsonUtils.toJsonPrettyString(queryParam));
             if (CollectionUtil.isNotEmpty(queryParam)) {
                 appReqVO = queryParam.get(0);
                 appReqVO.setLibraryUid(null);
@@ -372,6 +375,7 @@ public class CreativeMaterialManager {
         }
 
         long start = System.currentTimeMillis();
+        log.info("查询素材库整体参数：{}", JsonUtils.toJsonString(appReqVO));
         MaterialLibrarySliceUseRespVO materialLibrarySlice = materialLibraryService.getMaterialLibrarySlice(appReqVO);
         long end = System.currentTimeMillis();
         log.info("material library query, {}", end - start);

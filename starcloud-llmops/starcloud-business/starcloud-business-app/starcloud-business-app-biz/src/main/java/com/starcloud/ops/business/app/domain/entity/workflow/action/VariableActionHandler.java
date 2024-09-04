@@ -11,22 +11,28 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
-import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
+import com.starcloud.ops.business.app.domain.entity.variable.VariableItemEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -60,9 +66,24 @@ public class VariableActionHandler extends BaseActionHandler {
     @Override
     @JsonIgnore
     @JSONField(serialize = false)
-    public void validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+    public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        List<Verification> verifications = new ArrayList<>();
         VariableEntity variable = wrapper.getVariable();
-        AppValidate.notEmpty(variable.variableList(), "【{}】步骤最少需要配置一个变量！", wrapper.getName());
+        List<VariableItemEntity> variableList = variable.getVariables();
+        VerificationUtils.notEmptyStep(verifications, variableList, wrapper.getStepCode(),
+                "【" + wrapper.getName() + "】步骤最少需要配置一个变量！");
+
+        // 遍历校验变量
+        for (VariableItemEntity item : variableList) {
+            if (Objects.isNull(item.getValue()) || StringUtils.isBlank(String.valueOf(item.getValue()))
+                    || Objects.isNull(item.getDefaultValue()) || StringUtils.isBlank(String.valueOf(item.getDefaultValue()))) {
+
+                VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(),
+                        "【" + wrapper.getName() + "】步骤变量【" + item.getField() + "】不能为空！");
+            }
+        }
+
+        return verifications;
     }
 
     /**

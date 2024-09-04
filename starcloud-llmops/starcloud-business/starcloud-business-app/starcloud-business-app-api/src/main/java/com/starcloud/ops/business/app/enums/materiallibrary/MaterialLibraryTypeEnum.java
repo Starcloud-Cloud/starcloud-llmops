@@ -13,16 +13,6 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 public enum MaterialLibraryTypeEnum implements IntArrayValuable {
-
-
-    //
-    // SYSTEM(0, "系统素材库"),
-    //
-    // COMMON(1, "普通素材库"),
-    //
-    // PUBLISH(9, "发布素材库"),
-
-
     SYSTEM(10, "系统素材库"),
     MEMBER(20, "用户素材库"),
 

@@ -101,6 +101,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                     } else {
                         wrapper.orderByDesc(MaterialLibrarySliceDO::getUsedCount);
                     }
+                    wrapper.orderByDesc(MaterialLibrarySliceDO::getCreateTime);
                     break;
                 case MaterialLibrarySliceAppReqVO.SORT_FIELD_CREATE_TIME:
 
@@ -122,8 +123,6 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                     wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
                     break;
             }
-        } else {
-            wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
         }
 
         return selectList(wrapper);
@@ -136,7 +135,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         );
     }
 
-    default Long selectCountByLibraryId(Long libraryId){
+    default Long selectCountByLibraryId(Long libraryId) {
         LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
         return selectCount(wrapper);
