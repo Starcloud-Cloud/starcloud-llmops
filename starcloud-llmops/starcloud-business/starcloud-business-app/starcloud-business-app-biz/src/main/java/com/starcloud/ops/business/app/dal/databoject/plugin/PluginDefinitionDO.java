@@ -122,7 +122,7 @@ public class PluginDefinitionDO extends TenantBaseDO {
     private Integer count;
 
     /**
-     * 平均执行时间
+     * 平均执行时间 存上次执行时间
      */
     private Long executeTimeAvg;
 
