@@ -224,7 +224,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 PluginDefinitionDO pluginDefinitionDO = getByUid(pluginUid);
                 pluginDefinitionDO.setTotalTime((pluginDefinitionDO.getTotalTime() == null ? 0 : pluginDefinitionDO.getTotalTime()) + time);
                 pluginDefinitionDO.setCount((pluginDefinitionDO.getCount() == null ? 0 : pluginDefinitionDO.getCount()) + 1);
-                pluginDefinitionDO.setExecuteTimeAvg(pluginDefinitionDO.getTotalTime() / pluginDefinitionDO.getCount());
+                pluginDefinitionDO.setExecuteTimeAvg(time);
                 pluginDefinitionMapper.updateById(pluginDefinitionDO);
             }
         } catch (Exception e) {
