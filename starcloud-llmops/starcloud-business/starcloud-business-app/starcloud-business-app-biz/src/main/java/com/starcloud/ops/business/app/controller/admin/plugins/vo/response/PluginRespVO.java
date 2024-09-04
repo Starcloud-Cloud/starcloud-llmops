@@ -22,4 +22,6 @@ public class PluginRespVO extends PluginDefinitionVO {
     @Schema(description = "创建人")
     private String creator;
 
+    private String configUid;
+
 }

@@ -2,7 +2,6 @@ package cn.iocoder.yudao.framework.common.context;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 
-@Deprecated
 public class UserContextHolder {
 
     /**

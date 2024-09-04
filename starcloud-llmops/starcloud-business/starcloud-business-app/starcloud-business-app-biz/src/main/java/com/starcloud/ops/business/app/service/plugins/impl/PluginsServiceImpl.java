@@ -35,10 +35,12 @@ import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_ERROR;
@@ -95,6 +97,27 @@ public class PluginsServiceImpl implements PluginsService {
         return result;
     }
 
+    @Override
+    public Object syncExecute(PluginExecuteReqVO reqVO) {
+        String code = executePlugin(reqVO);
+        PluginResultReqVO pluginResultReqVO = new PluginResultReqVO();
+        pluginResultReqVO.setCode(code);
+        pluginResultReqVO.setUuid(reqVO.getUuid());
+        int count = 0;
+        while (count < 100) {
+            PluginExecuteRespVO pluginResult = getPluginResult(pluginResultReqVO);
+            if (StringUtils.equalsIgnoreCase("completed", pluginResult.getStatus())) {
+                return pluginResult.getOutput();
+            }
+            try {
+                TimeUnit.SECONDS.sleep(3);
+                count++;
+            } catch (Exception e) {
+                throw exception(PLUGIN_EXECUTE_ERROR, e.getMessage());
+            }
+        }
+        throw exception(PLUGIN_EXECUTE_ERROR, "执行插件超过300s未成功");
+    }
 
     @Override
     public XhsNoteDTO xhsOcr(XhsOcrReqVO reqVO) {
