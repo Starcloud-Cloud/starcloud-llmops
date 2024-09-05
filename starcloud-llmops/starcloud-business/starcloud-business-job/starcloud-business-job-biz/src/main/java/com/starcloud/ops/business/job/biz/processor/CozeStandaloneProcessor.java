@@ -16,7 +16,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTab
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
-import com.starcloud.ops.business.job.biz.processor.dto.ProcessResultDTO;
+import com.starcloud.ops.business.job.biz.processor.dto.CozeProcessResultDTO;
 import com.starcloud.ops.business.job.biz.processor.dto.TaskContextDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,7 +49,7 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
     private MaterialLibraryTableColumnService tableColumnService;
 
     @Override
-    ProcessResultDTO actualProcess(TaskContextDTO taskContextDTO) {
+    CozeProcessResultDTO actualProcess(TaskContextDTO taskContextDTO) {
         BusinessJobDO businessJobDO = taskContextDTO.getBusinessJobDO();
 
         String config = businessJobDO.getConfig();
@@ -80,8 +80,8 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
         Object content = pluginsService.syncExecute(executeReqVO);
 
         // 字段映射落库
-        savaLibrary(library, content, fieldMap, taskContextDTO.getOmsLogger());
-        return new ProcessResultDTO(true, content);
+        int count = savaLibrary(library, content, fieldMap, taskContextDTO.getOmsLogger());
+        return new CozeProcessResultDTO(true, String.valueOf(count));
     }
 
     /**
@@ -89,7 +89,7 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
      *
      * @param omsLogger powerjob线上日志
      */
-    private void savaLibrary(MaterialLibraryRespVO library, Object content, Map<String, String> fieldMap, OmsLogger omsLogger) {
+    private int savaLibrary(MaterialLibraryRespVO library, Object content, Map<String, String> fieldMap, OmsLogger omsLogger) {
         List<MaterialLibraryTableColumnDO> tableColumnList = tableColumnService.getMaterialLibraryTableColumnByLibrary(library.getId());
         if (CollectionUtils.isEmpty(tableColumnList)) {
             throw exception(LIBRARY_COLUMN_ERROR, library.getId());
@@ -121,11 +121,11 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
         if (CollectionUtils.isEmpty(saveReqVOS)) {
             logInfo(omsLogger, "未匹配到素材库字段，libraryId={} \n content={} \n fieldMap={}",
                     library.getId(), JSONUtil.toJsonPrettyStr(content), JSONUtil.toJsonPrettyStr(fieldMap));
-            return;
+            return 0;
         }
         createReqVO.setSaveReqVOS(saveReqVOS);
-
         materialLibrarySliceService.createBatchMaterialLibrarySlice(createReqVO);
+        return saveReqVOS.size();
     }
 
 
