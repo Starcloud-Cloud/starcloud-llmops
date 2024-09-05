@@ -224,7 +224,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 PluginDefinitionDO pluginDefinitionDO = getByUid(pluginUid);
                 pluginDefinitionDO.setTotalTime((pluginDefinitionDO.getTotalTime() == null ? 0 : pluginDefinitionDO.getTotalTime()) + time);
                 pluginDefinitionDO.setCount((pluginDefinitionDO.getCount() == null ? 0 : pluginDefinitionDO.getCount()) + 1);
-                pluginDefinitionDO.setExecuteTimeAvg(pluginDefinitionDO.getTotalTime() / pluginDefinitionDO.getCount());
+                pluginDefinitionDO.setExecuteTimeAvg(time);
                 pluginDefinitionMapper.updateById(pluginDefinitionDO);
             }
         } catch (Exception e) {
@@ -398,7 +398,13 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         Map<String, PluginConfigRespVO> map = configList.stream().collect(Collectors.toMap(PluginConfigVO::getPluginUid, Function.identity(), (a, b) -> a));
         List<PluginDefinitionDO> pluginDefinitionDOList = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
         List<PluginRespVO> result = PluginDefinitionConvert.INSTANCE.convert(pluginDefinitionDOList);
+        List<Long> creatorList = pluginDefinitionDOList.stream().map(item -> Long.valueOf(item.getCreator())).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+
         result.forEach(plugin -> {
+            if ((plugin.getCreator() != null)) {
+                plugin.setCreator(creatorMap.get(Long.valueOf(plugin.getCreator())));
+            }
             plugin.setConfigUid(map.get(plugin.getUid()).getUid());
         });
         return result;
