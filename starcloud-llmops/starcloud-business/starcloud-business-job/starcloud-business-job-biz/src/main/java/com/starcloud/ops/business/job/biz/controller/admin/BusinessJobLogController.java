@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.JobLogPageReqVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.LibraryJobLogPageReqVO;
-import com.starcloud.ops.business.job.biz.controller.admin.vo.response.JobLogRespVO;
+import com.starcloud.ops.business.job.biz.controller.admin.vo.response.CozeJobLogRespVO;
 import com.starcloud.ops.business.job.biz.service.BusinessJobLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,15 +25,15 @@ public class BusinessJobLogController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询定时任务日志", description = "分页定时任务日志")
-    public CommonResult<PageResult<JobLogRespVO>> page(JobLogPageReqVO pageReqVO) {
-        PageResult<JobLogRespVO> result = jobLogService.page(pageReqVO);
+    public CommonResult<PageResult<CozeJobLogRespVO>> page(JobLogPageReqVO pageReqVO) {
+        PageResult<CozeJobLogRespVO> result = jobLogService.page(pageReqVO);
         return CommonResult.success(result);
     }
 
     @GetMapping("/library/page")
     @Operation(summary = "分页查询定时任务日志", description = "分页定时任务日志")
-    public CommonResult<PageResult<JobLogRespVO>> libraryLogPage(LibraryJobLogPageReqVO pageReqVO) {
-        PageResult<JobLogRespVO> result = jobLogService.libraryPage(pageReqVO);
+    public CommonResult<PageResult<CozeJobLogRespVO>> libraryLogPage(LibraryJobLogPageReqVO pageReqVO) {
+        PageResult<CozeJobLogRespVO> result = jobLogService.libraryPage(pageReqVO);
         return CommonResult.success(result);
     }
 }
