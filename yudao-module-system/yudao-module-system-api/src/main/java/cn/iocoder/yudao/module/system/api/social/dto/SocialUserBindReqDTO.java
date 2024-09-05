@@ -62,7 +62,7 @@ public class SocialUserBindReqDTO {
      * 绑定方式 自动/手动
      */
     // @NotNull(message = "state 不能为空")
-    private Boolean auto;
+    private Boolean auto = true;
 
 
 }
