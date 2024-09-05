@@ -22,6 +22,9 @@ public class PluginRespVO extends PluginDefinitionVO {
     @Schema(description = "创建人")
     private String creator;
 
+    @Schema(description = "插件配置uid")
     private String configUid;
 
+    @Schema(description = "定时开启")
+    private Boolean jobEnable;
 }
