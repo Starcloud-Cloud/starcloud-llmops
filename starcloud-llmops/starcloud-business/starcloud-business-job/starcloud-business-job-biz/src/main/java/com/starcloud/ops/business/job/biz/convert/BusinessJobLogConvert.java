@@ -54,5 +54,6 @@ public interface BusinessJobLogConvert {
         }else {
             respVO.setCount("0");
         }
+        respVO.setExecuteResult(pluginDetailVO.getLibraryUid());
     }
 }
