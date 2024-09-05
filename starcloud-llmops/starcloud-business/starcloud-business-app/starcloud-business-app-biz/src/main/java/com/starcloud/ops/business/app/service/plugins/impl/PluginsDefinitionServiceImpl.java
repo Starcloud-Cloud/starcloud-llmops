@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
@@ -38,6 +39,8 @@ import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.business.job.api.BusinessJobApi;
+import com.starcloud.ops.business.job.dto.JobDetailDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -80,6 +83,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private BusinessJobApi businessJobApi;
 
     private static final String prefix_exectue = "coze_exectue_";
 
@@ -400,12 +406,15 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         List<PluginRespVO> result = PluginDefinitionConvert.INSTANCE.convert(pluginDefinitionDOList);
         List<Long> creatorList = pluginDefinitionDOList.stream().map(item -> Long.valueOf(item.getCreator())).filter(Objects::nonNull).distinct().collect(Collectors.toList());
         Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
-
+        List<JobDetailDTO> jobDetailList = businessJobApi.queryJob(configList.stream().map(PluginConfigRespVO::getUid).collect(Collectors.toList()));
+        Map<String, JobDetailDTO> jobMap = jobDetailList.stream().collect(Collectors.toMap(JobDetailDTO::getForeignKey, Function.identity(), (a, b) -> a));
         result.forEach(plugin -> {
             if ((plugin.getCreator() != null)) {
                 plugin.setCreator(creatorMap.get(Long.valueOf(plugin.getCreator())));
             }
             plugin.setConfigUid(map.get(plugin.getUid()).getUid());
+            Boolean enable = Optional.ofNullable(jobMap.get(plugin.getConfigUid())).map(JobDetailDTO::getEnable).orElse(Boolean.FALSE);
+            plugin.setJobEnable(BooleanUtil.isTrue(enable));
         });
         return result;
     }
