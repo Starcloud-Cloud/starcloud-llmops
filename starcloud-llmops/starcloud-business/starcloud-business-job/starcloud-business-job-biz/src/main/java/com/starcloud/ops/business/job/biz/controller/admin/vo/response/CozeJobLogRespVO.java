@@ -14,10 +14,7 @@ public class CozeJobLogRespVO extends JobLogBaseVO {
     @Schema(description = "插件uid")
     private String pluginUid;
 
-    @Schema(description = "素材库uid")
-    private String libraryUid;
-
     @Schema(description = "生成条数")
-    private String count;
+    private int count;
 
 }

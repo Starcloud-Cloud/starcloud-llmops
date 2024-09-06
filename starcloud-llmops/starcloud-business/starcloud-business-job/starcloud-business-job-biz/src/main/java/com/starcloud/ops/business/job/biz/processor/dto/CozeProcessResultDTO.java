@@ -8,8 +8,11 @@ public class CozeProcessResultDTO extends ProcessResult {
 
     private Object data;
 
-    public CozeProcessResultDTO(boolean success, Object data) {
+    private int count;
+
+    public CozeProcessResultDTO(boolean success, Object data,int count) {
         super(success);
         this.data = data;
+        this.count = count;
     }
 }
