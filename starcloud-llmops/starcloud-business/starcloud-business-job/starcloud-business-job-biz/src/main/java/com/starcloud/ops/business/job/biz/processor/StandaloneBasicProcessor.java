@@ -66,7 +66,7 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
             logBaseVO.setBusinessJobUid(businessJobDO.getUid());
             logBaseVO.setExecuteConfig(businessJobDO.getConfig());
             logBaseVO.setSuccess(true);
-            logBaseVO.setExecuteResult(JSONUtil.toJsonStr(result.getData()));
+            logBaseVO.setExecuteResult(JSONUtil.toJsonStr(result));
             logBaseVO.setExecuteTime(end - start);
             logBaseVO.setTriggerTime(now);
             logBaseVO.setTriggerType(businessJobDO.getTimeExpressionType());

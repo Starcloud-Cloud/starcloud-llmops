@@ -81,7 +81,7 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
 
         // 字段映射落库
         int count = savaLibrary(library, content, fieldMap, taskContextDTO.getOmsLogger());
-        return new CozeProcessResultDTO(true, String.valueOf(count));
+        return new CozeProcessResultDTO(true, content, count);
     }
 
     /**

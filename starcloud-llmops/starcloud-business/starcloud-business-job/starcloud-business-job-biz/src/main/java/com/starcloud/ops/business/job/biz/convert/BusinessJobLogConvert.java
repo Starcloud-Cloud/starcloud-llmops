@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.job.biz.convert;
 
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobConfigBaseVO;
@@ -7,6 +8,7 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.JobLogBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.CozeJobLogRespVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobLogDO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
+import com.starcloud.ops.business.job.biz.processor.dto.CozeProcessResultDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -48,12 +50,18 @@ public interface BusinessJobLogConvert {
         PluginDetailVO pluginDetailVO = (PluginDetailVO) configBaseVO;
         respVO.setPluginName(pluginDetailVO.getPluginName());
         respVO.setPluginUid(pluginDetailVO.getPluginUid());
-        respVO.setLibraryUid(pluginDetailVO.getLibraryUid());
-        if (respVO.getSuccess()) {
-            respVO.setCount(respVO.getExecuteResult());
-        }else {
-            respVO.setCount("0");
+        String executeResult = respVO.getExecuteResult();
+        try {
+            if (respVO.getSuccess()) {
+                CozeProcessResultDTO bean = JSONUtil.toBean(executeResult, CozeProcessResultDTO.class);
+                respVO.setCount(bean.getCount());
+                respVO.setExecuteResult(JSONUtil.toJsonStr(bean.getData()));
+            } else {
+                respVO.setCount(0);
+            }
+        } catch (Exception e) {
+            respVO.setCount(0);
+            respVO.setExecuteResult(e.getMessage());
         }
-        respVO.setExecuteResult(pluginDetailVO.getLibraryUid());
     }
 }
