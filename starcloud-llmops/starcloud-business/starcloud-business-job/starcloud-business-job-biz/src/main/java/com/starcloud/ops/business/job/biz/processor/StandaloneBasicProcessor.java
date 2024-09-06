@@ -7,7 +7,7 @@ import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobLogBaseVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
-import com.starcloud.ops.business.job.biz.processor.dto.ProcessResultDTO;
+import com.starcloud.ops.business.job.biz.processor.dto.CozeProcessResultDTO;
 import com.starcloud.ops.business.job.biz.processor.dto.TaskContextDTO;
 import com.starcloud.ops.business.job.biz.service.BusinessJobLogService;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
@@ -59,7 +59,7 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
             TenantContextHolder.setTenantId(businessJobDO.getTenantId());
             TenantContextHolder.setIgnore(false);
             UserContextHolder.setUserId(Long.valueOf(businessJobDO.getCreator()));
-            ProcessResultDTO result = actualProcess(new TaskContextDTO(businessJobDO, context));
+            CozeProcessResultDTO result = actualProcess(new TaskContextDTO(businessJobDO, context));
             long end = System.currentTimeMillis();
             JobLogBaseVO logBaseVO = new JobLogBaseVO();
             logBaseVO.setJobId(jobId);
@@ -94,7 +94,7 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
     /**
      * 执行单机任务
      */
-    abstract ProcessResultDTO actualProcess(TaskContextDTO taskContextDTO);
+    abstract CozeProcessResultDTO actualProcess(TaskContextDTO taskContextDTO);
 
     public void logInfo(OmsLogger omsLogger, String messagePattern, Object... args) {
         log.info(messagePattern, args);

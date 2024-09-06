@@ -6,6 +6,7 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.request.BusinessJo
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobConfigBaseVO;
+import com.starcloud.ops.business.job.dto.JobDetailDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -25,6 +26,8 @@ public interface BusinessJobConvert {
     BusinessJobRespVO convert(BusinessJobDO businessJobDO);
 
     List<BusinessJobRespVO> convert(List<BusinessJobDO> businessJobDOList);
+
+    List<JobDetailDTO> convertApi(List<BusinessJobRespVO> businessJobRespVOList);
 
     default JobConfigBaseVO convert(String config) {
         if (StringUtils.isBlank(config)) {
