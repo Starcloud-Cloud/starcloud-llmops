@@ -55,7 +55,7 @@ public interface BusinessJobLogConvert {
             CozeProcessResultDTO bean = JSONUtil.toBean(executeResult, CozeProcessResultDTO.class);
             if (respVO.getSuccess()) {
                 respVO.setCount(bean.getCount());
-                respVO.setExecuteResult(JSONUtil.toJsonStr(bean));
+                respVO.setExecuteResult(JSONUtil.toJsonStr(bean.getData()));
             } else {
                 respVO.setCount(0);
             }
