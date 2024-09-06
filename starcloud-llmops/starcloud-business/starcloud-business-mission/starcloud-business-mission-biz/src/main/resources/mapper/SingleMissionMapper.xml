@@ -75,7 +75,7 @@
 
     <select id="pageDetail" resultType="com.starcloud.ops.business.mission.dal.dataobject.SingleMissionDTO">
         select m.*, n.liked_count as likedCount,n.collected_count as collectedCount,n.comment_count as
-        commentCount,p.name as planName, u.nickname as claimUsername
+        commentCount, u.nickname as claimUsername
         from llm_single_mission m
         left join llm_xhs_note_detail n on m.note_detail_id = n.id
         left join llm_creative_plan p on m.creative_plan_uid = p.uid
