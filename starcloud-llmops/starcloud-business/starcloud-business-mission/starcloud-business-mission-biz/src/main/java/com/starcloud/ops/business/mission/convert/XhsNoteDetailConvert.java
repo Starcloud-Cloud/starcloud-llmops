@@ -42,14 +42,14 @@ public interface XhsNoteDetailConvert {
         noteDetailDO.setDescription(formatDesc(noteDetail.getDesc()));
         noteDetailDO.setImageList(JSONUtil.toJsonStr(noteDetail.getImageList()));
         noteDetailDO.setVideo(JSONUtil.toJsonStr(noteDetail.getVideo()));
-//        NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
-//        if (interactInfo == null) {
-//            return;
-//        }
-//        noteDetailDO.setLikedCount(interactInfo.getLikedCount());
-//        noteDetailDO.setCollectedCount(interactInfo.getCollectedCount());
-//        noteDetailDO.setCommentCount(interactInfo.getCommentCount());
-//        noteDetailDO.setShareCount(interactInfo.getShareCount());
+        NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
+        if (interactInfo == null) {
+            return;
+        }
+        noteDetailDO.setLikedCount(interactInfo.getLikedCount());
+        noteDetailDO.setCollectedCount(interactInfo.getCollectedCount());
+        noteDetailDO.setCommentCount(interactInfo.getCommentCount());
+        noteDetailDO.setShareCount(interactInfo.getShareCount());
         noteDetailDO.setUpdateTime(LocalDateTime.now());
         noteDetailDO.setTagList(JSONUtil.toJsonStr(noteDetail.getTagList()));
     }
@@ -65,14 +65,14 @@ public interface XhsNoteDetailConvert {
         respVO.setImageList(noteDetail.getImageList());
         respVO.setVideo(noteDetail.getVideo());
 
-//        NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
-//        if (interactInfo == null) {
-//            return respVO;
-//        }
-//        respVO.setLikedCount(interactInfo.getLikedCount());
-//        respVO.setCollectedCount(interactInfo.getCollectedCount());
-//        respVO.setCommentCount(interactInfo.getCommentCount());
-//        respVO.setShareCount(interactInfo.getShareCount());
+        NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
+        if (interactInfo == null) {
+            return respVO;
+        }
+        respVO.setLikedCount(interactInfo.getLikedCount());
+        respVO.setCollectedCount(interactInfo.getCollectedCount());
+        respVO.setCommentCount(interactInfo.getCommentCount());
+        respVO.setShareCount(interactInfo.getShareCount());
         return respVO;
     }
 

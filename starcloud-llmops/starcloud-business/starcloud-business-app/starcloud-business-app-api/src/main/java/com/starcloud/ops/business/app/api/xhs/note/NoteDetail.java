@@ -10,8 +10,8 @@ import java.util.List;
 @Schema(description = "小红书笔记详情")
 public class NoteDetail {
 
-//    @Schema(description = "互动信息")
-//    private NoteInteractInfo interactInfo;
+    @Schema(description = "互动信息")
+    private NoteInteractInfo interactInfo;
 
     @Schema(description = "ip地址")
     private String ipLocation;

@@ -1,8 +1,5 @@
 package com.starcloud.ops.business.mission.service.impl;
 
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
-import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
-import com.starcloud.ops.business.app.service.xhs.scheme.CreativeSchemeService;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.PostingContentDTO;
 import com.starcloud.ops.business.mission.controller.admin.vo.request.ClaimReqVO;
@@ -39,18 +36,10 @@ public class CustomerClaimServiceImpl implements CustomerClaimService {
     @Resource
     private RedissonClient redissonClient;
 
-    @Resource
-    private CreativePlanService creativePlanService;
-
-    @Resource
-    private CreativeSchemeService creativeSchemeService;
-
     @Override
     public SingleMissionDetailVO missionDetail(String uid) {
         MissionNotificationDTO detail = missionService.missionDetail(uid);
         SingleMissionDetailVO detailVO = SingleMissionConvert.INSTANCE.convertDetail(detail);
-        CreativePlanRespVO creativePlan = creativePlanService.get(detail.getCreativePlanUid());
-        // detailVO.setTags(creativePlan.getTags());
         return detailVO;
     }
 

@@ -34,4 +34,12 @@ public interface PluginConfigMapper extends BaseMapperX<PluginConfigDO> {
                 ;
         return selectList(wrapper);
     }
+
+    default List<PluginConfigDO> selectByPluginUid(String pluginUid) {
+        LambdaQueryWrapper<PluginConfigDO> wrapper = Wrappers.lambdaQuery(PluginConfigDO.class)
+                .eq(PluginConfigDO::getPluginUid, pluginUid)
+                .orderByDesc(PluginConfigDO::getUpdateTime)
+                ;
+        return selectList(wrapper);
+    }
 }
