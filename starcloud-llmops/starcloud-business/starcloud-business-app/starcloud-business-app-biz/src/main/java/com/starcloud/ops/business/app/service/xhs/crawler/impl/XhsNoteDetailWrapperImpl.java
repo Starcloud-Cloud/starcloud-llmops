@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -55,19 +56,23 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
             Document doc = Jsoup.parse(html);
             String jsonStr = doc.getElementsByTag(XhsDetailConstants.SCRIPT).last().html().replace(XhsDetailConstants.INITIAL_STATE, StringUtils.EMPTY);
             JSONObject jsonObject = JSON.parseObject(jsonStr);
-//            Boolean loggedIn = jsonObject.getJSONObject(XhsDetailConstants.USER).getBoolean(XhsDetailConstants.LOGGED_IN);
-//            if (BooleanUtils.isNotTrue(loggedIn)) {
-//                throw exception(new ErrorCode(500, "xhs登录过期"));
-//            }
-            ServerRequestInfo requestInfo = jsonObject.getJSONObject(XhsDetailConstants.NOTE)
-                    .getObject(XhsDetailConstants.SERVER_REQUEST_INFO, ServerRequestInfo.class);
+            Boolean loggedIn = jsonObject.getJSONObject(XhsDetailConstants.USER).getBoolean(XhsDetailConstants.LOGGED_IN);
+            if (BooleanUtils.isNotTrue(loggedIn)) {
+                throw exception(new ErrorCode(500, "xhs登录过期"));
+            }
+
+            ServerRequestInfo requestInfo = Optional.ofNullable(jsonObject.getJSONObject(XhsDetailConstants.NOTE))
+                    .map(n -> n.getObject(XhsDetailConstants.SERVER_REQUEST_INFO, ServerRequestInfo.class))
+                    .orElseThrow(() -> exception(new ErrorCode(500, "json转换异常")));
             if (!"success".equalsIgnoreCase(requestInfo.getState())) {
                 throw exception(new ErrorCode(500, requestInfo.getErrMsg()));
             }
-            NoteDetail noteDetail = jsonObject.getJSONObject(XhsDetailConstants.NOTE)
-                    .getJSONObject(XhsDetailConstants.NOTE_DETAIL_MAP)
-                    .getJSONObject(noteId)
-                    .getObject(XhsDetailConstants.NOTE, NoteDetail.class);
+
+            NoteDetail noteDetail = Optional.ofNullable(jsonObject.getJSONObject(XhsDetailConstants.NOTE))
+                    .map(n -> n.getJSONObject(XhsDetailConstants.NOTE_DETAIL_MAP))
+                    .map(n -> n.getJSONObject(noteId))
+                    .map(n -> n.getObject(XhsDetailConstants.NOTE, NoteDetail.class))
+                    .orElseThrow(() -> exception(new ErrorCode(500, "json转换异常")));
 
             noteDetail.setDesc(ReUtil.replaceAll(noteDetail.getDesc(), XhsDetailConstants.TAGS, StringUtils.EMPTY));
             requestInfo.setNoteDetail(noteDetail);
@@ -83,10 +88,12 @@ public class XhsNoteDetailWrapperImpl implements XhsNoteDetailWrapper {
             }
             return requestDetail0(noteId, retry + 1);
         } catch (ServiceException e) {
-            log.warn("处理小红书数据异常, {}", e.getMessage());
+            log.warn("小红书接口异常, {}", e.getMessage());
+            sendMessage(e.getMessage());
             throw exception(XHS_REMOTE_ERROR, e.getMessage());
         } catch (Exception e) {
             log.warn("处理小红书数据异常, {}", html, e);
+            sendMessage(e.getMessage());
             throw exception(XHS_REMOTE_ERROR, e.getMessage());
         }
     }
