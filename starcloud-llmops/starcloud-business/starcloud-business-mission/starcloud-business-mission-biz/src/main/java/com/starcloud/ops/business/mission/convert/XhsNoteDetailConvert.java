@@ -65,14 +65,14 @@ public interface XhsNoteDetailConvert {
         respVO.setImageList(noteDetail.getImageList());
         respVO.setVideo(noteDetail.getVideo());
 
-//        NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
-//        if (interactInfo == null) {
-//            return respVO;
-//        }
-//        respVO.setLikedCount(interactInfo.getLikedCount());
-//        respVO.setCollectedCount(interactInfo.getCollectedCount());
-//        respVO.setCommentCount(interactInfo.getCommentCount());
-//        respVO.setShareCount(interactInfo.getShareCount());
+        NoteInteractInfo interactInfo = noteDetail.getInteractInfo();
+        if (interactInfo == null) {
+            return respVO;
+        }
+        respVO.setLikedCount(interactInfo.getLikedCount());
+        respVO.setCollectedCount(interactInfo.getCollectedCount());
+        respVO.setCommentCount(interactInfo.getCommentCount());
+        respVO.setShareCount(interactInfo.getShareCount());
         return respVO;
     }
 
