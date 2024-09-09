@@ -2,10 +2,12 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -37,6 +39,8 @@ import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.business.job.api.BusinessJobApi;
+import com.starcloud.ops.business.job.dto.JobDetailDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -49,6 +53,7 @@ import javax.annotation.Resource;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -79,6 +84,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Resource
     private RedissonClient redissonClient;
 
+    @Resource
+    private BusinessJobApi businessJobApi;
+
     private static final String prefix_exectue = "coze_exectue_";
 
     private static final String prefix_start = "coze_start_";
@@ -101,7 +109,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         long start = System.currentTimeMillis();
 
         CozeChatRequest request = new CozeChatRequest();
-        request.setUserId(Objects.requireNonNull(SecurityFrameworkUtils.getLoginUserId()).toString());
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        request.setUserId(Objects.isNull(loginUserId) ?
+                UserContextHolder.getUserId().toString() : loginUserId.toString());
         request.setBotId(reqVO.getEntityUid());
         CozeMessage cozeMessage = new CozeMessage();
         cozeMessage.setRole("user");
@@ -146,7 +156,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
-        if (Objects.equals("failed", status)) {
+        if (Objects.equals("failed", status)
+                || Objects.equals("requires_action", status)
+                || Objects.equals("canceled", status)
+
+        ) {
             String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
             throw exception(COZE_ERROR, error);
         }
@@ -185,7 +199,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 } else {
 
                     log.error("输出结果格式错误 {}", content);
-                    
+
                     //处理一些场景的错误，并返回
                     throw exception(new CozeErrorCode(content));
                 }
@@ -220,7 +234,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                 PluginDefinitionDO pluginDefinitionDO = getByUid(pluginUid);
                 pluginDefinitionDO.setTotalTime((pluginDefinitionDO.getTotalTime() == null ? 0 : pluginDefinitionDO.getTotalTime()) + time);
                 pluginDefinitionDO.setCount((pluginDefinitionDO.getCount() == null ? 0 : pluginDefinitionDO.getCount()) + 1);
-                pluginDefinitionDO.setExecuteTimeAvg(pluginDefinitionDO.getTotalTime() / pluginDefinitionDO.getCount());
+                pluginDefinitionDO.setExecuteTimeAvg(time);
                 pluginDefinitionMapper.updateById(pluginDefinitionDO);
             }
         } catch (Exception e) {
@@ -277,7 +291,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
         String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
 
-        if (Objects.equals("failed", status)) {
+        if (Objects.equals("failed", status)
+                || Objects.equals("requires_action", status)
+                || Objects.equals("canceled", status)
+
+        ) {
             String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
             throw exception(COZE_ERROR, error);
         }
@@ -383,20 +401,26 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Override
     public List<PluginRespVO> list(PluginListReqVO reqVO) {
-        List<PluginDefinitionDO> result = new ArrayList<>();
         List<PluginConfigRespVO> configList = configService.configList(reqVO.getLibraryUid());
-        Collection<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.publishedList();
-        Collection<PluginDefinitionDO> ownerPluginList = pluginDefinitionMapper.selectOwnerPlugin();
-
-        if (CollectionUtil.isNotEmpty(configList)) {
-            result = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
-            pluginDOList = CollUtil.subtract(pluginDOList, result);
-            ownerPluginList = CollUtil.subtract(ownerPluginList, result);
+        if (CollectionUtil.isEmpty(configList)) {
+            return Collections.emptyList();
         }
-
-        Set<PluginDefinitionDO> distinct = CollUtil.unionDistinct(ownerPluginList, pluginDOList);
-        result.addAll(distinct);
-        return PluginDefinitionConvert.INSTANCE.convert(result);
+        Map<String, PluginConfigRespVO> map = configList.stream().collect(Collectors.toMap(PluginConfigVO::getPluginUid, Function.identity(), (a, b) -> a));
+        List<PluginDefinitionDO> pluginDefinitionDOList = pluginDefinitionMapper.selectByUid(configList.stream().map(PluginConfigVO::getPluginUid).collect(Collectors.toList()));
+        List<PluginRespVO> result = PluginDefinitionConvert.INSTANCE.convert(pluginDefinitionDOList);
+        List<Long> creatorList = pluginDefinitionDOList.stream().map(item -> Long.valueOf(item.getCreator())).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<Long, String> creatorMap = UserUtils.getUserNicknameMapByIds(creatorList);
+        List<JobDetailDTO> jobDetailList = businessJobApi.queryJob(configList.stream().map(PluginConfigRespVO::getUid).collect(Collectors.toList()));
+        Map<String, JobDetailDTO> jobMap = jobDetailList.stream().collect(Collectors.toMap(JobDetailDTO::getForeignKey, Function.identity(), (a, b) -> a));
+        result.forEach(plugin -> {
+            if ((plugin.getCreator() != null)) {
+                plugin.setCreator(creatorMap.get(Long.valueOf(plugin.getCreator())));
+            }
+            plugin.setConfigUid(map.get(plugin.getUid()).getUid());
+            Boolean enable = Optional.ofNullable(jobMap.get(plugin.getConfigUid())).map(JobDetailDTO::getEnable).orElse(Boolean.FALSE);
+            plugin.setJobEnable(BooleanUtil.isTrue(enable));
+        });
+        return result;
     }
 
     @Override

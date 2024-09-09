@@ -335,8 +335,7 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode INPUT_JSON_ERROR = new ErrorCode(760100011, "输入参数应该是json对象，{}");
 
-
-    ErrorCode OUTPUT_JSON_ERROR = new ErrorCode(760100012, "coze工作流输出参数应该是json对象或者集合对象");
+    ErrorCode OUTPUT_JSON_ERROR = new ErrorCode(760100012, "coze工作流输出参数应该是json对象或者集合对象，result={}");
 
     ErrorCode INPUT_OUTPUT_ERROR = new ErrorCode(760100013, "coze执行结果获取异常, {}");
 

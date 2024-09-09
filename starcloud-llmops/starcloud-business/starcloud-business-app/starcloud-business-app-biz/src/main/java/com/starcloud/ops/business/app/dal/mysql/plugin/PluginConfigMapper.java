@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.mysql.plugin;
 
+import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -9,7 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 @Mapper
-public interface PluginConfigMapper extends BaseMapper<PluginConfigDO> {
+public interface PluginConfigMapper extends BaseMapperX<PluginConfigDO> {
 
     default PluginConfigDO selectByUid(String uid) {
         LambdaQueryWrapper<PluginConfigDO> wrapper = Wrappers.lambdaQuery(PluginConfigDO.class)

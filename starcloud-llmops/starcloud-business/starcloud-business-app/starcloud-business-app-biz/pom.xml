@@ -129,6 +129,12 @@
             <version>${revision}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-job-api</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
         
         <dependency>
             <groupId>cn.iocoder.boot</groupId>

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.framework.mybatis.core.handler;
 
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
@@ -33,6 +34,10 @@ public class DefaultDBFieldHandler implements MetaObjectHandler {
             }
 
             Long userId = WebFrameworkUtils.getLoginUserId();
+            if (userId == null) {
+                // 异步 openapi 补充UserId
+                userId = UserContextHolder.getUserId();
+            }
             // 当前登录用户不为空，创建人为空，则当前登录用户为创建人
             if (Objects.nonNull(userId) && Objects.isNull(baseDO.getCreator())) {
                 baseDO.setCreator(userId.toString());

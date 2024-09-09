@@ -41,4 +41,11 @@ public class PluginConfigController {
         pluginConfigService.modify(pluginVO);
         return CommonResult.success(true);
     }
+
+    @DeleteMapping(value = "/delete/{uid}")
+    @Operation(summary = "删除素材库插件")
+    public CommonResult<Boolean> delete(@PathVariable("uid") String uid) {
+        pluginConfigService.delete(uid);
+        return CommonResult.success(true);
+    }
 }

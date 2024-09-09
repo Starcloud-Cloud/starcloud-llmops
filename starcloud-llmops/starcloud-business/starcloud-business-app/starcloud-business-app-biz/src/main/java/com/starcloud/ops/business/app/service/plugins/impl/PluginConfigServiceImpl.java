@@ -8,8 +8,10 @@ import com.starcloud.ops.business.app.convert.plugin.PluginConfigConvert;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginConfigMapper;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
+import com.starcloud.ops.business.job.api.BusinessJobApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -26,11 +28,14 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Resource
     private PluginConfigMapper pluginConfigMapper;
 
+    @Resource
+    private BusinessJobApi businessJobApi;
+
     @Override
     public PluginConfigRespVO create(PluginConfigVO pluginConfigVO) {
         PluginConfigDO oldConfig = pluginConfigMapper.selectByLibraryUid(pluginConfigVO.getLibraryUid(), pluginConfigVO.getPluginUid());
         if (Objects.nonNull(oldConfig)) {
-            throw exception(LIBRARY_HAS_CONFIG, pluginConfigVO.getLibraryUid());
+            return PluginConfigConvert.INSTANCE.convert(oldConfig);
         }
         PluginConfigDO pluginConfigDO = PluginConfigConvert.INSTANCE.convert(pluginConfigVO);
         pluginConfigDO.setUid(IdUtil.fastSimpleUUID());
@@ -44,6 +49,15 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         PluginConfigDO updateConfig = PluginConfigConvert.INSTANCE.convert(pluginVO);
         updateConfig.setId(pluginConfigDO.getId());
         pluginConfigMapper.updateById(updateConfig);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(String uid) {
+        PluginConfigDO pluginConfigDO = getByUid(uid);
+        pluginConfigMapper.deleteById(pluginConfigDO.getId());
+        // 删除定时任务
+        businessJobApi.deleteByForeignKey(pluginConfigDO.getUid());
     }
 
     @Override
@@ -65,5 +79,21 @@ public class PluginConfigServiceImpl implements PluginConfigService {
             throw exception(PLUGIN_CONFIG_NOT_EXIST, "uid :" + uid);
         }
         return pluginConfigDO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void copyPluginConfig(String sourceUid, String targetUid) {
+        List<PluginConfigDO> pluginConfigDOList = pluginConfigMapper.selectByLibraryUid(sourceUid);
+        for (PluginConfigDO pluginConfigDO : pluginConfigDOList) {
+            PluginConfigDO configDO = new PluginConfigDO();
+            configDO.setUid(IdUtil.fastSimpleUUID());
+            configDO.setExecuteParams(pluginConfigDO.getExecuteParams());
+            configDO.setFieldMap(pluginConfigDO.getFieldMap());
+            configDO.setLibraryUid(targetUid);
+            configDO.setPluginUid(pluginConfigDO.getPluginUid());
+            pluginConfigMapper.insert(configDO);
+            businessJobApi.copyJob(pluginConfigDO.getUid(), configDO.getUid(), configDO.getLibraryUid());
+        }
     }
 }
