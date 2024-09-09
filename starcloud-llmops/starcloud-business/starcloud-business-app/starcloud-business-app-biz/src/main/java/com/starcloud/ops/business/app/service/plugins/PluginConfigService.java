@@ -22,6 +22,8 @@ public interface PluginConfigService {
      */
     void delete(String uid);
 
+    void deleteByPluginUid(String pluginUid);
+
     /**
      * @param libraryUid 素材库uid
      */
