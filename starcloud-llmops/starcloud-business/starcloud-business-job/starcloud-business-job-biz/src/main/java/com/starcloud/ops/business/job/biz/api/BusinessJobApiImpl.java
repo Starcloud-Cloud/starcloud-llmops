@@ -5,12 +5,15 @@ import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.BusinessJobBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
+import com.starcloud.ops.business.job.biz.convert.BusinessJobConvert;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
+import com.starcloud.ops.business.job.dto.JobDetailDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -55,5 +58,12 @@ public class BusinessJobApiImpl implements BusinessJobApi {
 
         businessJobService.createJob(newJob);
 
+    }
+
+    @Override
+    @DataPermission(enable = false)
+    public List<JobDetailDTO> queryJob(List<String> foreignKeyList) {
+        List<BusinessJobRespVO> businessJobRespList = businessJobService.getByForeignKey(foreignKeyList);
+        return BusinessJobConvert.INSTANCE.convertApi(businessJobRespList);
     }
 }

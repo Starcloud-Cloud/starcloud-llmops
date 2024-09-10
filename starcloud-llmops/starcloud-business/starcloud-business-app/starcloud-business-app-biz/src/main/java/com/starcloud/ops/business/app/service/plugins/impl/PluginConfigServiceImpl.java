@@ -35,7 +35,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     public PluginConfigRespVO create(PluginConfigVO pluginConfigVO) {
         PluginConfigDO oldConfig = pluginConfigMapper.selectByLibraryUid(pluginConfigVO.getLibraryUid(), pluginConfigVO.getPluginUid());
         if (Objects.nonNull(oldConfig)) {
-            throw exception(LIBRARY_HAS_CONFIG, oldConfig.getUid());
+            return PluginConfigConvert.INSTANCE.convert(oldConfig);
         }
         PluginConfigDO pluginConfigDO = PluginConfigConvert.INSTANCE.convert(pluginConfigVO);
         pluginConfigDO.setUid(IdUtil.fastSimpleUUID());

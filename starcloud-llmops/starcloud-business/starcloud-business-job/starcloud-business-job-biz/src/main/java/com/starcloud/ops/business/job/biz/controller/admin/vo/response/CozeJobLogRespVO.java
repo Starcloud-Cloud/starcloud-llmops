@@ -6,12 +6,15 @@ import lombok.Data;
 
 @Data
 @Schema(description = "任务日志")
-public class JobLogRespVO extends JobLogBaseVO {
+public class CozeJobLogRespVO extends JobLogBaseVO {
 
     @Schema(description = "插件名称")
     private String pluginName;
 
     @Schema(description = "插件uid")
     private String pluginUid;
+
+    @Schema(description = "生成条数")
+    private int count;
 
 }

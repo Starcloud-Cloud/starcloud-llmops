@@ -4,12 +4,15 @@ import lombok.Data;
 import tech.powerjob.worker.core.processor.ProcessResult;
 
 @Data
-public class ProcessResultDTO extends ProcessResult {
+public class CozeProcessResultDTO extends ProcessResult {
 
     private Object data;
 
-    public ProcessResultDTO(boolean success, Object data) {
+    private int count;
+
+    public CozeProcessResultDTO(boolean success, Object data,int count) {
         super(success);
         this.data = data;
+        this.count = count;
     }
 }

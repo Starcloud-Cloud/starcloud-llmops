@@ -43,7 +43,7 @@ public class PluginsDefinitionController {
 
     @PostMapping(value = "/detail/{uid}")
     @Operation(summary = "插件详情")
-    public CommonResult<PluginRespVO> create(@PathVariable("uid") String uid) {
+    public CommonResult<PluginRespVO> detail(@PathVariable("uid") String uid) {
         return CommonResult.success(pluginsDefinitionService.detail(uid));
     }
 
