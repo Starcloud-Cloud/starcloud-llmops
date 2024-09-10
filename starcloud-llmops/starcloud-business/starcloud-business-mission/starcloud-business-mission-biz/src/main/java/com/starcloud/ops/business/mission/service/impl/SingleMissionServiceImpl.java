@@ -405,6 +405,7 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             if (SingleMissionStatusEnum.published.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.claimed.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement.getCode().equals(missionDO.getStatus())
+                    || SingleMissionStatusEnum.settlement.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.pre_settlement_error.getCode().equals(missionDO.getStatus())
                     || SingleMissionStatusEnum.settlement_error.getCode().equals(missionDO.getStatus())) {
                 throw exception(DONT_ALLOW_DELETE);
