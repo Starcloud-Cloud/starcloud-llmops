@@ -61,6 +61,16 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteByPluginUid(String pluginUid) {
+        List<PluginConfigDO> pluginConfigList = pluginConfigMapper.selectByPluginUid(pluginUid);
+        pluginConfigList.forEach(config -> {
+            pluginConfigMapper.deleteById(config.getId());
+            businessJobApi.deleteByForeignKey(config.getUid());
+        });
+    }
+
+    @Override
     public PluginConfigRespVO getByLibrary(String libraryUid, String pluginUid) {
         PluginConfigDO pluginConfigDO = pluginConfigMapper.selectByLibraryUid(libraryUid, pluginUid);
         return PluginConfigConvert.INSTANCE.convert(pluginConfigDO);
