@@ -6,7 +6,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -682,12 +681,6 @@ public class CreativeUtils {
             if (CollectionUtil.isEmpty(materialListRequest.getSliceIdList())) {
                 throw ServiceExceptionUtil.invalidParamException("计划执行失败：选择执行时需要选择您需要执行的素材！");
             }
-
-            // 构造排序条件
-            SortingField sortingField = new SortingField();
-            sortingField.setOrder(SortingField.ORDER_ASC);
-            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
-            materialListRequest.setSortingField(sortingField);
             return materialListRequest;
         } catch (ServiceException exception) {
             throw exception;
