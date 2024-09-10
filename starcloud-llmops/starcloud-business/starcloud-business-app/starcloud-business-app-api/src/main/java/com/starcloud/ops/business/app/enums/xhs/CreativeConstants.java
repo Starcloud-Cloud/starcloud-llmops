@@ -159,6 +159,11 @@ public interface CreativeConstants {
     String LIBRARY_QUERY = "LIBRARY_QUERY";
 
     /**
+     * 选择执行条件下素材库查询条件
+     */
+    String SELECT_MATERIAL_QUERY = "SELECT_MATERIAL_QUERY";
+
+    /**
      * 参考素材JsonSchema
      */
     String MATERIAL_JSONSCHEMA = "MATERIAL_JSONSCHEMA";
