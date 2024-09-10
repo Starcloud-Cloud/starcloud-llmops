@@ -25,6 +25,13 @@
             <artifactId>starcloud-business-share</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-business-job-biz</artifactId>
+            <version>${starcloud.revision}</version>
+        </dependency>
+
     </dependencies>
 
 </project>
