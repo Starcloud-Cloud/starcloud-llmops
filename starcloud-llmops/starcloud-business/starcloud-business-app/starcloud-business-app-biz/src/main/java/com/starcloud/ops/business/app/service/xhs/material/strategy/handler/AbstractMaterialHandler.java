@@ -7,7 +7,6 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
@@ -244,12 +243,73 @@ public abstract class AbstractMaterialHandler {
      * @param posterStyleList 海报风格列表
      * @return 生成任务总数量
      */
-    public PlanTotalCount calculateTotalCount(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList) {
+    public PlanTotalCount calculateTotalCount(List<Map<String, Object>> materialList,
+                                              List<PosterStyleDTO> posterStyleList,
+                                              MaterialMetadata metadata) {
         // 计算每个海报风格需要的素材数量
         List<Integer> needMaterialSize = computeNeedMaterialSize(posterStyleList);
         if (CollectionUtil.isEmpty(needMaterialSize)) {
             return PlanTotalCount.of(0);
         }
+
+        // 获取素材字段配置
+        List<MaterialFieldConfigDTO> materialFieldList = metadata.getMaterialFieldList();
+        if (CollectionUtil.isEmpty(materialFieldList)) {
+            return this.calculateNoGroupTotalCount(materialList, needMaterialSize);
+        }
+
+        // 如果没有分组字段，则定义一个默认分组字段，作为默认分组字段
+        MaterialFieldConfigDTO defaultGroup = new MaterialFieldConfigDTO();
+        defaultGroup.setFieldName(GROUP);
+        defaultGroup.setIsGroupField(Boolean.TRUE);
+        // 获取分组字段
+        MaterialFieldConfigDTO groupField = materialFieldList.stream()
+                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
+                .findFirst()
+                .orElse(defaultGroup);
+
+        // 如果分组字段为空，按照默认的计算逻辑进行计算
+        if (StringUtil.isBlank(groupField.getFieldName())) {
+            return this.calculateNoGroupTotalCount(materialList, needMaterialSize);
+        }
+
+        String group = groupField.getFieldName();
+
+        // 分组字段不为空的素材
+        List<Map<String, Object>> groupMaterial = materialList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> StringUtil.objectNotBlank(item.get(group)))
+                .collect(Collectors.toList());
+
+        // 1. 如果有分组的素材为空，直接按照默认的复制逻辑进行复制
+        if (CollectionUtil.isEmpty(groupMaterial)) {
+            return this.calculateNoGroupTotalCount(materialList, needMaterialSize);
+        }
+
+        // 将同一组的素材分组，并且保持原有的顺序。
+        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
+                .collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
+
+        // 如果分组为空，说明选择素材出现问题。
+        if (CollectionUtil.isEmpty(collect)) {
+            PlanTotalCount totalCount = new PlanTotalCount();
+            totalCount.setTotal(0);
+            totalCount.setWarning("选择的素材数量不足以生成一篇笔记，请重新选择后重试！");
+        }
+
+        return PlanTotalCount.of(collect.size());
+    }
+
+    /**
+     * 计算生成任务总数量。不是分组模式
+     *
+     * @param materialList     素材列表
+     * @param needMaterialSize 每个风格需要的素材数量
+     * @return 生成任务总数量
+     */
+    public PlanTotalCount calculateNoGroupTotalCount(List<Map<String, Object>> materialList,
+                                                     List<Integer> needMaterialSize) {
+
         int totalCount = 0;
         int currentMaterialSize = materialList.size();
         int loopCount = 0;
@@ -298,7 +358,10 @@ public abstract class AbstractMaterialHandler {
         defaultGroup.setFieldName(GROUP);
         defaultGroup.setIsGroupField(Boolean.TRUE);
         // 获取分组字段
-        MaterialFieldConfigDTO groupField = materialFieldList.stream().filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE)).findFirst().orElse(defaultGroup);
+        MaterialFieldConfigDTO groupField = materialFieldList.stream()
+                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
+                .findFirst()
+                .orElse(defaultGroup);
 
         // 如果分组字段为空，直接按照默认的复制逻辑进行复制
         if (StringUtil.isBlank(groupField.getFieldName())) {
@@ -308,7 +371,9 @@ public abstract class AbstractMaterialHandler {
         String group = groupField.getFieldName();
 
         // 分组字段不为空的素材
-        List<Map<String, Object>> groupMaterial = copyMaterialList.stream().filter(Objects::nonNull).filter(item -> StringUtil.objectNotBlank(item.get(group))).collect(Collectors.toList());
+        List<Map<String, Object>> groupMaterial = copyMaterialList.stream()
+                .filter(Objects::nonNull).filter(item -> StringUtil.objectNotBlank(item.get(group)))
+                .collect(Collectors.toList());
 
         // 1. 如果有分组的素材为空，直接按照默认的复制逻辑进行复制
         if (CollectionUtil.isEmpty(groupMaterial)) {
@@ -316,7 +381,8 @@ public abstract class AbstractMaterialHandler {
         }
 
         // 将同一组的素材分组，并且保持原有的顺序。
-        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream().collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
+        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
+                .collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
 
         // 2. 如果分组的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量，这时候，直接按照 materialSizeList 的数量进行复制即可
         if (collect.size() >= materialSizeList.size()) {

@@ -247,7 +247,7 @@ public class CreativePlanExecuteManager {
         // 如果是选择执行，重新计算任务总数。
         if (MaterialUsageModel.SELECT.equals(metadata.getMaterialUsageModel())) {
             // 根据素材总数和风格进行计算可以生产任务的总数。
-            PlanTotalCount calculated = handler.calculateTotalCount(materialList, posterStyleList);
+            PlanTotalCount calculated = handler.calculateTotalCount(materialList, posterStyleList, metadata);
             totalCount = calculated.getTotal();
             message = calculated.getWarning();
         }
