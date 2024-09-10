@@ -60,16 +60,17 @@
 
     <select id="pageCount" resultType="java.lang.Long">
         select count(*)
-        from llm_single_mission
-        where deleted = false and notification_Uid = #{reqVO.notificationUid}
+        from llm_single_mission m
+        left join member_user u on m.claim_user_id = u.id
+        where m.deleted = false and m.notification_Uid = #{reqVO.notificationUid}
         <if test="reqVO.status != null and reqVO.status != ''">
-            and status = #{reqVO.status}
+            and m.status = #{reqVO.status}
         </if>
         <if test="reqVO.claimUserId != null and reqVO.claimUserId != ''">
-            and claim_user_id = #{reqVO.claimUserId}
+            and m.claim_user_id = #{reqVO.claimUserId}
         </if>
         <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
-            and claim_username like concat(#{reqVO.claimUsername},'%')
+            and u.nickname like concat(#{reqVO.claimUsername},'%')
         </if>
     </select>
 
@@ -87,7 +88,7 @@
             and m.claim_user_id = #{reqVO.claimUserId}
         </if>
         <if test="reqVO.claimUsername != null and reqVO.claimUsername != ''">
-            and m.claim_username like concat(#{reqVO.claimUsername},'%')
+            and u.nickname like concat(#{reqVO.claimUsername},'%')
         </if>
         order by m.create_time desc
         limit #{start},#{size}
