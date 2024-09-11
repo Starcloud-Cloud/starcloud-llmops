@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.material;
 import cn.hutool.core.bean.BeanPath;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -347,6 +348,13 @@ public class CreativeMaterialManager {
         // 选择模式执行查询条件构造
         if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
             materialListRequest = CreativeUtils.getSelectMaterialRequestByStepWrapper(materialStepWrapper);
+        } else {
+            // 构造排序条件
+            SortingField sortingField = new SortingField();
+            sortingField.setOrder(SortingField.ORDER_ASC);
+            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
+            materialListRequest.setSortingField(sortingField);
+            materialListRequest.setLibraryUid(null);
         }
 
         // 设置应用UID

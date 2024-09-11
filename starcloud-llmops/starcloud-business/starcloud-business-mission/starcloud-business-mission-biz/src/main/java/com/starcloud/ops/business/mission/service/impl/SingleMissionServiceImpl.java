@@ -163,8 +163,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         } else if (SingleMissionStatusEnum.claimed.getCode().equals(reqVO.getStatus())) {
             Optional.ofNullable(reqVO.getClaimUsername()).orElseThrow(() -> exception(new ErrorCode(500, "认领人不能为空")));
             Assert.notBlank(reqVO.getClaimUsername(), "认领人不能为空");
-//            missionDO.setClaimUsername(reqVO.getClaimUsername());
-//            missionDO.setClaimUserId(Optional.ofNullable(reqVO.getClaimUserId()).orElse("0"));
             Assert.notBlank(reqVO.getClaimUserId(), "认领人不能为空");
             missionDO.setClaimUserId(reqVO.getClaimUserId());
             LocalDateTime claimTime = Optional.ofNullable(reqVO.getClaimTime()).orElse(LocalDateTime.now());
@@ -442,7 +440,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         for (SingleMissionImportVO importVO : importVOList) {
             importVO.valid();
             SingleMissionDO missionDO = new SingleMissionDO();
-//            missionDO.setClaimUsername(importVO.getClaimUsername());
             missionDO.setPublishUrl(importVO.getPublishUrl());
             missionDO.setUid(importVO.getUid());
             missionDO.setStatus(SingleMissionStatusEnum.published.getCode());

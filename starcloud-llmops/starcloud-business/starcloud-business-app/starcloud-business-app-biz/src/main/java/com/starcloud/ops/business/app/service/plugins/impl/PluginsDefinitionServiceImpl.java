@@ -198,11 +198,15 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
                     cleanMap(objectMap);
                     executeRespVO.setOutput(objectMap);
                 } else {
+
                     log.error("输出结果格式错误 {}", content);
-                    throw exception(OUTPUT_JSON_ERROR, content);
+
+                    //处理一些场景的错误，并返回
+                    throw exception(new CozeErrorCode(content));
                 }
             }
         }
+
 
         if (Objects.isNull(executeRespVO.getOutput())) {
             throw exception(INPUT_OUTPUT_ERROR, "未调用工作流");

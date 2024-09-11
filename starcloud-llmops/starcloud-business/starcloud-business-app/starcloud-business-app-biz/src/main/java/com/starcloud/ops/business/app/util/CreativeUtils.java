@@ -690,11 +690,10 @@ public class CreativeUtils {
             if (CollectionUtil.isEmpty(materialListRequest.getSliceIdList())) {
                 throw ServiceExceptionUtil.invalidParamException("计划执行失败：选择执行时需要选择您需要执行的素材！");
             }
-
-            // 构造排序条件
+            // 构造排序条件，这里设置按照创建时间倒序，和页面的素材排序一致。
             SortingField sortingField = new SortingField();
-            sortingField.setOrder(SortingField.ORDER_ASC);
-            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
+            sortingField.setOrder(SortingField.ORDER_DESC);
+            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_ID);
             materialListRequest.setSortingField(sortingField);
             return materialListRequest;
         } catch (ServiceException exception) {
