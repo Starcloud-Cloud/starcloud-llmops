@@ -5,7 +5,6 @@ import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tech.powerjob.client.PowerJobClient;
 import tech.powerjob.common.enums.DispatchStrategy;
@@ -56,7 +55,7 @@ public class PowerjobManager {
         // 最大实例个数
         request.setMaxInstanceNum(1);
         request.setInstanceTimeLimit(310000L);
-        request.setTaskRetryNum(0);
+        request.setTaskRetryNum(3);
         request.setId(jobId);
 
         ResultDTO<Long> result = powerJobClient.saveJob(request);
