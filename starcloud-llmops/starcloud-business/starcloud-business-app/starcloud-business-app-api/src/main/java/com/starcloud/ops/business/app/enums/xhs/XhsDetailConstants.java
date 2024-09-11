@@ -27,7 +27,7 @@ public class XhsDetailConstants {
 
     public static final String XHS_URL_REGEX = "^(https://www.xiaohongshu.com/explore/{1,1}\\w{24,24}\\?*\\S*)";
 
-    public static final String SHARE_LINK = "http://xhslink.com/([a-zA-Z0-9]{6})";
+    public static final String SHARE_LINK = "http://xhslink.com/[a-zA-Z]{1}/([a-zA-Z0-9]{12})";
 
     public static final String SHARE_NOTEID = "https://www.xiaohongshu.com/discovery/item/([a-zA-Z0-9]{24})";
 
