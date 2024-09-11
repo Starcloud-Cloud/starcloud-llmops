@@ -685,7 +685,7 @@ public class CreativeUtils {
             // 构造排序条件，这里设置按照创建时间倒序，和页面的素材排序一致。
             SortingField sortingField = new SortingField();
             sortingField.setOrder(SortingField.ORDER_DESC);
-            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_CREATE_TIME);
+            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_ID);
             materialListRequest.setSortingField(sortingField);
             return materialListRequest;
         } catch (ServiceException exception) {
