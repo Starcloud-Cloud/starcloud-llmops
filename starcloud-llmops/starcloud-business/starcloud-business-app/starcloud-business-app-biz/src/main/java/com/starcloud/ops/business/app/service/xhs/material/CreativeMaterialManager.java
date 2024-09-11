@@ -347,7 +347,6 @@ public class CreativeMaterialManager {
 
         // 选择模式执行查询条件构造
         if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
-            // 此处不设置排序，选择什么就按照什么排序
             materialListRequest = CreativeUtils.getSelectMaterialRequestByStepWrapper(materialStepWrapper);
         } else {
             // 构造排序条件
