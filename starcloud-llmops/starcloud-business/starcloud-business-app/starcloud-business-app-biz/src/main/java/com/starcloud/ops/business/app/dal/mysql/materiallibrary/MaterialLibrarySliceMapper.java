@@ -101,10 +101,9 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                     } else {
                         wrapper.orderByDesc(MaterialLibrarySliceDO::getUsedCount);
                     }
-                    wrapper.orderByDesc(MaterialLibrarySliceDO::getCreateTime);
+                    wrapper.orderByDesc(MaterialLibrarySliceDO::getId);
                     break;
                 case MaterialLibrarySliceAppReqVO.SORT_FIELD_CREATE_TIME:
-
                     if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
                         wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
                     } else {
@@ -112,13 +111,18 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                     }
                     break;
                 case MaterialLibrarySliceAppReqVO.SORT_FIELD_UPDATE_TIME:
-
                     if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
                         wrapper.orderByAsc(MaterialLibrarySliceDO::getUpdateTime);
                     } else {
                         wrapper.orderByDesc(MaterialLibrarySliceDO::getUpdateTime);
                     }
                     break;
+                case MaterialLibrarySliceAppReqVO.SORT_FIELD_ID:
+                    if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
+                        wrapper.orderByAsc(MaterialLibrarySliceDO::getId);
+                    } else {
+                        wrapper.orderByDesc(MaterialLibrarySliceDO::getId);
+                    }
                 default:
                     wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
                     break;
