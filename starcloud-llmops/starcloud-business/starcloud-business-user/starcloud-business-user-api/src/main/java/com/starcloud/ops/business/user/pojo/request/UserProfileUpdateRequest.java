@@ -32,4 +32,7 @@ public class UserProfileUpdateRequest {
 
     @Schema(description = "用户性别-参见 SexEnum 枚举类", example = "1")
     private Integer sex;
+
+    @Schema(description = "头像")
+    private String avatar;
 }
