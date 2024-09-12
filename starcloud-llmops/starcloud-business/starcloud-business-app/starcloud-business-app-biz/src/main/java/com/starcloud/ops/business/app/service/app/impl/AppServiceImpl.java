@@ -302,6 +302,9 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppUpdateReqVO request) {
         AppRespVO appRespVO = create((AppReqVO) request);
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(request.getType())) {
+            // 创建默认计划
+
+            // 复制素材库
             creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
         }
         return appRespVO;
@@ -551,7 +554,7 @@ public class AppServiceImpl implements AppService {
                 request.setIcon(category.getIcon());
             }
             // 图片默认为分类图片
-            request.setImages(Collections.singletonList(category.getImage()));
+            // request.setImages(Collections.singletonList(category.getImage()));
         }
 
         // 未指定应用类型，默认为普通应用
