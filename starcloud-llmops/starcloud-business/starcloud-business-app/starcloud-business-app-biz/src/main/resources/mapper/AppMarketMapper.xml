@@ -151,6 +151,7 @@
                category,
                scenes,
                icon,
+               images,
                description,
                creator,
                updater,
