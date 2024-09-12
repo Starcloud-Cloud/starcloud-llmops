@@ -302,9 +302,6 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppUpdateReqVO request) {
         AppRespVO appRespVO = create((AppReqVO) request);
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(request.getType())) {
-            // 创建默认计划
-
-            // 复制素材库
             creativeMaterialManager.copyAppMaterial(request.getUid(), appRespVO.getName(), appRespVO.getUid());
         }
         return appRespVO;
@@ -370,6 +367,7 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.update();
+
         verifications.addAll(appEntity.getVerificationList());
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(appEntity);
         appResponse.setVerificationList(verifications);
