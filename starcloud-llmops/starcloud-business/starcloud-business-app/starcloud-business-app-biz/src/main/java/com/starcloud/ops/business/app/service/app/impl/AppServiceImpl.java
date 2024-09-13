@@ -288,8 +288,6 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         List<Verification> verifications = handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
-        // 图片信息。
-        appEntity.setImages(creativeContentService.listImage(request.getExample()));
         appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
@@ -336,8 +334,11 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdater(null);
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
-        // 图片信息。
-        appEntity.setImages(creativeContentService.listImage(appEntity.getExample()));
+        // 查询配置的示例列表
+        List<String> imageList = creativeContentService.listImage(appEntity.getExample());
+        if (CollectionUtil.isNotEmpty(imageList)) {
+            appEntity.setImages(imageList);
+        }
         // 插入数据库
         appEntity.insert();
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appEntity.getType())) {
@@ -374,8 +375,6 @@ public class AppServiceImpl implements AppService {
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
-        // 图片信息。
-        appEntity.setImages(creativeContentService.listImage(request.getExample()));
         appEntity.update();
         verifications.addAll(appEntity.getVerificationList());
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(appEntity);
@@ -560,8 +559,14 @@ public class AppServiceImpl implements AppService {
             if (StringUtils.isBlank(request.getIcon())) {
                 request.setIcon(category.getIcon());
             }
-            // 图片默认为分类图片
-            request.setImages(Collections.singletonList(category.getImage()));
+            // 查询配置的示例列表
+            List<String> imageList = creativeContentService.listImage(request.getExample());
+            if (CollectionUtil.isNotEmpty(imageList)) {
+                request.setImages(imageList);
+            } else {
+                // 图片默认为分类图片
+                request.setImages(Collections.singletonList(category.getImage()));
+            }
         }
 
         // 未指定应用类型，默认为普通应用

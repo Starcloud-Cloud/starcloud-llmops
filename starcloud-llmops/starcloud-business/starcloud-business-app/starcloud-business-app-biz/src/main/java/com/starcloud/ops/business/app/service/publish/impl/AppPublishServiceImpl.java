@@ -435,8 +435,12 @@ public class AppPublishServiceImpl implements AppPublishService {
      */
     private AppMarketEntity handlerMarketApp(AppPublishDO appPublish) {
         AppMarketEntity appMarketEntity = AppMarketConvert.INSTANCE.convert(appPublish);
-        // 图片信息。
-        appMarketEntity.setImages(creativeContentService.listImage(appMarketEntity.getExample()));
+        // 查询配置的示例图片列表
+        List<String> imageList = creativeContentService.listImage(appMarketEntity.getExample());
+        if (CollectionUtil.isNotEmpty(imageList)) {
+            appMarketEntity.setImages(imageList);
+        }
+
         AppDO app = JsonUtils.parseObject(appPublish.getAppInfo(), AppDO.class);
 
         String marketUid = IdUtil.fastSimpleUUID();
