@@ -53,6 +53,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
@@ -112,6 +113,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private CreativeMaterialManager creativeMaterialManager;
+
+    @Resource
+    private CreativeContentService creativeContentService;
 
     /**
      * 查询应用语言列表
@@ -284,6 +288,8 @@ public class AppServiceImpl implements AppService {
     public AppRespVO create(AppReqVO request) {
         List<Verification> verifications = handlerAndValidateRequest(request);
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
+        // 图片信息。
+        appEntity.setImages(creativeContentService.listImage(request.getExample()));
         appEntity.setCreator(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setCreateTime(LocalDateTime.now());
@@ -330,6 +336,8 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdater(null);
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
+        // 图片信息。
+        appEntity.setImages(creativeContentService.listImage(appEntity.getExample()));
         // 插入数据库
         appEntity.insert();
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appEntity.getType())) {
@@ -366,6 +374,8 @@ public class AppServiceImpl implements AppService {
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
+        // 图片信息。
+        appEntity.setImages(creativeContentService.listImage(request.getExample()));
         appEntity.update();
         verifications.addAll(appEntity.getVerificationList());
         AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(appEntity);
@@ -620,4 +630,5 @@ public class AppServiceImpl implements AppService {
         appResponse.setSource(AppSourceEnum.WEB.name());
         return appResponse;
     }
+
 }
