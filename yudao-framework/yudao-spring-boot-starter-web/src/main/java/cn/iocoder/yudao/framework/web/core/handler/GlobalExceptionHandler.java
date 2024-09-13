@@ -236,6 +236,13 @@ public class GlobalExceptionHandler {
             return requestNotPermittedExceptionHandler(req, ex);
         }
 
+        // mybatis DataPermissionRule异常
+        if (Objects.equals("org.mybatis.spring.MyBatisSystemException", ex.getClass().getName())
+                && Objects.nonNull(ex.getCause())
+                && Objects.nonNull(ex.getCause().getCause())) {
+            return CommonResult.error(500, ex.getCause().getCause().getMessage());
+        }
+
         // 情况三：处理异常
         log.error("[defaultExceptionHandler]", ex);
         // 插入异常日志
