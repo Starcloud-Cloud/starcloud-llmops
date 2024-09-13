@@ -44,7 +44,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -331,54 +336,40 @@ public class CreativeMaterialManager {
      * 根据素材库配置查询素材列表
      */
     public List<Map<String, Object>> getMaterialList(CreativePlanRespVO creativePlan) {
-        // 上游已判null
-        WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(creativePlan.getConfiguration().getAppInformation());
-
-        // 查询素材库数据
-        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
-                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
-                .orElse(StringUtils.EMPTY);
-
-        log.info("查询素材库数据参数：{}", materialLibraryJsonVariable);
-
-        MaterialLibrarySliceAppReqVO appReqVO = new MaterialLibrarySliceAppReqVO();
-        // 获取查询条件
-        if (StringUtils.isNotBlank(materialLibraryJsonVariable)) {
-            List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
-            log.info("查询素材库数据参数：{}", JsonUtils.toJsonPrettyString(queryParam));
-            if (CollectionUtil.isNotEmpty(queryParam)) {
-                appReqVO = queryParam.get(0);
-                appReqVO.setLibraryUid(null);
-                materialStepWrapper.putVariable(CreativeConstants.LIBRARY_QUERY, JSONUtil.toJsonStr(queryParam));
-            }
-        }
-
+        CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
+        AppMarketRespVO appInformation = configuration.getAppInformation();
+        WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(appInformation);
         // 获取到素材使用模式
         MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
 
-        String uid;
-        String source = creativePlan.getSource();
-        if (CreativePlanSourceEnum.isApp(source)) {
-            CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-            AppMarketRespVO appInformation = configuration.getAppInformation();
-            uid = appInformation.getUid();
-        } else {
-            uid = creativePlan.getUid();
-        }
+        // 查询素材库数据
+        MaterialLibrarySliceAppReqVO materialListRequest = new MaterialLibrarySliceAppReqVO();
 
-        appReqVO.setAppUid(uid);
-        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
+        // 选择模式执行查询条件构造
+        if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
+            materialListRequest = CreativeUtils.getSelectMaterialRequestByStepWrapper(materialStepWrapper);
+        } else {
+            // 构造排序条件
             SortingField sortingField = new SortingField();
             sortingField.setOrder(SortingField.ORDER_ASC);
             sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
-            appReqVO.setSortingField(sortingField);
+            materialListRequest.setSortingField(sortingField);
+            materialListRequest.setLibraryUid(null);
+        }
+
+        // 设置应用UID
+        String source = creativePlan.getSource();
+        if (CreativePlanSourceEnum.isApp(source)) {
+            materialListRequest.setAppUid(appInformation.getUid());
+        } else {
+            materialListRequest.setAppUid(creativePlan.getUid());
         }
 
         long start = System.currentTimeMillis();
-        log.info("查询素材库整体参数：{}", JsonUtils.toJsonString(appReqVO));
-        MaterialLibrarySliceUseRespVO materialLibrarySlice = materialLibraryService.getMaterialLibrarySlice(appReqVO);
+        log.info("查询素材列表整体参数：{}", JsonUtils.toJsonString(materialListRequest));
+        MaterialLibrarySliceUseRespVO materialLibrarySlice = materialLibraryService.getMaterialLibrarySlice(materialListRequest);
         long end = System.currentTimeMillis();
-        log.info("material library query, {}", end - start);
+        log.info("查询素材列表整体耗时, {}", end - start);
         return convert(materialLibrarySlice);
     }
 

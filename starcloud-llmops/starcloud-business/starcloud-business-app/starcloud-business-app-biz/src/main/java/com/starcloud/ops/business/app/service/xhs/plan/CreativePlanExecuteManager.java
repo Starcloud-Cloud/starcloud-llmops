@@ -247,7 +247,7 @@ public class CreativePlanExecuteManager {
         // 如果是选择执行，重新计算任务总数。
         if (MaterialUsageModel.SELECT.equals(metadata.getMaterialUsageModel())) {
             // 根据素材总数和风格进行计算可以生产任务的总数。
-            PlanTotalCount calculated = handler.calculateTotalCount(materialList, posterStyleList);
+            PlanTotalCount calculated = handler.calculateTotalCount(materialList, posterStyleList, metadata);
             totalCount = calculated.getTotal();
             message = calculated.getWarning();
         }
@@ -448,11 +448,19 @@ public class CreativePlanExecuteManager {
      * @return 素材列表
      */
     private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse) {
-        log.info("开始获取素材库列表");
-        List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
-        // 素材库步骤不为空的话，上传素材不能为空
-        AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
-        return materialList;
+        try {
+            log.info("开始获取素材库列表");
+            List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
+            // 素材库步骤不为空的话，上传素材不能为空
+            AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
+            return materialList;
+        } catch (ServiceException exception) {
+            log.error("获取素材列表失败", exception);
+            throw ServiceExceptionUtil.invalidParamException(exception.getMessage());
+        } catch (Exception exception) {
+            log.error("获取素材列表失败", exception);
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：获取素材列表失败，请联系管理员！");
+        }
     }
 
     /**

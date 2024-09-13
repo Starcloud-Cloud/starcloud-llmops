@@ -417,14 +417,16 @@ public class RecommendVariableItemFactory {
      */
     public static VariableItemRespVO defMaterialLibraryVariable() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
-        variableItem.setField(CreativeConstants.LIBRARY_QUERY);
-        variableItem.setLabel("素材库定义");
-        variableItem.setDescription("素材库定义");
+        variableItem.setField(CreativeConstants.SELECT_MATERIAL_QUERY);
+        variableItem.setLabel("选择模式素材库查询条件");
+        variableItem.setDescription("选择模式素材库查询条件");
         variableItem.setType(AppVariableTypeEnum.TEXT.name());
         variableItem.setStyle(AppVariableStyleEnum.JSON.name());
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.FALSE);
+        variableItem.setValue(StrUtil.EMPTY_JSON);
+        variableItem.setDefaultValue(StrUtil.EMPTY_JSON);
         return variableItem;
     }
 

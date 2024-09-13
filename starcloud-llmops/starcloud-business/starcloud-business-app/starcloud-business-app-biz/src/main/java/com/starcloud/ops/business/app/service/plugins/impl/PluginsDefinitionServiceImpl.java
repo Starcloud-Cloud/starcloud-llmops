@@ -48,6 +48,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
@@ -455,14 +456,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
-        PluginDefinitionDO pluginConfigDO = getByUid(uid);
-        if (UserUtils.isNotAdmin()) {
-            // 非管理员只能删除自己的
-            pluginDefinitionMapper.deleteOwnerPlugin(uid, WebFrameworkUtils.getLoginUserId().toString());
-        } else {
-            pluginDefinitionMapper.deleteById(pluginConfigDO.getId());
-        }
+        PluginDefinitionDO pluginDefinitionDO = getByUid(uid);
+        pluginDefinitionMapper.deleteById(pluginDefinitionDO.getId());
+        configService.deleteByPluginUid(pluginDefinitionDO.getUid());
     }
 
     @Override
