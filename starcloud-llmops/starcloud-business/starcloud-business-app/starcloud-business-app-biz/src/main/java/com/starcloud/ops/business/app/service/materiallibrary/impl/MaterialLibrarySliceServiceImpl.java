@@ -72,7 +72,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     // 定义常量
     private static final int EXPIRATION_DAYS = 3;
-    private static final TimeUnit TIME_UNIT = TimeUnit.MINUTES;
+    private static final TimeUnit TIME_UNIT = TimeUnit.DAYS;
 
 
     @Resource(name = LIBRARY_DATA_UPLOAD_THREAD_POOL_TASK_EXECUTOR)
@@ -175,7 +175,10 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
 
         for (MaterialLibrarySliceSaveReqVO.TableContent tc : content) {
             if (imageColumnCodes.contains(tc.getColumnCode())) {
-                allImageContents.add(tc.getValue());
+                if (StrUtil.isNotBlank(tc.getValue())){
+                    allImageContents.add(tc.getValue());
+                }
+
             }
         }
     }
@@ -192,6 +195,7 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
         throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
     }
 
+    validateUploadIsSuccess(buildRedisKey(allImageContents, libraryId));
     // 第四步 替换原有图片的值 使用新的值
     saveReqVOS.forEach(data -> {
         data.getContent().stream()
@@ -199,21 +203,7 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
                 .forEach(content -> {
                     String key = getRedisKey(content.getValue(), libraryId);
                     String urlsString = redisTemplate.boundValueOps(key).get();
-
-                    List<String> urls = null;
-                    if (StrUtil.isNotBlank(urlsString)) {
-                        urls = new ArrayList<>(Arrays.asList(urlsString.split(",")));
-                    }
-
-                    if (urls != null && !urls.isEmpty()) {
-                        String value = content.getValue();
-                        // 如果列类型为图片且值为空或为NULL，则设置新的图片值
-                        if (StrUtil.isBlank(value) || StrUtil.NULL.equalsIgnoreCase(value)) {
-                            synchronized (urls) {
-                                content.setValue(urls.remove(0));
-                            }
-                        }
-                    }
+                    content.setValue(urlsString);
                 });
     });
 }
@@ -677,7 +667,7 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
                 });
 
             } else {
-                setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_UPLOAD));
+                setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_IMAGE_TYPE_ERROR));
             }
 
         });
