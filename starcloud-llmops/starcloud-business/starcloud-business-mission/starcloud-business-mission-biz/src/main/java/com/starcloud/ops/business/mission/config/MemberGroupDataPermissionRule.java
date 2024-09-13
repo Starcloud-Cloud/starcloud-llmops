@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.config;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
@@ -8,12 +9,9 @@ import com.starcloud.ops.business.mission.api.WechatUserBindService;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import org.mapstruct.ap.internal.util.Collections;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -28,10 +26,7 @@ public class MemberGroupDataPermissionRule implements DataPermissionRule {
 
     @Override
     public Set<String> getTableNames() {
-        return Collections.asSet(
-                "llm_notification",
-                "llm_single_mission"
-        );
+        return CollectionUtil.newHashSet( "llm_notification","llm_single_mission");
     }
 
     @Override
