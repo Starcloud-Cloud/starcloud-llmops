@@ -66,6 +66,8 @@ public interface ErrorCodeConstant {
 
     ErrorCode  END_TIME_OVER =  new ErrorCode(700020010,"任务时间结束");
 
-    ErrorCode  GROUP_NOT_EXIST =  new ErrorCode(700020011,"用户分组不存在，请先绑定分组");
+    ErrorCode  GROUP_NOT_BIND =  new ErrorCode(700020011,"用户分组不存在，请先绑定分组");
+
+    ErrorCode  GROUP_NOT_EXIST =  new ErrorCode(700020012,"用户分组不存在");
 
 }

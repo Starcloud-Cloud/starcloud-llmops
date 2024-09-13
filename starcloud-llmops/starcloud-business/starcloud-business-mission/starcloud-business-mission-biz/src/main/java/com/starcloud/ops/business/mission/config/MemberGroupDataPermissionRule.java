@@ -15,6 +15,7 @@ import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.Set;
 
 @Slf4j
@@ -26,7 +27,10 @@ public class MemberGroupDataPermissionRule implements DataPermissionRule {
 
     @Override
     public Set<String> getTableNames() {
-        return CollectionUtil.newHashSet( "llm_notification","llm_single_mission");
+        return CollectionUtil.newHashSet(
+                "llm_notification",
+                "llm_single_mission"
+        );
     }
 
     @Override
@@ -35,6 +39,6 @@ public class MemberGroupDataPermissionRule implements DataPermissionRule {
             return null;
         }
         return new InExpression(MyBatisUtils.buildColumn(tableName, tableAlias, "creator"),
-                new ExpressionList(java.util.Collections.singletonList(new StringValue(wechatUserBindService.getBindUser()))));
+                new ExpressionList(Collections.singletonList(new StringValue(wechatUserBindService.getBindUser()))));
     }
 }

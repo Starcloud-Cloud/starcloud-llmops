@@ -6,10 +6,7 @@ import com.starcloud.ops.business.mission.api.WechatUserBindService;
 import com.starcloud.ops.business.mission.api.vo.request.WechatUserBindReqVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -28,5 +25,12 @@ public class WechatUserBindController {
     public CommonResult<Boolean> bind(@Valid @RequestBody WechatUserBindReqVO reqVO) {
         wechatUserBindService.bindGroup(reqVO);
         return CommonResult.success(false);
+    }
+
+    @GetMapping("/bindUser")
+    @Operation(summary = "绑定分组")
+    @PreAuthenticated
+    public CommonResult<String> getBindUser() {
+        return CommonResult.success(wechatUserBindService.getBindUser());
     }
 }

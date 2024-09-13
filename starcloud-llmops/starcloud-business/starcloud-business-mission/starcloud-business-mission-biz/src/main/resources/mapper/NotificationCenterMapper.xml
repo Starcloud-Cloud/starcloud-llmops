@@ -61,7 +61,7 @@
     </select>
 
     <select id="appPageCount" resultType="java.lang.Long">
-        select count(1)
+        select count(*)
         from llm_notification
         where deleted = false and end_time &gt; now() and status = 'published'
         <if test="reqVO.open != null">

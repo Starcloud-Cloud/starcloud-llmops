@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.plugins;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.idempotent.core.annotation.Idempotent;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
@@ -24,6 +25,7 @@ public class PluginConfigController {
 
     @PostMapping(value = "/create")
     @Operation(summary = "新增插件配置")
+    @Idempotent
     public CommonResult<PluginConfigRespVO> create(@RequestBody @Valid PluginConfigVO pluginVO) {
         return CommonResult.success(pluginConfigService.create(pluginVO));
     }
