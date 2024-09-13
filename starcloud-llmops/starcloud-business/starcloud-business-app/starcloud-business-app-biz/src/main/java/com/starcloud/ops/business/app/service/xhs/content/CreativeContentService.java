@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.content;
 
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
@@ -10,7 +11,10 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public interface CreativeContentService {
@@ -54,6 +58,35 @@ public interface CreativeContentService {
      * @return 创作内容任务列表
      */
     List<CreativeContentRespVO> listTask(CreativeContentTaskReqVO query);
+
+    /**
+     * 查询创作内容生成的图片
+     *
+     * @param uidList 创作内容UID集合
+     * @return 图片URL集合
+     */
+    List<String> listImage(List<String> uidList);
+
+    /**
+     * 查询创作内容生成的图片
+     *
+     * @param example 创作内容UID字符串。
+     * @return 图片URL集合
+     */
+    default List<String> listImage(String example) {
+        if (StringUtils.isBlank(example)) {
+            return Collections.emptyList();
+        }
+        List<String> uidList = StrUtil.split(example, ',');
+        List<String> handleUidList = new ArrayList<>();
+        for (String uid : uidList) {
+            if (StringUtils.isBlank(uid)) {
+                continue;
+            }
+            handleUidList.add(uid.trim());
+        }
+        return this.listImage(handleUidList);
+    }
 
     /**
      * 分页查询创作内容

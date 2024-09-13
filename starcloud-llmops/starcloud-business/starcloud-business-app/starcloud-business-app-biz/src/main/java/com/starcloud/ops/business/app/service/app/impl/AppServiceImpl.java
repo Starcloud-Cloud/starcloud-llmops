@@ -53,6 +53,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
@@ -112,6 +113,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private CreativeMaterialManager creativeMaterialManager;
+
+    @Resource
+    private CreativeContentService creativeContentService;
 
     /**
      * 查询应用语言列表
@@ -330,6 +334,11 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdater(null);
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
+        // 查询配置的示例列表
+        List<String> imageList = creativeContentService.listImage(appEntity.getExample());
+        if (CollectionUtil.isNotEmpty(imageList)) {
+            appEntity.setImages(imageList);
+        }
         // 插入数据库
         appEntity.insert();
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(appEntity.getType())) {
@@ -559,8 +568,18 @@ public class AppServiceImpl implements AppService {
             if (StringUtils.isBlank(request.getIcon())) {
                 request.setIcon(category.getIcon());
             }
-            // 图片默认为分类图片
-            // request.setImages(Collections.singletonList(category.getImage()));
+            // 查询配置的示例列表
+            List<String> imageList = creativeContentService.listImage(request.getExample());
+            if (CollectionUtil.isNotEmpty(imageList)) {
+                request.setImages(imageList);
+            } else {
+                if (CollectionUtil.isNotEmpty(request.getImages())) {
+                    request.setImages(request.getImages());
+                } else {
+                    // 图片默认为分类图片
+                    request.setImages(Collections.singletonList(category.getImage()));
+                }
+            }
         }
 
         // 未指定应用类型，默认为普通应用
@@ -629,4 +648,5 @@ public class AppServiceImpl implements AppService {
         appResponse.setSource(AppSourceEnum.WEB.name());
         return appResponse;
     }
+
 }
