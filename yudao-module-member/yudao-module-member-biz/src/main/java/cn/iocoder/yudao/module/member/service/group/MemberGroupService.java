@@ -27,6 +27,11 @@ public interface MemberGroupService {
     Long createGroup(@Valid MemberGroupCreateReqVO createReqVO);
 
     /**
+     *
+     */
+    MemberGroupDO selectByAdminUser(Long adminUserId);
+
+    /**
      * 更新用户分组
      *
      * @param updateReqVO 更新信息

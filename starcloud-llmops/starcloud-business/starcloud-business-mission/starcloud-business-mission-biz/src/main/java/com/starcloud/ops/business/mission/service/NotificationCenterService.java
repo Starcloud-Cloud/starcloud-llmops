@@ -52,4 +52,10 @@ public interface NotificationCenterService {
      */
     Map<String, Object> metadata();
 
+    /**
+     * 查询分组邀请码
+     * @return
+     */
+    String code();
+
 }

@@ -14,8 +14,7 @@ public interface WechatUserBindService {
     /**
      * 查询绑定的admin用户
      *
-     * @param memberUserId
      * @return
      */
-    String getBindUser(Long memberUserId);
+    String getBindUser();
 }

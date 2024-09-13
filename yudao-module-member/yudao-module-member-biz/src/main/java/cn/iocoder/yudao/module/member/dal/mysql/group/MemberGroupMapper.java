@@ -36,4 +36,10 @@ public interface MemberGroupMapper extends BaseMapperX<MemberGroupDO> {
                 .eq(MemberGroupDO::getName, name);
         return selectOne(wrapper);
     }
+
+    default MemberGroupDO selectByAdminUser(Long adminUserId) {
+        LambdaQueryWrapper<MemberGroupDO> wrapper = Wrappers.lambdaQuery(MemberGroupDO.class)
+                .eq(MemberGroupDO::getAdminUserId, adminUserId);
+        return selectOne(wrapper);
+    }
 }

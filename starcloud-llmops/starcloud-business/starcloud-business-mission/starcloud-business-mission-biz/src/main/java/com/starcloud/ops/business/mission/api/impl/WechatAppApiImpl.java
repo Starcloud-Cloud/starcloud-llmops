@@ -6,14 +6,12 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
-import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.NotificationSortFieldEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
-import com.starcloud.ops.business.mission.api.WechatUserBindService;
+import com.starcloud.ops.business.mission.api.WechatAppApi;
 import com.starcloud.ops.business.mission.api.vo.request.*;
 import com.starcloud.ops.business.mission.api.vo.response.AppNotificationRespVO;
 import com.starcloud.ops.business.mission.api.vo.response.AppSingleMissionRespVO;
@@ -28,7 +26,6 @@ import com.starcloud.ops.business.mission.convert.XhsNoteDetailConvert;
 import com.starcloud.ops.business.mission.dal.dataobject.*;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
-import com.starcloud.ops.business.mission.api.WechatAppApi;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
@@ -41,7 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -69,19 +69,11 @@ public class WechatAppApiImpl implements WechatAppApi {
     @Resource
     private AdminUserService adminUserService;
 
-    @Resource
-    private MemberUserService memberUserService;
-
-    @Resource
-    private WechatUserBindService wechatUserBindService;
-
-
     @Override
     public PageResult<AppNotificationRespVO> notifyPage(AppNotificationQueryReqVO reqVO) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         reqVO.setClaimUserId(loginUserId == null ? "-1" : loginUserId.toString());
         reqVO.setOpen(BooleanUtils.isNotFalse(reqVO.getOpen()));
-//        reqVO.setCreator(Collections.singletonList(wechatUserBindService.getBindUser(loginUserId)));
         Long count = notificationCenterMapper.appPageCount(reqVO);
         if (count == null || count <= 0) {
             return PageResult.empty();
@@ -97,7 +89,6 @@ public class WechatAppApiImpl implements WechatAppApi {
     public AppSingleMissionRespVO claimMission(AppClaimReqVO reqVO) {
         String lockKey = "claim_mission" + reqVO.getNotificationUid();
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-//        MemberUserDO user = memberUserService.getUser(SecurityFrameworkUtils.getLoginUserId());
         RLock lock = redissonClient.getLock(lockKey);
         try {
             if (!lock.tryLock(3, 3, TimeUnit.SECONDS)) {
@@ -124,7 +115,6 @@ public class WechatAppApiImpl implements WechatAppApi {
             }
             SingleMissionDO singleMissionDO = stayClaimMission.get();
             singleMissionDO.setClaimUserId(loginUserId.toString());
-//            singleMissionDO.setClaimUsername(user.getNickname());
             singleMissionDO.setClaimTime(LocalDateTime.now());
             singleMissionDO.setStatus(SingleMissionStatusEnum.claimed.getCode());
             singleMissionMapper.updateById(singleMissionDO);
@@ -133,7 +123,9 @@ public class WechatAppApiImpl implements WechatAppApi {
             log.warn("lock interrupted", e);
             throw exception(RETRY);
         } finally {
-            lock.unlock();
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 

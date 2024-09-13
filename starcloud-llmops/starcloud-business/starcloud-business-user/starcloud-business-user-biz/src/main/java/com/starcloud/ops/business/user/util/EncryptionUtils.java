@@ -12,7 +12,7 @@ public class EncryptionUtils {
     private static final String KEY = "1234567890abcdef";
 
 
-    private static final Long ENCRYPTION_KEY = 123456L;
+    private static final long ENCRYPTION_KEY = 12345L;
 
     public static String encryptString(String originalString) throws Exception {
         byte[] keyBytes = KEY.getBytes(StandardCharsets.UTF_8);
@@ -25,13 +25,17 @@ public class EncryptionUtils {
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 
-    public static Long encrypt(Long number) {
-        return (number + ENCRYPTION_KEY) % 1000000;
+    public static String encrypt(Long number) {
+        Long encryptedNumber = number + ENCRYPTION_KEY;
+        if (encryptedNumber < 1000000) {
+            return String.format("%06d", encryptedNumber);
+        }
+        return String.valueOf(encryptedNumber);
     }
 
-    public static Long decrypt(String encryptedNumber) {
-        Long aLong = Long.valueOf(encryptedNumber);
-        return (aLong - ENCRYPTION_KEY + 1000000) % 1000000;
+    public static Long decrypt(String code) {
+        int encryptedNumber = Integer.parseInt(code);
+        return encryptedNumber - ENCRYPTION_KEY;
     }
 
     public static Long decrypt(Long aLong) {

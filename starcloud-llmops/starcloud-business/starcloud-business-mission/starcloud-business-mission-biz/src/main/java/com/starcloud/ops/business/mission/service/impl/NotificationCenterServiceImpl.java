@@ -2,8 +2,13 @@ package com.starcloud.ops.business.mission.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupCreateReqVO;
+import cn.iocoder.yudao.module.member.dal.dataobject.group.MemberGroupDO;
+import cn.iocoder.yudao.module.member.service.group.MemberGroupService;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.enums.*;
@@ -17,6 +22,7 @@ import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
@@ -48,6 +55,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Resource
     private AppDictionaryService appDictionaryService;
 
+    @Resource
+    private MemberGroupService memberGroupService;
+
     @Override
     public Map<String, Object> metadata() {
         Map<String, Object> metadata = Maps.newHashMap();
@@ -55,13 +65,28 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         metadata.put("notificationStatusEnum", NotificationCenterStatusEnum.options());
         metadata.put("singleMissionStatusEnum", SingleMissionStatusEnum.options());
         metadata.put("category", appDictionaryService.creativeSchemeCategoryTree());
-//        metadata.put("accountType", AccountTypeEnum.options());
         metadata.put("address", AddressEnum.options());
         metadata.put("gender", GenderEnum.options());
         metadata.put("missionType", MisssionTypeEnum.options());
         metadata.put("fansNum", FansNumEnum.options());
         return metadata;
 
+    }
+
+    @Override
+    public String code() {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        MemberGroupDO memberGroupDO = memberGroupService.selectByAdminUser(loginUserId);
+        if (Objects.nonNull(memberGroupDO)) {
+            return EncryptionUtils.encrypt(memberGroupDO.getAdminUserId());
+        }
+
+        MemberGroupCreateReqVO groupCreateReqVO = new MemberGroupCreateReqVO();
+        groupCreateReqVO.setName("小程序分组-" + loginUserId);
+        groupCreateReqVO.setRemark(StringUtils.EMPTY);
+        groupCreateReqVO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        memberGroupService.createGroup(groupCreateReqVO);
+        return EncryptionUtils.encrypt(loginUserId);
     }
 
     @Override

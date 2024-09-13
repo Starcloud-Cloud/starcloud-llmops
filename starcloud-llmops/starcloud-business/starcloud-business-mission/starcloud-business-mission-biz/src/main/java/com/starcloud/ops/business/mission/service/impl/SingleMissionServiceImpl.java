@@ -15,18 +15,14 @@ import cn.iocoder.yudao.module.member.service.point.MemberPointRecordService;
 import cn.iocoder.yudao.module.member.service.user.MemberUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
-import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import com.starcloud.ops.business.enums.SingleMissionStatusEnum;
 import com.starcloud.ops.business.mission.controller.admin.vo.dto.SingleMissionPostingPriceDTO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.RefreshNoteDetailReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionImportVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionModifyReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SingleMissionQueryReqVO;
-import com.starcloud.ops.business.mission.controller.admin.vo.request.SinglePageQueryReqVO;
+import com.starcloud.ops.business.mission.controller.admin.vo.request.*;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.PageResult;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionExportVO;
 import com.starcloud.ops.business.mission.controller.admin.vo.response.SingleMissionRespVO;
@@ -51,28 +47,11 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.BUDGET_ERROR;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.CAN_NOT_REFRESH;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.DONT_ALLOW_DELETE;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.EXCEL_IS_EMPTY;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.EXISTING_BOUND_CREATIVE;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.MISSION_NOT_EXISTS;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.MISSION_STATUS_NOT_SUPPORT;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.NOTIFICATION_NOT_BOUND_MISSION;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.NOTIFICATION_STATUS_NOT_SUPPORT;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.NOT_EXIST_UID;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.ONLY_STAY_CLAIM;
-import static com.starcloud.ops.business.enums.ErrorCodeConstant.TOO_MANY_MISSION;
+import static com.starcloud.ops.business.enums.ErrorCodeConstant.*;
 
 
 @Slf4j
@@ -520,13 +499,11 @@ public class SingleMissionServiceImpl implements SingleMissionService {
             throw exception(BUDGET_ERROR);
         }
 
-        if (singleBudget != null
-                && NumberUtil.isLess(notificationBudget, singleBudget)) {
+        if (NumberUtil.isLess(notificationBudget, singleBudget)) {
             throw exception(BUDGET_ERROR);
         }
 
-        if (singleBudget != null
-                && NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
+        if (NumberUtil.isGreater(singleBudget.multiply(BigDecimal.valueOf(missionSize)), notificationBudget)) {
             throw exception(TOO_MANY_MISSION);
         }
     }

@@ -3,7 +3,9 @@ package cn.iocoder.yudao.module.member.service.group;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupCreateReqVO;
 import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupPageReqVO;
 import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupUpdateReqVO;
@@ -17,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.member.enums.ErrorCodeConstants.GROUP_HAS_USER;
@@ -40,10 +43,21 @@ public class MemberGroupServiceImpl implements MemberGroupService {
     @Override
     public Long createGroup(MemberGroupCreateReqVO createReqVO) {
         // 插入
+        Long loginUserId = WebFrameworkUtils.getLoginUserId();
+        MemberGroupDO memberGroupDO = memberGroupMapper.selectByAdminUser(loginUserId);
+        if (Objects.nonNull(memberGroupDO)) {
+            throw exception(new ErrorCode(500, "每个用户只能绑定一个分组"));
+        }
         MemberGroupDO group = MemberGroupConvert.INSTANCE.convert(createReqVO);
+        group.setAdminUserId(loginUserId);
         memberGroupMapper.insert(group);
         // 返回
         return group.getId();
+    }
+
+    @Override
+    public MemberGroupDO selectByAdminUser(Long adminUserId) {
+        return memberGroupMapper.selectByAdminUser(adminUserId);
     }
 
     @Override
@@ -85,6 +99,8 @@ public class MemberGroupServiceImpl implements MemberGroupService {
 
     @Override
     public MemberGroupDO saveGroup(String name) {
+        // userid
+
         MemberGroupDO memberGroupDO = memberGroupMapper.selectListByName(name);
         if (memberGroupDO == null) {
             memberGroupDO = new MemberGroupDO();

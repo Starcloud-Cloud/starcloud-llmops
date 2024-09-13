@@ -75,4 +75,11 @@ public class NotificationCenterController {
         return CommonResult.success(respVO);
     }
 
+    @GetMapping("/code")
+    @Operation(summary = "查询绑定邀请码", description = "查询绑定邀请码")
+    public CommonResult<String> code() {
+        String code = centerService.code();
+        return CommonResult.success(code);
+    }
+
 }

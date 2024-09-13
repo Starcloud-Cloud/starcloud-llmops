@@ -11,5 +11,5 @@ public class WechatUserBindReqVO {
 
     @NotNull(message = "邀请码不能为空")
     @Schema(description = "邀请码")
-    private Long inviteCode;
+    private String inviteCode;
 }
