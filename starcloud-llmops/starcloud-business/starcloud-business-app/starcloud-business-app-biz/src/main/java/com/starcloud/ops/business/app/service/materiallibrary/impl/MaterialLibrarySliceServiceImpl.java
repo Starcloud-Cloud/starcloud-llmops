@@ -35,8 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
@@ -46,6 +48,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -138,9 +141,82 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
             }
         });
 
+        handleImageValue(tableColumnDOList, saveReqVOS, libraryIds.get(0));
 
         this.saveBatchData(BeanUtils.toBean(createReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
+
+public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOList,
+                             List<MaterialLibrarySliceSaveReqVO> saveReqVOS,
+                             Long libraryId) {
+
+    // 第一步 取出列类型为图片的列 code 如果不存在 直接返回
+    Set<String> imageColumnCodes = new HashSet<>();
+    for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
+        if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnDO.getColumnType())) {
+            String columnCode = tableColumnDO.getColumnCode();
+            if (columnCode != null && !columnCode.isEmpty()) {
+                imageColumnCodes.add(columnCode);
+            }
+        }
+    }
+
+    if (imageColumnCodes.isEmpty()) {
+        return; // 不存在图片列，直接返回
+    }
+
+    // 第二步 如果存图片列 code 则取出所有图片
+    List<String> allImageContents = new ArrayList<>();
+    for (MaterialLibrarySliceSaveReqVO saveReq : saveReqVOS) {
+        List<MaterialLibrarySliceSaveReqVO.TableContent> content = saveReq.getContent();
+        if (content == null) {
+            throw exception(MATERIAL_LIBRARY_SLICE_DATA_MISSING);
+        }
+
+        for (MaterialLibrarySliceSaveReqVO.TableContent tc : content) {
+            if (imageColumnCodes.contains(tc.getColumnCode())) {
+                allImageContents.add(tc.getValue());
+            }
+        }
+    }
+
+    // 第三步 使用asyncUploadImage 方法 这个方法支持异步上传多张图片
+    ListenableFuture<Boolean> future = asyncUploadImage(allImageContents, libraryId);
+
+    try {
+        if (!future.get()) {
+            throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
+        }
+    } catch (InterruptedException | ExecutionException e) {
+        Thread.currentThread().interrupt(); // 恢复中断状态
+        throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
+    }
+
+    // 第四步 替换原有图片的值 使用新的值
+    saveReqVOS.forEach(data -> {
+        data.getContent().stream()
+                .filter(content -> imageColumnCodes.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                .forEach(content -> {
+                    String key = getRedisKey(content.getValue(), libraryId);
+                    String urlsString = redisTemplate.boundValueOps(key).get();
+
+                    List<String> urls = null;
+                    if (StrUtil.isNotBlank(urlsString)) {
+                        urls = new ArrayList<>(Arrays.asList(urlsString.split(",")));
+                    }
+
+                    if (urls != null && !urls.isEmpty()) {
+                        String value = content.getValue();
+                        // 如果列类型为图片且值为空或为NULL，则设置新的图片值
+                        if (StrUtil.isBlank(value) || StrUtil.NULL.equalsIgnoreCase(value)) {
+                            synchronized (urls) {
+                                content.setValue(urls.remove(0));
+                            }
+                        }
+                    }
+                });
+    });
+}
 
     @Override
     public void updateMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO updateReqVO) {
@@ -567,35 +643,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
             });
 
-            // images.forEach(imageName -> {
-            //     if (StringUtil.isPath(imageName)) {
-            //         List<File> filesInImagesFolder = findFilesInTargetFolder(childrenDirs, "images", imageName);
-            //         if (CollUtil.isEmpty(filesInImagesFolder)) {
-            //             redisTemplate.boundValueOps(getRedisKey(imageName, libraryId)).set(JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_NO_FOUND), 3, TimeUnit.DAYS);
-            //             return;
-            //         }
-            //         threadPoolTaskExecutor.execute(() -> {
-            //             File image = FileUtil.file(filesInImagesFolder.get(0));
-            //
-            //             try {
-            //                 String url = ImageUploadUtils.uploadImage(StrUtil.format("{}_{}", prefix, imageName), ImageUploadUtils.UPLOAD_PATH, IoUtil.readBytes(Files.newInputStream(image.toPath()))).getUrl();
-            //                 redisTemplate.boundValueOps(getRedisKey(imageName, libraryId)).set(JSONUtil.toJsonStr(url), 3, TimeUnit.DAYS);
-            //             } catch (IOException e) {
-            //                 throw new RuntimeException(e);
-            //             }
-            //         });
-            //     }
-            //
-            //     if (ImageUploadUtils.isImage(imageName)) {
-            //         // excel 中有内容 为http图片地址
-            //         String relativePath = "material" + File.separator + prefix;
-            //         String ossUrl = ImageUploadUtils.dumpToOss(imageName, IdUtil.fastSimpleUUID(), relativePath);
-            //         redisTemplate.boundValueOps(getRedisKey(imageName, libraryId)).set(JSONUtil.toJsonStr(ossUrl), 3, TimeUnit.DAYS);
-            //     }
-            //
-            //
-            //
-            // });
         }
 
 
@@ -615,6 +662,29 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         log.info("=========> 图片和文档数据 异步处理中");
 
     }
+
+
+    @Async
+    public ListenableFuture<Boolean> asyncUploadImage(List<String> imageUrls, Long libraryId) {
+        String prefix = LocalDateTimeUtil.format(LocalDateTimeUtil.now(), PURE_DATETIME_MS_PATTERN) + RandomUtil.randomInt(1000, 9999);
+        imageUrls.forEach(url -> {
+            if (ImageUploadUtils.isImage(url)) {
+                // excel 中有内容 为http图片地址
+                threadPoolTaskExecutor.execute(() -> {
+                    String relativePath = "material" + File.separator + prefix;
+                    String ossUrl = ImageUploadUtils.dumpToOss(url, IdUtil.fastSimpleUUID(), relativePath);
+                    setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(ossUrl));
+                });
+
+            } else {
+                setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_FILE_UPLOAD));
+            }
+
+        });
+
+        return AsyncResult.forValue(true);
+    }
+
 
     // 封装 Redis 操作
     private void setRedisValue(String key, String value) {
