@@ -565,8 +565,12 @@ public class AppServiceImpl implements AppService {
             if (CollectionUtil.isNotEmpty(imageList)) {
                 request.setImages(imageList);
             } else {
-                // 图片默认为分类图片
-                request.setImages(Collections.singletonList(category.getImage()));
+                if (CollectionUtil.isNotEmpty(request.getImages())) {
+                    request.setImages(request.getImages());
+                } else {
+                    // 图片默认为分类图片
+                    request.setImages(Collections.singletonList(category.getImage()));
+                }
             }
         }
 
