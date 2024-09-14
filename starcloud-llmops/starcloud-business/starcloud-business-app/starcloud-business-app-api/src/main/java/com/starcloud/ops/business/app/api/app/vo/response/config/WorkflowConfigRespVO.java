@@ -379,8 +379,7 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
         // 循环处理
         for (WorkflowStepWrapperRespVO step : this.steps) {
             // 如果map中不存在，或者为空，则不进行合并处理，直接放到新的list中
-            if (!stepWrapperMap.containsKey(step.getStepCode()) ||
-                    Objects.isNull(stepWrapperMap.get(step.getStepCode()))) {
+            if (!stepWrapperMap.containsKey(step.getStepCode()) || Objects.isNull(stepWrapperMap.get(step.getStepCode()))) {
                 mergeStepWrapperList.add(step);
                 continue;
             }
@@ -388,7 +387,6 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
             // 进行合并处理
             WorkflowStepWrapperRespVO stepWrapper = stepWrapperMap.get(step.getStepCode());
             step.merge(stepWrapper);
-
             // 将合并后的数据放到新的list中
             mergeStepWrapperList.add(step);
         }

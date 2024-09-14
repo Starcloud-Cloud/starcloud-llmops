@@ -292,8 +292,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
             List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
             configuration.setImageStyleList(imageStyleList);
-
             creativePlanResponse.setConfiguration(configuration);
+
+            // 如果计划版本号小于最新的版本号，且是来源是应用市场的时候，进行自动更新计划信息。
+            if (plan.getVersion() < appMarketResponse.getVersion() && CreativePlanSourceEnum.isMarket(plan.getSource())) {
+                CreativePlanUpgradeReqVO upgradeRequest = new CreativePlanUpgradeReqVO();
+                upgradeRequest.setUid(plan.getUid());
+                upgradeRequest.setAppUid(plan.getAppUid());
+                upgradeRequest.setConfiguration(configuration);
+                upgradeRequest.setTotalCount(plan.getTotalCount());
+                upgradeRequest.setIsFullCover(Boolean.FALSE);
+                upgrade(upgradeRequest);
+            }
             return creativePlanResponse;
         }
 
@@ -556,7 +566,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
             // copy素材库
             creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket.getUid(), plan.getUid());
-
         }
         // 如果不是全量覆盖，只更新应用配置
         else {
