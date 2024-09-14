@@ -46,9 +46,16 @@ public interface MaterialLibraryTableColumnMapper extends BaseMapperX<MaterialLi
         delete(wrapper);
     }
 
+
+    default void deleteByLibraryId(Long libraryId, List<String> columnCodeList) {
+        LambdaUpdateWrapper<MaterialLibraryTableColumnDO> wrapper = Wrappers.lambdaUpdate(MaterialLibraryTableColumnDO.class);
+        wrapper.eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId)
+                .in(MaterialLibraryTableColumnDO::getColumnCode, columnCodeList)
+        ;
+        delete(wrapper);
+    }
+
     default int selectCountByName(Long libraryId, Long ignoreId, List<String> columnName) {
-
-
         return Math.toIntExact(selectCount(new LambdaQueryWrapper<>(MaterialLibraryTableColumnDO.class)
                 .eq(MaterialLibraryTableColumnDO::getLibraryId, libraryId)
                 .notIn(Objects.nonNull(ignoreId), MaterialLibraryTableColumnDO::getId, ignoreId)
