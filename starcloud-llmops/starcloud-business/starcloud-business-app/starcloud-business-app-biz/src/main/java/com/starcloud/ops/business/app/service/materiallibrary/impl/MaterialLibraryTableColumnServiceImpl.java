@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
@@ -31,6 +33,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
@@ -177,7 +180,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         // 优先删除 避免同名的情况
         if (CollUtil.isNotEmpty(diffList.get(2))) {
             materialLibraryTableColumnMapper.deleteBatchIds(convertList(diffList.get(2), MaterialLibraryTableColumnDO::getId));
-            materialLibrarySliceService.asyncUpdateSliceByColumnCodeDelete(diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList()),diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getLibraryId).collect(Collectors.toList()).get(0));
+            materialLibrarySliceService.asyncUpdateSliceByColumnCodeDelete(diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList()), diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getLibraryId).collect(Collectors.toList()).get(0));
         }
 
         // 第二步，批量添加、修改、删除
@@ -221,7 +224,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             data.setLibraryId(libraryId);
             data.setId(null);
         });
-       saveBatchData(newTableColumnSaveList);
+        saveBatchData(newTableColumnSaveList);
 
     }
 
@@ -259,7 +262,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public <T> Integer saveBatchData(List<T> list) {
 
-        if (CollUtil.isEmpty(list)){
+        if (CollUtil.isEmpty(list)) {
             return 0;
         }
 
@@ -283,6 +286,68 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         materialLibraryTableColumnMapper.insertBatch(bean);
         return list.size();
     }
+
+    @Override
+    public void updateColumn(String sourceUid, String targetUid) {
+        MaterialLibraryAppBindDO sourceBind = materialLibraryAppBindService.getMaterialLibraryAppBind(sourceUid);
+        if (Objects.isNull(sourceBind)) {
+            throw exception(new ErrorCode(500, "更新素材标题 sourceUid=" + sourceUid));
+        }
+        List<MaterialLibraryTableColumnDO> sourceColumns = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(sourceBind.getLibraryId());
+
+        MaterialLibraryAppBindDO targetBind = materialLibraryAppBindService.getMaterialLibraryAppBind(targetUid);
+        if (Objects.isNull(targetBind)) {
+            throw exception(new ErrorCode(500, "更新素材标题 targetUid=" + targetUid));
+        }
+
+        Long targetLibraryId = targetBind.getLibraryId();
+        List<MaterialLibraryTableColumnDO> targetColumns = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(targetLibraryId);
+
+        List<List<MaterialLibraryTableColumnDO>> diffList =
+                diffList(targetColumns, sourceColumns,
+                        (target, source) -> ObjectUtil.equal(target.getColumnCode(), source.getColumnCode()));
+
+        // 删除列
+        List<String> deleteColumns = diffList.get(2).stream().map(MaterialLibraryTableColumnDO::getColumnCode).collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(deleteColumns)) {
+            // 删除表头
+            materialLibraryTableColumnMapper.deleteByLibraryId(
+                    targetLibraryId,
+                    deleteColumns
+            );
+            // 删除列数据
+            materialLibrarySliceService.asyncUpdateSliceByColumnCodeDelete(
+                    deleteColumns,
+                    targetLibraryId);
+        }
+
+        // 新增列
+        List<MaterialLibraryTableColumnDO> addColumns = diffList.get(0);
+        if (CollUtil.isNotEmpty(addColumns)) {
+            List<MaterialLibraryTableColumnDO> columnDOList = new ArrayList<>(addColumns.size());
+            for (MaterialLibraryTableColumnDO addColumn : addColumns) {
+                MaterialLibraryTableColumnDO columnDO = BeanUtils.toBean(addColumn, MaterialLibraryTableColumnDO.class, "id", "libraryId");
+                columnDO.setLibraryId(targetLibraryId);
+                columnDOList.add(columnDO);
+            }
+            materialLibraryTableColumnMapper.insertBatch(columnDOList);
+        }
+
+        List<MaterialLibraryTableColumnDO> updateColumns = diffList.get(1);
+        Map<String, MaterialLibraryTableColumnDO> targetColumnMaps = targetColumns.stream().collect(Collectors.toMap(MaterialLibraryTableColumnDO::getColumnCode, Function.identity(), (a, b) -> a));
+
+        // 更新列
+        if (CollUtil.isNotEmpty(updateColumns)) {
+            List<MaterialLibraryTableColumnDO> columnDOList = new ArrayList<>(updateColumns.size());
+            for (MaterialLibraryTableColumnDO updateColumn : updateColumns) {
+                MaterialLibraryTableColumnDO columnDO = targetColumnMaps.get(updateColumn.getColumnCode());
+                BeanUtil.copyProperties(updateColumn, columnDO, "id", "libraryId");
+                columnDOList.add(columnDO);
+            }
+            materialLibraryTableColumnMapper.updateBatch(columnDOList);
+        }
+    }
+
 
     //  TODO 验证 文档类型的字段只有一个
     private void validateMaterialLibraryTableColumnType(MaterialLibraryTableColumnSaveReqVO createReqVO) {

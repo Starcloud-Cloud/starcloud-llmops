@@ -576,6 +576,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 如果不是全量覆盖，只更新应用配置
         else {
             latestAppMarket.merge(appInformation);
+            creativeMaterialManager.upgradeColumns(latestAppMarket.getUid(), plan.getUid());
         }
         configuration.setAppInformation(latestAppMarket);
 
