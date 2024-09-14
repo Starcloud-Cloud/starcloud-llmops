@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.model.plan;
 
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -58,12 +57,16 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
     /**
      * 校验配置信息
      */
-    public List<Verification> validate(String planUid, ValidateTypeEnum validateType) {
+    public List<Verification> validate(String planUid, ValidateTypeEnum validateType, boolean isValidateApp) {
         List<Verification> verifications = new ArrayList<>();
         // 非配置校验的话，会校验 素材列表和海报列表
         if (!ValidateTypeEnum.CONFIG.equals(validateType)) {
-            //AppValidate.notEmpty(materialList, "创作计划素材列表不能为空！");
             VerificationUtils.notEmptyCreative(verifications, imageStyleList, planUid, "创作计划海报风格列表不能为空");
+        }
+
+        // 是否校验应用配置
+        if (!isValidateApp) {
+            return verifications;
         }
         // 应用信息始终校验
         VerificationUtils.notNullCreative(verifications, appInformation, planUid, "创作计划应用信息不能为空");
@@ -77,6 +80,7 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
         verifications.addAll(validate);
 
         appInformation = AppMarketConvert.INSTANCE.convertResponse(appMarketEntity);
+
         return verifications;
     }
 

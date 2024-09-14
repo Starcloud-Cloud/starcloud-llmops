@@ -42,6 +42,7 @@ public interface MaterialLibraryConstants {
 
 
     String MATERIAL_LIBRARY_FILE_UPLOAD = "https://service-oss.mofaai.com.cn/upload_failed.png";
+    String MATERIAL_LIBRARY_IMAGE_TYPE_ERROR = "https://service-oss.mofaai.com.cn/unrecognizable.png";
 
     String MATERIAL_LIBRARY_FILE_TYPE_ERROR = "https://service-oss.mofaai.com.cn/unknown_type.png";
 

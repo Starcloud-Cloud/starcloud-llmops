@@ -54,6 +54,16 @@ public enum CreativePlanSourceEnum implements IEnumable<Integer> {
     }
 
     /**
+     * 判断是否是应用市场
+     *
+     * @param source 创作计划来源
+     * @return 是否是我的应用
+     */
+    public static Boolean isMarket(String source) {
+        return MARKET.name().equalsIgnoreCase(source);
+    }
+
+    /**
      * 根据名称获取枚举
      *
      * @param name 根据枚举获取类型
