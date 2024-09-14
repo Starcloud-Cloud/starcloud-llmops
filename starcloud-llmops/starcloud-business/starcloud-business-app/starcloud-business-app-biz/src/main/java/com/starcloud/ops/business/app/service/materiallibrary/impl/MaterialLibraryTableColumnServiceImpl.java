@@ -326,7 +326,9 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         if (CollUtil.isNotEmpty(addColumns)) {
             List<MaterialLibraryTableColumnDO> columnDOList = new ArrayList<>(addColumns.size());
             for (MaterialLibraryTableColumnDO addColumn : addColumns) {
-                MaterialLibraryTableColumnDO columnDO = BeanUtils.toBean(addColumn, MaterialLibraryTableColumnDO.class, "id", "libraryId");
+                MaterialLibraryTableColumnDO columnDO = BeanUtils.toBean(addColumn,
+                        MaterialLibraryTableColumnDO.class,
+                        "id", "libraryId", "createTime", "updateTime", "creator", "updater");
                 columnDO.setLibraryId(targetLibraryId);
                 columnDOList.add(columnDO);
             }
@@ -341,7 +343,8 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             List<MaterialLibraryTableColumnDO> columnDOList = new ArrayList<>(updateColumns.size());
             for (MaterialLibraryTableColumnDO updateColumn : updateColumns) {
                 MaterialLibraryTableColumnDO columnDO = targetColumnMaps.get(updateColumn.getColumnCode());
-                BeanUtil.copyProperties(updateColumn, columnDO, "id", "libraryId");
+                BeanUtil.copyProperties(updateColumn, columnDO,
+                        "id", "libraryId", "createTime", "updateTime", "creator", "updater");
                 columnDOList.add(columnDO);
             }
             materialLibraryTableColumnMapper.updateBatch(columnDOList);
