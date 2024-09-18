@@ -123,7 +123,7 @@ public class CreativePlanController {
     }
 
     @PostMapping("/upgrade")
-    @Operation(summary = "升级创作计划", description = "执行创作计划")
+    @Operation(summary = "升级创作计划", description = "升级创作计划")
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<Boolean> upgrade(@Validated @RequestBody CreativePlanUpgradeReqVO request) {
         creativePlanService.upgrade(request);
