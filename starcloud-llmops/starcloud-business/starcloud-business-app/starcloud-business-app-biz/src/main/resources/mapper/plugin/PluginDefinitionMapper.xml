@@ -13,6 +13,7 @@
         u.nickname AS creator
         from llm_material_plugin_definition d
         LEFT JOIN system_users u ON d.creator = u.id
+        LEFT JOIN system_social_user s ON d.coze_token_id = s.id
         where d.deleted = false
         order by d.update_time desc
     </select>
