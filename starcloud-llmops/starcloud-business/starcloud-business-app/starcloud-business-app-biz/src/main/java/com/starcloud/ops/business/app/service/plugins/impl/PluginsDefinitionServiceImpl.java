@@ -397,7 +397,23 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Override
     public List<PluginRespVO> ownerList() {
         List<PluginDefinitionDO> pluginDOList = pluginDefinitionMapper.selectOwnerPlugin();
-        return PluginDefinitionConvert.INSTANCE.convert(pluginDOList);
+        if (CollectionUtil.isEmpty(pluginDOList)) {
+            return Collections.emptyList();
+        }
+
+        List<String> socialList = pluginDOList.stream().map(PluginDefinitionDO::getCozeTokenId).collect(Collectors.toList());
+        Map<String, SocialUserDO> socialUser = socialUserService.getSocialUser(socialList);
+
+        List<PluginRespVO> result = new ArrayList<>(pluginDOList.size());
+        for (PluginDefinitionDO pluginDefinitionDO : pluginDOList) {
+            PluginRespVO pluginRespVO = PluginDefinitionConvert.INSTANCE.convert(pluginDefinitionDO);
+            SocialUserDO socialUserDO = socialUser.get(pluginDefinitionDO.getCozeTokenId());
+            if (Objects.nonNull(socialUserDO)) {
+                pluginRespVO.setAccountName(socialUserDO.getNickname());
+            }
+            result.add(pluginRespVO);
+        }
+        return result;
     }
 
     @Override
