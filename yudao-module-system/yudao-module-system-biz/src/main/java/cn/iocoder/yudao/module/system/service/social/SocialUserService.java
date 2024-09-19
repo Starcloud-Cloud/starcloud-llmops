@@ -12,6 +12,7 @@ import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 社交用户 Service 接口，例如说社交平台的授权登录
@@ -121,6 +122,11 @@ public interface SocialUserService {
      * @return 社交用户
      */
     SocialUserDO getSocialUser(Long userId, Integer userType, Integer socialType);
+
+    /**
+     * id查询绑定用户
+     */
+    Map<String, SocialUserDO> getSocialUser(List<String> socialId);
 
 
 }

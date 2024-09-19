@@ -27,4 +27,7 @@ public class PluginRespVO extends PluginDefinitionVO {
 
     @Schema(description = "定时开启")
     private Boolean jobEnable;
+
+    @Schema(description = "帐号名称")
+    private String accountName;
 }
