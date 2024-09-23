@@ -75,9 +75,7 @@ public class VariableActionHandler extends BaseActionHandler {
 
         // 遍历校验变量
         for (VariableItemEntity item : variableList) {
-            if (Objects.isNull(item.getValue()) || StringUtils.isBlank(String.valueOf(item.getValue()))
-                    || Objects.isNull(item.getDefaultValue()) || StringUtils.isBlank(String.valueOf(item.getDefaultValue()))) {
-
+            if (Objects.isNull(item.getValue()) || StringUtils.isBlank(String.valueOf(item.getValue()))) {
                 VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(),
                         "【" + wrapper.getName() + "】步骤变量【" + item.getField() + "】不能为空！");
             }
