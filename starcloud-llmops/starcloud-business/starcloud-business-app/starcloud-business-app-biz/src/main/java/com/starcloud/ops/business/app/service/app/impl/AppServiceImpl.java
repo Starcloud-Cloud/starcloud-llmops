@@ -369,15 +369,24 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
+        // 校验并且处理请求
         List<Verification> verifications = handlerAndValidateRequest(request);
-
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            AppRespVO appResponse = new AppRespVO();
+            appResponse.setUid(request.getUid());
+            appResponse.setVerificationList(verifications);
+            return appResponse;
+        }
+        // 更新应用。
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
         appEntity.update();
+
         verifications.addAll(appEntity.getVerificationList());
-        AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(appEntity);
+
+        AppRespVO appResponse = this.get(request.getUid());
         appResponse.setVerificationList(verifications);
 
         return appResponse;

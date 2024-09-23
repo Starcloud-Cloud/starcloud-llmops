@@ -17,7 +17,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
@@ -291,8 +290,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
             List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
             configuration.setImageStyleList(imageStyleList);
-
             creativePlanResponse.setConfiguration(configuration);
+
+            // 如果计划版本号小于最新的版本号，且是来源是应用市场的时候，进行自动更新计划信息。
+            if (plan.getVersion() < appMarketResponse.getVersion() && CreativePlanSourceEnum.isMarket(plan.getSource())) {
+                CreativePlanUpgradeReqVO upgradeRequest = new CreativePlanUpgradeReqVO();
+                upgradeRequest.setUid(plan.getUid());
+                upgradeRequest.setAppUid(plan.getAppUid());
+                upgradeRequest.setConfiguration(configuration);
+                upgradeRequest.setTotalCount(plan.getTotalCount());
+                upgradeRequest.setIsFullCover(Boolean.FALSE);
+                upgrade(upgradeRequest);
+            }
             return creativePlanResponse;
         }
 
@@ -345,15 +354,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
-
-        // 查询创作计划，并且校验是否存在
-        CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            CreativePlanRespVO planResponse = new CreativePlanRespVO();
+            planResponse.setVerificationList(verifications);
+            planResponse.setUid(request.getUid());
+            planResponse.setSource(request.getSource());
+            return planResponse;
+        }
 
         // 更新创作计划
         CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
-        modifyPlan.setId(plan.getId());
-        creativePlanMaterialMapper.updateById(modifyPlan);
+        // 更新条件
+        LambdaUpdateWrapper<CreativePlanMaterialDO> wrapper = Wrappers.lambdaUpdate(CreativePlanMaterialDO.class);
+        wrapper.eq(CreativePlanMaterialDO::getUid, request.getUid());
+
+        creativePlanMaterialMapper.update(modifyPlan, wrapper);
 
         CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
         CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
@@ -538,7 +553,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
             // copy素材库
             creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket.getUid(), plan.getUid());
-
         }
         // 如果不是全量覆盖，只更新应用配置
         else {

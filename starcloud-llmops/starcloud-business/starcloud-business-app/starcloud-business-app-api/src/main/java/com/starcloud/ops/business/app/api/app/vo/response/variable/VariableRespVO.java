@@ -172,19 +172,20 @@ public class VariableRespVO implements Serializable {
     @JsonIgnore
     @JSONField(serialize = false)
     public void merge(VariableRespVO variable) {
-
+        // 如果变量为空或者变量为空则不进行合并
         if (CollectionUtil.isEmpty(this.variables) || CollectionUtil.isEmpty(variable.getVariables())) {
             return;
         }
 
         List<VariableItemRespVO> mergeVariableList = new ArrayList<>();
 
+        // 将变量转换为map
         Map<String, VariableItemRespVO> variableItemMap = variable.variables.stream()
                 .collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
 
         for (VariableItemRespVO variableItem : this.variables) {
-            if (!variableItemMap.containsKey(variableItem.getField()) ||
-                    Objects.isNull(variableItemMap.get(variableItem.getField()))) {
+            // 如果最新的变量列表中没有原来的变量，则以最新的值为准。
+            if (!variableItemMap.containsKey(variableItem.getField()) || Objects.isNull(variableItemMap.get(variableItem.getField()))) {
                 mergeVariableList.add(variableItem);
                 continue;
             }
