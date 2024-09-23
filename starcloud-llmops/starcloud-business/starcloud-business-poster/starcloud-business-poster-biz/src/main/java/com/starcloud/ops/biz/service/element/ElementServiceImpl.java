@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.api.enums.ErrorCodeConstants.ELEMENT_NOT_EXISTS;
+// import static com.starcloud.ops.api.enums.ErrorCodeConstants.ELEMENT_NOT_EXISTS;
 
 
 /**
@@ -56,7 +56,7 @@ public class ElementServiceImpl implements ElementService {
 
     private void validateElementExists(String uid) {
         if (getElement(uid) == null) {
-            throw exception(ELEMENT_NOT_EXISTS);
+            // throw exception(ELEMENT_NOT_EXISTS);
         }
     }
 

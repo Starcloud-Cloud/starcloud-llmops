@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.api.enums.ErrorCodeConstants.TEMPLATE_NOT_EXISTS;
+// import static com.starcloud.ops.api.enums.ErrorCodeConstants.TEMPLATE_NOT_EXISTS;
 
 /**
  * 海报模板 Service 实现类
@@ -53,7 +53,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     private void validateTemplateExists(String uid) {
         if (getTemplate(uid) == null) {
-            throw exception(TEMPLATE_NOT_EXISTS);
+            // throw exception(TEMPLATE_NOT_EXISTS);
         }
     }
 

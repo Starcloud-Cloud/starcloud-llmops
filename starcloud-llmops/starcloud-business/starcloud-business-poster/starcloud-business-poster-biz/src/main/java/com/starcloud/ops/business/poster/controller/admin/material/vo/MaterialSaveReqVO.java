@@ -18,6 +18,9 @@ public class MaterialSaveReqVO {
     @Schema(description = "主键id", requiredMode = Schema.RequiredMode.REQUIRED, example = "18992")
     private Long id;
 
+    @Schema(description = "分组编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
+    private Long groupId;
+
     @Schema(description = "名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
     @NotEmpty(message = "名称不能为空")
     private String name;
@@ -34,11 +37,6 @@ public class MaterialSaveReqVO {
     @Schema(description = "描述")
     private String introduction;
 
-    @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "类型不能为空")
-    @InEnum(value = MaterialTypeEnum.class,message = "素材类型不存在")
-    private Integer type;
-
     @Schema(description = "标签")
     private String materialTags;
 
@@ -49,14 +47,8 @@ public class MaterialSaveReqVO {
     @Schema(description = "请求数据")
     private String requestParams;
 
-    @Schema(description = "素材分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "881")
-    @NotNull(message = "素材分类编号不能为空")
-    private Long categoryId;
-
     @Schema(description = "开启状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "开启状态不能为空")
-    @InEnum(value = CommonStatusEnum.class,message = "请求状态必须在指定范围 {value}")
-    private Integer status;
+    private boolean status = Boolean.TRUE;
 
     @Schema(description = "分类排序")
     private Integer sort;

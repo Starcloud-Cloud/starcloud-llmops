@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.api.enums.ErrorCodeConstants.ELEMENTTYPE_NOT_EXISTS;
+// import static com.starcloud.ops.api.enums.ErrorCodeConstants.ELEMENTTYPE_NOT_EXISTS;
 
 
 /**
@@ -54,7 +54,7 @@ public class ElementTypeServiceImpl implements ElementTypeService {
 
     private void validateElementtypeExists(String uid) {
         if (getElementtype(uid) == null) {
-            throw exception(ELEMENTTYPE_NOT_EXISTS);
+            // throw exception(ELEMENTTYPE_NOT_EXISTS);
         }
     }
 
