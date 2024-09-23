@@ -212,6 +212,12 @@ public class AppMarketRespVO implements Serializable {
     private String demo;
 
     /**
+     * 应用插件列表
+     */
+    @Schema(description = "插件列表")
+    private List<String> pluginList;
+
+    /**
      * 创建时间
      * 单元测试的时候没有初始化，所以这里加了jackson的注解
      */

@@ -14,7 +14,11 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
-import com.starcloud.ops.business.app.domain.entity.*;
+import com.starcloud.ops.business.app.domain.entity.AppEntity;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
+import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ChatAppEntity;
+import com.starcloud.ops.business.app.domain.entity.ImageAppEntity;
 import com.starcloud.ops.business.app.domain.entity.chat.ChatConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.ImageConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
@@ -97,6 +101,7 @@ public interface AppConvert {
         app.setDescription(appEntity.getDescription());
         app.setExample(appEntity.getExample());
         app.setDemo(appEntity.getDemo());
+        app.setPluginList(JsonUtils.toJsonString(appEntity.getPluginList()));
         app.setPublishUid(appEntity.getPublishUid());
         app.setInstallUid(appEntity.getInstallUid());
         app.setLastPublish(appEntity.getLastPublish());
@@ -167,6 +172,7 @@ public interface AppConvert {
         appEntity.setDescription(app.getDescription());
         appEntity.setExample(app.getExample());
         appEntity.setDemo(app.getDemo());
+        appEntity.setPluginList(JsonUtils.parseArray(app.getPluginList(), String.class));
         appEntity.setPublishUid(app.getPublishUid());
         appEntity.setInstallUid(app.getInstallUid());
         appEntity.setLastPublish(app.getLastPublish());
@@ -210,6 +216,7 @@ public interface AppConvert {
         appEntity.setDescription(respVO.getDescription());
         appEntity.setExample(respVO.getExample());
         appEntity.setDemo(respVO.getDemo());
+        appEntity.setPluginList(respVO.getPluginList());
         appEntity.setPublishUid(respVO.getPublishUid());
         appEntity.setInstallUid(respVO.getInstallUid());
         appEntity.setLastPublish(respVO.getLastPublish());
@@ -264,6 +271,7 @@ public interface AppConvert {
         appResponse.setDescription(app.getDescription());
         appResponse.setExample(app.getExample());
         appResponse.setDemo(app.getDemo());
+        appResponse.setPluginList(JsonUtils.parseArray(app.getPluginList(), String.class));
         appResponse.setPublishUid(app.getPublishUid());
         appResponse.setInstallUid(app.getInstallUid());
         appResponse.setCreator(app.getCreator());
@@ -352,6 +360,7 @@ public interface AppConvert {
         appRespVO.setDescription(appEntity.getDescription());
         appRespVO.setExample(appEntity.getExample());
         appRespVO.setDemo(appEntity.getDemo());
+        appRespVO.setPluginList(appEntity.getPluginList());
         appRespVO.setPublishUid(appEntity.getPublishUid());
         appRespVO.setInstallUid(appEntity.getInstallUid());
         appRespVO.setCreator(appEntity.getCreator());

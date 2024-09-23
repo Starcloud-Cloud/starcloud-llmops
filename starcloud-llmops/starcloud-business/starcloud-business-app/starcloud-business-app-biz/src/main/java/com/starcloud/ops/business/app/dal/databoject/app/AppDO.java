@@ -146,6 +146,12 @@ public class AppDO extends TenantBaseDO {
     private String demo;
 
     /**
+     * 插件列表
+     */
+    @TableField("plugin_list")
+    private String pluginList;
+
+    /**
      * 素材列表
      */
     @TableField(typeHandler = CreativePlanMaterialDO.MaterialHandler.class)
