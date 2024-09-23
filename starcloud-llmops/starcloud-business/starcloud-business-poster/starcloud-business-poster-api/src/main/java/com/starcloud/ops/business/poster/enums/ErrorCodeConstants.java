@@ -22,6 +22,12 @@ public interface ErrorCodeConstants {
     ErrorCode CATEGORY_DISABLED = new ErrorCode(600003005, "素材分类({})已禁用，无法使用");
 
 
+
+    ErrorCode MATERIAL_GROUP_NOT_EXISTS = new ErrorCode(600003101, "当前分组不存在，请重新选择");
+    ErrorCode MATERIAL_PUBLISH_FAIL_EMPTY = new ErrorCode(600003102, "发布失败，数据为空，无法发布");
+
+
+
     ErrorCode SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR = new ErrorCode(600004001, "素材分类不正确，原因：必须使用第三级的素材分类及以下");
 
 

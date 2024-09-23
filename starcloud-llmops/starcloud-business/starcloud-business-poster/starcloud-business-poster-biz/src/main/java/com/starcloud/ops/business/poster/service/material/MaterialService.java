@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.poster.service.material;
 
-import javax.validation.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
+
+import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 海报素材 Service 接口
@@ -22,6 +22,14 @@ public interface MaterialService {
      * @return 编号
      */
     Long createMaterial(@Valid MaterialSaveReqVO createReqVO);
+
+    /**
+     * 批量添加素材
+     *
+     * @param createReqVOS 素材列表
+     * @return 是否添加成功
+     */
+    Boolean batchCreateMaterial(List<MaterialSaveReqVO> createReqVOS);
 
     /**
      * 更新海报素材
@@ -55,8 +63,30 @@ public interface MaterialService {
 
     /**
      * 获取当前分类下素材数量
-     * @param  categoryId  素材分类 ID
+     *
+     * @param categoryId 素材分类 ID
      * @return
      */
     Long getMaterialCountByCategoryId(Long categoryId);
+
+    /**
+     * 根据分组删除海报素材数据
+     *
+     * @param groupId 分组编号
+     */
+    void deleteMaterialByGroup(Long groupId);
+
+    /**
+     * 根据分组编号获取数据
+     *
+     * @param groupId 分组编号
+     * @return 海报素材数据
+     */
+    List<MaterialDO> getMaterialByGroup(Long groupId);
+
+    /**
+     * 更新海报素材数据
+     * @param materialReqVOS
+     */
+    void updateMaterialByGroup(Long groupId,List<MaterialSaveReqVO> materialReqVOS);
 }

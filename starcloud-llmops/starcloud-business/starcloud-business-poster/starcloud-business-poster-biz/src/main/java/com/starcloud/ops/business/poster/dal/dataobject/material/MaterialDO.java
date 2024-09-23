@@ -3,6 +3,7 @@ package com.starcloud.ops.business.poster.dal.dataobject.material;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.starcloud.ops.business.poster.enums.material.MaterialTypeEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.util.*;
 
@@ -29,6 +30,10 @@ public class MaterialDO extends BaseDO {
      */
     @TableId
     private Long id;
+    /**
+     * 分组编号
+     */
+    private Long groupId;
     /**
      * 编号
      */

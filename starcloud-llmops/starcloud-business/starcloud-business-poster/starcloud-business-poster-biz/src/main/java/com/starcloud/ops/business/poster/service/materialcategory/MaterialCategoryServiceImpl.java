@@ -9,6 +9,7 @@ import com.starcloud.ops.business.poster.controller.admin.materialcategory.vo.Ma
 import com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO;
 import com.starcloud.ops.business.poster.dal.mysql.materialcategory.MaterialCategoryMapper;
 import com.starcloud.ops.business.poster.service.material.MaterialService;
+import com.starcloud.ops.business.poster.service.materialgroup.MaterialGroupService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
@@ -35,7 +36,7 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
 
     @Resource
     @Lazy
-    private MaterialService materialService;
+    private MaterialGroupService materialGroupService;
 
 
     @Resource
@@ -77,7 +78,7 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
             throw exception(CATEGORY_EXISTS_CHILDREN);
         }
         // 校验分类是否绑定了素材
-        Long spuCount = materialService.getMaterialCountByCategoryId(id);
+        Long spuCount = materialGroupService.getCountByCategoryId(id);
         if (spuCount > 0) {
             throw exception(CATEGORY_HAVE_BIND_SPU);
         }
