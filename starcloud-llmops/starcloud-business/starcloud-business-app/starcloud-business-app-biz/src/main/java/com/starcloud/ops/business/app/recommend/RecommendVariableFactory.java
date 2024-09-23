@@ -490,9 +490,9 @@ public class RecommendVariableFactory {
                 materialTypeVariable,
                 //materialDefineVariable,
                 //materialListVariable,
-                materialGenerateConfigVariable,
-                customMaterialGenerateConfigVariable,
-                searchHabitsVariable,
+                //materialGenerateConfigVariable,
+                //customMaterialGenerateConfigVariable,
+                //searchHabitsVariable,
                 materialUsageModel,
                 materialLibraryVariable
         ));
