@@ -92,4 +92,6 @@ public interface MaterialLibraryTableColumnService extends CommonExcelReadServic
      * @param saveReqVO 换绑 VO
      */
     Boolean validateSwitchBind(MaterialLibraryAppBindSaveReqVO saveReqVO);
+
+    void updateColumn(String sourceUid, String targetUid);
 }

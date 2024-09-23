@@ -39,6 +39,18 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_POSTER_FAILURE = new ErrorCode(300_100_551, "海报执行异常！请稍候重试！");
 
+    /**
+     * 基础响应状态码：响应结果不存在。<br>
+     * 比如：查询用户详情的时候，未查询到用户信息。即可以使用该状态码。
+     */
+    ErrorCode RESULT_NOT_EXIST = new ErrorCode(300_900_001, "结果不存在！");
+
+    /**
+     * 基础响应状态码：响应结果已存在。<br>
+     * 比如：新增用户时候，用户已存在。即可以使用该状态码。
+     */
+    ErrorCode RESULT_ALREADY_EXIST = new ErrorCode(300_900_002, "结果已存在！");
+
     // 1.========== 通用错误 300 000 xxx ==========
 
     /**
@@ -656,5 +668,7 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_APPUID_EMPTY = new ErrorCode(300702216, "应用编号为空，查询素材数据失败");
 
     ErrorCode MATERIAL_LIBRARY_SLICE_DATA_MISSING = new ErrorCode(300702217, "部分数据缺失，请核对后再试");
+
+    ErrorCode MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME = new ErrorCode(300702218, "数据上传超时，请重试");
 
 }

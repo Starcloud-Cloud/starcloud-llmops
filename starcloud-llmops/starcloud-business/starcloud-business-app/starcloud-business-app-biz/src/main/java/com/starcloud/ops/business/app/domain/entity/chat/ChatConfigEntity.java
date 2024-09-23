@@ -1,25 +1,32 @@
 package com.starcloud.ops.business.app.domain.entity.chat;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.knuddels.jtokkit.api.ModelType;
 import com.starcloud.ops.business.app.api.chat.config.vo.ChatExpandConfigRespVO;
 import com.starcloud.ops.business.app.convert.conversation.ChatConfigConvert;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
-import com.starcloud.ops.business.app.domain.entity.config.*;
-import com.starcloud.ops.business.app.domain.entity.skill.*;
+import com.starcloud.ops.business.app.domain.entity.config.BaseConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.skill.ApiSkill;
+import com.starcloud.ops.business.app.domain.entity.skill.AppWorkflowSkill;
+import com.starcloud.ops.business.app.domain.entity.skill.GptPluginSkill;
+import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.domain.entity.variable.VariableEntity;
-import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
+import com.starcloud.ops.business.app.domain.handler.common.BaseToolHandler;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.config.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.config.ChatExpandConfigEnum;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
-import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -134,7 +141,7 @@ public class ChatConfigEntity extends BaseConfigEntity {
      * 校验实体，对一写复杂逻辑的校验，可以在这里实现
      */
     @Override
-    public void validate(ValidateTypeEnum validateType) {
-
+    public List<Verification> validate(String uid, ValidateTypeEnum validateType) {
+        return Collections.emptyList();
     }
 }

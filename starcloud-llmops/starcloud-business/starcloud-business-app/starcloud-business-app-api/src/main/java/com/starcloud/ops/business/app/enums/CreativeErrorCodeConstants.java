@@ -314,4 +314,30 @@ public interface CreativeErrorCodeConstants {
      * 插件配置错误
      */
     ErrorCode PLUGIN_CONFIG_ERROR = new ErrorCode(760100004, "插件配置错误！{}");
+
+
+    ErrorCode NO_PERMISSIONS = new ErrorCode(760100005, "没有操作权限");
+
+
+    ErrorCode NAME_DUPLICATE = new ErrorCode(760100006, "插件名称重复，{}");
+
+
+    ErrorCode PLUGIN_CONFIG_NOT_EXIST = new ErrorCode(760100007, "插件配置不存在，libraryUid={},pluginUid={}");
+
+
+    ErrorCode LIBRARY_HAS_CONFIG = new ErrorCode(760100008, "素材库已有配置，{}");
+
+
+    ErrorCode COZE_ERROR = new ErrorCode(760100009, "调用coze执行失败，{}");
+
+    ErrorCode TOKEN_ERROR = new ErrorCode(760100010, "token不存在，id = {}");
+
+
+    ErrorCode INPUT_JSON_ERROR = new ErrorCode(760100011, "输入参数应该是json对象，{}");
+
+    ErrorCode OUTPUT_JSON_ERROR = new ErrorCode(760100012, "coze工作流输出参数应该是json对象或者集合对象，result={}");
+
+    ErrorCode INPUT_OUTPUT_ERROR = new ErrorCode(760100013, "coze执行结果获取异常, {}");
+
+
 }

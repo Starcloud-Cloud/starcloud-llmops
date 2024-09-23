@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryApp
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_L
  *
  * @author starcloudadmin
  */
+@Slf4j
 @Service
 @Validated
 public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBindService {
@@ -94,6 +96,7 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         MaterialLibraryAppBindDO bind = this.getMaterialLibraryAppBind(updateReqVO.getAppUid());
 
         if (bind == null) {
+            log.error("当前应用未绑定素材库，{}", updateReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
 
@@ -129,12 +132,14 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         MaterialLibraryAppBindDO newBind = this.getMaterialLibraryAppBind(newAppUid);
 
         if (newBind == null) {
+            log.error("当前应用未绑定素材库，{}", newAppUid);
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
 
         MaterialLibraryAppBindDO oldBind = this.getMaterialLibraryAppBind(oldAppUid);
 
         if (oldBind == null) {
+            log.error("当前应用未绑定素材库，{}", oldAppUid);
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         // 创建绑定关键

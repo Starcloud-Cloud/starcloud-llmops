@@ -69,7 +69,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
         // 如果 socialType 非空，说明需要绑定社交用户
         if (reqVO.getSocialType() != null) {
             socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
-                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState()));
+                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState(),null,true));
         }
 
         // 创建 Token 令牌，记录登录日志
@@ -90,7 +90,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
         // 如果 socialType 非空，说明需要绑定社交用户
         if (reqVO.getSocialType() != null) {
             socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
-                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState()));
+                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState(),null,true));
         }
 
         // 创建 Token 令牌，记录登录日志
@@ -100,7 +100,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
     @Override
     public AppAuthLoginRespVO socialLogin(AppAuthSocialLoginReqVO reqVO) {
         // 使用 code 授权码，进行登录。然后，获得到绑定的用户编号
-        Long userId =  socialUserApi.getSocialUser(UserTypeEnum.MEMBER.getValue(), reqVO.getType(),reqVO.getCode(),  reqVO.getState()).getUserId();
+        Long userId = socialUserApi.getSocialUser(UserTypeEnum.MEMBER.getValue(), reqVO.getType(), reqVO.getCode(), reqVO.getState()).getUserId();
         if (userId == null) {
             throw exception(AUTH_THIRD_LOGIN_NOT_BIND);
         }
@@ -128,7 +128,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
 
     @Override
     public String getSocialAuthorizeUrl(Integer type, String redirectUri) {
-        return socialUserApi.getSocialUser(type, null,null,null).getOpenid();
+        return socialUserApi.getSocialUser(type, null, null, null).getOpenid();
         // return socialUserApi.getAuthorizeUrl(type, redirectUri);
     }
 
@@ -232,7 +232,7 @@ public class TouristAuthServiceImpl implements TouristAuthService {
             throw exception(USER_NOT_EXISTS);
         }
         // 参数：未加密密码，编码后的密码
-        if (!passwordEncoder.matches(oldPassword,user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw exception(USER_PASSWORD_FAILED);
         }
         return user;

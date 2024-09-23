@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
@@ -9,34 +11,36 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.api.ocr.OcrGeneralDTO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.ImageOcrReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.TextExtractionReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.XhsOcrReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeChatResult;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeMessage;
+import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
+import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import scala.util.parsing.json.JSON;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_ERROR;
@@ -53,6 +57,67 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Resource
     private AppService appService;
+
+    @Resource
+    private PluginsDefinitionServiceImpl pluginsDefinitionService;
+
+
+    @Override
+    @DataPermission(enable = false)
+    public String executePlugin(PluginExecuteReqVO reqVO) {
+        String uuid = reqVO.getUuid();
+        PluginRespVO pluginRespVO = pluginsDefinitionService.detail(uuid);
+        String code = "";
+
+        switch (pluginRespVO.getType()) {
+            case "coze":
+                code = pluginsDefinitionService.executePluginCoze(reqVO, pluginRespVO);
+                break;
+            default:
+                throw exception(PLUGIN_EXECUTE_ERROR, "不支持的插件类型");
+        }
+        return code;
+    }
+
+    /**
+     * 获取执行返回结果
+     */
+    @Override
+    @DataPermission(enable = false)
+    public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
+        PluginRespVO pluginRespVO = pluginsDefinitionService.detail(pluginResultReqVO.getUuid());
+        PluginExecuteRespVO result = null;
+        switch (pluginRespVO.getType()) {
+            case "coze":
+                result = pluginsDefinitionService.getPluginResultCoze(pluginResultReqVO.getCode(), pluginRespVO);
+                break;
+            default:
+                throw exception(PLUGIN_EXECUTE_ERROR, "不支持的插件类型");
+        }
+        return result;
+    }
+
+    @Override
+    public Object syncExecute(PluginExecuteReqVO reqVO) {
+        String code = executePlugin(reqVO);
+        PluginResultReqVO pluginResultReqVO = new PluginResultReqVO();
+        pluginResultReqVO.setCode(code);
+        pluginResultReqVO.setUuid(reqVO.getUuid());
+        int count = 0;
+        while (count < 100) {
+            PluginExecuteRespVO pluginResult = getPluginResult(pluginResultReqVO);
+            if (StringUtils.equalsIgnoreCase("completed", pluginResult.getStatus())) {
+                return pluginResult.getOutput();
+            }
+            try {
+                TimeUnit.SECONDS.sleep(3);
+                count++;
+            } catch (Exception e) {
+                throw exception(PLUGIN_EXECUTE_ERROR, e.getMessage());
+            }
+        }
+        throw exception(PLUGIN_EXECUTE_ERROR, "执行插件超过300s未成功");
+    }
 
     @Override
     public XhsNoteDTO xhsOcr(XhsOcrReqVO reqVO) {
@@ -86,10 +151,10 @@ public class PluginsServiceImpl implements PluginsService {
     /**
      * 不考虑前端传入的类型，因为开始节点参数都是定义出来的
      *
-     * @todo 下游要获取，需要实现占位符解析获取
      * @param tag
      * @param data
      * @return
+     * @todo 下游要获取，需要实现占位符解析获取
      */
     private JSONObject execute(String tag, Object data) {
 

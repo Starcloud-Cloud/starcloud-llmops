@@ -16,6 +16,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
+import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
@@ -52,6 +54,7 @@ import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManag
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -143,17 +146,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         return CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
     }
 
-    /**
-     * 获取创作计划分页列表
-     *
-     * @param query 请求参数
-     * @return 创作计划分页列表
-     */
-    @Override
-    public List<CreativePlanRespVO> list(CreativePlanListQuery query) {
-        List<CreativePlanDO> list = creativePlanMapper.list(query);
-        return CreativePlanConvert.INSTANCE.convertList(list);
-    }
 
     /**
      * 获取创作计划分页列表
@@ -184,6 +176,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Override
     public List<CreativePlanRespVO> list(Integer limit) {
         List<CreativePlanDTO> list = creativePlanMapper.list(WebFrameworkUtils.getLoginUserId().toString(), limit);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(CreativePlanConvert.INSTANCE::convert)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<CreativePlanRespVO> list(CreativePlanListQuery query) {
+
+        query.setUserId(WebFrameworkUtils.getLoginUserId());
+
+        List<CreativePlanDTO> list = creativePlanMapper.query(query);
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
@@ -335,20 +341,25 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 创作计划请求
      */
     @Override
-    public String modify(CreativePlanModifyReqVO request) {
+    public CreativePlanRespVO modify(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
-        handlerAndValidate(request);
+        List<Verification> verifications = request.validate();
 
         // 查询创作计划，并且校验是否存在
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
+        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
 
         // 更新创作计划
         CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
         modifyPlan.setId(plan.getId());
         creativePlanMaterialMapper.updateById(modifyPlan);
-        return modifyPlan.getUid();
+
+        CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
+        CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
+        planResponse.setVerificationList(verifications);
+
+        return planResponse;
     }
 
     /**
@@ -358,13 +369,13 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @return 创作计划UID
      */
     @Override
-    public String modifyConfiguration(CreativePlanModifyReqVO request) {
+    public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.CONFIG.name());
         // 处理并且校验请求
-        handlerAndValidate(request);
+        List<Verification> verifications = request.validate();
 
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        AppValidate.notNull(plan, "创作计划更新失败！应用创作计划不存在！UID: {}", request.getUid());
+        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
 
         CreativePlanDO modifyPlan = new CreativePlanDO();
         // 素材单独存放
@@ -372,7 +383,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
-        return plan.getUid();
+
+        CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
+        CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
+        planResponse.setVerificationList(verifications);
+
+        return planResponse;
     }
 
     /**
@@ -527,6 +543,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         // 如果不是全量覆盖，只更新应用配置
         else {
             latestAppMarket.merge(appInformation);
+            creativeMaterialManager.upgradeColumns(latestAppMarket.getUid(), plan.getUid());
         }
         configuration.setAppInformation(latestAppMarket);
 

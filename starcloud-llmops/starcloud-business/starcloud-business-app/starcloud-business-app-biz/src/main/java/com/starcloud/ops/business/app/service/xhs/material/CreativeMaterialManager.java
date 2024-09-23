@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -35,6 +36,8 @@ import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +46,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -59,6 +67,12 @@ public class CreativeMaterialManager {
 
     @Resource
     private MaterialLibrarySliceService sliceService;
+
+    @Resource
+    private PluginConfigService pluginConfigService;
+
+    @Resource
+    private MaterialLibraryTableColumnService columnService;
 
     /**
      * 删除素材库
@@ -278,6 +292,20 @@ public class CreativeMaterialManager {
         copyLibrary(source, target);
     }
 
+    /**
+     * 复制插件配置 定时任务
+     */
+    private void copyPluginConfig(String sourceUid, String targetUid) {
+        MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
+        appReqVO.setAppUid(sourceUid);
+        DataPermissionUtils.executeIgnore(() -> {
+            MaterialLibraryRespVO sourceLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+            appReqVO.setAppUid(targetUid);
+            MaterialLibraryRespVO targetLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+            pluginConfigService.copyPluginConfig(sourceLibrary.getUid(), targetLibrary.getUid());
+        });
+    }
+
 
     /**
      * 应用市场初始化应用 全量更新素材库
@@ -293,6 +321,14 @@ public class CreativeMaterialManager {
         copyLibrary(source, target);
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
+    }
+
+    /**
+     * 更新表头
+     */
+    @DataPermission(enable = false)
+    public void upgradeColumns(String sourceUid, String planUid) {
+        columnService.updateColumn(sourceUid, planUid);
     }
 
     /**
@@ -313,50 +349,40 @@ public class CreativeMaterialManager {
      * 根据素材库配置查询素材列表
      */
     public List<Map<String, Object>> getMaterialList(CreativePlanRespVO creativePlan) {
-        // 上游已判null
-        WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(creativePlan.getConfiguration().getAppInformation());
-
-        // 查询素材库数据
-        String materialLibraryJsonVariable = Optional.ofNullable(materialStepWrapper)
-                .map(workflowStepWrapperRespVO -> workflowStepWrapperRespVO.getVariableToString(CreativeConstants.LIBRARY_QUERY))
-                .orElse(StringUtils.EMPTY);
-
-        MaterialLibrarySliceAppReqVO appReqVO = new MaterialLibrarySliceAppReqVO();
-        // 获取查询条件
-        if (StringUtils.isNotBlank(materialLibraryJsonVariable)) {
-            List<MaterialLibrarySliceAppReqVO> queryParam = JsonUtils.parseArray(materialLibraryJsonVariable, MaterialLibrarySliceAppReqVO.class);
-            if (CollectionUtil.isNotEmpty(queryParam)) {
-                appReqVO = queryParam.get(0);
-                appReqVO.setLibraryUid(null);
-                materialStepWrapper.putVariable(CreativeConstants.LIBRARY_QUERY, JSONUtil.toJsonStr(queryParam));
-            }
-        }
-
+        CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
+        AppMarketRespVO appInformation = configuration.getAppInformation();
+        WorkflowStepWrapperRespVO materialStepWrapper = CreativeUtils.getMaterialStepWrapper(appInformation);
         // 获取到素材使用模式
         MaterialUsageModel materialUsageModel = CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
 
-        String uid;
-        String source = creativePlan.getSource();
-        if (CreativePlanSourceEnum.isApp(source)) {
-            CreativePlanConfigurationDTO configuration = creativePlan.getConfiguration();
-            AppMarketRespVO appInformation = configuration.getAppInformation();
-            uid = appInformation.getUid();
-        } else {
-            uid = creativePlan.getUid();
-        }
+        // 查询素材库数据
+        MaterialLibrarySliceAppReqVO materialListRequest = new MaterialLibrarySliceAppReqVO();
 
-        appReqVO.setAppUid(uid);
-        if (MaterialUsageModel.FILTER_USAGE.equals(materialUsageModel)) {
+        // 选择模式执行查询条件构造
+        if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
+            materialListRequest = CreativeUtils.getSelectMaterialRequestByStepWrapper(materialStepWrapper);
+        } else {
+            // 构造排序条件
             SortingField sortingField = new SortingField();
             sortingField.setOrder(SortingField.ORDER_ASC);
             sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_USED_COUNT);
-            appReqVO.setSortingField(sortingField);
+            materialListRequest.setSortingField(sortingField);
+            materialListRequest.setLibraryUid(null);
+        }
+
+        // 设置应用UID
+        String source = creativePlan.getSource();
+        if (CreativePlanSourceEnum.isApp(source)) {
+            materialListRequest.setAppUid(appInformation.getUid());
+        } else {
+            materialListRequest.setAppUid(creativePlan.getUid());
         }
 
         long start = System.currentTimeMillis();
-        MaterialLibrarySliceUseRespVO materialLibrarySlice = materialLibraryService.getMaterialLibrarySlice(appReqVO);
+        log.info("查询素材列表整体参数：{}", JsonUtils.toJsonString(materialListRequest));
+        MaterialLibrarySliceUseRespVO materialLibrarySlice = materialLibraryService.getMaterialLibrarySlice(materialListRequest);
         long end = System.currentTimeMillis();
-        log.info("material library query, {}", end - start);
+        log.info("查询素材列表整体耗时, {}", end - start);
         return convert(materialLibrarySlice);
     }
 
@@ -369,6 +395,7 @@ public class CreativeMaterialManager {
         materialLibraryService.materialLibraryCopy(target, source);
         long end = System.currentTimeMillis();
         log.info("material library copy, {}", end - start);
+        copyPluginConfig(source.getAppUid(), target.getAppUid());
     }
 
     /**

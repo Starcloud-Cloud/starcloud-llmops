@@ -39,6 +39,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.ImageMateri
 import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
+import com.starcloud.ops.business.mq.producer.LibraryDeleteProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
@@ -85,6 +86,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Resource
     private MaterialLibraryMapper materialLibraryMapper;
+
+    @Resource
+    private LibraryDeleteProducer deleteProducer;
 
 
     @Override
@@ -160,6 +164,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryDO materialLibrary;
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
 
@@ -211,6 +216,8 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         materialLibrarySliceService.deleteMaterialLibrarySliceByLibraryId(id);
         // 删除素材库
         materialLibraryMapper.deleteById(id);
+
+        deleteProducer.send(libraryDO.getUid());
     }
 
     /**
@@ -224,6 +231,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
         if (Objects.isNull(bind)) {
+            log.error("当前应用未绑定素材库，{}", appReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
         List<MaterialLibraryAppBindDO> bindList = materialLibraryAppBindService.getBindList(bind.getLibraryId());
@@ -245,7 +253,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         // 删除素材库
         materialLibraryMapper.deleteById(materialLibrary.getId());
 
-
+        deleteProducer.send(materialLibrary.getUid());
     }
 
     @Override
@@ -431,6 +439,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(oldApp.getAppUid());
 
             if (bind == null) {
+                log.error("当前应用未绑定素材库，{}", oldApp.getAppUid());
                 throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
             }
             templateBind.set(bind);
@@ -444,11 +453,11 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (bind != null) {
             MaterialLibraryDO materialLibrary = validateMaterialLibraryExists(bind.getLibraryId());
 
-            if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
-                if (!MaterialLibraryTypeEnum.isMember(materialLibrary.getLibraryType())) {
-                    deleteMaterialLibrary(materialLibrary.getId());
-                }
-            }
+            // if (MaterialBindTypeEnum.isAppMarket(bind.getAppType())) {
+            //     if (!MaterialLibraryTypeEnum.isMember(materialLibrary.getLibraryType())) {
+            deleteMaterialLibrary(materialLibrary.getId());
+            //     }
+            // }
         }
 
 

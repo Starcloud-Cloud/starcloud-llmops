@@ -6,7 +6,9 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 素材知识库数据 Service 接口
@@ -175,4 +177,6 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      */
 
     void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId);
+
+    void executeAsyncUpload(Map<Integer, List<String>> columnData, File[] childrenDirs, String unzipDirPath, Long libraryId);
 }

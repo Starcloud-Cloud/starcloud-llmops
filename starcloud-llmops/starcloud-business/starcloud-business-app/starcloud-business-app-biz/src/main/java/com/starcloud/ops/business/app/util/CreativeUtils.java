@@ -4,8 +4,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
@@ -13,6 +16,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
@@ -637,6 +641,58 @@ public class CreativeUtils {
         // 获取到素材库列表
         String materialUsageModel = materialWrapper.getVariableToString(CreativeConstants.MATERIAL_USAGE_MODEL);
         return MaterialUsageModel.fromName(materialUsageModel);
+    }
+
+    /**
+     * 根据应用步骤获取素材使用模式
+     *
+     * @param materialWrapper 应用步骤
+     * @return 素材库列表
+     */
+    public static String getSelectMaterialQueryByStepWrapper(WorkflowStepWrapperRespVO materialWrapper) {
+        // 素材列表配置
+        if (Objects.isNull(materialWrapper)) {
+            throw ServiceExceptionUtil.invalidParamException(materialWrapper.getName() + "步骤不存在！请检查您的配置！");
+        }
+
+        // 获取选择模式下查询条件
+        String selectMaterialQuery = materialWrapper.getVariableToString(CreativeConstants.SELECT_MATERIAL_QUERY);
+        AppValidate.notNull(selectMaterialQuery, "计划执行失败：选择执行时需要选择您需要执行的素材！");
+
+        return selectMaterialQuery;
+    }
+
+    /**
+     * 根据应用步骤获取素材使用模式
+     *
+     * @param materialWrapper 应用步骤
+     * @return 素材库列表
+     */
+    public static MaterialLibrarySliceAppReqVO getSelectMaterialRequestByStepWrapper(WorkflowStepWrapperRespVO materialStepWrapper) {
+        String selectMaterialQuery = getSelectMaterialQueryByStepWrapper(materialStepWrapper);
+        AppValidate.notNull(selectMaterialQuery, "计划执行失败：选择执行时需要选择您需要执行的素材！");
+        // 获取查询条件
+        try {
+            MaterialLibrarySliceAppReqVO materialListRequest = JsonUtils.parseObject(selectMaterialQuery, MaterialLibrarySliceAppReqVO.class);
+            if (Objects.isNull(materialListRequest)) {
+                throw ServiceExceptionUtil.invalidParamException("计划执行失败：查询素列表失败。请稍后重试或联系管理员！");
+            }
+            materialListRequest.setLibraryUid(null);
+            // 如果没有选择素材库，则抛出异常
+            if (CollectionUtil.isEmpty(materialListRequest.getSliceIdList())) {
+                throw ServiceExceptionUtil.invalidParamException("计划执行失败：选择执行时需要选择您需要执行的素材！");
+            }
+            // 构造排序条件，这里设置按照创建时间倒序，和页面的素材排序一致。
+            SortingField sortingField = new SortingField();
+            sortingField.setOrder(SortingField.ORDER_DESC);
+            sortingField.setField(MaterialLibrarySliceAppReqVO.SORT_FIELD_ID);
+            materialListRequest.setSortingField(sortingField);
+            return materialListRequest;
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：查询素列表失败。请稍后重试或联系管理员！");
+        }
     }
 
     /**

@@ -6,11 +6,7 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.BatchUidRequest;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
@@ -86,6 +82,12 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.list(limit));
     }
 
+    @PostMapping("/query")
+    @Operation(summary = "创作计划列表", description = "创作计划列表")
+    public CommonResult<List<CreativePlanRespVO>> query(@RequestBody CreativePlanListQuery query) {
+        return CommonResult.success(creativePlanService.list(query));
+    }
+
     @PostMapping("/createSameApp")
     @Operation(summary = "创建同款应用", description = "创建同款应用")
     @ApiOperationSupport(order = 60, author = "nacoyer")
@@ -96,13 +98,13 @@ public class CreativePlanController {
     @PostMapping("/modify")
     @Operation(summary = "更新创作计划", description = "更新创作计划")
     @ApiOperationSupport(order = 70, author = "nacoyer")
-    public CommonResult<String> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
+    public CommonResult<CreativePlanRespVO> modify(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modify(request));
     }
 
     @PostMapping("/modifyConfig")
     @Operation(summary = "更新创作计划配置", description = "更新创作计划配置")
-    public CommonResult<String> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
+    public CommonResult<CreativePlanRespVO> modifyConfiguration(@Validated @RequestBody CreativePlanModifyReqVO request) {
         return CommonResult.success(creativePlanService.modifyConfiguration(request));
     }
 
@@ -130,7 +132,7 @@ public class CreativePlanController {
     }
 
     @PostMapping("/upgrade")
-    @Operation(summary = "升级创作计划", description = "执行创作计划")
+    @Operation(summary = "升级创作计划", description = "升级创作计划")
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<Boolean> upgrade(@Validated @RequestBody CreativePlanUpgradeReqVO request) {
         creativePlanService.upgrade(request);

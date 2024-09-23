@@ -101,9 +101,9 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                     } else {
                         wrapper.orderByDesc(MaterialLibrarySliceDO::getUsedCount);
                     }
+                    wrapper.orderByDesc(MaterialLibrarySliceDO::getId);
                     break;
                 case MaterialLibrarySliceAppReqVO.SORT_FIELD_CREATE_TIME:
-
                     if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
                         wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
                     } else {
@@ -111,19 +111,22 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                     }
                     break;
                 case MaterialLibrarySliceAppReqVO.SORT_FIELD_UPDATE_TIME:
-
                     if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
                         wrapper.orderByAsc(MaterialLibrarySliceDO::getUpdateTime);
                     } else {
                         wrapper.orderByDesc(MaterialLibrarySliceDO::getUpdateTime);
                     }
                     break;
+                case MaterialLibrarySliceAppReqVO.SORT_FIELD_ID:
+                    if (sortingField.getOrder().equals(SortingField.ORDER_ASC)) {
+                        wrapper.orderByAsc(MaterialLibrarySliceDO::getId);
+                    } else {
+                        wrapper.orderByDesc(MaterialLibrarySliceDO::getId);
+                    }
                 default:
                     wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
                     break;
             }
-        } else {
-            wrapper.orderByAsc(MaterialLibrarySliceDO::getCreateTime);
         }
 
         return selectList(wrapper);
@@ -136,7 +139,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
         );
     }
 
-    default Long selectCountByLibraryId(Long libraryId){
+    default Long selectCountByLibraryId(Long libraryId) {
         LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
         return selectCount(wrapper);

@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -43,6 +44,8 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnu
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
@@ -55,6 +58,7 @@ import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Lazy;
@@ -63,6 +67,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +176,54 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public List<CreativeContentRespVO> listTask(CreativeContentTaskReqVO query) {
         List<CreativeContentDO> list = creativeContentMapper.listTask(query);
         return CreativeContentConvert.INSTANCE.convertResponseList(list);
+    }
+
+    /**
+     * 查询创作内容生成的图片
+     *
+     * @param uidList 创作内容UID集合
+     * @return 图片URL集合
+     */
+    @Override
+    public List<String> listImage(List<String> uidList) {
+        if (CollectionUtils.isEmpty(uidList)) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+        wrapper.select(CreativeContentDO::getUid, CreativeContentDO::getExecuteResult);
+        wrapper.in(CreativeContentDO::getUid, uidList);
+        wrapper.eq(CreativeContentDO::getStatus, CreativeContentStatusEnum.SUCCESS.name());
+        List<CreativeContentDO> list = creativeContentMapper.selectList(wrapper);
+        // 如果没有查询到数据，返回空集合
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        List<CreativeContentExecuteResult> collect = list.stream().map(CreativeContentConvert.INSTANCE::convert)
+                .map(CreativeContentRespVO::getExecuteResult)
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(collect)) {
+            return Collections.emptyList();
+        }
+
+        List<String> imageList = new ArrayList<>();
+        for (CreativeContentExecuteResult executeResult : collect) {
+            if (Objects.isNull(executeResult)) {
+                continue;
+            }
+            List<ImageContent> imageContentList = executeResult.getImageList();
+            if (CollectionUtils.isEmpty(imageContentList)) {
+                continue;
+            }
+            // 添加图片
+            for (ImageContent image : imageContentList) {
+                if (Objects.isNull(image) || StringUtils.isBlank(image.getUrl())) {
+                    continue;
+                }
+                imageList.add(image.getUrl());
+            }
+        }
+        return imageList;
     }
 
     /**
