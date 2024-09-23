@@ -54,8 +54,6 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         // 设置缩略图为素材的第一张
         materialGroup
                 .setUid(IdUtil.fastSimpleUUID())
-                .setThumbnail(materialReqVO.get(0)
-                        .getThumbnail()).setName(materialReqVO.get(0).getName())
                 .setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
         materialGroupMapper.insert(materialGroup);
         // 设置分组编号
