@@ -21,30 +21,17 @@ public class MaterialSaveReqVO {
     @Schema(description = "分组编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
     private Long groupId;
 
-    @Schema(description = "名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
-    @NotEmpty(message = "名称不能为空")
-    private String name;
-
-    @Schema(description = "标题", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "标题不能为空")
-    private String title;
-
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "缩略图不能为空")
-    @URL(message = "缩略图必须是 URL 格式")
+    // @URL(message = "缩略图必须是 URL 格式")
+    // @NotEmpty(message = "缩略图不能为空")
     private String thumbnail;
-
-    @Schema(description = "描述")
-    private String introduction;
-
-    @Schema(description = "标签")
-    private String materialTags;
 
     @Schema(description = "素材数据", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "素材数据不能为空")
     private String materialData;
 
     @Schema(description = "请求数据")
+    @NotEmpty(message = "请求数据不能为空")
     private String requestParams;
 
     @Schema(description = "开启状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
