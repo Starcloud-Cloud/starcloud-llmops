@@ -78,6 +78,10 @@ public interface CreativeContentService {
             return Collections.emptyList();
         }
         List<String> uidList = StrUtil.split(example, ',');
+        // 不管list有几个，只去前4个
+        if (uidList.size() > 4) {
+            uidList = uidList.subList(0, 4);
+        }
         List<String> handleUidList = new ArrayList<>();
         for (String uid : uidList) {
             if (StringUtils.isBlank(uid)) {
