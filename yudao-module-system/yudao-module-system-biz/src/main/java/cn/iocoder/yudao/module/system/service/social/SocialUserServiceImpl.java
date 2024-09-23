@@ -34,7 +34,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
@@ -289,6 +292,11 @@ public class SocialUserServiceImpl implements SocialUserService {
         return getSocialUserList(userId, UserTypeEnum.ADMIN.getValue()).stream().filter(socialUserDO -> socialType.equals(socialUserDO.getType())).findFirst().orElse(null);
     }
 
+    @Override
+    public Map<String, SocialUserDO> getSocialUser(List<String> socialId) {
+        List<SocialUserDO> socialUserList = socialUserMapper.selectList(SocialUserDO::getId, socialId);
+        return socialUserList.stream().collect(Collectors.toMap(socialUserDO -> socialUserDO.getId().toString(), Function.identity(), (a, b) -> a));
+    }
 
     private Boolean validatedTokenExpireIn(SocialUserDO socialUser) {
         DateTime expireData = DateUtil.date((long) socialUser.getExpireIn() * 1000);

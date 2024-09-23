@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -35,6 +36,7 @@ import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -68,6 +70,9 @@ public class CreativeMaterialManager {
 
     @Resource
     private PluginConfigService pluginConfigService;
+
+    @Resource
+    private MaterialLibraryTableColumnService columnService;
 
     /**
      * 删除素材库
@@ -316,6 +321,14 @@ public class CreativeMaterialManager {
         copyLibrary(source, target);
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
+    }
+
+    /**
+     * 更新表头
+     */
+    @DataPermission(enable = false)
+    public void upgradeColumns(String sourceUid, String planUid) {
+        columnService.updateColumn(sourceUid, planUid);
     }
 
     /**
