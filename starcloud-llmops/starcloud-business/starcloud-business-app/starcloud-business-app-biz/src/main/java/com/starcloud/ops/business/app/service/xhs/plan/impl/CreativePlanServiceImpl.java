@@ -445,18 +445,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param batchUid 批次UID
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void cancel(String batchUid) {
         log.info("取消创作计划执行【开始】，batchUid: {}", batchUid);
+
+        // 查询创作计划批次
+        CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+        AppValidate.notNull(batch, "取消执行失败，创作计划批次不存在！批次UID: {}", batchUid);
+
+        // 查询创作计划
+        CreativePlanDO plan = creativePlanMapper.get(batch.getPlanUid());
+        AppValidate.notNull(plan, "取消执行失败，创作计划不存在！计划UID: {}", batch.getPlanUid());
+
+        // 事务处理
         transactionTemplate.executeWithoutResult(status -> {
-
-            CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
-            AppValidate.notNull(batch, "取消执行失败，创作计划批次不存在！批次UID: {}", batchUid);
-
-            // 查询创作计划
-            CreativePlanDO plan = creativePlanMapper.get(batch.getPlanUid());
-            AppValidate.notNull(plan, "取消执行失败，创作计划不存在！计划UID: {}", batch.getPlanUid());
-
             // 如果创作计划是执行中或者待执行状态，则取消
             if (CreativePlanStatusEnum.RUNNING.name().equals(plan.getStatus()) ||
                     CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
@@ -465,6 +466,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 wrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.CANCELED.name());
                 wrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());
                 wrapper.eq(CreativePlanDO::getUid, plan.getUid());
+                creativePlanMapper.update(wrapper);
             }
 
             // 如果创作计划批次是执行中或者待执行状态，则取消
