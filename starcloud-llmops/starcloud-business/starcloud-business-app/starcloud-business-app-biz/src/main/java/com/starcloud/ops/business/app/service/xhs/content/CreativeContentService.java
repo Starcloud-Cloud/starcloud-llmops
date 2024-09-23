@@ -164,6 +164,20 @@ public interface CreativeContentService {
     void retry(String uid);
 
     /**
+     * 取消创作内容
+     *
+     * @param uid 创作内容UID
+     */
+    void cancel(String uid);
+
+    /**
+     * 取消创作内容
+     *
+     * @param batchUid 批次UID
+     */
+    void cancelByBatchUid(String batchUid);
+
+    /**
      * 批量绑定创作内容
      *
      * @param uidList 创作内容UID集合
@@ -191,5 +205,4 @@ public interface CreativeContentService {
      * @param uid 创作内容UID
      */
     void unlike(String uid);
-
 }

@@ -36,7 +36,12 @@ public enum CreativeContentStatusEnum implements IEnumable<Integer> {
     /**
      * 最终失败，且失败次数大于阈值时候
      */
-    ULTIMATE_FAILURE(4, "执行最终失败");
+    ULTIMATE_FAILURE(4, "执行最终失败"),
+
+    /**
+     * 已取消
+     */
+    CANCELED(5, "已取消");
 
     /**
      * 状态编码
