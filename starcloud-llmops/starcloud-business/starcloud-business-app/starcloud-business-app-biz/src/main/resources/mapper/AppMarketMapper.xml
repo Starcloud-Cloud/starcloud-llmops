@@ -5,46 +5,45 @@
     <!-- 根据条件查询应用市场详情 -->
     <select id="getOne" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT id,
-        uid,
-        name,
-        type,
-        model,
-        version,
-        language,
-        sort,
-        tags,
-        category,
-        scenes,
-        images,
-        icon,
-        free,
-        cost,
-        usage_count,
-        like_count,
-        view_count,
-        install_count,
-        config,
-        description,
-        example,
-        demo,
-        audit,
-        deleted,
-        creator,
-        updater,
-        create_time,
-        update_time,
-        tenant_id
+               uid,
+               name,
+               type,
+               model,
+               version,
+               language,
+               sort,
+               tags,
+               category,
+               scenes,
+               images,
+               icon,
+               free,
+               cost,
+               usage_count,
+               like_count,
+               view_count,
+               install_count,
+               config,
+               description,
+               example,
+               demo,
+               plugin_list,
+               audit,
+               deleted,
+               creator,
+               updater,
+               create_time,
+               update_time,
+               tenant_id
         FROM llm_app_market
         <where>
             <if test="query.name != null and query.name != ''">
                 AND name LIKE CONCAT(#{query.name}, '%')
             </if>
             <if test="query.type != null and query.type != ''">
-                AND type = #{query.type}
-            </if>
+                AND type = #{query.type}</if>
             <if test="query.model != null and query.model != ''">
-                AND model = #{query.model}
-            </if>
+                AND model = #{query.model}</if>
             <if test="query.category != null and query.category != ''">
                 AND category = #{query.category}
             </if>
@@ -69,35 +68,36 @@
     <!-- 根据条件查询应用市场列表 -->
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT id,
-        uid,
-        name,
-        type,
-        model,
-        version,
-        language,
-        sort,
-        tags,
-        category,
-        scenes,
-        images,
-        icon,
-        free,
-        cost,
-        usage_count,
-        like_count,
-        view_count,
-        install_count,
-        config,
-        description,
-        example,
-        demo,
-        audit,
-        deleted,
-        creator,
-        updater,
-        create_time,
-        update_time,
-        tenant_id
+               uid,
+               name,
+               type,
+               model,
+               version,
+               language,
+               sort,
+               tags,
+               category,
+               scenes,
+               images,
+               icon,
+               free,
+               cost,
+               usage_count,
+               like_count,
+               view_count,
+               install_count,
+               config,
+               description,
+               example,
+               demo,
+               plugin_list,
+               audit,
+               deleted,
+               creator,
+               updater,
+               create_time,
+               update_time,
+               tenant_id
         FROM llm_app_market
         <where>
             <if test="query.name != null and query.name != ''">
@@ -110,8 +110,7 @@
                 </foreach>
             </if>
             <if test="query.model != null and query.model != ''">
-                AND model = #{query.model}
-            </if>
+                AND model = #{query.model}</if>
             <if test="query.category != null and query.category != ''">
                 AND category = #{query.category}
             </if>
@@ -152,6 +151,7 @@
                scenes,
                icon,
                images,
+               plugin_list,
                description,
                creator,
                updater,

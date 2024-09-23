@@ -16,23 +16,38 @@ import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginDefinitionConvert;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
+import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
+import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
-import com.starcloud.ops.business.app.feign.dto.coze.*;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeChatResult;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeLastError;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeMessage;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeMessageResult;
+import com.starcloud.ops.business.app.feign.dto.coze.SpaceInfo;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -52,13 +67,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.COZE_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.INPUT_JSON_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.INPUT_OUTPUT_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NAME_DUPLICATE;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.NO_PERMISSIONS;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_NOT_EXIST;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.TOKEN_ERROR;
 
 @Slf4j
 @Service
@@ -87,6 +114,12 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Resource
     private BusinessJobApi businessJobApi;
+
+    @Resource
+    private MaterialLibraryAppBindMapper materialLibraryAppBindMapper;
+
+    @Resource
+    private MaterialLibraryMapper materialLibraryMapper;
 
     private static final String prefix_exectue = "coze_exectue_";
 
@@ -438,6 +471,33 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             plugin.setJobEnable(BooleanUtil.isTrue(enable));
         });
         return result;
+    }
+
+    /**
+     * 查询应用下的插件列表, 我的应用。
+     *
+     * @param appUid 应用uid
+     * @return 插件列表
+     */
+    @Override
+    public List<PluginRespVO> list(String appUid) {
+        // 查询应用下的素材库绑定关系
+        LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class);
+        wrapper.eq(MaterialLibraryAppBindDO::getAppUid, appUid);
+        wrapper.eq(MaterialLibraryAppBindDO::getDeleted, false);
+        List<MaterialLibraryAppBindDO> libraryAppBindList = materialLibraryAppBindMapper.selectList(wrapper);
+        if (CollUtil.isEmpty(libraryAppBindList) || libraryAppBindList.size() > 1) {
+            return Collections.emptyList();
+        }
+        // 根据素材库绑定关系，查询插件查询素材库
+        MaterialLibraryAppBindDO libraryAppBind = libraryAppBindList.get(0);
+        MaterialLibraryDO materialLibrary = materialLibraryMapper.selectById(libraryAppBind.getLibraryId());
+        if (materialLibrary == null) {
+            return Collections.emptyList();
+        }
+        PluginListReqVO request = new PluginListReqVO();
+        request.setLibraryUid(materialLibrary.getUid());
+        return list(request);
     }
 
     @Override
