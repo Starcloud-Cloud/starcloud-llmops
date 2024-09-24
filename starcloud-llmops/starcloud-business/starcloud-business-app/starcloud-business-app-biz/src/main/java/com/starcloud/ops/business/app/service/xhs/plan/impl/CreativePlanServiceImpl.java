@@ -17,7 +17,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
@@ -58,7 +57,6 @@ import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +71,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -293,8 +290,18 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
             List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
             configuration.setImageStyleList(imageStyleList);
-
             creativePlanResponse.setConfiguration(configuration);
+
+            // 如果计划版本号小于最新的版本号，且是来源是应用市场的时候，进行自动更新计划信息。
+            if (plan.getVersion() < appMarketResponse.getVersion() && CreativePlanSourceEnum.isMarket(plan.getSource())) {
+                CreativePlanUpgradeReqVO upgradeRequest = new CreativePlanUpgradeReqVO();
+                upgradeRequest.setUid(plan.getUid());
+                upgradeRequest.setAppUid(plan.getAppUid());
+                upgradeRequest.setConfiguration(configuration);
+                upgradeRequest.setTotalCount(plan.getTotalCount());
+                upgradeRequest.setIsFullCover(Boolean.FALSE);
+                upgrade(upgradeRequest);
+            }
             return creativePlanResponse;
         }
 
@@ -347,15 +354,21 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
-
-        // 查询创作计划，并且校验是否存在
-        CreativePlanDO plan = creativePlanMapper.get(request.getUid());
-        VerificationUtils.notNullCreative(verifications, plan, request.getUid(), "创作计划更新失败！应用创作计划不存在！UID: " + request.getUid());
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            CreativePlanRespVO planResponse = new CreativePlanRespVO();
+            planResponse.setVerificationList(verifications);
+            planResponse.setUid(request.getUid());
+            planResponse.setSource(request.getSource());
+            return planResponse;
+        }
 
         // 更新创作计划
         CreativePlanMaterialDO modifyPlan = CreativePlanConvert.INSTANCE.convertModifyRequest(request);
-        modifyPlan.setId(plan.getId());
-        creativePlanMaterialMapper.updateById(modifyPlan);
+        // 更新条件
+        LambdaUpdateWrapper<CreativePlanMaterialDO> wrapper = Wrappers.lambdaUpdate(CreativePlanMaterialDO.class);
+        wrapper.eq(CreativePlanMaterialDO::getUid, request.getUid());
+
+        creativePlanMaterialMapper.update(modifyPlan, wrapper);
 
         CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
         CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
@@ -427,91 +440,82 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     }
 
     /**
+     * 取消创作计划
+     *
+     * @param batchUid 批次UID
+     */
+    @Override
+    public void cancel(String batchUid) {
+        log.info("取消创作计划执行【开始】，batchUid: {}", batchUid);
+
+        // 查询创作计划批次
+        CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+        AppValidate.notNull(batch, "取消执行失败，创作计划批次不存在！批次UID: {}", batchUid);
+
+        // 查询创作计划
+        CreativePlanDO plan = creativePlanMapper.get(batch.getPlanUid());
+        AppValidate.notNull(plan, "取消执行失败，创作计划不存在！计划UID: {}", batch.getPlanUid());
+
+        // 事务处理
+        transactionTemplate.executeWithoutResult(status -> {
+            // 如果创作计划是执行中或者待执行状态，则取消
+            if (CreativePlanStatusEnum.RUNNING.name().equals(plan.getStatus()) ||
+                    CreativePlanStatusEnum.PENDING.name().equals(plan.getStatus())) {
+                // 更新创作计划状态
+                LambdaUpdateWrapper<CreativePlanDO> wrapper = Wrappers.lambdaUpdate(CreativePlanDO.class);
+                wrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.CANCELED.name());
+                wrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());
+                wrapper.eq(CreativePlanDO::getUid, plan.getUid());
+                creativePlanMapper.update(wrapper);
+            }
+
+            // 如果创作计划批次是执行中或者待执行状态，则取消
+            if (CreativePlanStatusEnum.RUNNING.name().equals(batch.getStatus()) ||
+                    CreativePlanStatusEnum.PENDING.name().equals(batch.getStatus())) {
+                creativePlanBatchService.cancelBatch(batchUid);
+            }
+
+            // 取消创作计划批次下的创作内容
+            creativeContentService.cancelByBatchUid(batchUid);
+        });
+
+        log.info("取消创作计划执行【结束】，batchUid: {}", batchUid);
+    }
+
+    /**
      * 更新计划状态
      *
      * @param planUid 计划UID
      */
     @Override
     public void updatePlanStatus(String planUid, String batchUid) {
-        log.info("更新计划状态【开始】，planUid: {},batchUid= {}", planUid, batchUid);
-        String key = "creative-plan-update-status-" + planUid + "-" + batchUid;
-        RLock lock = redissonClient.getLock(key);
-        try {
-            if (lock != null && !lock.tryLock(5, 5, TimeUnit.SECONDS)) {
-                log.info("wait creative-plan-update-status timeout,planUid={},batchUid={}", planUid, batchUid);
+        transactionTemplate.executeWithoutResult(status -> {
+            log.info("更新计划状态【开始】，planUid: {},batchUid= {}", planUid, batchUid);
+            CreativePlanDO plan = creativePlanMapper.get(planUid);
+            AppValidate.notNull(plan, "创作计划不存在！UID: {}", planUid);
+            // 创作计划批次状态更新
+            creativePlanBatchService.updateStatus(batchUid);
+            // 查询当前批次
+            CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+            // 如果当前批次是完成状态，则计划完成
+            if (CreativePlanStatusEnum.COMPLETE.name().equals(batch.getStatus())) {
+                log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
+                updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
+                log.info("更新计划状态【结束】，planUid: {}", planUid);
                 return;
             }
 
-            transactionTemplate.executeWithoutResult(status -> {
-                CreativePlanDO plan = creativePlanMapper.get(planUid);
-                AppValidate.notNull(plan, "创作计划不存在！UID: {}", planUid);
-
-                // 创作计划批次状态更新
-                creativePlanBatchService.updateStatus(batchUid);
-
-                // 查询当前计划下所有的创作批次
-//                CreativePlanBatchListReqVO bathQuery = new CreativePlanBatchListReqVO();
-//                bathQuery.setPlanUid(planUid);
-//                List<CreativePlanBatchRespVO> batchList = CollectionUtil.emptyIfNull(creativePlanBatchService.listStatus(bathQuery));
-//
-//                // 查询当前计划下所有的创作内容
-//                CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
-//                contentQuery.setPlanUid(planUid);
-//                List<CreativeContentRespVO> contentList = CollectionUtil.emptyIfNull(creativeContentService.listStatus(contentQuery));
-//
-//                // 当前计划下的所有批次都是完成且所有任务全部执行成功的，则计划完成
-//                boolean bathComplete = batchList.stream()
-//                        .allMatch(item -> CreativePlanStatusEnum.COMPLETE.name().equals(item.getStatus()));
-//                boolean contentComplete = contentList.stream()
-//                        .allMatch(item -> CreativeContentStatusEnum.SUCCESS.name().equals(item.getStatus()));
-//                if (bathComplete && contentComplete) {
-//                    log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
-//                    updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
-//                    log.info("更新计划状态【结束】，planUid: {}", planUid);
-//                    return;
-//                }
-//
-//                // 当前计划下只要有彻底失败的，则计划失败
-//                boolean contentFailure = contentList.stream()
-//                        .anyMatch(item -> CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(item.getStatus()));
-//
-//                if (contentFailure) {
-//                    log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
-//                    updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
-//                    log.info("更新计划状态【结束】，planUid: {}", planUid);
-//                    return;
-//                }
-
-                // 查询当前批次
-                CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
-                // 如果当前批次是完成状态，则计划完成
-                if (CreativePlanStatusEnum.COMPLETE.name().equals(batch.getStatus())) {
-                    log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
-                    updateStatus(planUid, CreativePlanStatusEnum.COMPLETE.name());
-                    log.info("更新计划状态【结束】，planUid: {}", planUid);
-                    return;
-                }
-
-                // 如果当前批次是失败状态，则计划失败
-                if (CreativePlanStatusEnum.FAILURE.name().equals(batch.getStatus())) {
-                    log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
-                    updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
-                    log.info("更新计划状态【结束】，planUid: {}", planUid);
-                    return;
-                }
-
-                log.info("不需要更新计划状态，planUid: {}，status：{}", planUid, plan.getStatus());
+            // 如果当前批次是失败状态，则计划失败
+            if (CreativePlanStatusEnum.FAILURE.name().equals(batch.getStatus())) {
+                log.info("将要更新计划为【失败】状态，planUid: {}", planUid);
+                updateStatus(planUid, CreativePlanStatusEnum.FAILURE.name());
                 log.info("更新计划状态【结束】，planUid: {}", planUid);
-            });
-
-        } catch (Exception exception) {
-            log.warn("更新计划失败: {}", planUid, exception);
-            throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_UPDATE_STATUS_FAILED, planUid, exception.getMessage());
-        } finally {
-            if (lock != null) {
-                lock.unlock();
+                return;
             }
-        }
+
+            log.info("不需要更新计划状态，planUid: {}，status：{}", planUid, plan.getStatus());
+            log.info("更新计划状态【结束】，planUid: {}", planUid);
+        });
     }
 
     /**
@@ -551,7 +555,6 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             configuration.setImageStyleList(CollectionUtil.emptyIfNull(posterStyleList));
             // copy素材库
             creativeMaterialManager.upgradeMaterialLibrary(latestAppMarket.getUid(), plan.getUid());
-
         }
         // 如果不是全量覆盖，只更新应用配置
         else {

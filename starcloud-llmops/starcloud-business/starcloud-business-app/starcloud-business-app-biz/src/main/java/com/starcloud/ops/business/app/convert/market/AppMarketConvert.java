@@ -98,6 +98,7 @@ public interface AppMarketConvert {
         appMarket.setDescription(appMarketEntity.getDescription());
         appMarket.setExample(appMarketEntity.getExample());
         appMarket.setDemo(appMarketEntity.getDemo());
+        appMarket.setPluginList(JsonUtils.toJsonString(appMarketEntity.getPluginList()));
         appMarket.setAudit(appMarketEntity.getAudit());
         appMarket.setDeleted(Boolean.FALSE);
         // 处理配置信息
@@ -159,6 +160,7 @@ public interface AppMarketConvert {
         appMarketEntity.setDescription(app.getDescription());
         appMarketEntity.setExample(app.getExample());
         appMarketEntity.setDemo(app.getDemo());
+        appMarketEntity.setPluginList(JsonUtils.parseArray(app.getPluginList(), String.class));
         // 处理配置信息
         if (StringUtils.isNotBlank(app.getConfig())) {
             if (AppModelEnum.COMPLETION.name().equals(app.getModel())) {
@@ -206,6 +208,7 @@ public interface AppMarketConvert {
         appMarketEntity.setAudit(appMarket.getAudit());
         appMarketEntity.setExample(appMarket.getExample());
         appMarketEntity.setDemo(appMarket.getDemo());
+        appMarketEntity.setPluginList(JsonUtils.parseArray(appMarket.getPluginList(), String.class));
         appMarketEntity.setTenantId(appMarket.getTenantId());
         // 处理配置信息
         if (StringUtils.isNotBlank(appMarket.getConfig())) {
@@ -294,6 +297,7 @@ public interface AppMarketConvert {
         appMarketResponse.setDescription(appMarket.getDescription());
         appMarketResponse.setExample(appMarket.getExample());
         appMarketResponse.setDemo(appMarket.getDemo());
+        appMarketResponse.setPluginList(JsonUtils.parseArray(appMarket.getPluginList(), String.class));
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息
@@ -350,6 +354,7 @@ public interface AppMarketConvert {
         appMarketResponse.setDescription(appMarket.getDescription());
         appMarketResponse.setExample(appMarket.getExample());
         appMarketResponse.setDemo(appMarket.getDemo());
+        appMarketResponse.setPluginList(JsonUtils.parseArray(appMarket.getPluginList(), String.class));
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息

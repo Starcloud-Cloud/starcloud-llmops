@@ -78,6 +78,13 @@ public class CreativeContentController {
         return CommonResult.success(request.getUid());
     }
 
+    @PostMapping("/cancel")
+    @Operation(summary = "取消任务")
+    public CommonResult<String> cancel(@Valid @RequestBody UidRequest request) {
+        creativeContentService.cancel(request.getUid());
+        return CommonResult.success(request.getUid());
+    }
+
     @PostMapping("/like")
     @Operation(summary = "点赞", description = "点赞")
     @ApiOperationSupport(order = 80, author = "nacoyer")

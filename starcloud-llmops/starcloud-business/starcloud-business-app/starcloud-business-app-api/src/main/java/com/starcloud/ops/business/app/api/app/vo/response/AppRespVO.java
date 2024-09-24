@@ -156,6 +156,12 @@ public class AppRespVO implements Serializable {
     private String demo;
 
     /**
+     * 应用插件列表
+     */
+    @Schema(description = "插件列表")
+    private List<String> pluginList;
+
+    /**
      * 应用发布成功后，应用市场 uid-version
      */
     @Schema(description = "应用发布成功后，应用市场 uid-version")

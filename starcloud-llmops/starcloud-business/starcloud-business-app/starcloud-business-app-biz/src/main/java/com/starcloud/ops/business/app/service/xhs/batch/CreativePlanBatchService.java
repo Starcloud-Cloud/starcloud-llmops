@@ -32,14 +32,6 @@ public interface CreativePlanBatchService {
     List<CreativePlanBatchRespVO> list(CreativePlanBatchListReqVO query);
 
     /**
-     * 获取批次列表
-     *
-     * @param query 查询条件
-     * @return 批次列表
-     */
-    List<CreativePlanBatchRespVO> listStatus(CreativePlanBatchListReqVO query);
-
-    /**
      * 分页查询批次
      *
      * @param query 查询条件
@@ -61,6 +53,13 @@ public interface CreativePlanBatchService {
      * @param batchUid 批次UID
      */
     void startBatch(String batchUid);
+
+    /**
+     * 取消批次
+     *
+     * @param batchUid 批次UID
+     */
+    void cancelBatch(String batchUid);
 
     /**
      * 更新批次状态

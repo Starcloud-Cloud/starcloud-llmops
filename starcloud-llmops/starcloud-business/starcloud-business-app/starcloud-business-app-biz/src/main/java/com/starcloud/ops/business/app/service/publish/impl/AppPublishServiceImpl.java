@@ -16,6 +16,7 @@ import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO
 import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishReqVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishLatestRespVO;
 import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.publish.AppPublishConverter;
@@ -34,6 +35,7 @@ import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatExpandConfigService;
 import com.starcloud.ops.business.app.service.limit.AppPublishLimitService;
+import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -83,6 +85,9 @@ public class AppPublishServiceImpl implements AppPublishService {
 
     @Resource
     private CreativeContentService creativeContentService;
+
+    @Resource
+    private PluginsDefinitionService pluginsDefinitionService;
 
     /**
      * 分页查询应用发布记录
@@ -439,6 +444,12 @@ public class AppPublishServiceImpl implements AppPublishService {
         List<String> imageList = creativeContentService.listImage(appMarketEntity.getExample());
         if (CollectionUtil.isNotEmpty(imageList)) {
             appMarketEntity.setImages(imageList);
+        }
+
+        // 插件配置
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appPublish.getType())) {
+            List<PluginRespVO> list = pluginsDefinitionService.list(appPublish.getAppUid());
+            appMarketEntity.setPluginList(CollectionUtil.emptyIfNull(list).stream().map(PluginRespVO::getUid).collect(Collectors.toList()));
         }
 
         AppDO app = JsonUtils.parseObject(appPublish.getAppInfo(), AppDO.class);

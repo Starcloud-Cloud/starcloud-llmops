@@ -183,7 +183,7 @@ public class CreativePlanExecuteManager {
         AppValidate.notNull(configuration, "计划执行失败：计划配置不能为空！");
 
         // 计划配置校验
-        List<Verification> verifications = configuration.validate(planUid, ValidateTypeEnum.EXECUTE);
+        List<Verification> verifications = configuration.validate(planUid, ValidateTypeEnum.EXECUTE, true);
         if (CollectionUtil.isNotEmpty(verifications)) {
             Verification verification = verifications.get(0);
             throw ServiceExceptionUtil.invalidParamException(verification.getMessage());

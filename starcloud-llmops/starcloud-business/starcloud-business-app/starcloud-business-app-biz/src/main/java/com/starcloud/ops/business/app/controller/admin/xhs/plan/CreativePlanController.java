@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.plan;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.base.vo.request.BatchUidRequest;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.*;
@@ -120,6 +121,14 @@ public class CreativePlanController {
     @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
         return CommonResult.success(creativePlanExecuteManager.execute(request.getUid()));
+    }
+
+    @PostMapping("/cancel")
+    @Operation(summary = "取消创作计划", description = "取消创作计划")
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<Boolean> upgrade(@Validated @RequestBody BatchUidRequest request) {
+        creativePlanService.cancel(request.getBatchUid());
+        return CommonResult.success(true);
     }
 
     @PostMapping("/upgrade")
