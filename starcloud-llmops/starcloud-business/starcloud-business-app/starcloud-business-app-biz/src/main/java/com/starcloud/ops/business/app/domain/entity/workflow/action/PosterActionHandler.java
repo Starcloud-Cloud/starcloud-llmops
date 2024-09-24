@@ -138,40 +138,40 @@ public class PosterActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
         List<Verification> verifications = new ArrayList<>();
-        String stepName = wrapper.getName();
-        String stepCode = wrapper.getStepCode();
-        Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-
-        if (Objects.isNull(systemPosterConfig)) {
-            VerificationUtils.addVerificationStep(verifications, stepCode,
-                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
-            return verifications;
-        }
-
-        if (systemPosterConfig instanceof String) {
-            String systemPosterStyleConfig = String.valueOf(systemPosterConfig);
-            if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
-                VerificationUtils.addVerificationStep(verifications, stepCode,
-                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
-                return verifications;
-            }
-            List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
-
-            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
-                VerificationUtils.addVerificationStep(verifications, stepCode,
-                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
-                return verifications;
-            }
-        }
-        if (systemPosterConfig instanceof List) {
-            List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
-            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
-                VerificationUtils.addVerificationStep(verifications, stepCode,
-                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
-                return verifications;
-            }
-            wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
-        }
+//        String stepName = wrapper.getName();
+//        String stepCode = wrapper.getStepCode();
+//        Object systemPosterConfig = wrapper.getModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+//
+//        if (Objects.isNull(systemPosterConfig)) {
+//            VerificationUtils.addVerificationStep(verifications, stepCode,
+//                    "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+//            return verifications;
+//        }
+//
+//        if (systemPosterConfig instanceof String) {
+//            String systemPosterStyleConfig = String.valueOf(systemPosterConfig);
+//            if (StringUtils.isBlank(systemPosterStyleConfig) || "[]".equals(systemPosterStyleConfig) || "null".equalsIgnoreCase(systemPosterStyleConfig)) {
+//                VerificationUtils.addVerificationStep(verifications, stepCode,
+//                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+//                return verifications;
+//            }
+//            List<PosterStyleDTO> systemPosterStyleList = JsonUtils.parseArray(systemPosterStyleConfig, PosterStyleDTO.class);
+//
+//            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+//                VerificationUtils.addVerificationStep(verifications, stepCode,
+//                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+//                return verifications;
+//            }
+//        }
+//        if (systemPosterConfig instanceof List) {
+//            List<PosterStyleDTO> systemPosterStyleList = (List<PosterStyleDTO>) systemPosterConfig;
+//            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+//                VerificationUtils.addVerificationStep(verifications, stepCode,
+//                        "【" + stepName + "】步骤执行失败：系统风格模板配置为空！");
+//                return verifications;
+//            }
+//            wrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
+//        }
         return verifications;
     }
 
