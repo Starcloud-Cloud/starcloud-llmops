@@ -43,22 +43,14 @@ public class MaterialDO extends BaseDO {
      */
     private String name;
     /**
-     * 标题
-     */
-    private String title;
-    /**
      * 缩略图
      */
     private String thumbnail;
     /**
-     * 描述
-     */
-    private String introduction;
-    /**
      * 类型
      * {@link MaterialTypeEnum}
      */
-    private String type;
+    private Integer type;
     /**
      * 标签
      */
@@ -79,7 +71,7 @@ public class MaterialDO extends BaseDO {
     /**
      * 开启状态
      */
-    private Integer status;
+    private Boolean status;
     /**
      * 分类排序
      */

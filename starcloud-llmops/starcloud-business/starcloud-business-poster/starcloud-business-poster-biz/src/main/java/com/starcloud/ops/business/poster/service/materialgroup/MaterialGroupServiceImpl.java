@@ -51,8 +51,10 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         // 插入
         MaterialGroupDO materialGroup = BeanUtils.toBean(createReqVO, MaterialGroupDO.class);
         List<MaterialSaveReqVO> materialReqVO = createReqVO.getMaterialSaveReqVOS();
-        // 设置缩略图为素材的第一张
+        // TODO 异步任务  将base64 上传后同步到缩略图
         materialGroup
+                .setThumbnail(materialReqVO.get(0).getThumbnail())
+                .setCategoryId(createReqVO.getCategoryId())
                 .setUid(IdUtil.fastSimpleUUID())
                 .setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
         materialGroupMapper.insert(materialGroup);
