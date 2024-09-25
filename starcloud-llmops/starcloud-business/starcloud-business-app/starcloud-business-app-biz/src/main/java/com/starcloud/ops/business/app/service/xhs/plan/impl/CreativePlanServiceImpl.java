@@ -300,7 +300,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 upgradeRequest.setConfiguration(configuration);
                 upgradeRequest.setTotalCount(plan.getTotalCount());
                 upgradeRequest.setIsFullCover(Boolean.FALSE);
-                upgrade(upgradeRequest);
+                Integer newVersion = this.upgrade(upgradeRequest);
+                // 更新计划版本号
+                creativePlanResponse.setVersion(newVersion);
             }
             return creativePlanResponse;
         }
@@ -524,7 +526,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @param request 执行请求
      */
     @Override
-    public void upgrade(CreativePlanUpgradeReqVO request) {
+    public Integer upgrade(CreativePlanUpgradeReqVO request) {
         // 查询创作计划，并且校验是否存在
         CreativePlanDO plan = creativePlanMapper.get(request.getUid());
         AppValidate.notNull(plan, CreativeErrorCodeConstants.PLAN_NOT_EXIST, request.getUid());
@@ -571,6 +573,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         creativePlan.setTotalCount(request.getTotalCount());
 
         creativePlanMaterialMapper.updateById(creativePlan);
+
+        return creativePlan.getVersion();
     }
 
     /**
