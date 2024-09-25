@@ -127,7 +127,7 @@ public interface CreativePlanService {
      *
      * @param request 执行请求
      */
-    void upgrade(CreativePlanUpgradeReqVO request);
+    Integer upgrade(CreativePlanUpgradeReqVO request);
 
     /**
      * 获取应用信息
