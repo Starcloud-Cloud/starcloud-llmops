@@ -6,8 +6,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
-import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -20,8 +18,10 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
+import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
 
 /**
  * 海报素材 Service 实现类
@@ -84,7 +84,7 @@ public class MaterialServiceImpl implements MaterialService {
 
     private void validateMaterialExists(Long id) {
         if (materialMapper.selectById(id) == null) {
-            // throw exception(MATERIAL_NOT_EXISTS);
+            throw exception(MATERIAL_NOT_EXISTS);
         }
     }
 
@@ -127,7 +127,7 @@ public class MaterialServiceImpl implements MaterialService {
      */
     @Override
     public List<MaterialDO> getMaterialByGroup(Long groupId) {
-        return materialMapper.selectList(MaterialDO::getCategoryId, groupId);
+        return materialMapper.selectList(MaterialDO::getGroupId, groupId);
     }
 
     /**
@@ -147,9 +147,13 @@ public class MaterialServiceImpl implements MaterialService {
 
         // 第二步，批量添加、修改、删除
         if (CollUtil.isNotEmpty(diffList.get(0))) {
+            diffList.get(0).forEach(t -> {
+                t.setUid(IdUtil.fastSimpleUUID());
+                t.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
+            });
             materialMapper.insertBatch(diffList.get(0));
         }
-        //更新数据
+        // 更新数据
         if (CollUtil.isNotEmpty(diffList.get(1))) {
             materialMapper.updateBatch(diffList.get(1));
         }

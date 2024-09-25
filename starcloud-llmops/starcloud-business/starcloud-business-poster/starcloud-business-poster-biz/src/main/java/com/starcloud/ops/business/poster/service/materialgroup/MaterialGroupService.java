@@ -1,12 +1,11 @@
 package com.starcloud.ops.business.poster.service.materialgroup;
 
-import java.util.*;
-import javax.validation.*;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
+
+import javax.validation.Valid;
 
 /**
  * 海报素材分组 Service 接口
@@ -31,11 +30,25 @@ public interface MaterialGroupService {
     void updateMaterialGroup(@Valid MaterialGroupSaveReqVO updateReqVO);
 
     /**
+     * 更新海报素材分组
+     *
+     * @param updateReqVO 更新信息
+     */
+    void updateMaterialGroupByUid(@Valid MaterialGroupSaveReqVO updateReqVO);
+
+    /**
      * 删除海报素材分组
      *
      * @param id 编号
      */
     void deleteMaterialGroup(Long id);
+
+    /**
+     * 删除海报素材分组
+     *
+     * @param uid 编号
+     */
+    void deleteMaterialGroupByUid(String uid);
 
     /**
      * 获得海报素材分组
@@ -44,6 +57,14 @@ public interface MaterialGroupService {
      * @return 海报素材分组
      */
     MaterialGroupDO getMaterialGroup(Long id);
+
+    /**
+     * 获得海报素材分组
+     *
+     * @param uid 编号
+     * @return 海报素材分组
+     */
+    MaterialGroupDO getMaterialGroupByUid(String uid);
 
     /**
      * 获得海报素材分组分页
@@ -55,6 +76,7 @@ public interface MaterialGroupService {
 
     /**
      * 发布数据
+     *
      * @param groupId 分组编号
      */
     void publish(Long groupId);
@@ -67,6 +89,8 @@ public interface MaterialGroupService {
      */
     Long getCountByCategoryId(Long categoryId);
 
-
-
+    /**
+     * @param uid 分组编号
+     */
+    void copyGroup(String uid);
 }
