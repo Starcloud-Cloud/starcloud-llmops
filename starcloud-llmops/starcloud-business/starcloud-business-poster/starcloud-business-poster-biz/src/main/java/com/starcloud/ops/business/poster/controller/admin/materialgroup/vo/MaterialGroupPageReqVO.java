@@ -30,7 +30,7 @@ public class MaterialGroupPageReqVO extends PageParam {
     private Long categoryId;
 
     @Schema(description = "是否公开", requiredMode = Schema.RequiredMode.REQUIRED, example = "881")
-    private Boolean overtStatus = false;
+    private Boolean overtStatus;
 
     @Schema(description = "分类", requiredMode = Schema.RequiredMode.REQUIRED, example = "881")
     private Integer type;

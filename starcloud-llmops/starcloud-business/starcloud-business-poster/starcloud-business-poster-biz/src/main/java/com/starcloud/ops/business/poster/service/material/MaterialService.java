@@ -86,7 +86,8 @@ public interface MaterialService {
 
     /**
      * 更新海报素材数据
+     *
      * @param materialReqVOS
      */
-    void updateMaterialByGroup(Long groupId,List<MaterialSaveReqVO> materialReqVOS);
+    void updateMaterialByGroup(Long groupId, List<MaterialSaveReqVO> materialReqVOS);
 }

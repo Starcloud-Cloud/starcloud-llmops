@@ -62,8 +62,6 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         List<MaterialSaveReqVO> newMaterialReqVO = materialReqVO.stream().map(t -> t.setGroupId(materialGroup.getId())).collect(Collectors.toList());
         // 添加素材
         materialService.batchCreateMaterial(newMaterialReqVO);
-
-
         return materialGroup.getId();
     }
 
@@ -71,6 +69,33 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     public void updateMaterialGroup(MaterialGroupSaveReqVO updateReqVO) {
         // 校验存在
         validateMaterialGroupExists(updateReqVO.getId());
+        // 更新
+        MaterialGroupDO updateObj = BeanUtils.toBean(updateReqVO, MaterialGroupDO.class);
+
+        // 设置缩略图为素材的第一张
+        updateObj.setThumbnail(updateReqVO.getMaterialSaveReqVOS().get(0)
+                .getThumbnail());
+        materialGroupMapper.updateById(updateObj);
+        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().map(t -> t.setGroupId(updateObj.getId())).collect(Collectors.toList());
+
+        // 更新素材
+        materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
+    }
+
+    /**
+     * 更新海报素材分组
+     *
+     * @param updateReqVO 更新信息
+     */
+    @Override
+    public void updateMaterialGroupByUid(MaterialGroupSaveReqVO updateReqVO) {
+        // 校验存在
+        // 校验存在
+        MaterialGroupDO materialGroupDO = getMaterialGroupByUid(updateReqVO.getUid());
+
+        if (materialGroupDO == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
         // 更新
         MaterialGroupDO updateObj = BeanUtils.toBean(updateReqVO, MaterialGroupDO.class);
 
@@ -94,15 +119,46 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         materialGroupMapper.deleteById(id);
     }
 
+    /**
+     * 删除海报素材分组
+     *
+     * @param uid 编号
+     */
+    @Override
+    public void deleteMaterialGroupByUid(String uid) {
+        // 校验存在
+        MaterialGroupDO materialGroupDO = getMaterialGroupByUid(uid);
+
+        if (materialGroupDO == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+        // 删除分组下的素材
+        materialService.deleteMaterialByGroup(materialGroupDO.getId());
+        // 删除分组
+        materialGroupMapper.deleteById(materialGroupDO.getId());
+    }
+
     private void validateMaterialGroupExists(Long id) {
         if (materialGroupMapper.selectById(id) == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
     }
 
+
     @Override
     public MaterialGroupDO getMaterialGroup(Long id) {
         return materialGroupMapper.selectById(id);
+    }
+
+    /**
+     * 获得海报素材分组
+     *
+     * @param uid 编号
+     * @return 海报素材分组
+     */
+    @Override
+    public MaterialGroupDO getMaterialGroupByUid(String uid) {
+        return materialGroupMapper.selectOne(MaterialGroupDO::getUid, uid);
     }
 
     @Override
@@ -174,6 +230,27 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     @Override
     public Long getCountByCategoryId(Long categoryId) {
         return materialGroupMapper.selectCount(MaterialGroupDO::getCategoryId, categoryId);
+    }
+
+    /**
+     * @param uid 分组编号
+     */
+    @Override
+    public void copyGroup(String uid) {
+        MaterialGroupDO group = this.getMaterialGroupByUid(uid);
+        if (group == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+        List<MaterialDO> materialByGroup = materialService.getMaterialByGroup(group.getId());
+
+        // 复制分组
+        MaterialGroupSaveReqVO newGroup = BeanUtils.toBean(group, MaterialGroupSaveReqVO.class);
+        newGroup.setId(null);
+        // 复制数据
+        materialByGroup.forEach(t -> t.setId(null));
+        newGroup.setMaterialSaveReqVOS(BeanUtils.toBean(materialByGroup, MaterialSaveReqVO.class));
+        this.createMaterialGroup(newGroup);
+
     }
 
 

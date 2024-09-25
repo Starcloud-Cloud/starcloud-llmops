@@ -1,14 +1,16 @@
 package com.starcloud.ops.business.poster.dal.dataobject.material;
 
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.starcloud.ops.business.poster.enums.material.MaterialTypeEnum;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
-import java.util.*;
 
-import com.baomidou.mybatisplus.annotation.*;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import java.util.List;
 
 /**
  * 海报素材 DO
@@ -55,7 +57,7 @@ public class MaterialDO extends BaseDO {
      * 标签
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
-    private  List<String> materialTags;
+    private List<String> materialTags;
     /**
      * 素材数据
      */
@@ -78,7 +80,7 @@ public class MaterialDO extends BaseDO {
     private Integer sort;
     /**
      * 用户类型
-     *
+     * <p>
      * 枚举 {@link UserTypeEnum}
      */
     private Integer userType;

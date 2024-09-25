@@ -14,16 +14,16 @@ import com.starcloud.ops.business.poster.service.materialgroup.MaterialGroupServ
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-
 import java.util.List;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
 
 
 @Tag(name = "管理后台 - 海报素材分组")
@@ -47,27 +47,29 @@ public class MaterialGroupController {
     @PutMapping("u/update")
     @Operation(summary = "更新海报素材分组")
     public CommonResult<Boolean> updateMaterialGroup(@Valid @RequestBody MaterialGroupSaveReqVO updateReqVO) {
-        materialGroupService.updateMaterialGroup(updateReqVO);
+        materialGroupService.updateMaterialGroupByUid(updateReqVO);
         return success(true);
     }
 
     @DeleteMapping("u/delete")
     @Operation(summary = "删除海报素材分组")
-    @Parameter(name = "id", description = "编号", required = true)
-    public CommonResult<Boolean> deleteMaterialGroup(@RequestParam("id") Long id) {
-        materialGroupService.deleteMaterialGroup(id);
+    @Parameter(name = "uid", description = "编号", required = true)
+    public CommonResult<Boolean> deleteMaterialGroup(@RequestParam("uid") String uid) {
+        materialGroupService.deleteMaterialGroupByUid(uid);
         return success(true);
     }
 
     @GetMapping("u/get")
     @Operation(summary = "获得海报素材分组")
-    @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    public CommonResult<MaterialGroupRespVO> getMaterialGroup(@RequestParam("id") Long id) {
-        MaterialGroupDO materialGroup = materialGroupService.getMaterialGroup(id);
-        List<MaterialDO> materialByGroup = materialService.getMaterialByGroup(id);
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<MaterialGroupRespVO> getMaterialGroup(@RequestParam("uid") String uid) {
+        MaterialGroupDO materialGroup = materialGroupService.getMaterialGroupByUid(uid);
+        if (materialGroup == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+        List<MaterialDO> materialByGroup = materialService.getMaterialByGroup(materialGroup.getId());
         MaterialGroupRespVO bean = BeanUtils.toBean(materialGroup, MaterialGroupRespVO.class);
         bean.setMaterialRespVOS(BeanUtils.toBean(materialByGroup, MaterialRespVO.class));
-
         return success(bean);
     }
 
@@ -76,6 +78,14 @@ public class MaterialGroupController {
     public CommonResult<PageResult<MaterialGroupRespVO>> getMaterialGroupPage(@Valid MaterialGroupPageReqVO pageReqVO) {
         PageResult<MaterialGroupDO> pageResult = materialGroupService.getMaterialGroupPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialGroupRespVO.class));
+    }
+
+
+    @GetMapping("u/copy")
+    @Operation(summary = "获得海报素材分组分页")
+    public CommonResult<Boolean> copy(@RequestParam("uid") String uid) {
+        materialGroupService.copyGroup(uid);
+        return success(true);
     }
 
 
