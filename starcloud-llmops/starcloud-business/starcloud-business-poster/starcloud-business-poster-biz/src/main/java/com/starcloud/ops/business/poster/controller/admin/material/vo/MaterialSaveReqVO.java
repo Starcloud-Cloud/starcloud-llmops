@@ -26,6 +26,10 @@ public class MaterialSaveReqVO {
     // @NotEmpty(message = "缩略图不能为空")
     private String thumbnail;
 
+    @Schema(description = "素材分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "881")
+    @NotNull(message = "素材分类编号不能为空")
+    private Long categoryId;
+
     @Schema(description = "素材数据", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "素材数据不能为空")
     private String materialData;

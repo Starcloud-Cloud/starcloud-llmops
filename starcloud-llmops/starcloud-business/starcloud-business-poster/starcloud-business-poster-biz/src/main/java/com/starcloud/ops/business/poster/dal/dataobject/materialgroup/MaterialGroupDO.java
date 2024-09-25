@@ -41,7 +41,7 @@ public class MaterialGroupDO extends BaseDO {
     /**
      * 类型
      */
-    private String type;
+    private Integer type;
     /**
      * 分类编号
      */

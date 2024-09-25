@@ -30,7 +30,7 @@ public class MaterialGroupSaveReqVO {
     private String type;
 
     @Schema(description = "素材分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "881")
-    @NotEmpty(message = "分类编号不能为空")
+    @NotNull(message = "素材分类编号不能为空")
     private Long categoryId;
 
     @Schema(description = "标签")

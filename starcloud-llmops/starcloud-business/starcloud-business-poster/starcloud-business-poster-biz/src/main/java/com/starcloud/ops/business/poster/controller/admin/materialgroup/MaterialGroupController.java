@@ -3,10 +3,13 @@ package com.starcloud.ops.business.poster.controller.admin.materialgroup;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
+import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
 import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
+import com.starcloud.ops.business.poster.service.material.MaterialService;
 import com.starcloud.ops.business.poster.service.materialgroup.MaterialGroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -29,6 +34,9 @@ public class MaterialGroupController {
 
     @Resource
     private MaterialGroupService materialGroupService;
+
+    @Resource
+    private MaterialService materialService;
 
     @PostMapping("u/create")
     @Operation(summary = "创建海报素材分组")
@@ -56,7 +64,11 @@ public class MaterialGroupController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     public CommonResult<MaterialGroupRespVO> getMaterialGroup(@RequestParam("id") Long id) {
         MaterialGroupDO materialGroup = materialGroupService.getMaterialGroup(id);
-        return success(BeanUtils.toBean(materialGroup, MaterialGroupRespVO.class));
+        List<MaterialDO> materialByGroup = materialService.getMaterialByGroup(id);
+        MaterialGroupRespVO bean = BeanUtils.toBean(materialGroup, MaterialGroupRespVO.class);
+        bean.setMaterialRespVOS(BeanUtils.toBean(materialByGroup, MaterialRespVO.class));
+
+        return success(bean);
     }
 
     @GetMapping("u/page")

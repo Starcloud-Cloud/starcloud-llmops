@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.poster.controller.admin.materialgroup.vo;
 
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.util.*;
@@ -7,6 +9,9 @@ import java.util.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import com.alibaba.excel.annotation.*;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 海报素材分组 Response VO")
 @Data
@@ -24,10 +29,6 @@ public class MaterialGroupRespVO {
     @Schema(description = "名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "赵六")
     @ExcelProperty("名称")
     private String name;
-
-    @Schema(description = "标题", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("标题")
-    private String title;
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("缩略图")
@@ -52,5 +53,14 @@ public class MaterialGroupRespVO {
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "素材分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "881")
+    @ExcelProperty("素材分类编号")
+    private Long categoryId;
+
+
+    @Schema(description = "素材数据", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @NotEmpty(message = "素材数据不能为空")
+    private List<MaterialRespVO> materialRespVOS;
 
 }
