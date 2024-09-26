@@ -24,9 +24,6 @@ public class MaterialRespVO {
     @ExcelProperty("名称")
     private String name;
 
-    @Schema(description = "标题", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("标题")
-    private String title;
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("缩略图")

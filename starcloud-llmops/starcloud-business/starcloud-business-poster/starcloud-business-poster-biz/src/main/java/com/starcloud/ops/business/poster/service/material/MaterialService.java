@@ -55,6 +55,14 @@ public interface MaterialService {
     MaterialDO getMaterial(Long id);
 
     /**
+     * 获得海报素材
+     *
+     * @param id 编号
+     * @return 海报素材
+     */
+    MaterialDO getMaterialByUId(String id);
+
+    /**
      * 获得海报素材分页
      *
      * @param pageReqVO 分页查询
