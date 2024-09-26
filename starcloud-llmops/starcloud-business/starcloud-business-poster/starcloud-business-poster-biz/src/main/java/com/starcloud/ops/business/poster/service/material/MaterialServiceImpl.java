@@ -6,15 +6,22 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
 import com.starcloud.ops.business.poster.dal.mysql.material.MaterialMapper;
 import com.starcloud.ops.business.user.util.UserUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -163,4 +170,71 @@ public class MaterialServiceImpl implements MaterialService {
         }
     }
 
+    /**
+     * 根据海报模板UID获取海报详情
+     *
+     * @param uid 海报模板UID
+     * @return 海报详情
+     */
+    @Override
+    public PosterTemplateDTO posterTemplate(String uid) {
+        // 构造查询条件
+        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.eq(MaterialDO::getUid, uid);
+        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+        MaterialDO material = materialMapper.selectOne(wrapper);
+        return transform(material);
+    }
+
+    /**
+     * 根据分组获取海报列表
+     *
+     * @param group 分组编号
+     * @return 海报素材列表
+     */
+    @Override
+    public List<PosterTemplateDTO> listPosterTemplateByGroup(Long group) {
+        // 构造查询条件
+        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.eq(MaterialDO::getGroupId, group);
+        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+
+        // 查询列表
+        List<MaterialDO> materialList = materialMapper.selectList(wrapper);
+        if (CollectionUtils.isEmpty(materialList)) {
+            return Collections.emptyList();
+        }
+
+        List<PosterTemplateDTO> posterTemplateList = new ArrayList<>();
+        for (MaterialDO material : materialList) {
+            PosterTemplateDTO posterTemplate = new PosterTemplateDTO();
+            posterTemplate.setCode(material.getUid());
+            posterTemplate.setName(material.getName());
+            posterTemplate.setGroup(material.getGroupId());
+            posterTemplate.setExample(material.getThumbnail());
+            posterTemplateList.add(posterTemplate);
+        }
+
+        return posterTemplateList;
+    }
+
+    /**
+     * 转换为 PosterTemplateDTO
+     *
+     * @param material 素材
+     * @return 海报模板
+     */
+    private PosterTemplateDTO transform(MaterialDO material) {
+        if (material == null) {
+            return null;
+        }
+        PosterTemplateDTO posterTemplate = new PosterTemplateDTO();
+        posterTemplate.setCode(material.getUid());
+        posterTemplate.setName(material.getName());
+        posterTemplate.setGroup(material.getGroupId());
+        posterTemplate.setExample(material.getThumbnail());
+        posterTemplate.setJson(material.getMaterialData());
+        posterTemplate.setVariableList(CreativeImageManager.listVariable(material.getRequestParams()));
+        return posterTemplate;
+    }
 }
