@@ -9,6 +9,7 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
@@ -23,6 +24,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -183,7 +185,7 @@ public class MaterialServiceImpl implements MaterialService {
         wrapper.eq(MaterialDO::getUid, uid);
         wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
         MaterialDO material = materialMapper.selectOne(wrapper);
-        return transform(material);
+        return transform(material, true);
     }
 
     /**
@@ -196,27 +198,30 @@ public class MaterialServiceImpl implements MaterialService {
     public List<PosterTemplateDTO> listPosterTemplateByGroup(Long group) {
         // 构造查询条件
         LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.select(
+                MaterialDO::getId,
+                MaterialDO::getGroupId,
+                MaterialDO::getUid,
+                MaterialDO::getName,
+                MaterialDO::getThumbnail,
+                MaterialDO::getType,
+                MaterialDO::getMaterialTags,
+                MaterialDO::getRequestParams,
+                MaterialDO::getCategoryId,
+                MaterialDO::getStatus,
+                MaterialDO::getSort,
+                MaterialDO::getUserType
+        );
         wrapper.eq(MaterialDO::getGroupId, group);
         wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+        wrapper.orderByAsc(MaterialDO::getSort);
 
         // 查询列表
         List<MaterialDO> materialList = materialMapper.selectList(wrapper);
-        if (CollectionUtils.isEmpty(materialList)) {
-            return Collections.emptyList();
-        }
-
-        List<PosterTemplateDTO> posterTemplateList = new ArrayList<>();
-        for (MaterialDO material : materialList) {
-            PosterTemplateDTO posterTemplate = new PosterTemplateDTO();
-            posterTemplate.setCode(material.getUid());
-            posterTemplate.setName(material.getName());
-            posterTemplate.setGroup(material.getGroupId());
-            posterTemplate.setExample(material.getThumbnail());
-            posterTemplate.setVariableList(CreativeImageManager.listVariable(material.getRequestParams()));
-            posterTemplateList.add(posterTemplate);
-        }
-
-        return posterTemplateList;
+        return CollectionUtils.emptyIfNull(materialList).stream()
+                .map(item -> transform(item, false))
+                .filter(Objects::isNull)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -225,17 +230,22 @@ public class MaterialServiceImpl implements MaterialService {
      * @param material 素材
      * @return 海报模板
      */
-    private PosterTemplateDTO transform(MaterialDO material) {
+    private PosterTemplateDTO transform(MaterialDO material, boolean isNeedJson) {
         if (material == null) {
             return null;
         }
+        List<PosterVariableDTO> variableList = CreativeImageManager.listVariable(material.getRequestParams());
         PosterTemplateDTO posterTemplate = new PosterTemplateDTO();
         posterTemplate.setCode(material.getUid());
         posterTemplate.setName(material.getName());
         posterTemplate.setGroup(material.getGroupId());
+        posterTemplate.setCategory(material.getCategoryId());
         posterTemplate.setExample(material.getThumbnail());
-        posterTemplate.setJson(material.getMaterialData());
-        posterTemplate.setVariableList(CreativeImageManager.listVariable(material.getRequestParams()));
+        posterTemplate.setSort(material.getSort());
+        posterTemplate.setVariableList(variableList);
+        if (isNeedJson) {
+            posterTemplate.setJson(material.getMaterialData());
+        }
         return posterTemplate;
     }
 }
