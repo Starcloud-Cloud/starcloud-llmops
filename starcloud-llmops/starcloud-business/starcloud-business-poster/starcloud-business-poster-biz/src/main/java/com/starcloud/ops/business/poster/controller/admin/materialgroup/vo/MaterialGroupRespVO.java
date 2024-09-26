@@ -66,4 +66,9 @@ public class MaterialGroupRespVO {
     @NotEmpty(message = "素材数据不能为空")
     private List<MaterialRespVO> materialRespVOS;
 
+
+    @Schema(description = "素材数量", requiredMode = Schema.RequiredMode.REQUIRED)
+    @ExcelProperty("素材数量")
+    private Integer materialCount;
+
 }

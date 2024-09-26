@@ -65,6 +65,7 @@ public class MaterialServiceImpl implements MaterialService {
             if (ObjectUtil.isEmpty(t.getUid())) {
                 t.setUid(IdUtil.fastSimpleUUID());
             }
+            t.setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg");
             t.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
         }).collect(Collectors.toList());
 
@@ -221,7 +222,7 @@ public class MaterialServiceImpl implements MaterialService {
         List<MaterialDO> materialList = materialMapper.selectList(wrapper);
         return CollectionUtils.emptyIfNull(materialList).stream()
                 .map(item -> transform(item, false))
-                .filter(Objects::isNull)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

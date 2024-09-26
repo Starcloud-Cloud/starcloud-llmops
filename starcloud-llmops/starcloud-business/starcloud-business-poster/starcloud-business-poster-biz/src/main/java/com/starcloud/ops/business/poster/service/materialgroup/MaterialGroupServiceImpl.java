@@ -4,8 +4,11 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
 import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
@@ -54,6 +57,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         // TODO 异步任务  将base64 上传后同步到缩略图
         materialGroup
                 // .setThumbnail(materialReqVO.get(0).getThumbnail())
+                .setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg")
                 .setCategoryId(createReqVO.getCategoryId())
                 .setUid(IdUtil.fastSimpleUUID())
                 .setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
@@ -76,7 +80,10 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         updateObj.setThumbnail(updateReqVO.getMaterialSaveReqVOS().get(0)
                 .getThumbnail());
         materialGroupMapper.updateById(updateObj);
-        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().map(t -> t.setGroupId(updateObj.getId())).collect(Collectors.toList());
+        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().peek(t -> {
+            t.setGroupId(updateObj.getId());
+            t.setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg");
+        }).collect(Collectors.toList());
 
         // 更新素材
         materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
@@ -161,8 +168,23 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     }
 
     @Override
-    public PageResult<MaterialGroupDO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO) {
-        return materialGroupMapper.selectPage(pageReqVO);
+    public PageResult<MaterialGroupRespVO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO) {
+
+
+        // 2. 分页查询
+        IPage<MaterialGroupRespVO> pageResult = materialGroupMapper.selectPage(
+                MyBatisUtils.buildPage(pageReqVO), pageReqVO);
+
+        // 3. 拼接数据并返回
+        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
+
+
+        // List<MaterialGroupRespVO> groupRespVOS = materialGroupMapper.selectPage(pageReqVO,
+        //         PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
+        // return new PageResult<>(groupRespVOS, count);
+
+
+        // return materialGroupMapper.selectPage(pageReqVO, PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
     }
 
     /**
