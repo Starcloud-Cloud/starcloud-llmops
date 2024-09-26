@@ -46,4 +46,9 @@ public class PluginConfigDO extends TenantBaseDO {
      */
     private String executeParams;
 
+    /**
+     * {@link com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum}
+     */
+    private Integer type;
+
 }

@@ -22,7 +22,7 @@ public class LibraryDeleteConsumer extends AbstractRedisStreamMessageListener<Li
         log.info("删除素材库消息 [消息内容({})]", message);
         List<PluginConfigRespVO> configList = pluginConfigService.configList(message.getLibraryUid());
         configList.forEach(config -> {
-            pluginConfigService.delete(config.getUid());
+            pluginConfigService.delete(config.getUid(), true);
         });
     }
 }

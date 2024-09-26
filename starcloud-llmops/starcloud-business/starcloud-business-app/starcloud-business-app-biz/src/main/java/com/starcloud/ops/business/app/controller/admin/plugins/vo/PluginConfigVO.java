@@ -31,4 +31,6 @@ public class PluginConfigVO {
      */
     @Schema(description = "执行参数配置")
     private String executeParams;
+
+    private Integer type;
 }

@@ -46,6 +46,7 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.market.AppMarketTagTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
+import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -428,7 +429,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         target.setAppType(MaterialBindTypeEnum.APP_MAY.getCode());
         target.setUserId(WebFrameworkUtils.getLoginUserId());
 
-        creativeMaterialManager.copyLibrary(source, target);
+        creativeMaterialManager.copyLibrary(source, target, PluginBindTypeEnum.owner);
         return appEntity.getUid();
     }
 
