@@ -76,8 +76,8 @@ public class MaterialGroupController {
     @GetMapping("u/page")
     @Operation(summary = "获得海报素材分组分页")
     public CommonResult<PageResult<MaterialGroupRespVO>> getMaterialGroupPage(@Valid MaterialGroupPageReqVO pageReqVO) {
-        PageResult<MaterialGroupDO> pageResult = materialGroupService.getMaterialGroupPage(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, MaterialGroupRespVO.class));
+        PageResult<MaterialGroupRespVO> pageResult = materialGroupService.getMaterialGroupPage(pageReqVO);
+        return success(pageResult);
     }
 
 

@@ -2,6 +2,7 @@ package com.starcloud.ops.business.poster.service.materialgroup;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
 
@@ -72,7 +73,7 @@ public interface MaterialGroupService {
      * @param pageReqVO 分页查询
      * @return 海报素材分组分页
      */
-    PageResult<MaterialGroupDO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO);
+    PageResult<MaterialGroupRespVO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO);
 
     /**
      * 发布数据
