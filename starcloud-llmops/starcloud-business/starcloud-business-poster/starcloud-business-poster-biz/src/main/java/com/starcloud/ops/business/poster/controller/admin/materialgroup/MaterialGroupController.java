@@ -76,6 +76,7 @@ public class MaterialGroupController {
     @GetMapping("u/page")
     @Operation(summary = "获得海报素材分组分页")
     public CommonResult<PageResult<MaterialGroupRespVO>> getMaterialGroupPage(@Valid MaterialGroupPageReqVO pageReqVO) {
+        pageReqVO.setPageSize(10000);
         PageResult<MaterialGroupRespVO> pageResult = materialGroupService.getMaterialGroupPage(pageReqVO);
         return success(pageResult);
     }
