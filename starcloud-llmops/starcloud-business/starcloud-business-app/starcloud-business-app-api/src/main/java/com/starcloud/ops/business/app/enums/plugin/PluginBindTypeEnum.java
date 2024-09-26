@@ -2,6 +2,8 @@ package com.starcloud.ops.business.app.enums.plugin;
 
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 public enum PluginBindTypeEnum {
     owner(1, "用户自己的绑定"),
@@ -14,5 +16,9 @@ public enum PluginBindTypeEnum {
     PluginBindTypeEnum(int code, String desc) {
         this.code = code;
         this.desc = desc;
+    }
+
+    public static boolean isSys(int typeCode) {
+        return Objects.equals(typeCode, sys.getCode());
     }
 }
