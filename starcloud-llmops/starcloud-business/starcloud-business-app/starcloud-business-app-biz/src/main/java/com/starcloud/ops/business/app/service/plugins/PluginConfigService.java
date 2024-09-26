@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.plugins;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
+import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public interface PluginConfigService {
     /**
      * 删除插件配置
      */
-    void delete(String uid);
+    void delete(String uid, boolean forced);
 
     void deleteByPluginUid(String pluginUid);
 
@@ -38,10 +39,16 @@ public interface PluginConfigService {
     List<PluginConfigRespVO> configList(String libraryUid);
 
     /**
-     * 复制插件配置 定时任务
+     * 全量复制插件配置 定时任务
+     * 覆盖掉所有配置
      *
      * @param sourceUid 素材库uid
      * @param targetUid 素材库uid
      */
-    void copyPluginConfig(String sourceUid, String targetUid);
+    void copyPluginConfig(String sourceUid, String targetUid, PluginBindTypeEnum typeEnum);
+
+    /**
+     * 更新用户插件配置 只新增和删除
+     */
+    void updatePluginConfig(String sourceUid, String targetUid);
 }

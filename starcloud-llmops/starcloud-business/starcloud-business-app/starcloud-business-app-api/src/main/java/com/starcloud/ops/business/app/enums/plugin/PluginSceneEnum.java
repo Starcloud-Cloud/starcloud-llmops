@@ -21,11 +21,11 @@ public enum PluginSceneEnum implements IEnumable<String> {
     IMAGE_ANALYSIS("IMAGE_ANALYSIS", "图片分析", "通过AI技术提取图片中的文字信息");
 
 
-    private String code;
+    private final String code;
 
-    private String name;
+    private final String name;
 
-    private String description;
+    private final String description;
 
     PluginSceneEnum(String code, String name, String description) {
 
