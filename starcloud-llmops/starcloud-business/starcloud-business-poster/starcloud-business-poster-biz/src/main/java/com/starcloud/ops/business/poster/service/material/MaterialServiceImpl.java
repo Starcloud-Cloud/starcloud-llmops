@@ -21,8 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -64,7 +62,9 @@ public class MaterialServiceImpl implements MaterialService {
         // 插入
         List<MaterialDO> materialDOS = BeanUtils.toBean(createReqVOS, MaterialDO.class);
         List<MaterialDO> newMaterialDOS = materialDOS.stream().peek(t -> {
-            t.setUid(IdUtil.fastSimpleUUID());
+            if (ObjectUtil.isEmpty(t.getUid())) {
+                t.setUid(IdUtil.fastSimpleUUID());
+            }
             t.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
         }).collect(Collectors.toList());
 
@@ -152,12 +152,13 @@ public class MaterialServiceImpl implements MaterialService {
 
         List<List<MaterialDO>> diffList =
                 diffList(oldList, newList, // id 不同，就认为是不同的记录
-                        (oldVal, newVal) -> ObjectUtil.equal(oldVal.getId(), newVal.getId()));
+                        (oldVal, newVal) -> ObjectUtil.equal(oldVal.getUid(), newVal.getUid()));
 
         // 第二步，批量添加、修改、删除
         if (CollUtil.isNotEmpty(diffList.get(0))) {
             diffList.get(0).forEach(t -> {
-                t.setUid(IdUtil.fastSimpleUUID());
+                if (ObjectUtil.isEmpty(t.getUid()))
+                    t.setUid(IdUtil.fastSimpleUUID());
                 t.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
             });
             materialMapper.insertBatch(diffList.get(0));
