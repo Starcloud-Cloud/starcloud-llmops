@@ -1,12 +1,7 @@
 package com.starcloud.ops.business.poster.controller.admin.material.vo;
 
-import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
-import cn.iocoder.yudao.framework.common.validation.InEnum;
-import com.starcloud.ops.business.poster.enums.material.MaterialTypeEnum;
-import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -20,6 +15,9 @@ public class MaterialSaveReqVO {
 
     @Schema(description = "分组编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
     private Long groupId;
+
+    @Schema(description = "uid", requiredMode = Schema.RequiredMode.REQUIRED, example = "18992")
+    private String uid;
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
     // @URL(message = "缩略图必须是 URL 格式")
