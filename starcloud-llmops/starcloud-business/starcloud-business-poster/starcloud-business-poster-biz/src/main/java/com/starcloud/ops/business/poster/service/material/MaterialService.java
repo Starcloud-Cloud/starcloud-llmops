@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.poster.service.material;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -90,4 +91,21 @@ public interface MaterialService {
      * @param materialReqVOS
      */
     void updateMaterialByGroup(Long groupId, List<MaterialSaveReqVO> materialReqVOS);
+
+    /**
+     * 根据海报模板UID获取海报详情
+     *
+     * @param uid 海报模板UID
+     * @return 海报详情
+     */
+    PosterTemplateDTO posterTemplate(String uid);
+
+    /**
+     * 根据分组获取海报列表
+     *
+     * @param group 分组编号
+     * @return 海报素材列表
+     */
+    List<PosterTemplateDTO> listPosterTemplateByGroup(Long group);
+
 }

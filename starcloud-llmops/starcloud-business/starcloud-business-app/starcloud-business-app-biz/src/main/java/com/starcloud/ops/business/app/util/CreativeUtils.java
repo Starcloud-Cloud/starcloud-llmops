@@ -508,36 +508,6 @@ public class CreativeUtils {
     }
 
     /**
-     * 处理海报步骤
-     *
-     * @param posterStepWrapper 处理海报步骤
-     * @return 海报步骤
-     */
-    public static WorkflowStepWrapperRespVO handlerPosterStepWrapper(WorkflowStepWrapperRespVO posterStepWrapper) {
-        Map<String, PosterTemplateDTO> latestPosterTemplateMap = CREATIVE_IMAGE_MANAGER.mapPosterTemplate();
-        // 处理海报系统风格配置
-        List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
-        // 合并海报风格列表
-        systemPosterStyleList = mergePosterStyleList(systemPosterStyleList, latestPosterTemplateMap);
-
-        // 处理自定义海报风格配置
-        List<PosterStyleDTO> customPosterStyleList = getCustomPosterStyleListByStepWrapper(posterStepWrapper);
-        // 合并海报风格列表
-        customPosterStyleList = mergePosterStyleList(customPosterStyleList, latestPosterTemplateMap);
-
-        // 海报配置
-        List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(posterStepWrapper);
-        // 合并海报风格列表
-        posterStyleList = mergePosterStyleList(posterStyleList, latestPosterTemplateMap);
-
-        // 重新放入海报步骤
-        posterStepWrapper.putModelVariable(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
-        posterStepWrapper.putVariable(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
-        posterStepWrapper.putVariable(CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(posterStyleList));
-        return posterStepWrapper;
-    }
-
-    /**
      * 合并海报风格列表
      *
      * @param posterStyleList         海报风格列表

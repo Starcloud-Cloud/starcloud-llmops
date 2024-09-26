@@ -4,8 +4,10 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
@@ -16,7 +18,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -58,6 +67,7 @@ public class MaterialController {
     public CommonResult<Long> createMaterial(@Valid @RequestBody MaterialSaveReqVO createReqVO) {
         return success(materialService.createMaterial(createReqVO));
     }
+
     @PutMapping("u/update")
     @Operation(summary = "更新海报素材")
     @PreAuthorize("@ss.hasPermission('poster:material:update')")
@@ -65,6 +75,7 @@ public class MaterialController {
         materialService.updateMaterial(updateReqVO);
         return success(true);
     }
+
     @GetMapping("u/get")
     @Operation(summary = "获得海报素材")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
@@ -79,6 +90,22 @@ public class MaterialController {
     public CommonResult<PageResult<MaterialRespVO>> getMaterialPage(@Valid MaterialPageReqVO pageReqVO) {
         PageResult<MaterialDO> pageResult = materialService.getMaterialPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialRespVO.class));
+    }
+
+    @DataPermission(enable = false)
+    @GetMapping("u/posterTemplate")
+    @Operation(summary = "根据分组获取海报列表")
+    @PreAuthorize("@ss.hasPermission('poster:material:query')")
+    public CommonResult<PosterTemplateDTO> listByGroup(@RequestParam("templateId") String templateId) {
+        return success(materialService.posterTemplate(templateId));
+    }
+
+    @DataPermission(enable = false)
+    @GetMapping("u/listPosterTemplateByGroup")
+    @Operation(summary = "根据分组获取海报列表")
+    @PreAuthorize("@ss.hasPermission('poster:material:query')")
+    public CommonResult<List<PosterTemplateDTO>> listPosterTemplateByGroup(@RequestParam("group") Long group) {
+        return success(materialService.listPosterTemplateByGroup(group));
     }
 
     @DeleteMapping("u/delete")
