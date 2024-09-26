@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -79,6 +80,7 @@ public class MaterialController {
 
 
     @GetMapping("u/get")
+    @PermitAll
     @Operation(summary = "根据Uid获取海报素材")
     @Parameter(name = "uid", description = "编号", required = true, example = "1024")
     public CommonResult<MaterialSimpleRespVO> getMaterial(@RequestParam("uid") String uid) {
