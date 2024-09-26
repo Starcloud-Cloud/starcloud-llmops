@@ -95,7 +95,6 @@ public class MaterialController {
     @DataPermission(enable = false)
     @GetMapping("u/posterTemplate")
     @Operation(summary = "根据分组获取海报列表")
-    @PreAuthorize("@ss.hasPermission('poster:material:query')")
     public CommonResult<PosterTemplateDTO> listByGroup(@RequestParam("templateId") String templateId) {
         return success(materialService.posterTemplate(templateId));
     }
@@ -103,7 +102,6 @@ public class MaterialController {
     @DataPermission(enable = false)
     @GetMapping("u/listPosterTemplateByGroup")
     @Operation(summary = "根据分组获取海报列表")
-    @PreAuthorize("@ss.hasPermission('poster:material:query')")
     public CommonResult<List<PosterTemplateDTO>> listPosterTemplateByGroup(@RequestParam("group") Long group) {
         return success(materialService.listPosterTemplateByGroup(group));
     }
