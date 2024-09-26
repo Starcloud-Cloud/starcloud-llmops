@@ -20,7 +20,7 @@ public interface MaterialGroupService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createMaterialGroup(@Valid MaterialGroupSaveReqVO createReqVO);
+    String createMaterialGroup(@Valid MaterialGroupSaveReqVO createReqVO);
 
     /**
      * 更新海报素材分组
@@ -79,7 +79,7 @@ public interface MaterialGroupService {
      *
      * @param groupId 分组编号
      */
-    void publish(Long groupId);
+    void publish(String groupId);
 
     /**
      * 获取当前分类下分组数量

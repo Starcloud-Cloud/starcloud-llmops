@@ -40,7 +40,7 @@ public class MaterialGroupController {
 
     @PostMapping("u/create")
     @Operation(summary = "创建海报素材分组")
-    public CommonResult<Long> createMaterialGroup(@Valid @RequestBody MaterialGroupSaveReqVO createReqVO) {
+    public CommonResult<String> createMaterialGroup(@Valid @RequestBody MaterialGroupSaveReqVO createReqVO) {
         return success(materialGroupService.createMaterialGroup(createReqVO));
     }
 
@@ -85,6 +85,14 @@ public class MaterialGroupController {
     @Operation(summary = "获得海报素材分组分页")
     public CommonResult<Boolean> copy(@RequestParam("uid") String uid) {
         materialGroupService.copyGroup(uid);
+        return success(true);
+    }
+
+
+    @GetMapping("u/publish")
+    @Operation(summary = "发布海报素材到市场")
+    public CommonResult<Boolean> publish(@RequestParam("uid") String uid) {
+        materialGroupService.publish(uid);
         return success(true);
     }
 
