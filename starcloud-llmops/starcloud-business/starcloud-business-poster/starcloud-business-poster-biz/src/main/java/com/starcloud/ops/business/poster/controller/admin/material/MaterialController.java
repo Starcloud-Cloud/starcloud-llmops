@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSimpleRespVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
 import com.starcloud.ops.business.poster.service.material.MaterialService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,12 +77,13 @@ public class MaterialController {
         return success(true);
     }
 
+
     @GetMapping("u/get")
-    @Operation(summary = "获得海报素材")
-    @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    public CommonResult<MaterialRespVO> getMaterial(@RequestParam("id") Long id) {
-        MaterialDO material = materialService.getMaterial(id);
-        return success(BeanUtils.toBean(material, MaterialRespVO.class));
+    @Operation(summary = "根据Uid获取海报素材")
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<MaterialSimpleRespVO> getMaterial(@RequestParam("uid") String uid) {
+        MaterialDO material = materialService.getMaterialByUId(uid);
+        return success(BeanUtils.toBean(material, MaterialSimpleRespVO.class));
     }
 
     @GetMapping("u/page")

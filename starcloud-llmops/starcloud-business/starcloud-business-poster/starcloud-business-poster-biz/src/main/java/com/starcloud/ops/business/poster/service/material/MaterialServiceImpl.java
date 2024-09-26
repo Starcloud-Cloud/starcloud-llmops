@@ -103,6 +103,18 @@ public class MaterialServiceImpl implements MaterialService {
         return materialMapper.selectById(id);
     }
 
+    /**
+     * 获得海报素材
+     *
+     * @param uid 编号
+     * @return 海报素材
+     */
+    @Override
+    public MaterialDO getMaterialByUId(String uid) {
+        return materialMapper.selectOne(MaterialDO::getUid, uid, MaterialDO::getDeleted, Boolean.FALSE);
+
+    }
+
     @Override
     public PageResult<MaterialDO> getMaterialPage(MaterialPageReqVO pageReqVO) {
         return materialMapper.selectPage(pageReqVO);
