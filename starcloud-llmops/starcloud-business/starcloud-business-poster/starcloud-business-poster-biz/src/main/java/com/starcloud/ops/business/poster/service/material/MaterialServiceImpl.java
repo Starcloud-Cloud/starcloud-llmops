@@ -222,7 +222,7 @@ public class MaterialServiceImpl implements MaterialService {
         List<MaterialDO> materialList = materialMapper.selectList(wrapper);
         return CollectionUtils.emptyIfNull(materialList).stream()
                 .map(item -> transform(item, false))
-                .filter(Objects::isNull)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
