@@ -212,6 +212,7 @@ public class MaterialServiceImpl implements MaterialService {
             posterTemplate.setName(material.getName());
             posterTemplate.setGroup(material.getGroupId());
             posterTemplate.setExample(material.getThumbnail());
+            posterTemplate.setVariableList(CreativeImageManager.listVariable(material.getRequestParams()));
             posterTemplateList.add(posterTemplate);
         }
 
