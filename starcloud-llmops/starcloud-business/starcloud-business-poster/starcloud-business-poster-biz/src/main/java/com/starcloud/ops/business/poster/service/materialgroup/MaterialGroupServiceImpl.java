@@ -54,10 +54,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         // 插入
         MaterialGroupDO materialGroup = BeanUtils.toBean(createReqVO, MaterialGroupDO.class);
         List<MaterialSaveReqVO> materialReqVO = createReqVO.getMaterialSaveReqVOS();
-        // TODO 异步任务  将base64 上传后同步到缩略图
+
         materialGroup
-                // .setThumbnail(materialReqVO.get(0).getThumbnail())
-                .setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg")
+                .setThumbnail(materialReqVO.get(0).getThumbnail())
                 .setCategoryId(createReqVO.getCategoryId())
                 .setUid(IdUtil.fastSimpleUUID())
                 .setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
@@ -80,10 +79,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         updateObj.setThumbnail(updateReqVO.getMaterialSaveReqVOS().get(0)
                 .getThumbnail());
         materialGroupMapper.updateById(updateObj);
-        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().peek(t -> {
-            t.setGroupId(updateObj.getId());
-            t.setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg");
-        }).collect(Collectors.toList());
+        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().peek(t -> t.setGroupId(updateObj.getId())).collect(Collectors.toList());
 
         // 更新素材
         materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
