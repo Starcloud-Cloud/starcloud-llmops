@@ -18,7 +18,7 @@ public enum PluginBindTypeEnum {
         this.desc = desc;
     }
 
-    public static boolean isSys(int typeCode) {
+    public static boolean isSys(Integer typeCode) {
         return Objects.equals(typeCode, sys.getCode());
     }
 }
