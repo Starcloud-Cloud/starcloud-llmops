@@ -54,10 +54,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         // 插入
         MaterialGroupDO materialGroup = BeanUtils.toBean(createReqVO, MaterialGroupDO.class);
         List<MaterialSaveReqVO> materialReqVO = createReqVO.getMaterialSaveReqVOS();
-        // TODO 异步任务  将base64 上传后同步到缩略图
+
         materialGroup
-                // .setThumbnail(materialReqVO.get(0).getThumbnail())
-                .setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg")
+                .setThumbnail(materialReqVO.get(0).getThumbnail())
                 .setCategoryId(createReqVO.getCategoryId())
                 .setUid(IdUtil.fastSimpleUUID())
                 .setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
@@ -80,10 +79,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         updateObj.setThumbnail(updateReqVO.getMaterialSaveReqVOS().get(0)
                 .getThumbnail());
         materialGroupMapper.updateById(updateObj);
-        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().peek(t -> {
-            t.setGroupId(updateObj.getId());
-            t.setThumbnail("https://service-oss-juzhen.mofaai.com.cn/material/202409131730528538124/5ba2fc9a3e3046fabd3761d83410931b.jpeg");
-        }).collect(Collectors.toList());
+        List<MaterialSaveReqVO> newMaterialReqVO = updateReqVO.getMaterialSaveReqVOS().stream().peek(t -> t.setGroupId(updateObj.getId())).collect(Collectors.toList());
 
         // 更新素材
         materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
@@ -248,6 +244,31 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         materialByGroup.forEach(t -> t.setId(null));
         newGroup.setMaterialSaveReqVOS(BeanUtils.toBean(materialByGroup, MaterialSaveReqVO.class));
         this.createMaterialGroup(newGroup);
+
+    }
+
+    /**
+     * @param sourceGroupUid 源分组编号
+     * @param targetGroupUid 目标分组编号
+     */
+    @Override
+    public void mergeGroup(String sourceGroupUid, String targetGroupUid) {
+        MaterialGroupDO sourceGroup = this.getMaterialGroupByUid(sourceGroupUid);
+        MaterialGroupDO targetGroup = this.getMaterialGroupByUid(targetGroupUid);
+        if (sourceGroup == null || targetGroup == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+        // 合并分组
+        List<MaterialDO> sourceMaterial = materialService.getMaterialByGroup(sourceGroup.getId());
+        List<MaterialDO> targetMaterial = materialService.getMaterialByGroup(targetGroup.getId());
+        // 合并数据
+        sourceMaterial.forEach(t -> t.setId(null));
+        targetMaterial.addAll(sourceMaterial);
+        materialService.updateMaterialByGroup(targetGroup.getId(), BeanUtils.toBean(targetMaterial, MaterialSaveReqVO.class));
+        // 删除源分组
+        materialService.deleteMaterialByGroup(sourceGroup.getId());
+        // // 删除源分组
+        // this.deleteMaterialGroup(sourceGroup.getId());
 
     }
 

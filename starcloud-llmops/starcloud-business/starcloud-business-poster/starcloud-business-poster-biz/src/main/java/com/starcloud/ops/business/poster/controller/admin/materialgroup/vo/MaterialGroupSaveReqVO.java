@@ -1,12 +1,13 @@
 package com.starcloud.ops.business.poster.controller.admin.materialgroup.vo;
 
-import com.alibaba.excel.annotation.ExcelProperty;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
-import javax.validation.constraints.*;
-import java.util.*;
+import lombok.Data;
+import org.hibernate.validator.constraints.URL;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Schema(description = "管理后台 - 海报素材分组新增/修改 Request VO")
 @Data
@@ -23,6 +24,8 @@ public class MaterialGroupSaveReqVO {
     private String name;
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
+    @URL(message = "缩略图必须是 URL 格式")
+    @NotEmpty(message = "缩略图不能为空")
     private String thumbnail;
 
     @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
@@ -37,19 +40,17 @@ public class MaterialGroupSaveReqVO {
     private String materialTags;
 
     @Schema(description = "开启状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    private Boolean status= Boolean.TRUE;
+    private Boolean status = Boolean.TRUE;
 
     @Schema(description = "是否公开", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     private Boolean overtStatus = Boolean.FALSE;
 
     @Schema(description = "关联编号")
-    private Long associatedId ;
+    private Long associatedId;
 
     @Schema(description = "素材数据", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotEmpty(message = "素材数据不能为空")
     private List<MaterialSaveReqVO> materialSaveReqVOS;
-
-
 
 
 }
