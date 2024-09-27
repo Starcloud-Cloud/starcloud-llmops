@@ -148,7 +148,8 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         configDO.setPluginUid(sourceDO.getPluginUid());
         configDO.setType(typeEnum.getCode());
         pluginConfigMapper.insert(configDO);
-        businessJobApi.copyJob(sourceDO.getUid(), configDO.getUid(), configDO.getLibraryUid());
+//        复制插件不再copy定时任务
+//        businessJobApi.copyJob(sourceDO.getUid(), configDO.getUid(), configDO.getLibraryUid());
     }
 
     private void deleteByLibraryUid(String libraryUid) {
