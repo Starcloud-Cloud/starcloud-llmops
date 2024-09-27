@@ -16,6 +16,8 @@ import tech.powerjob.common.response.ResultDTO;
 
 import javax.annotation.Resource;
 
+import java.util.Objects;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.REQUEST_POWERJOB_ERROR;
 
@@ -71,6 +73,10 @@ public class PowerjobManager {
     public void deleteJob(Long jobId) {
         ResultDTO<Void> result = powerJobClient.deleteJob(jobId);
         if (!result.isSuccess()) {
+            if (Objects.nonNull(result.getMessage())
+                    && result.getMessage().startsWith("IllegalArgumentException: can't find job by jobId:")) {
+                return;
+            }
             throw exception(REQUEST_POWERJOB_ERROR, "删除powerjob任务", result.getMessage());
         }
     }

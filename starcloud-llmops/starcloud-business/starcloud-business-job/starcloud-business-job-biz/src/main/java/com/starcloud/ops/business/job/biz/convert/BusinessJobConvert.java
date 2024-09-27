@@ -29,6 +29,8 @@ public interface BusinessJobConvert {
 
     List<JobDetailDTO> convertApi(List<BusinessJobRespVO> businessJobRespVOList);
 
+    BusinessJobModifyReqVO convert(BusinessJobRespVO respVO);
+
     default JobConfigBaseVO convert(String config) {
         if (StringUtils.isBlank(config)) {
             return null;

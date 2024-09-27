@@ -39,6 +39,7 @@ import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryM
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
+import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
@@ -466,7 +467,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             if ((plugin.getCreator() != null)) {
                 plugin.setCreator(creatorMap.get(Long.valueOf(plugin.getCreator())));
             }
-            plugin.setConfigUid(map.get(plugin.getUid()).getUid());
+            PluginConfigRespVO configRespVO = map.get(plugin.getUid());
+            if (Objects.nonNull(configRespVO)) {
+                plugin.setConfigUid(configRespVO.getUid());
+                plugin.setSystemPlugin(PluginBindTypeEnum.isSys(configRespVO.getType()));
+            }
             Boolean enable = Optional.ofNullable(jobMap.get(plugin.getConfigUid())).map(JobDetailDTO::getEnable).orElse(Boolean.FALSE);
             plugin.setJobEnable(BooleanUtil.isTrue(enable));
         });

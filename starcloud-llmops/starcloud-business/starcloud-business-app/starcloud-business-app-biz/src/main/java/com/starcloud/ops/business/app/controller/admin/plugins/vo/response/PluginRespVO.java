@@ -30,4 +30,7 @@ public class PluginRespVO extends PluginDefinitionVO {
 
     @Schema(description = "帐号名称")
     private String accountName;
+
+    @Schema(description = "系统插件不可删除")
+    private boolean systemPlugin;
 }
