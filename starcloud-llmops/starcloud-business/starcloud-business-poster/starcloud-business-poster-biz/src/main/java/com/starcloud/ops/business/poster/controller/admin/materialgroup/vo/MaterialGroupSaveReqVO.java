@@ -3,7 +3,6 @@ package com.starcloud.ops.business.poster.controller.admin.materialgroup.vo;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -24,8 +23,8 @@ public class MaterialGroupSaveReqVO {
     private String name;
 
     @Schema(description = "缩略图", requiredMode = Schema.RequiredMode.REQUIRED)
-    @URL(message = "缩略图必须是 URL 格式")
-    @NotEmpty(message = "缩略图不能为空")
+    // @URL(message = "缩略图必须是 URL 格式")
+    // @NotEmpty(message = "缩略图不能为空")
     private String thumbnail;
 
     @Schema(description = "类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
