@@ -94,4 +94,11 @@ public interface MaterialGroupService {
      * @param uid 分组编号
      */
     void copyGroup(String uid);
+
+
+    /**
+     * @param sourceGroupUid 源分组编号
+     * @param targetGroupUid 目标分组编号
+     */
+    void mergeGroup(String sourceGroupUid, String targetGroupUid);
 }

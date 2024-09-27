@@ -98,4 +98,14 @@ public class MaterialGroupController {
     }
 
 
+    @PostMapping("u/mergeGroup")
+    @Operation(summary = "合并分组")
+    public CommonResult<Boolean> mergeGroup(@RequestParam("uid") String sourceGroupUid,@RequestParam("uid") String targetGroupUid) {
+        materialGroupService.mergeGroup(sourceGroupUid, targetGroupUid);
+        return success(true);
+    }
+
+
+
+
 }

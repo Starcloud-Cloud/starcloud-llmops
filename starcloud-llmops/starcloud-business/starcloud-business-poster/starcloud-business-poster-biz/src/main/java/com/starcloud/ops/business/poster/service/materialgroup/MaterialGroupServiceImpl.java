@@ -251,6 +251,31 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
     }
 
+    /**
+     * @param sourceGroupUid 源分组编号
+     * @param targetGroupUid 目标分组编号
+     */
+    @Override
+    public void mergeGroup(String sourceGroupUid, String targetGroupUid) {
+        MaterialGroupDO sourceGroup = this.getMaterialGroupByUid(sourceGroupUid);
+        MaterialGroupDO targetGroup = this.getMaterialGroupByUid(targetGroupUid);
+        if (sourceGroup == null || targetGroup == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+        // 合并分组
+        List<MaterialDO> sourceMaterial = materialService.getMaterialByGroup(sourceGroup.getId());
+        List<MaterialDO> targetMaterial = materialService.getMaterialByGroup(targetGroup.getId());
+        // 合并数据
+        sourceMaterial.forEach(t -> t.setId(null));
+        targetMaterial.addAll(sourceMaterial);
+        materialService.updateMaterialByGroup(targetGroup.getId(), BeanUtils.toBean(targetMaterial, MaterialSaveReqVO.class));
+        // 删除源分组
+        materialService.deleteMaterialByGroup(sourceGroup.getId());
+        // // 删除源分组
+        // this.deleteMaterialGroup(sourceGroup.getId());
+
+    }
+
 
     /**
      * 校验商品分类是否合法
