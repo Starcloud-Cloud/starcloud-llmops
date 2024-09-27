@@ -61,6 +61,10 @@ public class MaterialRespVO {
     @ExcelProperty("分类排序")
     private Integer sort;
 
+    @Schema(description = "分组编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
+    @ExcelProperty("分组编号")
+    private Long groupId;
+
     @Schema(description = "用户类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("用户类型")
     private String userType;
