@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.open.service.handler;
 
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.message.MpAutoReplyService;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
@@ -38,6 +39,7 @@ public class WxTextMessageHandler implements WxMpMessageHandler {
     private WechatService wechatService;
 
     @Override
+    @DataPermission(enable = false)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) {
         log.info("[handle][接收到文本消息，内容：{}]", wxMessage);
 

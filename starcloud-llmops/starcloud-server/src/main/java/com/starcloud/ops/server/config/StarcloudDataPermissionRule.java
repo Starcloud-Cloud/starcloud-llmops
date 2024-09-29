@@ -29,7 +29,7 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
      * 需要进行数据权限过滤的表名
      */
     private static final Set<String> TABLE_NAMES = Sets.newHashSet(
-            "llm_app",
+//            "llm_app",
             "llm_app_publish",
             "llm_app_publish_channel",
             "llm_log_app_conversation",
@@ -40,25 +40,25 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "listing_dict",
             "listing_draft",
             "listing_keyword_bind",
-            "llm_creative_plan",
-            "llm_creative_scheme",
-            "llm_creative_plan_batch",
-            "llm_creative_content",
-            "llm_single_mission",
-            "llm_notification",
+//            "llm_creative_plan", // ??
+//            "llm_creative_scheme",
+//            "llm_creative_plan_batch",
+//            "llm_creative_content",
+//            "llm_single_mission",  // 小程序接口权限 ？？
+//            "llm_notification",
             "poster_element",
             "poster_elementtype",
             "poster_template",
-            "poster_templatetype",
-            "llm_material_library",
-            "llm_material_library_slice",
-            "llm_material_library_table_column",
-            "llm_material_library_app_bind",
-            "system_social_user",
-            "system_social_user_bind",
-            "llm_material_library_app_bind",
-            "llm_material_plugin_definition",
-            "llm_business_job"
+            "poster_templatetype"
+//            "llm_material_library",
+//            "llm_material_library_slice",
+//            "llm_material_library_table_column",
+//            "llm_material_library_app_bind",
+//            "system_social_user",
+//            "system_social_user_bind",  // 扫码登录冲突 ？？
+//            "llm_material_plugin_definition",
+//            "llm_material_plugin_config",  // 发布流程 部门更新
+//            "llm_business_job"
     );
 
     @Resource

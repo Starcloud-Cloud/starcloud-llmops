@@ -1,11 +1,7 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.content;
 
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
+import com.baomidou.mybatisplus.annotation.*;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,7 +19,7 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 @TableName(value = "llm_creative_content", autoResultMap = true)
 @KeySequence("llm_creative_content_seq")
-public class CreativeContentDO extends TenantBaseDO {
+public class CreativeContentDO extends DeptBaseDO {
 
     private static final long serialVersionUID = 5941580301331021336L;
 
