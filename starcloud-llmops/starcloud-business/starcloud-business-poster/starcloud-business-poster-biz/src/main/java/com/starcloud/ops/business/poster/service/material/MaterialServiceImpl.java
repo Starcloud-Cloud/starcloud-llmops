@@ -14,9 +14,12 @@ import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
+import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
 import com.starcloud.ops.business.poster.dal.mysql.material.MaterialMapper;
+import com.starcloud.ops.business.poster.service.materialgroup.MaterialGroupService;
 import com.starcloud.ops.business.user.util.UserUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -29,6 +32,7 @@ import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionU
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
 import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
 
 /**
  * 海报素材 Service 实现类
@@ -42,6 +46,10 @@ public class MaterialServiceImpl implements MaterialService {
     @Resource
     private MaterialMapper materialMapper;
 
+
+    @Resource
+    @Lazy
+    private MaterialGroupService materialGroupService;
     @Override
     public Long createMaterial(MaterialSaveReqVO createReqVO) {
         // 插入
@@ -204,11 +212,18 @@ public class MaterialServiceImpl implements MaterialService {
     /**
      * 根据分组获取海报列表
      *
-     * @param group 分组编号
+     * @param uid 分组编号
      * @return 海报素材列表
      */
     @Override
-    public List<PosterTemplateDTO> listPosterTemplateByGroup(Long group) {
+    public List<PosterTemplateDTO> listPosterTemplateByGroup(String uid) {
+
+        MaterialGroupDO materialGroup = materialGroupService.getMaterialGroupByUid(uid);
+
+        if (materialGroup == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+
         // 构造查询条件
         LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
         wrapper.select(
@@ -225,7 +240,7 @@ public class MaterialServiceImpl implements MaterialService {
                 MaterialDO::getSort,
                 MaterialDO::getUserType
         );
-        wrapper.eq(MaterialDO::getGroupId, group);
+        wrapper.eq(MaterialDO::getGroupId, materialGroup.getId());
         wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
         wrapper.orderByAsc(MaterialDO::getSort);
 

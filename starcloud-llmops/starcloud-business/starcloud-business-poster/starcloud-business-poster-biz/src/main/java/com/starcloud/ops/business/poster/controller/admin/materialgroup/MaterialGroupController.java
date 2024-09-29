@@ -70,6 +70,7 @@ public class MaterialGroupController {
         List<MaterialDO> materialByGroup = materialService.getMaterialByGroup(materialGroup.getId());
         MaterialGroupRespVO bean = BeanUtils.toBean(materialGroup, MaterialGroupRespVO.class);
         bean.setMaterialRespVOS(BeanUtils.toBean(materialByGroup, MaterialRespVO.class));
+
         return success(bean);
     }
 
