@@ -111,9 +111,9 @@ public interface MaterialService {
     /**
      * 根据分组获取海报列表
      *
-     * @param group 分组编号
+     * @param uid 分组编号
      * @return 海报素材列表
      */
-    List<PosterTemplateDTO> listPosterTemplateByGroup(Long group);
+    List<PosterTemplateDTO> listPosterTemplateByGroup(String uid);
 
 }
