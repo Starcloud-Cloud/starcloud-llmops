@@ -106,14 +106,14 @@ public class MaterialController {
     @DataPermission(enable = false)
     @GetMapping("u/listPosterTemplateByGroup")
     @Operation(summary = "根据分组获取海报列表")
-    public CommonResult<List<PosterTemplateDTO>> listPosterTemplateByGroup(@RequestParam("group") Long group) {
-        return success(materialService.listPosterTemplateByGroup(group));
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<List<PosterTemplateDTO>> listPosterTemplateByGroup(@RequestParam("uid") String uid) {
+        return success(materialService.listPosterTemplateByGroup(uid));
     }
 
     @DeleteMapping("u/delete")
     @Operation(summary = "删除海报素材")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('poster:material:delete')")
     public CommonResult<Boolean> deleteMaterial(@RequestParam("id") Long id) {
         materialService.deleteMaterial(id);
         return success(true);
