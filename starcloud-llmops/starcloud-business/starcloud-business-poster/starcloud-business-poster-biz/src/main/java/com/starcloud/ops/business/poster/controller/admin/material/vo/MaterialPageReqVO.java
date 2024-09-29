@@ -23,6 +23,9 @@ public class MaterialPageReqVO extends PageParam {
     @Schema(description = "名称", example = "王五")
     private String name;
 
+    @Schema(description = "分组编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "王五")
+    private Long groupId;
+
     @Schema(description = "标题")
     private String title;
 
