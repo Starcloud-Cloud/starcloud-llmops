@@ -18,9 +18,9 @@ public enum PlatformEnum implements IEnumable<String> {
     app_market("app_market", "应用市场");
 
 
-    private String code;
+    private final String code;
 
-    private String name;
+    private final String name;
 
 
     PlatformEnum(String code, String name) {

@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -52,6 +53,7 @@ import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -116,6 +118,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private CreativeContentService creativeContentService;
+
+    @Resource
+    private PluginsDefinitionService pluginsDefinitionService;
 
     /**
      * 查询应用语言列表
@@ -369,15 +374,32 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
+        // 校验并且处理请求
         List<Verification> verifications = handlerAndValidateRequest(request);
-
+        if (CollectionUtil.isNotEmpty(verifications)) {
+            AppRespVO appResponse = new AppRespVO();
+            appResponse.setUid(request.getUid());
+            appResponse.setVerificationList(verifications);
+            return appResponse;
+        }
+        // 更新应用。
         AppEntity appEntity = AppConvert.INSTANCE.convert(request);
+
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
+
+        // 插件配置
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appEntity.getType())) {
+            List<PluginRespVO> list = pluginsDefinitionService.list(appEntity.getUid());
+            appEntity.setPluginList(CollectionUtil.emptyIfNull(list).stream().map(PluginRespVO::getUid).collect(Collectors.toList()));
+        }
+
         appEntity.update();
+
         verifications.addAll(appEntity.getVerificationList());
-        AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(appEntity);
+
+        AppRespVO appResponse = this.get(request.getUid());
         appResponse.setVerificationList(verifications);
 
         return appResponse;
@@ -571,6 +593,7 @@ public class AppServiceImpl implements AppService {
                     request.setImages(Collections.singletonList(category.getImage()));
                 }
             }
+
         }
 
         // 未指定应用类型，默认为普通应用

@@ -83,18 +83,10 @@ public class CreativePlanModifyReqVO implements Serializable {
         VerificationUtils.notNullCreative(verifications, configuration, uid, "创作计划更新失败！创作计划配置信息不能为空！");
         VerificationUtils.notNullCreative(verifications, totalCount, uid, "创作计划更新失败！创作计划生成数量不能为空！");
 
-//        AppValidate.notBlank(uid, "创作计划更新失败！创作计划UID是必须的！");
-//        AppValidate.notNull(validateType, "创作计划更新失败！校验类型不能为空！");
-//        if (!IEnumable.contains(validateType, ValidateTypeEnum.class)) {
-//            throw ServiceExceptionUtil.invalidParamException("创作计划更新失败！校验类型不支持！");
-//        }
-//        ValidateTypeEnum validateTypeEnum = ValidateTypeEnum.valueOf(validateType);
-//        AppValidate.notBlank(source, "创作计划更新失败！创作计划来源不能为空！");
-//        AppValidate.notNull(configuration, "创作计划更新失败！创作计划配置信息不能为空！");
-//        AppValidate.notNull(totalCount, "创作计划更新失败！创作计划生成数量不能为空！");
-
         ValidateTypeEnum validateTypeEnum = ValidateTypeEnum.valueOf(validateType);
-        List<Verification> validationList = configuration.validate(uid, validateTypeEnum);
+
+        boolean isValidateApp = validateApp == null || validateApp;
+        List<Verification> validationList = configuration.validate(uid, validateTypeEnum, isValidateApp);
         verifications.addAll(validationList);
         return verifications;
     }
@@ -104,4 +96,10 @@ public class CreativePlanModifyReqVO implements Serializable {
      */
     @Schema(description = "是否需要校验")
     private Boolean validate;
+
+    /**
+     * 是否需要校验，默认需要校验
+     */
+    @Schema(description = "是否需要校验")
+    private Boolean validateApp;
 }

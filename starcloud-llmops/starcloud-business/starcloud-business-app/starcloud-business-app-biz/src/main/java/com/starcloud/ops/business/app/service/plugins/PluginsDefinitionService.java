@@ -33,6 +33,14 @@ public interface PluginsDefinitionService {
     List<PluginRespVO> list(PluginListReqVO reqVO);
 
     /**
+     * 查询应用下的插件列表
+     *
+     * @param appUid 应用uid
+     * @return 插件列表
+     */
+    List<PluginRespVO> list(String appUid);
+
+    /**
      * 发布
      */
     void publish(String uid);

@@ -70,16 +70,14 @@ public class VariableActionHandler extends BaseActionHandler {
         List<Verification> verifications = new ArrayList<>();
         VariableEntity variable = wrapper.getVariable();
         List<VariableItemEntity> variableList = variable.getVariables();
-        VerificationUtils.notEmptyStep(verifications, variableList, wrapper.getStepCode(),
-                "【" + wrapper.getName() + "】步骤最少需要配置一个变量！");
 
         // 遍历校验变量
         for (VariableItemEntity item : variableList) {
-            if (Objects.isNull(item.getValue()) || StringUtils.isBlank(String.valueOf(item.getValue()))
-                    || Objects.isNull(item.getDefaultValue()) || StringUtils.isBlank(String.valueOf(item.getDefaultValue()))) {
-
-                VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(),
-                        "【" + wrapper.getName() + "】步骤变量【" + item.getField() + "】不能为空！");
+            if (Objects.isNull(item.getValue()) || StringUtils.isBlank(String.valueOf(item.getValue()))) {
+                item.setValue(item.getDefaultValue());
+                if (Objects.isNull(item.getValue()) || StringUtils.isBlank(String.valueOf(item.getValue()))) {
+                    VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(), "【" + wrapper.getName() + "】步骤变量【" + item.getField() + "】不能为空！");
+                }
             }
         }
 

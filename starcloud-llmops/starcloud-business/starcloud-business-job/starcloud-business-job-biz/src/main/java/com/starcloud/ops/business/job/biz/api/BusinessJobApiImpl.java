@@ -3,6 +3,7 @@ package com.starcloud.ops.business.job.biz.api;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.BusinessJobBaseVO;
+import com.starcloud.ops.business.job.biz.controller.admin.vo.request.BusinessJobModifyReqVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
 import com.starcloud.ops.business.job.biz.convert.BusinessJobConvert;
@@ -65,5 +66,42 @@ public class BusinessJobApiImpl implements BusinessJobApi {
     public List<JobDetailDTO> queryJob(List<String> foreignKeyList) {
         List<BusinessJobRespVO> businessJobRespList = businessJobService.getByForeignKey(foreignKeyList);
         return BusinessJobConvert.INSTANCE.convertApi(businessJobRespList);
+    }
+
+    @Override
+    public void updateJob(String sourceForeignKey, String targetForeignKey, String libraryUid) {
+        BusinessJobRespVO sourceJob = businessJobService.getByForeignKey(sourceForeignKey);
+        BusinessJobRespVO targetJob = businessJobService.getByForeignKey(targetForeignKey);
+        if (Objects.isNull(sourceJob) && Objects.isNull(targetJob)) {
+            return;
+        }
+
+        // job已删除
+        if (Objects.isNull(sourceJob) && Objects.nonNull(targetJob)) {
+            businessJobService.delete(targetJob.getUid());
+            return;
+        }
+
+        // 新增job
+        if (Objects.nonNull(sourceJob) && Objects.isNull(targetJob)) {
+            copyJob(sourceForeignKey, targetForeignKey, libraryUid);
+        }
+
+        // 更新job
+        if (Objects.nonNull(sourceJob) && Objects.nonNull(targetJob)) {
+            BusinessJobModifyReqVO modifyReqVO = BusinessJobConvert.INSTANCE.convert(targetJob);
+            modifyReqVO.setBusinessJobType(sourceJob.getBusinessJobType());
+            modifyReqVO.setTimeExpression(sourceJob.getTimeExpression());
+            modifyReqVO.setTimeExpressionType(sourceJob.getTimeExpressionType());
+            modifyReqVO.setLifecycleStart(sourceJob.getLifecycleStart());
+            modifyReqVO.setLifecycleEnd(sourceJob.getLifecycleEnd());
+            modifyReqVO.setDescption(sourceJob.getDescption() + " \n updateFrom uid=" + sourceJob.getUid());
+            modifyReqVO.setEnable(sourceJob.getEnable());
+
+            PluginDetailVO configBaseVO = (PluginDetailVO) sourceJob.getConfig();
+            configBaseVO.setLibraryUid(libraryUid);
+            modifyReqVO.setConfig(configBaseVO);
+            businessJobService.modify(modifyReqVO);
+        }
     }
 }

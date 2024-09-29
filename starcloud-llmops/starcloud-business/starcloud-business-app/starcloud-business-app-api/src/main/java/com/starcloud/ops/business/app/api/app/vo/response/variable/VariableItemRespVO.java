@@ -206,6 +206,7 @@ public class VariableItemRespVO implements Serializable {
     @JsonIgnore
     @JSONField(serialize = false)
     public void merge(VariableItemRespVO item) {
+        // 如果变量是可见的，则使用原来的值，否则最用最新变量的值。
         if (this.isShow) {
             this.defaultValue = item.getDefaultValue();
             this.value = item.getValue();

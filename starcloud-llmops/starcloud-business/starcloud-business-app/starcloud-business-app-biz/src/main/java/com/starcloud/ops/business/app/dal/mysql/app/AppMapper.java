@@ -190,6 +190,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getDescription,
                 AppDO::getExample,
                 AppDO::getDemo,
+                AppDO::getPluginList,
                 AppDO::getPublishUid,
                 AppDO::getInstallUid,
                 AppDO::getImages,

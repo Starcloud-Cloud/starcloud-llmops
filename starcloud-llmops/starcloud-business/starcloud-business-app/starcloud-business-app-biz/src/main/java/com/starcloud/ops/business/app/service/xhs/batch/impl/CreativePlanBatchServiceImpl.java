@@ -32,6 +32,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * @author nacoyer
+ * @version 1.0.0
+ * @since 2023-11-07
+ */
 @Slf4j
 @Service
 public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
@@ -64,18 +69,6 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
     @Override
     public List<CreativePlanBatchRespVO> list(CreativePlanBatchListReqVO query) {
         List<CreativePlanBatchDO> creativePlanBatch = creativePlanBatchMapper.list(query);
-        return CreativePlanBatchConvert.INSTANCE.convert(creativePlanBatch);
-    }
-
-    /**
-     * 获取批次列表
-     *
-     * @param query 查询条件
-     * @return 批次列表
-     */
-    @Override
-    public List<CreativePlanBatchRespVO> listStatus(CreativePlanBatchListReqVO query) {
-        List<CreativePlanBatchDO> creativePlanBatch = creativePlanBatchMapper.listStatus(query);
         return CreativePlanBatchConvert.INSTANCE.convert(creativePlanBatch);
     }
 
@@ -133,7 +126,23 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
     public void startBatch(String batchUid) {
         LambdaUpdateWrapper<CreativePlanBatchDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanBatchDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
+        updateWrapper.set(CreativePlanBatchDO::getStartTime, LocalDateTime.now());
         updateWrapper.set(CreativePlanBatchDO::getUpdateTime, LocalDateTime.now());
+        updateWrapper.eq(CreativePlanBatchDO::getUid, batchUid);
+        creativePlanBatchMapper.update(updateWrapper);
+    }
+
+    /**
+     * 取消批次
+     *
+     * @param batchUid 批次UID
+     */
+    @Override
+    public void cancelBatch(String batchUid) {
+        LambdaUpdateWrapper<CreativePlanBatchDO> updateWrapper = Wrappers.lambdaUpdate();
+        updateWrapper.set(CreativePlanBatchDO::getStatus, CreativePlanStatusEnum.CANCELED.name());
+        updateWrapper.set(CreativePlanBatchDO::getUpdateTime, LocalDateTime.now());
+        updateWrapper.set(CreativePlanBatchDO::getEndTime, LocalDateTime.now());
         updateWrapper.eq(CreativePlanBatchDO::getUid, batchUid);
         creativePlanBatchMapper.update(updateWrapper);
     }

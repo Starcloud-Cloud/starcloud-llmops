@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.api.publish.vo.request.AppPublishPageReqVO
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.util.PageUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -119,11 +120,11 @@ public interface AppPublishMapper extends BaseMapper<AppPublishDO> {
     default String selectAppUidByMarketUid(String marketUid) {
         LambdaQueryWrapper<AppPublishDO> wrapper = queryWrapper(Boolean.TRUE);
         wrapper.eq(AppPublishDO::getMarketUid, marketUid);
-        AppPublishDO appPublish = this.selectOne(wrapper);
-        if (appPublish == null) {
+        List<AppPublishDO> appPublishList = this.selectList(wrapper);
+        if (CollectionUtils.isEmpty(appPublishList)) {
             return null;
         }
-        return appPublish.getAppUid();
+        return appPublishList.get(0).getAppUid();
     }
 
     /**

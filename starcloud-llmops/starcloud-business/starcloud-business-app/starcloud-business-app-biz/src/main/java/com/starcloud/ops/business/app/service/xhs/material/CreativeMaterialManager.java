@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -27,6 +28,7 @@ import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMateri
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
+import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialFieldTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
@@ -35,6 +37,7 @@ import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
@@ -68,6 +71,9 @@ public class CreativeMaterialManager {
 
     @Resource
     private PluginConfigService pluginConfigService;
+
+    @Resource
+    private MaterialLibraryTableColumnService columnService;
 
     /**
      * 删除素材库
@@ -268,7 +274,7 @@ public class CreativeMaterialManager {
         target.setAppName(name);
         target.setUserId(WebFrameworkUtils.getLoginUserId());
 
-        copyLibrary(source, target);
+        copyLibrary(source, target, PluginBindTypeEnum.owner);
     }
 
     /**
@@ -284,20 +290,20 @@ public class CreativeMaterialManager {
         target.setAppName(appName);
         target.setUserId(WebFrameworkUtils.getLoginUserId());
 
-        copyLibrary(source, target);
+        copyLibrary(source, target, PluginBindTypeEnum.sys);
     }
 
     /**
      * 复制插件配置 定时任务
      */
-    private void copyPluginConfig(String sourceUid, String targetUid) {
+    private void copyPluginConfig(String sourceUid, String targetUid, PluginBindTypeEnum typeEnum) {
         MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
         appReqVO.setAppUid(sourceUid);
         DataPermissionUtils.executeIgnore(() -> {
             MaterialLibraryRespVO sourceLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
             appReqVO.setAppUid(targetUid);
             MaterialLibraryRespVO targetLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
-            pluginConfigService.copyPluginConfig(sourceLibrary.getUid(), targetLibrary.getUid());
+            pluginConfigService.copyPluginConfig(sourceLibrary.getUid(), targetLibrary.getUid(), typeEnum);
         });
     }
 
@@ -313,9 +319,24 @@ public class CreativeMaterialManager {
         MaterialLibraryAppReqVO target = new MaterialLibraryAppReqVO();
         target.setAppUid(planUid);
         target.setAppType(MaterialBindTypeEnum.CREATION_PLAN.getCode());
-        copyLibrary(source, target);
+        copyLibrary(source, target, PluginBindTypeEnum.sys);
         long end = System.currentTimeMillis();
         log.info("full update library ,sourceUid={}, planUid={} {}", sourceUid, planUid, end - start);
+    }
+
+    /**
+     * 更新表头 更新插件
+     */
+    @DataPermission(enable = false)
+    public void upgradeColumns(String sourceUid, String planUid) {
+        columnService.updateColumn(sourceUid, planUid);
+        MaterialLibraryAppReqVO appReqVO = new MaterialLibraryAppReqVO();
+        appReqVO.setAppUid(sourceUid);
+        MaterialLibraryRespVO sourceLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+
+        appReqVO.setAppUid(planUid);
+        MaterialLibraryRespVO targetLibrary = materialLibraryService.getMaterialLibraryByApp(appReqVO);
+        pluginConfigService.updatePluginConfig(sourceLibrary.getUid(), targetLibrary.getUid());
     }
 
     /**
@@ -329,7 +350,7 @@ public class CreativeMaterialManager {
         target.setAppType(MaterialBindTypeEnum.APP_MARKET.getCode());
         target.setAppName(appMarketEntity.getName());
         target.setUserId(WebFrameworkUtils.getLoginUserId());
-        copyLibrary(source, target);
+        copyLibrary(source, target, PluginBindTypeEnum.sys);
     }
 
     /**
@@ -376,13 +397,13 @@ public class CreativeMaterialManager {
     /**
      * 复制素材库
      */
-    public void copyLibrary(MaterialLibrarySliceAppReqVO source, MaterialLibraryAppReqVO target) {
+    public void copyLibrary(MaterialLibrarySliceAppReqVO source, MaterialLibraryAppReqVO target, PluginBindTypeEnum typeEnum) {
         log.info("start material library copy, sourceUid={}, targetUid={}", source.getAppUid(), target.getAppUid());
         long start = System.currentTimeMillis();
         materialLibraryService.materialLibraryCopy(target, source);
         long end = System.currentTimeMillis();
         log.info("material library copy, {}", end - start);
-        copyPluginConfig(source.getAppUid(), target.getAppUid());
+        copyPluginConfig(source.getAppUid(), target.getAppUid(), typeEnum);
     }
 
     /**

@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
@@ -181,6 +182,11 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
      * 应用演示
      */
     private String demo;
+
+    /**
+     * 应用插件列表
+     */
+    private List<String> pluginList;
 
     /**
      * 应用发布成功后，应用市场 uid-version

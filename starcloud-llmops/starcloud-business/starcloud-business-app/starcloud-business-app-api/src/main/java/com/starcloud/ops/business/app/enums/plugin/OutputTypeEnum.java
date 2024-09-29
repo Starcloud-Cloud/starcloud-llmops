@@ -16,9 +16,9 @@ public enum OutputTypeEnum implements IEnumable<String> {
     obj("obj", "对象"),
     ;
 
-    private String code;
+    private final String code;
 
-    private String name;
+    private final String name;
 
 
     OutputTypeEnum(String code, String name) {

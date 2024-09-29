@@ -78,6 +78,10 @@ public interface CreativeContentService {
             return Collections.emptyList();
         }
         List<String> uidList = StrUtil.split(example, ',');
+        // 不管list有几个，只去前4个
+        if (uidList.size() > 4) {
+            uidList = uidList.subList(0, 4);
+        }
         List<String> handleUidList = new ArrayList<>();
         for (String uid : uidList) {
             if (StringUtils.isBlank(uid)) {
@@ -164,6 +168,20 @@ public interface CreativeContentService {
     void retry(String uid);
 
     /**
+     * 取消创作内容
+     *
+     * @param uid 创作内容UID
+     */
+    void cancel(String uid);
+
+    /**
+     * 取消创作内容
+     *
+     * @param batchUid 批次UID
+     */
+    void cancelByBatchUid(String batchUid);
+
+    /**
      * 批量绑定创作内容
      *
      * @param uidList 创作内容UID集合
@@ -191,5 +209,4 @@ public interface CreativeContentService {
      * @param uid 创作内容UID
      */
     void unlike(String uid);
-
 }
