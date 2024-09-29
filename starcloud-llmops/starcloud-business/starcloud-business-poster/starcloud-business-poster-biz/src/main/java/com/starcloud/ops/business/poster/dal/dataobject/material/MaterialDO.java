@@ -1,13 +1,16 @@
 package com.starcloud.ops.business.poster.dal.dataobject.material;
 
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.starcloud.ops.business.poster.enums.material.MaterialTypeEnum;
 import lombok.*;
-import java.util.*;
 
-import com.baomidou.mybatisplus.annotation.*;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import java.util.List;
 
 /**
  * 海报素材 DO
@@ -30,6 +33,10 @@ public class MaterialDO extends BaseDO {
     @TableId
     private Long id;
     /**
+     * 分组编号
+     */
+    private Long groupId;
+    /**
      * 编号
      */
     private String uid;
@@ -38,27 +45,19 @@ public class MaterialDO extends BaseDO {
      */
     private String name;
     /**
-     * 标题
-     */
-    private String title;
-    /**
      * 缩略图
      */
     private String thumbnail;
     /**
-     * 描述
-     */
-    private String introduction;
-    /**
      * 类型
      * {@link MaterialTypeEnum}
      */
-    private String type;
+    private Integer type;
     /**
      * 标签
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
-    private  List<String> materialTags;
+    private List<String> materialTags;
     /**
      * 素材数据
      */
@@ -74,14 +73,14 @@ public class MaterialDO extends BaseDO {
     /**
      * 开启状态
      */
-    private Integer status;
+    private Boolean status;
     /**
      * 分类排序
      */
     private Integer sort;
     /**
      * 用户类型
-     *
+     * <p>
      * 枚举 {@link UserTypeEnum}
      */
     private Integer userType;
