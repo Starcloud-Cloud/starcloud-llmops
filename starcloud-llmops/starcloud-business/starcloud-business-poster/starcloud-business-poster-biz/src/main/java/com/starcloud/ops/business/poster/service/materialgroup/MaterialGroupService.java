@@ -82,6 +82,14 @@ public interface MaterialGroupService {
      */
     void publish(String groupId);
 
+
+    /**
+     * 发布数据
+     *
+     * @param groupId 分组编号
+     */
+    void cancelPublish(String groupId);
+
     /**
      * 获取当前分类下分组数量
      *

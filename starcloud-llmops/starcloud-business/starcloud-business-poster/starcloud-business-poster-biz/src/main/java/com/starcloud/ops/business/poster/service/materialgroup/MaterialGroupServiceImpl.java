@@ -65,6 +65,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         List<MaterialSaveReqVO> newMaterialReqVO = materialReqVO.stream().map(t -> t.setGroupId(materialGroup.getId())).collect(Collectors.toList());
         // 添加素材
         materialService.batchCreateMaterial(newMaterialReqVO);
+        if (createReqVO.getOvertStatus()){
+            this.publish(materialGroup.getUid());
+        }
         return materialGroup.getUid();
     }
 
@@ -83,6 +86,12 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
         // 更新素材
         materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
+
+        if (updateReqVO.getOvertStatus()){
+            this.publish(updateReqVO.getUid());
+        }else {
+            this.cancelPublish(updateReqVO.getUid());
+        }
     }
 
     /**
@@ -216,6 +225,19 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     }
 
     /**
+     * 发布数据
+     *
+     * @param groupId 分组编号
+     */
+    @Override
+    public void cancelPublish(String groupId) {
+
+        MaterialGroupDO publishGroup = validatePublish(groupId);
+        materialGroupMapper.updateById(publishGroup.setOvertStatus(Boolean.FALSE).setStatus(Boolean.FALSE));
+
+    }
+
+    /**
      * 获取当前分类下分组数量
      *
      * @param categoryId 素材分类 ID
@@ -292,7 +314,6 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
      * @param groupId 分组编号
      */
     private MaterialGroupDO validatePublish(String groupId) {
-        // 校验分组是否存在
         // 校验存在
         MaterialGroupDO materialGroupDO = getMaterialGroupByUid(groupId);
 
@@ -302,7 +323,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
         // 校验当前分组是否已经存在公开的数据
 
-        return materialGroupMapper.selectOne(MaterialGroupDO::getAssociatedId, groupId, MaterialGroupDO::getOvertStatus, Boolean.TRUE);
+        return materialGroupMapper.selectOne(MaterialGroupDO::getAssociatedId, groupId);
     }
 
 
