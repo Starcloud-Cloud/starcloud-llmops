@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.user.controller.admin.dept;
 
-
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
@@ -10,8 +9,8 @@ import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRes
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
+import com.starcloud.ops.business.user.pojo.dto.PermissionOption;
 import com.starcloud.ops.business.user.service.dept.UserDeptService;
-import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,6 @@ import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "用户部门管理")
 @RestController
@@ -33,7 +31,7 @@ public class UserDeptController {
 
     @GetMapping("/metadata")
     @Operation(summary = "查询元数据", description = "查询元数据")
-    public CommonResult<List<Option>> metadata() {
+    public CommonResult<List<PermissionOption>> metadata() {
         return CommonResult.success(UserDeptRoleEnum.options());
     }
 

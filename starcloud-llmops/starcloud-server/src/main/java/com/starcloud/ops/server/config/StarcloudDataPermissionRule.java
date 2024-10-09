@@ -44,21 +44,21 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "llm_creative_scheme",
             "llm_creative_plan_batch",
             "llm_creative_content",
-            "llm_single_mission",
-            "llm_notification",
+//            "llm_single_mission",
+//            "llm_notification",
             "poster_element",
             "poster_elementtype",
             "poster_template",
-            "poster_templatetype",
-            "llm_material_library",
-            "llm_material_library_slice",
-            "llm_material_library_table_column",
-            "llm_material_library_app_bind",
-            "system_social_user",
-            "system_social_user_bind",
-            "llm_material_library_app_bind",
-            "llm_material_plugin_definition",
-            "llm_business_job"
+            "poster_templatetype"
+//            "llm_material_library",
+//            "llm_material_library_slice",
+//            "llm_material_library_table_column",
+//            "llm_material_library_app_bind",
+//            "system_social_user",
+//            "system_social_user_bind",
+//            "llm_material_library_app_bind",
+//            "llm_material_plugin_definition",
+//            "llm_business_job"
     );
 
     @Resource

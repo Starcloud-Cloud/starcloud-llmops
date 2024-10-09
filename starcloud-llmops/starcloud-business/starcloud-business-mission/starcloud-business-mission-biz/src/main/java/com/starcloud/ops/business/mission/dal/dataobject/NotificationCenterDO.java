@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.mission.dal.dataobject;
 
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import com.starcloud.ops.business.enums.NotificationCenterStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class NotificationCenterDO extends TenantBaseDO {
+public class NotificationCenterDO extends DeptBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

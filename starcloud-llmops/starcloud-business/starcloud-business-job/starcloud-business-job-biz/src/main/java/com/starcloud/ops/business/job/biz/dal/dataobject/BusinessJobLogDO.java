@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.job.biz.dal.dataobject;
 
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.starcloud.ops.business.job.biz.enums.TriggerTypeEnum;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class BusinessJobLogDO extends TenantBaseDO {
+public class BusinessJobLogDO extends DeptBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

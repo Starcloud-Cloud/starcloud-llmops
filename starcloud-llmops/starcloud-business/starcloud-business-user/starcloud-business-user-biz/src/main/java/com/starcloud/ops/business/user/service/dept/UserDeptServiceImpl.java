@@ -297,13 +297,20 @@ public class UserDeptServiceImpl implements UserDeptService {
         if (user == null) {
             return null;
         }
-        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
-        return userDeptDO;
+        return userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
     }
 
     @Override
     public UserDeptDO selectOwnerDept(Long userId) {
-        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+        return userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+    }
+
+    @Override
+    public UserDeptDO selectByDeptAndUser(Long userDeptId, Long userId) {
+        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndUser(userDeptId, userId);
+        if (Objects.isNull(userDeptDO)) {
+            throw exception(NOT_BIND_DEPT);
+        }
         return userDeptDO;
     }
 
