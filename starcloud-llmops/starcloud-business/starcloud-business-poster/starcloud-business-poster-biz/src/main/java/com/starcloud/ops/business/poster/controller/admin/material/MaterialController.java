@@ -4,11 +4,14 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSimpleRespVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
 import com.starcloud.ops.business.poster.service.material.MaterialService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,9 +19,17 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -37,58 +48,18 @@ public class MaterialController {
     @Resource
     private MaterialService materialService;
 
-    // @PostMapping("/create")
-    // @Operation(summary = "创建海报素材")
-    // @PreAuthorize("@ss.hasPermission('poster:material:create')")
-    // public CommonResult<Long> createMaterial(@Valid @RequestBody MaterialSaveReqVO createReqVO) {
-    //     return success(materialService.createMaterial(createReqVO));
-    // }
-
-    @PutMapping("/update")
-    @Operation(summary = "更新海报素材")
-    @PreAuthorize("@ss.hasPermission('poster:material:update')")
-    public CommonResult<Boolean> updateMaterial(@Valid @RequestBody MaterialSaveReqVO updateReqVO) {
-        materialService.updateMaterial(updateReqVO);
-        return success(true);
-    }
-
-    // @DeleteMapping("/delete")
-    // @Operation(summary = "删除海报素材")
-    // @Parameter(name = "id", description = "编号", required = true)
-    // @PreAuthorize("@ss.hasPermission('poster:material:delete')")
-    // public CommonResult<Boolean> deleteMaterial(@RequestParam("id") Long id) {
-    //     materialService.deleteMaterial(id);
-    //     return success(true);
-    // }
-
-    // @GetMapping("/get")
-    // @Operation(summary = "获得海报素材")
-    // @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    // @PreAuthorize("@ss.hasPermission('poster:material:query')")
-    // public CommonResult<MaterialRespVO> getMaterial(@RequestParam("id") Long id) {
-    //     MaterialDO material = materialService.getMaterial(id);
-    //     return success(BeanUtils.toBean(material, MaterialRespVO.class));
-    // }
-    //
-    // @GetMapping("/page")
-    // @Operation(summary = "获得海报素材分页")
-    // @PreAuthorize("@ss.hasPermission('poster:material:query')")
-    // public CommonResult<PageResult<MaterialRespVO>> getMaterialPage(@Valid MaterialPageReqVO pageReqVO) {
-    //     PageResult<MaterialDO> pageResult = materialService.getMaterialPage(pageReqVO);
-    //     return success(BeanUtils.toBean(pageResult, MaterialRespVO.class));
-    // }
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出海报素材 Excel")
     @PreAuthorize("@ss.hasPermission('poster:material:export')")
     @OperateLog(type = EXPORT)
     public void exportMaterialExcel(@Valid MaterialPageReqVO pageReqVO,
-              HttpServletResponse response) throws IOException {
+                                    HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
         List<MaterialDO> list = materialService.getMaterialPage(pageReqVO).getList();
         // 导出 Excel
         ExcelUtils.write(response, "海报素材.xls", "数据", MaterialRespVO.class,
-                        BeanUtils.toBean(list, MaterialRespVO.class));
+                BeanUtils.toBean(list, MaterialRespVO.class));
     }
 
 // ======================Member======================
@@ -99,13 +70,22 @@ public class MaterialController {
         return success(materialService.createMaterial(createReqVO));
     }
 
+    @PutMapping("u/update")
+    @Operation(summary = "更新海报素材")
+    @PreAuthorize("@ss.hasPermission('poster:material:update')")
+    public CommonResult<Boolean> updateMaterial(@Valid @RequestBody MaterialSaveReqVO updateReqVO) {
+        materialService.updateMaterial(updateReqVO);
+        return success(true);
+    }
+
 
     @GetMapping("u/get")
-    @Operation(summary = "获得海报素材")
-    @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    public CommonResult<MaterialRespVO> getMaterial(@RequestParam("id") Long id) {
-        MaterialDO material = materialService.getMaterial(id);
-        return success(BeanUtils.toBean(material, MaterialRespVO.class));
+    @PermitAll
+    @Operation(summary = "根据Uid获取海报素材")
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<MaterialSimpleRespVO> getMaterial(@RequestParam("uid") String uid) {
+        MaterialDO material = materialService.getMaterialByUId(uid);
+        return success(BeanUtils.toBean(material, MaterialSimpleRespVO.class));
     }
 
     @GetMapping("u/page")
@@ -115,10 +95,25 @@ public class MaterialController {
         PageResult<MaterialDO> pageResult = materialService.getMaterialPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, MaterialRespVO.class));
     }
+
+    @DataPermission(enable = false)
+    @GetMapping("u/posterTemplate")
+    @Operation(summary = "根据分组获取海报列表")
+    public CommonResult<PosterTemplateDTO> listByGroup(@RequestParam("templateId") String templateId) {
+        return success(materialService.posterTemplate(templateId));
+    }
+
+    @DataPermission(enable = false)
+    @GetMapping("u/listPosterTemplateByGroup")
+    @Operation(summary = "根据分组获取海报列表")
+    @Parameter(name = "uid", description = "编号", required = true, example = "1024")
+    public CommonResult<List<PosterTemplateDTO>> listPosterTemplateByGroup(@RequestParam("uid") String uid) {
+        return success(materialService.listPosterTemplateByGroup(uid));
+    }
+
     @DeleteMapping("u/delete")
     @Operation(summary = "删除海报素材")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('poster:material:delete')")
     public CommonResult<Boolean> deleteMaterial(@RequestParam("id") Long id) {
         materialService.deleteMaterial(id);
         return success(true);

@@ -325,7 +325,7 @@ public interface CreativeErrorCodeConstants {
     ErrorCode PLUGIN_CONFIG_NOT_EXIST = new ErrorCode(760100007, "插件配置不存在，libraryUid={},pluginUid={}");
 
 
-    ErrorCode LIBRARY_HAS_CONFIG = new ErrorCode(760100008, "素材库已有配置，{}");
+    ErrorCode SYSTEM_PLUGIN = new ErrorCode(760100008, "系统插件不可删除");
 
 
     ErrorCode COZE_ERROR = new ErrorCode(760100009, "调用coze执行失败，{}");

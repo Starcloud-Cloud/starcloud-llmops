@@ -1,25 +1,38 @@
 package com.starcloud.ops.business.poster.service.material;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
-
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
+import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
 import com.starcloud.ops.business.poster.dal.mysql.material.MaterialMapper;
-import com.starcloud.ops.business.poster.service.materialcategory.MaterialCategoryService;
+import com.starcloud.ops.business.poster.service.materialgroup.MaterialGroupService;
 import com.starcloud.ops.business.user.util.UserUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR;
-import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.CATEGORY_LEVEL;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
+import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
 
 /**
  * 海报素材 Service 实现类
@@ -31,26 +44,43 @@ import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.
 public class MaterialServiceImpl implements MaterialService {
 
     @Resource
-    private MaterialCategoryService materialCategoryService;
-
-    @Resource
     private MaterialMapper materialMapper;
 
+
+    @Resource
+    @Lazy
+    private MaterialGroupService materialGroupService;
     @Override
     public Long createMaterial(MaterialSaveReqVO createReqVO) {
-
-        // 校验分类
-        validateCategory(createReqVO.getCategoryId());
-        // 设置信息
-
         // 插入
         MaterialDO material = BeanUtils.toBean(createReqVO, MaterialDO.class);
         material.setUid(IdUtil.fastSimpleUUID());
-        material.setUserType(UserUtils.isAdmin()? UserTypeEnum.ADMIN.getValue():UserTypeEnum.MEMBER.getValue());
+        material.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
         materialMapper.insert(material);
         // 返回
         return material.getId();
     }
+
+
+    @Override
+    public Boolean batchCreateMaterial(List<MaterialSaveReqVO> createReqVOS) {
+        if (CollUtil.isEmpty(createReqVOS))
+            return true;
+
+        // 插入
+        List<MaterialDO> materialDOS = BeanUtils.toBean(createReqVOS, MaterialDO.class);
+        List<MaterialDO> newMaterialDOS = materialDOS.stream().peek(t -> {
+            if (ObjectUtil.isEmpty(t.getUid())) {
+                t.setUid(IdUtil.fastSimpleUUID());
+            }
+            t.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
+        }).collect(Collectors.toList());
+
+        materialMapper.insertBatch(newMaterialDOS);
+        // 返回
+        return Boolean.TRUE;
+    }
+
 
     @Override
     public void updateMaterial(MaterialSaveReqVO updateReqVO) {
@@ -71,13 +101,25 @@ public class MaterialServiceImpl implements MaterialService {
 
     private void validateMaterialExists(Long id) {
         if (materialMapper.selectById(id) == null) {
-            // throw exception(MATERIAL_NOT_EXISTS);
+            throw exception(MATERIAL_NOT_EXISTS);
         }
     }
 
     @Override
     public MaterialDO getMaterial(Long id) {
         return materialMapper.selectById(id);
+    }
+
+    /**
+     * 获得海报素材
+     *
+     * @param uid 编号
+     * @return 海报素材
+     */
+    @Override
+    public MaterialDO getMaterialByUId(String uid) {
+        return materialMapper.selectOne(MaterialDO::getUid, uid, MaterialDO::getDeleted, Boolean.FALSE);
+
     }
 
     @Override
@@ -96,17 +138,142 @@ public class MaterialServiceImpl implements MaterialService {
         return materialMapper.selectCount(MaterialDO::getCategoryId, categoryId);
     }
 
+    /**
+     * 根据分组删除海报素材数据
+     *
+     * @param groupId 分组编号
+     */
+    @Override
+    public void deleteMaterialByGroup(Long groupId) {
+        materialMapper.delete(MaterialDO::getGroupId, groupId);
+    }
 
     /**
-     * 校验商品分类是否合法
+     * 根据分组编号获取数据
      *
-     * @param id 商品分类编号
+     * @param groupId 分组编号
+     * @return 海报素材数据
      */
-    private void validateCategory(Long id) {
-        materialCategoryService.validateCategory(id);
-        // 校验层级
-        if (materialCategoryService.getCategoryLevel(id) < CATEGORY_LEVEL) {
-            throw exception(SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR);
+    @Override
+    public List<MaterialDO> getMaterialByGroup(Long groupId) {
+        return materialMapper.selectList(MaterialDO::getGroupId, groupId);
+    }
+
+    /**
+     * 更新海报素材数据
+     *
+     * @param materialReqVOS 海报素材数据
+     */
+    @Override
+    public void updateMaterialByGroup(Long groupId, List<MaterialSaveReqVO> materialReqVOS) {
+        List<MaterialDO> newList = BeanUtils.toBean(materialReqVOS, MaterialDO.class);
+        // 第一步，对比新老数据，获得添加、修改、删除的列表
+        List<MaterialDO> oldList = this.getMaterialByGroup(groupId);
+
+        List<List<MaterialDO>> diffList =
+                diffList(oldList, newList, // id 不同，就认为是不同的记录
+                        (oldVal, newVal) -> ObjectUtil.equal(oldVal.getUid(), newVal.getUid()));
+
+        // 第二步，批量添加、修改、删除
+        if (CollUtil.isNotEmpty(diffList.get(0))) {
+            diffList.get(0).forEach(t -> {
+                if (ObjectUtil.isEmpty(t.getUid()))
+                    t.setUid(IdUtil.fastSimpleUUID());
+                t.setUserType(UserUtils.isAdmin() ? UserTypeEnum.ADMIN.getValue() : UserTypeEnum.MEMBER.getValue());
+            });
+            materialMapper.insertBatch(diffList.get(0));
         }
+        // 更新数据
+        if (CollUtil.isNotEmpty(diffList.get(1))) {
+            materialMapper.updateBatch(diffList.get(1));
+        }
+        // 删除
+        if (CollUtil.isNotEmpty(diffList.get(2))) {
+            materialMapper.deleteBatchIds(convertList(diffList.get(2), MaterialDO::getId));
+        }
+    }
+
+    /**
+     * 根据海报模板UID获取海报详情
+     *
+     * @param uid 海报模板UID
+     * @return 海报详情
+     */
+    @Override
+    public PosterTemplateDTO posterTemplate(String uid) {
+        // 构造查询条件
+        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.eq(MaterialDO::getUid, uid);
+        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+        MaterialDO material = materialMapper.selectOne(wrapper);
+        return transform(material, true);
+    }
+
+    /**
+     * 根据分组获取海报列表
+     *
+     * @param uid 分组编号
+     * @return 海报素材列表
+     */
+    @Override
+    public List<PosterTemplateDTO> listPosterTemplateByGroup(String uid) {
+
+        MaterialGroupDO materialGroup = materialGroupService.getMaterialGroupByUid(uid);
+
+        if (materialGroup == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+
+        // 构造查询条件
+        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.select(
+                MaterialDO::getId,
+                MaterialDO::getGroupId,
+                MaterialDO::getUid,
+                MaterialDO::getName,
+                MaterialDO::getThumbnail,
+                MaterialDO::getType,
+                MaterialDO::getMaterialTags,
+                MaterialDO::getRequestParams,
+                MaterialDO::getCategoryId,
+                MaterialDO::getStatus,
+                MaterialDO::getSort,
+                MaterialDO::getUserType
+        );
+        wrapper.eq(MaterialDO::getGroupId, materialGroup.getId());
+        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+        wrapper.orderByAsc(MaterialDO::getSort);
+
+        // 查询列表
+        List<MaterialDO> materialList = materialMapper.selectList(wrapper);
+        return CollectionUtils.emptyIfNull(materialList).stream()
+                .map(item -> transform(item, false))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 转换为 PosterTemplateDTO
+     *
+     * @param material 素材
+     * @return 海报模板
+     */
+    private PosterTemplateDTO transform(MaterialDO material, boolean isNeedJson) {
+        if (material == null) {
+            return null;
+        }
+        List<PosterVariableDTO> variableList = CreativeImageManager.listVariable(material.getRequestParams());
+        PosterTemplateDTO posterTemplate = new PosterTemplateDTO();
+        posterTemplate.setCode(material.getUid());
+        posterTemplate.setName(material.getName());
+        posterTemplate.setGroup(material.getGroupId());
+        posterTemplate.setCategory(material.getCategoryId());
+        posterTemplate.setExample(material.getThumbnail());
+        posterTemplate.setSort(material.getSort());
+        posterTemplate.setVariableList(variableList);
+        if (isNeedJson) {
+            posterTemplate.setJson(material.getMaterialData());
+        }
+        return posterTemplate;
     }
 }

@@ -21,4 +21,9 @@ public interface BusinessJobApi {
      * 查询定时任务
      */
     List<JobDetailDTO> queryJob(List<String> foreignKeyList);
+
+    /**
+     * 更新定时任务
+     */
+    void updateJob(String sourceForeignKey, String targetForeignKey, String libraryUid);
 }

@@ -1,22 +1,26 @@
 package com.starcloud.ops.business.app.service.xhs.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.google.common.collect.Lists;
-import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
-import com.starcloud.ops.business.app.model.poster.PosterTemplateTypeDTO;
-import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterParam;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateType;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.app.model.poster.PosterTemplateTypeDTO;
+import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.poster.PosterService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +147,39 @@ public class CreativeImageManager {
         template.setJson(templateItem.getJson());
         template.setTotalImageCount(imageNumber);
         return template;
+    }
+
+    /**
+     * 获取变量列表
+     *
+     * @param requestParams 请求参数
+     * @return 变量列表
+     */
+    public static List<PosterVariableDTO> listVariable(String requestParams) {
+        if (StringUtils.isBlank(requestParams)) {
+            return Collections.emptyList();
+        }
+        List<PosterParam> params;
+        try {
+            params = JsonUtils.parseArray(requestParams, PosterParam.class);
+        } catch (Exception exception) {
+            log.error("[CreativeImageManager][listVariable] 解析参数失败，requestParams: {}", requestParams, exception);
+            return Collections.emptyList();
+        }
+        return CollectionUtils.emptyIfNull(params).stream()
+                .map(param -> {
+                    Integer order = Optional.ofNullable(param.getOrder()).orElse(Integer.MAX_VALUE);
+                    if (IMAGE.equals(param.getType())) {
+                        return ofImageVariable(param.getId(), param.getName(), order);
+                    } else if (TEXT.equals(param.getType())) {
+                        return ofInputVariable(param.getId(), param.getName(), order, param.getCount());
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(PosterVariableDTO::getOrder))
+                .collect(Collectors.toList());
     }
 
     /**

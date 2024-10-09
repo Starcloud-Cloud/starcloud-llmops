@@ -29,6 +29,10 @@
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.starcloud.ops</groupId>
+            <artifactId>starcloud-common</artifactId>
+        </dependency>
 
     </dependencies>
 </project>
