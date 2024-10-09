@@ -37,7 +37,12 @@ public class DeptPermissionTable {
                 "llm_material_plugin_definition",
                 "llm_material_plugin_config",
                 "llm_business_job",
-                "llm_job_log"
+                "llm_job_log",
+                "llm_app",
+                "llm_creative_plan",
+                "llm_creative_scheme",
+                "llm_creative_plan_batch",
+                "llm_creative_content"
         );
     }
 }

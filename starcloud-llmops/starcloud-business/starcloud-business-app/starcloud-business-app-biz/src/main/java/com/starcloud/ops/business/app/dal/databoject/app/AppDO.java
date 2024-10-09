@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.app.dal.databoject.app;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanMaterialDO;
-import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -144,12 +144,6 @@ public class AppDO extends DeptBaseDO {
      */
     @TableField("demo")
     private String demo;
-
-    /**
-     * 团队ID
-     */
-    @TableField("team_id")
-    private Long teamId;
 
     /**
      * 插件列表

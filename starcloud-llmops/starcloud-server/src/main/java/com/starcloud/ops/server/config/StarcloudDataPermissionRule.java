@@ -29,7 +29,6 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
      * 需要进行数据权限过滤的表名
      */
     private static final Set<String> TABLE_NAMES = Sets.newHashSet(
-            "llm_app",
             "llm_app_publish",
             "llm_app_publish_channel",
             "llm_log_app_conversation",
@@ -40,10 +39,6 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "listing_dict",
             "listing_draft",
             "listing_keyword_bind",
-            "llm_creative_plan",
-            "llm_creative_scheme",
-            "llm_creative_plan_batch",
-            "llm_creative_content",
 //            "llm_single_mission",
 //            "llm_notification",
             "poster_element",
