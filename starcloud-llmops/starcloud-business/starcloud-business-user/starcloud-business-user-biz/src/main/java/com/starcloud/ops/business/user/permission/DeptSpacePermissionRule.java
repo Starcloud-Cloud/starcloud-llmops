@@ -46,12 +46,6 @@ public class DeptSpacePermissionRule implements DataPermissionRule {
     @Override
     @DataPermission(enable = false)
     public Expression getExpression(String tableName, Alias tableAlias) {
-        LoginUser loginUser = SecurityFrameworkUtils.getLoginUser();
-
-
-        loginUser.setContext("", true);
-
-
         Long userId = WebFrameworkUtils.getLoginUserId();
         // 小程序单独走权限
         if (Objects.isNull(userId) || Objects.equals(WebFrameworkUtils.getLoginUserType(), UserTypeEnum.MEMBER.getValue())) {
