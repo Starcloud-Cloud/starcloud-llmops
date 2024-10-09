@@ -18,19 +18,19 @@ import java.util.stream.Collectors;
 public enum CreativeContentGenerateModelEnum implements IEnumable<Integer> {
 
     /**
-     * 随机图文生成
+     * 自定义
      */
-    RANDOM(1, "随机获取"),
+    AI_CUSTOM(1, "AI生成"),
 
     /**
-     * 干货文生成
+     * AI仿写
      */
     AI_PARODY(2, "AI仿写"),
 
     /**
-     * 自定义
+     * 随机图文生成
      */
-    AI_CUSTOM(3, "AI生成");
+    RANDOM(3, "随机获取");
 
     /**
      * 类型编码
