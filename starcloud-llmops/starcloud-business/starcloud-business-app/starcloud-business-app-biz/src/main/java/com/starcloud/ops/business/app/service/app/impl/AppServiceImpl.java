@@ -339,7 +339,6 @@ public class AppServiceImpl implements AppService {
         appEntity.setUpdater(null);
         appEntity.setCreateTime(LocalDateTime.now());
         appEntity.setUpdateTime(LocalDateTime.now());
-        appEntity.setTeamId(app.getTeamId());
         // 查询配置的示例列表
         List<String> imageList = creativeContentService.listImage(appEntity.getExample());
         if (CollectionUtil.isNotEmpty(imageList)) {

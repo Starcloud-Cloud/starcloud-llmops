@@ -137,10 +137,4 @@ public class AppReqVO implements Serializable {
     @Schema(description = "是否校验")
     private Boolean validate;
 
-    /**
-     * 团队ID
-     */
-    @Schema(description = "团队ID")
-    private Long teamId;
-
 }

@@ -61,10 +61,5 @@ public class AppPageQuery extends PageQuery {
     @Schema(description = "应用场景")
     private List<String> scenes;
 
-    /**
-     * 团队ID
-     */
-    @Schema(description = "团队ID")
-    private Long teamId;
 
 }

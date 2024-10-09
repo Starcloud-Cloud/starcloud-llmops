@@ -89,11 +89,6 @@ import java.util.stream.Collectors;
 public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> {
 
     /**
-     * 团队ID
-     */
-    private Long teamId;
-
-    /**
      * 应用 AppRepository 服务
      */
     @JsonIgnore
