@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.api.app.vo.response;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
@@ -154,6 +155,12 @@ public class AppRespVO implements Serializable {
      */
     @Schema(description = "应用演示")
     private String demo;
+
+    /**
+     * 团队ID
+     */
+    @Schema(description = "团队ID")
+    private Long teamId;
 
     /**
      * 应用插件列表

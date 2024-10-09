@@ -146,6 +146,12 @@ public class AppDO extends DeptBaseDO {
     private String demo;
 
     /**
+     * 团队ID
+     */
+    @TableField("team_id")
+    private Long teamId;
+
+    /**
      * 插件列表
      */
     @TableField("plugin_list")

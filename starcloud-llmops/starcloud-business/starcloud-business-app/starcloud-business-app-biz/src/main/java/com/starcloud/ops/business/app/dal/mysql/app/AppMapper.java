@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Objects;
+
 /**
  * 应用表 Mapper 接口
  *
@@ -49,6 +51,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         } else {
             wrapper.eq(AppDO::getModel, AppModelEnum.COMPLETION.name());
         }
+        wrapper.eq(Objects.nonNull(query.getTeamId()), AppDO::getTeamId, query.getTeamId());
         wrapper.last("ORDER BY sort IS NULL, sort ASC, update_time DESC");
         return this.selectPage(PageUtil.page(query), wrapper);
     }
@@ -190,6 +193,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
                 AppDO::getDescription,
                 AppDO::getExample,
                 AppDO::getDemo,
+                AppDO::getTeamId,
                 AppDO::getPluginList,
                 AppDO::getPublishUid,
                 AppDO::getInstallUid,
