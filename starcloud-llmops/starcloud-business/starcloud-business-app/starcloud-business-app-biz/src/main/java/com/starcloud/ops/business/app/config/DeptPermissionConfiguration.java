@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class DeptPermissionConfiguration {
 
-    @Bean
-    public DeptDataPermissionRuleCustomizer sysDeptDataPermissionRuleCustomizer() {
+    @Bean("deptSpacePermissionRuleCustomize")
+    public DeptDataPermissionRuleCustomizer deptSpacePermissionRuleCustomizer() {
         return rule -> {
             // dept
             rule.addDeptColumn(PluginDefinitionDO.class);
