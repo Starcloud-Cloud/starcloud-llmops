@@ -49,6 +49,7 @@ public class CreativeContentRegenerateReqVO implements java.io.Serializable {
      */
     public void validate(ValidateTypeEnum validateType) {
         AppValidate.notBlank(uid, "创作内容UID不能为空！");
+        AppValidate.notBlank(source, "来源不能为空！");
         AppValidate.notNull(executeParam, "执行参数不能为空！");
         executeParam.validate(validateType);
     }

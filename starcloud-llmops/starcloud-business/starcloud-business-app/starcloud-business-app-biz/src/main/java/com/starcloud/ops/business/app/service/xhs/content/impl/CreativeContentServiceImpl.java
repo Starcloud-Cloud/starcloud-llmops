@@ -26,6 +26,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -41,11 +42,13 @@ import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
@@ -379,8 +382,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 基础校验
             request.validate(ValidateTypeEnum.EXECUTE);
+
+            // 获取执行参数
             CreativeContentExecuteParam executeParam = request.getExecuteParam();
-            AppMarketRespVO appInformation = executeParam.getAppInformation();
+            // 获取应用
+            AppMarketRespVO appInformation = this.handlerAppInformation(request);
 
             // 素材步骤
             WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
@@ -416,10 +422,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             CreativeContentDO content = creativeContentMapper.get(request.getUid());
             AppValidate.notNull(content, "创作内容不存在！");
 
-            // 查询一次应用市场，获取最新的应用市场配置
-            AppMarketRespVO latestAppMarket = creativePlanService.getAppInformation(appInformation.getUid(), content.getSource());
-            appInformation = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
-
             // 从应用市场获取最新的系统配置合并
             posterStyle = CreativeUtils.mergeImagePosterStyle(posterStyle, appInformation);
             // 处理一下海报风格
@@ -432,14 +434,19 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             materialHandler.validatePosterStyle(posterStyle);
 
-            // 处理素材列表
+            // 构建素材库元数据
             MaterialMetadata materialMetadata = new MaterialMetadata();
-            materialMetadata.setMaterialType(businessType);
-            materialMetadata.setMaterialStepId(materialStepId);
-            materialMetadata.setMaterialFieldList(fieldList);
-            materialMetadata.setPlanSource(CreativePlanSourceEnum.of(request.getSource()));
             materialMetadata.setPlanUid(request.getPlanUid());
             materialMetadata.setAppUid(appInformation.getUid());
+            materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
+            materialMetadata.setPlanSource(CreativePlanSourceEnum.of(request.getSource()));
+            materialMetadata.setMaterialType(businessType);
+            materialMetadata.setMaterialStepId(materialStepId);
+            materialMetadata.setPosterStepId(posterStepId);
+            materialMetadata.setMaterialUsageModel(MaterialUsageModel.FILTER_USAGE);
+            materialMetadata.setMaterialFieldList(fieldList);
+
+
             Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle), materialMetadata);
 
             // 获取该风格下，处理之后的素材列表
@@ -667,4 +674,24 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
         return response;
     }
+
+    /**
+     * 处理 regenerate 请求，将请求中的 app 信息合并到最新应用信息中
+     *
+     * @param request regenerate 请求
+     * @return 处理后的应用信息
+     */
+    private AppMarketRespVO handlerAppInformation(CreativeContentRegenerateReqVO request) {
+        CreativeContentExecuteParam executeParam = request.getExecuteParam();
+        AppMarketRespVO appInformation = executeParam.getAppInformation();
+
+        // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
+        AppMarketRespVO latestAppMarket = creativePlanService.getAppInformation(appInformation.getUid(), request.getSource());
+        // 合并应用市场配置，某一些配置项需要保持最新
+        AppMarketRespVO app = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
+        executeParam.setAppInformation(app);
+        request.setExecuteParam(executeParam);
+        return app;
+    }
+
 }
