@@ -16,7 +16,7 @@ public class MaterialGroupPublishReqVO {
 
     @Schema(description = "是否公开", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotNull(message = "发布状态不能为空")
-    private Boolean overtStatus = Boolean.FALSE;
+    private Boolean overtStatus ;
 
 
 }
