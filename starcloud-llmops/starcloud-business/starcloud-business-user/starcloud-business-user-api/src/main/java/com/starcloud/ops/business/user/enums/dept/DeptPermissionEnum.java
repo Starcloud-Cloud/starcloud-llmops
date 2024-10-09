@@ -13,7 +13,12 @@ import java.util.stream.Collectors;
 @Getter
 public enum DeptPermissionEnum {
     app_edit("app.edit", "应用编辑"),
-    app_delete("app.delete", "应用删除");
+    app_delete("app.delete", "应用删除"),
+
+    plugin_edit("plugin.edit","插件编辑"),
+    plugin_delete("plugin.delete","插件删除"),
+
+    ;
 
     private final String permission;
 

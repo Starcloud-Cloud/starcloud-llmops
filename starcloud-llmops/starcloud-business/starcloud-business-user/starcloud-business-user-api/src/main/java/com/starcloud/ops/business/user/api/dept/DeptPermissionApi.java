@@ -12,5 +12,5 @@ public interface DeptPermissionApi {
     /**
      * 判断当前用户是否有权限点
      */
-    boolean hasPermission(String permission);
+    boolean hasPermission(String permission, Long creator);
 }

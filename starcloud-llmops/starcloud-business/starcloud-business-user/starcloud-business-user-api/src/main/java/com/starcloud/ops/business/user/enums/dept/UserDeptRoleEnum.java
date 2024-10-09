@@ -22,12 +22,16 @@ public enum UserDeptRoleEnum {
 
     ADMIN(500, "管理员", Sets.newHashSet(
             DeptPermissionEnum.app_delete.getPermission(),
-            DeptPermissionEnum.app_edit.getPermission()
+            DeptPermissionEnum.app_edit.getPermission(),
+            DeptPermissionEnum.plugin_delete.getPermission(),
+            DeptPermissionEnum.plugin_edit.getPermission()
     )),
 
     SUPER_ADMIN(1000, "超级管理员", Sets.newHashSet(
             DeptPermissionEnum.app_delete.getPermission(),
-            DeptPermissionEnum.app_edit.getPermission()
+            DeptPermissionEnum.app_edit.getPermission(),
+            DeptPermissionEnum.plugin_delete.getPermission(),
+            DeptPermissionEnum.plugin_edit.getPermission()
     )),
     ;
 

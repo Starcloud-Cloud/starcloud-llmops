@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -31,7 +32,13 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
     }
 
     @Override
-    public boolean hasPermission(String permission) {
+    public boolean hasPermission(String permission, Long creator) {
+        Long userId = WebFrameworkUtils.getLoginUserId();
+        // 创建者具有所有权限
+        if (Objects.equals(userId, creator)) {
+            return true;
+        }
+
         Set<String> userPermission = getUserPermission();
         return userPermission.contains(permission);
     }
