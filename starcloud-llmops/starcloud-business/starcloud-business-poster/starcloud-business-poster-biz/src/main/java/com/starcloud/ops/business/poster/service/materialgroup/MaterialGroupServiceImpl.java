@@ -213,7 +213,11 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialDOS == null || materialDOS.isEmpty()) {
             throw exception(MATERIAL_PUBLISH_FAIL_EMPTY);
         }
-        List<MaterialSaveReqVO> materialSaveReqVOS = BeanUtil.copyToList(materialDOS, MaterialSaveReqVO.class);
+        List<MaterialSaveReqVO>  collect= BeanUtil.copyToList(materialDOS, MaterialSaveReqVO.class);
+
+        List<MaterialSaveReqVO> materialSaveReqVOS = collect.stream()
+                .peek(t -> t.setId(null))
+                .collect(Collectors.toList());
         // 检查当前分组是否已经分布过了
         MaterialGroupDO groupDO = validatePublish(groupUid);
         if (Objects.nonNull(groupDO)) {
@@ -221,12 +225,18 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
             // 设置缩略图为素材的第一张
             groupDO.setThumbnail(materialDOS.get(0).getThumbnail())
-                    .setName(materialDOS.get(0).getName());
+                    .setName(materialDOS.get(0).getName())
+                    .setStatus(Boolean.TRUE)
+                    .setOvertStatus(Boolean.TRUE)
+            ;
             materialGroupMapper.updateById(groupDO);
 
             // 设置分组编号
             List<MaterialSaveReqVO> newMaterialReqVO = materialSaveReqVOS.stream()
-                    .peek(t -> t.setGroupId(groupDO.getId()))
+                    .peek(t ->{
+                        t.setGroupId(groupDO.getId());
+                        t.setId(null);
+                    })
                     .collect(Collectors.toList());
 
             materialService.batchCreateMaterial(newMaterialReqVO);
@@ -234,6 +244,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
             // 1.0   复制分组
             MaterialGroupSaveReqVO publishGroupVO = BeanUtil.toBean(materialGroupDO, MaterialGroupSaveReqVO.class);
+            publishGroupVO.setId(null);
             publishGroupVO.setAssociatedId(materialGroupDO.getId());
             publishGroupVO.setOvertStatus(Boolean.TRUE);
             publishGroupVO.setStatus(Boolean.TRUE);
@@ -358,8 +369,15 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
      * @param groupId 分组编号
      */
     private MaterialGroupDO validatePublish(String groupId) {
+
+        MaterialGroupDO group = getMaterialGroupByUid(groupId);
+
+        if (group == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+
         // 校验当前分组是否已经存在公开的数据
-        return materialGroupMapper.selectOne(MaterialGroupDO::getAssociatedId, groupId);
+        return materialGroupMapper.selectOne(MaterialGroupDO::getAssociatedId, group.getId());
     }
 
 
