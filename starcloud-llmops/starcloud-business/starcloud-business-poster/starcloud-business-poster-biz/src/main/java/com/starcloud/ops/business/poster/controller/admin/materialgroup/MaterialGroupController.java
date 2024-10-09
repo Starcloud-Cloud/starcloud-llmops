@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPublishReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -91,12 +92,20 @@ public class MaterialGroupController {
     }
 
 
-    @GetMapping("u/publish")
+    @PostMapping("u/publish")
     @Operation(summary = "发布海报素材到市场")
-    public CommonResult<Boolean> publish(@RequestParam("uid") String uid) {
-        materialGroupService.publish(uid);
+    public CommonResult<Boolean> publish(@Valid @RequestBody  MaterialGroupPublishReqVO publishReqVO) {
+        materialGroupService.handlePublish(publishReqVO);
         return success(true);
     }
+
+
+    // @PostMapping("u/publish")
+    // @Operation(summary = "发布海报素材到市场")
+    // public CommonResult<Boolean> publish(@RequestParam("uid") String uid) {
+    //     materialGroupService.publish(uid);
+    //     return success(true);
+    // }
 
 
     @PostMapping("u/mergeGroup")
