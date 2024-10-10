@@ -1,12 +1,12 @@
 package com.starcloud.ops.business.app.dal.databoject.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import lombok.*;
 
 import java.util.List;
@@ -24,7 +24,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialLibrarySliceDO extends BaseDO {
+public class MaterialLibrarySliceDO extends DeptBaseDO {
 
     /**
      * 编号

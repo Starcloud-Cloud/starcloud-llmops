@@ -1,6 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.app;
 
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -27,7 +27,7 @@ import java.util.Map;
 @ToString(callSuper = true)
 @TableName(value = "llm_app", autoResultMap = true)
 @KeySequence("llm_app_seq")
-public class AppDO extends TenantBaseDO {
+public class AppDO extends DeptBaseDO {
 
     private static final long serialVersionUID = 1345563234255L;
 

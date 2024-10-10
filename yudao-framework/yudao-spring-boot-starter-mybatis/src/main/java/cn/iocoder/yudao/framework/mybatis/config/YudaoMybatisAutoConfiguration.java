@@ -32,10 +32,11 @@ public class YudaoMybatisAutoConfiguration {
         return mybatisPlusInterceptor;
     }
 
-    @Bean
-    public MetaObjectHandler defaultMetaObjectHandler(){
-        return new DefaultDBFieldHandler(); // 自动填充参数类
-    }
+//    改为 DeptDBFieldHandler
+//    @Bean
+//    public MetaObjectHandler defaultMetaObjectHandler(){
+//        return new DefaultDBFieldHandler(); // 自动填充参数类
+//    }
 
     @Bean
     @ConditionalOnProperty(prefix = "mybatis-plus.global-config.db-config", name = "id-type", havingValue = "INPUT")

@@ -1,13 +1,12 @@
 package com.starcloud.ops.business.app.dal.databoject.plugin;
 
-
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import lombok.Data;
 import lombok.ToString;
 
@@ -16,7 +15,7 @@ import java.util.Objects;
 @Data
 @ToString(callSuper = true)
 @TableName("llm_material_plugin_definition")
-public class PluginDefinitionDO extends TenantBaseDO {
+public class PluginDefinitionDO extends DeptBaseDO {
 
     /**
      * ID

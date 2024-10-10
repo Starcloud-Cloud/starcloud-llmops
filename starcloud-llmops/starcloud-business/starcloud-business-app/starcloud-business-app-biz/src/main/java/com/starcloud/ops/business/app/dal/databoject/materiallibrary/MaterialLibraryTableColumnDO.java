@@ -1,9 +1,9 @@
 package com.starcloud.ops.business.app.dal.databoject.materiallibrary;
 
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import lombok.*;
 
 /**
@@ -20,7 +20,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialLibraryTableColumnDO extends BaseDO {
+public class MaterialLibraryTableColumnDO extends DeptBaseDO {
 
     /**
      * 编号
