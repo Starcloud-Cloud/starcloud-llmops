@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.poster.service.materialgroup;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -8,6 +9,7 @@ import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPublishReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -22,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -83,6 +86,12 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
         // 更新素材
         materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
+
+        if (updateReqVO.getOvertStatus()){
+            this.publish(updateReqVO.getUid());
+        }else {
+            this.cancelPublish(updateReqVO.getUid());
+        }
     }
 
     /**
@@ -186,32 +195,80 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     /**
      * 发布数据
      *
-     * @param groupId 分组编号
+     * @param groupUid 分组编号
      */
     @Override
-    public void publish(String groupId) {
+    public void publish(String groupUid) {
 
-        MaterialGroupDO publishGroup = validatePublish(groupId);
-        List<MaterialDO> materialDOS = materialService.getMaterialByGroup(publishGroup.getId());
+        // 校验存在
+        MaterialGroupDO materialGroupDO = getMaterialGroupByUid(groupUid);
+
+        if (materialGroupDO == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+
+        List<MaterialDO> materialDOS = materialService.getMaterialByGroup(materialGroupDO.getId());
 
         // 检查素材列表是否为空
         if (materialDOS == null || materialDOS.isEmpty()) {
             throw exception(MATERIAL_PUBLISH_FAIL_EMPTY);
         }
+        List<MaterialSaveReqVO>  collect= BeanUtil.copyToList(materialDOS, MaterialSaveReqVO.class);
 
-        // 设置缩略图为素材的第一张
-        publishGroup.setThumbnail(materialDOS.get(0).getThumbnail())
-                .setName(materialDOS.get(0).getName());
-        materialGroupMapper.updateById(publishGroup);
-        materialService.deleteMaterialByGroup(publishGroup.getId());
-
-        // 设置分组编号
-        List<MaterialDO> newMaterialReqVO = materialDOS.stream()
-                .peek(t -> t.setGroupId(publishGroup.getId()))
+        List<MaterialSaveReqVO> materialSaveReqVOS = collect.stream()
+                .peek(t -> t.setId(null))
                 .collect(Collectors.toList());
-        // 添加素材
-        materialService.batchCreateMaterial(BeanUtils.toBean(newMaterialReqVO, MaterialSaveReqVO.class));
+        // 检查当前分组是否已经分布过了
+        MaterialGroupDO groupDO = validatePublish(groupUid);
+        if (Objects.nonNull(groupDO)) {
+            materialService.deleteMaterialByGroup(groupDO.getId());
 
+            // 设置缩略图为素材的第一张
+            groupDO.setThumbnail(materialDOS.get(0).getThumbnail())
+                    .setName(materialDOS.get(0).getName())
+                    .setStatus(Boolean.TRUE)
+                    .setOvertStatus(Boolean.TRUE)
+            ;
+            materialGroupMapper.updateById(groupDO);
+
+            // 设置分组编号
+            List<MaterialSaveReqVO> newMaterialReqVO = materialSaveReqVOS.stream()
+                    .peek(t ->{
+                        t.setGroupId(groupDO.getId());
+                        t.setId(null);
+                    })
+                    .collect(Collectors.toList());
+
+            materialService.batchCreateMaterial(newMaterialReqVO);
+        }else {
+
+            // 1.0   复制分组
+            MaterialGroupSaveReqVO publishGroupVO = BeanUtil.toBean(materialGroupDO, MaterialGroupSaveReqVO.class);
+            publishGroupVO.setId(null);
+            publishGroupVO.setAssociatedId(materialGroupDO.getId());
+            publishGroupVO.setOvertStatus(Boolean.TRUE);
+            publishGroupVO.setStatus(Boolean.TRUE);
+
+
+            // 2.0   复制数据
+            publishGroupVO.setMaterialSaveReqVOS(materialSaveReqVOS);
+
+            this.createMaterialGroup(publishGroupVO);
+        }
+
+
+    }
+
+    /**
+     * 发布数据
+     *
+     * @param groupId 分组编号
+     */
+    @Override
+    public void cancelPublish(String groupId) {
+
+        MaterialGroupDO publishGroup = validatePublish(groupId);
+        materialGroupMapper.updateById(publishGroup.setOvertStatus(Boolean.FALSE).setStatus(Boolean.FALSE));
 
     }
 
@@ -272,6 +329,26 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
     }
 
+    /**
+     * 操作数据是否发布
+     *
+     * @param publishReqVO 发布数据VO
+     */
+    @Override
+    public void handlePublish(MaterialGroupPublishReqVO publishReqVO) {
+        MaterialGroupDO group = getMaterialGroupByUid(publishReqVO.getUid());
+
+        if (group == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+
+        if (publishReqVO.getOvertStatus()){
+            this.publish(publishReqVO.getUid());
+        }else {
+            this.cancelPublish(publishReqVO.getUid());
+        }
+    }
+
 
     /**
      * 校验商品分类是否合法
@@ -292,17 +369,15 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
      * @param groupId 分组编号
      */
     private MaterialGroupDO validatePublish(String groupId) {
-        // 校验分组是否存在
-        // 校验存在
-        MaterialGroupDO materialGroupDO = getMaterialGroupByUid(groupId);
 
-        if (materialGroupDO == null) {
+        MaterialGroupDO group = getMaterialGroupByUid(groupId);
+
+        if (group == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
 
         // 校验当前分组是否已经存在公开的数据
-
-        return materialGroupMapper.selectOne(MaterialGroupDO::getAssociatedId, groupId, MaterialGroupDO::getOvertStatus, Boolean.TRUE);
+        return materialGroupMapper.selectOne(MaterialGroupDO::getAssociatedId, group.getId());
     }
 
 
