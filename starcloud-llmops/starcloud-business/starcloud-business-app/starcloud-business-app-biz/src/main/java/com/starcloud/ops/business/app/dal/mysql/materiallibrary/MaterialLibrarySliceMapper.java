@@ -135,7 +135,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
     default PageResult<MaterialLibrarySliceDO> selectPage2(Long libraryId, MaterialLibrarySliceAppPageReqVO appPageReqVO) {
         return selectPage(appPageReqVO, new LambdaQueryWrapperX<MaterialLibrarySliceDO>()
                 .eq(MaterialLibrarySliceDO::getLibraryId, libraryId)
-                .orderByDesc(MaterialLibrarySliceDO::getCreateTime)
+                .orderByDesc(MaterialLibrarySliceDO::getId)
         );
     }
 
