@@ -58,10 +58,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Override
     public void modify(PluginConfigReqVO pluginVO) {
         PluginConfigDO pluginConfigDO = getByUid(pluginVO.getUid());
-        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.plugin_edit.getPermission(), Long.valueOf(pluginConfigDO.getCreator()));
-        if (!hasPermission) {
-            throw exception(NO_PERMISSION, DeptPermissionEnum.plugin_edit.getDesc());
-        }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_edit, Long.valueOf(pluginConfigDO.getCreator()));
 
         PluginConfigDO updateConfig = PluginConfigConvert.INSTANCE.convert(pluginVO);
         updateConfig.setId(pluginConfigDO.getId());
@@ -72,10 +69,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid, boolean forced) {
         PluginConfigDO pluginConfigDO = getByUid(uid);
-        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.plugin_delete.getPermission(), Long.valueOf(pluginConfigDO.getCreator()));
-        if (!hasPermission) {
-            throw exception(NO_PERMISSION, DeptPermissionEnum.plugin_delete.getDesc());
-        }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginConfigDO.getCreator()));
 
         if (!forced && Objects.equals(PluginBindTypeEnum.sys.getCode(), pluginConfigDO.getType())) {
             throw exception(SYSTEM_PLUGIN);
