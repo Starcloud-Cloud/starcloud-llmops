@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "用户部门管理")
 @RestController
@@ -108,4 +109,12 @@ public class UserDeptController {
         userDeptService.createDept(reqVO);
         return CommonResult.success(true);
     }
+
+    @GetMapping("/permission")
+    @Operation(summary = "用户部门空间权限点")
+    public CommonResult<Set<String>> permission() {
+        Set<String> result = userDeptService.getUserPermission();
+        return CommonResult.success(result);
+    }
+
 }

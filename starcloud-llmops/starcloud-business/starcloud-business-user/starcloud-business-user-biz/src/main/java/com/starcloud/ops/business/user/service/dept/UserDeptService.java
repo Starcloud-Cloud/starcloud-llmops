@@ -10,6 +10,7 @@ import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserDeptService {
 
@@ -120,4 +121,9 @@ public interface UserDeptService {
      * @param rightAmount
      */
     void recordRights(UserDeptDO deptDO, Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
+
+    /**
+     * yo
+     */
+    Set<String> getUserPermission();
 }
