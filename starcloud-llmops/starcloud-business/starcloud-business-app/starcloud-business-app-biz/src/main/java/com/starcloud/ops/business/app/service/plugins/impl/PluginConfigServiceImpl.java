@@ -11,6 +11,8 @@ import com.starcloud.ops.business.app.dal.mysql.plugin.PluginConfigMapper;
 import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_NOT_EXIST;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.SYSTEM_PLUGIN;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.NO_PERMISSION;
 
 @Slf4j
 @Service
@@ -35,6 +38,9 @@ public class PluginConfigServiceImpl implements PluginConfigService {
 
     @Resource
     private BusinessJobApi businessJobApi;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     @Override
     public PluginConfigRespVO create(PluginConfigVO pluginConfigVO) {
@@ -52,6 +58,11 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Override
     public void modify(PluginConfigReqVO pluginVO) {
         PluginConfigDO pluginConfigDO = getByUid(pluginVO.getUid());
+        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.plugin_edit.getPermission(), Long.valueOf(pluginConfigDO.getCreator()));
+        if (!hasPermission) {
+            throw exception(NO_PERMISSION, DeptPermissionEnum.plugin_edit.getDesc());
+        }
+
         PluginConfigDO updateConfig = PluginConfigConvert.INSTANCE.convert(pluginVO);
         updateConfig.setId(pluginConfigDO.getId());
         pluginConfigMapper.updateById(updateConfig);
@@ -61,6 +72,11 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid, boolean forced) {
         PluginConfigDO pluginConfigDO = getByUid(uid);
+        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.plugin_delete.getPermission(), Long.valueOf(pluginConfigDO.getCreator()));
+        if (!hasPermission) {
+            throw exception(NO_PERMISSION, DeptPermissionEnum.plugin_delete.getDesc());
+        }
+
         if (!forced && Objects.equals(PluginBindTypeEnum.sys.getCode(), pluginConfigDO.getType())) {
             throw exception(SYSTEM_PLUGIN);
         }

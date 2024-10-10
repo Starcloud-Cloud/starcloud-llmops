@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.open.service.handler;
 
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
@@ -47,6 +48,8 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     private WechatUserManager wechatUserManager;
 
     @Override
+    // 未登录忽略用户权限
+    @DataPermission(enable = false)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到微信扫描事件，内容：{}", wxMessage);
         if (!wechatService.isInternalAccount(MpContextHolder.getAppId())) {
