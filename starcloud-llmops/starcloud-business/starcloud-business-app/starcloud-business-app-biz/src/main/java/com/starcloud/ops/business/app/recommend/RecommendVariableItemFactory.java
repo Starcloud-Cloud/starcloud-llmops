@@ -589,9 +589,9 @@ public class RecommendVariableItemFactory {
         variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
         variableItem.setIsPoint(Boolean.TRUE);
         variableItem.setIsShow(Boolean.TRUE);
-        variableItem.addOption(CreativeContentGenerateModelEnum.RANDOM.getLabel(), CreativeContentGenerateModelEnum.RANDOM.name(), "从参考内容中随机获取一条内容使用");
-        variableItem.addOption(CreativeContentGenerateModelEnum.AI_PARODY.getLabel(), CreativeContentGenerateModelEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
         variableItem.addOption(CreativeContentGenerateModelEnum.AI_CUSTOM.getLabel(), CreativeContentGenerateModelEnum.AI_CUSTOM.name(), "直接让AI生成内容，要求越详细越好");
+        variableItem.addOption(CreativeContentGenerateModelEnum.AI_PARODY.getLabel(), CreativeContentGenerateModelEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
+        variableItem.addOption(CreativeContentGenerateModelEnum.RANDOM.getLabel(), CreativeContentGenerateModelEnum.RANDOM.name(), "从参考内容中随机获取一条内容使用");
         return variableItem;
     }
 
