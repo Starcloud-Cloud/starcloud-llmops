@@ -2,6 +2,7 @@ package com.starcloud.ops.business.poster.service.materialgroup;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
+import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPublishReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGroupDO;
@@ -82,6 +83,14 @@ public interface MaterialGroupService {
      */
     void publish(String groupId);
 
+
+    /**
+     * 发布数据
+     *
+     * @param groupId 分组编号
+     */
+    void cancelPublish(String groupId);
+
     /**
      * 获取当前分类下分组数量
      *
@@ -101,4 +110,10 @@ public interface MaterialGroupService {
      * @param targetGroupUid 目标分组编号
      */
     void mergeGroup(String sourceGroupUid, String targetGroupUid);
+
+    /**
+     * 操作数据是否发布
+     * @param publishReqVO 发布数据VO
+     */
+    void handlePublish(MaterialGroupPublishReqVO publishReqVO);
 }

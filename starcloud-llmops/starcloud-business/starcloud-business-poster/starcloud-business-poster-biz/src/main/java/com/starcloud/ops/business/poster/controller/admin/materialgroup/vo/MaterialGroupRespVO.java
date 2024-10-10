@@ -71,4 +71,7 @@ public class MaterialGroupRespVO {
     @ExcelProperty("素材数量")
     private Integer materialCount;
 
+    @Schema(description = "关联编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    private Long associatedId;
+
 }
