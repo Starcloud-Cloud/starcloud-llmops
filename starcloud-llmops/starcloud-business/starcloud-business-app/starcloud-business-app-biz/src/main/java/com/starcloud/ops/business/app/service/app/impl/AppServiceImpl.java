@@ -38,14 +38,7 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
-import com.starcloud.ops.business.app.enums.app.AppModelEnum;
-import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.app.*;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
@@ -75,14 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
@@ -381,10 +367,7 @@ public class AppServiceImpl implements AppService {
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
         AppDO appDO = appMapper.get(request.getUid(), Boolean.TRUE);
-        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.app_edit.getPermission(), Long.valueOf(appDO.getCreator()));
-        if (!hasPermission) {
-            throw exception(NO_PERMISSION, DeptPermissionEnum.app_edit.getDesc());
-        }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.app_edit, Long.valueOf(appDO.getCreator()));
 
         // 校验并且处理请求
         List<Verification> verifications = handlerAndValidateRequest(request);
@@ -426,11 +409,9 @@ public class AppServiceImpl implements AppService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         AppDO appDO = appMapper.get(uid, Boolean.TRUE);
-        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.app_delete.getPermission(),
+        deptPermissionApi.checkPermission(DeptPermissionEnum.app_delete,
                 Long.valueOf(appDO.getCreator()));
-        if (!hasPermission) {
-            throw exception(NO_PERMISSION, DeptPermissionEnum.app_delete.getDesc());
-        }
+
         // 删除应用
         appMapper.delete(uid);
         // 删除应用发布信息
