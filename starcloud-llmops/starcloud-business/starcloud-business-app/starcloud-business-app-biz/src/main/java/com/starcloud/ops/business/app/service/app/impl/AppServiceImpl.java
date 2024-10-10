@@ -62,6 +62,8 @@ import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -86,6 +88,7 @@ import java.util.stream.Collectors;
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.DUPLICATE_LABEL;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.NO_PERMISSION;
 
 /**
  * 应用管理服务实现类
@@ -121,6 +124,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private PluginsDefinitionService pluginsDefinitionService;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     /**
      * 查询应用语言列表
@@ -374,6 +380,12 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
+        AppDO appDO = appMapper.get(request.getUid(), Boolean.TRUE);
+        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.app_edit.getPermission(), Long.valueOf(appDO.getCreator()));
+        if (!hasPermission) {
+            throw exception(NO_PERMISSION, DeptPermissionEnum.app_edit.getDesc());
+        }
+
         // 校验并且处理请求
         List<Verification> verifications = handlerAndValidateRequest(request);
         if (CollectionUtil.isNotEmpty(verifications)) {
@@ -413,6 +425,12 @@ public class AppServiceImpl implements AppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
+        AppDO appDO = appMapper.get(uid, Boolean.TRUE);
+        boolean hasPermission = deptPermissionApi.hasPermission(DeptPermissionEnum.app_delete.getPermission(),
+                Long.valueOf(appDO.getCreator()));
+        if (!hasPermission) {
+            throw exception(NO_PERMISSION, DeptPermissionEnum.app_delete.getDesc());
+        }
         // 删除应用
         appMapper.delete(uid);
         // 删除应用发布信息

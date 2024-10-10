@@ -34,8 +34,8 @@ public class DeptDBFieldHandler extends DefaultDBFieldHandler {
             return;
         }
         LoginUser loginUser = SecurityFrameworkUtils.getLoginUser();
-        if (Objects.isNull(loginUser)
-                || Objects.equals(loginUser.getUserType(), UserTypeEnum.MEMBER.getValue())) {
+        if (!Objects.isNull(loginUser)
+                && Objects.equals(loginUser.getUserType(), UserTypeEnum.MEMBER.getValue())) {
             return;
         }
 
@@ -47,8 +47,8 @@ public class DeptDBFieldHandler extends DefaultDBFieldHandler {
             return;
         }
 
-        Long userId = loginUser.getId();
-        if (Objects.isNull(userId)) {
+        Long userId = null;
+        if (Objects.isNull(loginUser) || Objects.isNull(loginUser.getId())) {
             userId = UserContextHolder.getUserId();
         }
 

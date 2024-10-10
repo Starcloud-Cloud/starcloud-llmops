@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.log.dal.dataobject;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
@@ -27,7 +28,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogAppMessageDO extends TenantBaseDO {
+public class LogAppMessageDO extends DeptBaseDO {
 
     private static final long serialVersionUID = 9210036499937789257L;
 
