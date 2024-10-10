@@ -143,6 +143,20 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialGroupDO == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
+
+        if (materialGroupDO.getOvertStatus()){
+            throw exception(MATERIAL_DELETE_FAIL_PUBLISH);
+        }
+        // 增加发布数据校验
+        MaterialGroupDO publish = validatePublish(uid);
+
+        if (Objects.nonNull(publish)){
+            // 删除分组下的素材
+            materialService.deleteMaterialByGroup(publish.getId());
+            // 删除分组
+            materialGroupMapper.deleteById(publish.getId());
+        }
+
         // 删除分组下的素材
         materialService.deleteMaterialByGroup(materialGroupDO.getId());
         // 删除分组
