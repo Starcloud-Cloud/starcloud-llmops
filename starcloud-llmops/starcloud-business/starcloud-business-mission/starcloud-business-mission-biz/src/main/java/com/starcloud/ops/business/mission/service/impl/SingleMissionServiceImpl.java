@@ -36,6 +36,8 @@ import com.starcloud.ops.business.mission.dal.mysql.SingleMissionMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import com.starcloud.ops.business.mission.service.XhsNoteDetailService;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -79,6 +81,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
 
     @Resource
     private MemberUserService memberUserService;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
 
     @Override
@@ -132,6 +137,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Transactional(rollbackFor = Exception.class)
     public void modifySelective(SingleMissionModifyReqVO reqVO) {
         SingleMissionDO missionDO = getByUid(reqVO.getUid());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.mission_edit, Long.valueOf(missionDO.getCreator()));
+
         if (SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())) {
             throw exception(MISSION_STATUS_NOT_SUPPORT);
         }
@@ -185,6 +192,8 @@ public class SingleMissionServiceImpl implements SingleMissionService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         SingleMissionDO missionDO = getByUid(uid);
+        deptPermissionApi.checkPermission(DeptPermissionEnum.mission_delete, Long.valueOf(missionDO.getCreator()));
+
         if (!SingleMissionStatusEnum.init.getCode().equals(missionDO.getStatus())
                 && !SingleMissionStatusEnum.stay_claim.getCode().equals(missionDO.getStatus())
                 && !SingleMissionStatusEnum.close.getCode().equals(missionDO.getStatus())) {
@@ -206,6 +215,9 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (unAllowed) {
             throw exception(new ErrorCode(500, "只允许删除 待发布 待认领 关闭状态的任务"));
         }
+        // 只有当前用户有删除权限才能批量删除
+        deptPermissionApi.checkPermission(DeptPermissionEnum.mission_delete, null);
+
         List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
         creativeContentService.batchUnbind(creativeUids);
         singleMissionMapper.batchDelete(uids);

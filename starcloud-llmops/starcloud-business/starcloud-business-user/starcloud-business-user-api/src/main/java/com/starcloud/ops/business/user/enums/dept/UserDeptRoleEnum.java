@@ -24,14 +24,23 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.app_delete.getPermission(),
             DeptPermissionEnum.app_edit.getPermission(),
             DeptPermissionEnum.plugin_delete.getPermission(),
-            DeptPermissionEnum.plugin_edit.getPermission()
+            DeptPermissionEnum.plugin_edit.getPermission(),
+            DeptPermissionEnum.notification_delete.getPermission(),
+            DeptPermissionEnum.notification_edit.getPermission(),
+            DeptPermissionEnum.mission_edit.getPermission(),
+            DeptPermissionEnum.mission_delete.getPermission()
     )),
 
     SUPER_ADMIN(1000, "超级管理员", Sets.newHashSet(
             DeptPermissionEnum.app_delete.getPermission(),
             DeptPermissionEnum.app_edit.getPermission(),
             DeptPermissionEnum.plugin_delete.getPermission(),
-            DeptPermissionEnum.plugin_edit.getPermission()
+            DeptPermissionEnum.plugin_edit.getPermission(),
+            DeptPermissionEnum.notification_delete.getPermission(),
+            DeptPermissionEnum.notification_edit.getPermission(),
+            DeptPermissionEnum.notification_publish.getPermission(),
+            DeptPermissionEnum.mission_edit.getPermission(),
+            DeptPermissionEnum.mission_delete.getPermission()
     )),
     ;
 
