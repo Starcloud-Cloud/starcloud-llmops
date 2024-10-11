@@ -24,6 +24,7 @@ import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
+import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
