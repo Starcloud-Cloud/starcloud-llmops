@@ -27,7 +27,7 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.mission_edit.getPermission()
     )),
 
-    SUPER_ADMIN(1000, "超级管理员", Sets.newHashSet(
+    SUPER_ADMIN(1000, "创建者", Sets.newHashSet(
             DeptPermissionEnum.app_delete.getPermission(),
             DeptPermissionEnum.app_edit.getPermission(),
             DeptPermissionEnum.plugin_delete.getPermission(),
