@@ -286,7 +286,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
             this.createMaterialGroup(publishGroupVO);
         }
 
-
+        materialGroupMapper.updateById(materialGroupDO.setOvertStatus(Boolean.TRUE));
     }
 
     /**
@@ -302,6 +302,8 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
             throw exception(MATERIAL_CANCEL_PUBLISH_FAIL);
         }
         MaterialGroupDO group = getMaterialGroupByUid(groupId);
+
+        materialGroupMapper.updateById(publishGroup.setStatus(Boolean.FALSE));
 
         materialGroupMapper.updateById(group.setOvertStatus(Boolean.FALSE));
 
