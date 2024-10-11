@@ -670,5 +670,6 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_SLICE_DATA_MISSING = new ErrorCode(300702217, "部分数据缺失，请核对后再试");
 
     ErrorCode MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME = new ErrorCode(300702218, "数据上传超时，请重试");
+    ErrorCode MATERIAL_LIBRARY_SLICE_LIBRARY_ID_MISSING = new ErrorCode(300702219, "素材库编号为空，操作失败");
 
 }

@@ -24,7 +24,10 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.app_edit.getPermission(),
             DeptPermissionEnum.plugin_edit.getPermission(),
             DeptPermissionEnum.notification_edit.getPermission(),
-            DeptPermissionEnum.mission_edit.getPermission()
+            DeptPermissionEnum.mission_edit.getPermission(),
+            DeptPermissionEnum.material_library_edit.getPermission(),
+            DeptPermissionEnum.material_library_column_edit.getPermission(),
+            DeptPermissionEnum.material_library_slice_edit.getPermission()
     )),
 
     SUPER_ADMIN(1000, "创建者", Sets.newHashSet(
@@ -36,7 +39,16 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.notification_edit.getPermission(),
             DeptPermissionEnum.notification_publish.getPermission(),
             DeptPermissionEnum.mission_edit.getPermission(),
-            DeptPermissionEnum.mission_delete.getPermission()
+            DeptPermissionEnum.mission_delete.getPermission(),
+
+            DeptPermissionEnum.material_library_edit.getPermission(),
+            DeptPermissionEnum.material_library_delete.getPermission(),
+
+            DeptPermissionEnum.material_library_column_edit.getPermission(),
+            DeptPermissionEnum.material_library_column_delete.getPermission(),
+
+            DeptPermissionEnum.material_library_slice_edit.getPermission(),
+            DeptPermissionEnum.material_library_slice_delete.getPermission()
     )),
     ;
 

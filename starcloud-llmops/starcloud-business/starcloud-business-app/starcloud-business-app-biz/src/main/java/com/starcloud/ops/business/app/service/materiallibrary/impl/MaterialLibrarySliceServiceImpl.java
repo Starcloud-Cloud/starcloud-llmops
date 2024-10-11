@@ -17,6 +17,8 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -29,6 +31,8 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySer
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,8 +99,15 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
+
     @Override
     public Long createMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO createReqVO) {
+
+        MaterialLibraryDO libraryInfo = getLibraryInfo(createReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
         // 插入
         MaterialLibrarySliceDO sliceDO = BeanUtils.toBean(createReqVO, MaterialLibrarySliceDO.class);
 
@@ -122,6 +133,14 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
+        Optional<Long> libraryId = createReqVO.getSaveReqVOS().stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst();
+
+        if (!libraryId.isPresent()) {
+            throw exception(MATERIAL_LIBRARY_SLICE_LIBRARY_ID_MISSING);
+        }
+        MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId.get());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
 
         if (createReqVO.getSaveReqVOS().isEmpty()) {
             return;
@@ -146,72 +165,78 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         this.saveBatchData(BeanUtils.toBean(createReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
 
-public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOList,
-                             List<MaterialLibrarySliceSaveReqVO> saveReqVOS,
-                             Long libraryId) {
+    public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOList,
+                                 List<MaterialLibrarySliceSaveReqVO> saveReqVOS,
+                                 Long libraryId) {
 
-    // 第一步 取出列类型为图片的列 code 如果不存在 直接返回
-    Set<String> imageColumnCodes = new HashSet<>();
-    for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
-        if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnDO.getColumnType())) {
-            String columnCode = tableColumnDO.getColumnCode();
-            if (columnCode != null && !columnCode.isEmpty()) {
-                imageColumnCodes.add(columnCode);
-            }
-        }
-    }
-
-    if (imageColumnCodes.isEmpty()) {
-        return; // 不存在图片列，直接返回
-    }
-
-    // 第二步 如果存图片列 code 则取出所有图片
-    List<String> allImageContents = new ArrayList<>();
-    for (MaterialLibrarySliceSaveReqVO saveReq : saveReqVOS) {
-        List<MaterialLibrarySliceSaveReqVO.TableContent> content = saveReq.getContent();
-        if (content == null) {
-            throw exception(MATERIAL_LIBRARY_SLICE_DATA_MISSING);
-        }
-
-        for (MaterialLibrarySliceSaveReqVO.TableContent tc : content) {
-            if (imageColumnCodes.contains(tc.getColumnCode())) {
-                if (StrUtil.isNotBlank(tc.getValue())){
-                    allImageContents.add(tc.getValue());
+        // 第一步 取出列类型为图片的列 code 如果不存在 直接返回
+        Set<String> imageColumnCodes = new HashSet<>();
+        for (MaterialLibraryTableColumnDO tableColumnDO : tableColumnDOList) {
+            if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnDO.getColumnType())) {
+                String columnCode = tableColumnDO.getColumnCode();
+                if (columnCode != null && !columnCode.isEmpty()) {
+                    imageColumnCodes.add(columnCode);
                 }
-
             }
         }
-    }
 
-    // 第三步 使用asyncUploadImage 方法 这个方法支持异步上传多张图片
-    ListenableFuture<Boolean> future = asyncUploadImage(allImageContents, libraryId);
+        if (imageColumnCodes.isEmpty()) {
+            return; // 不存在图片列，直接返回
+        }
 
-    try {
-        if (!future.get()) {
+        // 第二步 如果存图片列 code 则取出所有图片
+        List<String> allImageContents = new ArrayList<>();
+        for (MaterialLibrarySliceSaveReqVO saveReq : saveReqVOS) {
+            List<MaterialLibrarySliceSaveReqVO.TableContent> content = saveReq.getContent();
+            if (content == null) {
+                throw exception(MATERIAL_LIBRARY_SLICE_DATA_MISSING);
+            }
+
+            for (MaterialLibrarySliceSaveReqVO.TableContent tc : content) {
+                if (imageColumnCodes.contains(tc.getColumnCode())) {
+                    if (StrUtil.isNotBlank(tc.getValue())) {
+                        allImageContents.add(tc.getValue());
+                    }
+
+                }
+            }
+        }
+
+        // 第三步 使用asyncUploadImage 方法 这个方法支持异步上传多张图片
+        ListenableFuture<Boolean> future = asyncUploadImage(allImageContents, libraryId);
+
+        try {
+            if (!future.get()) {
+                throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt(); // 恢复中断状态
             throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
         }
-    } catch (InterruptedException | ExecutionException e) {
-        Thread.currentThread().interrupt(); // 恢复中断状态
-        throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
-    }
 
-    validateUploadIsSuccess(buildRedisKey(allImageContents, libraryId));
-    // 第四步 替换原有图片的值 使用新的值
-    saveReqVOS.forEach(data -> {
-        data.getContent().stream()
-                .filter(content -> imageColumnCodes.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
-                .forEach(content -> {
-                    String key = getRedisKey(content.getValue(), libraryId);
-                    String urlsString = redisTemplate.boundValueOps(key).get();
-                    content.setValue(urlsString);
-                });
-    });
-}
+        validateUploadIsSuccess(buildRedisKey(allImageContents, libraryId));
+        // 第四步 替换原有图片的值 使用新的值
+        saveReqVOS.forEach(data -> {
+            data.getContent().stream()
+                    .filter(content -> imageColumnCodes.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                    .forEach(content -> {
+                        String key = getRedisKey(content.getValue(), libraryId);
+                        String urlsString = redisTemplate.boundValueOps(key).get();
+                        content.setValue(urlsString);
+                    });
+        });
+    }
 
     @Override
     public void updateMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO updateReqVO) {
+
+        MaterialLibraryDO libraryInfo = getLibraryInfo(updateReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
         // 校验存在
-        validateMaterialLibrarySliceExists(updateReqVO.getId());
+        MaterialLibrarySliceDO sliceDO = validateMaterialLibrarySliceExists(updateReqVO.getId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(sliceDO.getCreator()));
+
         // 更新
         MaterialLibrarySliceDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.updateById(updateObj);
@@ -224,18 +249,26 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
      */
     @Override
     public void updateBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO updateReqVO) {
+
+        Optional<Long> libraryId = updateReqVO.getSaveReqVOS().stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst();
+
+        if (!libraryId.isPresent()) {
+            throw exception(MATERIAL_LIBRARY_SLICE_LIBRARY_ID_MISSING);
+        }
+        MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId.get());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
+
         materialLibrarySliceMapper.updateBatch(BeanUtils.toBean(updateReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
 
     @Override
     public void deleteMaterialLibrarySlice(Long id) {
         // 校验存在
-        validateMaterialLibrarySliceExists(id);
+        MaterialLibrarySliceDO sliceDO = validateMaterialLibrarySliceExists(id);
 
-        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
-        if (sliceDO == null) {
-            throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
-        }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_delete, Long.valueOf(sliceDO.getCreator()));
+
         // 删除
         materialLibrarySliceMapper.deleteById(id);
 
@@ -299,8 +332,12 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
      */
     @Override
     public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
+        // 校验存在
+        MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId);
+
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_delete, Long.valueOf(libraryInfo.getCreator()));
+
         materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
-        // materialLibraryService.updateMaterialLibraryFileCount(libraryId);
     }
 
     /**
@@ -313,7 +350,14 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
         if (ids.isEmpty()) {
             return;
         }
-        MaterialLibrarySliceDO materialLibrarySliceDO = materialLibrarySliceMapper.selectById(ids.get(0));
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery(MaterialLibrarySliceDO.class);
+
+        wrapper.in(MaterialLibrarySliceDO::getId, ids);
+        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectList(wrapper);
+        List<Long> creators = sliceDOList.stream().map(MaterialLibrarySliceDO::getCreator).map(Long::valueOf).distinct().collect(Collectors.toList());
+
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_delete, creators);
+
         materialLibrarySliceMapper.deleteBatchIds(ids);
     }
 
@@ -784,10 +828,12 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
      *
      * @param id 数据编号
      */
-    private void validateMaterialLibrarySliceExists(Long id) {
-        if (materialLibrarySliceMapper.selectById(id) == null) {
+    private MaterialLibrarySliceDO validateMaterialLibrarySliceExists(Long id) {
+        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
+        if (sliceDO == null) {
             throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
         }
+        return sliceDO;
     }
 
 
@@ -829,6 +875,15 @@ public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOLis
         return CollUtil.distinct(keys).stream()
                 .map(key -> getRedisKey(key, libraryId))
                 .collect(Collectors.toList());
+    }
+
+
+    private MaterialLibraryDO getLibraryInfo(Long libraryId) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.getMaterialLibrary(libraryId);
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+        return materialLibraryDO;
     }
 
 

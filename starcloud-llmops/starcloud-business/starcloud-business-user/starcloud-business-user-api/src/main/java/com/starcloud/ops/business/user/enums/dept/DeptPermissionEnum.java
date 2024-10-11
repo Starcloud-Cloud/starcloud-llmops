@@ -33,6 +33,15 @@ public enum DeptPermissionEnum {
     mission_edit("mission.edit", "通告任务编辑"),
     mission_delete("mission.delete", "通告任务删除"),
 
+    material_library_edit("mission.edit", "素材库编辑"),
+    material_library_delete("mission.delete", "素材库删除"),
+
+    material_library_column_edit("mission.edit", "素材库字段编辑"),
+    material_library_column_delete("mission.delete", "素材库字段删除"),
+
+    material_library_slice_edit("mission.edit", "素材库数据编辑"),
+    material_library_slice_delete("mission.delete", "素材库数据删除"),
+
     ;
 
     private final String permission;
