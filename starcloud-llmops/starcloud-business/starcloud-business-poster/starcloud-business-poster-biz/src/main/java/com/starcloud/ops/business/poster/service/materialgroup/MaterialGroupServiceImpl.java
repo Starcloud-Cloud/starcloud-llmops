@@ -207,6 +207,22 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     }
 
     /**
+     * 获得海报素材分组分页
+     *
+     * @param pageReqVO 分页查询
+     * @return 海报素材分组分页
+     */
+    @Override
+    public PageResult<MaterialGroupRespVO> getSysMaterialGroupPage(MaterialGroupPageReqVO pageReqVO) {
+        // 2. 分页查询
+        IPage<MaterialGroupRespVO> pageResult = materialGroupMapper.selectPage(
+                MyBatisUtils.buildPage(pageReqVO), pageReqVO);
+
+        // 3. 拼接数据并返回
+        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
+    }
+
+    /**
      * 发布数据
      *
      * @param groupUid 分组编号
@@ -285,7 +301,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (Objects.isNull(publishGroup)) {
             throw exception(MATERIAL_CANCEL_PUBLISH_FAIL);
         }
-        materialGroupMapper.updateById(publishGroup.setOvertStatus(Boolean.FALSE).setStatus(Boolean.FALSE));
+        MaterialGroupDO group = getMaterialGroupByUid(groupId);
+
+        materialGroupMapper.updateById(group.setOvertStatus(Boolean.FALSE));
 
     }
 
