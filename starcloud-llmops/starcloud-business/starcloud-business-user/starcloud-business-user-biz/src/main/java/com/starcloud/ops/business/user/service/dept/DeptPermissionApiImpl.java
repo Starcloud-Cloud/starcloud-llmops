@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -31,6 +32,11 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
             return;
         }
         throw exception(NO_PERMISSION, permission.getDesc());
+    }
+
+    @Override
+    public void checkPermission(DeptPermissionEnum permission, List<Long> creatorList) {
+        //todo
     }
 
     @Override

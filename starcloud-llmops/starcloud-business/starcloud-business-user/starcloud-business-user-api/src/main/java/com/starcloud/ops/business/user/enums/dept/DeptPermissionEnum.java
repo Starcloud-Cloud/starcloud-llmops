@@ -18,6 +18,14 @@ public enum DeptPermissionEnum {
     plugin_edit("plugin.edit", "插件编辑"),
     plugin_delete("plugin.delete", "插件删除"),
 
+    //
+    plugin_bind_add("",""),
+
+
+
+
+
+
     notification_edit("notification.edit", "通告编辑"),
     notification_delete("notification.delete", "通告删除"),
     notification_publish("notification.publish", "通告发布"),
