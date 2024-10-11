@@ -11,7 +11,7 @@
 
     <select id="selectPage" resultType="com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupRespVO">
         select n.id,
-        n.uid,n.name,n.thumbnail,n.type,n.category_id,n.material_tags,n.overt_status,n.status,n.creator,n.updater,n.update_time,
+        n.uid,n.name,n.thumbnail,n.type,n.category_id,n.material_tags,n.overt_status,n.status,n.associated_id,n.creator,n.updater,n.update_time,
         n.create_time, count(m.id) as materialCount
         from poster_material_group n
         left join poster_material m on m.group_id = n.id
@@ -32,7 +32,7 @@
             and n.user_type = #{reqVO.userType}
         </if>
         group by n.id,
-        n.uid,n.name,n.thumbnail,n.type,n.category_id,n.material_tags,n.overt_status,n.status,n.creator,n.updater,n.update_time,
+        n.uid,n.name,n.thumbnail,n.type,n.category_id,n.material_tags,n.overt_status,n.status,n.associated_id,n.creator,n.updater,n.update_time,
         n.create_time
         order by n.create_time desc
     </select>

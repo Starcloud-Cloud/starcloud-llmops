@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
+import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -118,7 +119,14 @@ public class MaterialServiceImpl implements MaterialService {
      */
     @Override
     public MaterialDO getMaterialByUId(String uid) {
-        return materialMapper.selectOne(MaterialDO::getUid, uid, MaterialDO::getDeleted, Boolean.FALSE);
+        // 设置查询条件
+        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.eq(MaterialDO::getUid, uid);
+        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+        wrapper.orderByDesc(MaterialDO::getUpdateTime);
+        wrapper.last("Limit 1");
+        // 获取数据
+        return materialMapper.selectOne(wrapper);
 
     }
 
