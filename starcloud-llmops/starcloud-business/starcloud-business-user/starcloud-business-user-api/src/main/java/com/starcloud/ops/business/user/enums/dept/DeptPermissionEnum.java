@@ -25,12 +25,6 @@ public enum DeptPermissionEnum {
     mission_edit("mission.edit", "通告任务编辑"),
     mission_delete("mission.delete", "通告任务删除"),
 
-    notification_edit("notification.edit","通告编辑"),
-    notification_delete("notification.delete","通告删除"),
-
-    mission_edit("mission.edit","通告任务编辑"),
-    mission_delete("mission.delete","通告任务删除"),
-
     ;
 
     private final String permission;
