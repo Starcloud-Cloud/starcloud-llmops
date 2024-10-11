@@ -282,6 +282,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     public void cancelPublish(String groupId) {
 
         MaterialGroupDO publishGroup = validatePublish(groupId);
+        if (Objects.isNull(publishGroup)) {
+            throw exception(MATERIAL_CANCEL_PUBLISH_FAIL);
+        }
         materialGroupMapper.updateById(publishGroup.setOvertStatus(Boolean.FALSE).setStatus(Boolean.FALSE));
 
     }

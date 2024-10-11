@@ -26,6 +26,7 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_GROUP_NOT_EXISTS = new ErrorCode(600003101, "当前分组不存在，请重新选择");
     ErrorCode MATERIAL_PUBLISH_FAIL_EMPTY = new ErrorCode(600003102, "发布失败，数据为空，无法发布");
     ErrorCode MATERIAL_DELETE_FAIL_PUBLISH = new ErrorCode(600003103, "当前数据已经发布到系统中，请先取消发布后再执行删除操作");
+    ErrorCode MATERIAL_CANCEL_PUBLISH_FAIL = new ErrorCode(600003104, "取消发布失败，当前数据未发布到系统中，请重新发布后再试");
 
 
 
