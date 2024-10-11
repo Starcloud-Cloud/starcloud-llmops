@@ -819,6 +819,48 @@ public class RecommendVariableItemFactory {
     }
 
     /**
+     * AI仿写文案生成要求
+     *
+     * @return 文案生成要求
+     */
+    public static VariableItemRespVO defParodyRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.PARODY_REQUIREMENT);
+        variableItem.setLabel("文案生成要求");
+        variableItem.setDescription("文案生成要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(1001);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
+     * AI自定义文案生成要求
+     *
+     * @return 文案生成要求
+     */
+    public static VariableItemRespVO defCustomRequirement() {
+        VariableItemRespVO variableItem = new VariableItemRespVO();
+        variableItem.setField(CreativeConstants.CUSTOM_REQUIREMENT);
+        variableItem.setLabel("文案生成要求");
+        variableItem.setDescription("文案生成要求");
+        variableItem.setDefaultValue(StringUtils.EMPTY);
+        variableItem.setValue(StringUtils.EMPTY);
+        variableItem.setOrder(1002);
+        variableItem.setType(AppVariableTypeEnum.TEXT.name());
+        variableItem.setStyle(AppVariableStyleEnum.TEXTAREA.name());
+        variableItem.setGroup(AppVariableGroupEnum.SYSTEM.name());
+        variableItem.setIsPoint(Boolean.TRUE);
+        variableItem.setIsShow(Boolean.TRUE);
+        return variableItem;
+    }
+
+    /**
      * 系统默认prompt
      *
      * @return 系统默认prompt

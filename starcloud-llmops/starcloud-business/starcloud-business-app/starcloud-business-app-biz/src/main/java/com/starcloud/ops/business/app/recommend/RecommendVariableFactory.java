@@ -220,28 +220,33 @@ public class RecommendVariableFactory {
         refers.setOrder(4);
         refers.setIsShow(Boolean.TRUE);
 
-        // 生成要求
-        VariableItemRespVO requirement = RecommendVariableItemFactory.defMediaMatrixRequirement();
-        requirement.setOrder(5);
-        requirement.setIsShow(Boolean.TRUE);
+        // AI自定义生成要求
+        VariableItemRespVO customRequirement = RecommendVariableItemFactory.defCustomRequirement();
+        customRequirement.setOrder(5);
+        customRequirement.setIsShow(Boolean.TRUE);
+
+        // AI仿写生成要求
+        VariableItemRespVO parodyRequirement = RecommendVariableItemFactory.defParodyRequirement();
+        parodyRequirement.setOrder(6);
+        parodyRequirement.setIsShow(Boolean.TRUE);
 
         // JSON Schema
         VariableItemRespVO jsonSchema = RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema();
-        jsonSchema.setOrder(6);
+        jsonSchema.setOrder(7);
         jsonSchema.setIsShow(Boolean.FALSE);
 
         // 响应JSON Schema
         VariableItemRespVO respJsonSchema = RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema();
-        respJsonSchema.setOrder(7);
+        respJsonSchema.setOrder(8);
         respJsonSchema.setIsShow(Boolean.FALSE);
 
         // 系统提示
         VariableItemRespVO defaultContentStepPromp = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
-        defaultContentStepPromp.setOrder(8);
+        defaultContentStepPromp.setOrder(9);
         defaultContentStepPromp.setIsShow(Boolean.FALSE);
 
         VariableItemRespVO defaultResponseJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
-        defaultResponseJsonParserPrompt.setOrder(9);
+        defaultResponseJsonParserPrompt.setOrder(10);
         defaultResponseJsonParserPrompt.setIsShow(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
@@ -249,7 +254,8 @@ public class RecommendVariableFactory {
                 materialType,
                 refersCount,
                 refers,
-                requirement,
+                customRequirement,
+                parodyRequirement,
                 jsonSchema,
                 respJsonSchema,
                 defaultContentStepPromp,
