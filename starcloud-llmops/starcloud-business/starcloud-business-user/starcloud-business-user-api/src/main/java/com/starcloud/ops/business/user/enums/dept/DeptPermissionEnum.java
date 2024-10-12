@@ -19,7 +19,7 @@ public enum DeptPermissionEnum {
     plugin_delete("plugin.delete", "插件删除"),
 
     plugin_bind_add("plugin.bind.add","新增插件绑定"),
-    plugin_bind_delete("plugin.bind.add","删除插件绑定"),
+    plugin_bind_delete("plugin.bind.delete","删除插件绑定"),
 
     notification_edit("notification.edit", "通告编辑"),
     notification_delete("notification.delete", "通告删除"),
