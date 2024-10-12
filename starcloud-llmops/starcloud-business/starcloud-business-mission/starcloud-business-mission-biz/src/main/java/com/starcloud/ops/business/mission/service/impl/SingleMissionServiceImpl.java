@@ -236,8 +236,6 @@ public class SingleMissionServiceImpl implements SingleMissionService {
         if (unAllowed) {
             throw exception(new ErrorCode(500, "只允许删除 待发布 待认领 关闭状态的任务"));
         }
-        // 只有当前用户有删除权限才能批量删除
-        deptPermissionApi.checkPermission(DeptPermissionEnum.mission_delete, null);
 
         List<String> creativeUids = singleMissionDOList.stream().map(SingleMissionDO::getCreativeUid).collect(Collectors.toList());
         creativeContentService.batchUnbind(creativeUids);
