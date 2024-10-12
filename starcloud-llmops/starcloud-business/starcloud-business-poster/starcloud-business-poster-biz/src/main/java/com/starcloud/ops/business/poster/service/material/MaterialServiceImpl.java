@@ -11,7 +11,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
-import com.starcloud.ops.business.limits.dal.dataobject.userbenefitsstrategy.UserBenefitsStrategyDO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -51,6 +50,7 @@ public class MaterialServiceImpl implements MaterialService {
     @Resource
     @Lazy
     private MaterialGroupService materialGroupService;
+
     @Override
     public Long createMaterial(MaterialSaveReqVO createReqVO) {
         // 插入
@@ -209,11 +209,8 @@ public class MaterialServiceImpl implements MaterialService {
      */
     @Override
     public PosterTemplateDTO posterTemplate(String uid) {
-        // 构造查询条件
-        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
-        wrapper.eq(MaterialDO::getUid, uid);
-        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
-        MaterialDO material = materialMapper.selectOne(wrapper);
+
+        MaterialDO material = this.getMaterialByUId(uid);
         return transform(material, true);
     }
 
