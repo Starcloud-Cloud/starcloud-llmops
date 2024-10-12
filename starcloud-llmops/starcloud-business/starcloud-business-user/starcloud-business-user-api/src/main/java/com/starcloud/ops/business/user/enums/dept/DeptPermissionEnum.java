@@ -18,12 +18,24 @@ public enum DeptPermissionEnum {
     plugin_edit("plugin.edit", "插件编辑"),
     plugin_delete("plugin.delete", "插件删除"),
 
+    plugin_bind_add("plugin.bind.add","新增插件绑定"),
+    plugin_bind_delete("plugin.bind.add","删除插件绑定"),
+
     notification_edit("notification.edit", "通告编辑"),
     notification_delete("notification.delete", "通告删除"),
     notification_publish("notification.publish", "通告发布"),
 
     mission_edit("mission.edit", "通告任务编辑"),
     mission_delete("mission.delete", "通告任务删除"),
+
+    material_library_edit("mission.edit", "素材库编辑"),
+    material_library_delete("mission.delete", "素材库删除"),
+
+    material_library_column_edit("mission.edit", "素材库字段编辑"),
+    material_library_column_delete("mission.delete", "素材库字段删除"),
+
+    material_library_slice_edit("mission.edit", "素材库数据编辑"),
+    material_library_slice_delete("mission.delete", "素材库数据删除"),
 
     ;
 

@@ -7,9 +7,12 @@ import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.Plugin
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginConfigConvert;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginConfigMapper;
+import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
+import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
@@ -25,9 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_NOT_EXIST;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.SYSTEM_PLUGIN;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.NO_PERMISSION;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
 @Service
@@ -35,6 +36,9 @@ public class PluginConfigServiceImpl implements PluginConfigService {
 
     @Resource
     private PluginConfigMapper pluginConfigMapper;
+
+    @Resource
+    private PluginDefinitionMapper pluginDefinitionMapper;
 
     @Resource
     private BusinessJobApi businessJobApi;
@@ -48,6 +52,12 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         if (Objects.nonNull(oldConfig)) {
             return PluginConfigConvert.INSTANCE.convert(oldConfig);
         }
+        PluginDefinitionDO pluginDefinitionDO = pluginDefinitionMapper.selectByUid(pluginConfigVO.getPluginUid());
+        if (Objects.isNull(pluginDefinitionDO)) {
+            throw exception(PLUGIN_NOT_EXIST, pluginConfigVO.getPluginUid());
+        }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_add, Long.valueOf(pluginDefinitionDO.getCreator()));
+
         PluginConfigDO pluginConfigDO = PluginConfigConvert.INSTANCE.convert(pluginConfigVO);
         pluginConfigDO.setUid(IdUtil.fastSimpleUUID());
         pluginConfigDO.setType(PluginBindTypeEnum.owner.getCode());
@@ -58,8 +68,6 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Override
     public void modify(PluginConfigReqVO pluginVO) {
         PluginConfigDO pluginConfigDO = getByUid(pluginVO.getUid());
-        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_edit, Long.valueOf(pluginConfigDO.getCreator()));
-
         PluginConfigDO updateConfig = PluginConfigConvert.INSTANCE.convert(pluginVO);
         updateConfig.setId(pluginConfigDO.getId());
         pluginConfigMapper.updateById(updateConfig);
@@ -69,7 +77,9 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid, boolean forced) {
         PluginConfigDO pluginConfigDO = getByUid(uid);
-        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginConfigDO.getCreator()));
+        if (!forced) {
+            deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_delete, Long.valueOf(pluginConfigDO.getCreator()));
+        }
 
         if (!forced && Objects.equals(PluginBindTypeEnum.sys.getCode(), pluginConfigDO.getType())) {
             throw exception(SYSTEM_PLUGIN);

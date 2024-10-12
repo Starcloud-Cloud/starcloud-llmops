@@ -22,6 +22,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
+import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -40,6 +41,8 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImp
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
 import com.starcloud.ops.business.mq.producer.LibraryDeleteProducer;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
@@ -89,6 +92,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Resource
     private LibraryDeleteProducer deleteProducer;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
 
     @Override
@@ -185,11 +191,14 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Override
     public void updateMaterialLibrary(MaterialLibrarySaveReqVO updateReqVO) {
-        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(updateReqVO.getId());
 
+        MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectById(updateReqVO.getId());
         if (materialLibraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_edit, Long.valueOf(materialLibraryDO.getCreator()));
+
+
         if (!materialLibraryDO.getFormatType().equals(updateReqVO.getFormatType())) {
             throw exception(MATERIAL_LIBRARY_FORAMT_NO_MODIFY);
 
@@ -207,6 +216,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         if (libraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_delete, Long.valueOf(libraryDO.getCreator()));
 
         // 删除表头信息
         if (MaterialFormatTypeEnum.isExcel(libraryDO.getFormatType())) {
@@ -227,6 +237,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void deleteMaterialLibraryByApp(MaterialLibraryAppReqVO appReqVO) {
+
         AppValidate.notBlank(appReqVO.getAppUid(), "获取素材库失败，应用编号不能为空");
 
         MaterialLibraryAppBindDO bind = materialLibraryAppBindService.getMaterialLibraryAppBind(appReqVO.getAppUid());
@@ -234,6 +245,10 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             log.error("当前应用未绑定素材库，{}", appReqVO.getAppUid());
             throw exception(MATERIAL_LIBRARY_NO_BIND_APP);
         }
+
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_delete, Long.valueOf(bind.getCreator()));
+
+
         List<MaterialLibraryAppBindDO> bindList = materialLibraryAppBindService.getBindList(bind.getLibraryId());
 
         if (bindList.size() > 1) {
@@ -545,11 +560,13 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
      */
     @Override
     public void updatePluginConfig(Long loginUserId, MaterialLibrarySavePlugInConfigReqVO plugInConfigReqVO) {
+
         MaterialLibraryDO materialLibraryDO = materialLibraryMapper.selectByIdAndUser(loginUserId, plugInConfigReqVO.getId());
 
         if (materialLibraryDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.app_edit, Long.valueOf(materialLibraryDO.getCreator()));
 
         materialLibraryMapper.updateById(new MaterialLibraryDO().setId(plugInConfigReqVO.getId()).setPluginConfig(plugInConfigReqVO.getPluginConfig()));
 

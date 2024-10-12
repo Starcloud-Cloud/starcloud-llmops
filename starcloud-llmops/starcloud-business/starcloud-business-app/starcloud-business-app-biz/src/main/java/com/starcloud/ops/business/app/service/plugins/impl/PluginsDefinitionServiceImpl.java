@@ -57,6 +57,8 @@ import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.job.dto.JobDetailDTO;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -121,6 +123,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Resource
     private MaterialLibraryMapper materialLibraryMapper;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     private static final String prefix_exectue = "coze_exectue_";
 
@@ -518,28 +523,27 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Override
     public PluginRespVO modifyPlugin(PluginConfigModifyReqVO reqVO) {
-        PluginDefinitionDO pluginConfigDO = getByUid(reqVO.getUid());
-        if (UserUtils.isNotAdmin() && !WebFrameworkUtils.getLoginUserId().toString().equalsIgnoreCase(pluginConfigDO.getCreator())) {
-            throw exception(NO_PERMISSIONS);
-        }
+        PluginDefinitionDO pluginDefinitionDO = getByUid(reqVO.getUid());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginDefinitionDO.getCreator()));
 
-        PluginDefinitionDO updateConfig = PluginDefinitionConvert.INSTANCE.convert(reqVO);
-        if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
-            CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), reqVO.getCozeTokenId());
-            pluginConfigDO.setEntityName(cozeBotInfo.getName());
+        PluginDefinitionDO updatePlugin = PluginDefinitionConvert.INSTANCE.convert(reqVO);
+        if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginDefinitionDO.getType())) {
+            CozeBotInfo cozeBotInfo = botInfo(pluginDefinitionDO.getEntityUid(), reqVO.getCozeTokenId());
+            pluginDefinitionDO.setEntityName(cozeBotInfo.getName());
         } else {
-            AppMarketRespVO appMarketRespVO = appMarketService.get(pluginConfigDO.getEntityUid());
-            pluginConfigDO.setEntityName(appMarketRespVO.getName());
+            AppMarketRespVO appMarketRespVO = appMarketService.get(pluginDefinitionDO.getEntityUid());
+            pluginDefinitionDO.setEntityName(appMarketRespVO.getName());
         }
-        updateConfig.setId(pluginConfigDO.getId());
-        pluginDefinitionMapper.updateById(updateConfig);
-        return PluginDefinitionConvert.INSTANCE.convert(updateConfig);
+        updatePlugin.setId(pluginDefinitionDO.getId());
+        pluginDefinitionMapper.updateById(updatePlugin);
+        return PluginDefinitionConvert.INSTANCE.convert(updatePlugin);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(uid);
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginDefinitionDO.getCreator()));
         pluginDefinitionMapper.deleteById(pluginDefinitionDO.getId());
         configService.deleteByPluginUid(pluginDefinitionDO.getUid());
     }
