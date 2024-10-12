@@ -488,10 +488,10 @@ public class RecommendVariableFactory {
 
         variable.setVariables(Arrays.asList(
                 materialTypeVariable,
+                materialListVariable,
                 materialUsageModel,
                 materialLibraryVariable,
                 // materialDefineVariable,
-                // materialListVariable,
                 // materialGenerateConfigVariable,
                 // customMaterialGenerateConfigVariable,
                 searchHabitsVariable
