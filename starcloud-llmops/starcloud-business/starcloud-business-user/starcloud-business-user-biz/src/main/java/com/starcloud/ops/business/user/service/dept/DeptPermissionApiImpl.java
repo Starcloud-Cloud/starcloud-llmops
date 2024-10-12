@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.user.service.dept;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
@@ -10,6 +11,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.NO_PERMISSION;
@@ -36,7 +38,15 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
 
     @Override
     public void checkPermission(DeptPermissionEnum permission, List<Long> creatorList) {
-        //todo
+        Long userId = WebFrameworkUtils.getLoginUserId();
+        List<Long> creators = creatorList.stream().distinct().filter(id -> !Objects.equals(id, userId)).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(creators)) {
+            return;
+        }
+        if (hasPermission(permission.getDesc(), null)) {
+            return;
+        }
+        throw exception(NO_PERMISSION, permission.getDesc());
     }
 
     @Override
@@ -46,7 +56,6 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
         if (Objects.equals(userId, creator)) {
             return true;
         }
-
         Set<String> userPermission = getUserPermission();
         return userPermission.contains(permission);
     }

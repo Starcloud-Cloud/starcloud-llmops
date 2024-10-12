@@ -23,6 +23,7 @@ public enum UserDeptRoleEnum {
     ADMIN(500, "管理员", Sets.newHashSet(
             DeptPermissionEnum.app_edit.getPermission(),
             DeptPermissionEnum.plugin_edit.getPermission(),
+            DeptPermissionEnum.plugin_bind_add.getPermission(),
             DeptPermissionEnum.notification_edit.getPermission(),
             DeptPermissionEnum.mission_edit.getPermission(),
             DeptPermissionEnum.material_library_edit.getPermission(),
@@ -35,6 +36,8 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.app_edit.getPermission(),
             DeptPermissionEnum.plugin_delete.getPermission(),
             DeptPermissionEnum.plugin_edit.getPermission(),
+            DeptPermissionEnum.plugin_bind_add.getPermission(),
+            DeptPermissionEnum.plugin_bind_delete.getPermission(),
             DeptPermissionEnum.notification_delete.getPermission(),
             DeptPermissionEnum.notification_edit.getPermission(),
             DeptPermissionEnum.notification_publish.getPermission(),
