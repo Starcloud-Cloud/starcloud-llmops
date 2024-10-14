@@ -27,13 +27,18 @@ import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB
 
 @Slf4j
 @Service
-public class BusinessJobServiceImpl implements BusinessJobService{
+public class BusinessJobServiceImpl implements BusinessJobService {
 
     @Resource
     private PowerjobManager powerjobManager;
 
     @Resource
     private BusinessJobMapper businessJobMapper;
+
+    /**
+     * 定时任务执行次数
+     */
+    private static final int NUM = 5;
 
     @Override
     public Map<String, Object> metadata() {
@@ -122,7 +127,7 @@ public class BusinessJobServiceImpl implements BusinessJobService{
     @Override
     public List<BusinessJobRespVO> getByForeignKey(List<String> foreignKeys) {
         List<BusinessJobDO> jobDOList = businessJobMapper.getByForeignKey(foreignKeys);
-        return  BusinessJobConvert.INSTANCE.convert(jobDOList);
+        return BusinessJobConvert.INSTANCE.convert(jobDOList);
     }
 
     private BusinessJobDO getByForeignKey0(String foreignKey) {

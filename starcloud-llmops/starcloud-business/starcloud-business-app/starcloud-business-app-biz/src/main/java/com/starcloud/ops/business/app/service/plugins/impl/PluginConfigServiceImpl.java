@@ -141,10 +141,10 @@ public class PluginConfigServiceImpl implements PluginConfigService {
             // 删除后剩余需新增插件
             PluginConfigDO updateConfig = sourceConfigMap.remove(pluginConfigDO.getPluginUid());
             if (Objects.nonNull(updateConfig)) {
-//                 不更新已有插件
-//                pluginConfigDO.setExecuteParams(updateConfig.getExecuteParams());
-//                pluginConfigDO.setFieldMap(updateConfig.getFieldMap());
-//                pluginConfigMapper.updateById(pluginConfigDO);
+//                 更新已有插件
+                pluginConfigDO.setExecuteParams(updateConfig.getExecuteParams());
+                pluginConfigDO.setFieldMap(updateConfig.getFieldMap());
+                pluginConfigMapper.updateById(pluginConfigDO);
 //                businessJobApi.updateJob(updateConfig.getUid(), pluginConfigDO.getUid(), pluginConfigDO.getLibraryUid());
             } else {
                 if (!Objects.equals(PluginBindTypeEnum.owner.getCode(), pluginConfigDO.getType())) {
