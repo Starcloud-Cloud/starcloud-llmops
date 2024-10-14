@@ -12,6 +12,7 @@ import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
 import com.starcloud.ops.business.job.biz.enums.TriggerTypeEnum;
 import com.starcloud.ops.business.job.biz.powerjob.PowerjobManager;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
+import com.starcloud.ops.business.job.utils.CronUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     /**
      * 定时任务执行次数
      */
-    private static final int NUM = 5;
+    private static final int NUM = 14;
 
     @Override
     public Map<String, Object> metadata() {
@@ -57,6 +58,8 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         if (Objects.nonNull(existJob)) {
             throw exception(EXIST_JOB, existJob.getForeignKey());
         }
+        Long lastTriggerTime = CronUtils.lastTriggerTime(NUM, businessJobBaseVO.getTimeExpression(), null, null);
+        businessJobBaseVO.setLifecycleEnd(lastTriggerTime + 10L);
 
         Long jobId = powerjobManager.saveJob(businessJobBaseVO, null);
         BusinessJobDO businessJobDO = BusinessJobConvert.INSTANCE.convert(businessJobBaseVO);
@@ -73,6 +76,10 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         BusinessJobDO businessJobDO = getByUid(reqVO.getUid());
         BusinessJobDO updateDO = BusinessJobConvert.INSTANCE.convert(reqVO);
         updateDO.setId(businessJobDO.getId());
+
+        Long lastTriggerTime = CronUtils.lastTriggerTime(NUM, reqVO.getTimeExpression(), null, null);
+        reqVO.setLifecycleEnd(lastTriggerTime + 10L);
+
         powerjobManager.saveJob(reqVO, businessJobDO.getJobId());
         businessJobMapper.updateById(updateDO);
     }
