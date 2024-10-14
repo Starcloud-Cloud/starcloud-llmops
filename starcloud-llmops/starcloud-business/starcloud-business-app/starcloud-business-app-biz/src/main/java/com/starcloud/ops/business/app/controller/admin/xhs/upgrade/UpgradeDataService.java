@@ -83,7 +83,7 @@ public class UpgradeDataService {
         LambdaQueryWrapper<AppDO> appQuery = Wrappers.lambdaQuery(AppDO.class);
         // appQuery.eq(AppDO::getId, 839);
         // appQuery.eq(AppDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
-        //appQuery.eq(AppDO::getUid, "05371147545a4648929e28e01c28d043");
+        // appQuery.eq(AppDO::getUid, "90aee659ce524150904ff0c0ec00e7a1");
         List<AppDO> appList = appMapper.selectList(appQuery);
 
         for (AppDO app : appList) {
@@ -366,12 +366,18 @@ public class UpgradeDataService {
             parodyRequirement.setValue(requirementValue);
         }
 
+        variables = variables.stream()
+                .filter(item -> !CreativeConstants.REQUIREMENT.equals(item.getField()))
+                .filter(item -> !CreativeConstants.GENERATE_MODE.equals(item.getField()))
+                .filter(item -> !CreativeConstants.CUSTOM_REQUIREMENT.equals(item.getField()))
+                .filter(item -> !CreativeConstants.PARODY_REQUIREMENT.equals(item.getField()))
+                .collect(Collectors.toList());
+
         variables.add(model);
         variables.add(customRequirement);
         variables.add(parodyRequirement);
 
         variables = variables.stream()
-                .filter(item -> !CreativeConstants.REQUIREMENT.equals(item.getField()))
                 .sorted(Comparator.comparingInt(VariableItemRespVO::getOrder))
                 .collect(Collectors.toList());
 
