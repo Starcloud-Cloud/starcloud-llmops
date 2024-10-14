@@ -163,7 +163,7 @@ public class CustomActionHandler extends BaseActionHandler {
         // AI自定义校验，文案生成要求不能为空
         else {
             // 文案生成要求变量
-            Object requirementValue = wrapper.getVariable(CreativeConstants.REQUIREMENT);
+            Object requirementValue = wrapper.getVariable(CreativeConstants.CUSTOM_REQUIREMENT);
             VerificationUtils.notNullStep(verifications, requirementValue, stepCode,
                     "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
             if (Objects.isNull(requirementValue)) {
@@ -498,18 +498,6 @@ public class CustomActionHandler extends BaseActionHandler {
         } catch (Exception exception) {
             throw ActionResponseException.exception(response, exception);
         }
-    }
-
-    /**
-     * 返回用户要求
-     *
-     * @param context 上下文
-     * @return 用户要求
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private Object requirementPrompt(AppContext context, Map<String, Object> params) {
-        return params.getOrDefault(CreativeConstants.REQUIREMENT, StringUtils.EMPTY);
     }
 
     /**
