@@ -59,6 +59,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
             throw exception(EXIST_JOB, existJob.getForeignKey());
         }
         Long lastTriggerTime = CronUtils.lastTriggerTime(NUM, businessJobBaseVO.getTimeExpression(), null, null);
+        businessJobBaseVO.setLifecycleStart(System.currentTimeMillis());
         businessJobBaseVO.setLifecycleEnd(lastTriggerTime + 10L);
 
         Long jobId = powerjobManager.saveJob(businessJobBaseVO, null);
@@ -78,6 +79,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         updateDO.setId(businessJobDO.getId());
 
         Long lastTriggerTime = CronUtils.lastTriggerTime(NUM, reqVO.getTimeExpression(), null, null);
+        reqVO.setLifecycleStart(System.currentTimeMillis());
         reqVO.setLifecycleEnd(lastTriggerTime + 10L);
 
         powerjobManager.saveJob(reqVO, businessJobDO.getJobId());
