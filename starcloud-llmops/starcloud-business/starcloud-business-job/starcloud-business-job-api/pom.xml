@@ -20,5 +20,11 @@
             <artifactId>yudao-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.cronutils</groupId>
+            <artifactId>cron-utils</artifactId>
+            <version>9.2.1</version>
+        </dependency>
+
     </dependencies>
 </project>

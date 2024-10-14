@@ -223,7 +223,7 @@ public class CreativeMaterialManager {
     }
 
     /**
-     * 就表头结构转成新表头结构
+     * 旧表头结构转成新表头结构
      */
     private static MaterialLibraryTableColumnSaveReqVO convertMaterialLibraryTableColumn(MaterialFieldConfigDTO materialFieldConfigDTO) {
         MaterialLibraryTableColumnSaveReqVO saveReqVO = new MaterialLibraryTableColumnSaveReqVO();
