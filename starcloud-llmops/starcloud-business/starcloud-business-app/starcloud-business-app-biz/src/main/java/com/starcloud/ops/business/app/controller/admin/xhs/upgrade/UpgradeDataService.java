@@ -2,9 +2,9 @@ package com.starcloud.ops.business.app.controller.admin.xhs.upgrade;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.baomidou.mybatisplus.core.batch.MybatisBatch;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
@@ -52,6 +52,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -154,47 +155,52 @@ public class UpgradeDataService {
 
     @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativePlanBatch() {
+        for (int i = 0; i < 40; i++) {
+            LambdaQueryWrapper<CreativePlanBatchDO> queryWrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+            // queryWrapper.eq(CreativePlanBatchDO::getUid, "7f77a92ff0474f868e5424a1d0483a1a");
+            Page<CreativePlanBatchDO> page = new Page<>(i + 1, 100);
+            Page<CreativePlanBatchDO> page1 = creativePlanBatchMapper.selectPage(page, queryWrapper);
+            List<CreativePlanBatchDO> creativePlanBatchList = CollectionUtil.emptyIfNull(page1.getRecords());
 
-        LambdaQueryWrapper<CreativePlanBatchDO> queryWrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
-        // queryWrapper.eq(CreativePlanBatchDO::getUid, "7f77a92ff0474f868e5424a1d0483a1a");
-        List<CreativePlanBatchDO> creativePlanBatchList = creativePlanBatchMapper.selectList(queryWrapper);
+            for (CreativePlanBatchDO batch : creativePlanBatchList) {
 
-        for (CreativePlanBatchDO batch : creativePlanBatchList) {
+                CreativePlanBatchRespVO response = CreativePlanBatchConvert.INSTANCE.convert(batch);
+                CreativePlanConfigurationDTO configuration = response.getConfiguration();
+                AppMarketRespVO appInformation = configuration.getAppInformation();
 
-            CreativePlanBatchRespVO response = CreativePlanBatchConvert.INSTANCE.convert(batch);
-            CreativePlanConfigurationDTO configuration = response.getConfiguration();
-            AppMarketRespVO appInformation = configuration.getAppInformation();
+                handlerAppMarket(appInformation);
+                configuration.setAppInformation(appInformation);
 
-            handlerAppMarket(appInformation);
-            configuration.setAppInformation(appInformation);
-
-            batch.setConfiguration(JsonUtils.toJsonString(configuration));
-            //creativePlanBatchMapper.updateById(batch);
+                batch.setConfiguration(JsonUtils.toJsonString(configuration));
+                creativePlanBatchMapper.updateById(batch);
+            }
         }
 
-        MybatisBatch<CreativePlanBatchDO> mybatisBatch = new MybatisBatch<>(sqlSessionFactory, creativePlanBatchList);
-        MybatisBatch.Method<CreativePlanBatchDO> method = new MybatisBatch.Method<>(CreativePlanBatchMapper.class);
-        mybatisBatch.execute(method.updateById());
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativeContent() {
-        LambdaQueryWrapper<CreativeContentDO> queryWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
-        // queryWrapper.eq(CreativeContentDO::getUid, "334d8322f2e046e19a49837b3de29634");
-        List<CreativeContentDO> creativePlanList = creativeContentMapper.selectList(queryWrapper);
+        for (int i = 0; i < 40; i++) {
+            LambdaQueryWrapper<CreativeContentDO> queryWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+            Page<CreativeContentDO> page = new Page<>(i + 1, 100);
 
-        for (CreativeContentDO content : creativePlanList) {
-            CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(content);
+            // queryWrapper.eq(CreativeContentDO::getUid, "334d8322f2e046e19a49837b3de29634");
+            Page<CreativeContentDO> page1 = creativeContentMapper.selectPage(page, queryWrapper);
+            List<CreativeContentDO> creativePlanList = CollectionUtil.emptyIfNull(page1.getRecords());
 
-            CreativeContentExecuteParam executeParam = response.getExecuteParam();
-            AppMarketRespVO appInformation = executeParam.getAppInformation();
-            // 处理
-            handlerAppMarket(appInformation);
-            executeParam.setAppInformation(appInformation);
+            for (CreativeContentDO content : creativePlanList) {
+                CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(content);
 
-            // 更新
-            content.setExecuteParam(JsonUtils.toJsonString(executeParam));
-            creativeContentMapper.updateById(content);
+                CreativeContentExecuteParam executeParam = response.getExecuteParam();
+                AppMarketRespVO appInformation = executeParam.getAppInformation();
+                // 处理
+                handlerAppMarket(appInformation);
+                executeParam.setAppInformation(appInformation);
+
+                // 更新
+                content.setExecuteParam(JsonUtils.toJsonString(executeParam));
+                creativeContentMapper.updateById(content);
+            }
         }
     }
 
@@ -378,7 +384,10 @@ public class UpgradeDataService {
         variables.add(parodyRequirement);
 
         variables = variables.stream()
-                .sorted(Comparator.comparingInt(VariableItemRespVO::getOrder))
+                .filter(Objects::nonNull)
+                .sorted(
+                        Comparator.comparing(VariableItemRespVO::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                )
                 .collect(Collectors.toList());
 
         variableResponse.setVariables(variables);
