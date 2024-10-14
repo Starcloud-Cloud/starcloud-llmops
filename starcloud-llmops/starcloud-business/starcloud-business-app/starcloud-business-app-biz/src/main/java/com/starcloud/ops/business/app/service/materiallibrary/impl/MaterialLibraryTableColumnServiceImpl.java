@@ -345,7 +345,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             for (MaterialLibraryTableColumnDO addColumn : addColumns) {
                 MaterialLibraryTableColumnDO columnDO = BeanUtils.toBean(addColumn,
                         MaterialLibraryTableColumnDO.class,
-                        "id", "libraryId", "createTime", "updateTime", "creator", "updater");
+                        "id", "libraryId", "createTime", "updateTime", "creator", "updater", "deptId");
                 columnDO.setLibraryId(targetLibraryId);
                 columnDOList.add(columnDO);
             }
@@ -361,7 +361,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             for (MaterialLibraryTableColumnDO updateColumn : updateColumns) {
                 MaterialLibraryTableColumnDO columnDO = targetColumnMaps.get(updateColumn.getColumnCode());
                 BeanUtil.copyProperties(updateColumn, columnDO,
-                        "id", "libraryId", "createTime", "updateTime", "creator", "updater");
+                        "id", "libraryId", "createTime", "updateTime", "creator", "updater", "deptId");
                 columnDOList.add(columnDO);
             }
             materialLibraryTableColumnMapper.updateBatch(columnDOList);
@@ -452,7 +452,6 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     }
 
 
-
     private MaterialLibraryDO getLibraryInfo(Long libraryId) {
         MaterialLibraryDO materialLibraryDO = materialLibraryService.getMaterialLibrary(libraryId);
         if (materialLibraryDO == null) {
@@ -460,7 +459,6 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
         }
         return materialLibraryDO;
     }
-
 
 
 }
