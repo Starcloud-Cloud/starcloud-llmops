@@ -24,15 +24,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
 import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
+import static java.util.Arrays.asList;
 
 /**
  * 海报素材 Service 实现类
@@ -50,6 +50,7 @@ public class MaterialServiceImpl implements MaterialService {
     @Resource
     @Lazy
     private MaterialGroupService materialGroupService;
+
     @Override
     public Long createMaterial(MaterialSaveReqVO createReqVO) {
         // 插入
@@ -118,7 +119,14 @@ public class MaterialServiceImpl implements MaterialService {
      */
     @Override
     public MaterialDO getMaterialByUId(String uid) {
-        return materialMapper.selectOne(MaterialDO::getUid, uid, MaterialDO::getDeleted, Boolean.FALSE);
+        // 设置查询条件
+        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
+        wrapper.eq(MaterialDO::getUid, uid);
+        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
+        wrapper.orderByDesc(MaterialDO::getUpdateTime);
+        wrapper.last("Limit 1");
+        // 获取数据
+        return materialMapper.selectOne(wrapper);
 
     }
 
@@ -201,11 +209,8 @@ public class MaterialServiceImpl implements MaterialService {
      */
     @Override
     public PosterTemplateDTO posterTemplate(String uid) {
-        // 构造查询条件
-        LambdaQueryWrapper<MaterialDO> wrapper = Wrappers.lambdaQuery(MaterialDO.class);
-        wrapper.eq(MaterialDO::getUid, uid);
-        wrapper.eq(MaterialDO::getDeleted, Boolean.FALSE);
-        MaterialDO material = materialMapper.selectOne(wrapper);
+
+        MaterialDO material = this.getMaterialByUId(uid);
         return transform(material, true);
     }
 
@@ -275,5 +280,37 @@ public class MaterialServiceImpl implements MaterialService {
             posterTemplate.setJson(material.getMaterialData());
         }
         return posterTemplate;
+    }
+
+
+    public static List<List<MaterialDO>> diffList(Collection<MaterialDO> oldList, Collection<MaterialDO> newList, BiFunction<MaterialDO, MaterialDO, Boolean> sameFunc) {
+        List<MaterialDO> createList = new LinkedList<>(newList); // 默认都认为是新增的，后续会进行移除
+        List<MaterialDO> updateList = new ArrayList<>();
+        List<MaterialDO> deleteList = new ArrayList<>();
+
+        // 通过以 oldList 为主遍历，找出 updateList 和 deleteList
+        for (MaterialDO oldObj : oldList) {
+            // 1. 寻找是否有匹配的
+            MaterialDO foundObj = null;
+            for (Iterator<MaterialDO> iterator = createList.iterator(); iterator.hasNext(); ) {
+                MaterialDO newObj = iterator.next();
+                // 1.1 不匹配，则直接跳过
+                if (!sameFunc.apply(oldObj, newObj)) {
+                    continue;
+                }
+                // 1.2 匹配，则移除，并结束寻找
+                iterator.remove();
+                foundObj = newObj;
+                break;
+            }
+            // 2. 匹配添加到 updateList；不匹配则添加到 deleteList 中
+            if (foundObj != null) {
+                foundObj.setId(oldObj.getId());
+                updateList.add(foundObj);
+            } else {
+                deleteList.add(oldObj);
+            }
+        }
+        return asList(createList, updateList, deleteList);
     }
 }

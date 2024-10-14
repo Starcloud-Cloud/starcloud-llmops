@@ -77,6 +77,14 @@ public interface MaterialGroupService {
     PageResult<MaterialGroupRespVO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO);
 
     /**
+     * 获得海报素材分组分页
+     *
+     * @param pageReqVO 分页查询
+     * @return 海报素材分组分页
+     */
+    PageResult<MaterialGroupRespVO> getSysMaterialGroupPage(MaterialGroupPageReqVO pageReqVO);
+
+    /**
      * 发布数据
      *
      * @param groupId 分组编号

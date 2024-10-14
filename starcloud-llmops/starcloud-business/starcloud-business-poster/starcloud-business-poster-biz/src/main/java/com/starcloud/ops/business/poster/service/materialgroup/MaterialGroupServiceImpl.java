@@ -143,6 +143,20 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialGroupDO == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
+
+        if (materialGroupDO.getOvertStatus()){
+            throw exception(MATERIAL_DELETE_FAIL_PUBLISH);
+        }
+        // 增加发布数据校验
+        MaterialGroupDO publish = validatePublish(uid);
+
+        if (Objects.nonNull(publish)){
+            // 删除分组下的素材
+            materialService.deleteMaterialByGroup(publish.getId());
+            // 删除分组
+            materialGroupMapper.deleteById(publish.getId());
+        }
+
         // 删除分组下的素材
         materialService.deleteMaterialByGroup(materialGroupDO.getId());
         // 删除分组
@@ -190,6 +204,22 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
 
         // return materialGroupMapper.selectPage(pageReqVO, PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
+    }
+
+    /**
+     * 获得海报素材分组分页
+     *
+     * @param pageReqVO 分页查询
+     * @return 海报素材分组分页
+     */
+    @Override
+    public PageResult<MaterialGroupRespVO> getSysMaterialGroupPage(MaterialGroupPageReqVO pageReqVO) {
+        // 2. 分页查询
+        IPage<MaterialGroupRespVO> pageResult = materialGroupMapper.selectPage(
+                MyBatisUtils.buildPage(pageReqVO), pageReqVO);
+
+        // 3. 拼接数据并返回
+        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
     }
 
     /**
@@ -256,7 +286,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
             this.createMaterialGroup(publishGroupVO);
         }
 
-
+        materialGroupMapper.updateById(materialGroupDO.setOvertStatus(Boolean.TRUE));
     }
 
     /**
@@ -268,7 +298,14 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     public void cancelPublish(String groupId) {
 
         MaterialGroupDO publishGroup = validatePublish(groupId);
-        materialGroupMapper.updateById(publishGroup.setOvertStatus(Boolean.FALSE).setStatus(Boolean.FALSE));
+        if (Objects.isNull(publishGroup)) {
+            throw exception(MATERIAL_CANCEL_PUBLISH_FAIL);
+        }
+        MaterialGroupDO group = getMaterialGroupByUid(groupId);
+
+        materialGroupMapper.updateById(publishGroup.setStatus(Boolean.FALSE));
+
+        materialGroupMapper.updateById(group.setOvertStatus(Boolean.FALSE));
 
     }
 

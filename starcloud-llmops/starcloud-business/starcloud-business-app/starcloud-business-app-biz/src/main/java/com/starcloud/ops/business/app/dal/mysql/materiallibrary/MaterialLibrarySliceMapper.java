@@ -35,7 +35,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                 .eqIfPresent(MaterialLibrarySliceDO::getSequence, reqVO.getSequence())
                 .eqIfPresent(MaterialLibrarySliceDO::getStatus, reqVO.getStatus())
                 .betweenIfPresent(MaterialLibrarySliceDO::getCreateTime, reqVO.getCreateTime())
-                .orderByDesc(MaterialLibrarySliceDO::getCreateTime));
+                .orderByDesc(MaterialLibrarySliceDO::getId));
     }
 
     default MaterialLibrarySliceDO selectLastSequence(Long libraryId) {
@@ -86,6 +86,7 @@ public interface MaterialLibrarySliceMapper extends BaseMapperX<MaterialLibraryS
                                                                         Collection<Long> sliceIdList,
                                                                         Collection<Long> removeSliceIdList,
                                                                         SortingField sortingField) {
+
 
         LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(MaterialLibrarySliceDO::getLibraryId, libraryId);
