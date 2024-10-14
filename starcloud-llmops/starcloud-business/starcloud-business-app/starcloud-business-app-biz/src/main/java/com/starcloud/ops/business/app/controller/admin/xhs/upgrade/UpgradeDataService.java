@@ -44,6 +44,7 @@ import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import dm.jdbc.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +62,7 @@ import java.util.stream.Collectors;
  * @date 2021-06-22
  * @since 1.0.0
  */
+@Slf4j
 @Service
 public class UpgradeDataService {
 
@@ -172,8 +174,12 @@ public class UpgradeDataService {
                 configuration.setAppInformation(appInformation);
 
                 batch.setConfiguration(JsonUtils.toJsonString(configuration));
-                creativePlanBatchMapper.updateById(batch);
+                //creativePlanBatchMapper.updateById(batch);
+
             }
+            creativePlanBatchMapper.updateBatch(creativePlanBatchList);
+            log.info("upPlanBatch i = {}, {}, \n\n\n\n\n\n", i, creativePlanBatchList.size());
+
         }
 
     }
@@ -199,8 +205,10 @@ public class UpgradeDataService {
 
                 // 更新
                 content.setExecuteParam(JsonUtils.toJsonString(executeParam));
-                creativeContentMapper.updateById(content);
+                //creativeContentMapper.updateById(content);
             }
+            creativeContentMapper.updateBatch(creativePlanList);
+            log.info("upgradeDataCreativeContent i = {}, {} \n\n\n\n\n\n", i, creativePlanList.size());
         }
     }
 
