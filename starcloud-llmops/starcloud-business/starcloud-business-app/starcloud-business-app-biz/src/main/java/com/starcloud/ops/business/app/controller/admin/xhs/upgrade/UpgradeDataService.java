@@ -5,9 +5,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import com.baomidou.mybatisplus.core.batch.MybatisBatch;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -15,9 +13,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
@@ -39,14 +35,15 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
-import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.recommend.RecommendVariableFactory;
 import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
+import dm.jdbc.util.StringUtil;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,8 +83,7 @@ public class UpgradeDataService {
         LambdaQueryWrapper<AppDO> appQuery = Wrappers.lambdaQuery(AppDO.class);
         // appQuery.eq(AppDO::getId, 839);
         // appQuery.eq(AppDO::getType, AppTypeEnum.MEDIA_MATRIX.name());
-        //appQuery.eq(AppDO::getUid, "05371147545a4648929e28e01c28d043");
-        appQuery.eq(AppDO::getDeleted, Boolean.FALSE);
+        // appQuery.eq(AppDO::getUid, "90aee659ce524150904ff0c0ec00e7a1");
         List<AppDO> appList = appMapper.selectList(appQuery);
 
         for (AppDO app : appList) {
@@ -221,11 +217,11 @@ public class UpgradeDataService {
                 continue;
             }
 
-//            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
-//                handlerCustomStep(stepWrapper);
-//            }
-            String handler = stepWrapper.getFlowStep().getHandler();
-            handlerStep(stepWrapper);
+            if (CustomActionHandler.class.getSimpleName().equals(stepWrapper.getFlowStep().getHandler())) {
+                handlerCustomStep(stepWrapper);
+            }
+//            String handler = stepWrapper.getFlowStep().getHandler();
+//            handlerStep(stepWrapper);
         }
 
         workflowConfig.setSteps(stepList);
@@ -340,89 +336,52 @@ public class UpgradeDataService {
         VariableRespVO variableResponse = customHandler.getVariable();
         List<VariableItemRespVO> variables = CollectionUtil.emptyIfNull(variableResponse.getVariables());
 
-        List<VariableItemRespVO> variableList = new ArrayList<>();
-        for (VariableItemRespVO variable : variables) {
-            if ("_SYS_内容生成_PROMPT".equalsIgnoreCase(variable.getField())) {
-                continue;
-            }
-            if ("STEP_SYSTEM_PROMPT".equalsIgnoreCase(variable.getField())) {
-                continue;
-            }
-            if ("STEP_RESP_JSON_PARSER_PROMPT".equalsIgnoreCase(variable.getField())) {
-                continue;
-            }
-            if (CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT.equalsIgnoreCase(variable.getField())) {
-                continue;
-            }
-            if (CreativeConstants.DEFAULT_RESPONSE_JSON_PARSER_PROMPT.equalsIgnoreCase(variable.getField())) {
-                continue;
-            }
-            if ("MATERIAL_TYPE".equalsIgnoreCase(variable.getField())) {
-                variable.setOptions(MaterialTypeEnum.referOptions());
-                if ("note".equalsIgnoreCase(String.valueOf(variable.getValue()))) {
-                    variable.setValue(null);
-                    variable.setDefaultValue(null);
-                }
-            }
+        VariableItemRespVO model = variables.stream().filter(item -> CreativeConstants.GENERATE_MODE.equals(item.getField()))
+                .findFirst()
+                .orElse(RecommendVariableItemFactory.defMediaMatrixGenerateVariable());
 
-            variableList.add(variable);
-        }
+        VariableItemRespVO requirement = variables.stream()
+                .filter(item -> CreativeConstants.REQUIREMENT.equals(item.getField()))
+                .findFirst()
+                .orElse(RecommendVariableItemFactory.defMediaMatrixRequirement());
+
+        String generateMode = Optional.ofNullable(model.getValue())
+                .map(Object::toString).orElse(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
+
+        String requirementValue = Optional.ofNullable(requirement.getValue())
+                .map(Object::toString).orElse(StringUtil.EMPTY);
+
+        VariableItemRespVO customRequirement = RecommendVariableItemFactory.defCustomRequirement();
+        customRequirement.setOrder(5);
+        customRequirement.setIsShow(Boolean.TRUE);
 
         // 系统提示
-        VariableItemRespVO systemPrompt = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
-        systemPrompt.setOrder(8);
-        systemPrompt.setIsShow(Boolean.FALSE);
-        variableList.add(systemPrompt);
+        VariableItemRespVO parodyRequirement = RecommendVariableItemFactory.defParodyRequirement();
+        parodyRequirement.setOrder(6);
+        parodyRequirement.setIsShow(Boolean.TRUE);
 
-        VariableItemRespVO stepRespJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
-        stepRespJsonParserPrompt.setOrder(9);
-        stepRespJsonParserPrompt.setIsShow(Boolean.FALSE);
-        variableList.add(stepRespJsonParserPrompt);
-
-
-        variableResponse.setVariables(variableList);
-        customHandler.setVariable(variableResponse);
-
-
-        // 响应结果
-        WorkflowStepRespVO flowStep = customHandler.getFlowStep();
-        ActionResponseRespVO response = flowStep.getResponse();
-
-        JsonDataVO output = Optional.ofNullable(response.getOutput()).orElse(new JsonDataVO());
-        output.setJsonSchema(null);
-
-        response.setOutput(output);
-        response.setType(AppStepResponseTypeEnum.TEXT.name());
-        response.setStyle(AppStepResponseStyleEnum.TEXTAREA.name());
-
-        flowStep.setResponse(response);
-
-        // 模型参数
-        VariableRespVO modelVariableResponse = flowStep.getVariable();
-        List<VariableItemRespVO> modelVariables = CollectionUtil.emptyIfNull(modelVariableResponse.getVariables());
-
-        List<VariableItemRespVO> modelVariableList = new ArrayList<>();
-
-        // 模型参数 prompt 修改
-        for (VariableItemRespVO variable : modelVariables) {
-            if ("PROMPT".equalsIgnoreCase(variable.getField())) {
-                variable.setValue("{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}");
-                variable.setDefaultValue("{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}");
-            }
-            if ("max_tokens".equalsIgnoreCase(variable.getField())) {
-                variable.setValue(4000);
-                variable.setDefaultValue(4000);
-            }
-            if ("model".equalsIgnoreCase(variable.getField())) {
-                variable.setValue(ModelTypeEnum.QWEN.getName());
-                variable.setDefaultValue(ModelTypeEnum.QWEN.getName());
-            }
-            modelVariableList.add(variable);
+        if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
+            customRequirement.setValue(requirementValue);
+        } else if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
+            parodyRequirement.setValue(requirementValue);
         }
 
-        modelVariableResponse.setVariables(modelVariableList);
-        flowStep.setVariable(modelVariableResponse);
+        variables = variables.stream()
+                .filter(item -> !CreativeConstants.REQUIREMENT.equals(item.getField()))
+                .filter(item -> !CreativeConstants.GENERATE_MODE.equals(item.getField()))
+                .filter(item -> !CreativeConstants.CUSTOM_REQUIREMENT.equals(item.getField()))
+                .filter(item -> !CreativeConstants.PARODY_REQUIREMENT.equals(item.getField()))
+                .collect(Collectors.toList());
 
-        customHandler.setFlowStep(flowStep);
+        variables.add(model);
+        variables.add(customRequirement);
+        variables.add(parodyRequirement);
+
+        variables = variables.stream()
+                .sorted(Comparator.comparingInt(VariableItemRespVO::getOrder))
+                .collect(Collectors.toList());
+
+        variableResponse.setVariables(variables);
+        customHandler.setVariable(variableResponse);
     }
 }
