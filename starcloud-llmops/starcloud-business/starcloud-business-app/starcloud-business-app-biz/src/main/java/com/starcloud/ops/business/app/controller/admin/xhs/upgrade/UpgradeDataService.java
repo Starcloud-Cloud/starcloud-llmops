@@ -152,10 +152,6 @@ public class UpgradeDataService {
 
     }
 
-    @Resource
-    private SqlSessionFactory sqlSessionFactory;
-
-    @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativePlanBatch() {
         for (int i = 0; i < 20; i++) {
             LambdaQueryWrapper<CreativePlanBatchDO> queryWrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
@@ -186,7 +182,6 @@ public class UpgradeDataService {
 
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativeContent() {
         for (int i = 0; i < 40; i++) {
             LambdaQueryWrapper<CreativeContentDO> queryWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
