@@ -25,8 +25,6 @@ public class UpgradeDataController {
     private UpgradeDataService upgradeDataService;
 
     @PostMapping("/v1/app")
-    @Operation(summary = "升级应用数据", description = "升级应用数据")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
     @DataPermission(enable = false)
     public CommonResult<String> upgradeDataApp() {
         upgradeDataService.upgradeDataApp();
@@ -34,8 +32,6 @@ public class UpgradeDataController {
     }
 
     @PostMapping("/v1/market")
-    @Operation(summary = "升级应用市场数据", description = "升级应用市场数据")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
     @DataPermission(enable = false)
     public CommonResult<String> upgradeDataAppMarket() {
         upgradeDataService.upgradeDataAppMarket();
@@ -43,8 +39,6 @@ public class UpgradeDataController {
     }
 
     @PostMapping("/v1/plan")
-    @Operation(summary = "升级计划数据", description = "升级计划数据")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
     @DataPermission(enable = false)
     public CommonResult<String> upgradeDataCreativePlan() {
         upgradeDataService.upgradeDataCreativePlan();
@@ -52,8 +46,6 @@ public class UpgradeDataController {
     }
 
     @PostMapping("/v1/plan-batch")
-    @Operation(summary = "升级计划批次数据", description = "升级计划批次数据")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
     @DataPermission(enable = false)
     public CommonResult<String> upgradeDataCreativePlanBatch() {
         upgradeDataService.upgradeDataCreativePlanBatch();
@@ -61,8 +53,6 @@ public class UpgradeDataController {
     }
 
     @PostMapping("/v1/content")
-    @Operation(summary = "升级内容任务数据", description = "升级内容任务数据")
-    @ApiOperationSupport(order = 10, author = "nacoyer")
     @DataPermission(enable = false)
     public CommonResult<String> upgradeDataCreativeContent() {
         upgradeDataService.upgradeDataCreativeContent();

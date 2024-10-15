@@ -44,7 +44,7 @@ import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import dm.jdbc.util.StringUtil;
-import org.apache.ibatis.session.SqlSessionFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
  * @date 2021-06-22
  * @since 1.0.0
  */
+@Slf4j
 @Service
 public class UpgradeDataService {
 
@@ -150,58 +151,75 @@ public class UpgradeDataService {
 
     }
 
-    @Resource
-    private SqlSessionFactory sqlSessionFactory;
-
-    @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativePlanBatch() {
-        for (int i = 0; i < 40; i++) {
+        LambdaQueryWrapper<CreativePlanBatchDO> countWrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+        Long count = creativePlanBatchMapper.selectCount(countWrapper);
+        log.info("count = {}\n\n\n\n\n", count);
+        // 计算分页，每页 200 条，计算总页数
+        long pages = count / 200 + 1;
+
+        long total = 0;
+        for (int i = 0; i < pages; i++) {
             LambdaQueryWrapper<CreativePlanBatchDO> queryWrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
+            queryWrapper.select(CreativePlanBatchDO::getId, CreativePlanBatchDO::getConfiguration);
             // queryWrapper.eq(CreativePlanBatchDO::getUid, "7f77a92ff0474f868e5424a1d0483a1a");
-            Page<CreativePlanBatchDO> page = new Page<>(i + 1, 100);
+            Page<CreativePlanBatchDO> page = new Page<>(i + 1, 200);
             Page<CreativePlanBatchDO> page1 = creativePlanBatchMapper.selectPage(page, queryWrapper);
             List<CreativePlanBatchDO> creativePlanBatchList = CollectionUtil.emptyIfNull(page1.getRecords());
-
+            if (CollectionUtil.isEmpty(creativePlanBatchList)) {
+                continue;
+            }
             for (CreativePlanBatchDO batch : creativePlanBatchList) {
-
                 CreativePlanBatchRespVO response = CreativePlanBatchConvert.INSTANCE.convert(batch);
                 CreativePlanConfigurationDTO configuration = response.getConfiguration();
                 AppMarketRespVO appInformation = configuration.getAppInformation();
-
                 handlerAppMarket(appInformation);
                 configuration.setAppInformation(appInformation);
-
                 batch.setConfiguration(JsonUtils.toJsonString(configuration));
-                creativePlanBatchMapper.updateById(batch);
+                //creativePlanBatchMapper.updateById(batch);
             }
+            creativePlanBatchMapper.updateBatch(creativePlanBatchList);
+            log.info("upPlanBatch i = {}, {}, \n\n\n\n\n\n", i, creativePlanBatchList.size());
+            total += creativePlanBatchList.size();
         }
-
+        log.info("count = {}, total = {}\n\n\n\n\n", count, total);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativeContent() {
-        for (int i = 0; i < 40; i++) {
-            LambdaQueryWrapper<CreativeContentDO> queryWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
-            Page<CreativeContentDO> page = new Page<>(i + 1, 100);
+        LambdaQueryWrapper<CreativeContentDO> countWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+        long count = creativeContentMapper.selectCount(countWrapper);
+        log.info("count = {}\n\n\n\n\n", count);
 
-            // queryWrapper.eq(CreativeContentDO::getUid, "334d8322f2e046e19a49837b3de29634");
+        // 计算分页，每页 200 条，计算总页数
+        long pages = count / 100 + 1;
+        log.info("pages = {}\n\n\n\n\n", pages);
+
+        long total = 0;
+
+        for (int i = 0; i < pages; i++) {
+            LambdaQueryWrapper<CreativeContentDO> queryWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+            queryWrapper.select(CreativeContentDO::getId, CreativeContentDO::getExecuteParam);
+            Page<CreativeContentDO> page = new Page<>(i + 1, 100);
             Page<CreativeContentDO> page1 = creativeContentMapper.selectPage(page, queryWrapper);
             List<CreativeContentDO> creativePlanList = CollectionUtil.emptyIfNull(page1.getRecords());
-
+            if (CollectionUtil.isEmpty(creativePlanList)) {
+                continue;
+            }
             for (CreativeContentDO content : creativePlanList) {
                 CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(content);
-
                 CreativeContentExecuteParam executeParam = response.getExecuteParam();
                 AppMarketRespVO appInformation = executeParam.getAppInformation();
-                // 处理
                 handlerAppMarket(appInformation);
                 executeParam.setAppInformation(appInformation);
-
                 // 更新
                 content.setExecuteParam(JsonUtils.toJsonString(executeParam));
-                creativeContentMapper.updateById(content);
+                //creativeContentMapper.updateById(content);
             }
+            creativeContentMapper.updateBatch(creativePlanList);
+            log.info("upgradeDataCreativeContent i = {}, {} \n\n\n\n\n\n", i, creativePlanList.size());
+            total += creativePlanList.size();
         }
+        log.info("count = {}, total = {}\n\n\n\n\n", count, total);
     }
 
     private void handlerAppMarket(AppMarketRespVO app) {
@@ -210,6 +228,7 @@ public class UpgradeDataService {
             return;
         }
         handlerConfig(workflowConfig);
+        app.setWorkflowConfig(workflowConfig);
     }
 
     private void handlerConfig(WorkflowConfigRespVO workflowConfig) {
