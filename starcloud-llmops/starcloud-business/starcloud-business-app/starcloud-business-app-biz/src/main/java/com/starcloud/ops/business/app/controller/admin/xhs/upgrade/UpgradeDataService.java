@@ -45,6 +45,7 @@ import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import dm.jdbc.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -374,7 +375,7 @@ public class UpgradeDataService {
                 .map(Object::toString).orElse(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
 
         String requirementValue = Optional.ofNullable(requirement.getValue())
-                .map(Object::toString).orElse(StringUtil.EMPTY);
+                .map(Object::toString).orElse(StringUtils.defaultIfEmpty(String.valueOf(requirement.getDefaultValue()), StringUtils.EMPTY));
 
         VariableItemRespVO customRequirement = RecommendVariableItemFactory.defCustomRequirement();
         customRequirement.setOrder(5);
