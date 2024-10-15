@@ -386,10 +386,27 @@ public class UpgradeDataService {
         parodyRequirement.setOrder(6);
         parodyRequirement.setIsShow(Boolean.TRUE);
 
+        VariableItemRespVO customRequirement1 = variables.stream()
+                .filter(item -> CreativeConstants.CUSTOM_REQUIREMENT.equals(item.getField()))
+                .findFirst()
+                .orElse(customRequirement);
+        String customRequirementValue = Optional.ofNullable(customRequirement1.getValue())
+                .map(Object::toString)
+                .orElse(StringUtils.defaultIfEmpty(String.valueOf(customRequirement1.getDefaultValue()), StringUtils.EMPTY));
+
+
+        VariableItemRespVO parodyRequirement1 = variables.stream()
+                .filter(item -> CreativeConstants.PARODY_REQUIREMENT.equals(item.getField()))
+                .findFirst()
+                .orElse(parodyRequirement);
+        String parodyRequirementValue = Optional.ofNullable(parodyRequirement1.getValue())
+                .map(Object::toString)
+                .orElse(StringUtils.defaultIfEmpty(String.valueOf(parodyRequirement1.getDefaultValue()), StringUtils.EMPTY));
+
         if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
-            customRequirement.setValue(requirementValue);
+            customRequirement.setValue(StringUtils.defaultIfEmpty(requirementValue, customRequirementValue));
         } else if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
-            parodyRequirement.setValue(requirementValue);
+            parodyRequirement.setValue(StringUtils.defaultIfEmpty(requirementValue, parodyRequirementValue));
         }
 
         variables = variables.stream()
