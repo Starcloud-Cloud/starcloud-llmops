@@ -341,6 +341,10 @@ public class UserDeptServiceImpl implements UserDeptService {
         if (Objects.isNull(userId)) {
             userId = UserContextHolder.getUserId();
         }
+        if (Objects.isNull(userId)) {
+            throw exception(USER_NOT_EXISTS);
+        }
+
         AdminUserRespDTO user = adminUserApi.getUser(userId);
         UserDeptDO userDeptDO = selectByDeptAndUser(user.getDeptId(), userId);
         return UserDeptRoleEnum.getByRoleCode(userDeptDO.getDeptRole()).getPermissions();
