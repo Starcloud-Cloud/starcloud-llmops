@@ -157,13 +157,15 @@ public class UpgradeDataService {
 
     @Transactional(rollbackFor = Exception.class)
     public void upgradeDataCreativePlanBatch() {
-        for (int i = 0; i < 40; i++) {
+        for (int i = 0; i < 20; i++) {
             LambdaQueryWrapper<CreativePlanBatchDO> queryWrapper = Wrappers.lambdaQuery(CreativePlanBatchDO.class);
             // queryWrapper.eq(CreativePlanBatchDO::getUid, "7f77a92ff0474f868e5424a1d0483a1a");
             Page<CreativePlanBatchDO> page = new Page<>(i + 1, 100);
             Page<CreativePlanBatchDO> page1 = creativePlanBatchMapper.selectPage(page, queryWrapper);
             List<CreativePlanBatchDO> creativePlanBatchList = CollectionUtil.emptyIfNull(page1.getRecords());
-
+            if (CollectionUtil.isEmpty(creativePlanBatchList)) {
+                continue;
+            }
             for (CreativePlanBatchDO batch : creativePlanBatchList) {
 
                 CreativePlanBatchRespVO response = CreativePlanBatchConvert.INSTANCE.convert(batch);
@@ -175,8 +177,8 @@ public class UpgradeDataService {
 
                 batch.setConfiguration(JsonUtils.toJsonString(configuration));
                 //creativePlanBatchMapper.updateById(batch);
-
             }
+
             creativePlanBatchMapper.updateBatch(creativePlanBatchList);
             log.info("upPlanBatch i = {}, {}, \n\n\n\n\n\n", i, creativePlanBatchList.size());
 
@@ -193,7 +195,9 @@ public class UpgradeDataService {
             // queryWrapper.eq(CreativeContentDO::getUid, "334d8322f2e046e19a49837b3de29634");
             Page<CreativeContentDO> page1 = creativeContentMapper.selectPage(page, queryWrapper);
             List<CreativeContentDO> creativePlanList = CollectionUtil.emptyIfNull(page1.getRecords());
-
+            if (CollectionUtil.isEmpty(creativePlanList)) {
+                continue;
+            }
             for (CreativeContentDO content : creativePlanList) {
                 CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(content);
 
