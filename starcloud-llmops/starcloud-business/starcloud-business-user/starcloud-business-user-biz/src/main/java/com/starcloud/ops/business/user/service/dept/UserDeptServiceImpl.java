@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.dept;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
@@ -337,6 +338,9 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Override
     public Set<String> getUserPermission() {
         Long userId = WebFrameworkUtils.getLoginUserId();
+        if (Objects.isNull(userId)) {
+            userId = UserContextHolder.getUserId();
+        }
         AdminUserRespDTO user = adminUserApi.getUser(userId);
         UserDeptDO userDeptDO = selectByDeptAndUser(user.getDeptId(), userId);
         return UserDeptRoleEnum.getByRoleCode(userDeptDO.getDeptRole()).getPermissions();
