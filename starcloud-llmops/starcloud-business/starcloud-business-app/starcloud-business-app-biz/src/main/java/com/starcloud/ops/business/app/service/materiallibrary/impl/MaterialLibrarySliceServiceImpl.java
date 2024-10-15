@@ -491,6 +491,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
             sliceData.setId(null);
             sliceData.setCreator(null);
             sliceData.setUpdater(null);
+            sliceData.setDeptId(null);
             sliceData.setLibraryId(libraryId);
             List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
             if (datasList != null) {
