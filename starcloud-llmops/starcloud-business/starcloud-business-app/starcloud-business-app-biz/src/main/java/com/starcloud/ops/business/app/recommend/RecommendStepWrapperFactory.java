@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.recommend;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.excel.util.StringUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -222,7 +223,8 @@ public class RecommendStepWrapperFactory {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
+        stepWrapper.setDescription(StringUtils.EMPTY);
+        //stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_DESCRIPTION"));
         stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defCustomActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defCustomVariable());
