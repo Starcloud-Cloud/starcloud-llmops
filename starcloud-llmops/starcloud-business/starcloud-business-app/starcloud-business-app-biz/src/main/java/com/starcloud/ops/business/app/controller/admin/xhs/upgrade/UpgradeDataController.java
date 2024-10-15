@@ -2,11 +2,10 @@ package com.starcloud.ops.business.app.controller.admin.xhs.upgrade;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -47,15 +46,15 @@ public class UpgradeDataController {
 
     @PostMapping("/v1/plan-batch")
     @DataPermission(enable = false)
-    public CommonResult<String> upgradeDataCreativePlanBatch() {
-        upgradeDataService.upgradeDataCreativePlanBatch();
+    public CommonResult<String> upgradeDataCreativePlanBatch(@RequestParam("index") Integer index, @RequestParam("size") Integer size) {
+        upgradeDataService.upgradeDataCreativePlanBatch(index, size);
         return CommonResult.success("成功");
     }
 
     @PostMapping("/v1/content")
     @DataPermission(enable = false)
-    public CommonResult<String> upgradeDataCreativeContent() {
-        upgradeDataService.upgradeDataCreativeContent();
+    public CommonResult<String> upgradeDataCreativeContent(@RequestParam("index") Integer index, @RequestParam("size") Integer size) {
+        upgradeDataService.upgradeDataCreativeContent(index, size);
         return CommonResult.success("成功");
     }
 
