@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
@@ -52,11 +53,14 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         if (Objects.nonNull(oldConfig)) {
             return PluginConfigConvert.INSTANCE.convert(oldConfig);
         }
-        PluginDefinitionDO pluginDefinitionDO = pluginDefinitionMapper.selectByUid(pluginConfigVO.getPluginUid());
-        if (Objects.isNull(pluginDefinitionDO)) {
-            throw exception(PLUGIN_NOT_EXIST, pluginConfigVO.getPluginUid());
-        }
-        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_add, Long.valueOf(pluginDefinitionDO.getCreator()));
+
+        DataPermissionUtils.executeIgnore(() ->{
+            PluginDefinitionDO pluginDefinitionDO = pluginDefinitionMapper.selectByUid(pluginConfigVO.getPluginUid());
+            if (Objects.isNull(pluginDefinitionDO)) {
+                throw exception(PLUGIN_NOT_EXIST, pluginConfigVO.getPluginUid());
+            }
+            deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_add, Long.valueOf(pluginDefinitionDO.getCreator()));
+        });
 
         PluginConfigDO pluginConfigDO = PluginConfigConvert.INSTANCE.convert(pluginConfigVO);
         pluginConfigDO.setUid(IdUtil.fastSimpleUUID());

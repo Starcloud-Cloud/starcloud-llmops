@@ -1,52 +1,35 @@
 package com.starcloud.ops.business.app.service.materiallibrary.listener;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.exception.ExcelDataConvertException;
-import com.alibaba.excel.util.ListUtils;
 import com.alibaba.fastjson.JSON;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
-import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
-import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.util.MaterialLibrary.dto.ExcelDataImportConfigDTO;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * 核心逻辑是 每次读取一百条 读取完成后构建对象以及异步上传图片 然后将值 放入队列中 全部读取完毕后 返回队列数据
+ */
 @Slf4j
 public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, String>> {
 
-    private static final int BATCH_COUNT = 100;
-    private List<MaterialLibrarySliceSaveReqVO> cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
+    @Getter
+    private List<MaterialLibrarySliceSaveReqVO> result = new CopyOnWriteArrayList<>();
 
-    private List<String> otherFileKeys = new ArrayList<>();
-
-    private MaterialLibrarySliceService service;
-
-    private File[] files;
-
-    private long start;
-    private long end;
+    private final long start;
 
 
-    /**
-     * 解压后的绝对路径
-     */
-    private String unzipDirPath;
-
-
-    public ExcelDataEventListener(MaterialLibrarySliceService service,
-                                  File[] files, String unzipDirPath) {
-        this.service = service;
-        this.files = files;
-        this.unzipDirPath = unzipDirPath;
+    public ExcelDataEventListener() {
         start = System.currentTimeMillis();
 
     }
@@ -68,50 +51,8 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
 
         ExcelDataImportConfigDTO importConfigDTO = BeanUtil.toBean(context.getCustom(), ExcelDataImportConfigDTO.class);
 
-
-        MaterialLibrarySliceSaveReqVO materialLibrarySliceSaveReqVO = new MaterialLibrarySliceSaveReqVO();
-        materialLibrarySliceSaveReqVO.setLibraryId(importConfigDTO.getLibraryId());
-        materialLibrarySliceSaveReqVO.setStatus(true);
-        materialLibrarySliceSaveReqVO.setIsShare(false);
-
-        long totalLength = data.values().stream()
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .mapToInt(String::length)
-                .sum();
-
-        materialLibrarySliceSaveReqVO.setCharCount(totalLength);
-
-        List<MaterialLibrarySliceSaveReqVO.TableContent> contents = new ArrayList<>();
-
-        List<MaterialLibraryTableColumnRespVO> columnConfig = importConfigDTO.getColumnConfig();
-        for (int i = 0; i < columnConfig.size(); i++) {
-            MaterialLibraryTableColumnRespVO tableColumnRespVO = columnConfig.get(i);
-
-            MaterialLibrarySliceSaveReqVO.TableContent tableContent = new MaterialLibrarySliceSaveReqVO.TableContent();
-            tableContent.setColumnId(tableColumnRespVO.getId());
-            tableContent.setColumnCode(tableColumnRespVO.getColumnCode());
-            tableContent.setColumnName(tableColumnRespVO.getColumnName());
-            tableContent.setValue(data.get(i));
-
-            if (ColumnTypeEnum.IMAGE.getCode().equals(tableColumnRespVO.getColumnType()) || ColumnTypeEnum.DOCUMENT.getCode().equals(tableColumnRespVO.getColumnType())) {
-                otherFileKeys.add(data.get(i));
-            }
-
-            contents.add(tableContent);
-
-        }
-
-        materialLibrarySliceSaveReqVO.setContent(contents);
-
-        cachedDataList.add(materialLibrarySliceSaveReqVO);
-
-
-        if (cachedDataList.size() >= BATCH_COUNT) {
-            saveData();
-            cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
-            otherFileKeys = ListUtils.newArrayList();
-        }
+        MaterialLibrarySliceSaveReqVO materialLibrarySliceSaveReqVO = createMaterialLibrarySliceSaveReqVO(importConfigDTO, data);
+        result.add(materialLibrarySliceSaveReqVO);
     }
 
 
@@ -122,10 +63,8 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
      */
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
-        saveData();
-        end = System.currentTimeMillis();
+        long end = System.currentTimeMillis();
         log.info("所有数据解析完成！耗时{}", end - start);
-
     }
 
 
@@ -148,65 +87,39 @@ public class ExcelDataEventListener extends AnalysisEventListener<Map<Integer, S
     }
 
 
-    /**
-     * 加上存储数据库
-     */
-    private void saveData() {
-        log.info("{}条数据，开始存储数据库！", cachedDataList.size());
-        Long loginUserId = WebFrameworkUtils.getLoginUserId();
-        // threadPoolTaskExecutor.execute(() -> {
-        service.batchSaveDataAndExecuteOtherFile(cachedDataList, otherFileKeys);
-        // });
-        log.info("存储数据库成功！");
-    }
+    private MaterialLibrarySliceSaveReqVO createMaterialLibrarySliceSaveReqVO(ExcelDataImportConfigDTO importConfigDTO, Map<Integer, String> data) {
+        MaterialLibrarySliceSaveReqVO materialLibrarySliceSaveReqVO = new MaterialLibrarySliceSaveReqVO();
+        materialLibrarySliceSaveReqVO.setLibraryId(importConfigDTO.getLibraryId());
+        materialLibrarySliceSaveReqVO.setStatus(true);
+        materialLibrarySliceSaveReqVO.setIsShare(false);
+        materialLibrarySliceSaveReqVO.setUsedCount(0L);
+        materialLibrarySliceSaveReqVO.setSequence(0L);
 
+        long totalLength = data.values().stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .mapToInt(String::length)
+                .sum();
 
-    /**
-     * 查找特定文件夹下的特定文件
-     *
-     * @param directoriesToSearch 文件列表
-     * @param targetFolderName    目标文件夹名称
-     * @param targetedFileName    目标文件名称
-     * @return 查询到的文件
-     */
-    public List<File> findFilesInTargetFolder(File[] directoriesToSearch, String targetFolderName, String targetedFileName) {
+        materialLibrarySliceSaveReqVO.setCharCount(totalLength);
 
+        List<MaterialLibrarySliceSaveReqVO.TableContent> contents = new ArrayList<>();
 
-        // // 指定文件夹路径
-        // String folderPath = "/path/to/your/folder";
-        // // 获取文件夹内所有.txt文件
-        // List<File> txtFiles = FileUtil.loopFiles(new File(folderPath), file -> file.getName().toLowerCase().endsWith(".txt"));
-        //
-        // // 输出文件路径
-        // for (File txtFile : txtFiles) {
-        //     System.out.println(txtFile.getAbsolutePath());
-        // }
+        List<MaterialLibraryTableColumnRespVO> columnConfig = importConfigDTO.getColumnConfig();
+        for (int i = 0; i < columnConfig.size(); i++) {
+            MaterialLibraryTableColumnRespVO tableColumnRespVO = columnConfig.get(i);
 
+            MaterialLibrarySliceSaveReqVO.TableContent tableContent = new MaterialLibrarySliceSaveReqVO.TableContent();
+            tableContent.setColumnId(tableColumnRespVO.getId());
+            tableContent.setColumnCode(tableColumnRespVO.getColumnCode());
+            tableContent.setColumnName(tableColumnRespVO.getColumnName());
+            tableContent.setValue(data.get(i));
 
-        List<File> foundFiles = new ArrayList<>();
-        for (File directory : directoriesToSearch) {
-            if (directory.isDirectory()) {
-                // 遍历目录下的所有文件和子目录
-                File[] files = directory.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        if (file.isDirectory() && file.getName().equals(targetFolderName)) {
-                            // 进入目标文件夹后，再次遍历查找指定文件
-                            File[] targetFiles = file.listFiles(pathname -> pathname.getName().equals(targetedFileName));
-                            if (targetFiles != null) {
-                                for (File targetFile : targetFiles) {
-                                    if (targetFile.isFile()) {
-                                        foundFiles.add(targetFile);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            contents.add(tableContent);
+
         }
-        return foundFiles;
+
+        materialLibrarySliceSaveReqVO.setContent(contents);
+        return materialLibrarySliceSaveReqVO;
     }
-
-
 }

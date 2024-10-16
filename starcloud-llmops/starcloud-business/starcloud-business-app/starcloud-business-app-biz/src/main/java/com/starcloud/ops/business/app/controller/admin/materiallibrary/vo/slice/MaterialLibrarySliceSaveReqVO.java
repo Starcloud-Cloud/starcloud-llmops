@@ -35,6 +35,12 @@ public class MaterialLibrarySliceSaveReqVO {
     @Schema(description = "字符数", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "30132")
     private Long charCount;
 
+    @Schema(description = "使用数", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "30132")
+    private Long usedCount;
+
+    @Schema(description = "序列", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "30132")
+    private Long sequence;
+
 
     @Schema(description = "列属性")
     @Data

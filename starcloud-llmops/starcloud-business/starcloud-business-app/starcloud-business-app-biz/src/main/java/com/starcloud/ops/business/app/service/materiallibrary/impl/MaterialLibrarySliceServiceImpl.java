@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -56,6 +58,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static cn.hutool.core.date.DatePattern.PURE_DATETIME_MS_PATTERN;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -76,7 +79,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     // 定义常量
     private static final int EXPIRATION_DAYS = 3;
-    private static final TimeUnit TIME_UNIT = TimeUnit.DAYS;
+    private static final TimeUnit TIME_UNIT = TimeUnit.MINUTES;
 
 
     @Resource(name = LIBRARY_DATA_UPLOAD_THREAD_POOL_TASK_EXECUTOR)
@@ -162,7 +165,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         handleImageValue(tableColumnDOList, saveReqVOS, libraryIds.get(0));
 
-        this.saveBatchData(BeanUtils.toBean(createReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
+        this.batchSaveDataDesc(createReqVO.getSaveReqVOS());
     }
 
     public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOList,
@@ -698,6 +701,95 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     }
 
+    /**
+     * 批量保存数据-倒序
+     * 内部会将list倒序
+     *
+     * @param saveReqVOS saveReqVOS
+     */
+    @Override
+    public void batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> saveReqVOS) {
+
+
+        Long libraryId = saveReqVOS.stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst().orElse(null);
+        if (libraryId == null) {
+            throw exception(MATERIAL_LIBRARY_IMPORT_LIBRARY_EMPTY);
+        }
+
+        // 将数据倒序
+        List<MaterialLibrarySliceSaveReqVO> descSaveReqVOS = IntStream.range(0, saveReqVOS.size())
+                .boxed()
+                .sorted(Comparator.reverseOrder())
+                .map(saveReqVOS::get)
+                .collect(Collectors.toList());
+
+        if (CollUtil.isEmpty(descSaveReqVOS)) {
+            throw exception(MATERIAL_LIBRARY_IMPORT_DATA_EMPTY);
+        }
+
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
+        Map<Integer, List<String>> fileColumn = getImageOrDocumentColumn(tableColumnDOList);
+
+        // 如果数据列中存在表格或者其他文件 则从缓存中获取数据
+        if (MapUtil.isNotEmpty(fileColumn)) {
+            // 获取列中的图片或者文档数据 key
+            List<String> otherFileKeys = getOtherFileKeys(descSaveReqVOS, fileColumn);
+            // 校验上传是否成功
+            validateUploadIsSuccess(buildRedisKey(otherFileKeys, libraryId));
+            // 填充图片或者文档数据
+            fillFileData(descSaveReqVOS, fileColumn, libraryId);
+        }
+        List<MaterialLibrarySliceDO> bean = BeanUtil.copyToList(descSaveReqVOS, MaterialLibrarySliceDO.class);
+
+        materialLibrarySliceMapper.insertBatch(bean);
+
+    }
+
+    private List<String> getOtherFileKeys(List<MaterialLibrarySliceSaveReqVO> descSaveReqVOS, Map<Integer, List<String>> fileColumn) {
+        List<String> allColumnCodes = fileColumn.values().stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+
+        return descSaveReqVOS.stream()
+                .flatMap(saveReqVO -> saveReqVO.getContent().stream())
+                .filter(content -> allColumnCodes.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                .map(MaterialLibrarySliceSaveReqVO.TableContent::getValue)
+                .collect(Collectors.toList());
+
+    }
+
+
+    private void fillFileData(List<MaterialLibrarySliceSaveReqVO> descSaveReqVOS, Map<Integer, List<String>> fileColumn, Long libraryId) {
+        List<String> imageColumn = fileColumn.get(ColumnTypeEnum.IMAGE.getCode());
+        List<String> documentColumn = fileColumn.get(ColumnTypeEnum.DOCUMENT.getCode());
+
+        if (CollUtil.isNotEmpty(imageColumn)) {
+            descSaveReqVOS.forEach(saveReqVO -> {
+                saveReqVO.getContent().stream()
+                        .filter(content -> imageColumn.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                        .forEach(content -> content.setValue(redisTemplate.boundValueOps(getRedisKey(content.getValue(), libraryId)).get()));
+            });
+        }
+
+        if (CollUtil.isNotEmpty(documentColumn)) {
+            descSaveReqVOS.forEach(data -> {
+                data.getContent().stream()
+                        .filter(content -> documentColumn.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
+                        .forEach(content -> {
+                            String key = getRedisKey(content.getValue(), libraryId);
+                            String urlsString = redisTemplate.boundValueOps(key).get();
+
+                            if (StrUtil.isNotBlank(urlsString)) {
+                                List<String> urls = Arrays.asList(urlsString.split(","));
+                                if (imageColumn.contains(content.getColumnCode()) && (StrUtil.isBlank(content.getValue()) || StrUtil.NULL.equalsIgnoreCase(content.getValue())) && !urls.isEmpty()) {
+                                    content.setValue(urls.get(0));
+                                }
+                            }
+                        });
+            });
+        }
+    }
+
 
     @Async
     public ListenableFuture<Boolean> asyncUploadImage(List<String> imageUrls, Long libraryId) {
@@ -854,7 +946,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         List<MaterialLibrarySliceDO> bean = BeanUtils.toBean(list, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.insertBatch(bean);
         return list.size();
-
     }
 
     private static Map<Integer, List<String>> getImageOrDocumentColumn(List<MaterialLibraryTableColumnDO> materialConfigList) {
