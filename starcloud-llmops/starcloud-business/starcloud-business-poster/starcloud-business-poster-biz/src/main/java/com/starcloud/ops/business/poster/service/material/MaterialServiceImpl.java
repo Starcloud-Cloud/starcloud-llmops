@@ -211,7 +211,12 @@ public class MaterialServiceImpl implements MaterialService {
     public PosterTemplateDTO posterTemplate(String uid) {
 
         MaterialDO material = this.getMaterialByUId(uid);
-        return transform(material, true);
+
+        MaterialGroupDO materialGroup = materialGroupService.getMaterialGroup(material.getGroupId());
+        if (materialGroup == null) {
+            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        }
+        return transform(material, materialGroup.getName(), true);
     }
 
     /**
@@ -252,7 +257,7 @@ public class MaterialServiceImpl implements MaterialService {
         // 查询列表
         List<MaterialDO> materialList = materialMapper.selectList(wrapper);
         return CollectionUtils.emptyIfNull(materialList).stream()
-                .map(item -> transform(item, false))
+                .map(item -> transform(item,  materialGroup.getName(), false))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
@@ -263,7 +268,7 @@ public class MaterialServiceImpl implements MaterialService {
      * @param material 素材
      * @return 海报模板
      */
-    private PosterTemplateDTO transform(MaterialDO material, boolean isNeedJson) {
+    private PosterTemplateDTO transform(MaterialDO material, String groupName, boolean isNeedJson) {
         if (material == null) {
             return null;
         }
@@ -272,6 +277,7 @@ public class MaterialServiceImpl implements MaterialService {
         posterTemplate.setCode(material.getUid());
         posterTemplate.setName(material.getName());
         posterTemplate.setGroup(material.getGroupId());
+        posterTemplate.setGroupName(groupName);
         posterTemplate.setCategory(material.getCategoryId());
         posterTemplate.setExample(material.getThumbnail());
         posterTemplate.setSort(material.getSort());
